@@ -24,8 +24,9 @@ import type {
  * and engineer details — everything the admin needs to make a decision.
  */
 export async function getPendingVerifications(): Promise<VerificationCase[]> {
+    // HGH-005: Fixed N+1 query — was running 2 extra queries PER proof in a loop.
+    // Now uses a single query with correlated subqueries for PO and escrow data.
     const result = await query<{
-        // Proof fields
         proof_id: string;
         proof_item_id: string;
         proof_project_id: string;
@@ -37,42 +38,48 @@ export async function getPendingVerifications(): Promise<VerificationCase[]> {
         proof_image_hash: string | null;
         proof_description: string | null;
         proof_device_info: Record<string, unknown> | null;
-        proof_verification_status: string;
         proof_created_at: Date;
-        // Project fields
         project_title: string;
         project_gps_location: string | null;
         project_address_text: string | null;
-        // BOQ fields
         boq_material_name: string;
         boq_material_category: string | null;
         boq_unit_price: number;
         boq_required_quantity: number;
-        // Engineer
         engineer_name: string;
-    }>(
-        `SELECT
-      sp.proof_id,
-      sp.item_id AS proof_item_id,
-      sp.project_id AS proof_project_id,
-      sp.engineer_id AS proof_engineer_id,
-      sp.gps_coordinates AS proof_gps_coordinates,
-      sp.gps_accuracy_meters AS proof_gps_accuracy_meters,
-      sp.captured_at AS proof_captured_at,
-      sp.image_url AS proof_image_url,
-      sp.image_hash AS proof_image_hash,
-      sp.description AS proof_description,
-      sp.device_info AS proof_device_info,
-      sp.verification_status AS proof_verification_status,
-      sp.created_at AS proof_created_at,
-      p.title AS project_title,
-      p.gps_location AS project_gps_location,
-      p.address_text AS project_address_text,
-      b.material_name AS boq_material_name,
-      b.material_category AS boq_material_category,
-      b.unit_price AS boq_unit_price,
-      b.required_quantity AS boq_required_quantity,
-      u.full_name AS engineer_name
+        po_data: unknown;
+        escrow_data: unknown;
+    }>(`
+    SELECT
+      sp.proof_id AS proof_id,
+        sp.item_id AS proof_item_id,
+        sp.project_id AS proof_project_id,
+        sp.engineer_id AS proof_engineer_id,
+        sp.gps_coordinates AS proof_gps_coordinates,
+        sp.gps_accuracy_meters AS proof_gps_accuracy_meters,
+        sp.captured_at AS proof_captured_at,
+        sp.image_url AS proof_image_url,
+        sp.image_hash AS proof_image_hash,
+        sp.description AS proof_description,
+        sp.device_info AS proof_device_info,
+        sp.created_at AS proof_created_at,
+        p.title AS project_title,
+        p.gps_location AS project_gps_location,
+        p.address_text AS project_address_text,
+        b.material_name AS boq_material_name,
+        b.material_category AS boq_material_category,
+        b.unit_price AS boq_unit_price,
+        b.required_quantity AS boq_required_quantity,
+        u.full_name AS engineer_name,
+        (SELECT row_to_json(po.*) FROM purchase_orders po
+       WHERE po.item_id = sp.item_id AND po.project_id = sp.project_id LIMIT 1) AS po_data,
+    (SELECT json_agg(json_build_object(
+        'transaction_id', el.transaction_id,
+        'donor_id', el.donor_id,
+        'amount_locked', el.amount_locked,
+        'payment_status', el.payment_status
+    )) FROM escrow_ledger el
+       WHERE el.item_id = sp.item_id AND el.payment_status = 'locked') AS escrow_data
     FROM spatial_proof sp
     JOIN projects p ON p.project_id = sp.project_id
     JOIN itemized_boq b ON b.item_id = sp.item_id
@@ -81,70 +88,41 @@ export async function getPendingVerifications(): Promise<VerificationCase[]> {
     ORDER BY sp.captured_at ASC`
     );
 
-    // Enrich each case with matching PO and escrow entries
-    const cases: VerificationCase[] = [];
-
-    for (const row of result.rows) {
-        // Fetch matching PO
-        const poResult = await query(
-            'SELECT * FROM purchase_orders WHERE item_id = $1 AND project_id = $2 LIMIT 1',
-            [row.proof_item_id, row.proof_project_id]
-        );
-
-        // Fetch escrow entries for this item
-        const escrowResult = await query<{
-            transaction_id: string;
-            donor_id: string;
-            amount_locked: number;
-            payment_status: string;
-        }>(
-            `SELECT transaction_id, donor_id, amount_locked, payment_status
-       FROM escrow_ledger
-       WHERE item_id = $1 AND payment_status = 'locked'`,
-            [row.proof_item_id]
-        );
-
-        cases.push({
-            proof: {
-                proof_id: row.proof_id,
-                item_id: row.proof_item_id,
-                project_id: row.proof_project_id,
-                engineer_id: row.proof_engineer_id,
-                gps_coordinates: row.proof_gps_coordinates,
-                gps_accuracy_meters: row.proof_gps_accuracy_meters,
-                captured_at: row.proof_captured_at,
-                image_url: row.proof_image_url,
-                image_hash: row.proof_image_hash,
-                description: row.proof_description,
-                device_info: row.proof_device_info,
-                verification_status: 'submitted',
-                verified_by: null,
-                verified_at: null,
-                created_at: row.proof_created_at,
-            },
-            project: {
-                project_id: row.proof_project_id,
-                title: row.project_title,
-                gps_location: row.project_gps_location,
-                address_text: row.project_address_text,
-            },
-            boq_item: {
-                item_id: row.proof_item_id,
-                material_name: row.boq_material_name,
-                material_category: row.boq_material_category,
-                unit_price: row.boq_unit_price,
-                required_quantity: row.boq_required_quantity,
-            },
-            purchase_order: (poResult.rows[0] as VerificationCase['purchase_order']) ?? null,
-            escrow_entries: escrowResult.rows.map((e) => ({
-                transaction_id: e.transaction_id,
-                donor_id: e.donor_id,
-                amount_locked: e.amount_locked,
-                payment_status: e.payment_status as 'locked',
-            })),
-            engineer_name: row.engineer_name,
-        });
-    }
+    const cases: VerificationCase[] = result.rows.map((row) => ({
+        proof: {
+            proof_id: row.proof_id,
+            item_id: row.proof_item_id,
+            project_id: row.proof_project_id,
+            engineer_id: row.proof_engineer_id,
+            gps_coordinates: row.proof_gps_coordinates,
+            gps_accuracy_meters: row.proof_gps_accuracy_meters,
+            captured_at: row.proof_captured_at,
+            image_url: row.proof_image_url,
+            image_hash: row.proof_image_hash,
+            description: row.proof_description,
+            device_info: row.proof_device_info,
+            verification_status: 'submitted',
+            verified_by: null,
+            verified_at: null,
+            created_at: row.proof_created_at,
+        },
+        project: {
+            project_id: row.proof_project_id,
+            title: row.project_title,
+            gps_location: row.project_gps_location,
+            address_text: row.project_address_text,
+        },
+        boq_item: {
+            item_id: row.proof_item_id,
+            material_name: row.boq_material_name,
+            material_category: row.boq_material_category,
+            unit_price: row.boq_unit_price,
+            required_quantity: row.boq_required_quantity,
+        },
+        purchase_order: (row.po_data as VerificationCase['purchase_order']) ?? null,
+        escrow_entries: ((row.escrow_data as VerificationCase['escrow_entries']) ?? []),
+        engineer_name: row.engineer_name,
+    }));
 
     return cases;
 }
@@ -197,9 +175,9 @@ export async function releaseEscrow(
         }>(
             `UPDATE escrow_ledger
        SET payment_status = 'released',
-           released_at = NOW(),
-           released_by = $1,
-           release_proof_id = $2
+        released_at = NOW(),
+        released_by = $1,
+        release_proof_id = $2
        WHERE item_id = $3
          AND payment_status = 'locked'
        RETURNING transaction_id, donor_id, amount_locked`,
@@ -235,7 +213,7 @@ export async function releaseEscrow(
                 user_id: donorId,
                 type: 'delivery_confirmed',
                 title: 'تم التوصيل بنجاح — Delivery Confirmed',
-                body: `${materialName} has been delivered to the project "${projectTitle}" and verified with GPS proof. Your contribution made this possible.`,
+                body: `تم توصيل ${materialName} لمشروع "${projectTitle}" والتحقق منه بإثبات GPS. مساهمتك جعلت هذا ممكناً.\n\n${materialName} has been delivered to the project "${projectTitle}" and verified with GPS proof. Your contribution made this possible.`,
                 data: {
                     project_id: proof.project_id,
                     item_id: dto.item_id,
@@ -269,9 +247,9 @@ export async function flagDiscrepancy(
         const result = await client.query<SpatialProof>(
             `UPDATE spatial_proof
        SET verification_status = 'rejected', verified_by = $1, verified_at = NOW(),
-           description = COALESCE(description, '') || E'\n[REJECTED] ' || $2
+        description = COALESCE(description, '') || E'\n[REJECTED] ' || $2
        WHERE proof_id = $3 AND verification_status = 'submitted'
-       RETURNING *`,
+    RETURNING * `,
             [auditorId, dto.reason, dto.proof_id]
         );
 
@@ -283,7 +261,7 @@ export async function flagDiscrepancy(
             user_id: proof.engineer_id,
             type: 'discrepancy_flagged',
             title: 'تنبيه: تم رفض الدليل — Proof Rejected',
-            body: `Your spatial proof for project ${proof.project_id} was flagged: "${dto.reason}". Please contact the admin for next steps.`,
+            body: `تم رفض الإثبات المكاني لمشروع ${proof.project_id}: "${dto.reason}". يرجى التواصل مع المسؤول.\n\nYour spatial proof for project ${proof.project_id} was flagged: "${dto.reason}". Please contact the admin for next steps.`,
             data: {
                 project_id: proof.project_id,
                 item_id: proof.item_id,

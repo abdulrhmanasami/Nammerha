@@ -114,6 +114,7 @@ export interface ItemizedBOQ {
     funded_amount: number;       // BIGINT cents
     oracle_reference_price: number | null;
     oracle_price_date: Date | null;
+    preferred_supplier_id: string | null;  // Pre-assigned verified supplier
     status: BoqItemStatus;
     created_by: string | null;
     verified_by: string | null;
@@ -235,6 +236,10 @@ export interface BOQFunding {
     image_url: string | null;
     oracle_reference_price: number | null;
     project_title: string;
+    // Supplier transparency (per strategic study §7.1)
+    supplier_id: string | null;
+    supplier_name: string | null;
+    supplier_commercial_reg: string | null;
 }
 
 // ─── Request DTOs ───────────────────────────────────────────────────────────
@@ -259,6 +264,7 @@ export interface AddBOQItemDTO {
     unit_price: number;           // in cents
     required_quantity: number;
     image_url?: string;
+    preferred_supplier_id: string; // Required: pre-assigned verified supplier
 }
 
 export interface CreateDonationDTO {

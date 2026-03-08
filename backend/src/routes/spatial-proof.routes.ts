@@ -44,11 +44,14 @@ router.post('/', requireRole('engineer'), async (req: Request, res: Response) =>
     }
 });
 
-// ─── GET /api/spatial-proof/project/:id — Get Proofs for Project ────────────
+// ─── GET /api/spatial-proof/project/:id — Get Purchase Orders for Project ───
+// P2-NEW-006 FIX: Clarified endpoint purpose. This returns POs (not proofs)
+// because the spatial proof flow is: PO generated → Engineer delivers → Proof submitted.
+// This endpoint shows what POs exist so engineers know what to verify on-site.
 router.get('/project/:id', async (req: Request, res: Response) => {
     try {
-        const pos = await executionService.getProjectPurchaseOrders(String(req.params['id']));
-        res.json({ success: true, data: pos } as ApiResponse);
+        const purchaseOrders = await executionService.getProjectPurchaseOrders(String(req.params['id']));
+        res.json({ success: true, data: purchaseOrders } as ApiResponse);
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         res.status(500).json({ success: false, error: message } as ApiResponse);

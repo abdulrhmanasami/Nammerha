@@ -52,7 +52,7 @@ router.post(
                 return;
             }
 
-            const donorId = String((req as unknown as { user?: { user_id?: string } }).user?.user_id ?? '');
+            const donorId = req.authUser!.user_id;
 
             const result = await paymentService.initiate({
                 donor_id: donorId,
@@ -101,12 +101,22 @@ router.post(
                 return;
             }
 
+            // CRT-003: Verify webhook signature BEFORE processing
+            const rawPayload = JSON.stringify({ reference, gateway, status, gateway_tx_id });
+            if (!paymentService.verifySignature(rawPayload, signature)) {
+                console.error(`[Payment] Webhook signature verification failed for ${reference}`);
+                res.status(401).json({
+                    success: false,
+                    error: 'Invalid webhook signature',
+                });
+                return;
+            }
+
             const result = await paymentService.handleWebhook({
                 reference,
                 gateway,
                 status,
                 gateway_tx_id,
-                signature,
             });
 
             // Always respond 200 to webhooks to prevent retries
@@ -170,8 +180,7 @@ router.get(
     requireRole('donor'),
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const donorId = String((req as unknown as { user?: { user_id?: string } }).user?.user_id ?? '');
-            const payments = await paymentService.getDonorPayments(donorId);
+            const payments = await paymentService.getDonorPayments(req.authUser!.user_id);
 
             res.json({
                 success: true,

@@ -48,7 +48,9 @@
       min-height: max(884px, 100dvh);
     }
   </style>
-  </head>
+  <link href="../i18n/i18n.css" rel="stylesheet"/>
+<script src="../i18n/i18n.js" defer></script>
+</head>
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-300">
 <!-- Top Navbar: Sticky Glassmorphism -->
 <nav class="fixed top-0 left-0 right-0 z-50 glass dark:glass-dark px-4 py-3 flex items-center justify-between gap-3">
@@ -60,7 +62,7 @@
 </div>
 <div class="flex-1 max-w-md mx-2 relative group">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
-<input class="w-full bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search reconstruction projects..." type="text"/>
+<input class="w-full bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search reconstruction projects..." data-i18n-placeholder="Search reconstruction projects..." type="text"/>
 </div>
 <div class="size-10 rounded-full border-2 border-primary/20 overflow-hidden shrink-0">
 <img class="w-full h-full object-cover" data-alt="Professional user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3oa83E0Zshk5KvOI7t8HIW2OzePiS1XiKuve3Wg3NyNEHHzu6PjyQJF6im__KxCjJ8bU_u7MACUciGDc8zy6-7rv-eSbq4JVdxaWUKIROWohgHEk2dIiMlrTv9LF8sFLQO9VaoTNp37rzCO7bWL10y4eBZ1uoEILEd9Ae99SfqGv0USvq9cTowK0LzVSGi1KauW9uFTWD7pb6EN_JlwqefvPnDruHINm8nhBJ-kqKQtXTPXy54qI_PaXA5z8NuT5JJtM21nP8JaAC"/>
@@ -78,11 +80,11 @@
 <!-- Map UI Elements -->
 <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
 <div class="glass dark:glass-dark p-3 rounded-xl max-w-[180px]">
-<p class="text-[10px] uppercase font-bold text-jade mb-1 tracking-wider">Active Region</p>
+<p class="text-[10px] uppercase font-bold text-jade mb-1 tracking-wider" data-i18n="active_region">Active Region</p>
 <h3 class="font-bold text-sm">Beirut Central District</h3>
 <div class="flex items-center gap-1 mt-1">
 <span class="size-2 rounded-full bg-jade animate-pulse"></span>
-<span class="text-[11px] opacity-70">12 Active Projects</span>
+<span class="text-[11px] opacity-70" data-i18n="active_projects">12 Active Projects</span>
 </div>
 </div>
 <div class="flex flex-col gap-2">
@@ -96,8 +98,8 @@
 <!-- Project Cards Section -->
 <section class="mb-8">
 <div class="flex items-center justify-between px-4 mb-4">
-<h2 class="text-lg font-bold">Featured Projects</h2>
-<a class="text-sm text-primary font-semibold flex items-center gap-1" href="#">View all <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
+<h2 class="text-lg font-bold" data-i18n="featured_projects">Featured Projects</h2>
+<a class="text-sm text-primary font-semibold flex items-center gap-1" href="#"><span data-i18n="view_all">View all</span> <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
 </div>
 <!-- Horizontal Scroll -->
 <div class="flex overflow-x-auto gap-4 px-4 pb-4 no-scrollbar">
@@ -123,7 +125,7 @@
 </div>
 <p class="text-slate-500 dark:text-slate-400 text-xs line-clamp-2 mb-4">Reconstruction of the historic facades and structural reinforcement for the community center.</p>
 <button class="mt-auto w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                            Invest Now
+                            <span data-i18n="invest_now">Invest Now</span>
                         </button>
 </div>
 </div>
@@ -149,7 +151,7 @@
 </div>
 <p class="text-slate-500 dark:text-slate-400 text-xs line-clamp-2 mb-4">Applying advanced damping systems to the central business tower in the downtown area.</p>
 <button class="mt-auto w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                            Invest Now
+                            <span data-i18n="invest_now">Invest Now</span>
                         </button>
 </div>
 </div>
@@ -175,7 +177,7 @@
 </div>
 <p class="text-slate-500 dark:text-slate-400 text-xs line-clamp-2 mb-4">Modernizing the municipal registry with resilient infrastructure and green energy.</p>
 <button class="mt-auto w-full bg-primary text-white py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-                            Invest Now
+                            <span data-i18n="invest_now">Invest Now</span>
                         </button>
 </div>
 </div>
@@ -185,13 +187,13 @@
 <section class="px-4 mb-8">
 <div class="bg-slate-900 text-white rounded-2xl p-5 flex justify-between items-center relative overflow-hidden">
 <div class="relative z-10">
-<p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Impact Funded</p>
+<p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1" data-i18n="total_impact">Total Impact Funded</p>
 <h2 class="text-2xl font-bold">$12,450,200</h2>
 <div class="flex items-center gap-2 mt-2">
 <span class="text-jade text-xs font-bold bg-jade/20 px-2 py-0.5 rounded-full flex items-center gap-1">
 <span class="material-symbols-outlined text-[14px]">trending_up</span> +12.5%
                         </span>
-<span class="text-slate-400 text-[10px]">vs last quarter</span>
+<span class="text-slate-400 text-[10px]" data-i18n="vs_quarter">vs last quarter</span>
 </div>
 </div>
 <div class="size-14 bg-accent/20 rounded-full flex items-center justify-center relative z-10">
@@ -208,7 +210,7 @@
 <span class="material-symbols-outlined text-jade text-[28px]">shield</span>
 </div>
 <div>
-<h3 class="font-bold text-sm mb-1">Institutional Transparency</h3>
+<h3 class="font-bold text-sm mb-1" data-i18n="transparency">Institutional Transparency</h3>
 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Nammerha uses the Open Contracting Data Standard (OCDS) for all financial reporting. Every dollar invested is tracked and audited in real-time.
                     </p>
@@ -221,23 +223,23 @@
 <div class="flex items-center justify-around py-2 px-4">
 <a class="flex flex-col items-center gap-1 text-primary" href="#">
 <span class="material-symbols-outlined fill-1">home</span>
-<span class="text-[10px] font-bold">Home</span>
+<span class="text-[10px] font-bold" data-i18n="nav_home">Home</span>
 </a>
 <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
 <span class="material-symbols-outlined">map</span>
-<span class="text-[10px] font-medium">Projects</span>
+<span class="text-[10px] font-medium" data-i18n="nav_projects">Projects</span>
 </a>
 <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
 <span class="material-symbols-outlined">analytics</span>
-<span class="text-[10px] font-medium">Impact</span>
+<span class="text-[10px] font-medium" data-i18n="nav_impact">Impact</span>
 </a>
 <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
 <span class="material-symbols-outlined">account_balance_wallet</span>
-<span class="text-[10px] font-medium">Wallet</span>
+<span class="text-[10px] font-medium" data-i18n="nav_wallet">Wallet</span>
 </a>
 <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
 <span class="material-symbols-outlined">person</span>
-<span class="text-[10px] font-medium">Profile</span>
+<span class="text-[10px] font-medium" data-i18n="nav_profile">Profile</span>
 </a>
 </div>
 <!-- Safe area indicator for modern phones -->

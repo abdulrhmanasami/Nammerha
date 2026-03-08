@@ -1,5 +1,7 @@
 // ============================================================================
 // Nammerha Backend — Notification Routes
+// P2-008 FIX: Reordered routes — /read-all before /:id/read to prevent
+// Express matching 'read-all' as a :id parameter.
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
@@ -41,6 +43,19 @@ router.get('/unread-count', async (req: Request, res: Response) => {
     }
 });
 
+// ─── PATCH /api/notifications/read-all — Mark All as Read ───────────────────
+// P2-008: MUST be registered BEFORE /:id/read to prevent Express from
+// matching 'read-all' as the :id parameter.
+router.patch('/read-all', async (req: Request, res: Response) => {
+    try {
+        const count = await notificationService.markAllAsRead(req.authUser!.user_id);
+        res.json({ success: true, data: { marked_count: count }, message: `${count} notifications marked as read` } as ApiResponse);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ success: false, error: message } as ApiResponse);
+    }
+});
+
 // ─── PATCH /api/notifications/:id/read — Mark Single as Read ────────────────
 router.patch('/:id/read', async (req: Request, res: Response) => {
     try {
@@ -49,17 +64,6 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         res.status(400).json({ success: false, error: message } as ApiResponse);
-    }
-});
-
-// ─── PATCH /api/notifications/read-all — Mark All as Read ───────────────────
-router.patch('/read-all', async (req: Request, res: Response) => {
-    try {
-        const count = await notificationService.markAllAsRead(req.authUser!.user_id);
-        res.json({ success: true, data: { marked_count: count }, message: `${count} notifications marked as read` } as ApiResponse);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
     }
 });
 

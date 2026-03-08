@@ -36,4 +36,18 @@ router.get('/projects/:id/boq', async (req: Request, res: Response) => {
     }
 });
 
+// ─── GET /api/marketplace/suppliers — List Verified Suppliers ────────────────
+// Per strategic study §7.1: engineers select pre-assigned suppliers for BOQ items.
+// Donors also see supplier names in the basket UI for transparency.
+router.get('/suppliers', async (_req: Request, res: Response) => {
+    try {
+        const suppliers = await crowdfundingService.getVerifiedSuppliers();
+        const response: ApiResponse = { success: true, data: suppliers };
+        res.json(response);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ success: false, error: message } as ApiResponse);
+    }
+});
+
 export default router;

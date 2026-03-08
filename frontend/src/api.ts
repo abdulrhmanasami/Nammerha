@@ -56,22 +56,29 @@ async function request<T>(
 export const projects = {
     create: (data: {
         title: string;
-        damage_type: string;
+        damage_type: 'structural' | 'plumbing' | 'electrical' | 'mixed';
+        damage_severity?: 'minor' | 'moderate' | 'severe' | 'total_destruction';
         description?: string;
         gps_lat: number;
         gps_lng: number;
         address_text?: string;
+        cover_image_url?: string;
     }) => request('/projects', { method: 'POST', body: JSON.stringify(data) }),
 
     assignEngineer: (projectId: string) =>
         request(`/projects/${projectId}/assign-engineer`, { method: 'POST' }),
 
+    // P1-001 FIX: Schema now mirrors backend AddBOQItemDTO exactly.
+    // preferred_supplier_id is REQUIRED — backend INSERT fails without it.
     addBOQItem: (projectId: string, data: {
         material_name: string;
         material_category?: string;
+        description?: string;
         unit: string;
-        unit_price: number;
+        unit_price: number;              // in cents (BIGINT)
         required_quantity: number;
+        image_url?: string;
+        preferred_supplier_id: string;   // Required: pre-assigned verified supplier
     }) => request(`/projects/${projectId}/boq`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -89,9 +96,10 @@ export const projects = {
 
 // ─── Marketplace (Path 2 — Public) ──────────────────────────────────────────
 export const marketplace = {
-    getProjects: (params?: { status?: string; limit?: number; offset?: number }) => {
+    getProjects: (params?: { damage_type?: string; sort_by?: 'funded_percentage' | 'published_at'; limit?: number; offset?: number }) => {
         const qs = new URLSearchParams();
-        if (params?.status) qs.set('status', params.status);
+        if (params?.damage_type) qs.set('damage_type', params.damage_type);
+        if (params?.sort_by) qs.set('sort_by', params.sort_by);
         if (params?.limit) qs.set('limit', String(params.limit));
         if (params?.offset) qs.set('offset', String(params.offset));
         const query = qs.toString();
@@ -105,15 +113,13 @@ export const marketplace = {
 // ─── Donations (Path 2 — Authenticated) ─────────────────────────────────────
 export const donations = {
     create: (data: {
-        item_id: string;
-        project_id: string;
-        amount: number;
+        items: Array<{ item_id: string; amount: number }>;
         payment_method?: string;
     }) => request('/donations', { method: 'POST', body: JSON.stringify(data) }),
 
-    getMyEscrow: () => request('/donations/escrow/summary'),
+    getMyEscrow: () => request('/donations/my/summary'),
 
-    getMyHistory: () => request('/donations/history'),
+    getMyHistory: () => request('/donations/my/history'),
 };
 
 // ─── Spatial Proof (Path 3) ─────────────────────────────────────────────────
@@ -163,4 +169,271 @@ export const notifications = {
 // ─── Health Check ───────────────────────────────────────────────────────────
 export const health = {
     check: () => fetch('/health').then(r => r.json()),
+};
+
+// ─── P2-NEW-002 FIX: Complete API client coverage for all backend routes ────
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+export const auth = {
+    register: (data: {
+        email: string;
+        password: string;
+        full_name: string;
+        role: 'homeowner' | 'engineer' | 'donor' | 'supplier';
+    }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+
+    login: (data: { email: string; password: string }) =>
+        request<{ token: string; user: unknown }>('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+};
+
+// ─── Payments ───────────────────────────────────────────────────────────────
+export const payments = {
+    initiate: (data: {
+        item_id: string;
+        project_id: string;
+        amount: number;
+        gateway: 'visa' | 'fatora';
+        currency?: string;
+        return_url?: string;
+    }) => request('/payments/initiate', { method: 'POST', body: JSON.stringify(data) }),
+
+    getStatus: (reference: string) =>
+        request(`/payments/status/${reference}`),
+
+    getMyPayments: () =>
+        request('/payments/my'),
+};
+
+// ─── Matchmaking ────────────────────────────────────────────────────────────
+export const matchmaking = {
+    searchEngineers: (params?: {
+        lat?: number;
+        lng?: number;
+        max_distance_km?: number;
+        specialty?: string;
+        query?: string;
+        min_score?: number;
+        limit?: number;
+    }) => {
+        const qs = new URLSearchParams();
+        if (params) {
+            Object.entries(params).forEach(([k, v]) => {
+                if (v !== undefined) qs.set(k, String(v));
+            });
+        }
+        const query = qs.toString();
+        return request(`/matchmaking/search${query ? `?${query}` : ''}`);
+    },
+
+    matchProject: (projectId: string) =>
+        request(`/matchmaking/match/${projectId}`),
+
+    submitBid: (projectId: string, data: {
+        proposed_cost: number;
+        estimated_days: number;
+        cover_letter?: string;
+        methodology?: string;
+    }) => request(`/matchmaking/projects/${projectId}/bid`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    getProjectBids: (projectId: string) =>
+        request(`/matchmaking/projects/${projectId}/bids`),
+
+    acceptBid: (bidId: string) =>
+        request(`/matchmaking/bids/${bidId}/accept`, { method: 'POST' }),
+
+    getScoreBreakdown: (engineerId: string) =>
+        request(`/matchmaking/engineers/${engineerId}/score`),
+};
+
+// ─── EPA Oracle ─────────────────────────────────────────────────────────────
+export const epaOracle = {
+    getPrices: (materialCode?: string) => {
+        const qs = materialCode ? `?material_code=${encodeURIComponent(materialCode)}` : '';
+        return request(`/oracle/prices${qs}`);
+    },
+
+    upsertPrice: (data: {
+        material_code: string;
+        material_name: string;
+        unit: string;
+        base_price: number;
+        current_price: number;
+    }) => request('/oracle/prices', { method: 'POST', body: JSON.stringify(data) }),
+
+    // P2-006 FIX: Schema now mirrors backend CalculateEPADTO + FIDICParams.
+    calculateAdjustment: (data: {
+        project_id: string;
+        milestone_id?: string;
+        fidic_params: {
+            a: number; b: number; c: number; d: number;  // coefficients (a+b+c+d=1.0)
+            Ln: number; En: number; Mn: number;           // current indices
+            Lo: number; Eo: number; Mo: number;           // base indices
+        };
+        original_amount: number;       // in cents
+    }) => request('/oracle/calculate', { method: 'POST', body: JSON.stringify(data) }),
+
+    getHistory: (projectId: string) =>
+        request(`/oracle/history/${projectId}`),
+};
+
+// ─── Project Dashboard ──────────────────────────────────────────────────────
+export const dashboard = {
+    getOverview: (projectId: string) =>
+        request(`/dashboard/${projectId}/overview`),
+
+    getDailyLogs: (projectId: string) =>
+        request(`/dashboard/${projectId}/logs`),
+
+    // P2-006 FIX: Schema now mirrors backend CreateDailyLogDTO.
+    submitLog: (projectId: string, data: {
+        description: string;
+        work_completed?: string;
+        issues_encountered?: string;
+        weather_conditions?: string;
+        workers_on_site?: number;
+        images?: string[];
+    }) => request(`/dashboard/${projectId}/logs`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    // P2-006 FIX: Schema now mirrors backend CreateApprovalDTO.
+    createApproval: (projectId: string, data: {
+        item_id?: string;
+        title: string;
+        description?: string;
+        material_sample_url?: string;
+        material_options?: unknown[];
+    }) => request(`/dashboard/${projectId}/approvals`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    // P2-006 FIX: Parameter name matches backend respondToApproval.
+    respondToApproval: (approvalId: string, data: {
+        decision: 'approved' | 'rejected';
+        note?: string;
+    }) => request(`/dashboard/approvals/${approvalId}/respond`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+};
+
+// ─── Reality Capture ────────────────────────────────────────────────────────
+export const realityCapture = {
+    // P2-006 FIX: Schema now mirrors backend SubmitCaptureDTO.
+    // construction_phase is REQUIRED. Removed phantom floor_level/room_tag.
+    submitCapture: (projectId: string, data: {
+        capture_type?: 'photo_360' | 'video_360' | 'point_cloud' | 'photo_standard';
+        construction_phase: 'demolition' | 'foundation' | 'structural'
+        | 'plumbing_pre_concrete' | 'electrical_pre_concrete' | 'concrete_pour'
+        | 'masonry' | 'plastering' | 'finishing' | 'final_inspection';
+        title?: string;
+        description?: string;
+        file_url: string;
+        thumbnail_url?: string;
+        file_size_bytes?: number;
+        camera_model?: string;
+        horizontal_fov?: number;
+        heading?: number;
+        pitch?: number;
+        gps_lat?: number;
+        gps_lng?: number;
+        gps_accuracy_meters?: number;
+        altitude_meters?: number;
+        floor_plan_id?: string;
+    }) => request(`/reality-capture/projects/${projectId}/captures`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    getCaptures: (projectId: string) =>
+        request(`/reality-capture/projects/${projectId}/captures`),
+
+    verifyCapture: (captureId: string, data: {
+        verified: boolean;
+        notes?: string;
+    }) => request(`/reality-capture/captures/${captureId}/verify`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    getFloorPlans: (projectId: string) =>
+        request(`/reality-capture/projects/${projectId}/floor-plans`),
+};
+
+// ─── Open Data (Public) ─────────────────────────────────────────────────────
+export const openData = {
+    getProjectListings: (params?: { limit?: number; offset?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.limit) qs.set('limit', String(params.limit));
+        if (params?.offset) qs.set('offset', String(params.offset));
+        const query = qs.toString();
+        return request(`/open-data/projects${query ? `?${query}` : ''}`);
+    },
+
+    getProjectCard: (projectId: string) =>
+        request(`/open-data/projects/${projectId}`),
+
+    getOCDSRelease: (projectId: string) =>
+        request(`/open-data/ocds/${projectId}`),
+
+    getStats: () =>
+        request('/open-data/stats'),
+
+    exportReport: (projectId: string, format: 'pdf' | 'xlsx') =>
+        request(`/open-data/export/${projectId}?format=${format}`),
+};
+
+// ─── Compliance ─────────────────────────────────────────────────────────────
+export const compliance = {
+    screenSDN: (data: { full_name: string; country?: string }) =>
+        request('/compliance/sdn/screen', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    getExportControls: () =>
+        request('/compliance/export-controls'),
+
+    getSecurityEvents: (params?: { severity?: string; limit?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.severity) qs.set('severity', params.severity);
+        if (params?.limit) qs.set('limit', String(params.limit));
+        const query = qs.toString();
+        return request(`/compliance/security-events${query ? `?${query}` : ''}`);
+    },
+};
+
+// ─── Translation ────────────────────────────────────────────────────────────
+export const translation = {
+    translate: (data: {
+        text: string;
+        source_lang: string;
+        target_lang: string;
+    }) => request('/translation/translate', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    batchTranslate: (data: {
+        items: string[];
+        source_lang: string;
+        target_lang: string;
+    }) => request('/translation/batch', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    getGlossary: () =>
+        request('/translation/glossary'),
+
+    getSupportedLanguages: () =>
+        request('/translation/languages'),
 };

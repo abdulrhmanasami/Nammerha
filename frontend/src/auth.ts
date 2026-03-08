@@ -56,40 +56,51 @@ export function hasRole(...roles: UserRole[]): boolean {
 }
 
 // ─── Development Helpers ────────────────────────────────────────────────────
-// Quick role switching for development/demo purposes
+// P2-007 FIX: Use import.meta.env.DEV (Vite resolves at build time) instead of
+// process.env.NODE_ENV which is unreliable in browser context.
 
-const DEV_USERS: Record<string, AuthUser> = {
-    homeowner: {
-        user_id: 'dev-homeowner-001',
-        full_name: 'أحمد كريم',
-        role: 'homeowner',
-        email: 'ahmad@example.com',
-        kyc_verified: true,
-    },
-    engineer: {
-        user_id: 'dev-engineer-001',
-        full_name: 'خالد المهندس',
-        role: 'engineer',
-        email: 'khalid@example.com',
-        kyc_verified: true,
-    },
-    donor: {
-        user_id: 'dev-donor-001',
-        full_name: 'Sarah Johnson',
-        role: 'donor',
-        email: 'sarah@example.com',
-        kyc_verified: true,
-    },
-    admin: {
-        user_id: 'dev-admin-001',
-        full_name: 'مدير النظام',
-        role: 'admin',
-        email: 'admin@nammerha.org',
-        kyc_verified: true,
-    },
-};
+const IS_DEV: boolean = import.meta.env.DEV === true;
+
+// DEV_USERS are only populated in development builds.
+// In production, Vite's dead-code elimination strips this entire block.
+const DEV_USERS: Record<string, AuthUser> = IS_DEV
+    ? {
+        homeowner: {
+            user_id: 'dev-homeowner-001',
+            full_name: 'أحمد كريم',
+            role: 'homeowner',
+            email: 'ahmad@example.com',
+            kyc_verified: true,
+        },
+        engineer: {
+            user_id: 'dev-engineer-001',
+            full_name: 'خالد المهندس',
+            role: 'engineer',
+            email: 'khalid@example.com',
+            kyc_verified: true,
+        },
+        donor: {
+            user_id: 'dev-donor-001',
+            full_name: 'Sarah Johnson',
+            role: 'donor',
+            email: 'sarah@example.com',
+            kyc_verified: true,
+        },
+        admin: {
+            user_id: 'dev-admin-001',
+            full_name: 'مدير النظام',
+            role: 'admin',
+            email: 'admin@nammerha.org',
+            kyc_verified: true,
+        },
+    }
+    : {};
 
 export function devLogin(role: UserRole): void {
+    if (!IS_DEV) {
+        console.warn('[AUTH] devLogin is disabled in production');
+        return;
+    }
     const user = DEV_USERS[role];
     if (user) {
         setCurrentUser(user);
@@ -97,6 +108,8 @@ export function devLogin(role: UserRole): void {
     }
 }
 
-export function getDevUsers(): typeof DEV_USERS {
+export function getDevUsers(): Record<string, AuthUser> {
+    if (!IS_DEV) { return {}; }
     return DEV_USERS;
 }
+

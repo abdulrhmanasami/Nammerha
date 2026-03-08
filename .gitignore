@@ -26,3 +26,12 @@ reports/
 
 # ZAP reports
 reports/zap-*.html
+
+# Security — Private keys and certificates
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+database/tls/

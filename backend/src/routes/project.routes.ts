@@ -54,10 +54,10 @@ router.post('/:id/boq', requireRole('engineer'), async (req: Request, res: Respo
     try {
         const dto = req.body as AddBOQItemDTO;
 
-        if (!dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null) {
+        if (!dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null || !dto.preferred_supplier_id) {
             const response: ApiResponse = {
                 success: false,
-                error: 'Missing required fields: material_name, unit, unit_price, required_quantity',
+                error: 'Missing required fields: material_name, unit, unit_price, required_quantity, preferred_supplier_id',
             };
             res.status(400).json(response);
             return;
@@ -92,26 +92,42 @@ router.patch('/:id/publish', requireRole('engineer'), async (req: Request, res: 
     }
 });
 
-// ─── GET /api/projects/:id — Get Project Details ────────────────────────────
+// ─── GET /api/projects/my/list ──────────────────────────────────────────────
+// IMPORTANT: Must be defined BEFORE /:id to prevent Express matching "my" as :id
+router.get(
+    '/my/list',
+    requireRole('homeowner'),
+    async (req: Request, res: Response) => {
+        try {
+            const projects = await projectService.getHomeownerProjects(req.authUser!.user_id);
+            const response: ApiResponse = {
+                success: true,
+                data: projects,
+            };
+            res.json(response);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            res.status(500).json({ success: false, error: message } as ApiResponse);
+        }
+    }
+);
+
+// ─── GET /api/projects/:id ──────────────────────────────────────────────────
 router.get('/:id', async (req: Request, res: Response) => {
     try {
         const project = await projectService.getProjectById(String(req.params['id']));
         if (!project) {
-            res.status(404).json({ success: false, error: 'Project not found' } as ApiResponse);
+            res.status(404).json({
+                success: false,
+                error: `Project ${req.params['id']} not found`,
+            } as ApiResponse);
             return;
         }
-        res.json({ success: true, data: project } as ApiResponse);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
-    }
-});
-
-// ─── GET /api/projects/my/list — Get My Projects (Homeowner) ────────────────
-router.get('/my/list', requireRole('homeowner'), async (req: Request, res: Response) => {
-    try {
-        const projects = await projectService.getHomeownerProjects(req.authUser!.user_id);
-        res.json({ success: true, data: projects } as ApiResponse);
+        const response: ApiResponse = {
+            success: true,
+            data: project,
+        };
+        res.json(response);
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         res.status(500).json({ success: false, error: message } as ApiResponse);

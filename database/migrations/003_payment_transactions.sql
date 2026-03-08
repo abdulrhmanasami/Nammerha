@@ -2,6 +2,7 @@
 -- Migration 003: Payment Transactions Table
 -- Supports Visa + Fatora gateway integration with escrow linkage
 -- ============================================================================
+BEGIN;
 CREATE TABLE IF NOT EXISTS payment_transactions (
     payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     reference VARCHAR(50) UNIQUE NOT NULL,
@@ -31,3 +32,4 @@ CREATE INDEX IF NOT EXISTS idx_payment_transactions_donor ON payment_transaction
 CREATE INDEX IF NOT EXISTS idx_payment_transactions_status ON payment_transactions(status);
 CREATE INDEX IF NOT EXISTS idx_payment_transactions_gateway ON payment_transactions(gateway);
 COMMENT ON TABLE payment_transactions IS 'Payment records for Visa/Fatora gateway transactions linked to BOQ item donations';
+COMMIT;

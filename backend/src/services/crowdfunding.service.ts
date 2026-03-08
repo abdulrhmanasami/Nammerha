@@ -7,6 +7,7 @@
 //   3. Payment processed → funds locked in escrow
 //   4. If item reaches fully_funded → triggers auto-PO generation
 // ============================================================================
+import crypto from 'crypto';
 import { query, transaction } from '../config/database';
 import type {
     ProjectCard,
@@ -103,9 +104,26 @@ export async function createDonation(
                 throw new Error(`BOQ item ${fundItem.item_id} not found`);
             }
 
-            // 2. Calculate remaining need
-            const totalCost = Math.floor(boqItem.unit_price * boqItem.required_quantity);
-            const remainingNeed = totalCost - boqItem.funded_amount;
+            // 2. Calculate remaining need (P2-001 FIX: integer-safe arithmetic)
+            // unit_price is BIGINT cents, required_quantity is DECIMAL(12,2).
+            // PostgreSQL returns these as strings. We use integer math to avoid
+            // IEEE 754 precision loss for values > 2^53.
+            //
+            // Strategy: Convert required_quantity to integer by multiplying by 100,
+            // multiply with unit_price, then divide by 100 — all in BigInt.
+            const priceStr = String(boqItem.unit_price);
+            const qtyStr = String(boqItem.required_quantity);
+            const fundedStr = String(boqItem.funded_amount);
+
+            // Parse quantity as fixed-point integer (multiply by 100 to preserve 2 decimal places)
+            const qtyParts = qtyStr.split('.');
+            const qtyIntPart = qtyParts[0] ?? '0';
+            const qtyDecPart = (qtyParts[1] ?? '').padEnd(2, '0').slice(0, 2);
+            const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
+
+            // totalCost = (unit_price * qty_fixed) / 100  (integer result)
+            const totalCost = Number((BigInt(priceStr) * qtyFixed) / 100n);
+            const remainingNeed = totalCost - Number(BigInt(fundedStr));
 
             if (remainingNeed <= 0) {
                 throw new Error(`BOQ item '${fundItem.item_id}' is already fully funded`);
@@ -118,7 +136,8 @@ export async function createDonation(
             }
 
             // 4. Process payment (placeholder — in production, call payment gateway)
-            const gatewayRef = `PAY-${dto.payment_method.toUpperCase()}-${Date.now()}`;
+            // P3-002: Use crypto.randomUUID() instead of Date.now() to prevent collisions
+            const gatewayRef = `PAY-${dto.payment_method.toUpperCase()}-${crypto.randomUUID()}`;
 
             // 5. Create escrow entry (locked)
             const escrowResult = await client.query<EscrowLedger>(
@@ -175,7 +194,8 @@ export async function createDonation(
 
 /**
  * Auto-generates a Purchase Order when a BOQ item is fully funded.
- * Selects the best supplier: KYC-verified, active, matching material category.
+ * Uses the pre-assigned verified supplier from the BOQ item (per strategic study §7.2).
+ * Fallback: if no preferred supplier (legacy data), selects random verified supplier with warning.
  */
 async function autoGeneratePO(
     client: {
@@ -184,42 +204,83 @@ async function autoGeneratePO(
     itemId: string,
     projectId: string
 ): Promise<void> {
-    // 1. Get BOQ item details
+    // 1. Get BOQ item details INCLUDING preferred supplier
     const boqResult = await client.query<{
         material_name: string;
         material_category: string | null;
         unit: string;
         unit_price: number;
         required_quantity: number;
+        preferred_supplier_id: string | null;
     }>(
-        'SELECT material_name, material_category, unit, unit_price, required_quantity FROM itemized_boq WHERE item_id = $1',
+        `SELECT material_name, material_category, unit, unit_price,
+                required_quantity, preferred_supplier_id
+         FROM itemized_boq WHERE item_id = $1`,
         [itemId]
     );
     const boqItem = boqResult.rows[0];
-    if (!boqItem) return;
+    if (!boqItem) { return; }
 
-    // 2. Find best supplier (active, verified, matching category)
-    const supplierResult = await client.query<{
-        user_id: string;
-        full_name: string;
-        commercial_register_number: string | null;
-    }>(
-        `SELECT user_id, full_name, commercial_register_number
-     FROM users
-     WHERE role = 'supplier'
-       AND is_active = TRUE
-       AND kyc_verification_status = 'verified'
-     ORDER BY RANDOM()
-     LIMIT 1`
-    );
-    const supplier = supplierResult.rows[0];
-    if (!supplier) {
-        console.warn(`[PO] No verified supplier available for item ${itemId}`);
-        return;
+    let supplierId: string;
+    let supplierName: string;
+    let supplierCommercialReg: string | null;
+
+    if (boqItem.preferred_supplier_id) {
+        // 2a. Use pre-assigned supplier (standard path per study)
+        const supplierResult = await client.query<{
+            user_id: string;
+            full_name: string;
+            commercial_register_number: string | null;
+        }>(
+            `SELECT user_id, full_name, commercial_register_number
+             FROM users
+             WHERE user_id = $1
+               AND role = 'supplier'
+               AND is_active = TRUE
+               AND kyc_verification_status = 'verified'`,
+            [boqItem.preferred_supplier_id]
+        );
+        const supplier = supplierResult.rows[0];
+        if (!supplier) {
+            console.error(`[PO] Pre-assigned supplier ${boqItem.preferred_supplier_id} is no longer active/verified for item ${itemId}`);
+            return;
+        }
+        supplierId = supplier.user_id;
+        supplierName = supplier.full_name;
+        supplierCommercialReg = supplier.commercial_register_number;
+    } else {
+        // 2b. Legacy fallback: random verified supplier (items created before migration 009)
+        console.warn(`[PO] Item ${itemId} has no preferred_supplier_id — using legacy random selection`);
+        const supplierResult = await client.query<{
+            user_id: string;
+            full_name: string;
+            commercial_register_number: string | null;
+        }>(
+            `SELECT user_id, full_name, commercial_register_number
+             FROM users
+             WHERE role = 'supplier'
+               AND is_active = TRUE
+               AND kyc_verification_status = 'verified'
+             ORDER BY RANDOM()
+             LIMIT 1`
+        );
+        const supplier = supplierResult.rows[0];
+        if (!supplier) {
+            console.warn(`[PO] No verified supplier available for item ${itemId}`);
+            return;
+        }
+        supplierId = supplier.user_id;
+        supplierName = supplier.full_name;
+        supplierCommercialReg = supplier.commercial_register_number;
     }
 
-    // 3. Generate PO
-    const totalAmount = Math.floor(boqItem.unit_price * boqItem.required_quantity);
+    // 3. Generate PO — P1-002 FIX: BigInt-safe arithmetic (matches donate() pattern)
+    // unit_price is BIGINT cents, required_quantity may have up to 2 decimal places
+    const qtyParts = String(boqItem.required_quantity).split('.');
+    const qtyIntPart = qtyParts[0] ?? '0';
+    const qtyDecPart = (qtyParts[1] ?? '').padEnd(2, '0').slice(0, 2);
+    const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
+    const totalAmount = Number((BigInt(boqItem.unit_price) * qtyFixed) / 100n);
 
     await client.query(
         `INSERT INTO purchase_orders (
@@ -233,19 +294,19 @@ async function autoGeneratePO(
         [
             itemId,
             projectId,
-            supplier.user_id,
+            supplierId,
             totalAmount,
             boqItem.material_name,
             boqItem.material_category,
             boqItem.required_quantity,
             boqItem.unit,
             boqItem.unit_price,
-            supplier.full_name,
-            supplier.commercial_register_number,
+            supplierName,
+            supplierCommercialReg,
         ]
     );
 
-    console.log(`[PO] Auto-generated purchase order for item ${itemId} → supplier ${supplier.full_name}`);
+    console.log(`[PO] Auto-generated purchase order for item ${itemId} → supplier ${supplierName}`);
 }
 
 // ─── Donor Queries ──────────────────────────────────────────────────────────
@@ -273,6 +334,31 @@ export async function getDonorDonations(donorId: string): Promise<EscrowLedger[]
      WHERE e.donor_id = $1
      ORDER BY e.locked_at DESC`,
         [donorId]
+    );
+    return result.rows;
+}
+
+// ─── Supplier Network ───────────────────────────────────────────────────────
+
+/**
+ * List all verified, active suppliers for the engineer BOQ picker.
+ * Per strategic study §7.2: engineers select pre-assigned suppliers when adding BOQ items.
+ * Per strategic study §7.1: donors see supplier name in the basket UI for transparency.
+ */
+export async function getVerifiedSuppliers(): Promise<
+    { user_id: string; full_name: string; commercial_register_number: string | null }[]
+> {
+    const result = await query<{
+        user_id: string;
+        full_name: string;
+        commercial_register_number: string | null;
+    }>(
+        `SELECT user_id, full_name, commercial_register_number
+         FROM users
+         WHERE role = 'supplier'
+           AND is_active = TRUE
+           AND kyc_verification_status = 'verified'
+         ORDER BY full_name ASC`
     );
     return result.rows;
 }

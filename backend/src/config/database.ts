@@ -1,10 +1,57 @@
 // ============================================================================
 // Nammerha Backend — PostgreSQL Connection Pool
+// TLS: Supports sslmode=require|verify-ca for inter-container encryption.
 // ============================================================================
 import { Pool, PoolClient, PoolConfig, QueryResult, QueryResultRow } from 'pg';
-import dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as tls from 'tls';
 
-dotenv.config();
+// NOTE: dotenv.config() is called in server.ts before this module is imported.
+// Do NOT call it again here — duplicate calls can cause race conditions.
+
+// ─── SSL Configuration (PCI DSS 4.1: encrypt data-in-transit) ──────────────
+
+function buildSslConfig(): tls.ConnectionOptions | false {
+    const dbUrl = process.env['DATABASE_URL'] ?? '';
+    const sslRootCert = process.env['PGSSLROOTCERT'];
+
+    // Parse sslmode from connection string
+    const sslModeMatch = dbUrl.match(/[?&]sslmode=([^&]+)/);
+    const sslMode = sslModeMatch?.[1];
+
+    if (!sslMode || sslMode === 'disable' || sslMode === 'prefer') {
+        // Development / no SSL
+        return false;
+    }
+
+    if (sslMode === 'require') {
+        // Encrypt traffic, but don't verify server certificate
+        return { rejectUnauthorized: false };
+    }
+
+    if (sslMode === 'verify-ca' || sslMode === 'verify-full') {
+        // Encrypt traffic AND verify server certificate against CA
+        if (!sslRootCert) {
+            throw new Error(
+                `[DB] sslmode=${sslMode} requires PGSSLROOTCERT env var pointing to CA certificate`
+            );
+        }
+        if (!fs.existsSync(sslRootCert)) {
+            throw new Error(
+                `[DB] CA certificate not found at ${sslRootCert}. Run database/tls/generate-certs.sh first.`
+            );
+        }
+        return {
+            rejectUnauthorized: true,
+            ca: fs.readFileSync(sslRootCert, 'utf-8'),
+        };
+    }
+
+    // Unknown sslmode — fail secure
+    throw new Error(`[DB] Unknown sslmode: "${sslMode}". Use disable, require, verify-ca, or verify-full.`);
+}
+
+const sslConfig = buildSslConfig();
 
 const poolConfig: PoolConfig = {
     connectionString: process.env['DATABASE_URL'],
@@ -12,13 +59,15 @@ const poolConfig: PoolConfig = {
     max: parseInt(process.env['DB_POOL_MAX'] ?? '10', 10),
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
+    ...(sslConfig !== false && { ssl: sslConfig }),
 };
 
 const pool = new Pool(poolConfig);
 
 pool.on('error', (err: Error) => {
-    console.error('[DB] Unexpected pool error:', err.message);
-    process.exit(1);
+    // HGH-007: Do NOT call process.exit(1) — a single transient error should not kill
+    // the process and abort all in-flight requests. The pool self-recovers.
+    console.error('[DB] Unexpected pool error (pool will attempt recovery):', err.message);
 });
 
 pool.on('connect', () => {

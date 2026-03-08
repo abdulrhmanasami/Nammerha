@@ -27,10 +27,10 @@ interface APMConfig {
 
 function getAPMConfig(): APMConfig {
     return {
-        provider: (process.env.APM_PROVIDER as APMConfig['provider']) || 'none',
-        serviceName: process.env.APM_SERVICE_NAME || 'nammerha-backend',
-        environment: process.env.NODE_ENV || 'development',
-        version: process.env.npm_package_version || '1.0.0',
+        provider: (process.env['APM_PROVIDER'] as APMConfig['provider']) || 'none',
+        serviceName: process.env['APM_SERVICE_NAME'] || 'nammerha-backend',
+        environment: process.env['NODE_ENV'] || 'development',
+        version: process.env['npm_package_version'] || '1.0.0',
     };
 }
 

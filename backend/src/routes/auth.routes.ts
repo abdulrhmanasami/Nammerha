@@ -13,6 +13,18 @@ const router = Router();
 
 const BCRYPT_SALT_ROUNDS = 12;
 
+// RFC 5322 simplified email validation
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+// Password complexity: min 8 chars, 1 upper, 1 lower, 1 digit, 1 special
+const PASSWORD_RULES = [
+    { test: (p: string) => p.length >= 8, msg: 'at least 8 characters' },
+    { test: (p: string) => /[A-Z]/.test(p), msg: 'at least one uppercase letter' },
+    { test: (p: string) => /[a-z]/.test(p), msg: 'at least one lowercase letter' },
+    { test: (p: string) => /[0-9]/.test(p), msg: 'at least one digit' },
+    { test: (p: string) => /[^A-Za-z0-9]/.test(p), msg: 'at least one special character' },
+];
+
 // Valid roles for self-registration (admin/auditor require manual creation)
 const SELF_REGISTER_ROLES: UserRole[] = ['donor', 'homeowner', 'engineer', 'supplier'];
 
@@ -47,11 +59,24 @@ router.post(
                 return;
             }
 
-            // Validate password strength (minimum 8 chars)
-            if (password.length < 8) {
+            // Validate email format
+            if (!EMAIL_REGEX.test(email)) {
                 res.status(400).json({
                     success: false,
-                    error: 'Password must be at least 8 characters',
+                    error: 'Invalid email format',
+                } as ApiResponse);
+                return;
+            }
+
+            // Validate password complexity
+            const failedRules = PASSWORD_RULES
+                .filter(rule => !rule.test(password))
+                .map(rule => rule.msg);
+
+            if (failedRules.length > 0) {
+                res.status(400).json({
+                    success: false,
+                    error: `Password must contain: ${failedRules.join(', ')}`,
                 } as ApiResponse);
                 return;
             }

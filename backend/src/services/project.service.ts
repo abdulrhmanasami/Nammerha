@@ -123,6 +123,7 @@ export async function assignEngineer(
 /**
  * Engineer adds an itemized BOQ (Bill of Quantities) item to a project.
  * Validates engineer is assigned to the project.
+ * Validates preferred supplier is KYC-verified and active.
  * Auto-fetches oracle reference price if available.
  */
 export async function addBOQItem(
@@ -137,7 +138,7 @@ export async function addBOQItem(
             [projectId]
         );
         const project = projectResult.rows[0];
-        if (!project) throw new Error(`Project ${projectId} not found`);
+        if (!project) { throw new Error(`Project ${projectId} not found`); }
         if (project.assigned_engineer_id !== engineerId) {
             throw new Error('You are not assigned to this project');
         }
@@ -145,7 +146,29 @@ export async function addBOQItem(
             throw new Error(`Cannot add BOQ items: project status is '${project.status}'`);
         }
 
-        // 2. Fetch oracle reference price (best match)
+        // 2. Validate preferred supplier (per strategic study §7.2)
+        // Supplier must be KYC-verified, active, and have role='supplier'
+        const supplierResult = await client.query<{
+            user_id: string;
+            full_name: string;
+            kyc_verification_status: string;
+        }>(
+            `SELECT user_id, full_name, kyc_verification_status
+             FROM users
+             WHERE user_id = $1
+               AND role = 'supplier'
+               AND is_active = TRUE`,
+            [dto.preferred_supplier_id]
+        );
+        const supplier = supplierResult.rows[0];
+        if (!supplier) {
+            throw new Error('Preferred supplier not found or is not an active supplier');
+        }
+        if (supplier.kyc_verification_status !== 'verified') {
+            throw new Error(`Supplier "${supplier.full_name}" has not passed KYC verification`);
+        }
+
+        // 3. Fetch oracle reference price (best match)
         const oracleResult = await client.query<{
             current_price: number;
             recorded_at: Date;
@@ -159,13 +182,13 @@ export async function addBOQItem(
         );
         const oracle = oracleResult.rows[0];
 
-        // 3. Insert BOQ item
+        // 4. Insert BOQ item with pre-assigned supplier
         const boqResult = await client.query<ItemizedBOQ>(
             `INSERT INTO itemized_boq (
         project_id, material_name, material_category, description, unit,
         unit_price, required_quantity, image_url, oracle_reference_price,
-        oracle_price_date, status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_verification', $11)
+        oracle_price_date, preferred_supplier_id, status, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending_verification', $12)
       RETURNING *`,
             [
                 projectId,
@@ -178,11 +201,12 @@ export async function addBOQItem(
                 dto.image_url ?? null,
                 oracle?.current_price ?? null,
                 oracle?.recorded_at ?? null,
+                dto.preferred_supplier_id,
                 engineerId,
             ]
         );
 
-        // 4. Update project status to 'assessed' if still 'pending_assessment'
+        // 5. Update project status to 'assessed' if still 'pending_assessment'
         if (project.status === 'pending_assessment') {
             await client.query(
                 "UPDATE projects SET status = 'assessed' WHERE project_id = $1",
@@ -191,7 +215,7 @@ export async function addBOQItem(
         }
 
         const item = boqResult.rows[0];
-        if (!item) throw new Error('Failed to create BOQ item');
+        if (!item) { throw new Error('Failed to create BOQ item'); }
         return item;
     });
 }
