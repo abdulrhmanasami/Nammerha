@@ -31,6 +31,18 @@
     ];
 
     var STORAGE_KEY = 'nm_preferred_locale';
+    var BANNER_DISMISS_KEY = 'nm_suggestion_dismissed';
+
+    // ─── Suggestion Banner Messages (Doc §4.3) ──────────────────────────
+    // "لافتة إشعار علوية ذكية (Inline Suggestion/Banner)"
+    // "هل تفضل الانتقال إلى النسخة الألمانية؟" — NO forced redirects.
+    var BANNER_MSGS = {
+        ar: { suggest: 'يبدو أنك تفضل {lang}. هل تود التبديل؟', switch: 'تبديل', dismiss: 'لاحقاً' },
+        en: { suggest: 'It looks like you prefer {lang}. Would you like to switch?', switch: 'Switch', dismiss: 'Later' },
+        de: { suggest: 'Es sieht so aus, als würden Sie {lang} bevorzugen. Möchten Sie wechseln?', switch: 'Wechseln', dismiss: 'Später' },
+        fr: { suggest: 'Il semble que vous préfériez {lang}. Souhaitez-vous changer ?', switch: 'Changer', dismiss: 'Plus tard' },
+        tr: { suggest: '{lang} tercih ettiğiniz görünüyor. Değiştirmek ister misiniz?', switch: 'Değiştir', dismiss: 'Sonra' },
+    };
 
     // ─── Bilingual Typography (Doc §6.2) ─────────────────────────────────
     // "Plus Jakarta Sans" for Latin/European, "IBM Plex Sans Arabic" for Arabic
@@ -492,6 +504,79 @@
         }
     }
 
+    // ─── Suggestion Banner (Doc §4.3) ──────────────────────────────────
+    // "لافتة إشعار علوية ذكية" — NO forced redirects, suggestion only.
+    // Zero backend dependency: uses navigator.language (Sustainable UX §6.5).
+    function showSuggestionBanner() {
+        // Don't show if user explicitly chose a language (has stored preference)
+        var storedPref = getStored();
+        if (storedPref) return;
+
+        // Don't show if previously dismissed
+        try {
+            var dismissed = localStorage.getItem(BANNER_DISMISS_KEY);
+            if (dismissed) return;
+        } catch (e) { /* noop */ }
+
+        // Detect browser language
+        var browserLang = detectBrowserLang();
+        if (!browserLang || browserLang === currentLang) return;
+
+        var browserCfg = getLang(browserLang);
+        var currentCfg = getLang(currentLang);
+
+        // Get message in current page language
+        var msgs = BANNER_MSGS[currentLang] || BANNER_MSGS.en;
+        var message = msgs.suggest.replace('{lang}', browserCfg.name);
+
+        // Build banner DOM
+        var banner = document.createElement('div');
+        banner.id = 'nm-suggestion-banner';
+        banner.className = 'nm-suggestion-banner';
+        banner.setAttribute('role', 'alert');
+        banner.setAttribute('aria-live', 'polite');
+
+        // Globe icon (Phosphor)
+        var globeIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="16" height="16" fill="currentColor" style="flex-shrink:0;opacity:0.9"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.62,87.62,0,0,1-6.4,32.94l-44.7-27.49a15.92,15.92,0,0,0-6.24-2.23l-22.82-3.08a16.11,16.11,0,0,0-16,7.86h-8.72l-3.8-7.86a15.91,15.91,0,0,0-11-8.67l-8-1.73L96.14,104h16.71a16.06,16.06,0,0,0,7.73-2l12.25-6.76a16.62,16.62,0,0,0,3-2.14l26.91-24.34A15.93,15.93,0,0,0,168,57.48V49.23A88.12,88.12,0,0,1,216,128ZM40,128a87.53,87.53,0,0,1,8.54-37.8l11.34,30.27a16,16,0,0,0,11.62,10l21.43,4.61L96.74,143a16.09,16.09,0,0,0,14.4,9h1.48l-7.23,38.61A16.08,16.08,0,0,0,109,207.32l-1,1.74A88.17,88.17,0,0,1,40,128Z"/></svg>';
+
+        // X dismiss icon (Phosphor)
+        var xIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="14" height="14" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>';
+
+        banner.innerHTML =
+            globeIcon +
+            '<span class="nm-banner-text">' + message + '</span>' +
+            '<button class="nm-banner-switch" aria-label="' + msgs.switch + '">' + msgs.switch + '</button>' +
+            '<button class="nm-banner-dismiss" aria-label="' + msgs.dismiss + '">' + xIcon + '</button>';
+
+        document.body.insertBefore(banner, document.body.firstChild);
+
+        // Animate in after DOM insertion
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                banner.classList.add('visible');
+            });
+        });
+
+        // Switch button → apply suggested language
+        banner.querySelector('.nm-banner-switch').addEventListener('click', function (e) {
+            e.stopPropagation();
+            dismissBanner(banner);
+            applyLanguage(browserLang);
+        });
+
+        // Dismiss button → hide banner, persist
+        banner.querySelector('.nm-banner-dismiss').addEventListener('click', function (e) {
+            e.stopPropagation();
+            dismissBanner(banner);
+            try { localStorage.setItem(BANNER_DISMISS_KEY, Date.now().toString()); } catch (err) { /* noop */ }
+        });
+    }
+
+    function dismissBanner(banner) {
+        banner.classList.remove('visible');
+        setTimeout(function () { banner.remove(); }, 400);
+    }
+
     // ─── Mount ────────────────────────────────────────────────────────────
     function mount() {
         // Remove any old i18n widget
@@ -504,24 +589,24 @@
         applyLanguage(currentLang);
         updateWidgetPosition();
 
+        // §4.3: Show suggestion banner if browser language differs
+        showSuggestionBanner();
+
         // Close dropdown on outside click
         document.addEventListener('click', function () {
             if (dropdownOpen) closeDropdown();
         });
 
         // ─── MutationObserver: auto-translate dynamically inserted elements ──
-        // This handles nav.js (and any other script) that injects data-i18n
-        // elements AFTER the initial translation pass.
         var observer = new MutationObserver(function (mutations) {
-            if (currentLang === 'en') return; // English is the source — nothing to do
+            if (currentLang === 'en') return;
             var needsUpdate = false;
             for (var m = 0; m < mutations.length; m++) {
                 var added = mutations[m].addedNodes;
                 for (var n = 0; n < added.length; n++) {
                     var node = added[n];
-                    if (node.nodeType !== 1) continue; // Element nodes only
-                    if (node.id === 'nm-lang-widget') continue; // Skip our own widget
-                    // Check if the node or its children have data-i18n
+                    if (node.nodeType !== 1) continue;
+                    if (node.id === 'nm-lang-widget' || node.id === 'nm-suggestion-banner') continue;
                     if (node.hasAttribute && (node.hasAttribute('data-i18n') || node.querySelector && node.querySelector('[data-i18n]'))) {
                         needsUpdate = true;
                         break;
