@@ -57,9 +57,10 @@ router.post('/upload-url', async (req: Request, res: Response) => {
 // List files for a project, optionally filtered by category.
 router.get('/files/:projectId', async (req: Request, res: Response) => {
     try {
-        const { projectId } = req.params;
-        const category = (req.query['category'] ?? undefined) as string | undefined;
-        const limit = parseInt(req.query['limit'] as string ?? '100', 10);
+        const projectId = req.params['projectId'] as string;
+        const category = typeof req.query['category'] === 'string' ? req.query['category'] : undefined;
+        const limitRaw = typeof req.query['limit'] === 'string' ? req.query['limit'] : '100';
+        const limit = parseInt(limitRaw, 10);
 
         if (!projectId) {
             res.status(400).json({ success: false, error: 'Missing projectId' });

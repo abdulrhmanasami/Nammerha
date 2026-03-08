@@ -75,9 +75,9 @@ services:
       - nammerha-minio-data:/data
     ports:
       # API port (S3 protocol) — localhost only for security
-      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9010:9000'
       # Console port (web UI for management) — localhost only
-      - '127.0.0.1:9001:9001'
+      - '127.0.0.1:9011:9001'
     networks:
       - nammerha-net
     labels:
