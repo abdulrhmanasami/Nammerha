@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nammerha — Field Engineer | Site Verification</title>
+  <meta name="description" content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/engineer-camera.ts"></script>
+  <style>
+    html.dark body { background-color: #242424 !important; color: #f1f5f9; }
+  </style>
+</head>
+<body class="font-display min-h-screen flex flex-col antialiased select-none">
+<div class="mobile-container min-h-screen flex flex-col">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       TELEMETRY HEADER — GPS Coordinates + Project ID + Live Status
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <header class="sticky top-0 z-20 bg-[#1a1a1a]/95 backdrop-blur-md border-b border-white/5">
+    <!-- Top Row: Navigation + Title + Menu -->
+    <div class="flex items-center justify-between px-4 py-3">
+      <a href="engineer-boq.html" class="size-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition-colors" aria-label="Back">
+        <i class="ph ph-arrow-left text-slate-300" aria-hidden="true"></i>
+      </a>
+      <div class="flex items-center gap-2">
+        <span class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"></span>
+        <h1 class="text-base font-bold text-white tracking-tight">Site Verification</h1>
+      </div>
+      <div class="size-10 flex items-center justify-center rounded-full bg-white/10">
+        <i class="ph ph-list text-slate-300" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <!-- Telemetry Strip: GPS + Project ID -->
+    <div class="flex items-center gap-3 px-4 pb-3">
+      <!-- GPS Coordinates -->
+      <div class="flex-1 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg">
+        <p class="text-[9px] text-trust-blue font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1">
+          <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i> GPS Lock
+        </p>
+        <p class="text-white text-xs font-mono" id="gps-coords">36.2021° N, 37.1342° E</p>
+        <p class="text-slate-500 text-[9px] mt-0.5" id="gps-accuracy">Accuracy: ±3.2m</p>
+      </div>
+      <!-- Project ID -->
+      <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-right">
+        <p class="text-[9px] text-warning-yellow font-bold uppercase tracking-widest mb-0.5 flex items-center justify-end gap-1">
+          <i class="ph ph-hash ph-xs" aria-hidden="true"></i> Project
+        </p>
+        <p class="text-white text-xs font-mono font-bold">NMR-HVR-001</p>
+        <p class="text-slate-500 text-[9px] mt-0.5">Harbor View</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       CAMERA VIEWFINDER — Full-screen dark viewport with crosshair overlay
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="flex-1 relative bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
+    <!-- Viewfinder Content -->
+    <div id="viewfinder" class="w-full h-full min-h-[45vh] bg-gradient-to-b from-[#2a2a2a] to-[#171717] flex items-center justify-center relative">
+      <!-- Default: Camera ready state -->
+      <div id="camera-ready" class="text-center px-6">
+        <div class="size-28 mx-auto rounded-full border-2 border-dashed border-trust-blue/30 flex items-center justify-center mb-5 animate-fade-in-up">
+          <i class="ph ph-camera-rotate text-trust-blue/50" style="font-size:56px" aria-hidden="true"></i>
+        </div>
+        <p class="text-slate-400 text-sm font-semibold">Point camera at delivery site</p>
+        <p class="text-slate-600 text-xs mt-1.5">GPS + timestamp will be auto-embedded</p>
+      </div>
+
+      <!-- Captured state (hidden by default) -->
+      <div id="camera-captured" class="hidden absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
+        <div class="text-center">
+          <div class="size-20 mx-auto rounded-full bg-smoky-jade/20 flex items-center justify-center mb-4">
+            <i class="ph ph-check-circle text-smoky-jade" style="font-size:48px" aria-hidden="true"></i>
+          </div>
+          <p class="text-smoky-jade text-sm font-bold">360° Captured</p>
+          <p class="text-slate-500 text-xs mt-1">Syncing to server...</p>
+        </div>
+      </div>
+
+      <!-- Crosshair overlay -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8"></div>
+        <div class="absolute top-1/2 left-0 right-0 h-px bg-trust-blue/8"></div>
+        <!-- Corner brackets -->
+        <div class="absolute top-6 left-6 w-8 h-8 border-l-2 border-t-2 border-trust-blue/25 rounded-tl-md"></div>
+        <div class="absolute top-6 right-6 w-8 h-8 border-r-2 border-t-2 border-trust-blue/25 rounded-tr-md"></div>
+        <div class="absolute bottom-6 left-6 w-8 h-8 border-l-2 border-b-2 border-trust-blue/25 rounded-bl-md"></div>
+        <div class="absolute bottom-6 right-6 w-8 h-8 border-r-2 border-b-2 border-trust-blue/25 rounded-br-md"></div>
+      </div>
+    </div>
+
+    <!-- Timestamp Overlay (bottom-left) -->
+    <div class="absolute bottom-4 left-4 z-10">
+      <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
+        <i class="ph ph-clock text-trust-blue ph-sm" aria-hidden="true"></i>
+        <span class="text-white text-xs font-mono" id="live-timestamp">2026-03-07 23:12</span>
+      </div>
+    </div>
+
+    <!-- Photo Count Overlay (bottom-right) -->
+    <div class="absolute bottom-4 right-4 z-10">
+      <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
+        <i class="ph ph-image-square text-slate-400 ph-sm" aria-hidden="true"></i>
+        <span class="text-white text-xs font-mono" id="photo-count">0 / 8</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MATERIAL CONTEXT CARD — Current BOQ item being verified
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="px-4 py-3 border-t border-white/5">
+    <div class="bg-white/5 rounded-xl p-3.5 flex items-center gap-3.5 border border-white/8">
+      <div class="size-12 bg-trust-blue/15 rounded-lg flex items-center justify-center shrink-0">
+        <i class="ph ph-package text-trust-blue" aria-hidden="true"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-sm font-bold truncate">50 Bags — OPC Cement</p>
+        <p class="text-slate-500 text-[11px] truncate">PO #NMR-PO-20260001 • Al-Shams Materials</p>
+      </div>
+      <span class="badge-verified text-[8px] shrink-0">Matched</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       ZERO UI ACTION ZONE — Massive floating buttons for field workers
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="px-4 pb-8 pt-2 border-t border-white/5">
+    <!-- CAPTURE 360 & SYNC — Primary action (massive blue button) -->
+    <button id="capture-btn" class="btn-field-capture w-full flex items-center justify-center gap-3 active:scale-[0.97] transition-transform">
+      <i class="ph ph-camera text-white" style="font-size:28px" aria-hidden="true"></i>
+      <span class="text-white text-lg font-extrabold tracking-tight uppercase">Capture 360 & Sync</span>
+    </button>
+
+    <!-- Secondary Actions Row -->
+    <div class="flex items-center justify-center gap-6 mt-4">
+      <!-- Voice Snagging Button (Yellow) -->
+      <button id="voice-snag-btn" class="btn-voice-snag flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
+        <div class="size-16 rounded-full bg-warning-yellow flex items-center justify-center shadow-[0_0_0_4px_rgba(252,201,52,0.2),0_4px_16px_rgba(252,201,52,0.3)]">
+          <i class="ph ph-microphone text-[#242424]" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <span class="text-warning-yellow text-[9px] font-bold uppercase tracking-widest">Voice Snag</span>
+      </button>
+
+      <!-- Gallery / Review Button -->
+      <button id="gallery-btn" class="flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
+        <div class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
+          <i class="ph ph-images text-slate-300" style="font-size:28px" aria-hidden="true"></i>
+        </div>
+        <span class="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Gallery</span>
+      </button>
+
+      <!-- Sync Status Button -->
+      <button id="sync-btn" class="flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
+        <div class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
+          <i class="ph ph-cloud-arrow-up text-slate-300" style="font-size:28px" aria-hidden="true"></i>
+        </div>
+        <span class="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Sync</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Voice Snagging Active Overlay (hidden by default) -->
+  <div id="voice-overlay" class="hidden fixed inset-0 z-50 bg-[#242424]/98 flex flex-col items-center justify-center">
+    <div class="text-center">
+      <div id="voice-pulse" class="size-32 rounded-full bg-warning-yellow/20 flex items-center justify-center mb-6 animate-pulse">
+        <div class="size-24 rounded-full bg-warning-yellow/30 flex items-center justify-center">
+          <i class="ph ph-microphone text-warning-yellow" style="font-size:56px" aria-hidden="true"></i>
+        </div>
+      </div>
+      <p class="text-white text-xl font-bold mb-2">Recording Snag Note...</p>
+      <p class="text-slate-400 text-sm" id="voice-timer">00:00</p>
+      <p class="text-slate-600 text-xs mt-4 max-w-[280px]">Describe the issue clearly. Your voice note will be attached to the GPS pin.</p>
+    </div>
+    <button id="voice-stop-btn" class="mt-10 px-8 py-4 rounded-full bg-red-500/80 text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">
+      <i class="ph ph-stop-circle" style="font-size:24px" aria-hidden="true"></i>
+      Stop Recording
+    </button>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nammerha - Pricing Oracle &amp; EPA Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1A73E8",
+                        "positive": "#109173",
+                        "background-light": "#F4F6F8",
+                        "background-dark": "#121826",
+                        "neutral-border": "#E2E8F0",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .ticker-scroll {
+            display: flex;
+            gap: 2rem;
+        }
+        .chart-gradient-steel {
+            fill: url(#steelGradient);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-neutral-border dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">Nammerha</h1>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-medium">Pricing Oracle</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-medium">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-medium">Contracts</span>
+</a>
+</nav>
+<div class="p-4 border-t border-neutral-border dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+<div class="mt-4 flex items-center gap-3 px-3 py-2">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmF0ZQFKBYrJZt9d3KWe3x7J_opcQgi4qmETAfU1i4TuigTVE8pt2rmdfc6xixJEt8OnEel9-T_2JSURBsZWDYefgg-gi09dm6K51FvhfT5N3KoXpk-3DpnYVHTPv0LevczSXfzUjIS8xHSZxnczbdR9_md6p16dry_1Xx-lLjQEZgcV6AI6Aicp4H47bYfYJS7Nn7mpyixulnoffkS7OiGyI23kFeczRCO8XuuadoUKbI3hDF6U1bpbA1Od_iXtEj1pn_q4l6rRA9"/>
+</div>
+<div>
+<p class="text-xs font-bold">Admin Portal</p>
+<p class="text-[10px] text-slate-500">Institutional Access</p>
+</div>
+</div>
+</div>
+</aside>
+<div class="flex-1 flex flex-col overflow-hidden">
+<!-- Top Navigation Bar / Live Ticker -->
+<header class="h-14 bg-white dark:bg-slate-900 border-b border-neutral-border dark:border-slate-800 flex items-center px-6 justify-between shrink-0">
+<div class="flex items-center gap-6 overflow-hidden">
+<div class="flex items-center gap-2 border-r border-slate-200 dark:border-slate-800 pr-6 shrink-0">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-positive opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-positive"></span>
+</span>
+<span class="text-xs font-bold uppercase tracking-widest text-slate-500">Live Market</span>
+</div>
+<div class="ticker-scroll overflow-hidden whitespace-nowrap">
+<div class="flex items-center gap-4 text-sm">
+<span class="font-medium text-slate-700 dark:text-slate-300">Steel:</span>
+<span class="font-bold">$850/ton</span>
+<span class="text-positive flex items-center font-semibold">▲ (+2.4%)</span>
+</div>
+<div class="flex items-center gap-4 text-sm">
+<span class="font-medium text-slate-700 dark:text-slate-300">Cement:</span>
+<span class="font-bold">$50/bag</span>
+<span class="text-positive flex items-center font-semibold">▲ (+1.1%)</span>
+</div>
+<div class="flex items-center gap-4 text-sm">
+<span class="font-medium text-slate-700 dark:text-slate-300">Lumber:</span>
+<span class="font-bold">$420/mbf</span>
+<span class="text-rose-600 flex items-center font-semibold">▼ (-0.5%)</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:text-primary transition-colors">search</button>
+<button class="material-symbols-outlined text-slate-500 hover:text-primary transition-colors relative">
+                        notifications
+                        <span class="absolute top-0 right-0 h-1.5 w-1.5 bg-rose-500 rounded-full"></span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto p-6 space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Pricing Oracle &amp; EPA Engine</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Institutional analysis and automated FIDIC price adjustment protocols.</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-white dark:bg-slate-800 border border-neutral-border dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span> Export Report
+                        </button>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-blue-700 transition-colors">
+                            Configure Indices
+                        </button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-6 h-[calc(100%-80px)]">
+<!-- Left Panel: Market Trends (60%) -->
+<section class="col-span-12 xl:col-span-7 space-y-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-neutral-border dark:border-slate-800 shadow-sm p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-slate-800 dark:text-slate-200">Material Inflation Curves (30D)</h3>
+<div class="flex gap-2 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg">
+<button class="px-3 py-1 text-xs font-bold rounded bg-white dark:bg-slate-700 shadow-sm">Index</button>
+<button class="px-3 py-1 text-xs font-bold text-slate-500">Value</button>
+</div>
+</div>
+<div class="h-64 w-full relative">
+<!-- Mock Chart Visualization -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 600 200">
+<defs>
+<lineargradient id="steelGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1A73E8" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#1A73E8" stop-opacity="0"></stop>
+</lineargradient>
+<lineargradient id="positiveGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#109173" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#109173" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid lines -->
+<line class="text-slate-100 dark:text-slate-800" stroke="currentColor" stroke-width="1" x1="0" x2="600" y1="50" y2="50"></line>
+<line class="text-slate-100 dark:text-slate-800" stroke="currentColor" stroke-width="1" x1="0" x2="600" y1="100" y2="100"></line>
+<line class="text-slate-100 dark:text-slate-800" stroke="currentColor" stroke-width="1" x1="0" x2="600" y1="150" y2="150"></line>
+<!-- Steel Trend Line -->
+<path d="M0,160 Q75,150 150,120 T300,80 T450,110 T600,60 L600,200 L0,200 Z" fill="url(#steelGradient)"></path>
+<path d="M0,160 Q75,150 150,120 T300,80 T450,110 T600,60" fill="none" stroke="#1A73E8" stroke-width="2.5"></path>
+<!-- Cement Trend Line -->
+<path d="M0,180 Q100,170 200,165 T400,150 T600,130" fill="none" stroke="#109173" stroke-dasharray="4" stroke-width="2.5"></path>
+</svg>
+<div class="flex justify-between mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+<span>May 01</span>
+<span>May 10</span>
+<span>May 20</span>
+<span>May 30</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4 mt-8">
+<div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Steel Index Volatility</p>
+<p class="text-lg font-bold mt-1 text-primary">High (8.4)</p>
+</div>
+<div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Mean Adjustment</p>
+<p class="text-lg font-bold mt-1 text-positive">+3.15%</p>
+</div>
+<div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Confidence Score</p>
+<p class="text-lg font-bold mt-1">98.2%</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-neutral-border dark:border-slate-800 p-5 shadow-sm">
+<h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-4">Regional Supply Forecast</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-slate-600 dark:text-slate-400">Riyadh Region</span>
+<span class="text-xs font-bold text-positive">Stable</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-positive h-full w-[85%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-slate-600 dark:text-slate-400">Jeddah Port Indices</span>
+<span class="text-xs font-bold text-amber-500">Constraint Risk</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-full w-[40%]"></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-neutral-border dark:border-slate-800 p-5 shadow-sm">
+<h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-4">Oracle Feed Sources</h4>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<div class="size-6 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">database</span>
+</div>
+<span class="text-sm">LME Real-time API</span>
+<span class="ml-auto material-symbols-outlined text-positive text-sm">check_circle</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="size-6 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">location_city</span>
+</div>
+<span class="text-sm">Local Mill Invoices</span>
+<span class="ml-auto material-symbols-outlined text-positive text-sm">check_circle</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="size-6 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">hub</span>
+</div>
+<span class="text-sm">Stats Authority (GASTAT)</span>
+<span class="ml-auto material-symbols-outlined text-positive text-sm">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Panel: EPA Automation (40%) -->
+<section class="col-span-12 xl:col-span-5">
+<div class="bg-white dark:bg-slate-900 rounded-xl border-2 border-primary/20 shadow-xl overflow-hidden flex flex-col h-full">
+<div class="bg-primary/5 p-6 border-b border-primary/10">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">Action Required</span>
+<span class="text-xs text-slate-500">Ref: EPA-2023-0042</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Milestone 2: Concrete Pour</h3>
+<p class="text-sm text-slate-500">Contract: #CT-8892 - NEOM Residential Phase 1</p>
+</div>
+<div class="p-6 flex-1 space-y-6">
+<div class="space-y-4">
+<div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+<span class="text-sm font-medium">Original BOQ Cost</span>
+<span class="font-bold text-slate-900 dark:text-white">$125,000.00</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="text-sm font-medium text-slate-600 dark:text-slate-400">Price Index Adjustment</span>
+<div class="group relative">
+<span class="material-symbols-outlined text-xs text-slate-400 cursor-help">info</span>
+</div>
+</div>
+<span class="text-sm font-bold text-positive">+4.2%</span>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-[10px] font-bold text-slate-400 uppercase mb-2">FIDIC 13.8 Calculation Formula</p>
+<p class="text-[11px] font-mono text-slate-600 dark:text-slate-300">Pn = a + b(Ln/Lo) + c(En/Eo) + d(Mn/Mo)</p>
+</div>
+</div>
+<div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+<p class="text-xs text-slate-500 mb-1">Total Adjusted Cost</p>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black text-slate-900 dark:text-white">$130,250.00</span>
+<span class="text-sm font-bold text-positive">+$5,250.00</span>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<span class="text-slate-700 dark:text-slate-300">Automated Audit Log Updated</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+<span class="text-slate-700 dark:text-slate-300">Ready for Smart Contract Execution</span>
+</div>
+</div>
+</div>
+<div class="p-6 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 mt-auto">
+<button class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">gavel</span>
+                                    Approve Adjustment &amp; Update Contract
+                                </button>
+<p class="text-[10px] text-center text-slate-400 mt-4 leading-relaxed">
+                                    By clicking approve, you authorize the price adjustment in accordance with FIDIC 13.8 guidelines. This will generate a formal amendment and notify all stakeholders.
+                                </p>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</body></html>

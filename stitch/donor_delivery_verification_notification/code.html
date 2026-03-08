@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#741ce9",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#181121",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Navigation -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center justify-between px-4 h-16">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-300">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">Proof of Delivery</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-300">share</span>
+</button>
+</div>
+</header>
+<main class="flex-1 w-full max-w-md mx-auto px-4 py-6">
+<!-- Success Animation/Icon Area -->
+<div class="flex flex-col items-center text-center mb-8">
+<div class="w-20 h-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-4xl font-bold">check_circle</span>
+</div>
+<h2 class="text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">
+                Success! Your contribution is on-site
+            </h2>
+</div>
+<!-- Verification Card -->
+<div class="bg-white dark:bg-slate-800/50 rounded-xl overflow-hidden shadow-xl shadow-primary/5 border border-primary/5 mb-6">
+<!-- Delivery Photo -->
+<div class="relative aspect-video">
+<img alt="Cement bags stacked on construction site" class="w-full h-full object-cover" data-alt="Stacks of cement bags at construction site" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_-8D3Pu9Dldu85MKQhL0tHo0Kklrf11gYTFVxDkDfUFZ0UMvR-qWOzg9_BvwbV9XlwxX8QhLA_1cZc4TV4X15Kw78Vn5GUaykXlTPuZCEIOPCfWzcpiJWrK3qj2WIwRzkhSwlc2ayp5MJTDTxovKTLCykvZcmqGH3sAbbcS43PjZwkgONaGDe4eHmnK-GcZ8vsV4ygBuG_Eb2XzQUy83psKMgEx2YRe-l33pFMS0gO018LPSfHug2ARPsoLyzlkl3CKtSNwZW7k2i"/>
+<!-- Map Overlay -->
+<div class="absolute bottom-3 right-3 w-24 h-24 rounded-lg border-2 border-white shadow-lg overflow-hidden">
+<img alt="Location map" class="w-full h-full object-cover" data-location="Aleppo, Syria" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmFSG-R1mqi6oiYGwojgPWiOvy7qlUnejwUKCLVAsjS3KmRN-YIse300LbzsqFYsmThhE2GsSrcCpz2VnNq9wTtkS_kg-zx1lCgwGb8LpgTY_BJGevI_oxd2Pl1-I521cUdDmW-OgZJGtHPQSUHQVHYuLMMzAW4Line9KERktJ24qAjD0p5zjhncWbstp1n0Hkkcq14nuNSH8B2q83xrMYWjl_05ZkAIyL1kUjzuLffw0hAkfMUSrI78FX8gmDnko1l6Sgxr6tBzVt"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary material-symbols-fill text-xl">location_on</span>
+</div>
+</div>
+<!-- Timestamp Badge -->
+<div class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                    May 24, 2024 • 10:45 AM
+                </div>
+</div>
+<!-- Card Details -->
+<div class="p-5">
+<div class="flex items-start justify-between mb-3">
+<div>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Project OCDS-SYR-001</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-sm text-primary">verified_user</span>
+                            Verified by Engineer Khalid
+                        </p>
+</div>
+<span class="bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Verified</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm mb-6">
+                    Your 50 bags of cement for Project OCDS-SYR-001 have been received and verified on-site. This contribution allows the foundation phase to proceed on schedule.
+                </p>
+<!-- Primary Action -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-6 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                    View Project Progress
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Trust Info -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/10">
+<div class="text-primary">
+<span class="material-symbols-outlined text-2xl">shield</span>
+</div>
+<div class="flex-1">
+<h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Blockchain Verified</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Transaction hash: 0x741c...e9a2</p>
+</div>
+<button class="text-primary text-xs font-bold hover:underline">Verify</button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-white dark:bg-background-dark border-t border-primary/10 pb-6 pt-2 px-6 flex justify-between items-center sticky bottom-0">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">corporate_fare</span>
+<span class="text-[10px] font-medium">Projects</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined material-symbols-fill">volunteer_activism</span>
+<span class="text-[10px] font-bold">Donations</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

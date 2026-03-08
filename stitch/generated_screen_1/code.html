@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Nammerha - Field Engineer &amp; Site Management</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              background: '#242424',
+              warning: '#FCC934',
+              trust: '#1A73E8',
+              surface: '#2D2D2D',
+              border: '#3D3D3D'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-layout-styles">body {
+    background-color: #242424;
+    color: #FFF;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    /* Prevent scrolling on mobile UI */
+    }
+/* Simulation of a live camera feed aspect ratio and styling */
+.camera-viewport {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBGbYFmAuYjUEVoMhXEFgphStNfeC3c51QZ-_7RtSrKRUuoiKlZOs9Z4y8B_rvNTc8fHX-eNYtTvXrx7Ne_Ns0IjhataCGNugOVN1vuBC6ksp4fJci6ZKxdgIek7ohJP-MTYAVG-gX6W4sR5ehzO_52_yoYApm4H5TBEQAcObY8k7KB_XroK8AmfMgVCYNauyizZHLzmbYvVJq-AXJQm4z_mBrOUq_-jqsHCYqFcFBxKUR7Dy20OjZ3hj-U2ux2888R1P9wXG8UD-6P);
+    background-size: cover;
+    background-position: center
+    }
+/* Pulse animation for the GPS indicator */
+@keyframes pulse-dot {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+        } 50% {
+        transform: scale(1.1);
+        opacity: 1;
+        } 100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+        }
+    }
+.gps-pulse {
+    animation: pulse-dot 2s infinite
+    }
+/* Glassmorphism for HUD elements */
+.hud-glass {
+    background: rgba(36, 36, 36, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1)
+    }</style>
+</head>
+<body class="font-sans antialiased">
+<!-- BEGIN: Site Camera Interface -->
+<main class="camera-viewport flex flex-col justify-between overflow-hidden" data-purpose="live-camera-feed">
+<!-- BEGIN: Top Header Overlay -->
+<header class="w-full px-5 pt-12 pb-6 hud-glass z-20" data-purpose="hud-header">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Current Site</span>
+<h1 class="text-lg font-extrabold text-white">Project ID: #HVR-2024</h1>
+</div>
+<div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10" data-purpose="gps-indicator">
+<div class="w-2 h-2 rounded-full bg-brand-warning gps-pulse"></div>
+<span class="text-[11px] font-mono font-medium tracking-tight text-brand-warning">
+            33.8938° N, 35.5018° E
+          </span>
+</div>
+</div>
+</header>
+<!-- END: Top Header Overlay -->
+<!-- BEGIN: AR Overlay Items -->
+<div class="absolute inset-0 z-10 pointer-events-none flex items-center justify-center" data-purpose="ar-overlays">
+<!-- Technical Snag Pin -->
+<div class="relative pointer-events-auto" style="transform: translate(40px, -60px);">
+<!-- The Pin Icon -->
+<div class="flex flex-col items-center">
+<div class="bg-brand-warning text-brand-background p-3 rounded-full shadow-2xl shadow-yellow-500/50 flex items-center justify-center">
+<svg class="w-8 h-8" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+</svg>
+</div>
+<!-- Label -->
+<div class="mt-2 bg-brand-warning px-3 py-1 rounded-sm shadow-lg">
+<span class="text-[10px] font-extrabold uppercase text-brand-background whitespace-nowrap tracking-wider">Structural Note</span>
+</div>
+</div>
+</div>
+</div>
+<!-- END: AR Overlay Items -->
+<!-- BEGIN: Field Controls (Bottom UI) -->
+<section class="w-full px-6 pb-12 z-20" data-purpose="field-controls">
+<div class="flex items-center justify-between gap-4">
+<!-- Placeholder for symmetry or secondary action -->
+<div class="w-16 h-16 flex items-center justify-center rounded-full bg-brand-surface border border-brand-border">
+<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 6h16M4 12h16m-7 6h7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Primary Giant Button for Gloved Use -->
+<button class="flex-1 h-20 bg-brand-trust rounded-2xl shadow-xl shadow-blue-600/30 flex items-center justify-center gap-3 active:scale-95 transition-transform" data-purpose="primary-capture-action">
+<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="text-white font-extrabold text-lg uppercase tracking-tight">Capture 360 &amp; Sync</span>
+</button>
+<!-- Voice Note Button -->
+<button class="w-20 h-20 bg-brand-surface border-2 border-brand-warning rounded-full flex items-center justify-center shadow-xl active:scale-90 transition-transform" data-purpose="voice-input">
+<div class="bg-brand-warning p-4 rounded-full">
+<svg class="w-8 h-8 text-brand-background" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 005.93 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" fill-rule="evenodd"></path>
+</svg>
+</div>
+</button>
+</div>
+<!-- Sync Status Indicator -->
+<div class="mt-6 flex justify-center">
+<div class="px-4 py-1.5 rounded-full bg-brand-surface/80 border border-brand-border flex items-center gap-2">
+<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Escrow Readiness:</span>
+<span class="text-[10px] font-bold text-brand-warning uppercase">74% Progress Validated</span>
+</div>
+</div>
+</section>
+<!-- END: Field Controls (Bottom UI) -->
+</main>
+<!-- END: Site Camera Interface -->
+<script data-purpose="interface-interactivity">
+    // Minimal interaction logic for demo purposes
+    document.querySelector('[data-purpose="primary-capture-action"]').addEventListener('click', () => {
+      console.log('Initiating 360 Capture and Syncing to Blockchain/Cloud...');
+      // Feedback for user
+      const btn = document.querySelector('[data-purpose="primary-capture-action"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="animate-spin mr-2">◌</span> SYNCING...';
+      btn.classList.add('opacity-80');
+      
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('opacity-80');
+      }, 2000);
+    });
+  </script>
+</body></html>

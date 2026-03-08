@@ -1,0 +1,185 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Nammerha Platform — Security & Quality CI Pipeline
+# ═══════════════════════════════════════════════════════════════════════════════
+# Triggered on: Push to main, PRs targeting main
+# Jobs:
+#   1. lint-and-typecheck: ESLint + TypeScript strict mode
+#   2. snyk-scan: Dependency vulnerability scanning
+#   3. sonar-scan: Static code analysis (quality gate)
+#   4. zap-api-scan: Dynamic security testing (on PRs only)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ─── Job 1: Lint & Typecheck ─────────────────────────────────────────────
+  lint-and-typecheck:
+    name: 🔍 Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint backend
+        run: cd backend && npm run lint
+
+      - name: Lint frontend
+        run: cd frontend && npm run lint
+
+      - name: Typecheck backend
+        run: cd backend && npm run typecheck
+
+      - name: Typecheck frontend
+        run: cd frontend && npm run typecheck
+
+      - name: Prettier check
+        run: npm run format:check
+
+  # ─── Job 2: Snyk Dependency Scan ────────────────────────────────────────
+  snyk-scan:
+    name: 🛡️ Snyk Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Run Snyk (backend)
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=backend/package.json
+        continue-on-error: true  # Report but don't block until token is configured
+
+      - name: Run Snyk (frontend)
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=frontend/package.json
+        continue-on-error: true
+
+  # ─── Job 3: SonarCloud Analysis ─────────────────────────────────────────
+  sonar-scan:
+    name: 📊 SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout (full history for SonarCloud)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+
+  # ─── Job 4: OWASP ZAP API Scan (PRs only) ──────────────────────────────
+  zap-api-scan:
+    name: ⚡ OWASP ZAP DAST
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nammerha_test
+          POSTGRES_USER: nammerha
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install & start backend
+        run: |
+          cd backend && npm ci
+          npm run dev &
+          sleep 5
+        env:
+          DATABASE_URL: postgres://nammerha:test_password@localhost:5432/nammerha_test
+          PORT: 3001
+          NODE_ENV: test
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3001/health && exit 0
+            sleep 2
+          done
+          echo "Backend failed to start" && exit 1
+
+      - name: Run OWASP ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.9.0
+        with:
+          target: 'http://localhost:3001'
+          rules_file_name: 'scripts/zap-rules.conf'
+          cmd_options: '-I -l WARN'
+
+      - name: Upload ZAP Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-report
+          path: report_html.html
+          retention-days: 30

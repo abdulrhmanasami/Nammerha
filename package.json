@@ -1,0 +1,30 @@
+{
+  "name": "nammerha-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nammerha Platform — Root Workspace (Security & Quality Tooling)",
+  "scripts": {
+    "prepare": "husky",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "format:check": "prettier --check \"**/*.{ts,js,json,html,css,md}\" --ignore-path .prettierignore",
+    "format": "prettier --write \"**/*.{ts,js,json,html,css,md}\" --ignore-path .prettierignore"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "^3.4.2"
+  },
+  "lint-staged": {
+    "backend/src/**/*.ts": [
+      "eslint --fix --config backend/.eslintrc.cjs",
+      "prettier --write"
+    ],
+    "frontend/src/**/*.ts": [
+      "eslint --fix --config frontend/.eslintrc.cjs",
+      "prettier --write"
+    ],
+    "**/*.{html,css,json,md}": [
+      "prettier --write"
+    ]
+  }
+}

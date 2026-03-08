@@ -1,0 +1,21 @@
+# Ignore everything first
+*
+
+# Then whitelist what we need
+!src/
+!public/
+!deploy/
+!*.html
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.node.json
+!vite.config.ts
+!tailwind.config.js
+!postcss.config.js
+
+# Still ignore nested unwanted
+**/node_modules
+**/dist
+**/.git
+**/.DS_Store

@@ -1,0 +1,16 @@
+# Snyk (https://snyk.io) policy file
+# ═══════════════════════════════════════════════════════════════════════════════
+# Nammerha Platform — Dependency Vulnerability Policy
+# FinTech standard: Block on HIGH and CRITICAL severity
+# ═══════════════════════════════════════════════════════════════════════════════
+version: v1.25.0
+
+# Ignores are ONLY permitted with documented justification and expiry date.
+# Each ignore must include:
+#   - reason: Why this vulnerability is not exploitable in our context
+#   - expires: Date by which a proper fix must be applied
+#   - created: Date the ignore was added
+ignore: {}
+
+# Patches applied by Snyk to vulnerable dependencies
+patch: {}

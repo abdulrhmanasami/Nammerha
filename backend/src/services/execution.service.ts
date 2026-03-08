@@ -1,0 +1,172 @@
+// ============================================================================
+// Nammerha Backend — Execution Service (Path 3: PO → Spatial Proof)
+// ============================================================================
+// Handles the proof-of-work flow:
+//   1. Purchase Order is auto-generated (from Path 2)
+//   2. Supplier delivers materials to site
+//   3. Engineer captures GPS-stamped photo proof
+//   4. System validates GPS proximity to project location
+// ============================================================================
+import crypto from 'crypto';
+import { query, transaction } from '../config/database';
+import type { SpatialProof, PurchaseOrder, SubmitSpatialProofDTO } from '../types';
+
+// GPS proximity threshold (meters) — configurable via env
+const GPS_THRESHOLD = parseInt(
+    process.env['GPS_PROXIMITY_THRESHOLD_METERS'] ?? '100',
+    10
+);
+
+// ─── Path 3.1: Submit Spatial Proof ─────────────────────────────────────────
+
+/**
+ * Engineer submits a GPS-stamped photo proof of material delivery.
+ *
+ * Validations:
+ *   1. Engineer is assigned to the project
+ *   2. GPS coordinates are within GPS_THRESHOLD meters of project location
+ *   3. Image hash (SHA-256) computed for tamper detection
+ *
+ * Creates spatial_proof entry with verification_status='submitted'.
+ */
+export async function submitSpatialProof(
+    engineerId: string,
+    dto: SubmitSpatialProofDTO
+): Promise<SpatialProof> {
+    return transaction(async (client) => {
+        // 1. Verify engineer assignment
+        const projectResult = await client.query<{
+            project_id: string;
+            assigned_engineer_id: string | null;
+            gps_location: string | null;
+        }>(
+            'SELECT project_id, assigned_engineer_id, gps_location FROM projects WHERE project_id = $1',
+            [dto.project_id]
+        );
+        const project = projectResult.rows[0];
+        if (!project) throw new Error(`Project ${dto.project_id} not found`);
+        if (project.assigned_engineer_id !== engineerId) {
+            throw new Error('You are not assigned to this project');
+        }
+
+        // 2. Validate GPS proximity (engineer proof GPS vs project GPS)
+        if (project.gps_location) {
+            const distanceResult = await client.query<{ distance_meters: number }>(
+                `SELECT ST_Distance(
+          ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
+          gps_location
+        ) AS distance_meters
+        FROM projects WHERE project_id = $3`,
+                [dto.gps_lng, dto.gps_lat, dto.project_id]
+            );
+            const distance = distanceResult.rows[0]?.distance_meters;
+            if (distance !== undefined && distance > GPS_THRESHOLD) {
+                throw new Error(
+                    `GPS validation failed: proof location is ${Math.round(distance)}m from project site (threshold: ${GPS_THRESHOLD}m). ` +
+                    `This may indicate fraud. Contact admin if you believe this is an error.`
+                );
+            }
+        }
+
+        // 3. Verify BOQ item exists and belongs to project
+        const boqResult = await client.query<{ item_id: string }>(
+            'SELECT item_id FROM itemized_boq WHERE item_id = $1 AND project_id = $2',
+            [dto.item_id, dto.project_id]
+        );
+        if (!boqResult.rows[0]) {
+            throw new Error(`BOQ item ${dto.item_id} not found in project ${dto.project_id}`);
+        }
+
+        // 4. Compute image hash (SHA-256) for tamper detection
+        // In production, this would hash the actual binary image data.
+        // Here we hash the URL as a placeholder — real implementation downloads the image first.
+        const imageHash = crypto
+            .createHash('sha256')
+            .update(dto.image_url + Date.now().toString())
+            .digest('hex');
+
+        // 5. Create spatial proof
+        const proofResult = await client.query<SpatialProof>(
+            `INSERT INTO spatial_proof (
+        item_id, project_id, engineer_id, gps_coordinates, gps_accuracy_meters,
+        captured_at, image_url, image_hash, description, device_info, verification_status
+      ) VALUES (
+        $1, $2, $3,
+        ST_SetSRID(ST_MakePoint($4, $5), 4326)::GEOGRAPHY,
+        $6, NOW(), $7, $8, $9, $10, 'submitted'
+      ) RETURNING *`,
+            [
+                dto.item_id,
+                dto.project_id,
+                engineerId,
+                dto.gps_lng,
+                dto.gps_lat,
+                dto.gps_accuracy_meters ?? null,
+                dto.image_url,
+                imageHash,
+                dto.description ?? null,
+                dto.device_info ? JSON.stringify(dto.device_info) : null,
+            ]
+        );
+
+        const proof = proofResult.rows[0];
+        if (!proof) throw new Error('Failed to create spatial proof');
+        return proof;
+    });
+}
+
+// ─── Purchase Order Queries ─────────────────────────────────────────────────
+
+/**
+ * Get all purchase orders for a project.
+ */
+export async function getProjectPurchaseOrders(
+    projectId: string
+): Promise<PurchaseOrder[]> {
+    const result = await query<PurchaseOrder>(
+        'SELECT * FROM purchase_orders WHERE project_id = $1 ORDER BY generated_at DESC',
+        [projectId]
+    );
+    return result.rows;
+}
+
+/**
+ * Get a single purchase order by PO number.
+ */
+export async function getPurchaseOrderByNumber(
+    poNumber: string
+): Promise<PurchaseOrder | null> {
+    const result = await query<PurchaseOrder>(
+        'SELECT * FROM purchase_orders WHERE po_number = $1',
+        [poNumber]
+    );
+    return result.rows[0] ?? null;
+}
+
+/**
+ * Update purchase order status (supplier workflow).
+ */
+export async function updatePOStatus(
+    poId: string,
+    newStatus: 'sent_to_supplier' | 'acknowledged' | 'shipped' | 'delivered',
+    _actorId: string
+): Promise<PurchaseOrder> {
+    const timestampField: Record<string, string> = {
+        sent_to_supplier: 'sent_at',
+        acknowledged: 'acknowledged_at',
+        shipped: 'shipped_at',
+        delivered: 'delivered_at',
+    };
+
+    const field = timestampField[newStatus];
+    if (!field) throw new Error(`Invalid PO status: ${newStatus}`);
+
+    const result = await query<PurchaseOrder>(
+        `UPDATE purchase_orders SET status = $1, ${field} = NOW() WHERE po_id = $2 RETURNING *`,
+        [newStatus, poId]
+    );
+
+    const po = result.rows[0];
+    if (!po) throw new Error(`Purchase order ${poId} not found`);
+    return po;
+}

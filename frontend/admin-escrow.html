@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Escrow Release Verification</title>
+  <meta name="description" content="Concierge escrow verification: match financial documents with spatial field proofs before releasing funds." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/admin-escrow.ts"></script>
+</head>
+<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0">
+    <div class="p-6 flex items-center gap-3">
+      <div class="size-8 bg-trust-blue rounded-lg flex items-center justify-center text-white">
+        <i class="ph ph-bank" style="font-size:18px" aria-hidden="true"></i>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight">Nammerha</h1>
+    </div>
+    <nav class="flex-1 px-4 space-y-1">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-dashboard.html">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-oracle.html">
+        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+        <span class="font-medium">Pricing Oracle</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="#">
+        <i class="ph ph-shield-check" aria-hidden="true"></i>
+        <span class="font-medium">Escrow Management</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
+        <i class="ph ph-identification-card" aria-hidden="true"></i>
+        <span class="font-medium">KYC Verification</span>
+        <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">5</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
+        <i class="ph ph-package" aria-hidden="true"></i>
+        <span class="font-medium">Projects</span>
+      </a>
+    </nav>
+    <div class="p-4 border-t border-slate-200">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+        <i class="ph ph-gear" aria-hidden="true"></i>
+        <span class="font-medium">Settings</span>
+      </a>
+      <div class="mt-4 flex items-center gap-3 px-3 py-2">
+        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+          <i class="ph ph-user-circle text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="text-xs font-bold">Admin Portal</p>
+          <p class="text-[10px] text-slate-500">Institutional Access</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Top Bar -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Escrow</span>
+        <span class="text-slate-300">/</span>
+        <span class="text-xs text-trust-blue font-bold uppercase tracking-wider">Verification</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Case Navigator -->
+        <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+          <button id="prev-case" class="text-slate-400 hover:text-trust-blue transition-colors disabled:opacity-30" disabled>
+            <i class="ph ph-caret-left" style="font-size:14px" aria-hidden="true"></i>
+          </button>
+          <span class="text-xs font-bold text-slate-600">Case <span id="current-case">1</span> of <span id="total-cases">3</span></span>
+          <button id="next-case" class="text-slate-400 hover:text-trust-blue transition-colors">
+            <i class="ph ph-caret-right" style="font-size:14px" aria-hidden="true"></i>
+          </button>
+        </div>
+        <button class="text-slate-500 hover:text-trust-blue transition-colors">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        </button>
+        <button class="text-slate-500 hover:text-trust-blue transition-colors relative">
+          <i class="ph ph-bell" aria-hidden="true"></i>
+          <span class="absolute top-0 right-0 h-1.5 w-1.5 bg-rose-500 rounded-full"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Title -->
+    <div class="px-6 pt-5 pb-4">
+      <h2 class="text-2xl font-bold">Escrow Release Verification</h2>
+      <p class="text-slate-500 text-sm mt-0.5">Review financial documents against spatial field proofs before authorizing fund release.</p>
+    </div>
+
+    <!-- Split Screen Content -->
+    <main class="flex-1 overflow-y-auto px-6 pb-6">
+      <div class="grid grid-cols-2 gap-6 h-full" id="verification-panel">
+
+        <!-- LEFT: Financial Audit Documents -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                <i class="ph ph-file-text text-slate-500" style="font-size:16px" aria-hidden="true"></i>
+              </div>
+              <h3 class="font-bold">Financial Audit Documents</h3>
+            </div>
+            <span class="bg-trust-blue text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Funds Locked in Escrow</span>
+          </div>
+
+          <div class="p-5 flex-1 space-y-5">
+            <!-- Purchase Order -->
+            <div class="bg-slate-50 rounded-lg border border-slate-100 p-4 space-y-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-[10px] font-bold text-trust-blue uppercase tracking-wider">Purchase Order</p>
+                  <p class="text-lg font-black mt-0.5" id="po-number">PO #PO-8821</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-2xl font-black text-slate-900" id="po-amount">$500.00</p>
+                  <p class="text-[10px] text-smoky-jade font-bold">Verified by Oracle</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
+                <div>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Item Description</p>
+                  <p class="text-sm font-medium mt-0.5" id="item-desc">50 Bags of Cement (Portland Type I)</p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Vendor ID</p>
+                  <p class="text-sm font-medium font-mono mt-0.5" id="vendor-id">ALM-MAJID-CON-99</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Invoice Document -->
+            <div class="bg-white rounded-lg border-2 border-slate-200 p-5 flex-1 flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <p class="text-sm font-bold" id="vendor-name">Al-Majid Construction Materials</p>
+                  <p class="text-[10px] text-slate-400" id="vendor-address">Street 12, Industrial Area, Aleppo</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs font-bold text-slate-500 uppercase">Invoice</p>
+                  <p class="text-[10px] text-slate-400 font-mono" id="invoice-number">#INV-99022-A</p>
+                </div>
+              </div>
+
+              <div class="border-t-2 border-b-2 border-slate-200 py-3 my-2 space-y-1.5">
+                <div class="flex justify-between text-xs text-slate-500">
+                  <span class="w-1/2 bg-slate-100 h-2 rounded"></span>
+                  <span class="w-1/4 bg-slate-100 h-2 rounded"></span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500">
+                  <span class="w-2/3 bg-slate-100 h-2 rounded"></span>
+                  <span class="w-1/5 bg-slate-100 h-2 rounded"></span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500">
+                  <span class="w-1/3 bg-slate-100 h-2 rounded"></span>
+                  <span class="w-1/6 bg-slate-100 h-2 rounded"></span>
+                </div>
+              </div>
+
+              <!-- Invoice Zone -->
+              <div class="flex-1 min-h-[120px] border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center my-3">
+                <div class="text-center text-slate-400">
+                  <i class="ph ph-file-pdf" style="font-size:32px" aria-hidden="true"></i>
+                  <p class="text-[10px] mt-1 font-medium">Invoice Document Preview</p>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-200">
+                <div class="flex items-center gap-2">
+                  <div class="w-16 h-6 border border-slate-200 rounded flex items-center justify-center">
+                    <span class="text-[9px] text-slate-400 italic">Signature</span>
+                  </div>
+                </div>
+                <p class="text-sm font-bold" id="invoice-total">Total: $500.00</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Site Validation & Proof of Work -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="p-5 border-b border-slate-100 flex items-center gap-3">
+            <div class="size-8 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-map-trifold text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-bold">Site Validation & Proof of Work</h3>
+          </div>
+
+          <div class="flex-1 relative">
+            <!-- Field Photo Placeholder -->
+            <div class="absolute inset-0 bg-gradient-to-br from-sky-200 via-sky-300 to-emerald-200 flex items-center justify-center">
+              <div class="text-center text-white/60">
+                <i class="ph ph-camera" style="font-size:64px" aria-hidden="true"></i>
+                <p class="text-sm font-bold mt-2">Field Photo Proof</p>
+                <p class="text-xs mt-0.5">GPS-stamped delivery verification</p>
+              </div>
+            </div>
+
+            <!-- GPS Coordinates Overlay -->
+            <div class="absolute top-4 left-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg">
+              <p class="text-[9px] font-bold uppercase tracking-wider opacity-80 mb-1">GPS Coordinates</p>
+              <p class="text-sm font-mono font-bold" id="gps-coords">33.8938° N, 35.5018° E</p>
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span class="size-2 rounded-full bg-smoky-jade"></span>
+                <span class="text-[10px] opacity-90" id="gps-accuracy">Signal strength: High (Accuracy 1.2m)</span>
+              </div>
+            </div>
+
+            <!-- Timestamp Overlay -->
+            <div class="absolute top-4 right-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg text-right">
+              <p class="text-[9px] font-bold uppercase tracking-wider opacity-80 mb-1">Timestamp</p>
+              <p class="text-sm font-bold" id="timestamp">March 8, 2026 — 10:45 AST</p>
+            </div>
+
+            <!-- Engineer Identity Card -->
+            <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200">
+              <p class="text-[9px] font-bold text-trust-blue uppercase tracking-wider">Verified Field Engineer</p>
+              <p class="text-base font-bold mt-0.5" id="engineer-name">Khalid Al-Ahmad</p>
+              <p class="text-[10px] text-slate-500" id="engineer-license">License: SYR-ENG-88221</p>
+            </div>
+
+            <!-- Photo Thumbnail Placeholder (bottom-left) -->
+            <div class="absolute bottom-4 left-4">
+              <div class="size-20 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200 shadow-lg flex items-center justify-center">
+                <i class="ph ph-images text-slate-400" style="font-size:28px" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="mt-6 flex items-center gap-4">
+        <button id="flag-btn" class="flex-[2] bg-white border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-warning-yellow transition-all">
+          <i class="ph ph-warning-diamond" style="font-size:18px" aria-hidden="true"></i>
+          Flag Discrepancy
+        </button>
+        <button id="release-btn" class="flex-[5] bg-trust-blue text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-cta hover:bg-primary-hover transition-all">
+          <i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i>
+          Match Verified: Release Funds to Vendor
+        </button>
+      </div>
+
+      <!-- Compliance Footer -->
+      <div class="flex items-center justify-center gap-2 mt-4 mb-2">
+        <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+        <p class="text-[10px] text-slate-400 text-center">
+          Releasing funds will execute an immutable audit trail entry. All transactions are OCDS-compliant and subject to third-party auditing.
+        </p>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

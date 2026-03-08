@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.min.*
+*.map
+package-lock.json
+.DS_Store

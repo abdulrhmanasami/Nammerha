@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nammerha - Escrow Management</title>
+<!-- Tailwind CSS CDN with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Font: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cloudDancer: '#F4F6F8',
+            trustBlue: '#1A73E8',
+            smokyJade: '#109173',
+            sidebarBg: '#FFFFFF',
+            cardBg: 'rgba(255, 255, 255, 0.7)',
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+<style data-purpose="glassmorphism-effects">
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    
+    .sidebar-active {
+      background-color: #EBF3FF;
+      color: #1A73E8;
+      border-right: 4px solid #1A73E8;
+    }
+
+    .dashed-border {
+      border: 2px dashed #E2E8F0;
+    }
+
+    /* Custom scrollbar for better UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="bg-cloudDancer font-sans text-slate-800 antialiased h-screen overflow-hidden flex">
+<!-- BEGIN: Sidebar Navigation -->
+<aside class="w-64 bg-sidebarBg border-r border-slate-200 flex flex-col h-full shrink-0">
+<div class="p-6">
+<div class="flex items-center gap-2 mb-10">
+<div class="w-8 h-8 bg-trustBlue rounded-lg flex items-center justify-center">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-xl font-bold tracking-tight">Nammerha</span>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="font-medium">Pricing Oracle</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 sidebar-active rounded-l-none rounded-r-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="font-medium">Escrow Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="font-medium">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="font-medium">Contracts</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 space-y-4 border-t border-slate-100">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-sm">Settings</span>
+</a>
+<div class="flex items-center gap-3 px-4">
+<img alt="Admin" class="w-10 h-10 rounded-full border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9u0uztWBXsTTqVgNfsseAJl3I87Q3Qu_LmXLqQftdRlst9GAqQH93X6hkc5_PgKoFXGSq0Ovgt7v75oeml30M3soAL6taxZYM8RYDbQ34Rb6sUPFCXrIqJw554kgG--dqVcjZSjaqC1VuZ_rPdPE9VGmLg2QN8gnl3d9G8dA3M04zYq0rsFP7PsLV196ykQmewsVRD7aE7SNIfc77HNH17EU2up42VageftjElG6ffMypgxvsw9_k3xEzaDmfRUd1fS64k1A0jNEi"/>
+<div class="overflow-hidden">
+<p class="text-sm font-semibold truncate">Admin Portal</p>
+<p class="text-xs text-slate-400">Institutional Access</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Sidebar Navigation -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 flex flex-col h-full relative">
+<!-- BEGIN: Top Header -->
+<header class="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8 shrink-0">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 text-xs text-slate-400 uppercase tracking-widest font-semibold">
+<span>Escrow</span>
+<span>/</span>
+<span class="text-slate-600">Verification</span>
+</div>
+<h1 class="text-lg font-bold">Escrow Release Verification</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-400 hover:text-slate-600">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 text-slate-400 hover:text-slate-600 relative">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+</button>
+</div>
+</header>
+<!-- END: Top Header -->
+<!-- BEGIN: Grid Content -->
+<div class="flex-1 p-8 grid grid-cols-2 gap-8 overflow-y-auto pb-32">
+<!-- BEGIN: Left Panel (Financials) -->
+<section class="space-y-6">
+<div class="glass-card rounded-2xl p-6 h-full flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<svg class="w-5 h-5 text-trustBlue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              Financial Audit Documents
+            </h2>
+<span class="px-3 py-1 bg-trustBlue text-white text-xs font-bold rounded-full uppercase">Funds Locked in Escrow</span>
+</div>
+<!-- Digital PO Card -->
+<div class="bg-white border border-slate-100 rounded-xl p-5 mb-6 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-xs text-slate-400 font-bold uppercase mb-1">Purchase Order</p>
+<h3 class="font-bold text-lg">PO #PO-8821</h3>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-slate-900">$500.00</p>
+<p class="text-xs text-smokyJade font-medium">Verified by Oracle</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+<div>
+<p class="text-[10px] text-slate-400 uppercase font-bold">Item Description</p>
+<p class="text-sm font-semibold">50 Bags of Cement (Portland Type I)</p>
+</div>
+<div>
+<p class="text-[10px] text-slate-400 uppercase font-bold">Vendor ID</p>
+<p class="text-sm font-semibold">ALM-MAJID-CON-99</p>
+</div>
+</div>
+</div>
+<!-- Scanned Invoice Mockup -->
+<div class="flex-1 relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+<div class="absolute inset-0 flex items-center justify-center opacity-5">
+<svg class="w-48 h-48" fill="currentColor" viewbox="0 0 20 20"><path clip-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A1 1 0 0111 2.293l4.707 4.707a1 1 0 01.293.707V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" fill-rule="evenodd"></path></svg>
+</div>
+<div class="relative p-8 h-full">
+<!-- Invoice Visual Representation -->
+<div class="bg-white w-full h-full shadow-lg p-6 flex flex-col pointer-events-none">
+<div class="flex justify-between border-b pb-4 mb-4">
+<div class="text-left">
+<h4 class="font-bold text-xs">Al-Majid Construction Materials</h4>
+<p class="text-[8px] text-slate-400">Street 12, Industrial Area, Riyadh</p>
+</div>
+<div class="text-right">
+<h4 class="font-bold text-xs">INVOICE</h4>
+<p class="text-[8px] text-slate-400">#INV-99022-A</p>
+</div>
+</div>
+<div class="space-y-2">
+<div class="h-2 bg-slate-100 rounded w-3/4"></div>
+<div class="h-2 bg-slate-100 rounded w-full"></div>
+<div class="h-2 bg-slate-100 rounded w-5/6"></div>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center">
+<div class="w-16 h-8 border border-slate-200 rounded flex items-center justify-center text-[10px] text-slate-300 italic">Signature</div>
+<div class="text-right">
+<p class="text-[10px] font-bold">Total: $500.00</p>
+</div>
+</div>
+</div>
+<!-- OCR Overlay -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 pointer-events-none">
+<div class="absolute inset-0 border-2 border-trustBlue opacity-20 animate-pulse"></div>
+<div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-trustBlue"></div>
+<div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-trustBlue"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-trustBlue"></div>
+<div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-trustBlue"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Left Panel (Financials) -->
+<!-- BEGIN: Right Panel (Visual Proof) -->
+<section class="space-y-6">
+<div class="glass-card rounded-2xl p-6 h-full flex flex-col">
+<h2 class="text-xl font-bold flex items-center gap-2 mb-6">
+<svg class="w-5 h-5 text-trustBlue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Site Validation &amp; Proof of Work
+          </h2>
+<!-- Proof Container -->
+<div class="flex-1 relative rounded-xl overflow-hidden group">
+<img alt="Site Proof" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCooxXfri6t2q9ei9mkucWI9IAmfK_eWcnbr8ovYsbD4kyIqV2awOqnWYCmJ3KU6xDrjChdXXo9k__8INljgyrTw1e8v5eFujlzARO_c3UdREdE5PCsmUgeeC10Kh15n9HySauw52pP5SjNYn0OAlcSKhOWdt-oSwflyR7nohbp26jj4Yl4RDYeGQigR0p1J7M3imcLHypZuuwTEnZJsszClM-heImW90EUJvLhwFKZuPf25AOTknA7-udxjLJYwfJkrsGwS3JMDrZX"/>
+<!-- GPS & Data Overlays -->
+<div class="absolute top-4 left-4 right-4 flex justify-between items-start">
+<div class="bg-black/60 backdrop-blur-md text-white p-3 rounded-lg border border-white/20">
+<p class="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-1">GPS Coordinates</p>
+<p class="text-sm font-mono tracking-tight">33.8938° N, 35.5018° E</p>
+<div class="mt-2 flex items-center gap-1.5">
+<span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+<span class="text-[10px] font-medium">Signal strength: High (Accuracy 1.2m)</span>
+</div>
+</div>
+<div class="bg-black/60 backdrop-blur-md text-white p-3 rounded-lg border border-white/20 text-right">
+<p class="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-1">Timestamp</p>
+<p class="text-sm font-semibold">June 12, 2026 — 14:30 AST</p>
+</div>
+</div>
+<!-- Mini Map Overlay -->
+<div class="absolute bottom-4 left-4 w-40 h-40 rounded-lg border-2 border-white/30 overflow-hidden shadow-2xl">
+<img alt="Map View" class="w-full h-full object-cover grayscale brightness-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiPMX5ZZg36Pn3qryhQxNtG_eIqpo5LMuCvPYiOyMqUQ7ApnH6hM-UMrx1GRz7j_SfK4NwpsfzP8JfjTzcTGRtjnUwKarfvh1MP1EpKvoVKqJcLgJOblFsbxAtdFHwz5t3dr_xtlnsOvBXk3EQNLn1kFkZC4yK_JemWdz-gWLYq4apxHe5fuThy9ho34tEFT3zDuq3t_VjOfhkiNBENdNE_id42ucLUYRivoOIlqhR5LkWgYex8NmjcNIPIp4WM8tjeuBl1upnqkOg"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-4 h-4 bg-trustBlue rounded-full border-2 border-white shadow-lg animate-bounce"></div>
+</div>
+</div>
+<!-- Field Engineer Signature -->
+<div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur text-slate-900 p-4 rounded-lg border border-slate-200 w-56">
+<p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Verified Field Engineer</p>
+<div class="h-10 border-b border-slate-300 flex items-center justify-center mb-1">
+<span class="font-serif italic text-lg text-slate-700">Khalid Al-Subaie</span>
+</div>
+<p class="text-[10px] font-medium text-slate-500">License: KSA-ENG-88221</p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Right Panel (Visual Proof) -->
+</div>
+<!-- END: Grid Content -->
+<!-- BEGIN: Bottom Action Bar -->
+<footer class="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-200 p-6 flex flex-col items-center justify-center gap-4 z-10 shadow-[0_-4px_20px_0_rgba(0,0,0,0.03)]">
+<div class="flex items-center gap-4 w-full max-w-4xl">
+<button class="flex-1 py-4 px-6 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Flag Discrepancy
+        </button>
+<button class="flex-[2] py-4 px-6 bg-trustBlue text-white font-bold rounded-xl hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Match Verified: Release Funds to Vendor
+        </button>
+</div>
+<p class="text-xs text-slate-400 flex items-center gap-1.5">
+<svg class="w-4 h-4 text-smokyJade" fill="currentColor" viewbox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg>
+        Releasing funds will trigger an immutable smart contract execution (FIDIC 13.8 compliant).
+      </p>
+</footer>
+<!-- END: Bottom Action Bar -->
+</main>
+<!-- END: Main Content Area -->
+</body></html>

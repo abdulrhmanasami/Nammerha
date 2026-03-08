@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Report Damage</title>
+  <meta name="description" content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/homeowner-report.ts"></script>
+</head>
+<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+<div class="mobile-container flex flex-col min-h-screen">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       HEADER — Progress bar + step indicator
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <header class="p-6 pb-2">
+    <div class="flex items-center justify-between mb-4">
+      <button id="back-btn" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back">
+        <i class="ph ph-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="flex-1 flex flex-col items-center">
+        <span class="text-xs font-bold uppercase tracking-widest text-trust-blue/70" id="step-label">Step 1 of 3</span>
+        <div class="w-40 h-1.5 bg-slate-200 rounded-full mt-2 overflow-hidden">
+          <div class="h-full bg-trust-blue rounded-full transition-all duration-500 ease-out" id="progress-fill" style="width: 33.33%"></div>
+        </div>
+      </div>
+      <div class="size-12"></div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STEP 1 — What kind of damage? (One question per screen)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <main id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
+    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center">
+      What kind of damage<br>needs repair?
+    </h1>
+    <p class="text-slate-500 text-sm text-center mb-8">Select the type that best describes your situation</p>
+
+    <div class="space-y-3" id="damage-type-list">
+      <!-- Structural -->
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="structural">
+        <div class="size-14 rounded-xl bg-trust-blue/10 flex items-center justify-center text-trust-blue shrink-0">
+          <i class="ph ph-house-line" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">Structural Damage</h3>
+          <p class="text-slate-500 text-xs mt-0.5">Foundations, walls, ceilings, roofing</p>
+        </div>
+        <div class="damage-check text-slate-300">
+          <i class="ph ph-circle" aria-hidden="true"></i>
+        </div>
+      </button>
+
+      <!-- Plumbing -->
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="plumbing">
+        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+          <i class="ph ph-drop" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">Plumbing</h3>
+          <p class="text-slate-500 text-xs mt-0.5">Pipes, leaks, water and drainage systems</p>
+        </div>
+        <div class="damage-check text-slate-300">
+          <i class="ph ph-circle" aria-hidden="true"></i>
+        </div>
+      </button>
+
+      <!-- Electrical -->
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="electrical">
+        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+          <i class="ph ph-plug" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">Electrical</h3>
+          <p class="text-slate-500 text-xs mt-0.5">Wiring, outlets, panels, and generators</p>
+        </div>
+        <div class="damage-check text-slate-300">
+          <i class="ph ph-circle" aria-hidden="true"></i>
+        </div>
+      </button>
+
+      <!-- General / Other -->
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="general">
+        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+          <i class="ph ph-wrench" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-slate-900 leading-tight">General Repair</h3>
+          <p class="text-slate-500 text-xs mt-0.5">Doors, windows, finishing, or other</p>
+        </div>
+        <div class="damage-check text-slate-300">
+          <i class="ph ph-circle" aria-hidden="true"></i>
+        </div>
+      </button>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STEP 2 — Where is your property? (Location)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <main id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
+    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center">
+      Where is your<br>property located?
+    </h1>
+    <p class="text-slate-500 text-sm text-center mb-8">We need this to connect you with nearby engineers</p>
+
+    <!-- Governorate Selection -->
+    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Governorate</label>
+    <div class="relative mb-5">
+      <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm">
+        <option value="" disabled selected>Select governorate...</option>
+        <option value="aleppo">Aleppo (حلب)</option>
+        <option value="damascus">Damascus (دمشق)</option>
+        <option value="rif-dimashq">Rif Dimashq (ريف دمشق)</option>
+        <option value="homs">Homs (حمص)</option>
+        <option value="hama">Hama (حماة)</option>
+        <option value="latakia">Latakia (اللاذقية)</option>
+        <option value="tartus">Tartus (طرطوس)</option>
+        <option value="idlib">Idlib (إدلب)</option>
+        <option value="deir-ez-zor">Deir ez-Zor (دير الزور)</option>
+        <option value="raqqa">Raqqa (الرقة)</option>
+        <option value="hasakah">Al-Hasakah (الحسكة)</option>
+        <option value="daraa">Daraa (درعا)</option>
+        <option value="suwayda">As-Suwayda (السويداء)</option>
+        <option value="quneitra">Quneitra (القنيطرة)</option>
+      </select>
+      <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+        <i class="ph ph-caret-down" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <!-- Neighborhood / Area -->
+    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Neighborhood or area name</label>
+    <input id="neighborhood" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm mb-5" placeholder="e.g. Al-Majidiya, Old City..." />
+
+    <!-- Detect Location Button -->
+    <button id="detect-location-btn" class="btn-secondary w-full !py-4 mb-4">
+      <i class="ph ph-crosshair" aria-hidden="true"></i>
+      <span>Detect my location automatically</span>
+    </button>
+
+    <!-- GPS Result (hidden until detected) -->
+    <div id="gps-result" class="hidden bg-smoky-jade/10 border border-smoky-jade/20 rounded-xl p-4 flex items-center gap-3">
+      <div class="size-10 rounded-full bg-smoky-jade/20 flex items-center justify-center shrink-0">
+        <i class="ph ph-map-pin text-smoky-jade ph-md" aria-hidden="true"></i>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-smoky-jade uppercase tracking-wider">Location Detected</p>
+        <p class="text-slate-700 text-sm font-mono" id="gps-display">—</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STEP 3 — Describe the damage + Upload photos
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <main id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
+    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center">
+      Describe the damage
+    </h1>
+    <p class="text-slate-500 text-sm text-center mb-6">Type or use voice to tell us what happened</p>
+
+    <!-- Description Textarea -->
+    <div class="relative mb-4">
+      <textarea id="damage-description" class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none" placeholder="Describe the damage in your own words..."></textarea>
+    </div>
+
+    <!-- Voice Input Button (Large for accessibility) -->
+    <button id="voice-describe-btn" class="w-full py-4 rounded-xl bg-trust-blue/8 border-2 border-dashed border-trust-blue/25 flex items-center justify-center gap-3 text-trust-blue font-semibold active:scale-[0.97] transition-all mb-6">
+      <div class="size-10 rounded-full bg-trust-blue/15 flex items-center justify-center">
+        <i class="ph ph-microphone" style="font-size:22px" aria-hidden="true"></i>
+      </div>
+      <span class="text-sm">Or tap to describe with your voice</span>
+    </button>
+
+    <!-- Photo Upload Area -->
+    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Upload photos of damage (optional)</label>
+    <div id="photo-upload-zone" class="w-full min-h-[120px] bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer active:border-trust-blue/40 transition-colors mb-3">
+      <div class="size-12 rounded-full bg-slate-100 flex items-center justify-center">
+        <i class="ph ph-camera-plus text-slate-400" style="font-size:28px" aria-hidden="true"></i>
+      </div>
+      <p class="text-slate-500 text-sm font-medium">Tap to upload photos</p>
+      <p class="text-slate-400 text-[11px]">Maximum 5 photos • JPG or PNG</p>
+      <input id="photo-input" type="file" accept="image/*" multiple class="hidden" />
+    </div>
+
+    <!-- Photo Thumbnails -->
+    <div id="photo-thumbnails" class="flex gap-2 flex-wrap"></div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STEP 4 — Confirmation / Success
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <main id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
+    <div class="text-center">
+      <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
+        <i class="ph ph-check-circle text-smoky-jade" style="font-size:56px" aria-hidden="true"></i>
+      </div>
+      <h1 class="text-[28px] font-bold leading-tight text-slate-900 mb-3">Request Submitted!</h1>
+      <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-left">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-trust-blue mb-2">Request Summary</p>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-slate-500">Type:</span><span class="font-bold" id="summary-type">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Location:</span><span class="font-bold" id="summary-location">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Photos:</span><span class="font-bold" id="summary-photos">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Request ID:</span><span class="font-mono text-trust-blue font-bold" id="summary-id">—</span></div>
+        </div>
+      </div>
+
+      <div class="bg-trust-blue/8 rounded-xl p-4 flex items-center gap-3 border border-trust-blue/15">
+        <i class="ph ph-clock text-trust-blue ph-md" aria-hidden="true"></i>
+        <p class="text-sm text-slate-700"><span class="font-bold text-trust-blue">Expected response:</span> Within 24–48 hours</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       FOOTER — Fixed CTA buttons
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <footer id="wizard-footer" class="p-6 pt-2 space-y-3">
+    <button id="next-btn" class="btn-primary w-full !py-5 text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-opacity" disabled>
+      <span id="next-btn-text">Select damage type</span>
+      <i class="ph ph-arrow-right" aria-hidden="true"></i>
+    </button>
+    <div class="flex justify-center pb-2">
+      <div class="w-32 h-1 bg-slate-300 rounded-full opacity-50"></div>
+    </div>
+  </footer>
+
+  <!-- Voice Recording Overlay -->
+  <div id="voice-overlay" class="hidden fixed inset-0 z-50 bg-white/98 backdrop-blur-sm flex flex-col items-center justify-center">
+    <div class="text-center">
+      <div class="size-28 rounded-full bg-trust-blue/10 flex items-center justify-center mb-6 voice-recording">
+        <div class="size-20 rounded-full bg-trust-blue/20 flex items-center justify-center">
+          <i class="ph ph-microphone text-trust-blue" style="font-size:48px" aria-hidden="true"></i>
+        </div>
+      </div>
+      <p class="text-slate-900 text-xl font-bold mb-2">Listening...</p>
+      <p class="text-slate-500 text-sm" id="voice-timer">00:00</p>
+      <p class="text-slate-400 text-xs mt-4 max-w-[260px]">Describe the damage clearly. We'll convert your speech to text.</p>
+    </div>
+    <button id="voice-stop-btn" class="mt-8 px-8 py-4 rounded-full bg-trust-blue text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">
+      <i class="ph ph-stop-circle" style="font-size:22px" aria-hidden="true"></i>
+      Done
+    </button>
+  </div>
+
+</div>
+</body>
+</html>

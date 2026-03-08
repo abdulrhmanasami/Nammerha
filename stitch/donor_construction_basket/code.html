@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#741ce9",
+              "background-light": "#f7f6f8",
+              "background-dark": "#181121",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      .dark .glass {
+        background: rgba(24, 17, 33, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(116, 28, 233, 0.1);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="max-w-md mx-auto min-h-screen flex flex-col relative pb-32">
+<!-- Header -->
+<header class="sticky top-0 z-10 px-6 py-8 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200/50 dark:bg-primary/20">
+<span class="material-icons text-primary">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold">Construction Basket</h1>
+<div class="w-10"></div>
+</header>
+<!-- Project Context Card -->
+<div class="px-6 mb-8">
+<div class="glass p-5 rounded-xl flex items-center gap-4 shadow-sm">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Construction site" class="w-full h-full object-cover" data-alt="Active construction site with crane and foundation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzDTIsVQAGove85kte0c_i5IhQrwoQMkUdq2YjRVmbjWEaOcWNZvUBbpDJlwro6akkkmSMR2iFDOUzhQ_VwO2fT625BuILT-ueO_2p42WLO7BgNm6EbMLu1tv_6QHNfUmnri-5SsstxqR-IcB6jZpzDd-ITJbLx4oX1N6qCshczjdWvr_6vB_6OlJJjfE2NGzngcpg1IaA74nGN5v3_7V0CLQYQ5IM65CI4UksuLMm62PjtnmEHiIN4SHXqUtcGMXw0oyuC8rwKZmr"/>
+</div>
+<div>
+<h2 class="font-bold text-slate-800 dark:text-slate-100">Green Valley Community School</h2>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center">
+<span class="material-icons text-[14px] mr-1">location_on</span>
+                        Nairobi, Kenya
+                    </p>
+</div>
+</div>
+</div>
+<!-- Escrow Badge -->
+<div class="px-6 mb-6">
+<div class="flex items-center justify-center bg-primary/5 dark:bg-primary/10 border border-primary/20 py-2 px-4 rounded-full">
+<span class="material-icons text-primary text-sm mr-2">verified_user</span>
+<span class="text-xs font-semibold text-primary uppercase tracking-wider">Secure Escrow Funding Enabled</span>
+</div>
+</div>
+<!-- Itemized List -->
+<div class="px-6 flex flex-col gap-4">
+<h3 class="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Materials to Fund</h3>
+<!-- Item 1 -->
+<div class="glass p-4 rounded-xl flex items-center justify-between border-l-4 border-l-primary">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-icons text-primary">inventory_2</span>
+</div>
+<div>
+<h4 class="font-semibold text-slate-800 dark:text-slate-100">50 Bags of Cement</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Structural Foundation</p>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-slate-900 dark:text-slate-100">$500.00</div>
+<div class="text-[10px] text-slate-400">Unit: $10.00</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="glass p-4 rounded-xl flex items-center justify-between border-l-4 border-l-primary/40">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-icons text-primary">electric_bolt</span>
+</div>
+<div>
+<h4 class="font-semibold text-slate-800 dark:text-slate-100">20m Copper Wiring</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">Electrical Grid</p>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-slate-900 dark:text-slate-100">$120.00</div>
+<div class="text-[10px] text-slate-400">Unit: $6.00/m</div>
+</div>
+</div>
+<!-- Item 3 - Placeholder/Add more -->
+<button class="border-2 border-dashed border-slate-200 dark:border-primary/20 p-4 rounded-xl flex items-center justify-center gap-2 group">
+<span class="material-icons text-slate-400 group-hover:text-primary transition-colors">add_circle_outline</span>
+<span class="text-sm font-medium text-slate-500 group-hover:text-primary transition-colors">Add more materials</span>
+</button>
+</div>
+<!-- Trust Features -->
+<div class="px-6 mt-10 grid grid-cols-2 gap-4">
+<div class="bg-white/40 dark:bg-white/5 p-3 rounded-lg flex flex-col items-center text-center">
+<span class="material-icons text-primary/60 mb-1">visibility</span>
+<span class="text-[10px] font-medium text-slate-500 uppercase">Live Progress Tracking</span>
+</div>
+<div class="bg-white/40 dark:bg-white/5 p-3 rounded-lg flex flex-col items-center text-center">
+<span class="material-icons text-primary/60 mb-1">receipt_long</span>
+<span class="text-[10px] font-medium text-slate-500 uppercase">Tax Deductible Receipt</span>
+</div>
+</div>
+<!-- Bottom Checkout Sheet -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass rounded-t-[2rem] p-6 pb-8 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+<div class="flex items-center justify-between mb-6">
+<div>
+<span class="text-slate-400 text-sm">Total Funding Amount</span>
+<div class="text-3xl font-bold text-slate-900 dark:text-white">$620.00</div>
+</div>
+<div class="bg-primary/10 p-2 rounded-lg">
+<img alt="Visa" class="h-6" data-alt="Visa card payment logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVvN-dxM9vmlxZHsEDRTv-fJFyD2Zv5Af8v7JH2u7fKpmtWNmqi9s5i74fyh5Kjv5o-068qpdRLpDFDtisX5uXk-hpcAmqV47uRc5f3mLoWgzbiGvGq_y7TiHfV0TzOT20hh-Iv5j9W4-wbyhsdbKEEMLUr5FIivnJkCtc9B-6fmhJx6iavfLuHI5CXT3-gEnLEAD0nm2v6YzMkwnq6--uC7czgOoq48DOELQDWOWHLJEbjo4aBJs7QJiVpiHjy1UIvoYpZUPq2u-a"/>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-opacity-90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
+<span class="material-icons">lock</span>
+                Confirm Funding
+            </button>
+<p class="text-[10px] text-center text-slate-400 mt-4 px-4 leading-relaxed">
+                By clicking confirm, you agree to Nammerha's terms. Funds are held in escrow until construction milestones are verified.
+            </p>
+</div>
+</div>
+<!-- Decorative Gradients -->
+<div class="fixed -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="fixed top-1/2 -left-32 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+</body></html>

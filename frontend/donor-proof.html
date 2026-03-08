@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Proof of Delivery</title>
+  <meta name="description" content="Your contribution has been verified on-site with GPS-stamped photographic proof." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/donor-proof.ts"></script>
+</head>
+<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+
+  <!-- Header -->
+  <header class="glass-nav sticky top-0 z-50 border-b border-trust-blue/10">
+    <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+      <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
+        <i class="ph ph-arrow-left text-slate-700" aria-hidden="true"></i>
+      </a>
+      <h1 class="text-lg font-bold tracking-tight">Proof of Delivery</h1>
+      <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
+        <i class="ph ph-share-network text-slate-700" aria-hidden="true"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-md mx-auto px-4 py-6">
+    <!-- Success Icon -->
+    <div class="flex flex-col items-center text-center mb-8 animate-fade-in-up">
+      <div class="w-20 h-20 bg-trust-blue/10 rounded-full flex items-center justify-center mb-4">
+        <i class="ph ph-check-circle text-trust-blue" style="font-size:36px" aria-hidden="true"></i>
+      </div>
+      <h2 class="text-2xl font-extrabold text-slate-900 leading-tight">
+        Success! Your contribution is on-site
+      </h2>
+    </div>
+
+    <!-- Verification Card -->
+    <div class="bg-white rounded-xl overflow-hidden shadow-xl shadow-trust-blue/5 border border-trust-blue/5 mb-6 animate-fade-in-up" style="animation-delay:0.1s">
+      <!-- Delivery Photo Placeholder -->
+      <div class="relative aspect-video bg-gradient-to-br from-warm-earth/20 to-slate-200">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <i class="ph ph-images text-warm-earth/40" style="font-size:60px" aria-hidden="true"></i>
+        </div>
+        <!-- Map Overlay -->
+        <div class="absolute bottom-3 right-3 w-24 h-24 rounded-lg border-2 border-white shadow-lg overflow-hidden bg-gradient-to-br from-trust-blue/20 to-smoky-jade/20 flex items-center justify-center">
+          <i class="ph ph-map-pin text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+        </div>
+        <!-- Timestamp Badge -->
+        <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+          <i class="ph ph-clock" style="font-size:12px" aria-hidden="true"></i>
+          Mar 7, 2026 • 10:45 AM
+        </div>
+      </div>
+      <!-- Card Details -->
+      <div class="p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-lg text-slate-900">Project OCDS-SYR-001</h3>
+            <p class="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
+              <i class="ph ph-shield-check text-trust-blue ph-sm" aria-hidden="true"></i>
+              Verified by Engineer Khalid
+            </p>
+          </div>
+          <span class="badge-primary">Verified</span>
+        </div>
+        <p class="text-slate-600 leading-relaxed text-sm mb-6">
+          Your 50 bags of cement for Project OCDS-SYR-001 have been received and verified on-site. This contribution allows the foundation phase to proceed on schedule.
+        </p>
+        <a href="project-details.html" class="btn-primary !text-sm">
+          View Project Progress
+          <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Trust Info -->
+    <div class="flex items-center gap-4 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 animate-fade-in-up" style="animation-delay:0.2s">
+      <div class="text-trust-blue">
+        <i class="ph ph-shield-check" style="font-size:28px" aria-hidden="true"></i>
+      </div>
+      <div class="flex-1">
+        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Blockchain Verified</h4>
+        <p class="text-xs text-slate-500">Transaction hash: 0x1A73...E8a2</p>
+      </div>
+      <button class="text-trust-blue text-xs font-bold hover:underline">Verify</button>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav border-t border-trust-blue/10">
+    <div class="bottom-nav-inner">
+      <a class="nav-item" href="index.html">
+        <i class="ph ph-house" aria-hidden="true"></i>
+        <span>Home</span>
+      </a>
+      <a class="nav-item" href="project-details.html">
+        <i class="ph ph-building-office" aria-hidden="true"></i>
+        <span>Projects</span>
+      </a>
+      <a class="nav-item active" href="donor-proof.html">
+        <i class="ph ph-hand-heart" aria-hidden="true"></i>
+        <span>Donations</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i class="ph ph-user" aria-hidden="true"></i>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+</body>
+</html>

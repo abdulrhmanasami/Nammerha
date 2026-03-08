@@ -1,0 +1,109 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Nammerha Platform — Docker Compose (Production)
+# Unified deployment: Frontend (Nginx) + Backend (Node.js) + Database (PG16+PostGIS)
+# Network isolation on nammerha-net bridge
+# ═══════════════════════════════════════════════════════════════════════════════
+
+services:
+  # ── Database: PostgreSQL 16 + PostGIS ───────────────────────────────────
+  nammerha-db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: nammerha-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nammerha
+      POSTGRES_USER: nammerha
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nmr_db_secret_2026}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=en_US.utf8'
+    volumes:
+      - nammerha-pgdata:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5434:5432'
+    networks:
+      - nammerha-net
+    labels:
+      - 'com.nammerha.project=nammerha'
+      - 'com.nammerha.component=database'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.50'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nammerha -d nammerha']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+  # ── Frontend: Static Vite build served by Nginx ─────────────────────────
+  nammerha-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nammerha-frontend
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8082:8080'
+    networks:
+      - nammerha-net
+    labels:
+      - 'com.nammerha.project=nammerha'
+      - 'com.nammerha.component=frontend'
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=1001,gid=1001
+      - /var/log/nginx:uid=1001,gid=1001
+      - /var/run:uid=1001,gid=1001
+      - /tmp:uid=1001,gid=1001
+    security_opt:
+      - no-new-privileges:true
+
+  # ── Backend: Node.js Express API ────────────────────────────────────────
+  nammerha-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nammerha-backend
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3010:3001'
+    networks:
+      - nammerha-net
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://nammerha:${POSTGRES_PASSWORD:-nmr_db_secret_2026}@nammerha-db:5432/nammerha
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY:-24h}
+      - PAYMENT_GATEWAY_URL=${PAYMENT_GATEWAY_URL:-https://api.fatora.io/v1}
+      - PAYMENT_GATEWAY_API_KEY=${PAYMENT_GATEWAY_API_KEY}
+      - GPS_PROXIMITY_THRESHOLD_METERS=${GPS_PROXIMITY_THRESHOLD_METERS:-100}
+    labels:
+      - 'com.nammerha.project=nammerha'
+      - 'com.nammerha.component=backend'
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.50'
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      nammerha-db:
+        condition: service_healthy
+
+volumes:
+  nammerha-pgdata:
+    name: nammerha-pgdata
+
+networks:
+  nammerha-net:
+    driver: bridge
+    name: nammerha-net
