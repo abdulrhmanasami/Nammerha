@@ -283,12 +283,6 @@ function injectLocaleIntoHtml(
         `    ${hreflangLinks}\n    ${buildOgLocaleTags(config.code)}\n</head>`
     );
 
-    // 5. Inject NM_API_BASE for i18n.js to use
-    result = result.replace(
-        '</head>',
-        `<script>window.NM_API_BASE="${baseUrl}";</script>\n</head>`
-    );
-
     return result;
 }
 

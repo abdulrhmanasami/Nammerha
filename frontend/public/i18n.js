@@ -1,17 +1,22 @@
 /**
- * Nammerha — Client-Side i18n Engine (Production)
+ * Nammerha — Client-Side i18n Engine (Production v3)
  * ═══════════════════════════════════════════════════════════════
- * Instant language switching with embedded static translation dictionary.
- * Zero API dependency — all UI strings translated client-side.
+ * Zero-API, instant language switching with embedded static dictionary.
+ *
+ * Per "تأسيس محرك ترجمة احترافي للمنصة.md":
+ *   §6.1: RTL/LTR mirroring via dir="rtl" on <html>
+ *   §6.2: Bilingual typography (IBM Plex Sans Arabic / Plus Jakarta Sans)
+ *   §6.4: Native language names (no flags), localStorage persistence
+ *   §6.5: Sustainable UX — zero network dependency for UI translation
  *
  * Features:
- *   - 5 supported languages (AR, EN, DE, FR, TR)
+ *   - 5 languages: AR, EN, DE, FR, TR
+ *   - 120+ translation keys covering all 11 pages
  *   - RTL/LTR switching with dir="" on <html>
- *   - Bilingual typography (IBM Plex Sans Arabic for AR)
- *   - localStorage persistence of language preference
- *   - Translates data-i18n keyed elements AND all visible text nodes
+ *   - Dynamic bilingual font injection (IBM Plex Sans Arabic)
+ *   - localStorage persistence (nm_preferred_locale)
+ *   - Translates data-i18n elements, data-i18n-placeholder, and text nodes
  *   - Language selector widget (Phosphor Globe icon)
- *   - Connection-aware adaptive loading
  */
 (function () {
     'use strict';
@@ -27,18 +32,40 @@
 
     var STORAGE_KEY = 'nm_preferred_locale';
 
+    // ─── Bilingual Typography (Doc §6.2) ─────────────────────────────────
+    // "Plus Jakarta Sans" for Latin/European, "IBM Plex Sans Arabic" for Arabic
+    var ARABIC_FONT_LOADED = false;
+    function loadArabicFont() {
+        if (ARABIC_FONT_LOADED) return;
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap';
+        document.head.appendChild(link);
+        ARABIC_FONT_LOADED = true;
+    }
+
+    function applyTypography(langCode) {
+        if (langCode === 'ar') {
+            loadArabicFont();
+            document.body.style.fontFamily = '"IBM Plex Sans Arabic", "Plus Jakarta Sans", sans-serif';
+        } else {
+            document.body.style.fontFamily = '"Plus Jakarta Sans", "Inter", sans-serif';
+        }
+    }
+
     // ─── Static Translation Dictionary ────────────────────────────────────
-    // Key = data-i18n attribute value OR original English text
-    // Each key maps to { ar, de, fr, tr } translations
+    // Key = data-i18n attribute value OR exact English text for TreeWalker
+    // Each key maps to { ar, de, fr, tr } translations (English = original)
     var DICT = {
-        // ── Navigation ──
+        // ═══ NAVIGATION (all pages) ═══
         'nav_home': { ar: 'الرئيسية', de: 'Startseite', fr: 'Accueil', tr: 'Ana Sayfa' },
         'nav_projects': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
         'nav_impact': { ar: 'الأثر', de: 'Wirkung', fr: 'Impact', tr: 'Etki' },
         'nav_wallet': { ar: 'المحفظة', de: 'Geldbörse', fr: 'Portefeuille', tr: 'Cüzdan' },
         'nav_profile': { ar: 'الحساب', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'nav_explore': { ar: 'استكشاف', de: 'Entdecken', fr: 'Explorer', tr: 'Keşfet' },
 
-        // ── Dashboard ──
+        // ═══ INDEX / DASHBOARD PAGE ═══
         'active_region': { ar: 'المنطقة النشطة', de: 'Aktive Region', fr: 'Région active', tr: 'Aktif Bölge' },
         'active_projects': { ar: '12 مشروع نشط', de: '12 aktive Projekte', fr: '12 projets actifs', tr: '12 Aktif Proje' },
         'featured_projects': { ar: 'مشاريع مميزة', de: 'Ausgewählte Projekte', fr: 'Projets en vedette', tr: 'Öne Çıkan Projeler' },
@@ -47,8 +74,6 @@
         'total_impact': { ar: 'إجمالي التأثير المموّل', de: 'Gesamtfinanzierte Wirkung', fr: 'Impact total financé', tr: 'Toplam Finanse Edilen Etki' },
         'vs_quarter': { ar: 'مقارنة بالربع السابق', de: 'ggü. letztem Quartal', fr: 'vs trimestre précédent', tr: 'önceki çeyreğe göre' },
         'transparency': { ar: 'الشفافية المؤسسية', de: 'Institutionelle Transparenz', fr: 'Transparence institutionnelle', tr: 'Kurumsal Şeffaflık' },
-
-        // ── Index Page ──
         'interactive_map': { ar: 'خريطة إعادة الإعمار التفاعلية', de: 'Interaktive Wiederaufbaukarte', fr: 'Carte interactive de reconstruction', tr: 'İnteraktif Yeniden Yapım Haritası' },
         'fund_project': { ar: 'موّل هذا المشروع', de: 'Projekt finanzieren', fr: 'Financer ce projet', tr: 'Bu Projeyi Finanse Et' },
         'quick_actions': { ar: 'إجراءات سريعة', de: 'Schnellaktionen', fr: 'Actions rapides', tr: 'Hızlı İşlemler' },
@@ -57,7 +82,132 @@
         'fund_materials': { ar: 'تمويل المواد', de: 'Materialien finanzieren', fr: 'Financer les matériaux', tr: 'Malzemeleri Finanse Et' },
         'price_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' },
 
-        // ── Search & UI ──
+        // ═══ PROJECT DETAILS PAGE ═══
+        'Project Details': { ar: 'تفاصيل المشروع', de: 'Projektdetails', fr: 'Détails du projet', tr: 'Proje Detayları' },
+        'Overall Funding': { ar: 'التمويل الإجمالي', de: 'Gesamtfinanzierung', fr: 'Financement global', tr: 'Genel Finansman' },
+        'Itemized Needs (BOQ)': { ar: 'الاحتياجات المفصلة', de: 'Detaillierte Bedarfe (LV)', fr: 'Besoins détaillés (DQE)', tr: 'Detaylı İhtiyaçlar (BOQ)' },
+        'Verified List': { ar: 'قائمة معتمدة', de: 'Verifizierte Liste', fr: 'Liste vérifiée', tr: 'Doğrulanmış Liste' },
+        'Add to Cart': { ar: 'أضف إلى السلة', de: 'In den Warenkorb', fr: 'Ajouter au panier', tr: 'Sepete Ekle' },
+        'Funding Complete': { ar: 'التمويل مكتمل', de: 'Finanzierung abgeschlossen', fr: 'Financement terminé', tr: 'Finansman Tamamlandı' },
+        'Secure Escrow': { ar: 'ضمان آمن', de: 'Sicheres Treuhandkonto', fr: 'Séquestre sécurisé', tr: 'Güvenli Emanet' },
+        'In Progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        'Harbor View Reconstruction': { ar: 'إعادة إعمار المرفأ', de: 'Harbor View Wiederaufbau', fr: 'Reconstruction Harbor View', tr: 'Harbor View Yeniden Yapımı' },
+
+        // ═══ DONOR BASKET PAGE ═══
+        'Construction Basket': { ar: 'سلة البناء', de: 'Baukorb', fr: 'Panier de construction', tr: 'İnşaat Sepeti' },
+        'Your Basket': { ar: 'سلتك', de: 'Ihr Warenkorb', fr: 'Votre panier', tr: 'Sepetiniz' },
+        'Proceed to Payment': { ar: 'المتابعة للدفع', de: 'Zur Zahlung', fr: 'Procéder au paiement', tr: 'Ödemeye Geç' },
+        'Checkout': { ar: 'الدفع', de: 'Bezahlen', fr: 'Payer', tr: 'Ödeme' },
+        'Your basket is empty': { ar: 'سلتك فارغة', de: 'Ihr Warenkorb ist leer', fr: 'Votre panier est vide', tr: 'Sepetiniz boş' },
+
+        // ═══ DONOR PROOF PAGE ═══
+        'Proof of Delivery': { ar: 'إثبات التسليم', de: 'Liefernachweis', fr: 'Preuve de livraison', tr: 'Teslimat Kanıtı' },
+        'Blockchain Verified': { ar: 'تم التحقق عبر البلوكتشين', de: 'Blockchain-verifiziert', fr: 'Vérifié par blockchain', tr: 'Blockchain Doğrulanmış' },
+        'View Project Progress': { ar: 'عرض تقدم المشروع', de: 'Projektfortschritt anzeigen', fr: 'Voir la progression', tr: 'Proje İlerlemesini Gör' },
+        'Tax Deductible Receipt': { ar: 'إيصال قابل للخصم الضريبي', de: 'Steuerlich absetzbare Quittung', fr: 'Reçu déductible d\'impôt', tr: 'Vergiden Düşülebilir Makbuz' },
+        'GPS-stamped delivery verification': { ar: 'تحقق التسليم بطابع GPS', de: 'GPS-gestempelte Lieferverifizierung', fr: 'Vérification de livraison GPS', tr: 'GPS damgalı teslimat doğrulaması' },
+
+        // ═══ ENGINEER BOQ PAGE ═══
+        'Engineer BOQ Builder': { ar: 'منشئ جدول الكميات للمهندس', de: 'Ingenieur-LV-Editor', fr: 'Éditeur DQE pour ingénieur', tr: 'Mühendis BOQ Oluşturucu' },
+        'BOQ Builder': { ar: 'منشئ جدول الكميات', de: 'LV-Editor', fr: 'Éditeur DQE', tr: 'BOQ Oluşturucu' },
+        'Add Item': { ar: 'إضافة بند', de: 'Artikel hinzufügen', fr: 'Ajouter un article', tr: 'Kalem Ekle' },
+        'Added Materials': { ar: 'المواد المضافة', de: 'Hinzugefügte Materialien', fr: 'Matériaux ajoutés', tr: 'Eklenen Malzemeler' },
+        'Total Project Estimate': { ar: 'إجمالي تقدير المشروع', de: 'Gesamte Projektschätzung', fr: 'Estimation totale du projet', tr: 'Toplam Proje Tahmini' },
+        'Site Validation & Proof of Work': { ar: 'التحقق الميداني وإثبات العمل', de: 'Standortvalidierung & Arbeitsnachweis', fr: 'Validation sur site & preuve de travail', tr: 'Saha Doğrulama & İş Kanıtı' },
+        'Field Photo Proof': { ar: 'إثبات الصور الميدانية', de: 'Fotobeweis vor Ort', fr: 'Preuve photo de terrain', tr: 'Saha Fotoğraf Kanıtı' },
+        'Voice Snag': { ar: 'ملاحظة صوتية', de: 'Sprachmangel', fr: 'Note vocale', tr: 'Sesli Not' },
+        'Capture 360 & Sync': { ar: 'تصوير 360 ومزامنة', de: '360° aufnehmen & synchronisieren', fr: 'Capturer 360 & Synchroniser', tr: '360 Çek & Senkronize Et' },
+        'Gallery': { ar: 'المعرض', de: 'Galerie', fr: 'Galerie', tr: 'Galeri' },
+        'Verified Field Engineer': { ar: 'مهندس ميداني معتمد', de: 'Verifizierter Feldingenieur', fr: 'Ingénieur de terrain vérifié', tr: 'Doğrulanmış Saha Mühendisi' },
+
+        // ═══ ENGINEER CAMERA PAGE ═══
+        'Site Verification': { ar: 'التحقق الميداني', de: 'Standortverifizierung', fr: 'Vérification du site', tr: 'Saha Doğrulaması' },
+        'GPS Coordinates': { ar: 'إحداثيات GPS', de: 'GPS-Koordinaten', fr: 'Coordonnées GPS', tr: 'GPS Koordinatları' },
+        'Timestamp': { ar: 'الطابع الزمني', de: 'Zeitstempel', fr: 'Horodatage', tr: 'Zaman Damgası' },
+        'Signature': { ar: 'التوقيع', de: 'Unterschrift', fr: 'Signature', tr: 'İmza' },
+        'Sync': { ar: 'مزامنة', de: 'Synchronisieren', fr: 'Synchroniser', tr: 'Senkronize Et' },
+
+        // ═══ HOMEOWNER REPORT PAGE ═══
+        'Submit Repair Request': { ar: 'تقديم طلب إصلاح', de: 'Reparaturanfrage einreichen', fr: 'Soumettre une demande de réparation', tr: 'Onarım Talebi Gönder' },
+        'Upload Photos': { ar: 'رفع الصور', de: 'Fotos hochladen', fr: 'Télécharger des photos', tr: 'Fotoğraf Yükle' },
+        'Location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        'Description': { ar: 'الوصف', de: 'Beschreibung', fr: 'Description', tr: 'Açıklama' },
+        'Category': { ar: 'الفئة', de: 'Kategorie', fr: 'Catégorie', tr: 'Kategori' },
+        'Priority': { ar: 'الأولوية', de: 'Priorität', fr: 'Priorité', tr: 'Öncelik' },
+        'Governorate': { ar: 'المحافظة', de: 'Gouvernement', fr: 'Gouvernorat', tr: 'İl' },
+        'Structural Damage': { ar: 'أضرار هيكلية', de: 'Strukturschäden', fr: 'Dommages structurels', tr: 'Yapısal Hasar' },
+        'Electrical': { ar: 'كهربائي', de: 'Elektrisch', fr: 'Électrique', tr: 'Elektrik' },
+        'General Repair': { ar: 'إصلاح عام', de: 'Allgemeine Reparatur', fr: 'Réparation générale', tr: 'Genel Onarım' },
+        'Urgent': { ar: 'عاجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
+        'Request Summary': { ar: 'ملخص الطلب', de: 'Anfragezusammenfassung', fr: 'Résumé de la demande', tr: 'Talep Özeti' },
+        'Request Submitted!': { ar: 'تم تقديم الطلب!', de: 'Anfrage eingereicht!', fr: 'Demande soumise !', tr: 'Talep Gönderildi!' },
+
+        // ═══ ADMIN DASHBOARD PAGE ═══
+        'Admin Portal': { ar: 'بوابة الإدارة', de: 'Admin-Portal', fr: 'Portail d\'administration', tr: 'Yönetici Portalı' },
+        'Command Center': { ar: 'مركز القيادة', de: 'Kommandozentrale', fr: 'Centre de commande', tr: 'Komuta Merkezi' },
+        'Dashboard': { ar: 'لوحة المتابعة', de: 'Dashboard', fr: 'Tableau de bord', tr: 'Kontrol Paneli' },
+        'Active Projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
+        'Total Users': { ar: 'إجمالي المستخدمين', de: 'Gesamtbenutzer', fr: 'Utilisateurs totaux', tr: 'Toplam Kullanıcılar' },
+        'Donations': { ar: 'التبرعات', de: 'Spenden', fr: 'Dons', tr: 'Bağışlar' },
+        'Registered Engineers': { ar: 'المهندسون المسجلون', de: 'Registrierte Ingenieure', fr: 'Ingénieurs inscrits', tr: 'Kayıtlı Mühendisler' },
+        'Recent Audit Trail': { ar: 'آخر سجلات التدقيق', de: 'Letzter Prüfpfad', fr: 'Dernière piste d\'audit', tr: 'Son Denetim İzi' },
+        'View Full Log': { ar: 'عرض السجل الكامل', de: 'Vollständiges Protokoll anzeigen', fr: 'Voir le journal complet', tr: 'Tam Günlüğü Gör' },
+        'Escrow': { ar: 'الأمانات', de: 'Treuhand', fr: 'Entiercement', tr: 'Emanet' },
+        'Verification': { ar: 'التحقق', de: 'Verifizierung', fr: 'Vérification', tr: 'Doğrulama' },
+        'Engineer': { ar: 'مهندس', de: 'Ingenieur', fr: 'Ingénieur', tr: 'Mühendis' },
+        'Settings': { ar: 'الإعدادات', de: 'Einstellungen', fr: 'Paramètres', tr: 'Ayarlar' },
+
+        // ═══ ADMIN ESCROW PAGE ═══
+        'Escrow Management': { ar: 'إدارة الأمانات', de: 'Treuhandverwaltung', fr: 'Gestion d\'entiercement', tr: 'Emanet Yönetimi' },
+        'Escrow Verification Queue': { ar: 'قائمة التحقق من الأمانات', de: 'Treuhand-Verifizierungswarteschlange', fr: 'File de vérification d\'entiercement', tr: 'Emanet Doğrulama Kuyruğu' },
+        'Escrow Release Verification': { ar: 'التحقق من تحرير الأمانة', de: 'Treuhand-Freigabeprüfung', fr: 'Vérification de libération d\'entiercement', tr: 'Emanet Serbest Bırakma Doğrulaması' },
+        'Funds Locked in Escrow': { ar: 'أموال محجوزة في الأمانة', de: 'Gelder in Treuhand gesperrt', fr: 'Fonds bloqués en entiercement', tr: 'Emanette Kilitli Fonlar' },
+        'Purchase Order': { ar: 'أمر الشراء', de: 'Bestellung', fr: 'Bon de commande', tr: 'Satın Alma Siparişi' },
+        'Vendor ID': { ar: 'معرف المورد', de: 'Lieferanten-ID', fr: 'ID fournisseur', tr: 'Tedarikçi Kimliği' },
+        'Action Required': { ar: 'إجراء مطلوب', de: 'Aktion erforderlich', fr: 'Action requise', tr: 'İşlem Gerekli' },
+
+        // ═══ ADMIN KYC PAGE ═══
+        'Identity Verification Queue': { ar: 'قائمة التحقق من الهوية', de: 'Identitätsverifizierungswarteschlange', fr: 'File de vérification d\'identité', tr: 'Kimlik Doğrulama Kuyruğu' },
+        'Applications Pending Review': { ar: 'طلبات بانتظار المراجعة', de: 'Ausstehende Anträge', fr: 'Demandes en attente', tr: 'İnceleme Bekleyen Başvurular' },
+        'Select an Application': { ar: 'اختر طلباً', de: 'Antrag auswählen', fr: 'Sélectionner une demande', tr: 'Bir Başvuru Seçin' },
+        'Confidence Score': { ar: 'درجة الثقة', de: 'Vertrauensbewertung', fr: 'Score de confiance', tr: 'Güven Skoru' },
+        'Under Review': { ar: 'قيد المراجعة', de: 'Wird überprüft', fr: 'En cours d\'examen', tr: 'İnceleniyor' },
+        'Approved': { ar: 'مُعتمد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' },
+        'Rejected': { ar: 'مرفوض', de: 'Abgelehnt', fr: 'Rejeté', tr: 'Reddedildi' },
+        'Active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+
+        // ═══ ADMIN ORACLE PAGE ═══
+        'Pricing Oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' },
+        'Regional Supply Forecast': { ar: 'توقعات العرض الإقليمي', de: 'Regionale Angebotsprognose', fr: 'Prévision d\'approvisionnement régional', tr: 'Bölgesel Tedarik Tahmini' },
+        'Steel Index Volatility': { ar: 'تقلب مؤشر الحديد', de: 'Stahlindexvolatilität', fr: 'Volatilité de l\'indice acier', tr: 'Çelik Endeksi Volatilitesi' },
+        'Stable': { ar: 'مستقر', de: 'Stabil', fr: 'Stable', tr: 'Stabil' },
+        'Constraint Risk': { ar: 'مخاطر القيود', de: 'Einschränkungsrisiko', fr: 'Risque de contrainte', tr: 'Kısıtlama Riski' },
+        'Estimated': { ar: 'مُقدّر', de: 'Geschätzt', fr: 'Estimé', tr: 'Tahmini' },
+        'Total Adjusted Cost': { ar: 'التكلفة المعدّلة الإجمالية', de: 'Gesamte bereinigte Kosten', fr: 'Coût total ajusté', tr: 'Toplam Düzeltilmiş Maliyet' },
+        'Verified by Oracle': { ar: 'معتمد من المؤشر', de: 'Vom Orakel verifiziert', fr: 'Vérifié par l\'oracle', tr: 'Oracle Tarafından Doğrulandı' },
+        'Market Data': { ar: 'بيانات السوق', de: 'Marktdaten', fr: 'Données du marché', tr: 'Piyasa Verileri' },
+
+        // ═══ COMMON UI ELEMENTS ═══
+        'Save': { ar: 'حفظ', de: 'Speichern', fr: 'Enregistrer', tr: 'Kaydet' },
+        'Submit': { ar: 'إرسال', de: 'Einreichen', fr: 'Soumettre', tr: 'Gönder' },
+        'Cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
+        'Next': { ar: 'التالي', de: 'Weiter', fr: 'Suivant', tr: 'İleri' },
+        'Back': { ar: 'رجوع', de: 'Zurück', fr: 'Retour', tr: 'Geri' },
+        'Remove': { ar: 'إزالة', de: 'Entfernen', fr: 'Supprimer', tr: 'Kaldır' },
+        'Total': { ar: 'المجموع', de: 'Gesamt', fr: 'Total', tr: 'Toplam' },
+        'Verified': { ar: 'معتمد', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulandı' },
+        'Funded': { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
+        'Fully Funded': { ar: 'مموّل بالكامل', de: 'Voll finanziert', fr: 'Entièrement financé', tr: 'Tamamen Finanse' },
+        'Raised': { ar: 'تم جمع', de: 'Gesammelt', fr: 'Collecté', tr: 'Toplanan' },
+        'Verify': { ar: 'تحقق', de: 'Verifizieren', fr: 'Vérifier', tr: 'Doğrula' },
+        'Cost:': { ar: 'التكلفة:', de: 'Kosten:', fr: 'Coût :', tr: 'Maliyet:' },
+        'Status': { ar: 'الحالة', de: 'Status', fr: 'Statut', tr: 'Durum' },
+        'Value': { ar: 'القيمة', de: 'Wert', fr: 'Valeur', tr: 'Değer' },
+        'Title': { ar: 'العنوان', de: 'Titel', fr: 'Titre', tr: 'Başlık' },
+        'Project ID': { ar: 'معرف المشروع', de: 'Projekt-ID', fr: 'ID du projet', tr: 'Proje Kimliği' },
+        'BOQ': { ar: 'جدول الكميات', de: 'Leistungsverzeichnis', fr: 'Devis quantitatif', tr: 'Metraj' },
+
+        // ═══ SEARCH ═══
         'Search reconstruction projects...': {
             ar: 'ابحث عن مشاريع إعادة الإعمار...',
             de: 'Wiederaufbauprojekte suchen...',
@@ -65,61 +215,9 @@
             tr: 'Yeniden yapım projeleri ara...'
         },
 
-        // ── Project Details ──
-        'Project Details': { ar: 'تفاصيل المشروع', de: 'Projektdetails', fr: 'Détails du projet', tr: 'Proje Detayları' },
-        'Overall Funding': { ar: 'التمويل الإجمالي', de: 'Gesamtfinanzierung', fr: 'Financement global', tr: 'Genel Finansman' },
-        'Itemized Needs (BOQ)': { ar: 'الاحتياجات المفصلة', de: 'Detaillierte Bedarfe', fr: 'Besoins détaillés', tr: 'Detaylı İhtiyaçlar' },
-        'Verified List': { ar: 'قائمة معتمدة', de: 'Verifizierte Liste', fr: 'Liste vérifiée', tr: 'Doğrulanmış Liste' },
-        'Fund this item': { ar: 'موّل هذا البند', de: 'Diesen Artikel finanzieren', fr: 'Financer cet article', tr: 'Bu kalemi finanse et' },
-        'Funding Complete': { ar: 'التمويل مكتمل', de: 'Finanzierung abgeschlossen', fr: 'Financement terminé', tr: 'Finansman Tamamlandı' },
-        'Secure Escrow': { ar: 'ضمان آمن', de: 'Sicheres Treuhandkonto', fr: 'Séquestre sécurisé', tr: 'Güvenli Emanet' },
-        'In Progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
-
-        // ── Donor Proof ──
-        'Proof of Delivery': { ar: 'إثبات التسليم', de: 'Liefernachweis', fr: 'Preuve de livraison', tr: 'Teslimat Kanıtı' },
-        'Success! Your contribution is on-site': {
-            ar: 'نجاح! تبرعك وصل للموقع',
-            de: 'Erfolg! Ihr Beitrag ist vor Ort',
-            fr: 'Succès ! Votre contribution est sur site',
-            tr: 'Başarılı! Katkınız sahada'
-        },
-        'Blockchain Verified': { ar: 'تم التحقق عبر البلوكتشين', de: 'Blockchain-verifiziert', fr: 'Vérifié par blockchain', tr: 'Blockchain Doğrulanmış' },
-        'View Project Progress': { ar: 'عرض تقدم المشروع', de: 'Projektfortschritt anzeigen', fr: 'Voir la progression', tr: 'Proje İlerlemesini Gör' },
-        'Verified': { ar: 'معتمد', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulandı' },
-
-        // ── Donor Basket ──
-        'Construction Basket': { ar: 'سلة البناء', de: 'Baukorb', fr: 'Panier de construction', tr: 'İnşaat Sepeti' },
-        'Your Basket': { ar: 'سلتك', de: 'Ihr Warenkorb', fr: 'Votre panier', tr: 'Sepetiniz' },
-        'Proceed to Payment': { ar: 'المتابعة للدفع', de: 'Zur Zahlung', fr: 'Procéder au paiement', tr: 'Ödemeye Geç' },
-        'Total': { ar: 'المجموع', de: 'Gesamt', fr: 'Total', tr: 'Toplam' },
-        'Remove': { ar: 'إزالة', de: 'Entfernen', fr: 'Supprimer', tr: 'Kaldır' },
-        'Checkout': { ar: 'الدفع', de: 'Bezahlen', fr: 'Payer', tr: 'Ödeme' },
-
-        // ── Engineer BOQ ──
-        'BOQ Builder': { ar: 'منشئ جدول الكميات', de: 'LV-Editor', fr: 'Éditeur DQE', tr: 'BOQ Oluşturucu' },
-        'Add Item': { ar: 'إضافة بند', de: 'Artikel hinzufügen', fr: 'Ajouter un article', tr: 'Kalem Ekle' },
-        'Save': { ar: 'حفظ', de: 'Speichern', fr: 'Enregistrer', tr: 'Kaydet' },
-        'Submit': { ar: 'إرسال', de: 'Einreichen', fr: 'Soumettre', tr: 'Gönder' },
-        'Cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
-
-        // ── Homeowner Report ──
-        'Submit Repair Request': { ar: 'تقديم طلب إصلاح', de: 'Reparaturanfrage einreichen', fr: 'Soumettre une demande', tr: 'Onarım Talebi Gönder' },
-        'Upload Photos': { ar: 'رفع الصور', de: 'Fotos hochladen', fr: 'Télécharger des photos', tr: 'Fotoğraf Yükle' },
-        'Location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
-        'Description': { ar: 'الوصف', de: 'Beschreibung', fr: 'Description', tr: 'Açıklama' },
-        'Category': { ar: 'الفئة', de: 'Kategorie', fr: 'Catégorie', tr: 'Kategori' },
-        'Priority': { ar: 'الأولوية', de: 'Priorität', fr: 'Priorité', tr: 'Öncelik' },
-        'Next': { ar: 'التالي', de: 'Weiter', fr: 'Suivant', tr: 'İleri' },
-        'Back': { ar: 'رجوع', de: 'Zurück', fr: 'Retour', tr: 'Geri' },
-
-        // ── Common UI ──
-        'Cost:': { ar: 'التكلفة:', de: 'Kosten:', fr: 'Coût :', tr: 'Maliyet:' },
-        'Funded': { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
-        'Fully Funded': { ar: 'مموّل بالكامل', de: 'Voll finanziert', fr: 'Entièrement financé', tr: 'Tamamen Finanse' },
-        'Raised': { ar: 'تم جمع', de: 'Gesammelt', fr: 'Collecté', tr: 'Toplanan' },
-        'Verify': { ar: 'تحقق', de: 'Verifizieren', fr: 'Vérifier', tr: 'Doğrula' },
+        // ═══ TRUST / ESCROW BANNER ═══
+        'Funds held in escrow': { ar: 'أموال محفوظة في حساب ضمان', de: 'Gelder auf Treuhandkonto', fr: 'Fonds en entiercement', tr: 'Emanette tutulan fonlar' },
     };
-
 
     // ─── State ────────────────────────────────────────────────────────────
     var currentLang = getStored() || detectBrowserLang() || 'en';
@@ -135,7 +233,7 @@
         for (var i = 0; i < LANGS.length; i++) {
             if (LANGS[i].code === code) return LANGS[i];
         }
-        return LANGS[1]; // English
+        return LANGS[1]; // English default
     }
     function detectBrowserLang() {
         var navLang = (navigator.language || '').split('-')[0];
@@ -158,6 +256,9 @@
         html.setAttribute('dir', cfg.dir);
         currentLang = cfg.code;
         setStored(cfg.code);
+
+        // §6.2: Apply bilingual typography
+        applyTypography(cfg.code);
 
         // Update selector label
         var lbl = document.getElementById('nm-lang-label');
@@ -224,7 +325,6 @@
     function translateTextNodes(root, langCode) {
         var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
             acceptNode: function (node) {
-                // Skip script/style/noscript
                 var parent = node.parentElement;
                 if (!parent) return NodeFilter.FILTER_REJECT;
                 var tag = parent.tagName;
@@ -233,6 +333,8 @@
                 }
                 // Skip elements already handled by data-i18n
                 if (parent.hasAttribute('data-i18n')) return NodeFilter.FILTER_REJECT;
+                // Skip language selector widget
+                if (parent.closest('#nm-lang-widget')) return NodeFilter.FILTER_REJECT;
                 // Only non-empty text
                 if (node.textContent.trim().length < 2) return NodeFilter.FILTER_REJECT;
                 return NodeFilter.FILTER_ACCEPT;
@@ -317,7 +419,6 @@
                 });
                 opt.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    // Update all option styles
                     var allOpts = dd.querySelectorAll('.nm-lang-opt');
                     for (var j = 0; j < allOpts.length; j++) {
                         allOpts[j].style.color = '#334155';
@@ -376,7 +477,7 @@
         if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
-    // ─── RTL Direction Fix for Drop-down ──────────────────────────────────
+    // ─── RTL Direction Fix for Widget ─────────────────────────────────────
     function updateWidgetPosition() {
         var widget = document.getElementById('nm-lang-widget');
         if (!widget) return;
@@ -407,6 +508,33 @@
         document.addEventListener('click', function () {
             if (dropdownOpen) closeDropdown();
         });
+
+        // ─── MutationObserver: auto-translate dynamically inserted elements ──
+        // This handles nav.js (and any other script) that injects data-i18n
+        // elements AFTER the initial translation pass.
+        var observer = new MutationObserver(function (mutations) {
+            if (currentLang === 'en') return; // English is the source — nothing to do
+            var needsUpdate = false;
+            for (var m = 0; m < mutations.length; m++) {
+                var added = mutations[m].addedNodes;
+                for (var n = 0; n < added.length; n++) {
+                    var node = added[n];
+                    if (node.nodeType !== 1) continue; // Element nodes only
+                    if (node.id === 'nm-lang-widget') continue; // Skip our own widget
+                    // Check if the node or its children have data-i18n
+                    if (node.hasAttribute && (node.hasAttribute('data-i18n') || node.querySelector && node.querySelector('[data-i18n]'))) {
+                        needsUpdate = true;
+                        break;
+                    }
+                }
+                if (needsUpdate) break;
+            }
+            if (needsUpdate) {
+                translatePage(currentLang);
+                updateWidgetPosition();
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     // ─── Init ─────────────────────────────────────────────────────────────
