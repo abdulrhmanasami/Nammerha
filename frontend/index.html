@@ -35,7 +35,7 @@
           id="search-input"
           type="text"
           class="w-full bg-slate-200/50 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-trust-blue/50 transition-all outline-none"
-          placeholder="Search reconstruction projects..."
+          placeholder="Search reconstruction projects..." data-i18n-placeholder="Search reconstruction projects..."
         />
       </div>
       <!-- Cart Badge -->
@@ -73,7 +73,7 @@
                 aria-hidden="true"
               ></i>
               <p class="text-slate-500 text-sm mt-2 font-medium">
-                Interactive Reconstruction Map
+                <span data-i18n="interactive_map">Interactive Reconstruction Map</span>
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@
                 <span
                   class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"
                 ></span>
-                <span class="text-[11px] opacity-70">12 Active Projects</span>
+                <span class="text-[11px] opacity-70" data-i18n="active_projects">12 Active Projects</span>
               </div>
             </div>
             <div class="flex flex-col gap-2">
@@ -125,12 +125,12 @@
       <!-- Featured Projects (Horizontal Scroll) -->
       <section class="mb-8">
         <div class="flex items-center justify-between px-4 mb-4">
-          <h2 class="text-lg font-bold">Featured Projects</h2>
+          <h2 class="text-lg font-bold" data-i18n="featured_projects">Featured Projects</h2>
           <a
             class="text-sm text-trust-blue font-semibold flex items-center gap-1"
             href="project-details.html"
           >
-            View all
+            <span data-i18n="view_all">View all</span>
             <i class="ph ph-arrow-right" style="font-size:18px" aria-hidden="true"></i>
           </a>
         </div>
@@ -201,7 +201,7 @@
               <a
                 href="project-details.html"
                 class="btn-primary mt-auto text-sm !py-2.5"
-                >Fund This Project</a
+                 data-i18n="fund_project">Fund This Project</a
               >
             </div>
           </div>
@@ -272,7 +272,7 @@
               <a
                 href="project-details.html"
                 class="btn-primary mt-auto text-sm !py-2.5"
-                >Fund This Project</a
+                 data-i18n="fund_project">Fund This Project</a
               >
             </div>
           </div>
@@ -343,7 +343,7 @@
               <a
                 href="project-details.html"
                 class="btn-primary mt-auto text-sm !py-2.5"
-                >Fund This Project</a
+                 data-i18n="fund_project">Fund This Project</a
               >
             </div>
           </div>
@@ -369,7 +369,7 @@
                 <i class="ph ph-trend-up" style="font-size:14px" aria-hidden="true"></i>
                 +12.5%
               </span>
-              <span class="text-slate-400 text-[10px]">vs last quarter</span>
+              <span class="text-slate-400 text-[10px]" data-i18n="vs_quarter">vs last quarter</span>
             </div>
           </div>
           <div
@@ -394,7 +394,7 @@
             <i class="ph ph-shield-check text-smoky-jade" style="font-size:28px" aria-hidden="true"></i>
           </div>
           <div>
-            <h3 class="font-bold text-sm mb-1">Institutional Transparency</h3>
+            <h3 class="font-bold text-sm mb-1" data-i18n="transparency">Institutional Transparency</h3>
             <p class="text-xs text-slate-500 leading-relaxed">
               Nammerha uses the Open Contracting Data Standard (OCDS) for all
               financial reporting. Every dollar invested is tracked and audited
@@ -406,7 +406,7 @@
 
       <!-- Role-Based Quick Actions -->
       <section class="px-4 mt-8">
-        <h2 class="text-lg font-bold mb-4">Quick Actions</h2>
+        <h2 class="text-lg font-bold mb-4" data-i18n="quick_actions">Quick Actions</h2>
         <div class="grid grid-cols-2 gap-3">
           <a
             href="homeowner-report.html"
@@ -417,7 +417,7 @@
             >
               <i class="ph ph-wrench text-trust-blue text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700">Report Damage</span>
+            <span class="text-xs font-bold text-slate-700" data-i18n="report_damage">Report Damage</span>
           </a>
           <a
             href="engineer-boq.html"
@@ -428,7 +428,7 @@
             >
               <i class="ph ph-clipboard-text text-smoky-jade text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700">Build BOQ</span>
+            <span class="text-xs font-bold text-slate-700" data-i18n="build_boq">Build BOQ</span>
           </a>
           <a
             href="donor-basket.html"
@@ -439,7 +439,7 @@
             >
               <i class="ph ph-hand-heart text-warm-earth text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700">Fund Materials</span>
+            <span class="text-xs font-bold text-slate-700" data-i18n="fund_materials">Fund Materials</span>
           </a>
           <a
             href="admin-oracle.html"
@@ -450,7 +450,7 @@
             >
               <i class="ph ph-chart-line-up text-warning-yellow text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700">Price Oracle</span>
+            <span class="text-xs font-bold text-slate-700" data-i18n="price_oracle">Price Oracle</span>
           </a>
         </div>
       </section>
@@ -461,23 +461,23 @@
       <div class="bottom-nav-inner">
         <a class="nav-item active" href="index.html">
           <i class="ph ph-house" aria-hidden="true"></i>
-          <span>Home</span>
+          <span data-i18n="nav_home">Home</span>
         </a>
         <a class="nav-item" href="project-details.html">
           <i class="ph ph-map-trellis" aria-hidden="true"></i>
-          <span>Projects</span>
+          <span data-i18n="nav_projects">Projects</span>
         </a>
         <a class="nav-item" href="donor-basket.html">
           <i class="ph ph-chart-bar" aria-hidden="true"></i>
-          <span>Impact</span>
+          <span data-i18n="nav_impact">Impact</span>
         </a>
         <a class="nav-item" href="#">
           <i class="ph ph-wallet" aria-hidden="true"></i>
-          <span>Wallet</span>
+          <span data-i18n="nav_wallet">Wallet</span>
         </a>
         <a class="nav-item" href="#">
           <i class="ph ph-user" aria-hidden="true"></i>
-          <span>Profile</span>
+          <span data-i18n="nav_profile">Profile</span>
         </a>
       </div>
     </nav>
@@ -491,7 +491,6 @@
       class="gradient-orb gradient-orb-jade"
       style="width: 250px; height: 250px; top: 50%; left: -80px"
     ></div>
-  <script>window.NM_API_BASE="";</script>
 <script src="/i18n.js" defer></script>
 <script src="/nav.js" defer></script>
 </body>
