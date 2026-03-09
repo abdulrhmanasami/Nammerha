@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Tradesperson Portal</title>
+  <meta name="description" content="Tradesperson portal for finding repair jobs, accepting contractor assignments, and managing your trade work." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/tradesperson-portal.ts"></script>
+<link href="/i18n.css?v=4" rel="stylesheet"/>
+<script src="/i18n-boot.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<div class="flex min-h-screen">
+  <!-- ═══════ Sidebar ═══════ -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex flex-col">
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+      <div class="size-9 rounded-lg bg-teal-600 flex items-center justify-center">
+        <i class="ph ph-wrench text-white" style="font-size:20px" aria-hidden="true"></i>
+      </div>
+      <span class="font-bold text-sm" data-i18n="tradesperson_portal">Tradesperson Portal</span>
+    </div>
+    <nav class="flex-1 px-4 space-y-1 pt-3">
+      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-teal-600/10 text-teal-700 rounded-lg cursor-pointer" href="#">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+      </a>
+      <a id="tab-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-megaphone" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="tradesperson_jobs">Available Jobs</span>
+        <span class="ml-auto bg-teal-500/20 text-teal-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="pending-count">0</span>
+      </a>
+      <a id="tab-assignments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-clipboard-text" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="tradesperson_assignments">Assignments</span>
+      </a>
+      <a id="tab-earnings" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-coins" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="tradesperson_earnings">Earnings</span>
+      </a>
+      <a id="tab-profile" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-user-circle" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="common_profile">Profile</span>
+      </a>
+    </nav>
+    <!-- Availability Toggle -->
+    <div class="p-4 border-t border-slate-200 space-y-2">
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Availability</p>
+      <div class="flex gap-1" id="availability-btns">
+        <button data-status="available" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-green-200 bg-green-50 text-green-700">Available</button>
+        <button data-status="busy" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500">Busy</button>
+        <button data-status="offline" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500">Offline</button>
+      </div>
+    </div>
+    <!-- Logout -->
+    <div class="p-4 border-t border-slate-200">
+      <a href="/auth/login.html" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══════ Main Content ═══════ -->
+  <main class="flex-1 overflow-auto">
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+      <!-- Header -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold" data-i18n="tradesperson_welcome">Tradesperson Dashboard</h1>
+          <p class="text-sm text-slate-500 mt-0.5" data-i18n="tradesperson_subtitle">Find jobs, manage assignments, and track your earnings</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase" id="availability-badge">—</span>
+          <span class="text-xs text-slate-400" id="trade-badge">—</span>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_active_jobs">Active Jobs</p>
+          <p class="text-2xl font-black mt-1" id="kpi-active">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_completed">Completed</p>
+          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-completed">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_total_earnings">Total Earnings</p>
+          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-earnings">$0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_rating">Rating</p>
+          <p class="text-2xl font-black mt-1" id="kpi-rating">—</p>
+        </div>
+      </div>
+
+      <!-- ═══════ Dashboard Section (active jobs overview) ═══════ -->
+      <div id="section-dashboard" class="space-y-4">
+        <!-- Active contractor assignments -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold">Current Work</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Your active jobs and assignments</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th class="px-5 py-3 text-left">Job</th>
+                  <th class="px-5 py-3 text-left">Type</th>
+                  <th class="px-5 py-3 text-left">Source</th>
+                  <th class="px-5 py-3 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody id="active-jobs-body">
+                <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                  <p class="mt-2 text-xs">Loading...</p>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Available Requests (Thumbtack) ═══════ -->
+      <div id="section-requests" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="tradesperson_available_requests">Available Service Requests</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Homeowner repair requests matching your trade</p>
+          </div>
+          <div id="requests-list" class="divide-y divide-slate-100">
+            <div class="p-5 text-center text-slate-400">
+              <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+              <p class="mt-2 text-xs">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Contractor Assignments ═══════ -->
+      <div id="section-assignments" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="tradesperson_assignment_list">Contractor Assignments</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Tasks assigned by general contractors on projects</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th class="px-5 py-3 text-left">Project</th>
+                  <th class="px-5 py-3 text-left">Trade</th>
+                  <th class="px-5 py-3 text-left">Scope</th>
+                  <th class="px-5 py-3 text-left">Rate</th>
+                  <th class="px-5 py-3 text-left">Status</th>
+                  <th class="px-5 py-3 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody id="assignments-body">
+                <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                  <p class="mt-2 text-xs">Loading...</p>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Earnings ═══════ -->
+      <div id="section-earnings" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="tradesperson_earnings_history">Earnings History</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Completed jobs and payments received</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th class="px-5 py-3 text-left">Job</th>
+                  <th class="px-5 py-3 text-left">Source</th>
+                  <th class="px-5 py-3 text-left">Amount</th>
+                  <th class="px-5 py-3 text-left">Completed</th>
+                </tr>
+              </thead>
+              <tbody id="earnings-body">
+                <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                  <p class="mt-2 text-xs">Loading...</p>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Profile ═══════ -->
+      <div id="section-profile" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="tradesperson_my_profile">My Trade Profile</h3>
+          </div>
+          <div class="p-5 space-y-4" id="profile-content">
+            <div class="text-center text-slate-400">
+              <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
