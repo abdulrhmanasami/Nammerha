@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Contractor Portal</title>
+  <meta name="description" content="Contractor portal for browsing reconstruction projects, submitting competitive bids, and managing assigned construction work." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/contractor-portal.ts"></script>
+<link href="/i18n.css?v=4" rel="stylesheet"/>
+<script src="/i18n-boot.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<div class="flex min-h-screen">
+  <!-- ═══════ Sidebar ═══════ -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex flex-col">
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+      <div class="size-9 rounded-lg bg-amber-600 flex items-center justify-center">
+        <i class="ph ph-hard-hat text-white" style="font-size:20px" aria-hidden="true"></i>
+      </div>
+      <span class="font-bold text-sm" data-i18n="contractor_portal">Contractor Portal</span>
+    </div>
+    <nav class="flex-1 px-4 space-y-1 pt-3">
+      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-amber-600/10 text-amber-700 rounded-lg cursor-pointer" href="#">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+      </a>
+      <a id="tab-marketplace" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-storefront" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_marketplace">Marketplace</span>
+      </a>
+      <a id="tab-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-flag-banner" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_my_bids">My Bids</span>
+        <span class="ml-auto bg-amber-500/20 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="pending-bids-count">0</span>
+      </a>
+      <a id="tab-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-wallet" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_payments">Payments</span>
+      </a>
+    </nav>
+    <!-- Logout -->
+    <div class="p-4 border-t border-slate-200">
+      <a href="/auth/login.html" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══════ Main Content ═══════ -->
+  <main class="flex-1 overflow-auto">
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+      <!-- Header -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold" data-i18n="contractor_welcome">Contractor Dashboard</h1>
+          <p class="text-sm text-slate-500 mt-0.5" data-i18n="contractor_subtitle">Manage your projects, bids, and construction work</p>
+        </div>
+        <span class="text-xs text-slate-400" id="last-sync">—</span>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_active_projects">Active Projects</p>
+          <p class="text-2xl font-black mt-1" id="kpi-active">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_pending_bids">Pending Bids</p>
+          <p class="text-2xl font-black mt-1" id="kpi-pending">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_won_bids">Won Bids</p>
+          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-won">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_escrow_total">Escrow Received</p>
+          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-escrow">$0</p>
+        </div>
+      </div>
+
+      <!-- ═══════ Projects Section ═══════ -->
+      <div id="section-dashboard" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div class="p-5 border-b border-slate-100">
+          <h3 class="font-bold" data-i18n="contractor_my_projects">My Assigned Projects</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Construction projects you're executing</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left">Project</th>
+                <th class="px-5 py-3 text-left">Region</th>
+                <th class="px-5 py-3 text-left">Phase</th>
+                <th class="px-5 py-3 text-left">Engineer</th>
+                <th class="px-5 py-3 text-left">Progress</th>
+              </tr>
+            </thead>
+            <tbody id="projects-body">
+              <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
+                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                <p class="mt-2 text-xs">Loading...</p>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════ Marketplace Section (hidden) ═══════ -->
+      <div id="section-marketplace" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none">
+        <div class="p-5 border-b border-slate-100">
+          <h3 class="font-bold" data-i18n="contractor_marketplace_title">Available Projects</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Published projects ready for competitive bids</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left">Project</th>
+                <th class="px-5 py-3 text-left">Region</th>
+                <th class="px-5 py-3 text-left">Type</th>
+                <th class="px-5 py-3 text-left">Est. Cost</th>
+                <th class="px-5 py-3 text-left">BOQ Items</th>
+                <th class="px-5 py-3 text-left">Bids</th>
+                <th class="px-5 py-3 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody id="marketplace-body">
+              <tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
+                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                <p class="mt-2 text-xs">Loading...</p>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════ Bids Section (hidden) ═══════ -->
+      <div id="section-bids" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none">
+        <div class="p-5 border-b border-slate-100">
+          <h3 class="font-bold" data-i18n="contractor_bid_history">Bid History</h3>
+          <p class="text-xs text-slate-500 mt-0.5">All competitive bids you've submitted</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left">Project</th>
+                <th class="px-5 py-3 text-left">Proposed Cost</th>
+                <th class="px-5 py-3 text-left">Timeline (days)</th>
+                <th class="px-5 py-3 text-left">Status</th>
+                <th class="px-5 py-3 text-left">Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="bids-body">
+              <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
+                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                <p class="mt-2 text-xs">Loading...</p>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════ Payments Section (hidden) ═══════ -->
+      <div id="section-payments" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none">
+        <div class="p-5 border-b border-slate-100">
+          <h3 class="font-bold" data-i18n="contractor_payment_history">Payment History</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Escrow releases and financial transactions</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left">Project</th>
+                <th class="px-5 py-3 text-left">Amount</th>
+                <th class="px-5 py-3 text-left">Type</th>
+                <th class="px-5 py-3 text-left">Date</th>
+              </tr>
+            </thead>
+            <tbody id="payments-body">
+              <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
+                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                <p class="mt-2 text-xs">Loading...</p>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

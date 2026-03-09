@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Engineer Dashboard</title>
+  <meta name="description" content="Engineer portal for managing reconstruction projects, BOQ submissions, spatial proofs, and competitive bids." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/contractor-dashboard.ts"></script>
+<link href="/i18n.css?v=4" rel="stylesheet"/>
+</head>
+<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0">
+    <div class="p-6 flex items-center gap-3">
+      <div class="size-8 bg-trust-blue rounded-lg flex items-center justify-center text-white">
+        <i class="ph ph-hard-hat" style="font-size:18px" aria-hidden="true"></i>
+      </div>
+      <span class="font-bold text-sm" data-i18n="contractor_portal">Contractor Portal</span>
+    </div>
+    <nav class="flex-1 px-4 space-y-1">
+      <a id="tab-projects" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+        <i class="ph ph-buildings" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_my_projects">My Projects</span>
+        <span class="ml-auto bg-trust-blue/20 text-trust-blue text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="project-count">0</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+        <i class="ph ph-camera" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_spatial_proofs">Spatial Proofs</span>
+        <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
+      </a>
+      <a id="tab-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-flag-banner" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_my_bids">My Bids</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+        <i class="ph ph-wallet" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_payments">Escrow Payments</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="profile.html">
+        <i class="ph ph-user-circle" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="nav_profile">Profile</span>
+      </a>
+    </nav>
+    <div class="p-4 border-t border-slate-200">
+      <div class="flex items-center gap-3 px-3 py-2">
+        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+          <i class="ph ph-user text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="text-xs font-bold" data-i18n="contractor_portal">Contractor Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="contractor_access">Contractor Access</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <h2 class="font-bold text-lg" data-i18n="contractor_dashboard_title">Contractor Dashboard</h2>
+        <span class="text-xs text-slate-400" id="live-timestamp"></span>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="relative" id="notification-bell" aria-label="Notifications">
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
+          <span class="absolute -top-1 -right-1 size-4 bg-warning-yellow text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="p-6 space-y-6">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_assigned_projects">Assigned Projects</p>
+          <p class="text-2xl font-black mt-1" data-kpi="assigned-projects">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
+              <i class="ph ph-camera text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_pending">Pending</span>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_proofs_pending">Proofs Pending Review</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="proofs-pending">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-check-circle text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_proofs_verified">Proofs Verified</p>
+          <p class="text-2xl font-black mt-1" data-kpi="proofs-verified">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-currency-dollar text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_escrow_released">Escrow Released</p>
+          <p class="text-2xl font-black mt-1" data-kpi="escrow-released" data-prefix="$">$0</p>
+        </div>
+      </div>
+
+      <!-- ═══════ Projects Section ═══════ -->
+      <div id="section-projects" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold" data-i18n="contractor_project_timeline">Assigned Projects</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="contractor_timeline_desc">Projects assigned to you for assessment and execution</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left" data-i18n="contractor_th_project">Project</th>
+                <th class="px-5 py-3 text-left" data-i18n="contractor_th_region">Region</th>
+                <th class="px-5 py-3 text-left" data-i18n="contractor_th_phase">Phase</th>
+                <th class="px-5 py-3 text-left" data-i18n="contractor_th_progress">Progress</th>
+                <th class="px-5 py-3 text-left" data-i18n="contractor_th_next_proof">Next Proof Due</th>
+                <th class="px-5 py-3 text-left" data-i18n="contractor_th_action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="project-timeline-body">
+              <tr class="border-t border-slate-100">
+                <td colspan="6" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════ Bids Section (hidden by default) ═══════ -->
+      <div id="section-bids" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none">
+        <div class="p-5 border-b border-slate-100">
+          <h3 class="font-bold" data-i18n="contractor_bid_history">Bid History</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Competitive bids you've submitted on published projects</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left">Project</th>
+                <th class="px-5 py-3 text-left">Proposed Cost</th>
+                <th class="px-5 py-3 text-left">Timeline</th>
+                <th class="px-5 py-3 text-left">Status</th>
+                <th class="px-5 py-3 text-left">Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="bids-body">
+              <tr class="border-t border-slate-100">
+                <td colspan="5" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- i18n Engine -->
+<script type="module" src="/src/i18n.js"></script>
+</body>
+</html>
