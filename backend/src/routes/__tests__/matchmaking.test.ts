@@ -414,13 +414,6 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         it('should accept bid as homeowner', async () => {
             mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', is_active: true };
 
-            const acceptedBid = {
-                bid_id: 'bid-001',
-                status: 'accepted',
-                engineer_id: 'eng-001',
-                project_id: 'proj-001',
-            };
-
             // acceptBid uses transaction() then calls recalculateScore (pool.connect)
             const mockClient = {
                 query: vi.fn()
