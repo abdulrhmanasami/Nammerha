@@ -23,38 +23,38 @@
     <nav class="flex-1 px-4 space-y-1">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-dashboard.html">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium">Dashboard</span>
+        <span class="font-medium" data-i18n="nav_dashboard">Dashboard</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-oracle.html">
         <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium">Pricing Oracle</span>
+        <span class="font-medium" data-i18n="nav_pricing_oracle">Pricing Oracle</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="#">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium">Escrow Management</span>
+        <span class="font-medium" data-i18n="nav_escrow_management">Escrow Management</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium">KYC Verification</span>
+        <span class="font-medium" data-i18n="nav_kyc_verification">KYC Verification</span>
         <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">5</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium">Projects</span>
+        <span class="font-medium" data-i18n="nav_projects">Projects</span>
       </a>
     </nav>
     <div class="p-4 border-t border-slate-200">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
         <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium">Settings</span>
+        <span class="font-medium" data-i18n="nav_settings">Settings</span>
       </a>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
           <i class="ph ph-user-circle text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
         </div>
         <div>
-          <p class="text-xs font-bold">Admin Portal</p>
-          <p class="text-[10px] text-slate-500">Institutional Access</p>
+          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="institutional_access">Institutional Access</p>
         </div>
       </div>
     </div>
@@ -65,9 +65,9 @@
     <!-- Top Bar -->
     <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
       <div class="flex items-center gap-2">
-        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Escrow</span>
+        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider" data-i18n="escrow_breadcrumb">Escrow</span>
         <span class="text-slate-300">/</span>
-        <span class="text-xs text-trust-blue font-bold uppercase tracking-wider">Verification</span>
+        <span class="text-xs text-trust-blue font-bold uppercase tracking-wider" data-i18n="verification_breadcrumb">Verification</span>
       </div>
       <div class="flex items-center gap-4">
         <!-- Case Navigator -->
@@ -92,8 +92,8 @@
 
     <!-- Page Title -->
     <div class="px-6 pt-5 pb-4">
-      <h2 class="text-2xl font-bold">Escrow Release Verification</h2>
-      <p class="text-slate-500 text-sm mt-0.5">Review financial documents against spatial field proofs before authorizing fund release.</p>
+      <h2 class="text-2xl font-bold" data-i18n="escrow_release_verification">Escrow Release Verification</h2>
+      <p class="text-slate-500 text-sm mt-0.5" data-i18n="escrow_release_desc">Review financial documents against spatial field proofs before authorizing fund release.</p>
     </div>
 
     <!-- Split Screen Content -->
@@ -107,9 +107,9 @@
               <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center">
                 <i class="ph ph-file-text text-slate-500" style="font-size:16px" aria-hidden="true"></i>
               </div>
-              <h3 class="font-bold">Financial Audit Documents</h3>
+              <h3 class="font-bold" data-i18n="financial_audit_docs">Financial Audit Documents</h3>
             </div>
-            <span class="bg-trust-blue text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Funds Locked in Escrow</span>
+            <span class="bg-trust-blue text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider" data-i18n="funds_locked_escrow">Funds Locked in Escrow</span>
           </div>
 
           <div class="p-5 flex-1 space-y-5">
@@ -117,21 +117,21 @@
             <div class="bg-slate-50 rounded-lg border border-slate-100 p-4 space-y-3">
               <div class="flex items-start justify-between">
                 <div>
-                  <p class="text-[10px] font-bold text-trust-blue uppercase tracking-wider">Purchase Order</p>
+                  <p class="text-[10px] font-bold text-trust-blue uppercase tracking-wider" data-i18n="purchase_order">Purchase Order</p>
                   <p class="text-lg font-black mt-0.5" id="po-number">PO #PO-8821</p>
                 </div>
                 <div class="text-right">
                   <p class="text-2xl font-black text-slate-900" id="po-amount">$500.00</p>
-                  <p class="text-[10px] text-smoky-jade font-bold">Verified by Oracle</p>
+                  <p class="text-[10px] text-smoky-jade font-bold" data-i18n="verified_by_oracle">Verified by Oracle</p>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
                 <div>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase">Item Description</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="item_description">Item Description</p>
                   <p class="text-sm font-medium mt-0.5" id="item-desc">50 Bags of Cement (Portland Type I)</p>
                 </div>
                 <div>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase">Vendor ID</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="vendor_id">Vendor ID</p>
                   <p class="text-sm font-medium font-mono mt-0.5" id="vendor-id">ALM-MAJID-CON-99</p>
                 </div>
               </div>
@@ -145,7 +145,7 @@
                   <p class="text-[10px] text-slate-400" id="vendor-address">Street 12, Industrial Area, Aleppo</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs font-bold text-slate-500 uppercase">Invoice</p>
+                  <p class="text-xs font-bold text-slate-500 uppercase" data-i18n="invoice_label">Invoice</p>
                   <p class="text-[10px] text-slate-400 font-mono" id="invoice-number">#INV-99022-A</p>
                 </div>
               </div>
@@ -169,14 +169,14 @@
               <div class="flex-1 min-h-[120px] border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center my-3">
                 <div class="text-center text-slate-400">
                   <i class="ph ph-file-pdf" style="font-size:32px" aria-hidden="true"></i>
-                  <p class="text-[10px] mt-1 font-medium">Invoice Document Preview</p>
+                  <p class="text-[10px] mt-1 font-medium" data-i18n="invoice_preview">Invoice Document Preview</p>
                 </div>
               </div>
 
               <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-200">
                 <div class="flex items-center gap-2">
                   <div class="w-16 h-6 border border-slate-200 rounded flex items-center justify-center">
-                    <span class="text-[9px] text-slate-400 italic">Signature</span>
+                    <span class="text-[9px] text-slate-400 italic" data-i18n="signature_label">Signature</span>
                   </div>
                 </div>
                 <p class="text-sm font-bold" id="invoice-total">Total: $500.00</p>
@@ -191,7 +191,7 @@
             <div class="size-8 rounded-lg bg-trust-blue/10 flex items-center justify-center">
               <i class="ph ph-map-trifold text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
             </div>
-            <h3 class="font-bold">Site Validation & Proof of Work</h3>
+            <h3 class="font-bold" data-i18n="site_validation">Site Validation & Proof of Work</h3>
           </div>
 
           <div class="flex-1 relative">
@@ -199,14 +199,14 @@
             <div class="absolute inset-0 bg-gradient-to-br from-sky-200 via-sky-300 to-emerald-200 flex items-center justify-center">
               <div class="text-center text-white/60">
                 <i class="ph ph-camera" style="font-size:64px" aria-hidden="true"></i>
-                <p class="text-sm font-bold mt-2">Field Photo Proof</p>
-                <p class="text-xs mt-0.5">GPS-stamped delivery verification</p>
+                <p class="text-sm font-bold mt-2" data-i18n="field_photo_proof">Field Photo Proof</p>
+                <p class="text-xs mt-0.5" data-i18n="gps_stamped_delivery">GPS-stamped delivery verification</p>
               </div>
             </div>
 
             <!-- GPS Coordinates Overlay -->
             <div class="absolute top-4 left-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg">
-              <p class="text-[9px] font-bold uppercase tracking-wider opacity-80 mb-1">GPS Coordinates</p>
+              <p class="text-[9px] font-bold uppercase tracking-wider opacity-80 mb-1" data-i18n="gps_coordinates">GPS Coordinates</p>
               <p class="text-sm font-mono font-bold" id="gps-coords">33.8938° N, 35.5018° E</p>
               <div class="flex items-center gap-1.5 mt-1.5">
                 <span class="size-2 rounded-full bg-smoky-jade"></span>
@@ -216,13 +216,13 @@
 
             <!-- Timestamp Overlay -->
             <div class="absolute top-4 right-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg text-right">
-              <p class="text-[9px] font-bold uppercase tracking-wider opacity-80 mb-1">Timestamp</p>
+              <p class="text-[9px] font-bold uppercase tracking-wider opacity-80 mb-1" data-i18n="timestamp_label">Timestamp</p>
               <p class="text-sm font-bold" id="timestamp">March 8, 2026 — 10:45 AST</p>
             </div>
 
             <!-- Engineer Identity Card -->
             <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200">
-              <p class="text-[9px] font-bold text-trust-blue uppercase tracking-wider">Verified Field Engineer</p>
+              <p class="text-[9px] font-bold text-trust-blue uppercase tracking-wider" data-i18n="verified_field_engineer">Verified Field Engineer</p>
               <p class="text-base font-bold mt-0.5" id="engineer-name">Khalid Al-Ahmad</p>
               <p class="text-[10px] text-slate-500" id="engineer-license">License: SYR-ENG-88221</p>
             </div>
@@ -252,7 +252,7 @@
       <!-- Compliance Footer -->
       <div class="flex items-center justify-center gap-2 mt-4 mb-2">
         <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
-        <p class="text-[10px] text-slate-400 text-center">
+        <p class="text-[10px] text-slate-400 text-center" data-i18n="escrow_compliance_footer">
           Releasing funds will execute an immutable audit trail entry. All transactions are OCDS-compliant and subject to third-party auditing.
         </p>
       </div>

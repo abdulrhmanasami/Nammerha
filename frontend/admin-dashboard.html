@@ -23,39 +23,39 @@
     <nav class="flex-1 px-4 space-y-1">
       <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="#">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium">Dashboard</span>
+        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-oracle.html">
         <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium">Pricing Oracle</span>
+        <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium">Escrow Management</span>
+        <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
         <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium">KYC Verification</span>
+        <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
         <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">5</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium">Projects</span>
+        <span class="font-medium" data-i18n="nav_projects">Projects</span>
       </a>
     </nav>
     <div class="p-4 border-t border-slate-200">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
         <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium">Settings</span>
+        <span class="font-medium" data-i18n="admin_settings">Settings</span>
       </a>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
           <i class="ph ph-user-circle text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
         </div>
         <div>
-          <p class="text-xs font-bold">Admin Portal</p>
-          <p class="text-[10px] text-slate-500">Institutional Access</p>
+          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="admin_institutional">Institutional Access</p>
         </div>
       </div>
     </div>
@@ -66,7 +66,7 @@
     <!-- Top Bar -->
     <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <h2 class="font-bold text-lg">Command Center</h2>
+        <h2 class="font-bold text-lg" data-i18n="admin_command_center">Command Center</h2>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
@@ -89,10 +89,10 @@
               <i class="ph ph-currency-dollar text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <i class="ph ph-trend-up" style="font-size:10px" aria-hidden="true"></i> +12.5%
+              <i class="ph ph-trend-up" style="font-size:10px" aria-hidden="true"></i> <span id="kpi-impact-trend">—</span>
             </span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Impact Funded</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="total_impact_funded">Total Impact Funded</p>
           <p class="text-2xl font-black mt-1" data-kpi="12450200" data-prefix="$">$0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -102,7 +102,7 @@
             </div>
             <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full">Active</span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Projects</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_active_projects">Active Projects</p>
           <p class="text-2xl font-black mt-1" data-kpi="8">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -111,7 +111,7 @@
               <i class="ph ph-hard-hat text-warm-earth" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Registered Engineers</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_registered_eng">Registered Engineers</p>
           <p class="text-2xl font-black mt-1" data-kpi="24">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -121,7 +121,7 @@
             </div>
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">Urgent</span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Verifications</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_pending_verify">Pending Verifications</p>
           <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="3">0</p>
         </div>
       </div>
@@ -133,8 +133,8 @@
             <i class="ph ph-shield-check text-trust-blue group-hover:text-white" style="font-size:24px" aria-hidden="true"></i>
           </div>
           <div class="flex-1">
-            <h3 class="font-bold text-sm">Escrow Verification Queue</h3>
-            <p class="text-xs text-slate-500 mt-0.5">3 spatial proofs awaiting admin review and fund release</p>
+            <h3 class="font-bold text-sm" data-i18n="admin_escrow_queue">Escrow Verification Queue</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_escrow_queue_desc">Spatial proofs awaiting admin review and fund release</p>
           </div>
           <div class="flex items-center gap-2">
             <span class="badge-warning">3 Pending</span>
@@ -146,8 +146,8 @@
             <i class="ph ph-chart-line-up text-smoky-jade group-hover:text-white" style="font-size:24px" aria-hidden="true"></i>
           </div>
           <div class="flex-1">
-            <h3 class="font-bold text-sm">Pricing Oracle & EPA Engine</h3>
-            <p class="text-xs text-slate-500 mt-0.5">1 FIDIC 13.8 price adjustment pending approval</p>
+            <h3 class="font-bold text-sm" data-i18n="admin_pricing_oracle_epa">Pricing Oracle & EPA Engine</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_pricing_desc">FIDIC 13.8 price adjustment pending approval</p>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">1 Action</span>
@@ -160,8 +160,8 @@
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
-            <h3 class="font-bold">Active Projects</h3>
-            <p class="text-xs text-slate-500 mt-0.5">All reconstruction projects with OCDS-compliant tracking</p>
+            <h3 class="font-bold" data-i18n="admin_active_projects">Active Projects</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_projects_desc">All reconstruction projects with OCDS-compliant tracking</p>
           </div>
           <button class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50 transition-colors">
             <i class="ph ph-funnel" style="font-size:12px" aria-hidden="true"></i> Filter
@@ -325,8 +325,8 @@
           <i class="ph ph-shield-check text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
         </div>
         <div>
-          <h4 class="text-sm font-bold">OCDS Compliant Infrastructure</h4>
-          <p class="text-xs text-slate-500 mt-0.5">All financial transactions adhere to Open Contracting Data Standard. Audit trail is immutable (INSERT-only). Escrow release requires spatial proof verification.</p>
+          <h4 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h4>
+          <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_ocds_desc">All financial transactions adhere to Open Contracting Data Standard. Audit trail is immutable (INSERT-only). Escrow release requires spatial proof verification.</p>
         </div>
         <span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider">Verified</span>
       </div>

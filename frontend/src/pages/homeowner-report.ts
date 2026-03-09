@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { projects } from '../api';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -11,6 +12,7 @@ interface WizardState {
     gpsCoords: string | null;
     description: string;
     photoCount: number;
+    projectId: string | null; // P1-002: Real OCDS project ID from API
 }
 
 const state: WizardState = {
@@ -21,6 +23,7 @@ const state: WizardState = {
     gpsCoords: null,
     description: '',
     photoCount: 0,
+    projectId: null,
 };
 
 const TOTAL_STEPS = 3;
@@ -59,8 +62,8 @@ function showStep(step: number): void {
     // Update progress bar
     if (step <= TOTAL_STEPS) {
         const pct = (step / TOTAL_STEPS) * 100;
-        if (progressFill) progressFill.style.width = `${pct}%`;
-        if (stepLabel) stepLabel.textContent = `Step ${step} of ${TOTAL_STEPS}`;
+        if (progressFill) { progressFill.style.width = `${pct}%`; }
+        if (stepLabel) { stepLabel.textContent = `Step ${step} of ${TOTAL_STEPS}`; }
     }
 
     // Update button text and state
@@ -69,7 +72,7 @@ function showStep(step: number): void {
     } else if (step === 2) {
         updateNextButton();
     } else if (step === 3) {
-        if (nextBtnText) nextBtnText.textContent = 'Submit Request';
+        if (nextBtnText) { nextBtnText.textContent = 'Submit Request'; }
         if (nextBtn) {
             nextBtn.disabled = false;
             const icon = nextBtn.querySelector('.ph-arrow-right');
@@ -80,15 +83,15 @@ function showStep(step: number): void {
         }
     } else if (step === 4) {
         // Confirmation step — hide footer
-        if (wizardFooter) wizardFooter.classList.add('hidden');
-        if (stepLabel) stepLabel.textContent = 'Done!';
-        if (progressFill) progressFill.style.width = '100%';
+        if (wizardFooter) { wizardFooter.classList.add('hidden'); }
+        if (stepLabel) { stepLabel.textContent = 'Done!'; }
+        if (progressFill) { progressFill.style.width = '100%'; }
         populateSummary();
     }
 }
 
 function updateNextButton(): void {
-    if (!nextBtn || !nextBtnText) return;
+    if (!nextBtn || !nextBtnText) { return; }
 
     if (state.currentStep === 1) {
         nextBtn.disabled = !state.damageType;
@@ -105,7 +108,7 @@ function updateNextButton(): void {
 // NAVIGATION BUTTONS
 // ═══════════════════════════════════════════════════════════════════════════
 if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
+    nextBtn.addEventListener('click', async () => {
         if (state.currentStep === 1 && state.damageType) {
             showStep(2);
         } else if (state.currentStep === 2) {
@@ -118,7 +121,44 @@ if (nextBtn) {
             }
         } else if (state.currentStep === 3) {
             state.description = (document.getElementById('damage-description') as HTMLTextAreaElement)?.value.trim() || '';
-            showStep(4);
+
+            // P1-002 FIX: Submit to backend API instead of showing fake ID
+            if (nextBtn) {
+                nextBtn.disabled = true;
+                if (nextBtnText) { nextBtnText.textContent = 'Submitting...'; }
+            }
+
+            try {
+                // Parse GPS coords if available
+                let gps_lat = 0;
+                let gps_lng = 0;
+                if (state.gpsCoords) {
+                    const parts = state.gpsCoords.split(',');
+                    gps_lat = parseFloat(parts[0]?.replace(/[^\d.-]/g, '') ?? '0');
+                    gps_lng = parseFloat(parts[1]?.replace(/[^\d.-]/g, '') ?? '0');
+                }
+
+                const response = await projects.create({
+                    title: `${state.damageType} damage — ${state.neighborhood}, ${state.governorate}`,
+                    damage_type: (state.damageType as 'structural' | 'plumbing' | 'electrical' | 'mixed') ?? 'mixed',
+                    description: state.description || undefined,
+                    gps_lat,
+                    gps_lng,
+                    address_text: `${state.neighborhood}, ${state.governorate}`,
+                });
+
+                if (response.success && response.data) {
+                    const project = response.data as { project_id: string };
+                    state.projectId = project.project_id;
+                }
+
+                showStep(4);
+            } catch (err) {
+                const message = err instanceof Error ? err.message : 'Submission failed';
+                alert(message);
+                if (nextBtn) { nextBtn.disabled = false; }
+                if (nextBtnText) { nextBtnText.textContent = 'Submit Request'; }
+            }
         }
     });
 }
@@ -173,7 +213,7 @@ damageCards.forEach((card) => {
         updateNextButton();
 
         // Haptic feedback
-        if ('vibrate' in navigator) navigator.vibrate(30);
+        if ('vibrate' in navigator) { navigator.vibrate(30); }
     });
 });
 
@@ -183,8 +223,8 @@ damageCards.forEach((card) => {
 const governorateSelect = document.getElementById('governorate');
 const neighborhoodInput = document.getElementById('neighborhood');
 
-if (governorateSelect) governorateSelect.addEventListener('change', updateNextButton);
-if (neighborhoodInput) neighborhoodInput.addEventListener('input', updateNextButton);
+if (governorateSelect) { governorateSelect.addEventListener('change', updateNextButton); }
+if (neighborhoodInput) { neighborhoodInput.addEventListener('input', updateNextButton); }
 
 // GPS auto-detect
 const detectLocationBtn = document.getElementById('detect-location-btn');
@@ -204,7 +244,7 @@ if (detectLocationBtn) {
             btnIcon.classList.add('ph-spinner');
         }
         const btnLabel = detectLocationBtn.querySelector('span');
-        if (btnLabel) btnLabel.textContent = 'Detecting...';
+        if (btnLabel) { btnLabel.textContent = 'Detecting...'; }
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -212,13 +252,13 @@ if (detectLocationBtn) {
                 const lon = pos.coords.longitude.toFixed(5);
                 state.gpsCoords = `${lat}° N, ${lon}° E`;
 
-                if (gpsDisplay) gpsDisplay.textContent = state.gpsCoords;
-                if (gpsResult) gpsResult.classList.remove('hidden');
+                if (gpsDisplay) { gpsDisplay.textContent = state.gpsCoords; }
+                if (gpsResult) { gpsResult.classList.remove('hidden'); }
                 if (btnIcon) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-check-circle');
                 }
-                if (btnLabel) btnLabel.textContent = 'Location detected';
+                if (btnLabel) { btnLabel.textContent = 'Location detected'; }
                 (detectLocationBtn as HTMLButtonElement).disabled = true;
                 detectLocationBtn.classList.add('opacity-60');
             },
@@ -227,7 +267,7 @@ if (detectLocationBtn) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-crosshair');
                 }
-                if (btnLabel) btnLabel.textContent = 'Could not detect — enter manually';
+                if (btnLabel) { btnLabel.textContent = 'Could not detect — enter manually'; }
             },
             { enableHighAccuracy: true, timeout: 8000 }
         );
@@ -248,22 +288,22 @@ let voiceStart = 0;
 
 function startVoice(): void {
     voiceStart = Date.now();
-    if (voiceOverlay) voiceOverlay.classList.remove('hidden');
+    if (voiceOverlay) { voiceOverlay.classList.remove('hidden'); }
 
     voiceInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - voiceStart) / 1000);
         const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
         const s = String(elapsed % 60).padStart(2, '0');
-        if (voiceTimerEl) voiceTimerEl.textContent = `${m}:${s}`;
+        if (voiceTimerEl) { voiceTimerEl.textContent = `${m}:${s}`; }
     }, 200);
 
-    if ('vibrate' in navigator) navigator.vibrate([40, 80, 40]);
+    if ('vibrate' in navigator) { navigator.vibrate([40, 80, 40]); }
 }
 
 function stopVoice(): void {
-    if (voiceInterval) clearInterval(voiceInterval);
-    if (voiceOverlay) voiceOverlay.classList.add('hidden');
-    if (voiceTimerEl) voiceTimerEl.textContent = '00:00';
+    if (voiceInterval) { clearInterval(voiceInterval); }
+    if (voiceOverlay) { voiceOverlay.classList.add('hidden'); }
+    if (voiceTimerEl) { voiceTimerEl.textContent = '00:00'; }
 
     const dur = Math.floor((Date.now() - voiceStart) / 1000);
     if (dur > 1 && descriptionTextarea) {
@@ -271,8 +311,8 @@ function stopVoice(): void {
     }
 }
 
-if (voiceDescribeBtn) voiceDescribeBtn.addEventListener('click', startVoice);
-if (voiceStopBtn) voiceStopBtn.addEventListener('click', stopVoice);
+if (voiceDescribeBtn) { voiceDescribeBtn.addEventListener('click', startVoice); }
+if (voiceStopBtn) { voiceStopBtn.addEventListener('click', stopVoice); }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 3 — PHOTO UPLOAD
@@ -286,14 +326,14 @@ if (photoUploadZone && photoInput) {
 
     photoInput.addEventListener('change', () => {
         const files = photoInput.files;
-        if (!files || !photoThumbnails) return;
+        if (!files || !photoThumbnails) { return; }
 
         const maxPhotos = 5;
         const count = Math.min(files.length, maxPhotos - state.photoCount);
 
         for (let i = 0; i < count; i++) {
             const file = files[i];
-            if (!file) continue;
+            if (!file) { continue; }
             const reader = new FileReader();
             reader.onload = (e) => {
                 const thumb = document.createElement('div');
@@ -332,12 +372,12 @@ function populateSummary(): void {
     const summaryPhotos = document.getElementById('summary-photos');
     const summaryId = document.getElementById('summary-id');
 
-    if (summaryType) summaryType.textContent = typeMap[state.damageType || ''] || '—';
-    if (summaryLocation) summaryLocation.textContent = state.neighborhood || state.governorate || '—';
-    if (summaryPhotos) summaryPhotos.textContent = state.photoCount > 0 ? `${state.photoCount} uploaded` : 'None';
+    if (summaryType) { summaryType.textContent = typeMap[state.damageType || ''] || '—'; }
+    if (summaryLocation) { summaryLocation.textContent = state.neighborhood || state.governorate || '—'; }
+    if (summaryPhotos) { summaryPhotos.textContent = state.photoCount > 0 ? `${state.photoCount} uploaded` : 'None'; }
     if (summaryId) {
-        const id = `NMR-REQ-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-        summaryId.textContent = id;
+        // P1-002 FIX: Use real project ID from API response
+        summaryId.textContent = state.projectId ?? 'Pending...';
     }
 }
 

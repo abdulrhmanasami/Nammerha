@@ -34,10 +34,9 @@
        STEP 1 — What kind of damage? (One question per screen)
        ═══════════════════════════════════════════════════════════════════════ -->
   <main id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
-    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center">
-      What kind of damage<br>needs repair?
+    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="what_kind_of_damage">What kind of damage<br>needs repair?
     </h1>
-    <p class="text-slate-500 text-sm text-center mb-8">Select the type that best describes your situation</p>
+    <p class="text-slate-500 text-sm text-center mb-8" data-i18n="select_the_type_that_best_describes_your">Select the type that best describes your situation</p>
 
     <div class="space-y-3" id="damage-type-list">
       <!-- Structural -->
@@ -46,8 +45,8 @@
           <i class="ph ph-house-line" style="font-size:32px" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight">Structural Damage</h3>
-          <p class="text-slate-500 text-xs mt-0.5">Foundations, walls, ceilings, roofing</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="structural_damage">Structural Damage</h3>
+          <p class="text-slate-500 text-xs mt-0.5" data-i18n="foundations_walls_ceilings_roofing">Foundations, walls, ceilings, roofing</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -60,8 +59,8 @@
           <i class="ph ph-drop" style="font-size:32px" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight">Plumbing</h3>
-          <p class="text-slate-500 text-xs mt-0.5">Pipes, leaks, water and drainage systems</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="plumbing">Plumbing</h3>
+          <p class="text-slate-500 text-xs mt-0.5" data-i18n="pipes_leaks_water_and_drainage_systems">Pipes, leaks, water and drainage systems</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -74,8 +73,8 @@
           <i class="ph ph-plug" style="font-size:32px" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight">Electrical</h3>
-          <p class="text-slate-500 text-xs mt-0.5">Wiring, outlets, panels, and generators</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="electrical">Electrical</h3>
+          <p class="text-slate-500 text-xs mt-0.5" data-i18n="wiring_outlets_panels_and_generators">Wiring, outlets, panels, and generators</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -88,8 +87,8 @@
           <i class="ph ph-wrench" style="font-size:32px" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight">General Repair</h3>
-          <p class="text-slate-500 text-xs mt-0.5">Doors, windows, finishing, or other</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="general_repair">General Repair</h3>
+          <p class="text-slate-500 text-xs mt-0.5" data-i18n="doors_windows_finishing_or_other">Doors, windows, finishing, or other</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -102,13 +101,12 @@
        STEP 2 — Where is your property? (Location)
        ═══════════════════════════════════════════════════════════════════════ -->
   <main id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
-    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center">
-      Where is your<br>property located?
+    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="where_is_your">Where is your<br>property located?
     </h1>
-    <p class="text-slate-500 text-sm text-center mb-8">We need this to connect you with nearby engineers</p>
+    <p class="text-slate-500 text-sm text-center mb-8" data-i18n="we_need_this_to_connect_you_with_nearby">We need this to connect you with nearby engineers</p>
 
     <!-- Governorate Selection -->
-    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Governorate</label>
+    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="governorate">Governorate</label>
     <div class="relative mb-5">
       <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm">
         <option value="" disabled selected>Select governorate...</option>
@@ -133,7 +131,7 @@
     </div>
 
     <!-- Neighborhood / Area -->
-    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Neighborhood or area name</label>
+    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="neighborhood_or_area_name">Neighborhood or area name</label>
     <input id="neighborhood" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm mb-5" placeholder="e.g. Al-Majidiya, Old City..." />
 
     <!-- Detect Location Button -->
@@ -148,7 +146,7 @@
         <i class="ph ph-map-pin text-smoky-jade ph-md" aria-hidden="true"></i>
       </div>
       <div>
-        <p class="text-xs font-bold text-smoky-jade uppercase tracking-wider">Location Detected</p>
+        <p class="text-xs font-bold text-smoky-jade uppercase tracking-wider" data-i18n="location_detected">Location Detected</p>
         <p class="text-slate-700 text-sm font-mono" id="gps-display">—</p>
       </div>
     </div>
@@ -158,10 +156,8 @@
        STEP 3 — Describe the damage + Upload photos
        ═══════════════════════════════════════════════════════════════════════ -->
   <main id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
-    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center">
-      Describe the damage
-    </h1>
-    <p class="text-slate-500 text-sm text-center mb-6">Type or use voice to tell us what happened</p>
+    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="describe_the_damage">Describe the damage</h1>
+    <p class="text-slate-500 text-sm text-center mb-6" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
 
     <!-- Description Textarea -->
     <div class="relative mb-4">
@@ -173,17 +169,17 @@
       <div class="size-10 rounded-full bg-trust-blue/15 flex items-center justify-center">
         <i class="ph ph-microphone" style="font-size:22px" aria-hidden="true"></i>
       </div>
-      <span class="text-sm">Or tap to describe with your voice</span>
+      <span class="text-sm" data-i18n="or_tap_to_describe_with_your_voice">Or tap to describe with your voice</span>
     </button>
 
     <!-- Photo Upload Area -->
-    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Upload photos of damage (optional)</label>
+    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="upload_photos_of_damage_optional">Upload photos of damage (optional)</label>
     <div id="photo-upload-zone" class="w-full min-h-[120px] bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer active:border-trust-blue/40 transition-colors mb-3">
       <div class="size-12 rounded-full bg-slate-100 flex items-center justify-center">
         <i class="ph ph-camera-plus text-slate-400" style="font-size:28px" aria-hidden="true"></i>
       </div>
-      <p class="text-slate-500 text-sm font-medium">Tap to upload photos</p>
-      <p class="text-slate-400 text-[11px]">Maximum 5 photos • JPG or PNG</p>
+      <p class="text-slate-500 text-sm font-medium" data-i18n="tap_to_upload_photos">Tap to upload photos</p>
+      <p class="text-slate-400 text-[11px]" data-i18n="maximum_5_photos_jpg_or_png">Maximum 5 photos • JPG or PNG</p>
       <input id="photo-input" type="file" accept="image/*" multiple class="hidden" />
     </div>
 
@@ -199,22 +195,22 @@
       <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
         <i class="ph ph-check-circle text-smoky-jade" style="font-size:56px" aria-hidden="true"></i>
       </div>
-      <h1 class="text-[28px] font-bold leading-tight text-slate-900 mb-3">Request Submitted!</h1>
-      <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
+      <h1 class="text-[28px] font-bold leading-tight text-slate-900 mb-3" data-i18n="request_submitted">Request Submitted!</h1>
+      <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6" data-i18n="your_damage_report_has_been_registered">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
 
       <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-left">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-trust-blue mb-2">Request Summary</p>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-trust-blue mb-2" data-i18n="request_summary">Request Summary</p>
         <div class="space-y-2 text-sm">
-          <div class="flex justify-between"><span class="text-slate-500">Type:</span><span class="font-bold" id="summary-type">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Location:</span><span class="font-bold" id="summary-location">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Photos:</span><span class="font-bold" id="summary-photos">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500">Request ID:</span><span class="font-mono text-trust-blue font-bold" id="summary-id">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500" data-i18n="type">Type:</span><span class="font-bold" id="summary-type">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500" data-i18n="location">Location:</span><span class="font-bold" id="summary-location">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500" data-i18n="photos">Photos:</span><span class="font-bold" id="summary-photos">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500" data-i18n="request_id">Request ID:</span><span class="font-mono text-trust-blue font-bold" id="summary-id">—</span></div>
         </div>
       </div>
 
       <div class="bg-trust-blue/8 rounded-xl p-4 flex items-center gap-3 border border-trust-blue/15">
         <i class="ph ph-clock text-trust-blue ph-md" aria-hidden="true"></i>
-        <p class="text-sm text-slate-700"><span class="font-bold text-trust-blue">Expected response:</span> Within 24–48 hours</p>
+        <p class="text-sm text-slate-700"><span class="font-bold text-trust-blue" data-i18n="expected_response">Expected response:</span> Within 24–48 hours</p>
       </div>
     </div>
   </main>
@@ -240,9 +236,9 @@
           <i class="ph ph-microphone text-trust-blue" style="font-size:48px" aria-hidden="true"></i>
         </div>
       </div>
-      <p class="text-slate-900 text-xl font-bold mb-2">Listening...</p>
+      <p class="text-slate-900 text-xl font-bold mb-2" data-i18n="listening">Listening...</p>
       <p class="text-slate-500 text-sm" id="voice-timer">00:00</p>
-      <p class="text-slate-400 text-xs mt-4 max-w-[260px]">Describe the damage clearly. We'll convert your speech to text.</p>
+      <p class="text-slate-400 text-xs mt-4 max-w-[260px]" data-i18n="describe_the_damage_clearly_we_ll_conve">Describe the damage clearly. We'll convert your speech to text.</p>
     </div>
     <button id="voice-stop-btn" class="mt-8 px-8 py-4 rounded-full bg-trust-blue text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">
       <i class="ph ph-stop-circle" style="font-size:22px" aria-hidden="true"></i>

@@ -26,39 +26,39 @@
     <nav class="flex-1 px-4 space-y-1">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-dashboard.html">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium">Dashboard</span>
+        <span class="font-medium" data-i18n="nav_dashboard">Dashboard</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="#">
         <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium">Pricing Oracle</span>
+        <span class="font-medium" data-i18n="nav_pricing_oracle">Pricing Oracle</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium">Escrow Management</span>
+        <span class="font-medium" data-i18n="nav_escrow_management">Escrow Management</span>
         <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium">KYC Verification</span>
+        <span class="font-medium" data-i18n="nav_kyc_verification">KYC Verification</span>
         <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">5</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium">Projects</span>
+        <span class="font-medium" data-i18n="nav_projects">Projects</span>
       </a>
     </nav>
     <div class="p-4 border-t border-slate-200">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
         <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium">Settings</span>
+        <span class="font-medium" data-i18n="nav_settings">Settings</span>
       </a>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
           <i class="ph ph-gear text-trust-blue ph-sm" aria-hidden="true"></i>
         </div>
         <div>
-          <p class="text-xs font-bold">Admin Portal</p>
-          <p class="text-[10px] text-slate-500">Institutional Access</p>
+          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="institutional_access">Institutional Access</p>
         </div>
       </div>
     </div>
@@ -73,7 +73,7 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-smoky-jade opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-smoky-jade"></span>
           </span>
-          <span class="text-xs font-bold uppercase tracking-widest text-slate-500">Live Market</span>
+          <span class="text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="live_market">Live Market</span>
         </div>
         <div class="ticker-scroll overflow-hidden whitespace-nowrap">
           <div class="flex items-center gap-4 text-sm">
@@ -108,15 +108,15 @@
     <main class="flex-1 overflow-y-auto p-6 space-y-6">
       <div class="flex justify-between items-end">
         <div>
-          <h2 class="text-2xl font-bold">Pricing Oracle & EPA Engine</h2>
-          <p class="text-slate-500 text-sm">Institutional analysis and automated FIDIC price adjustment protocols.</p>
+          <h2 class="text-2xl font-bold" data-i18n="pricing_oracle_epa">Pricing Oracle & EPA Engine</h2>
+          <p class="text-slate-500 text-sm" data-i18n="pricing_oracle_desc">Institutional analysis and automated FIDIC price adjustment protocols.</p>
         </div>
         <div class="flex gap-2">
           <button class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <i class="ph ph-download ph-sm" aria-hidden="true"></i> Export Report
+            <i class="ph ph-download ph-sm" aria-hidden="true"></i> <span data-i18n="export_report">Export Report</span>
           </button>
           <button class="bg-trust-blue text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-trust-blue/90 transition-colors">
-            Configure Indices
+            <span data-i18n="configure_indices">Configure Indices</span>
           </button>
         </div>
       </div>
@@ -126,7 +126,7 @@
         <section class="col-span-12 xl:col-span-7 space-y-6">
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
             <div class="flex justify-between items-center mb-6">
-              <h3 class="font-bold text-slate-800">Material Inflation Curves (30D)</h3>
+              <h3 class="font-bold text-slate-800" data-i18n="material_inflation_curves">Material Inflation Curves (30D)</h3>
               <div class="flex gap-2 bg-slate-50 p-1 rounded-lg">
                 <button class="px-3 py-1 text-xs font-bold rounded bg-white shadow-sm">Index</button>
                 <button class="px-3 py-1 text-xs font-bold text-slate-500">Value</button>
@@ -155,15 +155,15 @@
             <!-- Stats Row -->
             <div class="grid grid-cols-3 gap-4 mt-8">
               <div class="p-4 rounded-lg bg-slate-50 border border-slate-100">
-                <p class="text-[10px] font-bold text-slate-500 uppercase">Steel Index Volatility</p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase" data-i18n="steel_index_volatility">Steel Index Volatility</p>
                 <p class="text-lg font-bold mt-1 text-trust-blue">High (8.4)</p>
               </div>
               <div class="p-4 rounded-lg bg-slate-50 border border-slate-100">
-                <p class="text-[10px] font-bold text-slate-500 uppercase">Mean Adjustment</p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase" data-i18n="mean_adjustment">Mean Adjustment</p>
                 <p class="text-lg font-bold mt-1 text-smoky-jade">+3.15%</p>
               </div>
               <div class="p-4 rounded-lg bg-slate-50 border border-slate-100">
-                <p class="text-[10px] font-bold text-slate-500 uppercase">Confidence Score</p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase" data-i18n="confidence_score">Confidence Score</p>
                 <p class="text-lg font-bold mt-1">98.2%</p>
               </div>
             </div>
@@ -172,7 +172,7 @@
           <!-- Regional + Feeds -->
           <div class="grid grid-cols-2 gap-6">
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-              <h4 class="font-bold text-sm text-slate-800 mb-4">Regional Supply Forecast</h4>
+              <h4 class="font-bold text-sm text-slate-800 mb-4" data-i18n="regional_supply_forecast">Regional Supply Forecast</h4>
               <div class="space-y-4">
                 <div>
                   <div class="flex items-center justify-between"><span class="text-sm text-slate-600">Aleppo Region</span><span class="text-xs font-bold text-smoky-jade">Stable</span></div>
@@ -185,7 +185,7 @@
               </div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-              <h4 class="font-bold text-sm text-slate-800 mb-4">Oracle Feed Sources</h4>
+              <h4 class="font-bold text-sm text-slate-800 mb-4" data-i18n="oracle_feed_sources">Oracle Feed Sources</h4>
               <div class="space-y-3">
                 <div class="flex items-center gap-3"><div class="size-6 bg-slate-100 rounded flex items-center justify-center"><i class="ph ph-database" style="font-size:12px" aria-hidden="true"></i></div><span class="text-sm">LME Real-time API</span><i class="ph ph-check-circle text-smoky-jade ph-sm ml-auto" aria-hidden="true"></i></div>
                 <div class="flex items-center gap-3"><div class="size-6 bg-slate-100 rounded flex items-center justify-center"><i class="ph ph-buildings" style="font-size:12px" aria-hidden="true"></i></div><span class="text-sm">Local Mill Invoices</span><i class="ph ph-check-circle text-smoky-jade ph-sm ml-auto" aria-hidden="true"></i></div>
@@ -209,23 +209,23 @@
             <div class="p-6 flex-1 space-y-6">
               <div class="space-y-4">
                 <div class="flex justify-between items-center text-slate-600">
-                  <span class="text-sm font-medium">Original BOQ Cost</span>
+                  <span class="text-sm font-medium" data-i18n="original_boq_cost">Original BOQ Cost</span>
                   <span class="font-bold text-slate-900">$125,000.00</span>
                 </div>
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-slate-600">Price Index Adjustment</span>
+                    <span class="text-sm font-medium text-slate-600" data-i18n="price_index_adjustment">Price Index Adjustment</span>
                     <i class="ph ph-info text-slate-400" style="font-size:12px" aria-hidden="true"></i>
                   </div>
                   <span class="text-sm font-bold text-smoky-jade">+4.2%</span>
                 </div>
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">FIDIC 13.8 Calculation Formula</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-2" data-i18n="fidic_formula">FIDIC 13.8 Calculation Formula</p>
                   <p class="text-[11px] font-mono text-slate-600">Pn = a + b(Ln/Lo) + c(En/Eo) + d(Mn/Mo)</p>
                 </div>
               </div>
               <div class="pt-6 border-t border-slate-100">
-                <p class="text-xs text-slate-500 mb-1">Total Adjusted Cost</p>
+                <p class="text-xs text-slate-500 mb-1" data-i18n="total_adjusted_cost">Total Adjusted Cost</p>
                 <div class="flex items-baseline gap-2">
                   <span class="text-3xl font-black text-slate-900">$130,250.00</span>
                   <span class="text-sm font-bold text-smoky-jade">+$5,250.00</span>
@@ -234,20 +234,20 @@
               <div class="space-y-3">
                 <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-sm">
                   <i class="ph ph-shield-check text-trust-blue" aria-hidden="true"></i>
-                  <span class="text-slate-700">Automated Audit Log Updated</span>
+                  <span class="text-slate-700" data-i18n="automated_audit_log">Automated Audit Log Updated</span>
                 </div>
                 <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-sm">
                   <i class="ph ph-scroll text-trust-blue" aria-hidden="true"></i>
-                  <span class="text-slate-700">Ready for Smart Contract Execution</span>
+                  <span class="text-slate-700" data-i18n="smart_contract_ready">Ready for Smart Contract Execution</span>
                 </div>
               </div>
             </div>
             <div class="p-6 bg-slate-50 border-t border-slate-100 mt-auto">
               <button id="approve-btn" class="btn-primary w-full !py-4">
                 <i class="ph ph-gavel" aria-hidden="true"></i>
-                Approve Adjustment & Update Contract
+                <span data-i18n="approve_adjustment">Approve Adjustment & Update Contract</span>
               </button>
-              <p class="text-[10px] text-center text-slate-400 mt-4 px-4 leading-relaxed">
+              <p class="text-[10px] text-center text-slate-400 mt-4 px-4 leading-relaxed" data-i18n="epa_approval_disclaimer">
                 By approving, you authorize the price adjustment per FIDIC 13.8 guidelines. This generates a formal amendment and notifies all stakeholders.
               </p>
             </div>

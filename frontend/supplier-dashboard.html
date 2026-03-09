@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Supplier Dashboard</title>
+  <meta name="description" content="Manage your material catalog and track purchase orders on the Nammerha reconstruction platform." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/supplier-dashboard.ts"></script>
+<link href="/i18n.css?v=4" rel="stylesheet"/>
+</head>
+<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0">
+    <div class="p-6 flex items-center gap-3">
+      <div class="size-8 bg-warm-earth rounded-lg flex items-center justify-center text-white">
+        <i class="ph ph-package" style="font-size:18px" aria-hidden="true"></i>
+      </div>
+      <span class="font-bold text-sm" data-i18n="supplier_portal">Supplier Portal</span>
+    </div>
+    <nav class="flex-1 px-4 space-y-1">
+      <a id="tab-orders" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="supplier_orders">Purchase Orders</span>
+        <span class="ml-auto text-[10px] font-bold bg-trust-blue text-white size-5 rounded-full flex items-center justify-center" id="bid-count">0</span>
+      </a>
+      <a id="tab-catalog" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-storefront" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="supplier_catalog">My Catalog</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+        <i class="ph ph-wallet" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="supplier_payments">Payments</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="profile.html">
+        <i class="ph ph-user-circle" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="nav_profile">Profile</span>
+      </a>
+    </nav>
+    <div class="p-4 border-t border-slate-200">
+      <div class="flex items-center gap-3 px-3 py-2">
+        <div class="size-8 rounded-full bg-warm-earth/20 flex items-center justify-center">
+          <i class="ph ph-user" style="font-size:14px" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="text-xs font-bold" data-i18n="supplier_portal">Supplier Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="supplier_access">Supplier Access</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <h1 class="text-sm font-bold" data-i18n="supplier_dashboard">Supplier Dashboard</h1>
+        <span class="text-[10px] text-slate-400" id="live-timestamp"></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="relative p-2 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Notifications">
+          <i class="ph ph-bell" style="font-size:18px" aria-hidden="true"></i>
+          <span class="absolute -top-1 -right-1 size-4 bg-warning-yellow text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="p-6 space-y-6">
+      <!-- Feedback Banner -->
+      <div id="dashboard-banner" class="hidden px-4 py-3 rounded-lg text-sm font-medium" style="display:none"></div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-clock-countdown text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_pending_bids">Pending Orders</p>
+          <p class="text-2xl font-black mt-1" data-kpi="pending-bids">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-handshake text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_won_contracts">Won Contracts</p>
+          <p class="text-2xl font-black mt-1" data-kpi="won-contracts">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="ph ph-truck text-purple-600" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_in_transit">In Transit</p>
+          <p class="text-2xl font-black mt-1" data-kpi="in-transit">0</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-currency-dollar text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_total_revenue">Total Revenue</p>
+          <p class="text-2xl font-black mt-1" data-kpi="total-revenue" data-prefix="$">$0</p>
+        </div>
+      </div>
+
+      <!-- ═══════ Orders Section ═══════ -->
+      <div id="section-orders" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <h2 class="text-sm font-bold" data-i18n="supplier_material_requests">Purchase Orders</h2>
+            <p class="text-[10px] text-slate-400 mt-0.5" data-i18n="supplier_material_desc">Materials assigned to you by project engineers</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th class="px-5 py-3 text-left" data-i18n="common_po_number">PO #</th>
+                <th class="px-5 py-3 text-left" data-i18n="common_material">Material</th>
+                <th class="px-5 py-3 text-left" data-i18n="common_project">Project</th>
+                <th class="px-5 py-3 text-left" data-i18n="common_qty">Quantity</th>
+                <th class="px-5 py-3 text-left" data-i18n="common_amount">Amount</th>
+                <th class="px-5 py-3 text-left" data-i18n="common_status">Status</th>
+                <th class="px-5 py-3 text-left" data-i18n="common_action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="material-requests-body">
+              <tr class="border-t border-slate-100">
+                <td colspan="7" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner" style="font-size:24px" aria-hidden="true"></i>
+                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════ Catalog Section (hidden by default) ═══════ -->
+      <div id="section-catalog" class="space-y-4" style="display:none">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-sm font-bold" data-i18n="supplier_my_catalog">My Material Catalog</h2>
+            <p class="text-[10px] text-slate-400 mt-0.5">Engineers browse your catalog when selecting suppliers for BOQ items</p>
+          </div>
+          <button id="btn-add-material" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center gap-2">
+            <i class="ph ph-plus-circle" aria-hidden="true"></i>
+            <span data-i18n="supplier_add_material">Add Material</span>
+          </button>
+        </div>
+        <div id="catalog-grid" class="grid grid-cols-3 gap-4">
+          <div class="col-span-full text-center py-12 text-slate-400">
+            <i class="ph ph-spinner" style="font-size:24px" aria-hidden="true"></i>
+            <p class="mt-2 text-xs">Loading catalog...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ═══════ Add Material Modal ═══════ -->
+<div id="modal-add-material" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+    <div class="p-6 border-b border-slate-100">
+      <h3 class="text-sm font-bold" data-i18n="supplier_add_material">Add Material to Catalog</h3>
+      <p class="text-[10px] text-slate-400 mt-1">Guide prices are informational — actual PO amounts use BOQ prices</p>
+    </div>
+    <form id="form-add-material" class="p-6 space-y-4">
+      <div>
+        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Material Name *</label>
+        <input type="text" name="material_name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none" placeholder="e.g. Portland Cement Type II" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Category *</label>
+          <select name="material_category" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none bg-white">
+            <option value="">Select...</option>
+            <option value="cement">Cement</option>
+            <option value="steel">Steel & Rebar</option>
+            <option value="concrete">Concrete</option>
+            <option value="blocks">Blocks & Bricks</option>
+            <option value="wood">Wood & Timber</option>
+            <option value="pipes">Pipes & Plumbing</option>
+            <option value="electrical">Electrical</option>
+            <option value="insulation">Insulation</option>
+            <option value="roofing">Roofing</option>
+            <option value="paint">Paint & Finishing</option>
+            <option value="aggregate">Sand & Aggregate</option>
+            <option value="glass">Glass & Windows</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Unit *</label>
+          <select name="unit" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none bg-white">
+            <option value="">Select...</option>
+            <option value="kg">Kilogram (kg)</option>
+            <option value="ton">Ton</option>
+            <option value="bag">Bag (50kg)</option>
+            <option value="m³">Cubic Meter (m³)</option>
+            <option value="m²">Square Meter (m²)</option>
+            <option value="m">Linear Meter (m)</option>
+            <option value="piece">Piece</option>
+            <option value="box">Box</option>
+            <option value="roll">Roll</option>
+            <option value="liter">Liter</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Guide Price ($) *</label>
+          <input type="number" name="unit_price_guide" required min="0.01" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none" placeholder="0.00" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Min Order Qty</label>
+          <input type="number" name="min_order_qty" min="1" step="1" value="1" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lead Time (days)</label>
+          <input type="number" name="lead_time_days" min="0" step="1" value="7" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Description (optional)</label>
+        <textarea name="description" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none resize-none" placeholder="Additional details about this material..."></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="modal-cancel" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Cancel</button>
+        <button type="submit" class="flex-1 px-4 py-2 bg-trust-blue text-white rounded-lg text-sm font-semibold hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
+          <i class="ph ph-plus-circle" aria-hidden="true"></i> Add to Catalog
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

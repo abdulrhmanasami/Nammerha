@@ -17,7 +17,7 @@
       <a href="project-details.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
-      <h1 class="text-xl font-bold">Construction Basket</h1>
+      <h1 class="text-xl font-bold" data-i18n="construction_basket">Construction Basket</h1>
       <button id="clear-cart-btn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 text-slate-400" aria-label="Clear cart">
         <i class="ph ph-trash" aria-hidden="true"></i>
       </button>
@@ -43,13 +43,13 @@
     <div class="px-6 mb-6">
       <div class="escrow-badge">
         <i class="ph ph-shield-check ph-sm" aria-hidden="true"></i>
-        Secure Escrow Funding Enabled
+        <span data-i18n="secure_escrow_enabled">Secure Escrow Funding Enabled</span>
       </div>
     </div>
 
     <!-- Cart Items Container (dynamically rendered) -->
     <div class="px-6 flex flex-col gap-4" id="cart-items-container">
-      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest ml-1">Materials to Fund</h3>
+      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest ml-1" data-i18n="materials_to_fund">Materials to Fund</h3>
       <!-- Items rendered by JS -->
     </div>
 
@@ -57,11 +57,11 @@
     <div class="px-6" id="empty-cart-state" style="display:none">
       <div class="empty-cart">
         <i class="ph ph-shopping-cart text-slate-300" style="font-size:64px" aria-hidden="true"></i>
-        <h3 class="text-lg font-bold text-slate-500">Your basket is empty</h3>
-        <p class="text-sm text-slate-400">Browse projects to add construction materials</p>
+        <h3 class="text-lg font-bold text-slate-500" data-i18n="basket_empty">Your basket is empty</h3>
+        <p class="text-sm text-slate-400" data-i18n="browse_projects_hint">Browse projects to add construction materials</p>
         <a href="project-details.html" class="btn-secondary !w-auto !px-6 mt-2">
           <i class="ph ph-compass" aria-hidden="true"></i>
-          Browse Projects
+          <span data-i18n="browse_projects">Browse Projects</span>
         </a>
       </div>
     </div>
@@ -70,11 +70,11 @@
     <div class="px-6 mt-8 grid grid-cols-2 gap-4" id="trust-features">
       <div class="glass-card p-3 rounded-lg flex flex-col items-center text-center">
         <i class="ph ph-eye text-trust-blue/60 ph-lg" aria-hidden="true"></i>
-        <span class="text-[10px] font-medium text-slate-500 uppercase mt-1">Live Progress Tracking</span>
+        <span class="text-[10px] font-medium text-slate-500 uppercase mt-1" data-i18n="live_progress_tracking">Live Progress Tracking</span>
       </div>
       <div class="glass-card p-3 rounded-lg flex flex-col items-center text-center">
         <i class="ph ph-receipt text-trust-blue/60 ph-lg" aria-hidden="true"></i>
-        <span class="text-[10px] font-medium text-slate-500 uppercase mt-1">Tax Deductible Receipt</span>
+        <span class="text-[10px] font-medium text-slate-500 uppercase mt-1" data-i18n="tax_deductible_receipt">Tax Deductible Receipt</span>
       </div>
     </div>
 
@@ -82,19 +82,19 @@
     <div class="glass-sheet fixed bottom-0 left-0 right-0 max-w-[448px] mx-auto p-6 pb-8 z-50" id="checkout-sheet">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <span class="text-slate-400 text-sm">Total Funding Amount</span>
+          <span class="text-slate-400 text-sm" data-i18n="total_funding_amount">Total Funding Amount</span>
           <div class="text-3xl font-bold text-slate-900" id="cart-total">$0.00</div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-[10px] text-slate-400 uppercase font-medium">Items</span>
+          <span class="text-[10px] text-slate-400 uppercase font-medium" data-i18n="items_label">Items</span>
           <span class="bg-trust-blue text-white text-sm font-bold px-2.5 py-0.5 rounded-full" id="cart-count">0</span>
         </div>
       </div>
       <button class="btn-primary" id="confirm-funding-btn">
         <i class="ph ph-lock" aria-hidden="true"></i>
-        Confirm Funding
+        <span data-i18n="confirm_funding">Confirm Funding</span>
       </button>
-      <p class="text-[10px] text-center text-slate-400 mt-3 px-4 leading-relaxed">
+      <p class="text-[10px] text-center text-slate-400 mt-3 px-4 leading-relaxed" data-i18n="escrow_checkout_disclaimer">
         Funds are held in a secure escrow account until construction milestones are verified via GPS visual proof.
       </p>
     </div>

@@ -16,7 +16,10 @@ function initTimestamp(): void {
 
     const update = (): void => {
         const now = new Date();
-        el.textContent = now.toLocaleString('en-US', {
+        // P2-004 FIX: Respect active i18n locale instead of hardcoding 'en-US'
+        const lang = document.documentElement.lang || 'en';
+        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
+        el.textContent = now.toLocaleString(locale, {
             weekday: 'short',
             month: 'short',
             day: 'numeric',
