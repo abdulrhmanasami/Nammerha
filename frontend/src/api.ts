@@ -33,11 +33,19 @@ async function request<T>(
         headers['X-User-Id'] = devUserId;
     }
 
+    // MED-AUD-009 FIX: AbortController with 30s timeout to prevent indefinite
+    // hangs on degraded Syrian networks. Without this, fetch() blocks forever.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
     try {
         const res = await fetch(`${API_BASE}${endpoint}`, {
             ...options,
             headers,
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         const body = await res.json() as ApiResponse<T>;
 
@@ -47,6 +55,10 @@ async function request<T>(
 
         return body;
     } catch (err) {
+        clearTimeout(timeoutId);
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            throw new Error('Request timed out — please check your network connection and try again.');
+        }
         if (err instanceof Error) throw err;
         throw new Error('Network error');
     }

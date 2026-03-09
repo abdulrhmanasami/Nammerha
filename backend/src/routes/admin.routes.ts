@@ -17,13 +17,15 @@ router.use(requireActive);
 router.get(
     '/verifications/pending',
     requireRole('admin', 'auditor'),
-    async (_req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         try {
-            const cases = await escrowService.getPendingVerifications();
+            const limit = Math.min(parseInt(req.query['limit'] as string) || 25, 100);
+            const offset = Math.max(parseInt(req.query['offset'] as string) || 0, 0);
+            const { cases, total } = await escrowService.getPendingVerifications(limit, offset);
             const response: ApiResponse = {
                 success: true,
                 data: cases,
-                message: `${cases.length} verifications pending`,
+                message: `${total} verifications pending`,
             };
             res.json(response);
         } catch (error) {

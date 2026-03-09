@@ -18,6 +18,18 @@ const JWT_SECRET = process.env['JWT_SECRET'] ?? '';
 
 const AUTH0_ENABLED = Boolean(AUTH0_DOMAIN && AUTH0_AUDIENCE);
 
+// SEC-006 FIX: Fail-fast if no authentication strategy is available.
+// If neither Auth0 (RS256) nor JWT_SECRET (HS256) is configured, the server
+// cannot verify any tokens. Starting in this state is a security risk.
+if (!AUTH0_ENABLED && !JWT_SECRET) {
+    const msg = '[AUTH FATAL] Neither AUTH0_DOMAIN/AUTH0_AUDIENCE nor JWT_SECRET is configured. '
+        + 'The server cannot authenticate any requests. Aborting startup.';
+    console.error(msg);
+    if (process.env['NODE_ENV'] !== 'test') {
+        throw new Error(msg);
+    }
+}
+
 // ─── JWKS Client (cached, rate-limited) ─────────────────────────────────────
 
 const jwks = AUTH0_ENABLED
@@ -144,8 +156,12 @@ export async function authMiddleware(
         }
 
         // Development fallback: X-User-Id header
+        // SEC-007: Log a warning whenever this bypass is used, even in development.
         if (!userId && process.env['NODE_ENV'] === 'development') {
             userId = req.headers['x-user-id'] as string | undefined;
+            if (userId) {
+                console.warn(`[Auth] SEC-007 WARNING: X-User-Id dev bypass used for user ${userId} on ${req.method} ${req.path}`);
+            }
         }
 
         if (!userId) {

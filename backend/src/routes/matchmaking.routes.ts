@@ -95,6 +95,37 @@ router.post(
                 return;
             }
 
+            // FINOPS-004 FIX: Integer validation — prevent floating-point precision attacks.
+            // Amounts in cents must be whole numbers. A bid of 100.5 cents would cause
+            // rounding issues in downstream arithmetic (escrow, PO generation).
+            if (!Number.isInteger(dto.proposed_cost) || !Number.isInteger(dto.estimated_days)) {
+                res.status(400).json({
+                    success: false,
+                    error: 'proposed_cost (cents) and estimated_days must be integers',
+                } as ApiResponse);
+                return;
+            }
+
+            // FINOPS-004 FIX: Max cap — prevent integer overflow and absurd bids.
+            // $100M (10_000_000_000 cents) is a generous upper bound for construction.
+            // 3650 days (10 years) is the maximum realistic project timeline.
+            const MAX_BID_CENTS = 10_000_000_000;
+            const MAX_DAYS = 3650;
+            if (dto.proposed_cost > MAX_BID_CENTS) {
+                res.status(400).json({
+                    success: false,
+                    error: `proposed_cost exceeds maximum (${MAX_BID_CENTS} cents / $100M)`,
+                } as ApiResponse);
+                return;
+            }
+            if (dto.estimated_days > MAX_DAYS) {
+                res.status(400).json({
+                    success: false,
+                    error: `estimated_days exceeds maximum (${MAX_DAYS} days / 10 years)`,
+                } as ApiResponse);
+                return;
+            }
+
             const bid = await matchmaking.submitBid(
                 req.authUser!.user_id,
                 String(req.params.id),

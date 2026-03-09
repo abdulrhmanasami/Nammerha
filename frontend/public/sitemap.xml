@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+    <!-- Homepage -->
+    <url>
+        <loc>https://nammerha.com/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://nammerha.com/ar/" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://nammerha.com/en/" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://nammerha.com/" />
+    </url>
+
+    <!-- Project Details (dynamic, crawled via marketplace) -->
+    <url>
+        <loc>https://nammerha.com/project-details</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://nammerha.com/ar/project-details" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://nammerha.com/en/project-details" />
+    </url>
+
+    <!-- Donor Basket (donation flow entry) -->
+    <url>
+        <loc>https://nammerha.com/donor-basket</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://nammerha.com/ar/donor-basket" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://nammerha.com/en/donor-basket" />
+    </url>
+
+    <!-- Donor Portal -->
+    <url>
+        <loc>https://nammerha.com/donor-portal</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Donor Proof Gallery -->
+    <url>
+        <loc>https://nammerha.com/donor-proof</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- Authentication -->
+    <url>
+        <loc>https://nammerha.com/auth</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://nammerha.com/ar/auth" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://nammerha.com/en/auth" />
+    </url>
+
+    <!-- Role Portals -->
+    <url>
+        <loc>https://nammerha.com/engineer-boq</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/contractor-portal</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/tradesperson-portal</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/homeowner-portal</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/supplier-dashboard</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- Legal Pages -->
+    <url>
+        <loc>https://nammerha.com/terms</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://nammerha.com/ar/terms" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://nammerha.com/en/terms" />
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/privacy</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+        <xhtml:link rel="alternate" hreflang="ar" href="https://nammerha.com/ar/privacy" />
+        <xhtml:link rel="alternate" hreflang="en" href="https://nammerha.com/en/privacy" />
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/contact</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://nammerha.com/refund-policy</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+</urlset>

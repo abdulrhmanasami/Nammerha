@@ -145,11 +145,11 @@ services:
       - JWT_EXPIRY=${JWT_EXPIRY:-24h}
       # ── Payment Gateways (P1-001: production-ready credentials) ────
       - PLATFORM_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}
-      - VISA_API_KEY=${VISA_API_KEY:-}
-      - VISA_MERCHANT_ID=${VISA_MERCHANT_ID:-}
+      - VISA_API_KEY=${VISA_API_KEY:?VISA_API_KEY must be set for production payments}
+      - VISA_MERCHANT_ID=${VISA_MERCHANT_ID:?VISA_MERCHANT_ID must be set}
       - VISA_API_BASE_URL=${VISA_API_BASE_URL:-https://sandbox.api.visa.com}
-      - FATORA_API_KEY=${FATORA_API_KEY:-}
-      - FATORA_MERCHANT_CODE=${FATORA_MERCHANT_CODE:-}
+      - FATORA_API_KEY=${FATORA_API_KEY:?FATORA_API_KEY must be set for production payments}
+      - FATORA_MERCHANT_CODE=${FATORA_MERCHANT_CODE:?FATORA_MERCHANT_CODE must be set}
       - FATORA_API_BASE_URL=${FATORA_API_BASE_URL:-https://api.fatora.io}
       - PAYMENT_WEBHOOK_SECRET=${PAYMENT_WEBHOOK_SECRET:?PAYMENT_WEBHOOK_SECRET must be set}
       - GPS_PROXIMITY_THRESHOLD_METERS=${GPS_PROXIMITY_THRESHOLD_METERS:-100}

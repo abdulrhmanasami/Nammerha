@@ -65,11 +65,14 @@ export interface SearchEngineersDTO {
 //   W3 (bid win rate)       = 0.30
 //   W4 (license status)     = 0.15
 
+// LOW-AUD-002 FIX: Environment-configurable scoring weights.
+// Defaults to BuildZoom methodology values. Can be tuned via env vars
+// without redeployment: SCORE_W_PROJECTS, SCORE_W_RESPONSE, SCORE_W_WINRATE, SCORE_W_LICENSE
 const SCORE_WEIGHTS = {
-    completed_projects: 0.35,
-    response_speed: 0.20,
-    bid_win_rate: 0.30,
-    license_status: 0.15,
+    completed_projects: parseFloat(process.env['SCORE_W_PROJECTS'] ?? '0.35'),
+    response_speed: parseFloat(process.env['SCORE_W_RESPONSE'] ?? '0.20'),
+    bid_win_rate: parseFloat(process.env['SCORE_W_WINRATE'] ?? '0.30'),
+    license_status: parseFloat(process.env['SCORE_W_LICENSE'] ?? '0.15'),
 } as const;
 
 // P2-005 FIX: Shared scoring factor calculator — single source of truth

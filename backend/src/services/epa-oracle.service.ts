@@ -2,12 +2,13 @@
 // Nammerha Backend — EPA Oracle Service (Ticket 7.2)
 // FIDIC 13.8 Price Adjustment Engine + Oracle CRUD
 // ============================================================================
-import pool from '../config/database';
+import { query } from '../config/database';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface OracleEntry {
-    entry_id: string;
+    oracle_id: string;         // DB primary key
+    entry_id: string;          // Alias (mirrors oracle_id via migration 015)
     material_code: string;
     material_name: string;
     unit: string;
@@ -151,13 +152,17 @@ export async function calculateAndStoreEPA(
     const adjustedAmount = Math.round(dto.original_amount * Pn);
     const delta = adjustedAmount - dto.original_amount;
 
-    // Persist
-    const { rows } = await pool.query(
+    // Derive legacy columns for backward compatibility
+    const adjustmentPercentage = Math.round((Pn - 1.0) * 10000) / 100; // e.g. 1.12 → 12.00
+
+    // Persist — writes BOTH new (service) and legacy (schema 001) columns
+    const result = await query<EPAAdjustment>(
         `INSERT INTO epa_adjustments
             (project_id, milestone_id, fidic_formula_params,
              adjustment_multiplier, original_amount, adjusted_amount,
-             adjustment_delta, status, calculated_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending_approval', $8)
+             adjustment_delta, adjustment_percentage, original_cost, adjusted_cost,
+             status, calculated_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_approval', $11)
         RETURNING *`,
         [
             dto.project_id,
@@ -167,11 +172,17 @@ export async function calculateAndStoreEPA(
             dto.original_amount,
             adjustedAmount,
             delta,
+            adjustmentPercentage,
+            dto.original_amount,     // legacy: original_cost
+            adjustedAmount,          // legacy: adjusted_cost
             calculatedBy,
         ]
     );
 
-    return rows[0];
+    if (!result.rows[0]) {
+        throw new Error('Failed to create EPA adjustment record');
+    }
+    return result.rows[0];
 }
 
 /**
@@ -182,26 +193,27 @@ export async function respondToEPA(
     approverId: string,
     decision: 'approved' | 'rejected'
 ): Promise<EPAAdjustment> {
-    const { rows } = await pool.query(
+    const result = await query<EPAAdjustment>(
         `UPDATE epa_adjustments
-         SET status = $1, approved_by = $2, updated_at = NOW()
+         SET status = $1, approved_by = $2, approved_at = NOW(), updated_at = NOW()
          WHERE adjustment_id = $3 AND status = 'pending_approval'
          RETURNING *`,
         [decision, approverId, adjustmentId]
     );
 
-    if (rows.length === 0) {
+    const adjusted = result.rows[0];
+    if (!adjusted) {
         throw new Error('EPA adjustment not found or already processed');
     }
 
-    return rows[0];
+    return adjusted;
 }
 
 /**
  * Get EPA adjustment history for a project.
  */
 export async function getEPAHistory(projectId: string): Promise<EPAAdjustment[]> {
-    const { rows } = await pool.query(
+    const result = await query<EPAAdjustment & { calculator_name: string }>(
         `SELECT ea.*, u.full_name AS calculator_name
          FROM epa_adjustments ea
          LEFT JOIN users u ON u.user_id = ea.calculated_by
@@ -209,7 +221,7 @@ export async function getEPAHistory(projectId: string): Promise<EPAAdjustment[]>
          ORDER BY ea.created_at DESC`,
         [projectId]
     );
-    return rows;
+    return result.rows as EPAAdjustment[];
 }
 
 // ─── Oracle CRUD ────────────────────────────────────────────────────────────
@@ -235,8 +247,8 @@ export async function getOracleEntries(
         params.push(materialCode);
     }
 
-    const { rows } = await pool.query(sql, params);
-    return rows;
+    const result = await query<OracleEntry>(sql, params);
+    return result.rows;
 }
 
 /**
@@ -255,11 +267,23 @@ export async function upsertOracleEntry(
         ((dto.current_price - dto.base_price) / dto.base_price) * 10000
     ) / 100; // 2 decimal places
 
-    const { rows } = await pool.query(
+    // MED-AUD-003 FIX: Proper UPSERT using ON CONFLICT.
+    // If a record with the same material_code already exists, update its prices
+    // instead of crashing with a unique constraint violation.
+    const result = await query<OracleEntry>(
         `INSERT INTO pricing_oracle_entries
             (material_code, material_name, unit, base_price,
              current_price, price_change_pct, source, recorded_by, effective_date)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        ON CONFLICT (material_code) DO UPDATE SET
+            material_name = EXCLUDED.material_name,
+            unit = EXCLUDED.unit,
+            base_price = EXCLUDED.base_price,
+            current_price = EXCLUDED.current_price,
+            price_change_pct = EXCLUDED.price_change_pct,
+            source = EXCLUDED.source,
+            recorded_by = EXCLUDED.recorded_by,
+            effective_date = EXCLUDED.effective_date
         RETURNING *`,
         [
             dto.material_code,
@@ -273,7 +297,10 @@ export async function upsertOracleEntry(
         ]
     );
 
-    return rows[0];
+    if (!result.rows[0]) {
+        throw new Error('Failed to create/update oracle entry');
+    }
+    return result.rows[0];
 }
 
 /**
@@ -284,14 +311,26 @@ export async function checkEPAThresholds(): Promise<Array<{
     material_name: string;
     price_change_pct: number;
 }>> {
-    const { rows } = await pool.query(`
+    // MED-AUD-005 FIX: Join on material_code ↔ material_code (not material_category).
+    // material_code is the machine-readable identifier (e.g. REBAR_12MM) added by
+    // migration 014. material_category is a human-readable label (e.g. 'steel').
+    // The previous join produced incorrect/empty results because these are
+    // semantically different fields. For items without a dedicated material_code
+    // column, we fall back to UPPER(material_category) which matches the
+    // backfill logic in migration 014.
+    const result = await query<{
+        project_id: string;
+        material_name: string;
+        price_change_pct: number;
+    }>(`
         SELECT DISTINCT p.project_id, poe.material_name, poe.price_change_pct
         FROM projects p
         JOIN itemized_boq ib ON ib.project_id = p.project_id
-        JOIN pricing_oracle_entries poe ON poe.material_code = ib.material_category
+        JOIN pricing_oracle_entries poe
+            ON poe.material_code = UPPER(REPLACE(ib.material_category, ' ', '_'))
         WHERE p.status IN ('published', 'in_progress')
           AND ABS(poe.price_change_pct) > 5.0
         ORDER BY ABS(poe.price_change_pct) DESC
     `);
-    return rows;
+    return result.rows;
 }

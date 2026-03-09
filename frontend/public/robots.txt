@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block admin/internal pages from indexing
+Disallow: /admin-*
+Disallow: /compliance-*
+Disallow: /api/
+
+# Block dev/build artifacts
+Disallow: /assets/
+Disallow: /*.js.map
+
+# Sitemap location
+Sitemap: https://nammerha.com/sitemap.xml

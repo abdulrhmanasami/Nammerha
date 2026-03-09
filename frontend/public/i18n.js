@@ -268,7 +268,7 @@
         'btn_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
         'btn_create_account': { ar: 'إنشاء حساب', de: 'Konto erstellen', fr: 'Créer un compte', tr: 'Hesap Oluştur' },
 
-        // ═══ LEGAL PAGES ═══
+        // ═══ LEGAL PAGES — Headings ═══
         'terms_title': { ar: 'شروط الخدمة', de: 'Nutzungsbedingungen', fr: 'Conditions d\'utilisation', tr: 'Kullanım Şartları' },
         'privacy_title': { ar: 'سياسة الخصوصية', de: 'Datenschutzrichtlinie', fr: 'Politique de confidentialité', tr: 'Gizlilik Politikası' },
         'tos_acceptance': { ar: '1. قبول الشروط', de: '1. Annahme der Bedingungen', fr: '1. Acceptation des conditions', tr: '1. Şartların Kabulü' },
@@ -284,6 +284,165 @@
         'pp_security': { ar: '4. أمن البيانات', de: '4. Datensicherheit', fr: '4. Sécurité des données', tr: '4. Veri Güvenliği' },
         'pp_retention': { ar: '5. الاحتفاظ بالبيانات', de: '5. Datenaufbewahrung', fr: '5. Conservation des données', tr: '5. Veri Saklama' },
         'pp_rights': { ar: '6. حقوقك', de: '6. Ihre Rechte', fr: '6. Vos droits', tr: '6. Haklarınız' },
+
+        // ═══ LEGAL PAGES — Terms of Service Body Content ═══
+        'tos_last_updated': { ar: 'آخر تحديث: مارس 2026', de: 'Letzte Aktualisierung: März 2026', fr: 'Dernière mise à jour : mars 2026', tr: 'Son güncelleme: Mart 2026' },
+        'tos_acceptance_body': {
+            ar: 'بوصولك إلى منصة نمّرها ("المنصة") أو استخدامها، فإنك توافق على الالتزام بشروط الخدمة هذه. المنصة هي سوق إعادة إعمار متوافق مع معيار البيانات المفتوحة للتعاقد (OCDS) وتُشغَّل لتسهيل إعادة البناء المجتمعي الشفاف في سوريا.',
+            de: 'Durch den Zugriff auf oder die Nutzung der Nammerha-Plattform („Plattform") erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Die Plattform ist ein OCDS-konformer Wiederaufbaumarktplatz, der den transparenten, gemeinschaftsorientierten Wiederaufbau in Syrien ermöglicht.',
+            fr: 'En accédant ou en utilisant la plateforme Nammerha (« Plateforme »), vous acceptez d\'être lié par les présentes Conditions d\'utilisation. La Plateforme est un marché de reconstruction conforme à l\'OCDS, exploité pour faciliter la reconstruction communautaire transparente en Syrie.',
+            tr: 'Nammerha platformuna ("Platform") erişerek veya kullanarak bu Kullanım Şartlarına bağlı olmayı kabul edersiniz. Platform, Suriye\'de şeffaf, toplum odaklı yeniden yapılanmayı kolaylaştırmak amacıyla işletilen OCDS uyumlu bir yeniden yapım pazaryeridir.'
+        },
+        'tos_accounts_body_1': {
+            ar: 'يجب عليك التسجيل للحصول على حساب وإتمام التحقق من الهوية (KYC) للمشاركة في أنشطة التمويل أو الهندسة أو سلسلة التوريد. أنت مسؤول عن الحفاظ على سرية بيانات اعتماد حسابك.',
+            de: 'Sie müssen sich für ein Konto registrieren und die KYC-Verifizierung abschließen, um an Finanzierungs-, Ingenieur- oder Lieferkettenaktivitäten teilzunehmen. Sie sind für die Vertraulichkeit Ihrer Kontodaten verantwortlich.',
+            fr: 'Vous devez créer un compte et compléter la vérification KYC pour participer aux activités de financement, d\'ingénierie ou de chaîne d\'approvisionnement. Vous êtes responsable de la confidentialité de vos identifiants.',
+            tr: 'Finansman, mühendislik veya tedarik zinciri faaliyetlerine katılmak için bir hesap açmanız ve KYC doğrulamasını tamamlamanız gerekmektedir. Hesap bilgilerinizin gizliliğini korumaktan siz sorumlusunuz.'
+        },
+        'tos_accounts_body_2': {
+            ar: 'الحسابات مبنية على الأدوار: صاحب منزل، مانح، مهندس، أو مورّد. لكل دور أذونات والتزامات محددة كما تحددها المنصة.',
+            de: 'Konten sind rollenbasiert: Hauseigentümer, Spender, Ingenieur oder Lieferant. Jede Rolle hat spezifische Berechtigungen und Pflichten, die von der Plattform definiert werden.',
+            fr: 'Les comptes sont basés sur des rôles : Propriétaire, Donateur, Ingénieur ou Fournisseur. Chaque rôle dispose de permissions et d\'obligations spécifiques définies par la Plateforme.',
+            tr: 'Hesaplar rol tabanlıdır: Ev Sahibi, Bağışçı, Mühendis veya Tedarikçi. Her rolün Platform tarafından belirlenen özel izinleri ve yükümlülükleri vardır.'
+        },
+        'tos_escrow_body_1': {
+            ar: 'تُحتفظ بجميع التبرعات في حساب ضمان حتى يتم تأكيد تسليم المواد عبر إثباتات مكانية مُوثَّقة بنظام GPS. تُحرَّر الأموال فقط بعد تحقق المهندس وتقديم أدلة مصوّرة.',
+            de: 'Alle Spenden werden auf einem Treuhandkonto gehalten, bis die verifizierte Lieferung der Materialien durch GPS-verifizierte räumliche Nachweise bestätigt wird. Gelder werden nur nach Ingenieurverifizierung und fotografischem Nachweis freigegeben.',
+            fr: 'Tous les dons sont détenus sous séquestre jusqu\'à ce que la livraison vérifiée des matériaux soit confirmée par des preuves spatiales vérifiées par GPS. Les fonds ne sont libérés qu\'après vérification de l\'ingénieur et preuve photographique.',
+            tr: 'Tüm bağışlar, malzemelerin GPS doğrulamalı mekansal kanıtlarla teyit edilmiş teslimatına kadar emanette tutulur. Fonlar yalnızca mühendis doğrulaması ve fotoğrafik kanıt ile serbest bırakılır.'
+        },
+        'tos_escrow_body_2': {
+            ar: 'تُخزَّن جميع القيم النقدية كأعداد صحيحة (سنتات) لضمان الدقة المالية. تستخدم المنصة حسابات BIGINT لمنع أخطاء التقريب في جميع معاملات الضمان.',
+            de: 'Alle Geldwerte werden als Ganzzahlen (Cent) gespeichert, um finanzielle Präzision zu gewährleisten. Die Plattform verwendet BIGINT-Arithmetik, um Rundungsfehler bei allen Treuhandtransaktionen zu vermeiden.',
+            fr: 'Toutes les valeurs monétaires sont stockées en nombres entiers (centimes) pour garantir la précision financière. La Plateforme utilise l\'arithmétique BIGINT pour éviter les erreurs d\'arrondi sur toutes les transactions de séquestre.',
+            tr: 'Tüm parasal değerler, finansal hassasiyeti sağlamak için tam sayılar (kuruş) olarak saklanır. Platform, tüm emanet işlemlerinde yuvarlama hatalarını önlemek için BIGINT aritmetiği kullanır.'
+        },
+        'tos_data_body': {
+            ar: 'يخضع استخدامك للمنصة أيضاً لسياسة الخصوصية الخاصة بنا. نجمع بيانات KYC وإحداثيات GPS وبيانات المعاملات لضمان المساءلة ومنع الاحتيال.',
+            de: 'Ihre Nutzung der Plattform unterliegt auch unserer Datenschutzrichtlinie. Wir erheben KYC-Daten, GPS-Koordinaten und Transaktionsdaten, um Rechenschaftspflicht zu gewährleisten und Betrug zu verhindern.',
+            fr: 'Votre utilisation de la Plateforme est également régie par notre Politique de confidentialité. Nous collectons des données KYC, des coordonnées GPS et des données transactionnelles pour assurer la responsabilité et prévenir la fraude.',
+            tr: 'Platform kullanımınız ayrıca Gizlilik Politikamıza tabidir. Hesap verebilirliği sağlamak ve dolandırıcılığı önlemek için KYC verileri, GPS koordinatları ve işlem verileri topluyoruz.'
+        },
+        'tos_privacy_link': { ar: 'سياسة الخصوصية', de: 'Datenschutzrichtlinie', fr: 'Politique de confidentialité', tr: 'Gizlilik Politikası' },
+        'tos_ocds_body': {
+            ar: 'تلتزم المنصة بمعيار البيانات المفتوحة للتعاقد (OCDS). تُنشر جميع أنشطة الشراء وبيانات التسعير وتقدم المشاريع بشفافية ويمكن تدقيقها بشكل مستقل.',
+            de: 'Die Plattform entspricht dem Open Contracting Data Standard. Alle Beschaffungsaktivitäten, Preisdaten und Projektfortschritte werden transparent veröffentlicht und können unabhängig geprüft werden.',
+            fr: 'La Plateforme adhère au Standard de Données Ouvertes de la Commande Publique. Toutes les activités d\'approvisionnement, données tarifaires et avancements de projets sont publiés de manière transparente et auditables indépendamment.',
+            tr: 'Platform, Açık İhale Veri Standardına (OCDS) uygundur. Tüm tedarik faaliyetleri, fiyatlama verileri ve proje ilerlemeleri şeffaf bir şekilde yayınlanır ve bağımsız olarak denetlenebilir.'
+        },
+        'tos_liability_body': {
+            ar: 'توفر المنصة البنية التحتية التقنية لربط أصحاب المصلحة. نحن غير مسؤولين عن جودة أعمال البناء أو عيوب المواد أو النزاعات بين الأطراف بخلاف آلية الضمان المقدمة.',
+            de: 'Die Plattform stellt technologische Infrastruktur zur Verbindung von Interessengruppen bereit. Wir haften nicht für die Qualität der Bauarbeiten, Materialfehler oder Streitigkeiten zwischen den Parteien über den bereitgestellten Treuhandmechanismus hinaus.',
+            fr: 'La Plateforme fournit l\'infrastructure technologique pour connecter les parties prenantes. Nous ne sommes pas responsables de la qualité des travaux de construction, des défauts de matériaux ou des litiges entre les parties au-delà du mécanisme de séquestre fourni.',
+            tr: 'Platform, paydaşları birbirine bağlamak için teknoloji altyapısı sağlar. Sağlanan emanet mekanizması dışındaki inşaat kalitesi, malzeme kusurları veya taraflar arasındaki anlaşmazlıklardan sorumlu değiliz.'
+        },
+        'tos_governing_body': {
+            ar: 'تخضع هذه الشروط وتُفسَّر وفقاً للقانون الإنساني الدولي المعمول به وقوانين الولاية القضائية التي تأسست فيها نمّرها.',
+            de: 'Diese Bedingungen unterliegen dem geltenden internationalen humanitären Recht und den Gesetzen der Gerichtsbarkeit, in der Nammerha eingetragen ist, und werden danach ausgelegt.',
+            fr: 'Les présentes Conditions sont régies et interprétées conformément au droit international humanitaire applicable et aux lois de la juridiction dans laquelle Nammerha est constituée.',
+            tr: 'Bu Şartlar, yürürlükteki uluslararası insancıl hukuk ve Nammerha\'nın kurulduğu yargı alanının yasalarına göre yönetilir ve yorumlanır.'
+        },
+        'tos_trust_badge': {
+            ar: 'تضمن هذه الشروط الشفافية وتحمي جميع أصحاب المصلحة في عملية إعادة الإعمار.',
+            de: 'Diese Bedingungen gewährleisten Transparenz und schützen alle Beteiligten im Wiederaufbauprozess.',
+            fr: 'Ces conditions garantissent la transparence et protègent toutes les parties prenantes du processus de reconstruction.',
+            tr: 'Bu şartlar şeffaflığı sağlar ve yeniden yapım sürecindeki tüm paydaşları korur.'
+        },
+
+        // ═══ LEGAL PAGES — Privacy Policy Body Content ═══
+        'pp_last_updated': { ar: 'آخر تحديث: مارس 2026', de: 'Letzte Aktualisierung: März 2026', fr: 'Dernière mise à jour : mars 2026', tr: 'Son güncelleme: Mart 2026' },
+        'pp_intro_body': {
+            ar: 'تلتزم نمّرها ("نحن"، "لنا"، "المنصة") بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمعنا واستخدامنا والكشف عن معلوماتك وحمايتها عند استخدامك لسوق إعادة الإعمار المتوافق مع OCDS.',
+            de: 'Nammerha („wir", „unser", „Plattform") ist dem Schutz Ihrer Privatsphäre verpflichtet. Diese Datenschutzrichtlinie erläutert, wie wir Ihre Informationen erfassen, verwenden, offenlegen und schützen, wenn Sie unseren OCDS-konformen Wiederaufbaumarktplatz nutzen.',
+            fr: 'Nammerha (« nous », « notre », « Plateforme ») s\'engage à protéger votre vie privée. Cette Politique de confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre marché de reconstruction conforme à l\'OCDS.',
+            tr: 'Nammerha ("biz", "bizim", "Platform") gizliliğinizi korumaya kararlıdır. Bu Gizlilik Politikası, OCDS uyumlu yeniden yapım pazaryerimizi kullandığınızda bilgilerinizi nasıl topladığımızı, kullandığımızı, ifşa ettiğimizi ve koruduğumuzu açıklar.'
+        },
+        'pp_data_identity': { ar: 'بيانات الهوية', de: 'Identitätsdaten', fr: 'Données d\'identité', tr: 'Kimlik Verileri' },
+        'pp_data_identity_detail': {
+            ar: 'الاسم الكامل، البريد الإلكتروني، الدور، ووثائق التحقق من الهوية (هوية حكومية، إثبات عنوان).',
+            de: 'Vollständiger Name, E-Mail, Rolle und KYC-Dokumente (amtlicher Ausweis, Adressnachweis).',
+            fr: 'Nom complet, e-mail, rôle et documents KYC (pièce d\'identité gouvernementale, justificatif de domicile).',
+            tr: 'Tam ad, e-posta, rol ve KYC belgeleri (resmi kimlik, adres kanıtı).'
+        },
+        'pp_data_location': { ar: 'بيانات الموقع', de: 'Standortdaten', fr: 'Données de localisation', tr: 'Konum Verileri' },
+        'pp_data_location_detail': {
+            ar: 'إحداثيات GPS للإثباتات المكانية والتحقق من التسليم.',
+            de: 'GPS-Koordinaten für räumliche Nachweise und Lieferverifizierung.',
+            fr: 'Coordonnées GPS pour les preuves spatiales et la vérification de livraison.',
+            tr: 'Mekansal kanıtlar ve teslimat doğrulaması için GPS koordinatları.'
+        },
+        'pp_data_financial': { ar: 'البيانات المالية', de: 'Finanzdaten', fr: 'Données financières', tr: 'Finansal Veriler' },
+        'pp_data_financial_detail': {
+            ar: 'مبالغ التبرعات، معاملات الضمان، وبيانات وسيلة الدفع.',
+            de: 'Spendenbeträge, Treuhandtransaktionen und Zahlungsmethode-Metadaten.',
+            fr: 'Montants des dons, transactions de séquestre et métadonnées de mode de paiement.',
+            tr: 'Bağış tutarları, emanet işlemleri ve ödeme yöntemi meta verileri.'
+        },
+        'pp_data_device': { ar: 'بيانات الجهاز', de: 'Gerätedaten', fr: 'Données de l\'appareil', tr: 'Cihaz Verileri' },
+        'pp_data_device_detail': {
+            ar: 'نوع المتصفح، عنوان IP، وبيانات الجهاز لمنع الاحتيال.',
+            de: 'Browsertyp, IP-Adresse, Gerätemetadaten zur Betrugsprävention.',
+            fr: 'Type de navigateur, adresse IP, métadonnées d\'appareil pour la prévention de la fraude.',
+            tr: 'Tarayıcı türü, IP adresi, dolandırıcılık önleme için cihaz meta verileri.'
+        },
+        'pp_use_kyc': {
+            ar: 'للتحقق من هويتك ومنع الاحتيال (الامتثال لـ KYC)',
+            de: 'Um Ihre Identität zu verifizieren und Betrug zu verhindern (KYC-Compliance)',
+            fr: 'Pour vérifier votre identité et prévenir la fraude (conformité KYC)',
+            tr: 'Kimliğinizi doğrulamak ve dolandırıcılığı önlemek için (KYC uyumu)'
+        },
+        'pp_use_donations': {
+            ar: 'لمعالجة التبرعات وإدارة معاملات الضمان',
+            de: 'Um Spenden zu verarbeiten und Treuhandtransaktionen zu verwalten',
+            fr: 'Pour traiter les dons et gérer les transactions de séquestre',
+            tr: 'Bağışları işlemek ve emanet işlemlerini yönetmek için'
+        },
+        'pp_use_delivery': {
+            ar: 'للتحقق من تسليم المواد عبر إثباتات مصوّرة بطابع GPS',
+            de: 'Um die Materiallieferung durch GPS-gestempelte fotografische Nachweise zu verifizieren',
+            fr: 'Pour vérifier la livraison des matériaux par des preuves photographiques horodatées GPS',
+            tr: 'Malzeme teslimatını GPS damgalı fotoğrafik kanıtlarla doğrulamak için'
+        },
+        'pp_use_ocds': {
+            ar: 'لنشر بيانات الشراء الشفافة وفق معايير OCDS',
+            de: 'Um transparente Beschaffungsdaten nach OCDS-Standards zu veröffentlichen',
+            fr: 'Pour publier des données d\'approvisionnement transparentes selon les standards OCDS',
+            tr: 'OCDS standartları kapsamında şeffaf tedarik verilerini yayınlamak için'
+        },
+        'pp_use_audit': {
+            ar: 'لإنشاء سجلات تدقيق للمساءلة والامتثال القانوني',
+            de: 'Um Prüfprotokolle für Rechenschaftspflicht und rechtliche Compliance zu erstellen',
+            fr: 'Pour générer des pistes d\'audit pour la responsabilité et la conformité juridique',
+            tr: 'Hesap verebilirlik ve yasal uyum için denetim izleri oluşturmak için'
+        },
+        'pp_security_body': {
+            ar: 'نطبّق تدابير أمنية وفق أعلى المعايير الصناعية تشمل:',
+            de: 'Wir implementieren branchenübliche Sicherheitsmaßnahmen, darunter:',
+            fr: 'Nous mettons en œuvre des mesures de sécurité conformes aux normes de l\'industrie, notamment :',
+            tr: 'Aşağıdakileri içeren endüstri standardı güvenlik önlemleri uyguluyoruz:'
+        },
+        'pp_sec_tls': { ar: 'تشفير TLS 1.3', de: 'TLS 1.3 Verschlüsselung', fr: 'Chiffrement TLS 1.3', tr: 'TLS 1.3 Şifreleme' },
+        'pp_sec_hash': { ar: 'بصمة SHA-256 للصور', de: 'SHA-256 Bild-Hash', fr: 'Hachage SHA-256 des images', tr: 'SHA-256 Görsel Doğrulaması' },
+        'pp_sec_jwt': { ar: 'رموز مصادقة JWT', de: 'JWT-Auth-Tokens', fr: 'Jetons d\'authentification JWT', tr: 'JWT Kimlik Doğrulama' },
+        'pp_sec_sql': { ar: 'استعلامات SQL مُعلَمَة', de: 'Parametrisiertes SQL', fr: 'SQL paramétré', tr: 'Parametrik SQL' },
+        'pp_retention_body': {
+            ar: 'نحتفظ ببياناتك طالما أن حسابك نشط وحسبما تقتضيه القوانين المعمول بها. تُحتفظ بالبيانات المالية وسجلات التدقيق بشكل دائم للامتثال لمعيار OCDS والمساءلة. يمكنك طلب حذف البيانات غير الضرورية عبر التواصل معنا.',
+            de: 'Wir speichern Ihre Daten, solange Ihr Konto aktiv ist und wie es das geltende Recht erfordert. Finanz- und Prüfpfaddaten werden zur OCDS-Compliance und Rechenschaftspflicht dauerhaft aufbewahrt. Sie können die Löschung nicht wesentlicher Daten beantragen, indem Sie uns kontaktieren.',
+            fr: 'Nous conservons vos données aussi longtemps que votre compte est actif et comme l\'exigent les lois applicables. Les données financières et les pistes d\'audit sont conservées de manière permanente pour la conformité OCDS et la responsabilité. Vous pouvez demander la suppression des données non essentielles en nous contactant.',
+            tr: 'Hesabınız aktif olduğu sürece ve yürürlükteki yasaların gerektirdiği şekilde verilerinizi saklıyoruz. Finansal ve denetim izi verileri, OCDS uyumu ve hesap verebilirlik için kalıcı olarak saklanır. Bizimle iletişime geçerek zorunlu olmayan verilerin silinmesini talep edebilirsiniz.'
+        },
+        'pp_rights_body': {
+            ar: 'لديك الحق في الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها. يمكنك سحب الموافقة على معالجة البيانات في أي وقت، مع مراعاة الالتزامات القانونية والتعاقدية. تواصل معنا عبر privacy@nammerha.org.',
+            de: 'Sie haben das Recht, auf Ihre personenbezogenen Daten zuzugreifen, sie zu korrigieren oder zu löschen. Sie können Ihre Einwilligung zur Datenverarbeitung jederzeit widerrufen, vorbehaltlich gesetzlicher und vertraglicher Verpflichtungen. Kontaktieren Sie uns unter privacy@nammerha.org.',
+            fr: 'Vous avez le droit d\'accéder à vos données personnelles, de les corriger ou de les supprimer. Vous pouvez retirer votre consentement au traitement des données à tout moment, sous réserve des obligations légales et contractuelles. Contactez-nous à privacy@nammerha.org.',
+            tr: 'Kişisel verilerinize erişme, düzeltme veya silme hakkınız vardır. Yasal ve sözleşmesel yükümlülüklere tabi olarak, veri işleme onayınızı istediğiniz zaman geri çekebilirsiniz. privacy@nammerha.org adresinden bize ulaşın.'
+        },
+        'pp_trust_badge': {
+            ar: 'بياناتك محمية بتشفير وفق أعلى المعايير الصناعية ولن تُباع لأطراف ثالثة أبداً.',
+            de: 'Ihre Daten sind durch branchenübliche Verschlüsselung geschützt und werden niemals an Dritte verkauft.',
+            fr: 'Vos données sont protégées par un chiffrement conforme aux normes de l\'industrie et ne sont jamais vendues à des tiers.',
+            tr: 'Verileriniz endüstri standardı şifreleme ile korunur ve asla üçüncü taraflara satılmaz.'
+        },
 
         // ═══ FUND NOW BUTTON ═══
         'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },

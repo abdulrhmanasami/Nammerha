@@ -22,8 +22,14 @@ import type {
  * Returns all spatial proofs awaiting admin verification.
  * Each case is enriched with the matching BOQ item, PO, escrow entries,
  * and engineer details — everything the admin needs to make a decision.
+ *
+ * MED-AUD-004 FIX: Accepts pagination parameters to prevent unbounded
+ * result sets as the platform scales.
  */
-export async function getPendingVerifications(): Promise<VerificationCase[]> {
+export async function getPendingVerifications(
+    limit = 25,
+    offset = 0
+): Promise<{ cases: VerificationCase[]; total: number }> {
     // HGH-005: Fixed N+1 query — was running 2 extra queries PER proof in a loop.
     // Now uses a single query with correlated subqueries for PO and escrow data.
     const result = await query<{
@@ -85,8 +91,16 @@ export async function getPendingVerifications(): Promise<VerificationCase[]> {
     JOIN itemized_boq b ON b.item_id = sp.item_id
     JOIN users u ON u.user_id = sp.engineer_id
     WHERE sp.verification_status = 'submitted'
-    ORDER BY sp.captured_at ASC`
+    ORDER BY sp.captured_at ASC
+    LIMIT $1 OFFSET $2`,
+        [limit, offset]
     );
+
+    // Get total count for pagination metadata
+    const countResult = await query<{ count: string }>(
+        `SELECT COUNT(*) AS count FROM spatial_proof WHERE verification_status = 'submitted'`
+    );
+    const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
 
     const cases: VerificationCase[] = result.rows.map((row) => ({
         proof: {
@@ -124,7 +138,7 @@ export async function getPendingVerifications(): Promise<VerificationCase[]> {
         engineer_name: row.engineer_name,
     }));
 
-    return cases;
+    return { cases, total };
 }
 
 // ─── Path 4.2: Release Escrow (Admin Approves) ─────────────────────────────
@@ -209,17 +223,20 @@ export async function releaseEscrow(
         const uniqueDonorIds = [...new Set(releaseResult.rows.map((r) => r.donor_id))];
 
         for (const donorId of uniqueDonorIds) {
+            // HGH-AUD-007 FIX: Use i18n template keys instead of hardcoded bilingual strings.
+            // The notification rendering layer resolves these keys per user locale.
             await createNotification(client, {
                 user_id: donorId,
                 type: 'delivery_confirmed',
-                title: 'تم التوصيل بنجاح — Delivery Confirmed',
-                body: `تم توصيل ${materialName} لمشروع "${projectTitle}" والتحقق منه بإثبات GPS. مساهمتك جعلت هذا ممكناً.\n\n${materialName} has been delivered to the project "${projectTitle}" and verified with GPS proof. Your contribution made this possible.`,
+                title: 'notification.delivery_confirmed.title',
+                body: 'notification.delivery_confirmed.body',
                 data: {
                     project_id: proof.project_id,
                     item_id: dto.item_id,
                     proof_id: dto.proof_id,
                     proof_image_url: proof.image_url,
                     material_name: materialName,
+                    project_title: projectTitle,
                 },
                 channel: 'in_app',
             });
@@ -256,12 +273,13 @@ export async function flagDiscrepancy(
         const proof = result.rows[0];
         if (!proof) throw new Error(`Proof ${dto.proof_id} not found or already processed`);
 
-        // 2. Notify engineer
+        // Notify engineer
+        // HGH-AUD-007 FIX: Use i18n template keys
         await createNotification(client, {
             user_id: proof.engineer_id,
             type: 'discrepancy_flagged',
-            title: 'تنبيه: تم رفض الدليل — Proof Rejected',
-            body: `تم رفض الإثبات المكاني لمشروع ${proof.project_id}: "${dto.reason}". يرجى التواصل مع المسؤول.\n\nYour spatial proof for project ${proof.project_id} was flagged: "${dto.reason}". Please contact the admin for next steps.`,
+            title: 'notification.proof_rejected.title',
+            body: 'notification.proof_rejected.body',
             data: {
                 project_id: proof.project_id,
                 item_id: proof.item_id,

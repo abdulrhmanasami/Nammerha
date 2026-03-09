@@ -3,11 +3,83 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nammerha — Rebuild Syria Together</title>
+    <title>Nammerha — Rebuild Syria Together | منصة إعادة إعمار سوريا</title>
     <meta
       name="description"
-      content="OCDS-compliant reconstruction crowdfunding platform with radical transparency and spatial verification."
+      content="OCDS-compliant reconstruction crowdfunding platform with radical transparency, spatial GPS verification, and escrow-protected donations for Syria rebuilding."
     />
+    <meta name="keywords" content="Syria reconstruction, إعادة إعمار سوريا, crowdfunding, OCDS, transparent donations, Nammerha" />
+    <link rel="canonical" href="https://nammerha.com/" />
+
+    <!-- OpenGraph (Facebook, LinkedIn, WhatsApp) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Nammerha" />
+    <meta property="og:title" content="Nammerha — Rebuild Syria Together" />
+    <meta property="og:description" content="OCDS-compliant reconstruction crowdfunding platform with radical transparency and spatial verification." />
+    <meta property="og:url" content="https://nammerha.com/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ar_SY" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Nammerha — Rebuild Syria Together" />
+    <meta name="twitter:description" content="Transparent crowdfunding for Syria reconstruction with GPS-verified delivery proofs." />
+
+    <!-- Schema.org JSON-LD: Semantic Identity (Report §2-§3 — Dislodge from military/automotive SEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://nammerha.com/#website",
+          "url": "https://nammerha.com",
+          "name": "Nammerha",
+          "alternateName": ["نمّرها", "Nammerha Platform"],
+          "description": "Syria Reconstruction Crowdfunding Platform — OCDS-compliant with radical transparency",
+          "inLanguage": ["en", "ar"],
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://nammerha.com/project-details?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://nammerha.com/#organization",
+          "name": "Nammerha",
+          "url": "https://nammerha.com",
+          "description": "Non-profit technology platform for transparent reconstruction crowdfunding in Syria",
+          "foundingDate": "2025",
+          "areaServed": {
+            "@type": "Country",
+            "name": "Syria"
+          },
+          "knowsAbout": [
+            "Reconstruction",
+            "Crowdfunding",
+            "Open Contracting Data Standard",
+            "Syria rebuilding",
+            "Transparent donations"
+          ]
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://nammerha.com/#app",
+          "name": "Nammerha",
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "description": "Crowdfunding platform for Syria reconstruction with escrow-protected donations, GPS-verified spatial proofs, and OCDS-compliant financial reporting"
+        }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/main.ts"></script>
   <link href="/i18n.css?v=4" rel="stylesheet"/>

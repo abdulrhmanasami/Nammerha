@@ -5,6 +5,11 @@
 import { query, transaction } from '../config/database';
 import type { TradespersonStats, ServiceRequest, TradeAssignment } from '../types';
 
+// NMR-AUD-201 FIX: Single source of truth for hourly-rate earnings calculation.
+// Previously getMyStats() used this value (default 10) but getMyEarnings() hardcoded 8,
+// causing dashboard KPIs and earnings detail tab to show different totals.
+const WORK_HOURS_PER_DAY = parseInt(process.env['WORK_HOURS_PER_DAY'] ?? '10', 10);
+
 // ─── My Profile ─────────────────────────────────────────────────────────────
 
 interface TradespersonProfile {
@@ -104,7 +109,7 @@ export async function getMyStats(
                 CASE
                     WHEN ta.rate_type = 'fixed' THEN ta.agreed_rate
                     WHEN ta.rate_type = 'daily' THEN ta.agreed_rate * COALESCE(ta.estimated_days, 1)
-                    ELSE ta.agreed_rate * 8 * COALESCE(ta.estimated_days, 1)
+                    ELSE ta.agreed_rate * ${WORK_HOURS_PER_DAY} * COALESCE(ta.estimated_days, 1)
                 END
              ), 0)
              FROM trade_assignments ta
@@ -336,7 +341,7 @@ export async function getMyEarnings(
             CASE
                 WHEN ta.rate_type = 'fixed' THEN ta.agreed_rate
                 WHEN ta.rate_type = 'daily' THEN ta.agreed_rate * COALESCE(ta.estimated_days, 1)
-                ELSE ta.agreed_rate * 8 * COALESCE(ta.estimated_days, 1)
+                ELSE ta.agreed_rate * ${WORK_HOURS_PER_DAY} * COALESCE(ta.estimated_days, 1)
             END AS amount,
             ta.rate_type,
             ta.status,

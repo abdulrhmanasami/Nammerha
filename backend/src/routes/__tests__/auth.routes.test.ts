@@ -148,7 +148,7 @@ describe('Auth Routes (HTTP Integration)', () => {
                 .expect(409);
 
             expect(res.body.success).toBe(false);
-            expect(res.body.error).toContain('already exists');
+            expect(res.body.error).toContain('Registration failed');
             // Verify the query was called with lowercased email
             expect(mockQuery).toHaveBeenCalledWith(
                 'SELECT user_id FROM users WHERE email = $1',
@@ -260,6 +260,15 @@ describe('Auth Routes (HTTP Integration)', () => {
                 rowCount: 1,
             });
 
+            // SEC-002: Lockout check query mock (no lockout)
+            mockQuery.mockResolvedValueOnce({
+                rows: [{ failed_attempts: 0, locked_until: null }],
+                rowCount: 1,
+            });
+
+            // SEC-002: Failed attempt INSERT mock
+            mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
             const res = await request(app)
                 .post('/api/auth/login')
                 .send({ email: 'valid@example.com', password: 'WrongP@ss1' })
@@ -279,6 +288,12 @@ describe('Auth Routes (HTTP Integration)', () => {
                     is_active: true,
                     password_hash: '$2b$12$valid_hash',
                 }],
+                rowCount: 1,
+            });
+
+            // SEC-002: Lockout check query mock (no lockout)
+            mockQuery.mockResolvedValueOnce({
+                rows: [{ failed_attempts: 0, locked_until: null }],
                 rowCount: 1,
             });
 
@@ -309,6 +324,12 @@ describe('Auth Routes (HTTP Integration)', () => {
                     user_id: 'u1', email: 'a@b.com', full_name: 'A',
                     role: 'donor', is_active: true, password_hash: '$2b$12$secret',
                 }],
+                rowCount: 1,
+            });
+
+            // SEC-002: Lockout check query mock (no lockout)
+            mockQuery.mockResolvedValueOnce({
+                rows: [{ failed_attempts: 0, locked_until: null }],
                 rowCount: 1,
             });
 

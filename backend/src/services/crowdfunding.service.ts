@@ -381,16 +381,22 @@ export async function getDonorEscrowSummary(donorId: string) {
 
 /**
  * Get a donor's donation history.
+ * NMR-AUD-203 FIX: Added pagination to prevent unbounded result sets at scale.
  */
-export async function getDonorDonations(donorId: string): Promise<EscrowLedger[]> {
+export async function getDonorDonations(
+    donorId: string,
+    limit = 50,
+    offset = 0,
+): Promise<EscrowLedger[]> {
     const result = await query<EscrowLedger>(
         `SELECT e.*, b.material_name, p.title AS project_title
      FROM escrow_ledger e
      JOIN itemized_boq b ON b.item_id = e.item_id
      JOIN projects p ON p.project_id = e.project_id
      WHERE e.donor_id = $1
-     ORDER BY e.locked_at DESC`,
-        [donorId]
+     ORDER BY e.locked_at DESC
+     LIMIT $2 OFFSET $3`,
+        [donorId, limit, offset]
     );
     return result.rows;
 }

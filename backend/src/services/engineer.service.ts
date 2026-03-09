@@ -16,6 +16,8 @@ import type { EngineerStats, EngineerProject } from '../types';
 export async function getMyProjects(
     engineerId: string,
     status?: string,
+    limit = 50,
+    offset = 0,
 ): Promise<EngineerProject[]> {
     let sql = `
         SELECT
@@ -33,11 +35,13 @@ export async function getMyProjects(
     const params: unknown[] = [engineerId];
 
     if (status) {
-        sql += ` AND p.status = $2`;
+        sql += ` AND p.status = $${params.length + 1}`;
         params.push(status);
     }
 
-    sql += ` ORDER BY p.created_at DESC`;
+    // NMR-AUD-203 FIX: Pagination prevents unbounded result sets at scale
+    sql += ` ORDER BY p.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
 
     const result = await query<EngineerProject>(sql, params);
     return result.rows;
@@ -121,6 +125,8 @@ interface EngineerBid {
 export async function getMyBids(
     engineerId: string,
     status?: string,
+    limit = 50,
+    offset = 0,
 ): Promise<EngineerBid[]> {
     let sql = `
         SELECT
@@ -140,11 +146,13 @@ export async function getMyBids(
     const params: unknown[] = [engineerId];
 
     if (status) {
-        sql += ` AND cb.status = $2`;
+        sql += ` AND cb.status = $${params.length + 1}`;
         params.push(status);
     }
 
-    sql += ` ORDER BY cb.submitted_at DESC`;
+    // NMR-AUD-203 FIX: Pagination prevents unbounded result sets at scale
+    sql += ` ORDER BY cb.submitted_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
 
     const result = await query<EngineerBid>(sql, params);
     return result.rows;

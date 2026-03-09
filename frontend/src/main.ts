@@ -19,8 +19,17 @@ interface ProjectCard {
     compliance_level?: string;
 }
 
-function formatCents(cents: number): string {
-    return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 });
+// LOW-AUD-003 FIX: Locale-aware currency formatting.
+// NMR-PLT-004 FIX: Use active page locale instead of hardcoded 'en-US'.
+// The i18n engine sets document.documentElement.lang on page load.
+function formatCents(cents: number, currency = 'USD'): string {
+    const locale = document.documentElement.lang || 'en-US';
+    return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(cents / 100);
 }
 
 function buildProjectCard(project: ProjectCard, index: number): string {
@@ -52,7 +61,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
             <svg class="size-full -rotate-90" viewBox="0 0 36 36">
               <circle class="stroke-slate-200" cx="18" cy="18" r="16" fill="none" stroke-width="3"></circle>
               <circle class="stroke-smoky-jade" cx="18" cy="18" r="16" fill="none" stroke-width="3"
-                stroke-dasharray="${pct} ${100 - pct}" stroke-linecap="round"></circle>
+                stroke-dasharray="${(pct / 100) * 100.53} ${100.53 - (pct / 100) * 100.53}" stroke-linecap="round"></circle>
             </svg>
             <span class="absolute inset-0 flex items-center justify-center text-[9px] font-extrabold text-smoky-jade">${Math.round(pct)}%</span>
           </div>

@@ -27,7 +27,7 @@ process.env['STORAGE_MAX_SIZE_MB'] = '50';
 
 // ─── Mock Database BEFORE imports ───────────────────────────────────────────
 vi.mock('../../config/database', () => ({
-    query: vi.fn(),
+    query: vi.fn().mockResolvedValue({ rows: [{ cnt: '1' }], rowCount: 1 }),
     getClient: vi.fn(),
     transaction: vi.fn(),
     default: { end: vi.fn(), query: vi.fn() },
@@ -277,7 +277,7 @@ describe('Storage Routes (HTTP Integration)', () => {
     describe('DELETE /api/storage/files/*', () => {
         it('should delete file successfully', async () => {
             const res = await request(app)
-                .delete('/api/storage/files/proof/proj-1/file.jpg')
+                .delete(`/api/storage/files/proof/${VALID_UUID}/file.jpg`)
                 .expect(200);
 
             expect(res.body.success).toBe(true);

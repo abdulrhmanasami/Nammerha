@@ -13,6 +13,11 @@ router.use(authMiddleware);
 router.use(requireActive);
 
 // ─── POST /api/donations — Fund Specific BOQ Items (Donor) ─────────────────
+// SEC-004 FIX: Idempotency-Key header prevents double-submit.
+// RED TEAM FIX: Uses pg_advisory_xact_lock for atomic serialization.
+// Two concurrent requests with the same key are serialized at the DB level —
+// the second one waits for the first to commit, then finds the existing record.
+// This is the same proven pattern used by the payment webhook handler.
 router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
     try {
         const dto = req.body as CreateDonationDTO;
@@ -41,23 +46,99 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
             }
         }
 
+        // SEC-004 + RED TEAM: Atomic idempotency via pg_advisory_xact_lock
+        // Uses a transaction-scoped advisory lock keyed on the idempotency key hash.
+        // This serializes concurrent requests with the same key at the DB level.
+        const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+        if (idempotencyKey) {
+            const { getClient } = await import('../config/database');
+            const client = await getClient();
+            try {
+                await client.query('BEGIN');
+
+                // Acquire advisory lock — blocks concurrent requests with same key
+                // hashtext() is a PostgreSQL built-in that converts text→int4
+                await client.query(
+                    `SELECT pg_advisory_xact_lock(hashtext($1))`,
+                    [idempotencyKey]
+                );
+
+                // Now check if a prior request already completed
+                const existing = await client.query<{ new_values: string }>(
+                    `SELECT new_values FROM audit_trail
+                     WHERE action = 'donation_created'
+                       AND entity_type = 'idempotency'
+                       AND entity_id = $1
+                       AND created_at > NOW() - INTERVAL '5 minutes'
+                     LIMIT 1`,
+                    [idempotencyKey]
+                );
+
+                if (existing.rows[0]) {
+                    await client.query('COMMIT');
+                    const cachedData = JSON.parse(existing.rows[0].new_values);
+                    res.status(200).json({
+                        success: true,
+                        data: cachedData,
+                        message: 'Duplicate request — returning original result (idempotency)',
+                    } as ApiResponse);
+                    return;
+                }
+
+                // First request: process the donation
+                const escrowEntries = await crowdfundingService.createDonation(
+                    req.authUser!.user_id,
+                    dto
+                );
+
+                const totalLocked = escrowEntries.reduce((sum, e) => sum + e.amount_locked, 0);
+                const responseData = {
+                    escrow_entries: escrowEntries,
+                    total_locked: totalLocked,
+                    items_funded: escrowEntries.length,
+                };
+
+                // Store idempotency record within the same transaction
+                await client.query(
+                    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                     VALUES ('donation_created', 'idempotency', $1, $2, $3)`,
+                    [idempotencyKey, req.authUser!.user_id, JSON.stringify(responseData)]
+                );
+
+                await client.query('COMMIT');
+
+                res.status(201).json({
+                    success: true,
+                    data: responseData,
+                    message: `Successfully locked $${(totalLocked / 100).toFixed(2)} in escrow`,
+                } as ApiResponse);
+            } catch (txErr) {
+                await client.query('ROLLBACK');
+                throw txErr;
+            } finally {
+                client.release();
+            }
+            return;
+        }
+
+        // No idempotency key — process normally (legacy behavior)
         const escrowEntries = await crowdfundingService.createDonation(
             req.authUser!.user_id,
             dto
         );
 
         const totalLocked = escrowEntries.reduce((sum, e) => sum + e.amount_locked, 0);
-
-        const response: ApiResponse = {
-            success: true,
-            data: {
-                escrow_entries: escrowEntries,
-                total_locked: totalLocked,
-                items_funded: escrowEntries.length,
-            },
-            message: `Successfully locked $${(totalLocked / 100).toFixed(2)} in escrow`,
+        const responseData = {
+            escrow_entries: escrowEntries,
+            total_locked: totalLocked,
+            items_funded: escrowEntries.length,
         };
-        res.status(201).json(response);
+
+        res.status(201).json({
+            success: true,
+            data: responseData,
+            message: `Successfully locked $${(totalLocked / 100).toFixed(2)} in escrow`,
+        } as ApiResponse);
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         const status = message.includes('fully funded') ? 409 : 400;

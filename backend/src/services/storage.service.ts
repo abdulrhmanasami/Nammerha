@@ -53,12 +53,16 @@ export interface FileMetadata {
 }
 
 // ─── Allowed MIME Types ─────────────────────────────────────────────────────
+// RED TEAM FIX: Removed image/svg+xml from floor_plan category.
+// SVG files can contain embedded <script> tags and event handlers that execute
+// JavaScript when rendered in a browser — a Stored XSS vector.
+// Use rasterized formats (PNG/JPEG/PDF) only for user-uploaded content.
 
 const ALLOWED_MIME_TYPES: Record<string, string[]> = {
     proof: ['image/jpeg', 'image/png', 'image/webp', 'image/heic'],
     boq: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
     capture: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'video/mp4', 'model/gltf-binary'],
-    floor_plan: ['image/jpeg', 'image/png', 'image/svg+xml', 'application/pdf'],
+    floor_plan: ['image/jpeg', 'image/png', 'application/pdf'],
     document: ['application/pdf', 'image/jpeg', 'image/png'],
     avatar: ['image/jpeg', 'image/png', 'image/webp'],
 };
@@ -127,10 +131,18 @@ export function validateUploadRequest(dto: UploadUrlRequest): void {
         );
     }
 
-    // Size validation
+    // Size validation — FINOPS-002 FIX: file_size_bytes is now REQUIRED.
+    // Without it, the pre-signed URL has no ContentLength constraint and
+    // an attacker could upload a 5TB file directly to S3/MinIO.
     const config = getStorageConfig();
     const maxBytes = config.uploadMaxSizeMb * 1024 * 1024;
-    if (dto.file_size_bytes && dto.file_size_bytes > maxBytes) {
+    if (!dto.file_size_bytes || dto.file_size_bytes <= 0) {
+        throw new Error('file_size_bytes is required and must be positive');
+    }
+    if (!Number.isInteger(dto.file_size_bytes)) {
+        throw new Error('file_size_bytes must be an integer (bytes)');
+    }
+    if (dto.file_size_bytes > maxBytes) {
         throw new Error(`File size exceeds maximum (${config.uploadMaxSizeMb}MB)`);
     }
 
@@ -187,7 +199,12 @@ export async function generateUploadUrl(
         Bucket: config.bucket,
         Key: fileKey,
         ContentType: dto.content_type,
-        ...(dto.file_size_bytes ? { ContentLength: dto.file_size_bytes } : {}),
+        // RED TEAM FIX: Force download (never render inline) to prevent
+        // content-based attacks (XSS via HTML/SVG, phishing via PDF).
+        ContentDisposition: 'attachment',
+        // FINOPS-002 FIX: Always enforce ContentLength. S3 rejects uploads
+        // that don't match exact byte count — infrastructure-level protection.
+        ContentLength: dto.file_size_bytes,
         Metadata: {
             'x-nammerha-project': dto.project_id,
             'x-nammerha-category': dto.category,
@@ -316,7 +333,8 @@ export async function healthCheck(): Promise<{ ok: boolean; provider: string; bu
             MaxKeys: 1,
         }));
         return { ok: true, provider: config.provider, bucket: config.bucket };
-    } catch {
+    } catch (err) {
+        console.error('[Storage] Health check failed:', err instanceof Error ? err.message : err);
         return { ok: false, provider: config.provider, bucket: config.bucket };
     }
 }

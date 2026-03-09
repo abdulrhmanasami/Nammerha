@@ -2,6 +2,10 @@
 // Nammerha Backend — Auth Routes
 // POST /api/auth/register  — Create a new user account
 // POST /api/auth/login     — Authenticate and receive JWT token
+//
+// SEC-002: Account lockout after 5 consecutive failed logins
+// SEC-003: Password max length (128 chars) to prevent bcrypt DoS
+// SEC-009: Generic registration errors to prevent email enumeration
 // ============================================================================
 import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
@@ -10,6 +14,18 @@ import { generateToken } from '../middleware/auth.middleware';
 import type { User, UserRole, ApiResponse } from '../types';
 
 const router = Router();
+
+// SEC-003: Maximum password length to prevent bcrypt CPU exhaustion.
+// bcrypt truncates at 72 bytes internally, but the hashing function still
+// processes the full input. A 1MB password would cause CPU starvation.
+const MAX_PASSWORD_LENGTH = 128;
+
+// SEC-002: Account lockout configuration
+// RED TEAM FIX: Lockout is now per-(IP + email) compound, not per-email alone.
+// An attacker brute-forcing from their IP only locks THEIR IP for that email —
+// the real account owner from a different IP can still log in.
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MINUTES = 15;
 
 const BCRYPT_SALT_ROUNDS = 12;
 
@@ -68,6 +84,15 @@ router.post(
                 return;
             }
 
+            // SEC-003: Password max length check (before bcrypt hashing)
+            if (password.length > MAX_PASSWORD_LENGTH) {
+                res.status(400).json({
+                    success: false,
+                    error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+                } as ApiResponse);
+                return;
+            }
+
             // Validate password complexity
             const failedRules = PASSWORD_RULES
                 .filter(rule => !rule.test(password))
@@ -82,6 +107,9 @@ router.post(
             }
 
             // Check for existing user
+            // SEC-009: Use a generic error message to prevent email enumeration.
+            // An attacker should not be able to distinguish between "email exists"
+            // and "registration failed" to map registered accounts.
             const existing = await query<{ user_id: string }>(
                 'SELECT user_id FROM users WHERE email = $1',
                 [email.toLowerCase().trim()]
@@ -89,7 +117,7 @@ router.post(
             if (existing.rows[0]) {
                 res.status(409).json({
                     success: false,
-                    error: 'An account with this email already exists',
+                    error: 'Registration failed. Please try again or contact support.',
                 } as ApiResponse);
                 return;
             }
@@ -157,10 +185,20 @@ router.post(
                 return;
             }
 
+            // SEC-003: Password max length check (before bcrypt comparison)
+            if (password.length > MAX_PASSWORD_LENGTH) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Invalid email or password',
+                } as ApiResponse);
+                return;
+            }
+
             // Find user by email
+            const normalizedEmail = email.toLowerCase().trim();
             const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'password_hash'>>(
                 'SELECT user_id, email, full_name, role, is_active, password_hash FROM users WHERE email = $1',
-                [email.toLowerCase().trim()]
+                [normalizedEmail]
             );
 
             const user = result.rows[0];
@@ -173,15 +211,81 @@ router.post(
                 return;
             }
 
+            // SEC-002 + RED TEAM FIX: Check account lockout per (IP + email)
+            // Only the attacker's IP gets locked, not the entire account.
+            const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+            const lockoutScope = `${normalizedEmail}::${clientIp}`;
+
+            const lockoutResult = await query<{ failed_attempts: number; locked_until: Date | null }>(
+                `SELECT
+                    COALESCE((
+                        SELECT COUNT(*) FROM audit_trail
+                        WHERE entity_type = 'auth_failure'
+                          AND entity_id = $1
+                          AND created_at > NOW() - INTERVAL '${LOCKOUT_DURATION_MINUTES} minutes'
+                    ), 0)::int AS failed_attempts,
+                    (
+                        SELECT created_at + INTERVAL '${LOCKOUT_DURATION_MINUTES} minutes'
+                        FROM audit_trail
+                        WHERE entity_type = 'auth_lockout'
+                          AND entity_id = $1
+                          AND created_at > NOW() - INTERVAL '${LOCKOUT_DURATION_MINUTES} minutes'
+                        ORDER BY created_at DESC LIMIT 1
+                    ) AS locked_until`,
+                [lockoutScope]
+            );
+
+            const lockout = lockoutResult.rows[0];
+            if (lockout?.locked_until && new Date(lockout.locked_until) > new Date()) {
+                const minutesLeft = Math.ceil(
+                    (new Date(lockout.locked_until).getTime() - Date.now()) / 60_000
+                );
+                res.status(429).json({
+                    success: false,
+                    error: `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
+                } as ApiResponse);
+                return;
+            }
+
             // Verify password
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
             if (!isPasswordValid) {
+                // SEC-002 + RED TEAM: Record failed attempt scoped to (IP + email)
+                await query(
+                    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                     VALUES ('login_failed', 'auth_failure', $1, NULL, $2)`,
+                    [lockoutScope, JSON.stringify({
+                        email: normalizedEmail,
+                        ip: clientIp,
+                        timestamp: new Date().toISOString(),
+                    })]
+                );
+
+                // Check if this failure triggers lockout for this IP
+                const newCount = (lockout?.failed_attempts ?? 0) + 1;
+                if (newCount >= MAX_FAILED_ATTEMPTS) {
+                    await query(
+                        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                         VALUES ('account_locked', 'auth_lockout', $1, NULL, $2)`,
+                        [lockoutScope, JSON.stringify({
+                            email: normalizedEmail,
+                            ip: clientIp,
+                            reason: `${MAX_FAILED_ATTEMPTS} consecutive failed login attempts from IP ${clientIp}`,
+                            duration_minutes: LOCKOUT_DURATION_MINUTES,
+                        })]
+                    );
+                    console.warn(`[Auth] IP locked: ${clientIp} for email ${normalizedEmail} — ${MAX_FAILED_ATTEMPTS} failed attempts`);
+                }
+
                 res.status(401).json({
                     success: false,
                     error: 'Invalid email or password',
                 } as ApiResponse);
                 return;
             }
+
+            // Login successful — clean up old failure records
+            // (No need to delete, they expire naturally via the time window)
 
             // Generate JWT
             const token = generateToken(user.user_id, user.role);

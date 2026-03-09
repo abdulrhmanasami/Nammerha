@@ -164,13 +164,16 @@ export async function submitSpatialProof(
                 .update(imageBuffer)
                 .digest('hex');
         } catch (hashErr) {
-            // Fallback: if image download fails, hash the URL deterministically.
-            // This prevents blocking proof submission due to transient network issues.
-            console.warn(`[Execution] Image binary download failed for ${dto.image_url}, falling back to URL hash:`, hashErr);
-            imageHash = crypto
-                .createHash('sha256')
-                .update(dto.image_url)
-                .digest('hex');
+            // NMR-AUD-202 FIX: Fail-secure — do NOT fall back to URL hashing.
+            // A URL-hash fallback allows tampered images at the same URL to pass
+            // verification silently, defeating the purpose of integrity checking.
+            // On a financial accountability platform, security > availability.
+            const reason = hashErr instanceof Error ? hashErr.message : 'Unknown error';
+            console.error(`[Execution] Image integrity check failed for ${dto.image_url}:`, reason);
+            throw new Error(
+                'Image verification failed: unable to download the image for SHA-256 integrity check. ' +
+                'Please ensure the image is uploaded to storage and accessible, then re-submit the proof.'
+            );
         }
 
         // 5. Create spatial proof

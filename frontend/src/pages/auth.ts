@@ -106,7 +106,14 @@ function updatePasswordStrength(password: string): number {
     if (/[^A-Za-z0-9]/.test(password)) { score++; }
 
     const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400'];
-    const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+
+    // NMR-AUD-304 FIX: Labels paired with i18n keys for translation engine
+    const labels: Array<{ text: string; i18nKey: string }> = [
+        { text: 'Weak', i18nKey: 'pw_strength_weak' },
+        { text: 'Fair', i18nKey: 'pw_strength_fair' },
+        { text: 'Good', i18nKey: 'pw_strength_good' },
+        { text: 'Strong', i18nKey: 'pw_strength_strong' },
+    ];
 
     if (strengthBars) {
         for (let i = 0; i < strengthBars.length; i++) {
@@ -120,9 +127,17 @@ function updatePasswordStrength(password: string): number {
     }
 
     if (strengthLabel && password.length > 0) {
-        strengthLabel.textContent = labels[score - 1] ?? 'Too short';
+        const label = labels[score - 1];
+        if (label) {
+            strengthLabel.textContent = label.text;
+            strengthLabel.setAttribute('data-i18n', label.i18nKey);
+        } else {
+            strengthLabel.textContent = 'Too short';
+            strengthLabel.setAttribute('data-i18n', 'pw_strength_too_short');
+        }
     } else if (strengthLabel) {
         strengthLabel.textContent = '8+ chars, 1 uppercase, 1 number';
+        strengthLabel.setAttribute('data-i18n', 'pw_strength_hint');
     }
 
     return score;

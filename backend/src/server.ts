@@ -19,6 +19,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 
 // Load environment variables
 dotenv.config();
@@ -56,8 +57,40 @@ import * as path from 'path';
 const app = express();
 const PORT = parseInt(process.env['PORT'] ?? '3001', 10);
 
-// ─── Global Middleware ──────────────────────────────────────────────────────
-app.use(helmet());                                 // Security headers
+// ─── Security Headers (Report §5: Cybersecurity Architecture) ───────────────
+// Helmet v8 sets HSTS, CSP, X-Frame-Options, X-Content-Type-Options by default.
+// We customize HSTS for preload eligibility and CSP for required external resources.
+app.use(helmet({
+    // HSTS: 2 years + includeSubDomains + preload (eligible for https://hstspreload.org)
+    strictTransportSecurity: {
+        maxAge: 63072000,       // 2 years in seconds (preload requirement)
+        includeSubDomains: true,
+        preload: true,
+    },
+    // Content Security Policy: whitelist required CDN/external resources
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],  // SEC-005: Removed 'unsafe-inline' — use nonce-based CSP for inline scripts
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "blob:", "https://*.nammerha.com"],
+            connectSrc: [
+                "'self'",
+                "https://*.nammerha.com",
+                "https://*.auth0.com",
+                "https://*.visa.com",       // Visa Checkout/Direct API
+                "https://api.fatora.io",    // Fatora payment gateway
+                "https://checkout.fatora.io", // Fatora checkout iframe
+            ],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            upgradeInsecureRequests: [],
+        },
+    },
+}));
 
 // CRT-005: CORS with explicit origin whitelist (was wide-open)
 const ALLOWED_ORIGINS = (process.env['CORS_ORIGINS'] ?? 'http://localhost:3000,https://nammerha.com,https://www.nammerha.com').split(',');
@@ -71,7 +104,11 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+    // SEC-011: Only expose X-User-Id header in development mode.
+    // In production, this dev-only header should not be in the CORS allowlist.
+    allowedHeaders: process.env['NODE_ENV'] === 'development'
+        ? ['Content-Type', 'Authorization', 'X-User-Id', 'Idempotency-Key', 'X-CSRF-Token']
+        : ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-CSRF-Token'],
     credentials: true,
     maxAge: 86400, // 24h preflight cache
 }));
@@ -92,6 +129,7 @@ app.use(express.json({
     },
 }));
 app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
+app.use(cookieParser());                           // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
 app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
 app.use(auditMiddleware);                          // Auto audit trail
 
@@ -122,6 +160,84 @@ const paymentLimiter = rateLimit({
     legacyHeaders: false,
     message: { success: false, error: 'Too many payment requests. Please try again later.' },
 });
+
+// HGH-AUD-005 FIX: Rate limiter for compliance/SDN screening endpoints.
+// Without this, an attacker could brute-force name variations against the SDN list
+// to map the entire screening database within hours.
+const complianceLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 15,                     // 15 screening requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many compliance requests. Please try again later.' },
+});
+
+// HGH-AUD-006 FIX: CSRF Protection via Double-Submit Cookie pattern.
+// Since the platform uses JWT (Bearer token) for authentication — not session
+// cookies — traditional CSRF attacks have limited impact. However, the CORS
+// config uses `credentials: true`, which means cookies ARE sent cross-origin.
+// This lightweight middleware adds an additional defense layer for state-changing
+// operations without requiring an external dependency.
+import crypto from 'crypto';
+
+function csrfProtection(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+): void {
+    // Skip CSRF for safe methods and webhook endpoints
+    const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+    if (safeMethods.includes(req.method)) {
+        return next();
+    }
+
+    // Skip for webhook callbacks (gateway-to-server, not browser-initiated)
+    if (req.path.includes('/webhook')) {
+        return next();
+    }
+
+    // JWT Bearer tokens are inherently CSRF-safe (not auto-attached like cookies).
+    // If the request uses Bearer auth, it's not vulnerable to CSRF.
+    const authHeader = req.headers['authorization'];
+    if (authHeader?.startsWith('Bearer ')) {
+        return next();
+    }
+
+    // Development fallback: skip CSRF for X-User-Id header auth
+    if (process.env['NODE_ENV'] === 'development' && req.headers['x-user-id']) {
+        return next();
+    }
+
+    // For cookie-based requests without Bearer token, require CSRF token
+    const csrfCookie = req.cookies?.['_csrf'] as string | undefined;
+    const csrfHeader = req.headers['x-csrf-token'] as string | undefined;
+
+    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+        res.status(403).json({
+            success: false,
+            error: 'CSRF token validation failed',
+        });
+        return;
+    }
+
+    next();
+}
+
+// Endpoint to obtain a CSRF token (the client calls this before making
+// state-changing requests without a Bearer token)
+app.get('/api/csrf-token', (_req, res) => {
+    const token = crypto.randomBytes(32).toString('hex');
+    res.cookie('_csrf', token, {
+        httpOnly: false,  // Client JS needs to read this to send as header
+        sameSite: 'strict',
+        secure: process.env['NODE_ENV'] === 'production',
+        maxAge: 3600_000,  // 1 hour
+    });
+    res.json({ success: true, csrfToken: token });
+});
+
+// Apply CSRF protection to all API routes
+app.use('/api', csrfProtection);
 
 // ─── Health Check ───────────────────────────────────────────────────────────
 // MED-010: Verify actual DB connectivity instead of always returning 'healthy'
@@ -203,7 +319,8 @@ app.use('/api/reality-capture', realityCaptureRoutes);
 app.use('/api/open-data', openDataRoutes);
 
 // Phase 4: Global Compliance Engine (SDN screening, export controls, security events)
-app.use('/api/compliance', complianceRoutes);
+// HGH-AUD-005: Protected with dedicated rate limiter
+app.use('/api/compliance', complianceLimiter, complianceRoutes);
 
 // Phase 5: Translation Engine & Localization (hybrid NMT/LLM, glossary, locale detection)
 app.use('/api/translation', translationRoutes);
@@ -229,11 +346,13 @@ app.use((_req, res) => {
 });
 
 // ─── Global Error Handler ───────────────────────────────────────────────────
+// SEC-008 FIX: NEVER expose internal error messages to the client,
+// regardless of NODE_ENV. Internal details are logged server-side only.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('[Server] Unhandled error:', err);
     res.status(500).json({
         success: false,
-        error: process.env['NODE_ENV'] === 'development' ? err.message : 'Internal server error',
+        error: 'Internal server error',
     });
 });
 
