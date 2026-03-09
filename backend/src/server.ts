@@ -43,6 +43,12 @@ import openDataRoutes from './routes/open-data.routes';
 import complianceRoutes from './routes/compliance.routes';
 import translationRoutes from './routes/translation.routes';
 import storageRoutes from './routes/storage.routes';
+import supplierRoutes from './routes/supplier.routes';
+import engineerRoutes from './routes/engineer.routes';
+import contractorRoutes from './routes/contractor.routes';
+import tradespersonRoutes from './routes/tradesperson.routes';
+import homeownerRoutes from './routes/homeowner.routes';
+import donorRoutes from './routes/donor.routes';
 import localeRouter from './middleware/locale-pages.middleware';
 import * as path from 'path';
 
@@ -70,7 +76,21 @@ app.use(cors({
     maxAge: 86400, // 24h preflight cache
 }));
 
-app.use(express.json({ limit: '2mb' }));           // JSON body parser (reduced from 10mb)
+// NMR-AUD-005 FIX: Capture raw request body for HMAC webhook verification.
+// The `verify` callback stores the raw bytes on `req.rawBody` BEFORE JSON
+// parsing, so the webhook handler can verify against the exact payload the
+// gateway signed — not a reconstructed/re-serialized version (which is
+// fragile due to JSON key ordering and extra-field stripping).
+app.use(express.json({
+    limit: '2mb',
+    verify: (req: express.Request, _res, buf: Buffer) => {
+        // Only capture raw body for the webhook endpoint (performance: avoid
+        // unnecessary Buffer→string copies on every request)
+        if (req.url === '/webhook' || req.originalUrl?.includes('/payments/webhook')) {
+            (req as express.Request & { rawBody?: string }).rawBody = buf.toString('utf-8');
+        }
+    },
+}));
 app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
 app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
 app.use(auditMiddleware);                          // Auto audit trail
@@ -155,6 +175,24 @@ app.use('/api/matchmaking', matchmakingRoutes);
 // Phase 2: EPA Oracle (FIDIC 13.8 price adjustment engine)
 app.use('/api/oracle', epaOracleRoutes);
 
+// Phase 2: Supplier Portal (catalog management, PO tracking, dashboard)
+app.use('/api/supplier', supplierRoutes);
+
+// Phase 2: Engineer Portal (projects, stats, bids, profile, camera)
+app.use('/api/engineer', engineerRoutes);
+
+// Phase 2: Contractor Portal (projects, marketplace, bids, payments)
+app.use('/api/contractor', contractorRoutes);
+
+// Phase 2: Tradesperson Portal (requests, assignments, earnings)
+app.use('/api/tradesperson', tradespersonRoutes);
+
+// Phase 2: Homeowner Portal (projects, service requests, approvals, escrow)
+app.use('/api/homeowner', homeownerRoutes);
+
+// Phase 2: Donor Portal (impact, donations, marketplace, proofs)
+app.use('/api/donor', donorRoutes);
+
 // Phase 2: Client Dashboard (bird's eye project view)
 app.use('/api/dashboard', dashboardRoutes);
 
@@ -212,16 +250,34 @@ const server = app.listen(PORT, () => {
 
 async function gracefulShutdown(signal: string): Promise<void> {
     console.warn(`[Nammerha] ${signal} received — shutting down gracefully...`);
-    server.close(() => {
-        console.warn('[Nammerha] HTTP server closed.');
+
+    // LOW-AUD-002 FIX: Force-kill safety net — if draining hangs, forcibly exit
+    // after 30 seconds to prevent zombie processes.
+    const forceKillTimer = setTimeout(() => {
+        console.error('[Nammerha] Graceful shutdown timed out after 30s — forcing exit.');
+        process.exit(1);
+    }, 30_000);
+    forceKillTimer.unref(); // Don't prevent exit if everything cleans up before 30s
+
+    // 1. Stop accepting new connections
+    await new Promise<void>((resolve) => {
+        server.close(() => {
+            console.warn('[Nammerha] HTTP server closed — no new connections accepted.');
+            resolve();
+        });
     });
+
+    // 2. Drain database connection pool (waits for in-flight queries to complete)
     try {
         const { default: pool } = await import('./config/database');
         await pool.end();
-        console.warn('[Nammerha] Database pool closed.');
+        console.warn('[Nammerha] Database pool drained — all connections released.');
     } catch (err) {
         console.error('[Nammerha] Error closing database pool:', err);
     }
+
+    // 3. Clean exit
+    console.warn('[Nammerha] Graceful shutdown complete. Goodbye.');
     process.exit(0);
 }
 
