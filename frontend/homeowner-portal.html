@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nammerha — Homeowner Portal</title>
+  <meta name="description" content="Track your reconstruction projects, manage repair requests, review bids, and approve construction phases." />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <script type="module" src="/src/pages/homeowner-portal.ts"></script>
+<link href="/i18n.css?v=4" rel="stylesheet"/>
+<script src="/i18n-boot.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<div class="flex min-h-screen">
+  <!-- ═══════ Sidebar ═══════ -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex flex-col">
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+      <div class="size-9 rounded-lg bg-trust-blue flex items-center justify-center">
+        <i class="ph ph-house text-white" style="font-size:20px" aria-hidden="true"></i>
+      </div>
+      <span class="font-bold text-sm" data-i18n="homeowner_portal">Homeowner Portal</span>
+    </div>
+    <nav class="flex-1 px-4 space-y-1 pt-3">
+      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-blue-600/10 text-blue-700 rounded-lg cursor-pointer" href="#">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+      </a>
+      <a id="tab-projects" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-buildings" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="homeowner_my_projects">My Projects</span>
+      </a>
+      <a id="tab-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-wrench" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="homeowner_service_requests">Service Requests</span>
+        <span class="ml-auto bg-blue-500/20 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
+      </a>
+      <a id="tab-approvals" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-check-square" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="homeowner_approvals">Approvals</span>
+        <span class="ml-auto bg-amber-500/20 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
+      </a>
+      <a id="tab-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+        <i class="ph ph-vault" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="homeowner_payments">Payments</span>
+      </a>
+    </nav>
+    <!-- Quick Actions -->
+    <div class="p-4 border-t border-slate-200 space-y-2">
+      <a href="/homeowner-report.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">
+        <i class="ph ph-plus-circle" aria-hidden="true"></i>
+        <span data-i18n="homeowner_report_damage">Report Damage</span>
+      </a>
+    </div>
+    <!-- Logout -->
+    <div class="p-4 border-t border-slate-200">
+      <a href="/auth/login.html" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══════ Main Content ═══════ -->
+  <main class="flex-1 overflow-auto">
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
+      <!-- Header -->
+      <div>
+        <h1 class="text-xl font-bold" data-i18n="homeowner_welcome">My Home Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-0.5" data-i18n="homeowner_subtitle">Track your projects, manage repairs, and review approvals</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
+          <p class="text-2xl font-black mt-1" id="kpi-active">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
+          <p class="text-2xl font-black mt-1 text-blue-600" id="kpi-bids">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
+          <p class="text-2xl font-black mt-1 text-amber-600" id="kpi-approvals">0</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_escrow">In Escrow</p>
+          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-escrow">$0</p>
+        </div>
+      </div>
+
+      <!-- ═══════ Dashboard ═══════ -->
+      <div id="section-dashboard" class="space-y-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold">Active Projects</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Your reconstruction progress at a glance</p>
+          </div>
+          <div id="active-projects-list" class="divide-y divide-slate-100">
+            <div class="p-5 text-center text-slate-400">
+              <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+              <p class="mt-2 text-xs">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ My Projects ═══════ -->
+      <div id="section-projects" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="font-bold" data-i18n="homeowner_all_projects">All Projects</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Damage reports and their lifecycle</p>
+            </div>
+            <a href="/homeowner-report.html" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">+ New Report</a>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th class="px-5 py-3 text-left">Project</th>
+                  <th class="px-5 py-3 text-left">Type</th>
+                  <th class="px-5 py-3 text-left">Engineer</th>
+                  <th class="px-5 py-3 text-left">Contractor</th>
+                  <th class="px-5 py-3 text-left">Bids</th>
+                  <th class="px-5 py-3 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody id="projects-body">
+                <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
+                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Service Requests ═══════ -->
+      <div id="section-requests" style="display:none" class="space-y-4">
+        <!-- Create Request Form -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="homeowner_new_request">Request a Repair</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Post a service request and we'll match nearby tradespeople</p>
+          </div>
+          <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase">Trade Needed</label>
+              <select id="sr-trade" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                <option value="tiling">بلاط — Tiling</option>
+                <option value="painting">دهان — Painting</option>
+                <option value="plumbing">سباكة — Plumbing</option>
+                <option value="electrical">كهرباء — Electrical</option>
+                <option value="carpentry">نجارة — Carpentry</option>
+                <option value="welding">لحام — Welding</option>
+                <option value="masonry">بناء حجر — Masonry</option>
+                <option value="plastering">قصارة — Plastering</option>
+                <option value="hvac">تكييف — HVAC</option>
+                <option value="general">أعمال عامة — General</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase">Urgency</label>
+              <select id="sr-urgency" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                <option value="routine">عادي — Routine</option>
+                <option value="urgent">مستعجل — Urgent</option>
+                <option value="emergency">طارئ — Emergency</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+              <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-[10px] font-bold text-slate-400 uppercase">Description (optional)</label>
+              <textarea id="sr-description" rows="2" placeholder="Describe the issue..." class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase">Location</label>
+              <input id="sr-address" type="text" placeholder="Address or neighborhood" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase">Max Budget ($)</label>
+              <input id="sr-budget" type="number" placeholder="Optional" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+            <div class="md:col-span-2">
+              <button id="submit-sr-btn" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="ph ph-megaphone" aria-hidden="true"></i> Submit Request
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- My Requests List -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold">My Service Requests</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th class="px-5 py-3 text-left">Title</th>
+                  <th class="px-5 py-3 text-left">Trade</th>
+                  <th class="px-5 py-3 text-left">Urgency</th>
+                  <th class="px-5 py-3 text-left">Matched To</th>
+                  <th class="px-5 py-3 text-left">Status</th>
+                  <th class="px-5 py-3 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody id="requests-body">
+                <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Approvals ═══════ -->
+      <div id="section-approvals" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="homeowner_approval_list">Engineer Approvals</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Review and approve engineer requests for your projects</p>
+          </div>
+          <div id="approvals-list" class="divide-y divide-slate-100">
+            <div class="p-5 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Payments ═══════ -->
+      <div id="section-payments" style="display:none">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold" data-i18n="homeowner_escrow_overview">Escrow Overview</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Funds held in secure escrow for your construction projects</p>
+          </div>
+          <div class="p-5" id="escrow-content">
+            <div class="text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
