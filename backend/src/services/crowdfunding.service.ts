@@ -4,11 +4,11 @@
 // Handles the itemized micro-funding flow:
 //   1. Donor browses marketplace (published projects on map)
 //   2. Donor selects specific BOQ items to fund
-//   3. Payment processed → funds locked in escrow
+//   3. Payment processed via real gateway (Visa/Fatora) → funds locked in escrow
 //   4. If item reaches fully_funded → triggers auto-PO generation
 // ============================================================================
-import crypto from 'crypto';
 import { query, transaction } from '../config/database';
+import { paymentService } from './payment.service';
 import type {
     ProjectCard,
     BOQFunding,
@@ -135,9 +135,22 @@ export async function createDonation(
                 throw new Error(`Invalid donation amount for item ${fundItem.item_id}`);
             }
 
-            // 4. Process payment (placeholder — in production, call payment gateway)
-            // P3-002: Use crypto.randomUUID() instead of Date.now() to prevent collisions
-            const gatewayRef = `PAY-${dto.payment_method.toUpperCase()}-${crypto.randomUUID()}`;
+            // 4. Process payment through real gateway (Visa/Fatora)
+            //    P0-1 FIX: Replaced placeholder fake ref with real paymentService.initiate()
+            //    The gateway returns a real transaction ID for reconciliation.
+            const gateway = dto.payment_method === 'visa' ? 'visa' as const : 'fatora' as const;
+            const paymentResult = await paymentService.initiate({
+                donor_id: donorId,
+                item_id: fundItem.item_id,
+                project_id: boqItem.project_id,
+                amount: actualAmount,
+                currency: 'USD',
+                gateway,
+                return_url: dto.return_url,
+            });
+
+            // Use the real gateway reference for escrow tracking
+            const gatewayRef = paymentResult.reference;
 
             // 5. Create escrow entry (locked)
             const escrowResult = await client.query<EscrowLedger>(

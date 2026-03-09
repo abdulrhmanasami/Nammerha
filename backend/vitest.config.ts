@@ -7,11 +7,15 @@ export default defineConfig({
         include: ['src/**/*.test.ts'],
         coverage: {
             provider: 'v8',
-            reporter: ['text', 'html'],
-            include: ['src/**/*.ts'],
-            exclude: ['src/**/*.test.ts', 'src/server.ts'],
+            reporter: ['text', 'lcov'],
+            include: ['src/routes/**', 'src/services/**', 'src/middleware/**'],
         },
-        // Timeouts for integration tests that may make HTTP calls
-        testTimeout: 15_000,
+        env: {
+            NODE_ENV: 'development',
+            JWT_SECRET: 'test-secret-key-for-vitest-never-use-in-production',
+            DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+            PAYMENT_WEBHOOK_SECRET: 'test-webhook-secret-for-vitest-never-use-in-production',
+        },
+        testTimeout: 10000,
     },
 });

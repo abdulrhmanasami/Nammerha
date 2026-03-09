@@ -100,6 +100,100 @@ export interface UploadFloorPlanDTO {
     file_type?: string;
 }
 
+// ─── GAP-2 FIX: GPS Proximity Validation ────────────────────────────────────
+// Haversine formula to calculate great-circle distance between two GPS points.
+// Used to validate that reality capture photos were taken at the project site.
+// Threshold: 500 meters (accounts for GPS drift, building perimeter, etc.)
+
+const GPS_PROXIMITY_THRESHOLD_METERS = 500;
+
+/**
+ * Calculate the Haversine distance between two points on Earth.
+ * Returns distance in meters.
+ */
+function haversineDistanceMeters(
+    lat1: number, lon1: number,
+    lat2: number, lon2: number,
+): number {
+    const R = 6371e3; // Earth radius in meters
+    const toRad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * toRad;
+    const dLon = (lon2 - lon1) * toRad;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+/**
+ * Validate that the claimed GPS coordinates are within the proximity
+ * threshold of the project's registered GPS location.
+ *
+ * GAP-2 FIX: Anti-fraud mechanism — prevents engineers from submitting
+ * captures with GPS coordinates that don't match the actual project site.
+ * Discrepancies are logged to audit_trail for compliance review.
+ *
+ * @returns null if valid, or an error message if GPS is too far from project.
+ */
+async function validateGPSProximity(
+    projectId: string,
+    claimedLat: number,
+    claimedLng: number,
+    engineerId: string,
+): Promise<string | null> {
+    // Fetch the project's registered GPS location
+    const projRes = await pool.query(
+        `SELECT
+            ST_Y(gps_location::GEOMETRY) AS project_lat,
+            ST_X(gps_location::GEOMETRY) AS project_lng
+         FROM projects WHERE project_id = $1 AND gps_location IS NOT NULL`,
+        [projectId]
+    );
+
+    if (projRes.rows.length === 0 || projRes.rows[0].project_lat === null) {
+        // Project has no GPS location set — skip validation (allow capture)
+        return null;
+    }
+
+    const { project_lat, project_lng } = projRes.rows[0];
+    const distance = haversineDistanceMeters(
+        Number(project_lat), Number(project_lng),
+        claimedLat, claimedLng,
+    );
+
+    if (distance > GPS_PROXIMITY_THRESHOLD_METERS) {
+        // Log the discrepancy to audit_trail for compliance review
+        try {
+            await pool.query(
+                `INSERT INTO audit_trail
+                    (entity_type, entity_id, action, actor_id, new_values)
+                 VALUES ('reality_capture', $1, 'gps_proximity_violation', $2, $3)`,
+                [
+                    projectId,
+                    engineerId,
+                    JSON.stringify({
+                        claimed_lat: claimedLat,
+                        claimed_lng: claimedLng,
+                        project_lat: Number(project_lat),
+                        project_lng: Number(project_lng),
+                        distance_meters: Math.round(distance),
+                        threshold_meters: GPS_PROXIMITY_THRESHOLD_METERS,
+                        timestamp: new Date().toISOString(),
+                    }),
+                ]
+            );
+        } catch (auditErr) {
+            console.error('[RealityCapture] Failed to log GPS violation to audit_trail:', auditErr);
+        }
+
+        return `GPS location mismatch: capture was ${Math.round(distance)}m from the project site (max allowed: ${GPS_PROXIMITY_THRESHOLD_METERS}m). Photo must be taken on-site.`;
+    }
+
+    return null; // Valid — within threshold
+}
+
 // ─── Captures ───────────────────────────────────────────────────────────────
 
 /**
@@ -128,6 +222,18 @@ export async function submitCapture(
         && dto.gps_lng !== undefined && dto.gps_lng !== null
         ? `ST_SetSRID(ST_MakePoint($12, $11), 4326)::GEOGRAPHY`
         : 'NULL';
+
+    // GAP-2 FIX: Validate GPS proximity BEFORE accepting the capture.
+    // This prevents fraud where engineers submit photos from unrelated locations.
+    if (dto.gps_lat !== undefined && dto.gps_lat !== null
+        && dto.gps_lng !== undefined && dto.gps_lng !== null) {
+        const gpsError = await validateGPSProximity(
+            projectId, dto.gps_lat, dto.gps_lng, engineerId,
+        );
+        if (gpsError) {
+            throw new Error(gpsError);
+        }
+    }
 
     const { rows } = await pool.query(
         `INSERT INTO reality_captures

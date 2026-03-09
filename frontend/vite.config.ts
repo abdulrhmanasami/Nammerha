@@ -7,6 +7,9 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: resolve(__dirname, 'index.html'),
+                auth: resolve(__dirname, 'auth.html'),
+                wallet: resolve(__dirname, 'wallet.html'),
+                profile: resolve(__dirname, 'profile.html'),
                 homeownerReport: resolve(__dirname, 'homeowner-report.html'),
                 engineerBoq: resolve(__dirname, 'engineer-boq.html'),
                 engineerCamera: resolve(__dirname, 'engineer-camera.html'),

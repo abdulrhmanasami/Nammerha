@@ -46,10 +46,138 @@ export async function createNotification(
     const notification = result.rows[0];
     if (!notification) throw new Error('Failed to create notification');
 
-    // TODO: In production, dispatch to push notification service (FCM/APNS)
-    console.log(`[Notification] ${input.type} → ${input.user_id}: ${input.title}`);
+    // MED-AUD-001 FIX: Dispatch to channel-specific delivery provider.
+    // Fire-and-forget with error isolation — failed delivery never crashes
+    // the calling transaction or blocks the HTTP response.
+    const channel = input.channel ?? 'in_app';
+    dispatchToProvider(channel, input).catch((err) => {
+        console.error(`[Notification] Dispatch failed for channel=${channel}:`, err);
+    });
 
     return notification;
+}
+
+// ─── Notification Dispatch Providers (MED-AUD-001 FIX) ──────────────────────
+
+type DispatchProvider = (input: CreateNotificationInput) => Promise<void>;
+
+/**
+ * Provider registry. Extensible — add FCM, Twilio, etc. by adding entries.
+ * Each provider is async and independently error-isolated.
+ */
+const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
+    // eslint-disable-next-line require-await
+    in_app: async (input) => {
+        // In-app: already persisted to DB above. No additional delivery needed.
+        // eslint-disable-next-line no-console
+        console.log(`[Notification] in_app → ${input.user_id}: ${input.title}`);
+    },
+
+    email: async (input) => {
+        // Email: use SMTP transport if configured, otherwise log warning.
+        const smtpHost = process.env['SMTP_HOST'];
+        const smtpUser = process.env['SMTP_USER'];
+        const smtpPass = process.env['SMTP_PASS'];
+        const fromEmail = process.env['SMTP_FROM'] ?? 'noreply@nammerha.com';
+
+        if (!smtpHost) {
+            console.warn(`[Notification] Email delivery requested but SMTP_HOST not configured — skipping.`);
+            return;
+        }
+
+        // Dynamic import to avoid loading nodemailer when not needed
+        try {
+            const nodemailer = await import('nodemailer');
+
+            // Build transport config — auth is optional (self-hosted Postfix relay
+            // on internal Docker network doesn't need credentials)
+            const transportConfig: Record<string, unknown> = {
+                host: smtpHost,
+                port: parseInt(process.env['SMTP_PORT'] ?? '587', 10),
+                secure: process.env['SMTP_SECURE'] === 'true',
+            };
+
+            // Only add auth if credentials are provided (external SMTP services)
+            if (smtpUser && smtpPass) {
+                transportConfig['auth'] = { user: smtpUser, pass: smtpPass };
+            }
+
+            const transporter = nodemailer.createTransport(transportConfig);
+
+            // Look up user email from DB
+            const userResult = await query<{ email: string }>(
+                'SELECT email FROM users WHERE user_id = $1',
+                [input.user_id]
+            );
+            const userEmail = userResult.rows[0]?.email;
+            if (!userEmail) {
+                console.warn(`[Notification] Cannot send email — no email found for user ${input.user_id}`);
+                return;
+            }
+
+            await transporter.sendMail({
+                from: fromEmail,
+                to: userEmail,
+                subject: input.title,
+                text: input.body,
+                html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#1a365d;">${input.title}</h2>
+                    <p>${input.body}</p>
+                    <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
+                    <p style="color:#94a3b8;font-size:12px;">Nammerha — National Reconstruction Platform</p>
+                </div>`,
+            });
+            console.log(`[Notification] Email sent to ${userEmail}: ${input.title}`);
+        } catch (err) {
+            console.error(`[Notification] Email delivery failed:`, err);
+            // Never re-throw — email failure must not crash the calling operation
+        }
+    },
+
+    webhook: async (input) => {
+        // Webhook: POST notification payload to a configured endpoint
+        const webhookUrl = process.env['NOTIFICATION_WEBHOOK_URL'];
+        if (!webhookUrl) {
+            console.warn(`[Notification] Webhook delivery requested but NOTIFICATION_WEBHOOK_URL not set — skipping.`);
+            return;
+        }
+
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event: 'notification.created',
+                    user_id: input.user_id,
+                    type: input.type,
+                    title: input.title,
+                    body: input.body,
+                    data: input.data,
+                    timestamp: new Date().toISOString(),
+                }),
+            });
+            if (!response.ok) {
+                console.error(`[Notification] Webhook returned ${response.status}: ${response.statusText}`);
+            } else {
+                console.log(`[Notification] Webhook dispatched for ${input.type} → ${input.user_id}`);
+            }
+        } catch (err) {
+            console.error(`[Notification] Webhook delivery failed:`, err);
+        }
+    },
+};
+
+/**
+ * Dispatches a notification to the appropriate delivery provider.
+ * Falls back to in_app logging if the requested channel has no provider.
+ */
+async function dispatchToProvider(channel: string, input: CreateNotificationInput): Promise<void> {
+    const provider = DISPATCH_PROVIDERS[channel];
+    if (provider) {
+        await provider(input);
+    } else if (DISPATCH_PROVIDERS['in_app']) {
+        await DISPATCH_PROVIDERS['in_app'](input);
+    }
 }
 
 // ─── Query Notifications ────────────────────────────────────────────────────

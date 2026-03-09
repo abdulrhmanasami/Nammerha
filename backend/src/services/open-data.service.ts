@@ -7,7 +7,7 @@
 // - Custom spatialVerification extension (GPS proofs + 360 captures)
 // - Public project card generator (بطاقة مشروع)
 // - Platform statistics for open data portal
-// - PDF/Excel report export stubs (lightweight server-side)
+// - PDF/Excel report export via report-export.service.ts (pdfkit + exceljs)
 // ============================================================================
 import pool from '../config/database';
 

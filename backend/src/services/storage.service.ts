@@ -112,7 +112,7 @@ function getClient(): S3Client {
 
 // ─── Validation ─────────────────────────────────────────────────────────────
 
-function validateUploadRequest(dto: UploadUrlRequest): void {
+export function validateUploadRequest(dto: UploadUrlRequest): void {
     // Category validation
     if (!ALLOWED_MIME_TYPES[dto.category]) {
         throw new Error(`Invalid upload category: ${dto.category}`);
@@ -158,7 +158,7 @@ function validateUploadRequest(dto: UploadUrlRequest): void {
  *   - No collisions (timestamp + hash)
  *   - Original filename preserved for human readability
  */
-function generateFileKey(dto: UploadUrlRequest): string {
+export function generateFileKey(dto: UploadUrlRequest): string {
     const timestamp = Date.now();
     const hash = crypto.randomBytes(8).toString('hex');
     const sanitizedName = dto.filename

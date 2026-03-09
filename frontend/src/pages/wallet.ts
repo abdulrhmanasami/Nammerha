@@ -1,0 +1,144 @@
+import '../styles/main.css';
+import { donations, payments } from '../api';
+
+// ============================================================================
+// Nammerha — Wallet Page Engine
+// P0-004 FIX: Dynamic escrow balance and transaction history
+// ============================================================================
+
+interface EscrowSummary {
+    total_locked: number;
+    total_released: number;
+    locked_count: number;
+    released_count: number;
+}
+
+interface Transaction {
+    transaction_id: string;
+    project_title?: string;
+    material_name?: string;
+    amount: number;
+    status: 'locked' | 'released' | 'refunded' | 'completed' | 'pending';
+    created_at: string;
+}
+
+// ─── Format Currency ────────────────────────────────────────────────────────
+function formatCents(cents: number): string {
+    return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 });
+}
+
+// ─── Format Date ────────────────────────────────────────────────────────────
+function formatDate(dateStr: string): string {
+    try {
+        const lang = document.documentElement.lang || 'en';
+        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
+        return new Date(dateStr).toLocaleDateString(locale, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    } catch {
+        return dateStr;
+    }
+}
+
+// ─── Load Escrow Summary ────────────────────────────────────────────────────
+async function loadEscrowSummary(): Promise<void> {
+    const balanceEl = document.getElementById('escrow-balance');
+    const lockedEl = document.getElementById('locked-count');
+    const releasedEl = document.getElementById('released-count');
+
+    try {
+        const response = await donations.getMyEscrow();
+        if (response.success && response.data) {
+            const summary = response.data as EscrowSummary;
+            if (balanceEl) { balanceEl.textContent = formatCents(summary.total_locked); }
+            if (lockedEl) { lockedEl.textContent = `${summary.locked_count} locked`; }
+            if (releasedEl) { releasedEl.textContent = `${summary.released_count} released`; }
+        }
+    } catch {
+        if (balanceEl) { balanceEl.textContent = '$0.00'; }
+    }
+}
+
+// ─── Render Transaction Item ────────────────────────────────────────────────
+function renderTransaction(tx: Transaction): string {
+    const statusConfig: Record<string, { icon: string; color: string; label: string }> = {
+        locked: { icon: 'lock-simple', color: 'text-trust-blue', label: 'Locked' },
+        released: { icon: 'check-circle', color: 'text-smoky-jade', label: 'Released' },
+        refunded: { icon: 'arrow-counter-clockwise', color: 'text-warm-earth', label: 'Refunded' },
+        completed: { icon: 'check-circle', color: 'text-smoky-jade', label: 'Completed' },
+        pending: { icon: 'clock', color: 'text-warning-yellow', label: 'Pending' },
+    };
+
+    const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: 'Pending' };
+
+    return `
+    <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up">
+      <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
+        <i class="ph ph-${config.icon} ${config.color}" aria-hidden="true"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold truncate">${tx.material_name ?? tx.project_title ?? 'Transaction'}</p>
+        <p class="text-[10px] text-slate-400">${formatDate(tx.created_at)}</p>
+      </div>
+      <div class="text-right shrink-0">
+        <p class="text-sm font-bold ${config.color}">${formatCents(tx.amount)}</p>
+        <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">${config.label}</p>
+      </div>
+    </div>`;
+}
+
+// ─── Load Transaction History ───────────────────────────────────────────────
+async function loadTransactions(): Promise<void> {
+    const listEl = document.getElementById('transaction-list');
+    if (!listEl) { return; }
+
+    try {
+        const [donRes, payRes] = await Promise.allSettled([
+            donations.getMyHistory(),
+            payments.getMyPayments(),
+        ]);
+
+        const transactions: Transaction[] = [];
+
+        if (donRes.status === 'fulfilled' && donRes.value.success && Array.isArray(donRes.value.data)) {
+            transactions.push(...(donRes.value.data as Transaction[]));
+        }
+        if (payRes.status === 'fulfilled' && payRes.value.success && Array.isArray(payRes.value.data)) {
+            transactions.push(...(payRes.value.data as Transaction[]));
+        }
+
+        if (transactions.length === 0) {
+            listEl.innerHTML = `
+            <div class="text-center py-12">
+              <i class="ph ph-wallet text-slate-300" style="font-size:48px" aria-hidden="true"></i>
+              <p class="text-slate-500 font-bold mt-4">No transactions yet</p>
+              <p class="text-slate-400 text-sm mt-1">Your donation and payment history will appear here</p>
+            </div>`;
+            return;
+        }
+
+        // Sort by date descending
+        transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        listEl.innerHTML = transactions.map(renderTransaction).join('');
+    } catch {
+        listEl.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-slate-500 text-sm">Unable to load transactions. Please sign in.</p>
+          <a href="auth.html" class="btn-primary !w-auto !px-6 mt-4 inline-flex">Sign In</a>
+        </div>`;
+    }
+}
+
+// ─── Initialize ─────────────────────────────────────────────────────────────
+function init(): void {
+    loadEscrowSummary();
+    loadTransactions();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

@@ -1,0 +1,13 @@
+# Nammerha Backend — Defense-in-depth .gitignore
+# Reinforces root-level rules for the backend directory
+
+# Environment files (all variants)
+.env
+.env.*
+
+# Build artifacts
+dist/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/

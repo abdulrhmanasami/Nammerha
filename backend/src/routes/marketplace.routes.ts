@@ -3,6 +3,7 @@
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import * as crowdfundingService from '../services/crowdfunding.service';
+import * as supplierService from '../services/supplier.service';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -43,6 +44,24 @@ router.get('/suppliers', async (_req: Request, res: Response) => {
     try {
         const suppliers = await crowdfundingService.getVerifiedSuppliers();
         const response: ApiResponse = { success: true, data: suppliers };
+        res.json(response);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ success: false, error: message } as ApiResponse);
+    }
+});
+
+// ─── GET /api/marketplace/suppliers/:id/catalog — Supplier's Material Catalog ─
+// Per strategic study §7.2: engineers browse supplier catalogs when building BOQ.
+// Public endpoint: no auth required for browsing.
+router.get('/suppliers/:id/catalog', async (req: Request, res: Response) => {
+    try {
+        const category = req.query['category'] as string | undefined;
+        const catalog = await supplierService.getSupplierCatalog(
+            String(req.params['id']),
+            category,
+        );
+        const response: ApiResponse = { success: true, data: catalog };
         res.json(response);
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';

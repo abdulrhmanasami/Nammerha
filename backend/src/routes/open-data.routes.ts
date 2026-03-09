@@ -6,6 +6,7 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as openData from '../services/open-data.service';
+import { exportProjectsPDF, exportProjectsExcel } from '../services/report-export.service';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -109,29 +110,13 @@ router.get(
     requireRole('admin', 'auditor', 'engineer', 'homeowner'),
     async (req: Request, res: Response) => {
         try {
-            // Build comprehensive project data for PDF
-            const card = await openData.buildProjectCard(String(req.params.id));
-            const ocds = await openData.buildOCDSRelease(String(req.params.id));
-
-            // For MVP, return structured JSON that frontend renders as PDF.
-            // Server-side PDF generation (pdfkit) can be added when dependency approved.
-            const response: ApiResponse = {
-                success: true,
-                data: {
-                    format: 'json-for-pdf',
-                    project: card,
-                    ocds_release: ocds.releases[0],
-                    generated_at: new Date().toISOString(),
-                    report_type: 'evidence_report',
-                    note: 'Convert to PDF client-side using jsPDF or request server PDF when pdfkit is installed',
-                },
-                message: 'Evidence report data generated',
-            };
-            res.json(response);
+            await exportProjectsPDF(res, String(req.params.id));
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
             const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            if (!res.headersSent) {
+                res.status(status).json({ success: false, error: message } as ApiResponse);
+            }
         }
     }
 );
@@ -144,27 +129,13 @@ router.get(
     requireRole('admin', 'auditor', 'engineer', 'homeowner'),
     async (req: Request, res: Response) => {
         try {
-            // Build comprehensive project data for Excel
-            const card = await openData.buildProjectCard(String(req.params.id));
-
-            // For MVP, return structured JSON that frontend renders as XLSX.
-            // Server-side XLSX (exceljs) can be added when dependency approved.
-            const response: ApiResponse = {
-                success: true,
-                data: {
-                    format: 'json-for-xlsx',
-                    project: card,
-                    generated_at: new Date().toISOString(),
-                    report_type: 'data_export',
-                    note: 'Convert to XLSX client-side using SheetJS or request server XLSX when exceljs is installed',
-                },
-                message: 'Data export generated',
-            };
-            res.json(response);
+            await exportProjectsExcel(res, String(req.params.id));
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
             const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            if (!res.headersSent) {
+                res.status(status).json({ success: false, error: message } as ApiResponse);
+            }
         }
     }
 );

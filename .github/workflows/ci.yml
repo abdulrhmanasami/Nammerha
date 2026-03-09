@@ -1,0 +1,105 @@
+# ============================================================================
+# Nammerha — CI Pipeline (Lint → Typecheck → Test → Build)
+# Runs on every push and PR to main branch
+# ============================================================================
+
+name: CI Pipeline
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    # ── Backend CI ─────────────────────────────────────────────────────────────
+    backend:
+        name: Backend (Lint → Type → Test → Build)
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "npm"
+                  cache-dependency-path: backend/package-lock.json
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: Lint
+              run: npx eslint src/ --max-warnings 0 --no-error-on-unmatched-pattern
+              continue-on-error: true # Report but don't block — fix progressively
+
+            - name: TypeScript Typecheck
+              run: npx tsc --noEmit
+
+            - name: Unit & Integration Tests
+              run: npx vitest run --reporter=verbose
+
+            - name: Build
+              run: npx tsc --project tsconfig.json
+
+    # ── Frontend CI ────────────────────────────────────────────────────────────
+    frontend:
+        name: Frontend (Validate HTML)
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: frontend
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Validate HTML Structure
+              run: |
+                  echo "Checking for unclosed tags and basic HTML validation..."
+                  for file in *.html; do
+                    if [ -f "$file" ]; then
+                      # Check for DOCTYPE
+                      if ! head -5 "$file" | grep -qi "doctype"; then
+                        echo "⚠️  Missing DOCTYPE: $file"
+                      fi
+                      # Check for data-i18n coverage
+                      HARDCODED=$(grep -cP '>[A-Z][a-z]{3,}<' "$file" 2>/dev/null || true)
+                      echo "✓ $file — potential untranslated strings: $HARDCODED"
+                    fi
+                  done
+
+    # ── Security Audit ─────────────────────────────────────────────────────────
+    security:
+        name: Dependency Security Audit
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "npm"
+                  cache-dependency-path: backend/package-lock.json
+
+            - name: Install Dependencies
+              run: npm ci
+
+            - name: npm Audit (Production)
+              run: npm audit --production --audit-level=high
+              continue-on-error: true # Report but don't block

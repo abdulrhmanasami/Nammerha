@@ -1,6 +1,6 @@
 // ============================================================================
-// Nammerha — Payment Gateway Service (Visa + Fatora Stubs)
-// MVP Phase: Integration stubs with webhook handling
+// Nammerha — Payment Gateway Service (Visa Click-to-Pay + Fatora REST)
+// Production-ready: real gateway API calls with dev-mode fallback
 // ============================================================================
 
 import crypto from 'crypto';
@@ -19,6 +19,9 @@ export interface PaymentInitiation {
     gateway: PaymentGateway;
     return_url?: string;
     metadata?: Record<string, string>;
+    // NMR-AUD-007: Real donor details for gateway APIs (Fatora requires email)
+    donor_name?: string;
+    donor_email?: string;
 }
 
 interface PaymentRecord {
@@ -273,7 +276,9 @@ async function initiateFatoraPayment(
     reference: string,
     amount: number,
     currency: string,
-    returnUrl?: string
+    returnUrl?: string,
+    donorName?: string,
+    donorEmail?: string,
 ): Promise<GatewayResponse> {
     // Development fallback: simulate when credentials are absent
     if (!FATORA_CONFIG) {
@@ -305,7 +310,12 @@ async function initiateFatoraPayment(
                 amount: (amount / 100).toFixed(2), // Convert cents → decimal for API
                 currency,
                 order_id: reference,
-                client: { name: 'Nammerha Donor', email: '' },
+                // NMR-AUD-007 FIX: Pass real donor details instead of hardcoded empty strings.
+                // Fatora API requires a valid client email for payment notifications.
+                client: {
+                    name: donorName ?? 'Nammerha Donor',
+                    email: donorEmail ?? 'donor@nammerha.com',
+                },
                 success_url: returnUrl ?? `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/complete`,
                 failure_url: `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/failed`,
                 webhook_url: FATORA_CONFIG.webhookUrl,
@@ -352,66 +362,86 @@ export const paymentService = {
     /**
      * Initiate a payment for a donation item.
      * Creates a payment record and calls the appropriate gateway (Visa/Fatora).
-     * Gateway credentials are validated at module load time.
+     *
+     * NMR-AUD-009 FIX: Decoupled architecture to prevent DB pool starvation.
+     * Previous implementation held a DB connection open for the entire duration
+     * of the external gateway HTTP call (up to 30s timeout). Under concurrent
+     * load (10 donors), this exhausted the pool (max 10 connections) and blocked
+     * ALL database operations platform-wide.
+     *
+     * New flow:
+     *   1. INSERT payment record as 'pending' (fast, ~5ms, no transaction needed)
+     *   2. Call gateway OUTSIDE any DB transaction (up to 30s, no DB lock held)
+     *   3. UPDATE record with gateway response (fast, ~5ms)
+     *
+     * If the gateway call fails network-side (step 2), the record stays 'pending'
+     * and can be retried or expired by a background cleanup job.
      */
     async initiate(data: PaymentInitiation): Promise<PaymentRecord & { payment_url?: string }> {
         const reference = generatePaymentRef();
 
-        return await transaction(async (client) => {
-            // 1. Insert payment record
-            const insertResult = await client.query<PaymentRecord>(
-                `INSERT INTO payment_transactions (
-          reference, donor_id, item_id, project_id,
-          amount, currency, gateway, status,
-          metadata, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, NOW())
-        RETURNING *`,
-                [
-                    reference,
-                    data.donor_id,
-                    data.item_id,
-                    data.project_id,
-                    data.amount,
-                    data.currency || 'USD',
-                    data.gateway,
-                    JSON.stringify(data.metadata || {}),
-                ]
+        // ── Step 1: Create payment record (fast DB operation, no transaction) ──
+        const insertResult = await pool.query<PaymentRecord>(
+            `INSERT INTO payment_transactions (
+                reference, donor_id, item_id, project_id,
+                amount, currency, gateway, status,
+                metadata, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, NOW())
+            RETURNING *`,
+            [
+                reference,
+                data.donor_id,
+                data.item_id,
+                data.project_id,
+                data.amount,
+                data.currency || 'USD',
+                data.gateway,
+                JSON.stringify(data.metadata || {}),
+            ]
+        );
+
+        const payment = insertResult.rows[0];
+        if (!payment) {
+            throw new Error('Failed to create payment record');
+        }
+
+        // ── Step 2: Call gateway OUTSIDE transaction (prevents pool starvation) ──
+        let gatewayResponse: GatewayResponse;
+        if (data.gateway === 'visa') {
+            gatewayResponse = await initiateVisaPayment(
+                reference, data.amount, data.currency || 'USD', data.return_url
             );
+        } else {
+            gatewayResponse = await initiateFatoraPayment(
+                reference, data.amount, data.currency || 'USD', data.return_url,
+                data.donor_name, data.donor_email,
+            );
+        }
 
-            const payment = insertResult.rows[0];
-            if (!payment) {
-                throw new Error('Failed to create payment record');
-            }
+        // ── Step 3: Update record with gateway response (fast DB operation) ──
+        if (gatewayResponse.success && gatewayResponse.gateway_tx_id) {
+            await pool.query(
+                `UPDATE payment_transactions
+                 SET gateway_tx_id = $1, status = 'processing'
+                 WHERE reference = $2`,
+                [gatewayResponse.gateway_tx_id, reference]
+            );
+        } else if (!gatewayResponse.success) {
+            // Mark as failed if the gateway explicitly rejected it
+            await pool.query(
+                `UPDATE payment_transactions
+                 SET status = 'failed', updated_at = NOW()
+                 WHERE reference = $1`,
+                [reference]
+            );
+        }
 
-            // 2. Call gateway
-            let gatewayResponse: GatewayResponse;
-            if (data.gateway === 'visa') {
-                gatewayResponse = await initiateVisaPayment(
-                    reference, data.amount, data.currency || 'USD', data.return_url
-                );
-            } else {
-                gatewayResponse = await initiateFatoraPayment(
-                    reference, data.amount, data.currency || 'USD', data.return_url
-                );
-            }
-
-            // 3. Update payment with gateway response
-            if (gatewayResponse.success && gatewayResponse.gateway_tx_id) {
-                await client.query(
-                    `UPDATE payment_transactions
-           SET gateway_tx_id = $1, status = 'processing'
-           WHERE reference = $2`,
-                    [gatewayResponse.gateway_tx_id, reference]
-                );
-            }
-
-            return {
-                ...payment,
-                status: 'processing' as PaymentStatus,
-                gateway_tx_id: gatewayResponse.gateway_tx_id ?? null,
-                payment_url: gatewayResponse.payment_url,
-            };
-        });
+        return {
+            ...payment,
+            status: gatewayResponse.success ? 'processing' as PaymentStatus : 'failed' as PaymentStatus,
+            gateway_tx_id: gatewayResponse.gateway_tx_id ?? null,
+            payment_url: gatewayResponse.payment_url,
+        };
     },
 
     /**
@@ -430,14 +460,24 @@ export const paymentService = {
      * same transaction client — NOT via createDonation() which opens its own
      * independent transaction and would cause a connection pool deadlock.
      */
-    async handleWebhook(data: {
+    handleWebhook(data: {
         reference: string;
         gateway: PaymentGateway;
         status: 'success' | 'failure';
         gateway_tx_id: string;
     }): Promise<{ processed: boolean; payment_id?: string }> {
 
-        return await transaction(async (client) => {
+        return transaction(async (client) => {
+            // GAP-3 FIX: Acquire a PostgreSQL advisory lock scoped to this transaction.
+            // Uses hashtext(reference) to generate a deterministic int for the lock key.
+            // This prevents concurrent processing of the same webhook under retry storms
+            // (Fatora/Visa may fire the same webhook 3-5 times in rapid succession).
+            // The lock is automatically released when the transaction commits/rolls back.
+            await client.query(
+                `SELECT pg_advisory_xact_lock(hashtext($1))`,
+                [data.reference]
+            );
+
             // 1. Look up payment
             const paymentResult = await client.query<PaymentRecord>(
                 `SELECT * FROM payment_transactions WHERE reference = $1 AND gateway = $2`,
@@ -544,8 +584,32 @@ export const paymentService = {
                         }
                     }
                 } catch (escrowErr) {
-                    // Log but do not fail the webhook — payment status is already recorded
-                    console.error(`[Payment] Escrow recording failed for ${data.reference}:`, escrowErr);
+                    // P1-005 FIX: Record failure in audit_trail instead of silently swallowing.
+                    // Payment succeeded but escrow entry creation failed — this is a critical
+                    // financial discrepancy that operations MUST remediate.
+                    const errorMessage = escrowErr instanceof Error ? escrowErr.message : String(escrowErr);
+                    console.error(`[Payment] CRITICAL: Escrow recording failed for ${data.reference}:`, escrowErr);
+                    try {
+                        await client.query(
+                            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                             VALUES ('payment_escrow_failure', 'payment_transactions', $1, NULL, $2)`,
+                            [
+                                payment.payment_id,
+                                JSON.stringify({
+                                    reference: data.reference,
+                                    donor_id: payment.donor_id,
+                                    item_id: payment.item_id,
+                                    project_id: payment.project_id,
+                                    amount: payment.amount,
+                                    error: errorMessage,
+                                    requires_manual_reconciliation: true,
+                                }),
+                            ]
+                        );
+                    } catch (auditErr) {
+                        // Last-resort: if even the audit trail fails, log to stderr
+                        console.error(`[Payment] FATAL: Audit trail write also failed for ${data.reference}:`, auditErr);
+                    }
                 }
             }
 

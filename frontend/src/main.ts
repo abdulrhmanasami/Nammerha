@@ -1,9 +1,120 @@
 // ============================================================================
 // Nammerha — Dashboard (index) entry point
+// P1-001 FIX: Dynamic data loading from API — no more hardcoded demo data
 // ============================================================================
 import './styles/main.css';
 import { renderCartBadge } from './components/cart';
+import { marketplace, openData } from './api';
 
+// ─── Project Card Template ──────────────────────────────────────────────────
+interface ProjectCard {
+    project_id: string;
+    title: string;
+    damage_type: string;
+    funded_amount: number;
+    total_budget: number;
+    funded_percentage: number;
+    cover_image_url?: string;
+    ocds_id?: string;
+    compliance_level?: string;
+}
+
+function formatCents(cents: number): string {
+    return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 });
+}
+
+function buildProjectCard(project: ProjectCard, index: number): string {
+    const pct = Math.min(100, project.funded_percentage ?? 0);
+    const damageIcons: Record<string, string> = {
+        structural: 'house-line',
+        plumbing: 'drop',
+        electrical: 'lightning',
+        mixed: 'wrench',
+    };
+    const icon = damageIcons[project.damage_type] ?? 'building-office';
+    const delay = `animation-delay:${index * 0.1}s`;
+
+    return `
+    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up" style="${delay}">
+      <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
+        ${project.cover_image_url
+            ? `<img src="${project.cover_image_url}" class="absolute inset-0 w-full h-full object-cover" alt="${project.title}" loading="lazy" />`
+            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60" style="font-size:48px" aria-hidden="true"></i></div>`}
+        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+          <i class="ph ph-seal-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+          <span class="text-[10px] font-bold text-smoky-jade">VERIFIED OCDS</span>
+        </div>
+      </div>
+      <div class="p-4 flex flex-col flex-1">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-bold text-base leading-tight">${project.title}</h3>
+          <div class="relative size-10 shrink-0">
+            <svg class="size-full -rotate-90" viewBox="0 0 36 36">
+              <circle class="stroke-slate-200" cx="18" cy="18" r="16" fill="none" stroke-width="3"></circle>
+              <circle class="stroke-smoky-jade" cx="18" cy="18" r="16" fill="none" stroke-width="3"
+                stroke-dasharray="${pct} ${100 - pct}" stroke-linecap="round"></circle>
+            </svg>
+            <span class="absolute inset-0 flex items-center justify-center text-[9px] font-extrabold text-smoky-jade">${Math.round(pct)}%</span>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100">
+          <div>
+            <p class="text-[10px] text-slate-400 font-bold uppercase">Funded</p>
+            <p class="text-sm font-bold text-trust-blue">${formatCents(project.funded_amount)}</p>
+          </div>
+          <a href="project-details.html?project=${project.project_id}" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">
+            <span data-i18n="fund_now">Fund Now</span>
+            <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── Load Projects from API ─────────────────────────────────────────────────
+async function loadFeaturedProjects(): Promise<void> {
+    const carousel = document.getElementById('projects-carousel');
+    if (!carousel) { return; }
+
+    try {
+        const response = await marketplace.getProjects({ sort_by: 'funded_percentage', limit: 6 });
+        if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+            carousel.innerHTML = (response.data as ProjectCard[])
+                .map((p, i) => buildProjectCard(p, i))
+                .join('');
+        }
+        // If API returns empty or fails, keep the static HTML fallback
+    } catch {
+        // Graceful degradation: keep hardcoded cards visible
+    }
+}
+
+// ─── Load Stats from API ────────────────────────────────────────────────────
+async function loadStats(): Promise<void> {
+    const impactEl = document.getElementById('total-impact-value');
+    const trendEl = document.getElementById('impact-trend');
+
+    try {
+        const response = await openData.getStats();
+        if (response.success && response.data) {
+            const stats = response.data as {
+                total_funded: number;
+                trend_percent?: number;
+            };
+            if (impactEl) {
+                impactEl.textContent = formatCents(stats.total_funded);
+            }
+            if (trendEl && stats.trend_percent !== undefined) {
+                const sign = stats.trend_percent >= 0 ? '+' : '';
+                trendEl.textContent = `${sign}${stats.trend_percent.toFixed(1)}%`;
+            }
+        }
+    } catch {
+        // Graceful degradation: keep hardcoded values
+    }
+}
+
+// ─── Initialize ─────────────────────────────────────────────────────────────
 function initDashboard(): void {
     // Render cart badge count in navbar
     const cartBadge = document.getElementById('nav-cart-badge');
@@ -13,6 +124,10 @@ function initDashboard(): void {
     window.addEventListener('cart:updated', () => {
         renderCartBadge(cartBadge);
     });
+
+    // P1-001: Load dynamic data from API
+    loadFeaturedProjects();
+    loadStats();
 }
 
 // Initialize when DOM is ready

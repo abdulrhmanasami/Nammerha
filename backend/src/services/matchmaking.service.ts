@@ -73,7 +73,7 @@ const SCORE_WEIGHTS = {
 } as const;
 
 // P2-005 FIX: Shared scoring factor calculator — single source of truth
-interface EngineerMetrics {
+export interface EngineerMetrics {
     completed_projects_count: number;
     avg_response_hours: number | null;
     bid_win_rate: number | null;
@@ -81,7 +81,7 @@ interface EngineerMetrics {
     guild_membership_id: string | null;
 }
 
-interface ScoringFactors {
+export interface ScoringFactors {
     projectsFactor: number;
     responseFactor: number;
     winFactor: number;
@@ -89,7 +89,7 @@ interface ScoringFactors {
     compositeScore: number;
 }
 
-function calculateScoringFactors(eng: EngineerMetrics): ScoringFactors {
+export function calculateScoringFactors(eng: EngineerMetrics): ScoringFactors {
     // Factor 1: Completed projects (0–100, logarithmic scale, cap at 50 projects)
     const projectsFactor = Math.min(
         100,
@@ -176,6 +176,14 @@ export async function searchEngineers(dto: SearchEngineersDTO): Promise<Engineer
         `u.role = 'engineer'`,
         `u.is_active = TRUE`,
         `u.kyc_verification_status = 'verified'`,
+        // GAP-1 FIX: CSBP/OFAC compliance gate — exclude sanctioned engineers.
+        // Engineers with auto_blocked=true OR confirmed SDN match must NEVER
+        // appear in matchmaking results. Required by FATF Rec 8 and OFAC GL-25.
+        `NOT EXISTS (
+            SELECT 1 FROM sanctions_screening_results ssr
+            WHERE ssr.screened_user_id = u.user_id
+              AND (ssr.auto_blocked = true OR ssr.status = 'confirmed_match')
+        )`,
     ];
     const params: unknown[] = [];
     let paramIdx = 1;
@@ -302,6 +310,12 @@ export async function matchProjectToEngineers(
           AND u.gps_last_known IS NOT NULL
           AND (u.specialty = $2 OR u.specialty = 'mixed')
           AND ST_DWithin(u.gps_last_known, p.gps_location, u.service_radius_km * 1000)
+          -- GAP-1 FIX: CSBP/OFAC compliance gate — exclude sanctioned engineers.
+          AND NOT EXISTS (
+              SELECT 1 FROM sanctions_screening_results ssr
+              WHERE ssr.screened_user_id = u.user_id
+                AND (ssr.auto_blocked = true OR ssr.status = 'confirmed_match')
+          )
         ORDER BY u.dynamic_score DESC, ST_Distance(u.gps_last_known, p.gps_location) ASC
         LIMIT 3
     `;
@@ -344,18 +358,20 @@ export async function submitBid(
 
         // Get current engineer score
         const scoreRes = await client.query(
-            `SELECT dynamic_score FROM users WHERE user_id = $1 AND role = 'engineer'`,
+            `SELECT dynamic_score, role FROM users WHERE user_id = $1 AND role IN ('engineer', 'contractor')`,
             [engineerId]
         );
 
         if (scoreRes.rows.length === 0) {
-            throw new Error('Only engineers can submit bids');
+            throw new Error('Only engineers or contractors can submit bids');
         }
+
+        const userRole = scoreRes.rows[0].role;
 
         // MED-009: Prevent duplicate bids on the same project (checked within transaction)
         const existingBid = await client.query(
             `SELECT bid_id FROM contractor_bids
-             WHERE engineer_id = $1 AND project_id = $2 AND status IN ('pending', 'accepted')`,
+             WHERE (engineer_id = $1 OR contractor_id = $1) AND project_id = $2 AND status IN ('pending', 'accepted')`,
             [engineerId, projectId]
         );
         if (existingBid.rows.length > 0) {
@@ -364,12 +380,13 @@ export async function submitBid(
 
         const { rows } = await client.query(
             `INSERT INTO contractor_bids
-                (engineer_id, project_id, proposed_cost, estimated_days,
+                (engineer_id, contractor_id, project_id, proposed_cost, estimated_days,
                  cover_letter, methodology, engineer_score_snapshot)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`,
             [
-                engineerId,
+                userRole === 'engineer' ? engineerId : null,
+                userRole === 'contractor' ? engineerId : null,
                 projectId,
                 dto.proposed_cost,
                 dto.estimated_days,
@@ -386,7 +403,7 @@ export async function submitBid(
                     (SELECT ROUND(
                         COUNT(*) FILTER (WHERE status = 'accepted')::DECIMAL /
                         NULLIF(COUNT(*), 0) * 100,
-                    2) FROM contractor_bids WHERE engineer_id = $1),
+                    2) FROM contractor_bids WHERE engineer_id = $1 OR contractor_id = $1),
                 0)
             WHERE user_id = $1`,
             [engineerId]
@@ -413,7 +430,7 @@ export async function getProjectBids(projectId: string): Promise<ContractorBid[]
 }
 
 /**
- * Accept a bid — assigns engineer to project.
+ * Accept a bid — assigns contractor to project for execution.
  */
 export async function acceptBid(
     bidId: string,
@@ -432,6 +449,7 @@ export async function acceptBid(
         }
 
         const foundBid = bidRes.rows[0];
+        const bidderId = foundBid.contractor_id || foundBid.engineer_id;
 
         // Accept this bid
         await client.query(
@@ -446,12 +464,21 @@ export async function acceptBid(
             [foundBid.project_id, bidId]
         );
 
-        // Assign engineer to project
-        await client.query(
-            `UPDATE projects SET assigned_engineer_id = $1, status = 'pending_assessment'
-             WHERE project_id = $2`,
-            [foundBid.engineer_id, foundBid.project_id]
-        );
+        // Assign contractor to project (or engineer for backward compat)
+        if (foundBid.contractor_id) {
+            await client.query(
+                `UPDATE projects SET assigned_contractor_id = $1, status = 'pending_execution'
+                 WHERE project_id = $2`,
+                [foundBid.contractor_id, foundBid.project_id]
+            );
+        } else {
+            // Legacy path: engineer submitted bid directly
+            await client.query(
+                `UPDATE projects SET assigned_engineer_id = $1, status = 'pending_assessment'
+                 WHERE project_id = $2`,
+                [foundBid.engineer_id, foundBid.project_id]
+            );
+        }
 
         // Recalculate bid_win_rate
         await client.query(
@@ -460,20 +487,21 @@ export async function acceptBid(
                     (SELECT ROUND(
                         COUNT(*) FILTER (WHERE status = 'accepted')::DECIMAL /
                         NULLIF(COUNT(*), 0) * 100,
-                    2) FROM contractor_bids WHERE engineer_id = $1),
+                    2) FROM contractor_bids WHERE engineer_id = $1 OR contractor_id = $1),
                 0)
             WHERE user_id = $1`,
-            [foundBid.engineer_id]
+            [bidderId]
         );
 
         return { ...foundBid, status: 'accepted' as BidStatus };
     });
 
     // Recalculate score outside transaction (non-critical)
+    const bidderId = bid.contractor_id || bid.engineer_id;
     try {
-        await recalculateScore(bid.engineer_id);
+        await recalculateScore(bidderId);
     } catch (err) {
-        console.error(`[Matchmaking] Score recalculation failed for ${bid.engineer_id}:`, err);
+        console.error(`[Matchmaking] Score recalculation failed for ${bidderId}:`, err);
     }
 
     return bid;

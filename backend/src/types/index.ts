@@ -6,7 +6,7 @@
 
 // ─── ENUM Types ─────────────────────────────────────────────────────────────
 
-export type UserRole = 'donor' | 'homeowner' | 'engineer' | 'supplier' | 'admin' | 'auditor';
+export type UserRole = 'donor' | 'homeowner' | 'engineer' | 'contractor' | 'tradesperson' | 'supplier' | 'admin' | 'auditor';
 
 export type KycStatus = 'pending' | 'submitted' | 'verified' | 'rejected' | 'suspended';
 
@@ -83,6 +83,7 @@ export interface Project {
     project_id: string;
     homeowner_id: string;
     assigned_engineer_id: string | null;
+    assigned_contractor_id: string | null;
     title: string;
     description: string | null;
     cover_image_url: string | null;
@@ -273,6 +274,7 @@ export interface CreateDonationDTO {
         amount: number;             // in cents
     }>;
     payment_method: 'visa' | 'bank_transfer' | 'crypto';
+    return_url?: string;            // Gateway redirect after checkout
 }
 
 export interface SubmitSpatialProofDTO {
@@ -294,6 +296,157 @@ export interface ReleaseEscrowDTO {
 export interface FlagDiscrepancyDTO {
     proof_id: string;
     reason: string;
+}
+
+// ─── Supplier Catalog ───────────────────────────────────────────────────────
+
+export interface SupplierCatalogItem {
+    catalog_id: string;
+    supplier_id: string;
+    material_name: string;
+    material_category: string;
+    description: string | null;
+    image_url: string | null;
+    unit: string;
+    unit_price_guide: number;     // BIGINT cents — guide price only
+    min_order_qty: number;
+    lead_time_days: number;
+    is_active: boolean;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface AddCatalogItemDTO {
+    material_name: string;
+    material_category: string;
+    description?: string;
+    image_url?: string;
+    unit: string;
+    unit_price_guide: number;     // in cents
+    min_order_qty?: number;
+    lead_time_days?: number;
+}
+
+export interface UpdateCatalogItemDTO {
+    material_name?: string;
+    material_category?: string;
+    description?: string;
+    image_url?: string;
+    unit?: string;
+    unit_price_guide?: number;
+    min_order_qty?: number;
+    lead_time_days?: number;
+}
+
+export interface SupplierStats {
+    pending_orders: number;       // POs with status 'generated' or 'sent_to_supplier'
+    won_contracts: number;        // POs with status 'acknowledged' or beyond
+    in_transit: number;           // POs with status 'shipped'
+    total_revenue: number;        // Sum of delivered PO amounts (cents)
+    catalog_items: number;        // Active catalog items
+    total_orders: number;         // All POs ever received
+}
+
+// ─── Engineer Dashboard ─────────────────────────────────────────────────────
+
+export interface EngineerStats {
+    assigned_projects: number;    // Projects with assigned_engineer_id = me
+    proofs_pending: number;       // Spatial proofs in 'submitted' status
+    proofs_verified: number;      // Spatial proofs in 'verified' status
+    escrow_released: number;      // Total escrow released (cents)
+    active_bids: number;          // Bids in 'pending' status
+    total_bids: number;           // All bids ever submitted
+}
+
+export interface EngineerProject {
+    project_id: string;
+    title: string;
+    region: string;
+    status: string;
+    phase: string;                // Construction phase
+    progress: number;             // Funded percentage 0-100
+    boq_count: number;            // Number of BOQ items
+    next_proof_due: string | null;
+    created_at: Date;
+}
+
+// ─── Contractor Dashboard ───────────────────────────────────────────────────
+
+export interface ContractorStats {
+    active_projects: number;      // Projects with assigned_contractor_id = me
+    pending_bids: number;         // Bids in 'pending' status
+    won_bids: number;             // Bids in 'accepted' status
+    total_escrow_received: number; // Escrow released (cents)
+    total_bids: number;           // All bids ever submitted
+    bid_win_rate: number;         // Accepted / total (0-1)
+}
+
+export interface AvailableProject {
+    project_id: string;
+    title: string;
+    region: string;
+    damage_type: string;
+    total_estimated_cost: number;
+    boq_count: number;
+    published_at: Date;
+    bid_count: number;            // How many contractors already bid
+    distance_km: number | null;   // Distance from contractor
+}
+
+export interface ContractorPayment {
+    transaction_id: string;
+    project_id: string;
+    project_title: string;
+    amount: number;               // cents
+    transaction_type: string;
+    created_at: Date;
+}
+
+// ─── Tradesperson Dashboard ─────────────────────────────────────────────────
+
+export type TradeType = 'tiling' | 'painting' | 'plumbing' | 'electrical' | 'carpentry' | 'welding' | 'masonry' | 'plastering' | 'hvac' | 'general';
+export type AvailabilityStatus = 'available' | 'busy' | 'offline';
+export type RequestUrgency = 'routine' | 'urgent' | 'emergency';
+
+export interface TradespersonStats {
+    active_jobs: number;            // In-progress requests + assignments
+    completed_jobs: number;
+    pending_requests: number;       // Open requests matching my trade
+    active_assignments: number;     // Active contractor assignments
+    total_earnings: number;         // cents
+    average_rating: number | null;  // 1.00-5.00
+}
+
+export interface ServiceRequest {
+    request_id: string;
+    homeowner_id: string;
+    homeowner_name: string;
+    trade_needed: TradeType;
+    title: string;
+    description: string | null;
+    address_text: string | null;
+    urgency: RequestUrgency;
+    budget_min: number | null;
+    budget_max: number | null;
+    status: string;
+    created_at: Date;
+}
+
+export interface TradeAssignment {
+    assignment_id: string;
+    contractor_id: string;
+    contractor_name: string;
+    project_id: string;
+    project_title: string;
+    trade_required: TradeType;
+    scope_description: string;
+    agreed_rate: number;           // cents
+    rate_type: string;
+    estimated_days: number | null;
+    status: string;
+    start_date: string | null;
+    end_date: string | null;
+    created_at: Date;
 }
 
 // ─── Auth Context ───────────────────────────────────────────────────────────

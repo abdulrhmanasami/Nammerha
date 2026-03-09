@@ -27,7 +27,8 @@ reports/
 # ZAP reports
 reports/zap-*.html
 
-# Security — Private keys and certificates
+# Security — Private keys, certificates, and secrets vault
+.secrets/
 *.pem
 *.key
 *.crt
@@ -35,3 +36,6 @@ reports/zap-*.html
 *.p12
 *.pfx
 database/tls/
+
+# Environment — catch all variants (.env.staging, .env.test, etc.)
+.env.*

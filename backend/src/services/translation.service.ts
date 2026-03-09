@@ -189,8 +189,8 @@ export async function translateText(dto: TranslateDTO): Promise<TranslationResul
     const glossaryTerms = await getGlossaryForPair(source_lang, target_lang, context);
 
     // 5. Call translation provider
-    //    NOTE: In production, this calls DeepL/OpenAI APIs via env vars.
-    //    For now, returns glossary-enhanced placeholder.
+    //    Calls DeepL (NMT) or OpenAI (LLM) based on content type routing.
+    //    Falls back to [UNTRANSLATED] prefix when API keys are absent.
     let translatedText = await callProvider(provider, text, source_lang, target_lang, glossaryTerms);
 
     // 6. Enforce glossary post-processing

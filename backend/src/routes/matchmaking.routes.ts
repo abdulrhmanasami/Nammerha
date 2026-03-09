@@ -74,7 +74,7 @@ router.get(
 // BuildZoom pattern: engineer submits competitive bid
 router.post(
     '/project/:id/bid',
-    requireRole('engineer'),
+    requireRole('engineer', 'contractor'),
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as matchmaking.SubmitBidDTO;
@@ -150,7 +150,7 @@ router.post(
             const response: ApiResponse = {
                 success: true,
                 data: bid,
-                message: 'Bid accepted — engineer assigned to project',
+                message: 'Bid accepted — contractor assigned to project',
             };
             res.json(response);
         } catch (error) {

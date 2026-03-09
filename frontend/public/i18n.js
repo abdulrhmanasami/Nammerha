@@ -229,6 +229,64 @@
 
         // ═══ TRUST / ESCROW BANNER ═══
         'Funds held in escrow': { ar: 'أموال محفوظة في حساب ضمان', de: 'Gelder auf Treuhandkonto', fr: 'Fonds en entiercement', tr: 'Emanette tutulan fonlar' },
+
+        // ═══ WALLET PAGE ═══
+        'wallet_title': { ar: 'المحفظة', de: 'Geldbörse', fr: 'Portefeuille', tr: 'Cüzdan' },
+        'total_escrow': { ar: 'إجمالي رصيد الضمان', de: 'Gesamtes Treuhandguthaben', fr: 'Solde total d\'entiercement', tr: 'Toplam Emanet Bakiyesi' },
+        'locked_items': { ar: '0 محجوز', de: '0 gesperrt', fr: '0 verrouillé', tr: '0 kilitli' },
+        'released_items': { ar: '0 محرر', de: '0 freigegeben', fr: '0 libéré', tr: '0 serbest' },
+        'donate': { ar: 'تبرّع', de: 'Spenden', fr: 'Donner', tr: 'Bağışla' },
+        'receipts': { ar: 'إيصالات', de: 'Quittungen', fr: 'Reçus', tr: 'Makbuzlar' },
+        'impact': { ar: 'الأثر', de: 'Wirkung', fr: 'Impact', tr: 'Etki' },
+        'recent_transactions': { ar: 'المعاملات الأخيرة', de: 'Letzte Transaktionen', fr: 'Transactions récentes', tr: 'Son İşlemler' },
+
+        // ═══ PROFILE PAGE ═══
+        'profile_title': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'language_setting': { ar: 'اللغة', de: 'Sprache', fr: 'Langue', tr: 'Dil' },
+        'notification_setting': { ar: 'الإشعارات', de: 'Benachrichtigungen', fr: 'Notifications', tr: 'Bildirimler' },
+        'notification_desc': { ar: 'تنبيهات الدفع والبريد', de: 'Push- und E-Mail-Benachrichtigungen', fr: 'Alertes push et e-mail', tr: 'Push ve e-posta uyarıları' },
+        'kyc_verification': { ar: 'التحقق من الهوية', de: 'Identitätsverifizierung', fr: 'Vérification d\'identité', tr: 'Kimlik Doğrulaması' },
+        'kyc_detail': { ar: 'تحقق من هويتك', de: 'Identität verifizieren', fr: 'Vérifier votre identité', tr: 'Kimliğinizi doğrulayın' },
+        'kyc_pending': { ar: 'بانتظار التحقق', de: 'Ausstehende Verifizierung', fr: 'Vérification en attente', tr: 'Doğrulama Bekliyor' },
+        'about_nammerha': { ar: 'حول نمّرها', de: 'Über Nammerha', fr: 'À propos de Nammerha', tr: 'Nammerha Hakkında' },
+        'ocds_certified': { ar: 'معتمد OCDS', de: 'OCDS-zertifiziert', fr: 'Certifié OCDS', tr: 'OCDS Sertifikalı' },
+        'sign_out': { ar: 'تسجيل خروج', de: 'Abmelden', fr: 'Déconnexion', tr: 'Çıkış Yap' },
+
+        // ═══ AUTH PAGE ═══
+        'auth_welcome': { ar: 'أهلاً بك في نمّرها', de: 'Willkommen bei Nammerha', fr: 'Bienvenue sur Nammerha', tr: 'Nammerha\'ya Hoş Geldiniz' },
+        'auth_subtitle': { ar: 'منصة إعادة الإعمار الشفافة', de: 'Transparente Wiederaufbauplattform', fr: 'Plateforme de reconstruction transparente', tr: 'Şeffaf Yeniden Yapım Platformu' },
+        'tab_login': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Connexion', tr: 'Giriş' },
+        'tab_register': { ar: 'إنشاء حساب', de: 'Registrieren', fr: 'Inscription', tr: 'Kayıt Ol' },
+        'email_label': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
+        'password_label': { ar: 'كلمة المرور', de: 'Passwort', fr: 'Mot de passe', tr: 'Şifre' },
+        'full_name_label': { ar: 'الاسم الكامل', de: 'Vollständiger Name', fr: 'Nom complet', tr: 'Ad Soyad' },
+        'select_role': { ar: 'اختر دورك', de: 'Rolle auswählen', fr: 'Choisir votre rôle', tr: 'Rolünüzü seçin' },
+        'role_homeowner': { ar: 'صاحب منزل', de: 'Hauseigentümer', fr: 'Propriétaire', tr: 'Ev Sahibi' },
+        'role_donor': { ar: 'مانح', de: 'Spender', fr: 'Donateur', tr: 'Bağışçı' },
+        'role_engineer': { ar: 'مهندس', de: 'Ingenieur', fr: 'Ingénieur', tr: 'Mühendis' },
+        'role_supplier': { ar: 'مورد', de: 'Lieferant', fr: 'Fournisseur', tr: 'Fournisseur' },
+        'btn_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
+        'btn_create_account': { ar: 'إنشاء حساب', de: 'Konto erstellen', fr: 'Créer un compte', tr: 'Hesap Oluştur' },
+
+        // ═══ LEGAL PAGES ═══
+        'terms_title': { ar: 'شروط الخدمة', de: 'Nutzungsbedingungen', fr: 'Conditions d\'utilisation', tr: 'Kullanım Şartları' },
+        'privacy_title': { ar: 'سياسة الخصوصية', de: 'Datenschutzrichtlinie', fr: 'Politique de confidentialité', tr: 'Gizlilik Politikası' },
+        'tos_acceptance': { ar: '1. قبول الشروط', de: '1. Annahme der Bedingungen', fr: '1. Acceptation des conditions', tr: '1. Şartların Kabulü' },
+        'tos_accounts': { ar: '2. حسابات المستخدمين', de: '2. Benutzerkonten', fr: '2. Comptes utilisateurs', tr: '2. Kullanıcı Hesapları' },
+        'tos_escrow': { ar: '3. الضمان والمدفوعات', de: '3. Treuhand & Zahlungen', fr: '3. Entiercement & Paiements', tr: '3. Emanet & Ödemeler' },
+        'tos_data': { ar: '4. البيانات والخصوصية', de: '4. Daten & Datenschutz', fr: '4. Données & Confidentialité', tr: '4. Veri & Gizlilik' },
+        'tos_ocds': { ar: '5. التوافق مع OCDS', de: '5. OCDS-Konformität', fr: '5. Conformité OCDS', tr: '5. OCDS Uyumu' },
+        'tos_liability': { ar: '6. حدود المسؤولية', de: '6. Haftungsbeschränkung', fr: '6. Limitation de responsabilité', tr: '6. Sorumluluk Sınırlaması' },
+        'tos_governing': { ar: '7. القانون الحاكم', de: '7. Geltendes Recht', fr: '7. Droit applicable', tr: '7. Geçerli Hukuk' },
+        'pp_intro': { ar: '1. مقدمة', de: '1. Einleitung', fr: '1. Introduction', tr: '1. Giriş' },
+        'pp_collection': { ar: '2. المعلومات التي نجمعها', de: '2. Erfasste Informationen', fr: '2. Informations collectées', tr: '2. Topladığımız Bilgiler' },
+        'pp_use': { ar: '3. كيف نستخدم بياناتك', de: '3. Verwendung Ihrer Daten', fr: '3. Utilisation de vos données', tr: '3. Verilerinizi Nasıl Kullanırız' },
+        'pp_security': { ar: '4. أمن البيانات', de: '4. Datensicherheit', fr: '4. Sécurité des données', tr: '4. Veri Güvenliği' },
+        'pp_retention': { ar: '5. الاحتفاظ بالبيانات', de: '5. Datenaufbewahrung', fr: '5. Conservation des données', tr: '5. Veri Saklama' },
+        'pp_rights': { ar: '6. حقوقك', de: '6. Ihre Rechte', fr: '6. Vos droits', tr: '6. Haklarınız' },
+
+        // ═══ FUND NOW BUTTON ═══
+        'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
     };
 
     // ─── State ────────────────────────────────────────────────────────────

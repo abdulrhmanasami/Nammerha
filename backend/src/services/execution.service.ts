@@ -44,7 +44,7 @@ export async function submitSpatialProof(
             [dto.project_id]
         );
         const project = projectResult.rows[0];
-        if (!project) throw new Error(`Project ${dto.project_id} not found`);
+        if (!project) { throw new Error(`Project ${dto.project_id} not found`); }
         if (project.assigned_engineer_id !== engineerId) {
             throw new Error('You are not assigned to this project');
         }
@@ -135,7 +135,7 @@ export async function submitSpatialProof(
         );
 
         const proof = proofResult.rows[0];
-        if (!proof) throw new Error('Failed to create spatial proof');
+        if (!proof) { throw new Error('Failed to create spatial proof'); }
         return proof;
     });
 }
@@ -176,15 +176,16 @@ export async function updatePOStatus(
     newStatus: 'sent_to_supplier' | 'acknowledged' | 'shipped' | 'delivered',
     actorId: string
 ): Promise<PurchaseOrder> {
-    const timestampField: Record<string, string> = {
+    const validFields: Record<string, string> = {
         sent_to_supplier: 'sent_at',
         acknowledged: 'acknowledged_at',
         shipped: 'shipped_at',
         delivered: 'delivered_at',
     };
 
-    const field = timestampField[newStatus];
-    if (!field) { throw new Error(`Invalid PO status: ${newStatus}`); }
+    // Validate status is a known value before using as SQL column name
+    if (!(newStatus in validFields)) { throw new Error(`Invalid PO status: ${newStatus}`); }
+    const field = validFields[newStatus];
 
     const result = await query<PurchaseOrder>(
         `UPDATE purchase_orders SET status = $1, ${field} = NOW() WHERE po_id = $2 RETURNING *`,
@@ -195,8 +196,9 @@ export async function updatePOStatus(
     if (!po) { throw new Error(`Purchase order ${poId} not found`); }
 
     // P3-002 FIX: Log the actor who changed the PO status for audit trail
+    // P0-002 FIX: Column name is `new_values` (JSONB), not `details` — matches 001_core_schema.sql
     await query(
-        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, details)
+        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
          VALUES ($1, 'purchase_order', $2, $3, $4)`,
         [`po_status_${newStatus}`, poId, actorId, JSON.stringify({
             new_status: newStatus,
