@@ -594,10 +594,12 @@
     }
 
     // ─── Language Selector Widget ─────────────────────────────────────────
+    // NOTE: Widget is injected INTO the navbar (not fixed-position overlay)
+    // to prevent overlap with user avatar and cart icon.
     function createSelector() {
         var wrap = document.createElement('div');
         wrap.id = 'nm-lang-widget';
-        wrap.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+        wrap.style.cssText = 'position:relative;z-index:10;font-family:"Plus Jakarta Sans",sans-serif;flex-shrink:0;';
 
         var btn = document.createElement('button');
         btn.id = 'nm-lang-btn';
@@ -707,18 +709,15 @@
     }
 
     // ─── RTL Direction Fix for Widget ─────────────────────────────────────
+    // Since the widget is now inside the navbar (flex container), RTL
+    // direction is handled automatically by the parent's flex direction.
+    // We only need to flip the dropdown anchor side.
     function updateWidgetPosition() {
-        var widget = document.getElementById('nm-lang-widget');
-        if (!widget) return;
-        var isRTL = document.documentElement.getAttribute('dir') === 'rtl';
-        widget.style.right = isRTL ? 'auto' : '12px';
-        widget.style.left = isRTL ? '12px' : 'auto';
-
         var dd = document.getElementById('nm-lang-dd');
-        if (dd) {
-            dd.style.right = isRTL ? 'auto' : '0';
-            dd.style.left = isRTL ? '0' : 'auto';
-        }
+        if (!dd) return;
+        var isRTL = document.documentElement.getAttribute('dir') === 'rtl';
+        dd.style.right = isRTL ? 'auto' : '0';
+        dd.style.left = isRTL ? '0' : 'auto';
     }
 
     // ─── Suggestion Banner (Doc §4.3) ──────────────────────────────────
@@ -800,7 +799,23 @@
         var old = document.getElementById('nm-lang-widget');
         if (old) old.remove();
 
-        document.body.appendChild(createSelector());
+        // Inject widget INTO the navbar (between cart and user avatar)
+        // This prevents the fixed-position overlap issue.
+        var widget = createSelector();
+        var navbar = document.querySelector('nav.glass-nav');
+        if (navbar) {
+            // Find the user avatar (last child = avatar div with rounded-full)
+            var userAvatar = navbar.querySelector('.rounded-full.border-2');
+            if (userAvatar) {
+                navbar.insertBefore(widget, userAvatar);
+            } else {
+                navbar.appendChild(widget);
+            }
+        } else {
+            // Fallback: append to body with fixed positioning
+            widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+            document.body.appendChild(widget);
+        }
 
         // Apply stored/detected language
         applyLanguage(currentLang);
