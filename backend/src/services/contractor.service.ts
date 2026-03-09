@@ -83,13 +83,13 @@ export async function getMyStats(contractorId: string): Promise<ContractorStats>
         [contractorId],
     );
 
-    // 3. Escrow received
+    // 3. Escrow received — CRT-NEW-003 FIX: escrow_transactions → escrow_ledger (actual table)
     const escrowRes = await query<{ total_escrow: string }>(
-        `SELECT COALESCE(SUM(et.amount), 0) AS total_escrow
-         FROM escrow_transactions et
-         JOIN projects p ON p.project_id = et.project_id
+        `SELECT COALESCE(SUM(el.amount_locked), 0) AS total_escrow
+         FROM escrow_ledger el
+         JOIN projects p ON p.project_id = el.project_id
          WHERE p.assigned_contractor_id = $1
-         AND et.transaction_type = 'release'`,
+         AND el.payment_status = 'released'`,
         [contractorId],
     );
 
@@ -258,18 +258,19 @@ export async function getMyPayments(
     contractorId: string,
     limit = 50,
 ): Promise<ContractorPayment[]> {
+    // CRT-NEW-003 FIX: escrow_transactions → escrow_ledger (actual table)
     const result = await query<ContractorPayment>(
         `SELECT
-            et.transaction_id,
-            et.project_id,
+            el.transaction_id,
+            el.project_id,
             p.title AS project_title,
-            et.amount,
-            et.transaction_type,
-            et.created_at
-         FROM escrow_transactions et
-         JOIN projects p ON p.project_id = et.project_id
+            el.amount_locked AS amount,
+            el.payment_status AS transaction_type,
+            el.locked_at AS created_at
+         FROM escrow_ledger el
+         JOIN projects p ON p.project_id = el.project_id
          WHERE p.assigned_contractor_id = $1
-         ORDER BY et.created_at DESC
+         ORDER BY el.locked_at DESC
          LIMIT $2`,
         [contractorId, limit],
     );

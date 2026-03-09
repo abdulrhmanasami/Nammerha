@@ -17,6 +17,68 @@ const GPS_THRESHOLD = parseInt(
     10
 );
 
+const IS_PRODUCTION = process.env['NODE_ENV'] === 'production';
+
+// ─── P1-AUT-001 FIX: SSRF Protection ───────────────────────────────────────
+// Prevents Server-Side Request Forgery by validating image URLs before fetching.
+// Blocks private/internal IPs, Docker service hostnames, and non-HTTPS in production.
+
+const BLOCKED_HOSTNAMES = new Set([
+    'localhost', 'nammerha-db', 'nammerha-minio', 'nammerha-backend',
+    'nammerha-frontend', 'host.docker.internal', 'metadata.google.internal',
+]);
+
+/**
+ * Validates that a URL points to an external, public resource.
+ * Rejects private IP ranges, internal hostnames, and non-HTTPS in production.
+ * @throws {Error} if URL is unsafe
+ */
+function validateExternalUrl(urlStr: string): void {
+    let parsed: URL;
+    try {
+        parsed = new URL(urlStr);
+    } catch {
+        throw new Error('Invalid image URL format');
+    }
+
+    // Scheme check: only http/https allowed, require https in production
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('Image URL must use HTTP or HTTPS protocol');
+    }
+    if (IS_PRODUCTION && parsed.protocol !== 'https:') {
+        throw new Error('Image URL must use HTTPS in production');
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Block known internal Docker hostnames
+    if (BLOCKED_HOSTNAMES.has(hostname)) {
+        throw new Error('Image URL points to an internal service — access denied');
+    }
+
+    // Block private/reserved IPv4 ranges
+    // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16, 0.0.0.0
+    const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipv4Match) {
+        const [, a, b] = ipv4Match.map(Number) as [number, number, number, number, number];
+        if (
+            a === 10 ||
+            a === 127 ||
+            a === 0 ||
+            (a === 172 && b >= 16 && b <= 31) ||
+            (a === 192 && b === 168) ||
+            (a === 169 && b === 254)
+        ) {
+            throw new Error('Image URL points to a private/reserved IP range — access denied');
+        }
+    }
+
+    // Block IPv6 loopback and link-local
+    if (hostname === '::1' || hostname.startsWith('fe80') || hostname === '[::1]') {
+        throw new Error('Image URL points to a private IPv6 address — access denied');
+    }
+}
+
 // ─── Path 3.1: Submit Spatial Proof ─────────────────────────────────────────
 
 /**
@@ -79,10 +141,11 @@ export async function submitSpatialProof(
 
         // 4. Compute image hash (SHA-256) for tamper detection
         // P2-003 FIX: Download actual image binary and hash the raw bytes.
-        // This ensures any modification to the image content is detected,
-        // regardless of URL changes, CDN re-hosting, or query parameter variations.
+        // P1-AUT-001 FIX: Validate URL against SSRF before fetching.
         let imageHash: string;
         try {
+            validateExternalUrl(dto.image_url);
+
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 15_000); // 15s timeout
             const imageResponse = await fetch(dto.image_url, {

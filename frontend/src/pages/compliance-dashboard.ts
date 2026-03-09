@@ -46,8 +46,8 @@ async function loadKPIs(): Promise<void> {
         // Badge count
         const reviewCount = document.getElementById('review-count');
         if (reviewCount) { reviewCount.textContent = String(data['pending_reviews'] ?? 0); }
-    } catch {
-        // Graceful degradation
+    } catch (err) {
+        console.warn('[Compliance] KPI load failed, showing defaults:', err);
     }
 }
 
@@ -78,8 +78,8 @@ async function loadComplianceMetrics(): Promise<void> {
         if (spatialAccuracy) {
             spatialAccuracy.textContent = `${data['spatial_accuracy'] ?? 0}%`;
         }
-    } catch {
-        // Keep dashes on failure
+    } catch (err) {
+        console.warn('[Compliance] Metrics load failed, keeping dashes:', err);
     }
 }
 
@@ -133,8 +133,8 @@ async function loadEscrowReviewQueue(): Promise<void> {
         });
 
         applyI18n();
-    } catch {
-        // Keep skeleton on failure
+    } catch (err) {
+        console.error('[Compliance] Escrow review queue load failed:', err);
     }
 }
 
@@ -158,8 +158,8 @@ async function handleReviewAction(action: 'approve' | 'flag', reference: string)
             await loadEscrowReviewQueue();
             await loadKPIs();
         }
-    } catch {
-        // Silent failure — user can retry
+    } catch (err) {
+        console.error('[Compliance] Review action failed:', err);
     }
 }
 
@@ -189,7 +189,7 @@ function esc(str: string): string {
 }
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {

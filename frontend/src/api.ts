@@ -168,7 +168,14 @@ export const notifications = {
 
 // ─── Health Check ───────────────────────────────────────────────────────────
 export const health = {
-    check: () => fetch('/health').then(r => r.json()),
+    check: async () => {
+        try {
+            const res = await fetch('/health');
+            return await res.json();
+        } catch (err) {
+            return { status: 'unreachable', error: err instanceof Error ? err.message : 'Health check failed' };
+        }
+    },
 };
 
 // ─── P2-NEW-002 FIX: Complete API client coverage for all backend routes ────
@@ -179,7 +186,7 @@ export const auth = {
         email: string;
         password: string;
         full_name: string;
-        role: 'homeowner' | 'engineer' | 'donor' | 'supplier';
+        role: 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson';
     }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
     login: (data: { email: string; password: string }) =>
@@ -436,4 +443,106 @@ export const translation = {
 
     getSupportedLanguages: () =>
         request('/translation/languages'),
+};
+
+// ─── Tradesperson Portal (أصحاب المهن) ──────────────────────────────────────
+// P2-FE-004 FIX: Centralized typed wrappers for all tradesperson endpoints.
+// Mirrors backend routes from tradesperson.routes.ts exactly.
+
+interface TradespersonStats {
+    active_jobs: number;
+    completed_jobs: number;
+    pending_requests: number;
+    active_assignments: number;
+    total_earnings: number;
+    average_rating: number | null;
+}
+
+interface TradespersonProfile {
+    trade: string | null;
+    hourly_rate: number | null;
+    daily_rate: number | null;
+    availability: string;
+    years_experience: number | null;
+    completed_jobs_count: number;
+    average_rating: number | null;
+    dynamic_score: number;
+    full_name: string;
+}
+
+interface ServiceRequest {
+    request_id: string;
+    homeowner_name: string;
+    trade_needed: string;
+    title: string;
+    description: string | null;
+    address_text: string | null;
+    urgency: string;
+    budget_min: number | null;
+    budget_max: number | null;
+    created_at: string;
+}
+
+interface Assignment {
+    assignment_id: string;
+    contractor_name: string;
+    project_title: string;
+    trade_required: string;
+    scope_description: string;
+    agreed_rate: number;
+    rate_type: string;
+    estimated_days: number | null;
+    status: string;
+    created_at: string;
+}
+
+interface Earning {
+    source_type: string;
+    source_id: string;
+    title: string;
+    amount: number;
+    rate_type: string | null;
+    completed_at: string | null;
+}
+
+export const tradesperson = {
+    /** GET /api/tradesperson/profile — My trade profile */
+    getProfile: () =>
+        request<TradespersonProfile>('/tradesperson/profile'),
+
+    /** GET /api/tradesperson/stats — Dashboard KPIs */
+    getStats: () =>
+        request<TradespersonStats>('/tradesperson/stats'),
+
+    /** GET /api/tradesperson/requests — Available service requests (Thumbtack mode) */
+    getRequests: () =>
+        request<ServiceRequest[]>('/tradesperson/requests'),
+
+    /** POST /api/tradesperson/requests/:id/accept — Accept a direct request */
+    acceptRequest: (requestId: string) =>
+        request(`/tradesperson/requests/${requestId}/accept`, { method: 'POST' }),
+
+    /** GET /api/tradesperson/assignments — Contractor assignments (Subcontractor mode) */
+    getAssignments: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<Assignment[]>(`/tradesperson/assignments${qs}`);
+    },
+
+    /** POST /api/tradesperson/assignments/:id/respond — Accept or decline assignment */
+    respondToAssignment: (assignmentId: string, accept: boolean) =>
+        request(`/tradesperson/assignments/${assignmentId}/respond`, {
+            method: 'POST',
+            body: JSON.stringify({ accept }),
+        }),
+
+    /** GET /api/tradesperson/earnings — Payment history */
+    getEarnings: () =>
+        request<Earning[]>('/tradesperson/earnings'),
+
+    /** PATCH /api/tradesperson/availability — Toggle availability status */
+    updateAvailability: (status: 'available' | 'busy' | 'offline') =>
+        request('/tradesperson/availability', {
+            method: 'PATCH',
+            body: JSON.stringify({ status }),
+        }),
 };

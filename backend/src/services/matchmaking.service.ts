@@ -416,12 +416,14 @@ export async function submitBid(
 /**
  * Get all bids for a project (homeowner/admin view).
  */
+// P1-NEW-005 FIX: Previous JOIN only matched engineer_id, ignoring contractor bids.
+// Now uses COALESCE(contractor_id, engineer_id) to include both bid sources.
 export async function getProjectBids(projectId: string): Promise<ContractorBid[]> {
     const { rows } = await pool.query(
         `SELECT b.*, u.full_name AS engineer_name, u.dynamic_score AS current_score,
                 u.completed_projects_count, u.engineering_license_number
          FROM contractor_bids b
-         JOIN users u ON u.user_id = b.engineer_id
+         JOIN users u ON u.user_id = COALESCE(b.contractor_id, b.engineer_id)
          WHERE b.project_id = $1
          ORDER BY b.engineer_score_snapshot DESC, b.proposed_cost ASC`,
         [projectId]

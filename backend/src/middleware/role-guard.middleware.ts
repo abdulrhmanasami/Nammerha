@@ -21,9 +21,11 @@ export function requireRole(...allowedRoles: UserRole[]) {
         }
 
         if (!allowedRoles.includes(req.authUser.role)) {
+            // HGH-004 FIX: Log details server-side; never disclose roles to the client
+            console.warn(`[RBAC] Access denied: user ${req.authUser.user_id} (role: ${req.authUser.role}) → required: ${allowedRoles.join(', ')}`);
             res.status(403).json({
                 success: false,
-                error: `Access denied. Required roles: ${allowedRoles.join(', ')}. Your role: ${req.authUser.role}`,
+                error: 'Access denied. Insufficient permissions.',
             });
             return;
         }

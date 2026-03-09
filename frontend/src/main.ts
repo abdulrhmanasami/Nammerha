@@ -84,8 +84,8 @@ async function loadFeaturedProjects(): Promise<void> {
                 .join('');
         }
         // If API returns empty or fails, keep the static HTML fallback
-    } catch {
-        // Graceful degradation: keep hardcoded cards visible
+    } catch (err) {
+        console.warn('[Dashboard] Featured projects load failed, keeping static fallback:', err);
     }
 }
 
@@ -109,8 +109,8 @@ async function loadStats(): Promise<void> {
                 trendEl.textContent = `${sign}${stats.trend_percent.toFixed(1)}%`;
             }
         }
-    } catch {
-        // Graceful degradation: keep hardcoded values
+    } catch (err) {
+        console.warn('[Dashboard] Stats load failed, keeping default values:', err);
     }
 }
 

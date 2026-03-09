@@ -112,8 +112,8 @@ async function initCamera(): Promise<void> {
             if (cameraReady) { cameraReady.style.display = 'none'; }
             viewfinder.insertBefore(video, viewfinder.firstChild);
         }
-    } catch {
-        // Camera not available — keep placeholder
+    } catch (err) {
+        console.warn('[EngineerCamera] Camera initialization failed, keeping placeholder:', err);
     }
 }
 
@@ -373,5 +373,5 @@ function showToast(message: string): void {
 }
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }

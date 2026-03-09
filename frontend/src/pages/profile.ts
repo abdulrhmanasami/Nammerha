@@ -11,7 +11,8 @@ function parseJWT(token: string): Record<string, unknown> | null {
         const payload = token.split('.')[1];
         if (!payload) { return null; }
         return JSON.parse(atob(payload));
-    } catch {
+    } catch (err) {
+        console.warn('[Profile] JWT parse failed:', err);
         return null;
     }
 }

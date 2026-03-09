@@ -112,8 +112,8 @@ async function loadKPIs(): Promise<void> {
         if (bidCount) { bidCount.textContent = String(data['pending_orders'] ?? 0); }
         const notifCount = document.getElementById('notif-count');
         if (notifCount) { notifCount.textContent = String(data['pending_orders'] ?? 0); }
-    } catch {
-        // Graceful degradation — KPIs stay at "0"
+    } catch (err) {
+        console.warn('[Supplier] KPI load failed, showing defaults:', err);
     }
 }
 
@@ -167,8 +167,8 @@ async function loadOrders(): Promise<void> {
         });
 
         applyI18n();
-    } catch {
-        // Keep skeleton on failure
+    } catch (err) {
+        console.error('[Supplier] Orders load failed:', err);
     }
 }
 
@@ -224,8 +224,8 @@ async function loadCatalog(): Promise<void> {
                 await deactivateItem(id);
             });
         });
-    } catch {
-        // Keep placeholder on failure
+    } catch (err) {
+        console.error('[Supplier] Catalog load failed:', err);
     }
 }
 
@@ -250,7 +250,8 @@ async function updatePOStatus(poId: string, status: string): Promise<void> {
         showBanner('success', `Order status updated to "${status}"`);
         await loadOrders();
         await loadKPIs();
-    } catch {
+    } catch (err) {
+        console.error('[Supplier] PO status update failed:', err);
         showBanner('error', 'Network error. Please try again.');
     }
 }
@@ -303,7 +304,8 @@ function setupCatalogModal(): void {
             showBanner('success', 'Material added to your catalog');
             await loadCatalog();
             await loadKPIs();
-        } catch {
+        } catch (err) {
+            console.error('[Supplier] Catalog item add failed:', err);
             showBanner('error', 'Network error. Please try again.');
         }
     });
@@ -324,7 +326,8 @@ async function deactivateItem(catalogId: string): Promise<void> {
 
         showBanner('success', 'Material removed from catalog');
         await loadCatalog();
-    } catch {
+    } catch (err) {
+        console.error('[Supplier] Catalog item deactivation failed:', err);
         showBanner('error', 'Network error. Please try again.');
     }
 }
@@ -399,7 +402,7 @@ function esc(str: string): string {
 }
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {

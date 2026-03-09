@@ -3,7 +3,7 @@
 // Session management and role-based UI switching
 // ============================================================================
 
-export type UserRole = 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'admin' | 'auditor';
+export type UserRole = 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson' | 'admin' | 'auditor';
 
 export interface AuthUser {
     user_id: string;
@@ -27,7 +27,8 @@ export function getCurrentUser(): AuthUser | null {
         try {
             currentUser = JSON.parse(stored) as AuthUser;
             return currentUser;
-        } catch {
+        } catch (err) {
+            console.warn('[Auth] Failed to parse stored user, clearing:', err);
             localStorage.removeItem(STORAGE_KEY);
         }
     }
@@ -86,11 +87,39 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             email: 'sarah@example.com',
             kyc_verified: true,
         },
+        supplier: {
+            user_id: 'dev-supplier-001',
+            full_name: 'محمد التاجر',
+            role: 'supplier',
+            email: 'supplier@example.com',
+            kyc_verified: true,
+        },
+        contractor: {
+            user_id: 'dev-contractor-001',
+            full_name: 'عمر المقاول',
+            role: 'contractor',
+            email: 'contractor@example.com',
+            kyc_verified: true,
+        },
+        tradesperson: {
+            user_id: 'dev-tradesperson-001',
+            full_name: 'حسن الحرفي',
+            role: 'tradesperson',
+            email: 'tradesperson@example.com',
+            kyc_verified: true,
+        },
         admin: {
             user_id: 'dev-admin-001',
             full_name: 'مدير النظام',
             role: 'admin',
             email: 'admin@nammerha.org',
+            kyc_verified: true,
+        },
+        auditor: {
+            user_id: 'dev-auditor-001',
+            full_name: 'المدقق الرسمي',
+            role: 'auditor',
+            email: 'auditor@nammerha.org',
             kyc_verified: true,
         },
     }

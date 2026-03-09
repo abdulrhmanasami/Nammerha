@@ -8,7 +8,7 @@ import '../styles/main.css';
 const API = '/api/donor';
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 const headers = (): Record<string, string> => ({
@@ -126,7 +126,9 @@ async function loadStats(): Promise<void> {
         setText('kpi-score', `${s.impact_score}%`);
         setText('kpi-locked', `$${(s.escrow_locked / 100).toLocaleString()}`);
         setText('kpi-released', `$${(s.escrow_released / 100).toLocaleString()}`);
-    } catch { /* silent */ }
+    } catch (err) {
+        console.warn('[Donor] Stats load failed, showing defaults:', err);
+    }
 }
 
 // ─── Dashboard — Funded Projects ────────────────────────────────────────────
@@ -173,7 +175,8 @@ async function loadFundedProjects(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Donor] Funded projects load failed:', err);
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
     }
 }
@@ -221,7 +224,8 @@ async function loadMarketplace(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Donor] Marketplace load failed:', err);
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
     }
 }
@@ -252,7 +256,8 @@ async function loadDonations(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(d.locked_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Donor] Donations load failed:', err);
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load</td></tr>`;
     }
 }
@@ -294,7 +299,8 @@ async function loadImpact(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Donor] Impact data load failed:', err);
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
     }
 }
@@ -339,7 +345,8 @@ async function loadProofs(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Donor] Proofs load failed:', err);
         container.innerHTML = `<div class="col-span-full p-5 text-center text-red-400 text-sm">Failed to load</div>`;
     }
 }

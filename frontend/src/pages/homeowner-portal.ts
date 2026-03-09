@@ -8,7 +8,7 @@ import '../styles/main.css';
 const API = '/api/homeowner';
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 const headers = (): Record<string, string> => ({
@@ -126,7 +126,9 @@ async function loadStats(): Promise<void> {
         setText('kpi-escrow', `$${(s.total_invested / 100).toLocaleString()}`);
         setText('approval-count', String(s.pending_approvals));
         setText('sr-count', String(s.active_service_requests));
-    } catch { /* fail silently */ }
+    } catch (err) {
+        console.warn('[Homeowner] Stats load failed, showing defaults:', err);
+    }
 }
 
 // ─── Dashboard — Active Projects ────────────────────────────────────────────
@@ -170,7 +172,8 @@ async function loadDashboardProjects(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Homeowner] Dashboard projects load failed:', err);
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
     }
 }
@@ -206,7 +209,8 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Homeowner] Projects table load failed:', err);
         tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load</td></tr>`;
     }
 }
@@ -324,10 +328,13 @@ async function loadServiceRequests(): Promise<void> {
                     await fetch(`${API}/service-requests/${id}/cancel`, { method: 'POST', headers: headers() });
                     loadServiceRequests();
                     loadStats();
-                } catch { /* silent */ }
+                } catch (err) {
+                    console.error('[Homeowner] Service request cancellation failed:', err);
+                }
             });
         });
-    } catch {
+    } catch (err) {
+        console.error('[Homeowner] Service requests load failed:', err);
         tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load</td></tr>`;
     }
 }
@@ -392,10 +399,13 @@ async function loadApprovals(): Promise<void> {
                     });
                     loadApprovals();
                     loadStats();
-                } catch { /* silent */ }
+                } catch (err) {
+                    console.error('[Homeowner] Approval decision failed:', err);
+                }
             });
         });
-    } catch {
+    } catch (err) {
+        console.error('[Homeowner] Approvals load failed:', err);
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
     }
 }
@@ -439,7 +449,8 @@ async function loadEscrow(): Promise<void> {
                 </div>
             ` : ''}
         `;
-    } catch {
+    } catch (err) {
+        console.error('[Homeowner] Escrow data load failed:', err);
         container.innerHTML = `<p class="text-red-400 text-sm text-center">Failed to load escrow data</p>`;
     }
 }

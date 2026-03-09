@@ -79,8 +79,29 @@ export async function createDonation(
     donorId: string,
     dto: CreateDonationDTO
 ): Promise<EscrowLedger[]> {
-    return transaction(async (client) => {
-        const escrowEntries: EscrowLedger[] = [];
+    // ═══════════════════════════════════════════════════════════════════════
+    // P1-NEW-004 FIX: Decoupled gateway calls from database transaction.
+    //
+    // BEFORE: paymentService.initiate() (external HTTP, up to 30s) was called
+    // INSIDE the transaction, holding a pool connection hostage.
+    // With max=10 connections, 10 concurrent donations = total platform freeze.
+    //
+    // AFTER: 3-phase approach:
+    //   Phase 1 (TX): Validate & reserve — create escrow as 'pending'
+    //   Phase 2 (NO TX): Call gateway — DB connection returned to pool
+    //   Phase 3 (TX): Finalize — update escrow with gateway ref & 'locked'
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // Phase 1: Validate all items and create pending escrow entries
+    const pendingItems = await transaction(async (client) => {
+        const items: Array<{
+            item_id: string;
+            project_id: string;
+            actual_amount: number;
+            total_cost: number;
+            boq_status: string;
+            escrow_id: string;
+        }> = [];
 
         for (const fundItem of dto.items) {
             // 1. Fetch BOQ item with lock
@@ -93,9 +114,9 @@ export async function createDonation(
                 status: string;
             }>(
                 `SELECT item_id, project_id, unit_price, required_quantity, funded_amount, status
-         FROM itemized_boq
-         WHERE item_id = $1
-         FOR UPDATE`,
+                 FROM itemized_boq
+                 WHERE item_id = $1
+                 FOR UPDATE`,
                 [fundItem.item_id]
             );
 
@@ -104,24 +125,16 @@ export async function createDonation(
                 throw new Error(`BOQ item ${fundItem.item_id} not found`);
             }
 
-            // 2. Calculate remaining need (P2-001 FIX: integer-safe arithmetic)
-            // unit_price is BIGINT cents, required_quantity is DECIMAL(12,2).
-            // PostgreSQL returns these as strings. We use integer math to avoid
-            // IEEE 754 precision loss for values > 2^53.
-            //
-            // Strategy: Convert required_quantity to integer by multiplying by 100,
-            // multiply with unit_price, then divide by 100 — all in BigInt.
+            // 2. Calculate remaining need (P2-001: integer-safe arithmetic)
             const priceStr = String(boqItem.unit_price);
             const qtyStr = String(boqItem.required_quantity);
             const fundedStr = String(boqItem.funded_amount);
 
-            // Parse quantity as fixed-point integer (multiply by 100 to preserve 2 decimal places)
             const qtyParts = qtyStr.split('.');
             const qtyIntPart = qtyParts[0] ?? '0';
             const qtyDecPart = (qtyParts[1] ?? '').padEnd(2, '0').slice(0, 2);
             const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
 
-            // totalCost = (unit_price * qty_fixed) / 100  (integer result)
             const totalCost = Number((BigInt(priceStr) * qtyFixed) / 100n);
             const remainingNeed = totalCost - Number(BigInt(fundedStr));
 
@@ -135,72 +148,103 @@ export async function createDonation(
                 throw new Error(`Invalid donation amount for item ${fundItem.item_id}`);
             }
 
-            // 4. Process payment through real gateway (Visa/Fatora)
-            //    P0-1 FIX: Replaced placeholder fake ref with real paymentService.initiate()
-            //    The gateway returns a real transaction ID for reconciliation.
-            const gateway = dto.payment_method === 'visa' ? 'visa' as const : 'fatora' as const;
-            const paymentResult = await paymentService.initiate({
-                donor_id: donorId,
-                item_id: fundItem.item_id,
-                project_id: boqItem.project_id,
-                amount: actualAmount,
-                currency: 'USD',
-                gateway,
-                return_url: dto.return_url,
-            });
-
-            // Use the real gateway reference for escrow tracking
-            const gatewayRef = paymentResult.reference;
-
-            // 5. Create escrow entry (locked)
-            const escrowResult = await client.query<EscrowLedger>(
+            // 4. Create escrow entry as 'pending' (no gateway ref yet)
+            const escrowResult = await client.query<{ transaction_id: string }>(
                 `INSERT INTO escrow_ledger (
-          donor_id, item_id, project_id, amount_locked, currency,
-          payment_status, payment_method, payment_gateway_ref, locked_at
-        ) VALUES ($1, $2, $3, $4, 'USD', 'locked', $5, $6, NOW())
-        RETURNING *`,
-                [
-                    donorId,
-                    fundItem.item_id,
-                    boqItem.project_id,
-                    actualAmount,
-                    dto.payment_method,
-                    gatewayRef,
-                ]
+                    donor_id, item_id, project_id, amount_locked, currency,
+                    payment_status, payment_method, locked_at
+                 ) VALUES ($1, $2, $3, $4, 'USD', 'pending', $5, NOW())
+                 RETURNING transaction_id`,
+                [donorId, fundItem.item_id, boqItem.project_id, actualAmount, dto.payment_method]
             );
 
-            const entry = escrowResult.rows[0];
-            if (!entry) throw new Error('Failed to create escrow entry');
+            const escrowId = escrowResult.rows[0]?.transaction_id;
+            if (!escrowId) {
+                throw new Error('Failed to create escrow entry');
+            }
+
+            items.push({
+                item_id: fundItem.item_id,
+                project_id: boqItem.project_id,
+                actual_amount: actualAmount,
+                total_cost: totalCost,
+                boq_status: boqItem.status,
+                escrow_id: escrowId,
+            });
+        }
+
+        return items;
+    });
+
+    // Phase 2: Call payment gateway OUTSIDE transaction (DB connection freed)
+    const gateway = dto.payment_method === 'visa' ? 'visa' as const : 'fatora' as const;
+    const gatewayResults: Array<{ escrow_id: string; reference: string }> = [];
+
+    for (const item of pendingItems) {
+        const paymentResult = await paymentService.initiate({
+            donor_id: donorId,
+            item_id: item.item_id,
+            project_id: item.project_id,
+            amount: item.actual_amount,
+            currency: 'USD',
+            gateway,
+            return_url: dto.return_url,
+        });
+        gatewayResults.push({ escrow_id: item.escrow_id, reference: paymentResult.reference });
+    }
+
+    // Phase 3: Finalize — update escrow with gateway refs, check funding status
+    const finalEntries = await transaction(async (client) => {
+        const escrowEntries: EscrowLedger[] = [];
+
+        for (let i = 0; i < pendingItems.length; i++) {
+            const item = pendingItems[i];
+            const gatewayResult = gatewayResults[i];
+            if (!item || !gatewayResult) {
+                throw new Error('Phase 3 invariant: item/gateway result mismatch');
+            }
+            const gatewayRef = gatewayResult.reference;
+
+            // Update escrow with gateway reference and lock status
+            const updatedEscrow = await client.query<EscrowLedger>(
+                `UPDATE escrow_ledger
+                 SET payment_status = 'locked', payment_gateway_ref = $1
+                 WHERE transaction_id = $2
+                 RETURNING *`,
+                [gatewayRef, item.escrow_id]
+            );
+
+            const entry = updatedEscrow.rows[0];
+            if (!entry) {
+                throw new Error('Failed to update escrow entry');
+            }
             escrowEntries.push(entry);
 
-            // 6. Check if item is now fully funded
-            // (The trigger trg_update_boq_funded has already updated funded_amount)
+            // Check if item is now fully funded
             const updatedBoq = await client.query<{ funded_amount: number }>(
                 'SELECT funded_amount FROM itemized_boq WHERE item_id = $1',
-                [fundItem.item_id]
+                [item.item_id]
             );
             const newFunded = updatedBoq.rows[0]?.funded_amount ?? 0;
 
-            if (newFunded >= totalCost) {
-                // Mark as fully_funded
+            if (newFunded >= item.total_cost) {
                 await client.query(
                     "UPDATE itemized_boq SET status = 'fully_funded' WHERE item_id = $1",
-                    [fundItem.item_id]
+                    [item.item_id]
                 );
-
-                // Auto-generate Purchase Order (Path 3 trigger)
-                await autoGeneratePO(client, fundItem.item_id, boqItem.project_id);
-            } else if (newFunded > 0 && boqItem.status === 'verified') {
-                // Mark as partially_funded
+                await autoGeneratePO(client, item.item_id, item.project_id);
+            } else if (newFunded > 0 && item.boq_status === 'verified') {
                 await client.query(
                     "UPDATE itemized_boq SET status = 'partially_funded' WHERE item_id = $1",
-                    [fundItem.item_id]
+                    [item.item_id]
                 );
             }
         }
 
         return escrowEntries;
     });
+
+    return finalEntries;
 }
 
 // ─── Auto PO Generation (triggered from donation) ──────────────────────────

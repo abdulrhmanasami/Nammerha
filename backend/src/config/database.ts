@@ -70,9 +70,11 @@ pool.on('error', (err: Error) => {
     console.error('[DB] Unexpected pool error (pool will attempt recovery):', err.message);
 });
 
-pool.on('connect', () => {
-    console.log('[DB] New client connected to pool');
-});
+if (process.env['NODE_ENV'] === 'development') {
+    pool.on('connect', () => {
+        console.log('[DB] New client connected to pool');
+    });
+}
 
 // ─── Query Helpers ──────────────────────────────────────────────────────────
 

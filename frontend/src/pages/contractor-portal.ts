@@ -8,7 +8,7 @@ import '../styles/main.css';
 const API = '/api/contractor';
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 const headers = (): Record<string, string> => ({
@@ -130,7 +130,9 @@ async function loadStats(): Promise<void> {
         setText('kpi-won', String(s.won_bids));
         setText('kpi-escrow', `$${(s.total_escrow_received / 100).toLocaleString()}`);
         setText('pending-bids-count', String(s.pending_bids));
-    } catch { /* fail silently for KPIs */ }
+    } catch (err) {
+        console.warn('[Contractor] Stats load failed, showing defaults:', err);
+    }
 }
 
 // ─── My Projects ────────────────────────────────────────────────────────────
@@ -170,7 +172,8 @@ async function loadProjects(): Promise<void> {
                 </td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Contractor] Projects load failed:', err);
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load projects</td></tr>`;
     }
 }
@@ -220,7 +223,8 @@ async function loadMarketplace(): Promise<void> {
                 if (projectId) { openBidModal(projectId); }
             });
         });
-    } catch {
+    } catch (err) {
+        console.error('[Contractor] Marketplace load failed:', err);
         tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load marketplace</td></tr>`;
     }
 }
@@ -254,7 +258,8 @@ async function loadBids(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(b.submitted_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Contractor] Bids load failed:', err);
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load bids</td></tr>`;
     }
 }
@@ -287,7 +292,8 @@ async function loadPayments(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(p.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Contractor] Payments load failed:', err);
         tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load payments</td></tr>`;
     }
 }

@@ -35,7 +35,8 @@ class CartStoreImpl {
                     this.items = parsed as CartItem[];
                 }
             }
-        } catch {
+        } catch (err) {
+            console.warn('[Cart] Failed to hydrate cart from localStorage:', err);
             this.items = [];
         }
     }
@@ -44,8 +45,8 @@ class CartStoreImpl {
     private persist(): void {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
-        } catch {
-            // Storage quota exceeded — fail silently
+        } catch (err) {
+            console.warn('[Cart] Failed to persist cart to localStorage:', err);
         }
         window.dispatchEvent(new CustomEvent(CART_EVENT, { detail: { items: this.items } }));
     }

@@ -59,17 +59,17 @@ export async function getMyStats(engineerId: string): Promise<EngineerStats> {
     }>(
         `SELECT
             (SELECT COUNT(*) FROM projects WHERE assigned_engineer_id = $1) AS assigned_projects,
-            (SELECT COUNT(*) FROM spatial_proofs sp
+            (SELECT COUNT(*) FROM spatial_proof sp
              JOIN projects p ON p.project_id = sp.project_id
              WHERE p.assigned_engineer_id = $1 AND sp.verification_status = 'submitted'
             ) AS proofs_pending,
-            (SELECT COUNT(*) FROM spatial_proofs sp
+            (SELECT COUNT(*) FROM spatial_proof sp
              JOIN projects p ON p.project_id = sp.project_id
              WHERE p.assigned_engineer_id = $1 AND sp.verification_status = 'verified'
             ) AS proofs_verified,
-            (SELECT COALESCE(SUM(et.amount), 0) FROM escrow_transactions et
-             JOIN projects p ON p.project_id = et.project_id
-             WHERE p.assigned_engineer_id = $1 AND et.transaction_type = 'release'
+            (SELECT COALESCE(SUM(el.amount_locked), 0) FROM escrow_ledger el
+             JOIN projects p ON p.project_id = el.project_id
+             WHERE p.assigned_engineer_id = $1 AND el.payment_status = 'released'
             ) AS escrow_released`,
         [engineerId],
     );

@@ -229,6 +229,66 @@
 
         // ═══ TRUST / ESCROW BANNER ═══
         'Funds held in escrow': { ar: 'أموال محفوظة في حساب ضمان', de: 'Gelder auf Treuhandkonto', fr: 'Fonds en entiercement', tr: 'Emanette tutulan fonlar' },
+
+        // ═══ TRADESPERSON PORTAL (أصحاب المهن) ═══
+        // Trade names — 10 specializations
+        'trade_tiling': { ar: 'بلاط', de: 'Fliesenleger', fr: 'Carrelage', tr: 'Fayans' },
+        'trade_painting': { ar: 'دهان', de: 'Maler', fr: 'Peinture', tr: 'Boyacı' },
+        'trade_plumbing': { ar: 'سباكة', de: 'Klempner', fr: 'Plomberie', tr: 'Tesisatçı' },
+        'trade_electrical': { ar: 'كهرباء', de: 'Elektriker', fr: 'Électricité', tr: 'Elektrikçi' },
+        'trade_carpentry': { ar: 'نجارة', de: 'Schreiner', fr: 'Menuiserie', tr: 'Marangoz' },
+        'trade_welding': { ar: 'لحام', de: 'Schweißer', fr: 'Soudure', tr: 'Kaynakçı' },
+        'trade_masonry': { ar: 'بناء حجر', de: 'Maurer', fr: 'Maçonnerie', tr: 'Duvarcı' },
+        'trade_plastering': { ar: 'قصارة', de: 'Putzer', fr: 'Plâtrage', tr: 'Sıvacı' },
+        'trade_hvac': { ar: 'تكييف', de: 'Heizung/Klima', fr: 'Climatisation', tr: 'Klima' },
+        'trade_general': { ar: 'أعمال عامة', de: 'Allgemein', fr: 'Général', tr: 'Genel' },
+
+        // Dashboard — empty states & badges
+        'tp_no_active_work': { ar: 'لا يوجد عمل نشط', de: 'Keine aktive Arbeit', fr: 'Aucun travail actif', tr: 'Aktif iş yok' },
+        'tp_check_available': { ar: 'تحقق من الأعمال المتاحة للفرص الجديدة', de: 'Prüfen Sie verfügbare Aufträge', fr: 'Consultez les offres disponibles', tr: 'Yeni fırsatlar için müsait işleri kontrol edin' },
+        'tp_homeowner': { ar: 'صاحب المنزل', de: 'Eigentümer', fr: 'Propriétaire', tr: 'Ev sahibi' },
+        'tp_direct': { ar: 'مباشر', de: 'Direkt', fr: 'Direct', tr: 'Doğrudan' },
+        'tp_contractor': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
+
+        // Requests tab
+        'tp_no_requests': { ar: 'لا توجد طلبات مطابقة لتخصصك', de: 'Keine passenden Anfragen', fr: 'Aucune demande correspondante', tr: 'Mesleğinize uygun talep yok' },
+        'tp_new_requests_auto': { ar: 'ستظهر الطلبات الجديدة هنا تلقائياً', de: 'Neue Anfragen erscheinen automatisch', fr: 'Les nouvelles demandes apparaîtront ici', tr: 'Yeni talepler burada otomatik görünecek' },
+        'tp_no_description': { ar: 'بدون وصف', de: 'Keine Beschreibung', fr: 'Pas de description', tr: 'Açıklama yok' },
+        'tp_budget': { ar: 'الميزانية', de: 'Budget', fr: 'Budget', tr: 'Bütçe' },
+        'tp_accept_job': { ar: 'قبول العمل', de: 'Auftrag annehmen', fr: 'Accepter le travail', tr: 'İşi Kabul Et' },
+        'tp_accepting': { ar: 'جارٍ القبول...', de: 'Wird angenommen...', fr: 'Acceptation...', tr: 'Kabul ediliyor...' },
+        'tp_accepted': { ar: '✓ تم القبول', de: '✓ Angenommen', fr: '✓ Accepté', tr: '✓ Kabul Edildi' },
+
+        // Assignments tab
+        'tp_no_assignments': { ar: 'لا توجد مهام من المقاولين', de: 'Keine Auftragnehmer-Aufgaben', fr: 'Aucune mission de sous-traitance', tr: 'Müteahhit görevi yok' },
+        'Accept': { ar: 'قبول', de: 'Annehmen', fr: 'Accepter', tr: 'Kabul' },
+        'Decline': { ar: 'رفض', de: 'Ablehnen', fr: 'Refuser', tr: 'Reddet' },
+
+        // Earnings tab
+        'tp_no_earnings': { ar: 'لا توجد أرباح بعد', de: 'Noch keine Einnahmen', fr: 'Aucun revenu pour le moment', tr: 'Henüz kazanç yok' },
+        'tp_contractor_type': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
+        'tp_direct_type': { ar: 'مباشر', de: 'Direkt', fr: 'Direct', tr: 'Doğrudan' },
+
+        // Profile labels
+        'Name': { ar: 'الاسم', de: 'Name', fr: 'Nom', tr: 'İsim' },
+        'Primary Trade': { ar: 'التخصص الأساسي', de: 'Haupthandwerk', fr: 'Métier principal', tr: 'Ana Meslek' },
+        'Experience': { ar: 'الخبرة', de: 'Erfahrung', fr: 'Expérience', tr: 'Deneyim' },
+        'Hourly Rate': { ar: 'الأجر بالساعة', de: 'Stundensatz', fr: 'Taux horaire', tr: 'Saatlik Ücret' },
+        'Daily Rate': { ar: 'الأجر اليومي', de: 'Tagessatz', fr: 'Taux journalier', tr: 'Günlük Ücret' },
+        'Dynamic Score': { ar: 'النقاط الديناميكية', de: 'Dynamische Bewertung', fr: 'Score dynamique', tr: 'Dinamik Puan' },
+        'Jobs Completed': { ar: 'الأعمال المنجزة', de: 'Erledigte Aufträge', fr: 'Travaux terminés', tr: 'Tamamlanan İşler' },
+        'Rating': { ar: 'التقييم', de: 'Bewertung', fr: 'Évaluation', tr: 'Değerlendirme' },
+        'tp_no_ratings': { ar: 'لا توجد تقييمات بعد', de: 'Noch keine Bewertungen', fr: 'Pas encore d\'évaluations', tr: 'Henüz değerlendirme yok' },
+        'Availability': { ar: 'التوفر', de: 'Verfügbarkeit', fr: 'Disponibilité', tr: 'Uygunluk' },
+
+        // Time expressions
+        'tp_just_now': { ar: 'الآن', de: 'Gerade eben', fr: 'À l\'instant', tr: 'Az önce' },
+        'tp_hours_ago': { ar: 'ساعة مضت', de: 'Stunden her', fr: 'heures', tr: 'saat önce' },
+        'tp_days_ago': { ar: 'يوم مضى', de: 'Tage her', fr: 'jours', tr: 'gün önce' },
+
+        // Error states
+        'tp_failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
+        'tp_failed_profile': { ar: 'فشل في تحميل الملف الشخصي', de: 'Profil konnte nicht geladen werden', fr: 'Échec du chargement du profil', tr: 'Profil yüklenemedi' },
     };
 
     // ─── State ────────────────────────────────────────────────────────────

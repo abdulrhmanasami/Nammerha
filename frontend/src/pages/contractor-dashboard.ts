@@ -85,8 +85,8 @@ async function loadKPIs(): Promise<void> {
         if (projectCount) { projectCount.textContent = String(data['assigned_projects'] ?? 0); }
         const proofPending = document.getElementById('proof-pending');
         if (proofPending) { proofPending.textContent = String(data['proofs_pending'] ?? 0); }
-    } catch {
-        // Graceful degradation — KPIs stay at "0"
+    } catch (err) {
+        console.warn('[Engineer] KPI load failed, showing defaults:', err);
     }
 }
 
@@ -144,8 +144,8 @@ async function loadProjectTimeline(): Promise<void> {
         }).join('');
 
         applyI18n();
-    } catch {
-        // Keep skeleton on failure
+    } catch (err) {
+        console.error('[Engineer] Project timeline load failed:', err);
     }
 }
 
@@ -187,8 +187,8 @@ async function loadBids(): Promise<void> {
         `).join('');
 
         applyI18n();
-    } catch {
-        // Keep skeleton on failure
+    } catch (err) {
+        console.error('[Engineer] Bids load failed:', err);
     }
 }
 
@@ -242,7 +242,10 @@ function formatDate(iso: string): string {
         return new Date(iso).toLocaleDateString(undefined, {
             month: 'short', day: 'numeric', year: 'numeric',
         });
-    } catch { return '—'; }
+    } catch (err) {
+        console.warn('[Engineer] Date format failed:', err);
+        return '—';
+    }
 }
 
 function esc(str: string): string {
@@ -252,7 +255,7 @@ function esc(str: string): string {
 }
 
 function getToken(): string {
-    return localStorage.getItem('auth_token') ?? '';
+    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {

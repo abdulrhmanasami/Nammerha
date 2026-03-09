@@ -59,7 +59,8 @@ function formatDate(dateStr: string): string {
             hour: '2-digit',
             minute: '2-digit',
         });
-    } catch {
+    } catch (err) {
+        console.warn('[DonorProof] Date format failed:', err);
         return dateStr;
     }
 }
@@ -170,8 +171,8 @@ async function loadProof(): Promise<void> {
                     (d) => d.project_id === projectId
                 );
             }
-        } catch {
-            // Non-critical: continue without donation context
+        } catch (err) {
+            console.warn('[DonorProof] Donation history load failed, continuing without context:', err);
         }
 
         // Try to load spatial proof data

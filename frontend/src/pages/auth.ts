@@ -6,7 +6,7 @@ import { auth } from '../api';
 // P0-003 FIX: Full authentication UI with API integration
 // ============================================================================
 
-type UserRole = 'homeowner' | 'donor' | 'engineer' | 'supplier';
+type UserRole = 'homeowner' | 'donor' | 'engineer' | 'supplier' | 'contractor' | 'tradesperson';
 
 interface AuthState {
     mode: 'login' | 'register';

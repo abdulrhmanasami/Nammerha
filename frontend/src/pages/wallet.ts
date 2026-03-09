@@ -37,7 +37,8 @@ function formatDate(dateStr: string): string {
             day: 'numeric',
             year: 'numeric',
         });
-    } catch {
+    } catch (err) {
+        console.warn('[Wallet] Date format failed:', err);
         return dateStr;
     }
 }
@@ -56,7 +57,8 @@ async function loadEscrowSummary(): Promise<void> {
             if (lockedEl) { lockedEl.textContent = `${summary.locked_count} locked`; }
             if (releasedEl) { releasedEl.textContent = `${summary.released_count} released`; }
         }
-    } catch {
+    } catch (err) {
+        console.warn('[Wallet] Escrow summary load failed:', err);
         if (balanceEl) { balanceEl.textContent = '$0.00'; }
     }
 }
@@ -122,7 +124,8 @@ async function loadTransactions(): Promise<void> {
         // Sort by date descending
         transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         listEl.innerHTML = transactions.map(renderTransaction).join('');
-    } catch {
+    } catch (err) {
+        console.error('[Wallet] Transaction history load failed:', err);
         listEl.innerHTML = `
         <div class="text-center py-8">
           <p class="text-slate-500 text-sm">Unable to load transactions. Please sign in.</p>

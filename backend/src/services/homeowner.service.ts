@@ -3,7 +3,7 @@
 // Dual mode: Reconstruction (damage report → engineer → contractor → escrow)
 //          + Quick Repair (Thumbtack service request → tradesperson)
 // ============================================================================
-import { query } from '../config/database';
+import { query, transaction } from '../config/database';
 import type { RequestUrgency, TradeType } from '../types';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -109,9 +109,10 @@ export async function getMyProjects(
             GROUP BY project_id
          ) bc ON bc.project_id = p.project_id
          LEFT JOIN (
-            SELECT project_id, SUM(unit_price * required_quantity) AS total_cost
-            FROM itemized_boq
-            GROUP BY project_id
+             -- P2-BE-001 FIX: BIGINT cast for consistent financial arithmetic
+             SELECT project_id, SUM(unit_price::BIGINT * required_quantity::BIGINT) AS total_cost
+             FROM itemized_boq
+             GROUP BY project_id
          ) boq ON boq.project_id = p.project_id
          WHERE p.homeowner_id = $1
          ORDER BY p.created_at DESC`,
@@ -128,56 +129,59 @@ export async function getMyProjects(
 export async function getMyStats(
     homeownerId: string,
 ): Promise<HomeownerStats> {
-    const projectStats = await query<{
+    // P2-NEW-002 FIX: Consolidated 4 sequential queries into 1.
+    // Before: 4 round-trips per dashboard load. Now: 1.
+    const result = await query<{
         active: string;
         completed: string;
         total_bids: string;
+        pending_approvals: string;
+        active_service_requests: string;
+        total_invested: string;
     }>(
         `SELECT
-            COUNT(*) FILTER (WHERE p.status NOT IN ('completed', 'cancelled', 'draft')) AS active,
-            COUNT(*) FILTER (WHERE p.status = 'completed') AS completed,
-            COALESCE(SUM(bc.cnt), 0) AS total_bids
-         FROM projects p
-         LEFT JOIN (
-            SELECT project_id, COUNT(*) AS cnt
-            FROM contractor_bids WHERE status = 'pending'
-            GROUP BY project_id
-         ) bc ON bc.project_id = p.project_id
-         WHERE p.homeowner_id = $1`,
+            -- Project stats with bid count
+            (SELECT COUNT(*) FROM projects
+             WHERE homeowner_id = $1
+             AND status NOT IN ('completed', 'cancelled', 'draft')
+            ) AS active,
+            (SELECT COUNT(*) FROM projects
+             WHERE homeowner_id = $1
+             AND status = 'completed'
+            ) AS completed,
+            (SELECT COUNT(*) FROM contractor_bids cb
+             JOIN projects p ON p.project_id = cb.project_id
+             WHERE p.homeowner_id = $1 AND cb.status = 'pending'
+            ) AS total_bids,
+
+            -- Pending approvals
+            (SELECT COUNT(*) FROM project_approvals pa
+             JOIN projects p ON p.project_id = pa.project_id
+             WHERE p.homeowner_id = $1 AND pa.status = 'pending'
+            ) AS pending_approvals,
+
+            -- Active service requests
+            (SELECT COUNT(*) FROM service_requests
+             WHERE homeowner_id = $1 AND status IN ('open', 'matched', 'in_progress')
+            ) AS active_service_requests,
+
+            -- Escrow total
+            (SELECT COALESCE(SUM(el.amount_locked), 0)
+             FROM escrow_ledger el
+             JOIN projects p ON p.project_id = el.project_id
+             WHERE p.homeowner_id = $1 AND el.payment_status = 'locked'
+            ) AS total_invested`,
         [homeownerId],
     );
 
-    const approvalRes = await query<{ pending: string }>(
-        `SELECT COUNT(*) AS pending
-         FROM project_approvals pa
-         JOIN projects p ON p.project_id = pa.project_id
-         WHERE p.homeowner_id = $1 AND pa.status = 'pending'`,
-        [homeownerId],
-    );
-
-    const srRes = await query<{ active: string }>(
-        `SELECT COUNT(*) AS active
-         FROM service_requests
-         WHERE homeowner_id = $1 AND status IN ('open', 'matched', 'in_progress')`,
-        [homeownerId],
-    );
-
-    const escrowRes = await query<{ total: string }>(
-        `SELECT COALESCE(SUM(amount), 0) AS total
-         FROM escrow_transactions et
-         JOIN projects p ON p.project_id = et.project_id
-         WHERE p.homeowner_id = $1 AND et.transaction_type = 'deposit'`,
-        [homeownerId],
-    );
-
-    const ps = projectStats.rows[0];
+    const r = result.rows[0];
     return {
-        active_projects: parseInt(ps?.active ?? '0', 10),
-        completed_projects: parseInt(ps?.completed ?? '0', 10),
-        pending_approvals: parseInt(approvalRes.rows[0]?.pending ?? '0', 10),
-        active_service_requests: parseInt(srRes.rows[0]?.active ?? '0', 10),
-        total_invested: parseInt(escrowRes.rows[0]?.total ?? '0', 10),
-        total_bids_received: parseInt(ps?.total_bids ?? '0', 10),
+        active_projects: parseInt(r?.active ?? '0', 10),
+        completed_projects: parseInt(r?.completed ?? '0', 10),
+        pending_approvals: parseInt(r?.pending_approvals ?? '0', 10),
+        active_service_requests: parseInt(r?.active_service_requests ?? '0', 10),
+        total_invested: parseInt(r?.total_invested ?? '0', 10),
+        total_bids_received: parseInt(r?.total_bids ?? '0', 10),
     };
 }
 
@@ -243,15 +247,20 @@ export async function createServiceRequest(
     homeownerId: string,
     dto: CreateServiceRequestDTO,
 ): Promise<{ request_id: string; status: string }> {
-    const gpsPoint = dto.gps_lat != null && dto.gps_lng != null
-        ? `ST_SetSRID(ST_MakePoint(${dto.gps_lng}, ${dto.gps_lat}), 4326)`
-        : 'NULL';
+    // CRT-NEW-001 FIX: Parameterized PostGIS query.
+    // Previous implementation interpolated dto.gps_lng/gps_lat directly into
+    // the SQL string — a classic SQL injection vector. Now uses CASE + casts.
+    const hasGps = dto.gps_lat !== null && dto.gps_lat !== undefined
+        && dto.gps_lng !== null && dto.gps_lng !== undefined;
 
     const result = await query<{ request_id: string }>(
         `INSERT INTO service_requests
             (homeowner_id, trade_needed, title, description, address_text,
              urgency, budget_min, budget_max, gps_location)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ${gpsPoint})
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
+                 CASE WHEN $9::boolean
+                      THEN ST_SetSRID(ST_MakePoint($10::float8, $11::float8), 4326)
+                      ELSE NULL END)
          RETURNING request_id`,
         [
             homeownerId,
@@ -262,6 +271,9 @@ export async function createServiceRequest(
             dto.urgency || 'routine',
             dto.budget_min || null,
             dto.budget_max || null,
+            hasGps,
+            hasGps ? Number(dto.gps_lng) : null,
+            hasGps ? Number(dto.gps_lat) : null,
         ],
     );
 
@@ -356,11 +368,11 @@ export async function getMyEscrowSummary(
         project_count: string;
     }>(
         `SELECT
-            COALESCE(SUM(et.amount) FILTER (WHERE et.transaction_type = 'deposit'), 0) AS deposited,
-            COALESCE(SUM(et.amount) FILTER (WHERE et.transaction_type = 'release'), 0) AS released,
-            COUNT(DISTINCT et.project_id) AS project_count
-         FROM escrow_transactions et
-         JOIN projects p ON p.project_id = et.project_id
+            COALESCE(SUM(el.amount_locked) FILTER (WHERE el.payment_status = 'locked'), 0) AS deposited,
+            COALESCE(SUM(el.amount_locked) FILTER (WHERE el.payment_status = 'released'), 0) AS released,
+            COUNT(DISTINCT el.project_id) AS project_count
+         FROM escrow_ledger el
+         JOIN projects p ON p.project_id = el.project_id
          WHERE p.homeowner_id = $1`,
         [homeownerId],
     );
@@ -382,32 +394,36 @@ export async function getMyEscrowSummary(
 /**
  * Homeowner cancels an open service request.
  */
-export async function cancelServiceRequest(
+export function cancelServiceRequest(
     homeownerId: string,
     requestId: string,
 ): Promise<{ request_id: string; status: string }> {
-    const check = await query<{ status: string; homeowner_id: string }>(
-        `SELECT status, homeowner_id FROM service_requests WHERE request_id = $1`,
-        [requestId],
-    );
+    // P1-NEW-003 FIX: Wrapped in transaction with FOR UPDATE to prevent
+    // TOCTOU race — concurrent cancellation could conflict with acceptance.
+    return transaction(async (client) => {
+        const check = await client.query<{ status: string; homeowner_id: string }>(
+            `SELECT status, homeowner_id FROM service_requests WHERE request_id = $1 FOR UPDATE`,
+            [requestId],
+        );
 
-    const row = check.rows[0];
-    if (!row) {
-        throw new Error('Service request not found');
-    }
+        const row = check.rows[0];
+        if (!row) {
+            throw new Error('Service request not found');
+        }
 
-    if (row.homeowner_id !== homeownerId) {
-        throw new Error('You are not the owner of this request');
-    }
+        if (row.homeowner_id !== homeownerId) {
+            throw new Error('You are not the owner of this request');
+        }
 
-    if (!['open', 'matched'].includes(row.status)) {
-        throw new Error('Can only cancel open or matched requests');
-    }
+        if (!['open', 'matched'].includes(row.status)) {
+            throw new Error('Can only cancel open or matched requests');
+        }
 
-    await query(
-        `UPDATE service_requests SET status = 'cancelled' WHERE request_id = $1`,
-        [requestId],
-    );
+        await client.query(
+            `UPDATE service_requests SET status = 'cancelled' WHERE request_id = $1`,
+            [requestId],
+        );
 
-    return { request_id: requestId, status: 'cancelled' };
+        return { request_id: requestId, status: 'cancelled' };
+    });
 }

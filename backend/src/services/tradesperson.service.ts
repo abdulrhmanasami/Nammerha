@@ -2,7 +2,7 @@
 // Nammerha Backend — Tradesperson Service (أصحاب المهن)
 // Dual-mode: Thumbtack (direct homeowner requests) + Subcontractor (under contractor)
 // ============================================================================
-import { query } from '../config/database';
+import { query, transaction } from '../config/database';
 import type { TradespersonStats, ServiceRequest, TradeAssignment } from '../types';
 
 // ─── My Profile ─────────────────────────────────────────────────────────────
@@ -62,76 +62,73 @@ export async function getMyProfile(
 export async function getMyStats(
     tradespersonId: string,
 ): Promise<TradespersonStats> {
-    // 1. Direct jobs (service requests)
-    const requestStats = await query<{
+    // P2-NEW-001 FIX: Consolidated 5 sequential queries into 1.
+    // Before: 5 round-trips per dashboard load. Now: 1.
+    const result = await query<{
         active_requests: string;
         completed_requests: string;
-    }>(
-        `SELECT
-            COUNT(*) FILTER (WHERE status = 'in_progress') AS active_requests,
-            COUNT(*) FILTER (WHERE status = 'completed') AS completed_requests
-         FROM service_requests
-         WHERE assigned_tradesperson_id = $1`,
-        [tradespersonId],
-    );
-
-    // 2. Contractor assignments
-    const assignmentStats = await query<{
         active_assignments: string;
         completed_assignments: string;
+        pending_requests: string;
+        total_earnings: string;
+        avg_rating: string | null;
     }>(
         `SELECT
-            COUNT(*) FILTER (WHERE status IN ('accepted', 'in_progress')) AS active_assignments,
-            COUNT(*) FILTER (WHERE status = 'completed') AS completed_assignments
-         FROM trade_assignments
-         WHERE tradesperson_id = $1`,
+            -- Direct jobs (service requests)
+            (SELECT COUNT(*) FILTER (WHERE status = 'in_progress')
+             FROM service_requests WHERE assigned_tradesperson_id = $1
+            ) AS active_requests,
+            (SELECT COUNT(*) FILTER (WHERE status = 'completed')
+             FROM service_requests WHERE assigned_tradesperson_id = $1
+            ) AS completed_requests,
+
+            -- Contractor assignments
+            (SELECT COUNT(*) FILTER (WHERE status IN ('accepted', 'in_progress'))
+             FROM trade_assignments WHERE tradesperson_id = $1
+            ) AS active_assignments,
+            (SELECT COUNT(*) FILTER (WHERE status = 'completed')
+             FROM trade_assignments WHERE tradesperson_id = $1
+            ) AS completed_assignments,
+
+            -- Pending requests matching my trade
+            (SELECT COUNT(*)
+             FROM service_requests sr
+             JOIN users u ON u.user_id = $1
+             WHERE sr.status = 'open'
+             AND sr.trade_needed = u.trade
+             AND sr.assigned_tradesperson_id IS NULL
+            ) AS pending_requests,
+
+            -- Total earnings from completed assignments
+            (SELECT COALESCE(SUM(
+                CASE
+                    WHEN ta.rate_type = 'fixed' THEN ta.agreed_rate
+                    WHEN ta.rate_type = 'daily' THEN ta.agreed_rate * COALESCE(ta.estimated_days, 1)
+                    ELSE ta.agreed_rate * 8 * COALESCE(ta.estimated_days, 1)
+                END
+             ), 0)
+             FROM trade_assignments ta
+             WHERE ta.tradesperson_id = $1 AND ta.status = 'completed'
+            ) AS total_earnings,
+
+            -- Rating
+            (SELECT average_rating FROM users WHERE user_id = $1
+            ) AS avg_rating`,
         [tradespersonId],
     );
 
-    // 3. Pending requests matching my trade
-    const pendingRes = await query<{ pending: string }>(
-        `SELECT COUNT(*) AS pending
-         FROM service_requests sr
-         JOIN users u ON u.user_id = $1
-         WHERE sr.status = 'open'
-         AND sr.trade_needed = u.trade
-         AND sr.assigned_tradesperson_id IS NULL`,
-        [tradespersonId],
-    );
-
-    // 4. Total earnings (from escrow transactions linked to my assignments)
-    const earningsRes = await query<{ total: string }>(
-        `SELECT COALESCE(SUM(
-            CASE
-                WHEN ta.rate_type = 'fixed' THEN ta.agreed_rate
-                WHEN ta.rate_type = 'daily' THEN ta.agreed_rate * COALESCE(ta.estimated_days, 1)
-                ELSE ta.agreed_rate * 8 * COALESCE(ta.estimated_days, 1)
-            END
-         ), 0) AS total
-         FROM trade_assignments ta
-         WHERE ta.tradesperson_id = $1 AND ta.status = 'completed'`,
-        [tradespersonId],
-    );
-
-    // 5. Rating
-    const ratingRes = await query<{ avg_rating: string | null }>(
-        `SELECT average_rating AS avg_rating FROM users WHERE user_id = $1`,
-        [tradespersonId],
-    );
-
-    const r = requestStats.rows[0];
-    const a = assignmentStats.rows[0];
+    const r = result.rows[0];
 
     return {
         active_jobs: parseInt(r?.active_requests ?? '0', 10) +
-            parseInt(a?.active_assignments ?? '0', 10),
+            parseInt(r?.active_assignments ?? '0', 10),
         completed_jobs: parseInt(r?.completed_requests ?? '0', 10) +
-            parseInt(a?.completed_assignments ?? '0', 10),
-        pending_requests: parseInt(pendingRes.rows[0]?.pending ?? '0', 10),
-        active_assignments: parseInt(a?.active_assignments ?? '0', 10),
-        total_earnings: parseInt(earningsRes.rows[0]?.total ?? '0', 10),
-        average_rating: ratingRes.rows[0]?.avg_rating
-            ? parseFloat(ratingRes.rows[0].avg_rating)
+            parseInt(r?.completed_assignments ?? '0', 10),
+        pending_requests: parseInt(r?.pending_requests ?? '0', 10),
+        active_assignments: parseInt(r?.active_assignments ?? '0', 10),
+        total_earnings: parseInt(r?.total_earnings ?? '0', 10),
+        average_rating: r?.avg_rating
+            ? parseFloat(r.avg_rating)
             : null,
     };
 }
@@ -181,44 +178,49 @@ export async function getAvailableRequests(
 /**
  * Accept a service request (Thumbtack mode). Assigns tradesperson to the request.
  */
-export async function acceptRequest(
+export function acceptRequest(
     tradespersonId: string,
     requestId: string,
 ): Promise<{ request_id: string; status: string }> {
-    // Verify request is still open
-    const check = await query<{ status: string; trade_needed: string }>(
-        `SELECT status, trade_needed FROM service_requests WHERE request_id = $1`,
-        [requestId],
-    );
+    // P1-NEW-001 FIX: Wrapped in transaction with FOR UPDATE.
+    // Previous code had a TOCTOU race: two tradespersons could pass the
+    // 'status === open' check concurrently — last writer wins silently.
+    return transaction(async (client) => {
+        // Lock the row to prevent concurrent acceptance
+        const check = await client.query<{ status: string; trade_needed: string }>(
+            `SELECT status, trade_needed FROM service_requests WHERE request_id = $1 FOR UPDATE`,
+            [requestId],
+        );
 
-    const checkedRequest = check.rows[0];
-    if (!checkedRequest) {
-        throw new Error('Service request not found');
-    }
+        const checkedRequest = check.rows[0];
+        if (!checkedRequest) {
+            throw new Error('Service request not found');
+        }
 
-    if (checkedRequest.status !== 'open') {
-        throw new Error('Request is no longer available');
-    }
+        if (checkedRequest.status !== 'open') {
+            throw new Error('Request is no longer available');
+        }
 
-    // Verify tradesperson matches the trade
-    const tradeCheck = await query<{ trade: string }>(
-        `SELECT trade FROM users WHERE user_id = $1`,
-        [tradespersonId],
-    );
+        // Verify tradesperson matches the trade
+        const tradeCheck = await client.query<{ trade: string }>(
+            `SELECT trade FROM users WHERE user_id = $1`,
+            [tradespersonId],
+        );
 
-    if (tradeCheck.rows[0]?.trade !== checkedRequest.trade_needed) {
-        throw new Error('Your trade does not match this request');
-    }
+        if (tradeCheck.rows[0]?.trade !== checkedRequest.trade_needed) {
+            throw new Error('Your trade does not match this request');
+        }
 
-    // Assign tradesperson
-    await query(
-        `UPDATE service_requests
-         SET assigned_tradesperson_id = $1, status = 'matched', matched_at = NOW()
-         WHERE request_id = $2 AND status = 'open'`,
-        [tradespersonId, requestId],
-    );
+        // Assign tradesperson
+        await client.query(
+            `UPDATE service_requests
+             SET assigned_tradesperson_id = $1, status = 'matched', matched_at = NOW()
+             WHERE request_id = $2`,
+            [tradespersonId, requestId],
+        );
 
-    return { request_id: requestId, status: 'matched' };
+        return { request_id: requestId, status: 'matched' };
+    });
 }
 
 // ─── My Contractor Assignments (Subcontractor Mode) ─────────────────────────
@@ -268,38 +270,42 @@ export async function getMyAssignments(
 /**
  * Accept or decline a contractor assignment.
  */
-export async function respondToAssignment(
+export function respondToAssignment(
     tradespersonId: string,
     assignmentId: string,
     accept: boolean,
 ): Promise<{ assignment_id: string; status: string }> {
-    const check = await query<{ status: string; tradesperson_id: string }>(
-        `SELECT status, tradesperson_id FROM trade_assignments WHERE assignment_id = $1`,
-        [assignmentId],
-    );
+    // P1-NEW-002 FIX: Wrapped in transaction with FOR UPDATE.
+    // Previous code had a TOCTOU race: concurrent accept/decline could conflict.
+    return transaction(async (client) => {
+        const check = await client.query<{ status: string; tradesperson_id: string }>(
+            `SELECT status, tradesperson_id FROM trade_assignments WHERE assignment_id = $1 FOR UPDATE`,
+            [assignmentId],
+        );
 
-    const checkedAssignment = check.rows[0];
-    if (!checkedAssignment) {
-        throw new Error('Assignment not found');
-    }
+        const checkedAssignment = check.rows[0];
+        if (!checkedAssignment) {
+            throw new Error('Assignment not found');
+        }
 
-    if (checkedAssignment.tradesperson_id !== tradespersonId) {
-        throw new Error('This assignment is not assigned to you');
-    }
+        if (checkedAssignment.tradesperson_id !== tradespersonId) {
+            throw new Error('This assignment is not assigned to you');
+        }
 
-    if (checkedAssignment.status !== 'pending') {
-        throw new Error('Assignment is no longer pending');
-    }
+        if (checkedAssignment.status !== 'pending') {
+            throw new Error('Assignment is no longer pending');
+        }
 
-    const newStatus = accept ? 'accepted' : 'declined';
-    await query(
-        `UPDATE trade_assignments
-         SET status = $1, responded_at = NOW()
-         WHERE assignment_id = $2`,
-        [newStatus, assignmentId],
-    );
+        const newStatus = accept ? 'accepted' : 'declined';
+        await client.query(
+            `UPDATE trade_assignments
+             SET status = $1, responded_at = NOW()
+             WHERE assignment_id = $2`,
+            [newStatus, assignmentId],
+        );
 
-    return { assignment_id: assignmentId, status: newStatus };
+        return { assignment_id: assignmentId, status: newStatus };
+    });
 }
 
 // ─── My Earnings ────────────────────────────────────────────────────────────
