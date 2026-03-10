@@ -538,3 +538,20 @@ body.dark-mode {
 .voice-recording {
   animation: voicePulse 1.2s ease-in-out infinite;
 }
+
+/* ─── MapLibre Container Fix ───────────────────────────────────────────────── */
+/* MapLibre overrides the container's position to 'relative' and sets height   */
+/* to auto, which causes it to collapse to 0px when the parent uses           */
+/* overflow:hidden. Force absolute positioning and full coverage.              */
+#main-map {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* MapLibre internal wrapper also needs full dimensions */
+#main-map .maplibregl-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+}
