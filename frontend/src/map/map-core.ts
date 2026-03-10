@@ -111,6 +111,15 @@ export async function initMap(options: NammerhaMapOptions): Promise<maplibregl.M
         fadeDuration: 200,
         maxZoom: 18,
         minZoom: 4,
+        // Fix ALL http:// URLs from tileserver-gl (runs behind Caddy HTTP proxy)
+        // This catches nested references in v3.json tiles[], fonts, sprites, etc.
+        transformRequest: (url: string) => {
+            const currentHost = window.location.hostname;
+            if (url.startsWith(`http://${currentHost}`)) {
+                return { url: url.replace(`http://${currentHost}`, `https://${currentHost}`) };
+            }
+            return { url };
+        },
     });
 
     // Add attribution at bottom-left (non-intrusive)
