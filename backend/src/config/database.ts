@@ -29,11 +29,32 @@ function buildSslConfig(): tls.ConnectionOptions | false {
         return { rejectUnauthorized: false };
     }
 
-    if (sslMode === 'verify-ca' || sslMode === 'verify-full') {
-        // Encrypt traffic AND verify server certificate against CA
+    if (sslMode === 'verify-ca') {
+        // Encrypt traffic AND validate server cert against CA, but do NOT verify hostname.
+        // This matches libpq verify-ca semantics: Node.js rejectUnauthorized:true
+        // requires SAN/CN hostname match, which self-signed certs (CN=localhost)
+        // cannot satisfy in Docker inter-container networking (hostname=nammerha-db).
         if (!sslRootCert) {
             throw new Error(
-                `[DB] sslmode=${sslMode} requires PGSSLROOTCERT env var pointing to CA certificate`
+                `[DB] sslmode=verify-ca requires PGSSLROOTCERT env var pointing to CA certificate`
+            );
+        }
+        if (!fs.existsSync(sslRootCert)) {
+            throw new Error(
+                `[DB] CA certificate not found at ${sslRootCert}. Run database/tls/generate-certs.sh first.`
+            );
+        }
+        return {
+            rejectUnauthorized: false,
+            ca: fs.readFileSync(sslRootCert, 'utf-8'),
+        };
+    }
+
+    if (sslMode === 'verify-full') {
+        // Encrypt traffic AND verify server certificate against CA AND hostname
+        if (!sslRootCert) {
+            throw new Error(
+                `[DB] sslmode=verify-full requires PGSSLROOTCERT env var pointing to CA certificate`
             );
         }
         if (!fs.existsSync(sslRootCert)) {
@@ -53,8 +74,29 @@ function buildSslConfig(): tls.ConnectionOptions | false {
 
 const sslConfig = buildSslConfig();
 
+// ─── Strip SSL params from connection string ────────────────────────────────
+// pg-connection-string v3 parses sslmode from the URL and builds its own SSL
+// config, treating verify-ca as verify-full (hostname check). This causes TLS
+// handshake failures when self-signed certs use CN=localhost between containers.
+// Since buildSslConfig() already handles SSL independently, strip SSL params
+// from the URL to prevent the double-config conflict.
+function stripSslParams(url: string): string {
+    try {
+        const parsed = new URL(url);
+        parsed.searchParams.delete('sslmode');
+        parsed.searchParams.delete('sslrootcert');
+        return parsed.toString();
+    } catch {
+        // If URL parsing fails, strip via regex (fallback for edge cases)
+        return url
+            .replace(/[?&]sslmode=[^&]*/g, '')
+            .replace(/[?&]sslrootcert=[^&]*/g, '')
+            .replace(/\?$/, '');
+    }
+}
+
 const poolConfig: PoolConfig = {
-    connectionString: process.env['DATABASE_URL'],
+    connectionString: stripSslParams(process.env['DATABASE_URL'] ?? ''),
     min: parseInt(process.env['DB_POOL_MIN'] ?? '2', 10),
     max: parseInt(process.env['DB_POOL_MAX'] ?? '10', 10),
     idleTimeoutMillis: 30_000,
