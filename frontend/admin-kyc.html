@@ -23,37 +23,37 @@
     <nav class="flex-1 px-4 space-y-1">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-dashboard.html">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium">Dashboard</span>
+        <span class="font-medium" data-i18n="Dashboard">Dashboard</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-oracle.html">
         <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium">Pricing Oracle</span>
+        <span class="font-medium" data-i18n="Pricing Oracle">Pricing Oracle</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium">Escrow Management</span>
+        <span class="font-medium" data-i18n="Escrow Management">Escrow Management</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="#">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium">KYC Verification</span>
+        <span class="font-medium" data-i18n="kyc_verification">KYC Verification</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium">Projects</span>
+        <span class="font-medium" data-i18n="nav_projects">Projects</span>
       </a>
     </nav>
     <div class="p-4 border-t border-slate-200">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
         <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium">Settings</span>
+        <span class="font-medium" data-i18n="Settings">Settings</span>
       </a>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
           <i class="ph ph-user-circle text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
         </div>
         <div>
-          <p class="text-xs font-bold">Admin Portal</p>
-          <p class="text-[10px] text-slate-500">Institutional Access</p>
+          <p class="text-xs font-bold" data-i18n="Admin Portal">Admin Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="kyc_institutional_access">Institutional Access</p>
         </div>
       </div>
     </div>
@@ -62,7 +62,7 @@
   <!-- Main Content -->
   <div class="flex-1 flex flex-col overflow-hidden">
     <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
-      <h2 class="font-bold text-lg">KYC Verification Portal</h2>
+      <h2 class="font-bold text-lg" data-i18n="kyc_portal_title">KYC Verification Portal</h2>
       <div class="flex items-center gap-4">
         <button class="text-slate-500 hover:text-trust-blue transition-colors">
           <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
@@ -78,15 +78,15 @@
       <!-- Page Header -->
       <div class="flex justify-between items-end">
         <div>
-          <h2 class="text-2xl font-bold">Identity Verification Queue</h2>
-          <p class="text-slate-500 text-sm mt-0.5">Review professional licenses and trade registrations before granting verified status.</p>
+          <h2 class="text-2xl font-bold" data-i18n="Identity Verification Queue">Identity Verification Queue</h2>
+          <p class="text-slate-500 text-sm mt-0.5" data-i18n="kyc_review_subtitle">Review professional licenses and trade registrations before granting verified status.</p>
         </div>
         <div class="flex gap-2">
           <button class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <i class="ph ph-funnel" style="font-size:14px" aria-hidden="true"></i> Filter
+            <i class="ph ph-funnel" style="font-size:14px" aria-hidden="true"></i> <span data-i18n="kyc_filter">Filter</span>
           </button>
           <button class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <i class="ph ph-download" style="font-size:14px" aria-hidden="true"></i> Export
+            <i class="ph ph-download" style="font-size:14px" aria-hidden="true"></i> <span data-i18n="kyc_export">Export</span>
           </button>
         </div>
       </div>
@@ -94,19 +94,19 @@
       <!-- Stats -->
       <div class="grid grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Review</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_pending_review">Pending Review</p>
           <p class="text-xl font-bold text-warning-yellow" id="stat-pending">5</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Verified (MTD)</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
           <p class="text-xl font-bold text-smoky-jade" id="stat-verified">18</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rejected</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="Rejected">Rejected</p>
           <p class="text-xl font-bold text-rose-500" id="stat-rejected">2</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="Total Users">Total Users</p>
           <p class="text-xl font-bold text-slate-900">47</p>
         </div>
       </div>
@@ -116,7 +116,7 @@
         <!-- Left: Review Queue Table -->
         <div class="col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="p-4 border-b border-slate-100">
-            <h3 class="font-bold text-sm">Applications Pending Review</h3>
+            <h3 class="font-bold text-sm" data-i18n="Applications Pending Review">Applications Pending Review</h3>
           </div>
           <div class="divide-y divide-slate-50" id="queue-list">
             <!-- Row 1 -->
@@ -129,8 +129,8 @@
                 <p class="text-[10px] text-slate-400">Engineer • Submitted 2 hours ago</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400">2 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_2">2 docs</span>
+                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
               </div>
             </div>
             <!-- Row 2 -->
@@ -143,8 +143,8 @@
                 <p class="text-[10px] text-slate-400">Supplier • Submitted 5 hours ago</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400">3 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_3">3 docs</span>
+                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
               </div>
             </div>
             <!-- Row 3 -->
@@ -157,8 +157,8 @@
                 <p class="text-[10px] text-slate-400">Engineer • Submitted 1 day ago</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400">2 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_2">2 docs</span>
+                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
               </div>
             </div>
             <!-- Row 4 -->
@@ -171,8 +171,8 @@
                 <p class="text-[10px] text-slate-400">Supplier • Submitted 2 days ago</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400">2 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_2">2 docs</span>
+                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
               </div>
             </div>
             <!-- Row 5 -->
@@ -185,8 +185,8 @@
                 <p class="text-[10px] text-slate-400">Engineer • Submitted 3 days ago</p>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400">1 doc</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">Pending</span>
+                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_1">1 doc</span>
+                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
               </div>
             </div>
           </div>
@@ -197,8 +197,8 @@
           <!-- Document Preview -->
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" id="doc-viewer">
             <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 class="font-bold text-sm" id="viewer-title">Select an Application</h3>
-              <span class="text-[10px] text-slate-400" id="viewer-subtitle">Click a row to review</span>
+              <h3 class="font-bold text-sm" id="viewer-title" data-i18n="Select an Application">Select an Application</h3>
+              <span class="text-[10px] text-slate-400" id="viewer-subtitle" data-i18n="kyc_click_to_review">Click a row to review</span>
             </div>
 
             <!-- Empty State -->
@@ -206,8 +206,8 @@
               <div class="size-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
                 <i class="ph ph-identification-card text-slate-300" style="font-size:32px" aria-hidden="true"></i>
               </div>
-              <p class="text-sm font-medium text-slate-400">Select an applicant from the queue</p>
-              <p class="text-xs text-slate-300 mt-1">Documents will appear here for review</p>
+              <p class="text-sm font-medium text-slate-400" data-i18n="kyc_select_applicant">Select an applicant from the queue</p>
+              <p class="text-xs text-slate-300 mt-1" data-i18n="kyc_docs_appear_here">Documents will appear here for review</p>
             </div>
 
             <!-- Document Content (hidden by default) -->
@@ -217,8 +217,8 @@
                 <div class="size-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
                   <i class="ph ph-upload-simple text-slate-400" style="font-size:24px" aria-hidden="true"></i>
                 </div>
-                <p class="text-sm font-medium text-slate-500">Drag & drop documents here</p>
-                <p class="text-xs text-slate-400 mt-1">or click to browse files</p>
+                <p class="text-sm font-medium text-slate-500" data-i18n="kyc_drag_drop">Drag & drop documents here</p>
+                <p class="text-xs text-slate-400 mt-1" data-i18n="kyc_click_browse">or click to browse files</p>
               </div>
 
               <!-- Document List -->
@@ -232,11 +232,11 @@
           <div class="space-y-2" id="action-buttons" style="display:none">
             <button id="verify-btn" class="w-full bg-smoky-jade text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-smoky-jade/90 transition-colors">
               <i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i>
-              Grant Verified Badge
+              <span data-i18n="kyc_grant_verified">Grant Verified Badge</span>
             </button>
             <button id="reject-btn" class="w-full bg-white border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-rose-50 transition-colors">
               <i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i>
-              Reject & Request Resubmission
+              <span data-i18n="kyc_reject_resubmit">Reject & Request Resubmission</span>
             </button>
           </div>
         </div>

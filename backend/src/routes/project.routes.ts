@@ -9,7 +9,26 @@ import type { CreateProjectDTO, AddBOQItemDTO, ApiResponse } from '../types';
 
 const router = Router();
 
-// All routes require authentication
+// ─── PUBLIC ROUTES (no auth required) ───────────────────────────────────────
+
+// GET /api/projects/geojson — Public GeoJSON FeatureCollection for MapLibre
+// Returns all public projects with GPS coordinates for the interactive map.
+// No authentication needed: vw_project_cards already filters to is_public=true.
+router.get('/geojson', async (_req: Request, res: Response) => {
+    try {
+        const geojson = await projectService.getProjectsGeoJSON();
+        // Cache for 60 seconds to reduce DB load on homepage
+        res.set('Cache-Control', 'public, max-age=60');
+        res.json(geojson);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('[GeoJSON] Failed to generate project GeoJSON:', error);
+        res.status(500).json({ success: false, error: message } as ApiResponse);
+    }
+});
+
+// ─── AUTHENTICATED ROUTES ───────────────────────────────────────────────────
+// All routes below require authentication
 router.use(authMiddleware);
 router.use(requireActive);
 

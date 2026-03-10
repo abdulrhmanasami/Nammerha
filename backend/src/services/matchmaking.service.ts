@@ -1,8 +1,11 @@
 // ============================================================================
 // Nammerha Backend — Matchmaking Service (Ticket 7.1)
 // BuildZoom-style Dynamic Scoring + PostgreSQL-native search + bidding
+// + Georavity (Valhalla) real road distance ranking
 // ============================================================================
 import pool, { transaction } from '../config/database';
+import { getDistanceMatrix } from './georavity.service';
+import type { MatrixEntry } from './georavity.service';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -17,6 +20,10 @@ export interface EngineerScore {
     bid_win_rate: number | null;
     dynamic_score: number;
     distance_km: number | null;
+    /** Real road distance from Georavity (null = unavailable, fallback to Haversine) */
+    road_distance_km: number | null;
+    /** Real road travel time in seconds from Georavity */
+    road_duration_seconds: number | null;
     engineering_license_number: string | null;
     guild_membership_id: string | null;
 }
@@ -237,6 +244,14 @@ export async function searchEngineers(dto: SearchEngineersDTO): Promise<Engineer
     params.push(offset);
     const offsetParam = `$${paramIdx}`;
 
+    // Also extract lat/lng for Georavity enrichment when spatial filter is active
+    let coordSelect = '';
+    if (dto.lat !== undefined && dto.lng !== undefined) {
+        coordSelect = `,
+            ST_Y(u.gps_last_known::GEOMETRY) AS engineer_lat,
+            ST_X(u.gps_last_known::GEOMETRY) AS engineer_lng`;
+    }
+
     const sql = `
         SELECT
             u.user_id,
@@ -249,6 +264,7 @@ export async function searchEngineers(dto: SearchEngineersDTO): Promise<Engineer
             ${distanceSelect},
             u.engineering_license_number,
             u.guild_membership_id
+            ${coordSelect}
         FROM users u
         WHERE ${conditions.join(' AND ')}
         ORDER BY u.dynamic_score DESC, u.completed_projects_count DESC
@@ -256,21 +272,48 @@ export async function searchEngineers(dto: SearchEngineersDTO): Promise<Engineer
     `;
 
     const { rows } = await pool.query(sql, params);
-    return rows;
+
+    // Enrich with Georavity road distances when spatial filter is active
+    if (dto.lat !== undefined && dto.lng !== undefined && rows.length > 0) {
+        return enrichWithRoadDistances(rows, dto.lat, dto.lng);
+    }
+
+    // No spatial filter — return with null road distances
+    return rows.map(row => ({
+        ...row,
+        road_distance_km: null,
+        road_duration_seconds: null,
+    }));
 }
 
 // ─── Auto-Match for Project (Thumbtack Pattern) ─────────────────────────────
+// UPGRADED: Hybrid ST_DWithin pre-filter + Georavity real road distance ranking.
+// Falls back gracefully to Haversine if Georavity is unavailable.
 
 /**
  * Find the top 3 engineers nearest to the project location,
  * filtered by specialty match and minimum score threshold.
+ *
+ * Algorithm:
+ *   1. PostGIS ST_DWithin pre-filter (GIST-indexed, fast) → 20 candidates
+ *   2. Georavity sources_to_targets → real road distances for all candidates
+ *   3. Re-rank by dynamic_score DESC, road_duration_seconds ASC
+ *   4. Return top 3
+ *
+ * Graceful degradation: If Georavity is down, falls back to Haversine ordering.
  */
 export async function matchProjectToEngineers(
     projectId: string
 ): Promise<EngineerScore[]> {
     // Get project location and damage type
     const projectRes = await pool.query(
-        `SELECT gps_location, damage_type, address_text FROM projects WHERE project_id = $1`,
+        `SELECT
+            gps_location,
+            damage_type,
+            address_text,
+            ST_Y(gps_location::GEOMETRY) AS project_lat,
+            ST_X(gps_location::GEOMETRY) AS project_lng
+        FROM projects WHERE project_id = $1`,
         [projectId]
     );
 
@@ -292,6 +335,11 @@ export async function matchProjectToEngineers(
         mixed: 'mixed',
     };
 
+    // ─── Step 1: PostGIS pre-filter (GIST-indexed, O(log n)) ────────────
+    // Fetch up to 20 candidates within service radius (Haversine pre-filter).
+    // This prevents sending hundreds of HTTP requests to Georavity.
+    const PRE_FILTER_LIMIT = 20;
+
     const sql = `
         SELECT
             u.user_id,
@@ -302,6 +350,8 @@ export async function matchProjectToEngineers(
             u.bid_win_rate,
             u.dynamic_score,
             ROUND((ST_Distance(u.gps_last_known, p.gps_location) / 1000)::DECIMAL, 2) AS distance_km,
+            ST_Y(u.gps_last_known::GEOMETRY) AS engineer_lat,
+            ST_X(u.gps_last_known::GEOMETRY) AS engineer_lng,
             u.engineering_license_number,
             u.guild_membership_id
         FROM users u
@@ -320,15 +370,113 @@ export async function matchProjectToEngineers(
                 AND (ssr.auto_blocked = true OR ssr.status = 'confirmed_match')
           )
         ORDER BY u.dynamic_score DESC, ST_Distance(u.gps_last_known, p.gps_location) ASC
-        LIMIT 3
+        LIMIT $3
     `;
 
-    const { rows } = await pool.query(sql, [
+    const { rows: candidates } = await pool.query(sql, [
         projectId,
         specialtyMap[project.damage_type] || 'mixed',
+        PRE_FILTER_LIMIT,
     ]);
 
-    return rows;
+    if (candidates.length === 0) {
+        return [];
+    }
+
+    // ─── Step 2: Georavity enrichment (real road distances) ─────────────
+    const enrichedCandidates = await enrichWithRoadDistances(
+        candidates,
+        Number(project.project_lat),
+        Number(project.project_lng),
+    );
+
+    // ─── Step 3: Re-rank by score DESC, then road duration ASC ──────────
+    enrichedCandidates.sort((a, b) => {
+        // Primary: dynamic_score DESC
+        const scoreDiff = Number(b.dynamic_score) - Number(a.dynamic_score);
+        if (Math.abs(scoreDiff) > 0.01) {
+            return scoreDiff;
+        }
+        // Secondary: road_duration_seconds ASC (or Haversine fallback)
+        const aDuration = a.road_duration_seconds ?? Infinity;
+        const bDuration = b.road_duration_seconds ?? Infinity;
+        return aDuration - bDuration;
+    });
+
+    // Return top 3
+    return enrichedCandidates.slice(0, 3);
+}
+
+// ─── Georavity Road Distance Enrichment ─────────────────────────────────────
+
+/**
+ * Enrich engineer candidates with real road distances from Georavity.
+ * Falls back gracefully to Haversine (distance_km) if the engine is unavailable.
+ *
+ * Design: ONE HTTP call to Georavity's sources_to_targets endpoint,
+ * passing the project as source and all candidates as targets.
+ * This is O(1) HTTP calls, not O(n).
+ */
+async function enrichWithRoadDistances(
+    candidates: EngineerScore[],
+    projectLat: number,
+    projectLng: number,
+): Promise<EngineerScore[]> {
+    // The SQL query selects engineer_lat/engineer_lng alongside EngineerScore fields.
+    // We access them via a typed view of the raw row.
+    interface RowWithCoords {
+        engineer_lat?: string | number;
+        engineer_lng?: string | number;
+    }
+
+    // Extract candidate coordinates
+    const targets = candidates.map(c => {
+        const row = c as unknown as RowWithCoords;
+        return {
+            lat: Number(row.engineer_lat ?? 0),
+            lng: Number(row.engineer_lng ?? 0),
+        };
+    });
+
+    // Validate coordinates — skip Georavity if any are invalid
+    const hasValidCoords = targets.every(
+        t => t.lat !== 0 && t.lng !== 0 && isFinite(t.lat) && isFinite(t.lng)
+    ) && isFinite(projectLat) && isFinite(projectLng) && projectLat !== 0 && projectLng !== 0;
+
+    if (!hasValidCoords) {
+        console.warn('[Matchmaking] Invalid coordinates detected — skipping Georavity enrichment');
+        return candidates.map(c => ({
+            ...c,
+            road_distance_km: null,
+            road_duration_seconds: null,
+        }));
+    }
+
+    let matrix: MatrixEntry[] | null = null;
+
+    try {
+        matrix = await getDistanceMatrix(
+            { lat: projectLat, lng: projectLng },
+            targets,
+            'auto',
+        );
+    } catch (error) {
+        // GRACEFUL DEGRADATION: Log and continue with Haversine distances
+        console.error(
+            '[Matchmaking] Georavity unavailable, falling back to Haversine ordering:',
+            error instanceof Error ? error.message : error
+        );
+    }
+
+    // Enrich candidates with road distances
+    return candidates.map((candidate, index) => {
+        const entry = matrix?.[index] ?? null;
+        return {
+            ...candidate,
+            road_distance_km: entry?.distance_km ?? null,
+            road_duration_seconds: entry?.duration_seconds ?? null,
+        };
+    });
 }
 
 // ─── Bidding System ─────────────────────────────────────────────────────────

@@ -446,6 +446,39 @@
 
         // ═══ FUND NOW BUTTON ═══
         'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
+
+        // ═══ INTERACTIVE MAP ═══
+        // Filter Controls (map-controls.ts)
+        'filter_all': { ar: 'الكل', de: 'Alle', fr: 'Tout', tr: 'Tümü' },
+        'filter_needs_funding': { ar: 'بحاجة لتمويل', de: 'Finanzierung benötigt', fr: 'Besoin de financement', tr: 'Finansman Gerekli' },
+        'filter_in_progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        'filter_completed': { ar: 'مكتمل', de: 'Abgeschlossen', fr: 'Terminé', tr: 'Tamamlandı' },
+
+        // Marker Popup Labels (map-markers.ts)
+        'map_funded': { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
+        'map_view_project': { ar: 'عرض المشروع ←', de: 'Projekt ansehen →', fr: 'Voir le projet →', tr: 'Projeyi Görüntüle →' },
+
+        // Status Badges
+        'map_status_needs_funding': { ar: '🟡 بحاجة لتمويل', de: '🟡 Finanzierung benötigt', fr: '🟡 Besoin de financement', tr: '🟡 Finansman Gerekli' },
+        'map_status_in_progress': { ar: '🔵 قيد التنفيذ', de: '🔵 In Bearbeitung', fr: '🔵 En cours', tr: '🔵 Devam Ediyor' },
+        'map_status_completed': { ar: '🟢 مكتمل', de: '🟢 Abgeschlossen', fr: '🟢 Terminé', tr: '🟢 Tamamlandı' },
+
+        // Stats Overlay (homepage-map.ts)
+        'map_loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
+        'map_active_projects_count': { ar: '{count} مشروع نشط', de: '{count} aktive Projekte', fr: '{count} projets actifs', tr: '{count} Aktif Proje' },
+
+        // Syrian Governorate Names (region resolver)
+        'map_region_syria': { ar: 'سوريا', de: 'Syrien', fr: 'Syrie', tr: 'Suriye' },
+        'map_region_damascus': { ar: 'دمشق', de: 'Damaskus', fr: 'Damas', tr: 'Şam' },
+        'map_region_aleppo': { ar: 'حلب', de: 'Aleppo', fr: 'Alep', tr: 'Halep' },
+        'map_region_homs': { ar: 'حمص', de: 'Homs', fr: 'Homs', tr: 'Humus' },
+        'map_region_hama': { ar: 'حماة', de: 'Hama', fr: 'Hama', tr: 'Hama' },
+        'map_region_lattakia': { ar: 'اللاذقية', de: 'Latakia', fr: 'Lattaquié', tr: 'Lazkiye' },
+        'map_region_deir_ez_zor': { ar: 'دير الزور', de: 'Deir ez-Zor', fr: 'Deir ez-Zor', tr: 'Deyrizor' },
+        'map_region_raqqa': { ar: 'الرقة', de: 'ar-Raqqa', fr: 'Raqqa', tr: 'Rakka' },
+        'map_region_daraa': { ar: 'درعا', de: 'Daraa', fr: 'Daraa', tr: 'Dera' },
+        'map_region_idlib': { ar: 'إدلب', de: 'Idlib', fr: 'Idleb', tr: 'İdlib' },
+        'map_region_hasakah': { ar: 'الحسكة', de: 'al-Hasaka', fr: 'Hassaké', tr: 'Haseke' },
     };
 
     // ─── State ────────────────────────────────────────────────────────────

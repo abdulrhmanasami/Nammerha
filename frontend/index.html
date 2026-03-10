@@ -136,36 +136,19 @@
 
     <!-- ─── Main Content ────────────────────────────────────────────────────── -->
     <main class="pt-20 pb-24">
-      <!-- Hero: Interactive Map Placeholder -->
+      <!-- Hero: Interactive Reconstruction Map (MapLibre GL JS) -->
       <section class="px-4 mb-8">
         <div
-          class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-white/20 bg-gradient-to-br from-slate-200 to-slate-300"
+          class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-white/20"
         >
-          <!-- Map placeholder with overlay -->
+          <!-- MapLibre GL JS Container -->
+          <div id="main-map" class="absolute inset-0"></div>
+
+          <!-- Map UI Overlay: Active Region Info -->
           <div
-            class="absolute inset-0 bg-gradient-to-br from-trust-blue/5 to-smoky-jade/5"
-          ></div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="text-center">
-              <i
-                class="ph ph-map-trellis text-trust-blue/40"
-                style="font-size:60px"
-                aria-hidden="true"
-              ></i>
-              <p class="text-slate-500 text-sm mt-2 font-medium">
-                <span data-i18n="interactive_map">Interactive Reconstruction Map</span>
-              </p>
-            </div>
-          </div>
-          <!-- Smoky Jade Heatmap Overlay -->
-          <div
-            class="absolute inset-0 bg-smoky-jade/5 pointer-events-none"
-          ></div>
-          <!-- Map UI Elements -->
-          <div
-            class="absolute bottom-4 left-4 right-4 flex justify-between items-end"
+            class="absolute bottom-4 left-4 right-4 flex justify-between items-end pointer-events-none z-10"
           >
-            <div class="glass-card p-3 max-w-[180px]">
+            <div class="glass-card p-3 max-w-[180px] pointer-events-auto">
               <p
                 class="text-[10px] uppercase font-bold text-smoky-jade mb-1 tracking-wider"
                 data-i18n="active_region"
@@ -182,24 +165,10 @@
                 <span id="map-active-count" class="text-[11px] opacity-70" data-i18n="active_projects">— Active Projects</span>
               </div>
             </div>
-            <div class="flex flex-col gap-2">
-              <button
-                class="size-10 glass-card rounded-full flex items-center justify-center shadow-lg"
-              >
-                <i class="ph ph-plus" aria-hidden="true"></i>
-              </button>
-              <button
-                class="size-10 glass-card rounded-full flex items-center justify-center shadow-lg"
-              >
-                <i class="ph ph-minus" aria-hidden="true"></i>
-              </button>
-              <button
-                class="size-10 bg-trust-blue text-white rounded-full flex items-center justify-center shadow-lg shadow-trust-blue/30"
-              >
-                <i class="ph ph-crosshair" aria-hidden="true"></i>
-              </button>
-            </div>
           </div>
+
+          <!-- Map UI Overlay: Filter Control Mount Point -->
+          <div id="map-filter-container" class="absolute top-3 left-3 z-10"></div>
         </div>
       </section>
 
@@ -392,5 +361,6 @@
 <script src="/i18n.js?v=4" defer></script>
 <script src="/nav.js?v=4" defer></script>
 <script src="/src/homepage.js?v=1" defer></script>
+<script type="module" src="/src/pages/homepage-map.ts"></script>
 </body>
 </html>

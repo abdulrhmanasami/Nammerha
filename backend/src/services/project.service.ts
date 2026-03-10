@@ -283,6 +283,67 @@ export async function getProjectById(projectId: string): Promise<Project | null>
     return result.rows[0] ?? null;
 }
 
+// ─── GeoJSON Export (Map Layer) ─────────────────────────────────────────────
+
+interface ProjectCardRow {
+    project_id: string;
+    title: string;
+    status: string;
+    damage_type: string;
+    funded_percentage: number;
+    cover_image_url: string | null;
+    homeowner_name: string;
+    total_estimated_cost: number;
+    total_funded_amount: number;
+    address_text: string | null;
+    latitude: number | null;
+    longitude: number | null;
+}
+
+/**
+ * Get all public projects as a GeoJSON FeatureCollection.
+ * Used by the interactive MapLibre map on the homepage.
+ *
+ * Queries vw_project_cards (which extracts lat/lng via ST_Y/ST_X from PostGIS GEOGRAPHY).
+ * Only includes projects that have valid GPS coordinates.
+ */
+export async function getProjectsGeoJSON(): Promise<GeoJSON.FeatureCollection> {
+    const result = await query<ProjectCardRow>(
+        `SELECT project_id, title, status, damage_type,
+                funded_percentage, cover_image_url, homeowner_name,
+                total_estimated_cost, total_funded_amount, address_text,
+                latitude, longitude
+         FROM vw_project_cards
+         WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+         ORDER BY published_at DESC NULLS LAST`
+    );
+
+    const features: GeoJSON.Feature[] = result.rows.map((row) => ({
+        type: 'Feature' as const,
+        geometry: {
+            type: 'Point' as const,
+            coordinates: [Number(row.longitude ?? 0), Number(row.latitude ?? 0)],
+        },
+        properties: {
+            project_id: row.project_id,
+            title: row.title,
+            status: row.status,
+            damage_type: row.damage_type,
+            funded_percentage: Number(row.funded_percentage),
+            cover_image_url: row.cover_image_url,
+            homeowner_name: row.homeowner_name,
+            total_estimated_cost: row.total_estimated_cost,
+            total_funded_amount: row.total_funded_amount,
+            address_text: row.address_text,
+        },
+    }));
+
+    return {
+        type: 'FeatureCollection',
+        features,
+    };
+}
+
 /**
  * Get all projects for a homeowner.
  */

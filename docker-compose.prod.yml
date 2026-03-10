@@ -158,6 +158,8 @@ services:
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE:?AUTH0_AUDIENCE must be set}
       # ── CORS (P1-003: No localhost in production) ──────────────────
       - CORS_ORIGINS=${CORS_ORIGINS:-https://nammerha.com,https://www.nammerha.com}
+      # ── Georavity: Self-hosted Valhalla routing engine ─────────────
+      - GEORAVITY_URL=${GEORAVITY_URL:-http://host.docker.internal:8002}
       # ── Storage (P2-005: MinIO on-premise S3 storage) ──────────────
       - STORAGE_PROVIDER=minio
       - STORAGE_BUCKET=${STORAGE_BUCKET:-nammerha-uploads}

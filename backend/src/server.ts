@@ -50,6 +50,8 @@ import contractorRoutes from './routes/contractor.routes';
 import tradespersonRoutes from './routes/tradesperson.routes';
 import homeownerRoutes from './routes/homeowner.routes';
 import donorRoutes from './routes/donor.routes';
+import routingRoutes from './routes/routing.routes';
+import spatialRoutes from './routes/spatial.routes';
 import localeRouter from './middleware/locale-pages.middleware';
 import * as path from 'path';
 
@@ -287,6 +289,12 @@ app.use('/api/notifications', notificationRoutes);
 
 // Phase 2: Matchmaking Engine (BuildZoom + Thumbtack hybrid)
 app.use('/api/matchmaking', matchmakingRoutes);
+
+// Georavity Routing Intelligence (self-hosted Valhalla engine)
+app.use('/api/routing', routingRoutes);
+
+// Phase 3: Spatial Intelligence (satellite imagery + geofencing compliance)
+app.use('/api/spatial', spatialRoutes);
 
 // Phase 2: EPA Oracle (FIDIC 13.8 price adjustment engine)
 app.use('/api/oracle', epaOracleRoutes);
