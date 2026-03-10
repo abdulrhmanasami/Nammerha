@@ -6,6 +6,11 @@ import './styles/main.css';
 import { renderCartBadge } from './components/cart';
 import { marketplace, openData } from './api';
 
+// ─── Map Initialization (self-executing on DOMContentLoaded) ────────────────
+// Must be imported here so Vite includes it in the production bundle.
+// The separate <script type="module"> tag in index.html is stripped during build.
+import './pages/homepage-map';
+
 // ─── Project Card Template ──────────────────────────────────────────────────
 interface ProjectCard {
     project_id: string;
