@@ -15,7 +15,10 @@ function loadRTLPlugin(): void {
 
     try {
         maplibregl.setRTLTextPlugin(
-            'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js',
+            // Self-hosted to comply with CSP script-src 'self'.
+            // External CDN (unpkg.com) is blocked by CSP inside the MapLibre
+            // web worker's importScripts(), crashing ALL tile decoding.
+            '/lib/mapbox-gl-rtl-text.min.js',
             true,
         );
     } catch (error) {
