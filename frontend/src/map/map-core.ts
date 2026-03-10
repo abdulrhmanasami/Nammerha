@@ -9,91 +9,133 @@ import { getBasemapStyleUrl, SYRIA_CENTER, DEFAULT_ZOOM } from './basemap-config
 // ─── RTL Plugin Singleton Guard ─────────────────────────────────────────────
 let rtlPluginLoaded = false;
 
-/**
- * Lazy-load the RTL text plugin for correct Arabic/Hebrew label rendering.
- * This must be called before the map renders Arabic street names.
- * Uses the official @mapbox/mapbox-gl-rtl-text plugin (compatible with MapLibre).
- */
 function loadRTLPlugin(): void {
-    if (rtlPluginLoaded) {
-        return;
-    }
+    if (rtlPluginLoaded) return;
     rtlPluginLoaded = true;
 
     try {
         maplibregl.setRTLTextPlugin(
             'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js',
-            true, // lazy: load only when RTL text is encountered
+            true,
         );
     } catch (error) {
-        // Plugin may already be loaded (e.g., HMR re-execution)
-        console.warn('[Nammerha Map] RTL text plugin already loaded or failed:', error);
+        console.warn('[Nammerha Map] RTL text plugin:', error);
     }
 }
 
 // ─── Map Options ────────────────────────────────────────────────────────────
 export interface NammerhaMapOptions {
-    /** HTML element ID to mount the map */
     container: string;
-    /** Override default center [lng, lat] */
     center?: [number, number];
-    /** Override default zoom level */
     zoom?: number;
-    /** Enable interactive controls (navigation, geolocate) */
     interactive?: boolean;
-    /** Enable the attribution control */
     attribution?: boolean;
 }
 
-// ─── Style Protocol Fixer ───────────────────────────────────────────────────
+// ─── Protocol Fixer ─────────────────────────────────────────────────────────
 
 /**
- * Fetch the style JSON from the tile server and fix protocol mismatches.
+ * Fix ALL protocol references in the tileserver-gl style JSON.
  *
- * Problem: tileserver-gl runs behind Caddy (HTTP internally), so it generates
- * `http://` URLs in style.json (glyphs, sources, sprites). But the browser
- * accesses via `https://` through Cloudflare, causing mixed-content blocks.
+ * Problem chain:
+ *   1. tileserver-gl runs behind Caddy (HTTP internally)
+ *   2. Generates http:// URLs in style.json for sources, glyphs, sprites
+ *   3. Sources point to v3.json TileJSON (also has http:// tile URLs)
+ *   4. Browser on HTTPS blocks mixed-content or silently fails
  *
- * Solution: Fetch the style JSON, replace http:// with https:// for the
- * current hostname, and return the fixed style object.
+ * Solution:
+ *   - Fetch style.json
+ *   - Fetch the TileJSON (v3.json) referenced by sources
+ *   - Inline tile URLs directly into the style, bypassing TileJSON indirection
+ *   - Fix ALL http:// URLs to match page protocol
  */
 async function fetchAndFixStyle(styleUrl: string): Promise<maplibregl.StyleSpecification> {
-    const response = await fetch(styleUrl);
-    if (!response.ok) {
-        throw new Error(`[Nammerha Map] Failed to load style: ${response.status} ${response.statusText}`);
+    const pageProtocol = window.location.protocol; // 'https:' or 'http:'
+    const currentHost = window.location.hostname;
+    const origin = `${pageProtocol}//${currentHost}`;
+
+    // Helper: fix any http://currentHost URL to use page protocol
+    const fixUrl = (url: string): string => {
+        if (!url) return url;
+        return url.replace(
+            new RegExp(`http://${currentHost.replace(/\./g, '\\.')}`, 'g'),
+            origin,
+        );
+    };
+
+    // 1. Fetch the style JSON
+    const styleResp = await fetch(styleUrl);
+    if (!styleResp.ok) {
+        throw new Error(`Style fetch failed: ${styleResp.status}`);
+    }
+    const style: maplibregl.StyleSpecification = await styleResp.json();
+
+    // 2. Fix glyphs URL
+    if (style.glyphs) {
+        style.glyphs = fixUrl(style.glyphs as string);
     }
 
-    const styleText = await response.text();
-    const currentHost = window.location.hostname;
-    const pageProtocol = window.location.protocol; // 'https:' or 'http:'
+    // 3. Fix sprite URL
+    if (style.sprite) {
+        if (typeof style.sprite === 'string') {
+            style.sprite = fixUrl(style.sprite);
+        }
+    }
 
-    // Replace http:// with the page's protocol for same-host URLs only
-    const fixedText = styleText.replace(
-        new RegExp(`http://${currentHost.replace('.', '\\.')}`, 'g'),
-        `${pageProtocol}//${currentHost}`,
-    );
+    // 4. Fix sources — the CRITICAL fix
+    //    Replace TileJSON URL references with inline tile template URLs
+    const sources = style.sources ?? {};
+    for (const [sourceName, srcDef] of Object.entries(sources)) {
+        const source = srcDef as Record<string, unknown>;
 
-    return JSON.parse(fixedText) as maplibregl.StyleSpecification;
+        // If source uses a TileJSON URL reference, fetch it and inline
+        if (source.url && typeof source.url === 'string') {
+            const tileJsonUrl = fixUrl(source.url);
+            try {
+                const tjResp = await fetch(tileJsonUrl);
+                if (tjResp.ok) {
+                    const tileJson = await tjResp.json() as Record<string, unknown>;
+
+                    // Extract and fix tile template URLs
+                    const tiles = tileJson.tiles as string[] | undefined;
+                    if (tiles && tiles.length > 0) {
+                        source.tiles = tiles.map(fixUrl);
+                    }
+
+                    // Copy metadata from TileJSON
+                    if (tileJson.minzoom !== undefined) source.minzoom = tileJson.minzoom;
+                    if (tileJson.maxzoom !== undefined) source.maxzoom = tileJson.maxzoom;
+                    if (tileJson.bounds) source.bounds = tileJson.bounds;
+                    if (tileJson.attribution) source.attribution = tileJson.attribution;
+
+                    // Remove the url property — we've inlined everything
+                    delete source.url;
+
+                    console.info(`[Nammerha Map] Source '${sourceName}' inlined:`, source.tiles);
+                }
+            } catch (err) {
+                console.warn(`[Nammerha Map] TileJSON fetch failed for ${sourceName}, keeping URL ref:`, err);
+                source.url = tileJsonUrl;
+            }
+        }
+
+        // Also fix any direct tiles array if present
+        if (Array.isArray(source.tiles)) {
+            source.tiles = (source.tiles as string[]).map(fixUrl);
+        }
+    }
+
+    return style;
 }
 
 // ─── Map Factory ────────────────────────────────────────────────────────────
 
-/**
- * Initialize a MapLibre GL JS map instance with Nammerha defaults:
- * - Syria-centered view
- * - RTL text plugin for Arabic labels
- * - Protocol-fixed tile server style
- * - Smooth animations and hardware-accelerated rendering
- *
- * @returns The MapLibre Map instance (ready for layers/controls)
- */
 export async function initMap(options: NammerhaMapOptions): Promise<maplibregl.Map> {
-    // Load RTL plugin before any map renders
     loadRTLPlugin();
 
     const showAttribution = options.attribution !== false;
 
-    // Fetch and fix the style protocol for HTTPS compatibility
+    // Fetch and comprehensively fix the style
     let style: string | maplibregl.StyleSpecification;
     try {
         style = await fetchAndFixStyle(getBasemapStyleUrl());
@@ -111,18 +153,16 @@ export async function initMap(options: NammerhaMapOptions): Promise<maplibregl.M
         fadeDuration: 200,
         maxZoom: 18,
         minZoom: 4,
-        // Fix ALL http:// URLs from tileserver-gl (runs behind Caddy HTTP proxy)
-        // This catches nested references in v3.json tiles[], fonts, sprites, etc.
+        // Comprehensive protocol fix for ALL dynamically generated URLs
         transformRequest: (url: string) => {
-            const currentHost = window.location.hostname;
-            if (url.startsWith(`http://${currentHost}`)) {
-                return { url: url.replace(`http://${currentHost}`, `https://${currentHost}`) };
+            const host = window.location.hostname;
+            if (url.startsWith(`http://${host}`)) {
+                return { url: url.replace(`http://${host}`, `https://${host}`) };
             }
             return { url };
         },
     });
 
-    // Add attribution at bottom-left (non-intrusive)
     if (showAttribution) {
         map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
     }
