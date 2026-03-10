@@ -12,7 +12,7 @@ import { t, tParams } from '../map/i18n-bridge';
  * Boot the interactive reconstruction map on the homepage.
  * Replaces the static placeholder with a live MapLibre GL JS instance.
  */
-function initHomepageMap(): void {
+async function initHomepageMap(): Promise<void> {
     const container = document.getElementById('main-map');
     if (!container) {
         console.warn('[Nammerha] #main-map container not found — skipping map init');
@@ -20,7 +20,7 @@ function initHomepageMap(): void {
     }
 
     // ─── Initialize Map ─────────────────────────────────────────────────
-    const map = initMap({
+    const map = await initMap({
         container: 'main-map',
         interactive: true,
         attribution: true,

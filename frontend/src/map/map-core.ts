@@ -45,25 +45,66 @@ export interface NammerhaMapOptions {
     attribution?: boolean;
 }
 
+// ─── Style Protocol Fixer ───────────────────────────────────────────────────
+
+/**
+ * Fetch the style JSON from the tile server and fix protocol mismatches.
+ *
+ * Problem: tileserver-gl runs behind Caddy (HTTP internally), so it generates
+ * `http://` URLs in style.json (glyphs, sources, sprites). But the browser
+ * accesses via `https://` through Cloudflare, causing mixed-content blocks.
+ *
+ * Solution: Fetch the style JSON, replace http:// with https:// for the
+ * current hostname, and return the fixed style object.
+ */
+async function fetchAndFixStyle(styleUrl: string): Promise<maplibregl.StyleSpecification> {
+    const response = await fetch(styleUrl);
+    if (!response.ok) {
+        throw new Error(`[Nammerha Map] Failed to load style: ${response.status} ${response.statusText}`);
+    }
+
+    const styleText = await response.text();
+    const currentHost = window.location.hostname;
+    const pageProtocol = window.location.protocol; // 'https:' or 'http:'
+
+    // Replace http:// with the page's protocol for same-host URLs only
+    const fixedText = styleText.replace(
+        new RegExp(`http://${currentHost.replace('.', '\\.')}`, 'g'),
+        `${pageProtocol}//${currentHost}`,
+    );
+
+    return JSON.parse(fixedText) as maplibregl.StyleSpecification;
+}
+
 // ─── Map Factory ────────────────────────────────────────────────────────────
 
 /**
  * Initialize a MapLibre GL JS map instance with Nammerha defaults:
  * - Syria-centered view
  * - RTL text plugin for Arabic labels
+ * - Protocol-fixed tile server style
  * - Smooth animations and hardware-accelerated rendering
  *
  * @returns The MapLibre Map instance (ready for layers/controls)
  */
-export function initMap(options: NammerhaMapOptions): maplibregl.Map {
+export async function initMap(options: NammerhaMapOptions): Promise<maplibregl.Map> {
     // Load RTL plugin before any map renders
     loadRTLPlugin();
 
     const showAttribution = options.attribution !== false;
 
+    // Fetch and fix the style protocol for HTTPS compatibility
+    let style: string | maplibregl.StyleSpecification;
+    try {
+        style = await fetchAndFixStyle(getBasemapStyleUrl());
+    } catch (error) {
+        console.error('[Nammerha Map] Style fetch failed, using URL fallback:', error);
+        style = getBasemapStyleUrl();
+    }
+
     const map = new maplibregl.Map({
         container: options.container,
-        style: getBasemapStyleUrl(),
+        style,
         center: options.center ?? SYRIA_CENTER,
         zoom: options.zoom ?? DEFAULT_ZOOM,
         attributionControl: false,
