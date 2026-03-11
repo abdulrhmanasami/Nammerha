@@ -118,31 +118,54 @@
     }
 
     // ─── Responsive Sidebar Toggle (Dashboard Pages) ────────────────────
+    // RADICAL FIX: Uses Tailwind 'hidden' class toggle instead of CSS transform.
+    // Sidebar starts hidden on mobile (class="hidden md:flex" in HTML).
+    // Toggle button removes 'hidden' and adds 'flex' to show it as a fixed overlay.
     function initSidebarToggle() {
         var sidebar = document.querySelector('.dashboard-sidebar');
-        if (!sidebar) return; // Not a dashboard page — bail silently
+        if (!sidebar) return;
 
         var toggleBtn = document.querySelector('.sidebar-toggle');
         var overlay = document.querySelector('.sidebar-overlay');
         if (!toggleBtn && !overlay) return;
 
         function openSidebar() {
-            sidebar.classList.add('sidebar-open');
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('flex');
+            // On mobile: position fixed, full height, above content
+            sidebar.style.position = 'fixed';
+            sidebar.style.top = '0';
+            sidebar.style.left = '0';
+            sidebar.style.bottom = '0';
+            sidebar.style.zIndex = '9998';
+            sidebar.style.width = '280px';
+            sidebar.style.boxShadow = '4px 0 24px rgba(0,0,0,0.15)';
             if (overlay) overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
         function closeSidebar() {
-            sidebar.classList.remove('sidebar-open');
+            // Only hide on mobile (< md breakpoint)
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('flex');
+                sidebar.style.position = '';
+                sidebar.style.top = '';
+                sidebar.style.left = '';
+                sidebar.style.bottom = '';
+                sidebar.style.zIndex = '';
+                sidebar.style.width = '';
+                sidebar.style.boxShadow = '';
+            }
             if (overlay) overlay.classList.remove('active');
             document.body.style.overflow = '';
         }
 
         if (toggleBtn) {
             toggleBtn.addEventListener('click', function () {
-                var isOpen = sidebar.classList.contains('sidebar-open');
-                if (isOpen) closeSidebar();
-                else openSidebar();
+                var isHidden = sidebar.classList.contains('hidden');
+                if (isHidden) openSidebar();
+                else closeSidebar();
             });
         }
 
@@ -160,7 +183,7 @@
 
         // Close on escape key
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && sidebar.classList.contains('sidebar-open')) {
+            if (e.key === 'Escape' && !sidebar.classList.contains('hidden')) {
                 closeSidebar();
             }
         });
