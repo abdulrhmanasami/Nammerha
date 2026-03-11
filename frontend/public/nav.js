@@ -135,10 +135,11 @@
             // On mobile: position fixed, full height, above content
             sidebar.style.position = 'fixed';
             sidebar.style.top = '0';
-            sidebar.style.left = '0';
             sidebar.style.bottom = '0';
+            sidebar.style.insetInlineStart = '0'; // RTL-aware: left in LTR, right in RTL
             sidebar.style.zIndex = '9998';
             sidebar.style.width = '280px';
+            sidebar.style.transform = 'translateX(0)'; // Override CSS translateX(-100%/100%)
             sidebar.style.boxShadow = '4px 0 24px rgba(0,0,0,0.15)';
             if (overlay) overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -151,10 +152,11 @@
                 sidebar.classList.remove('flex');
                 sidebar.style.position = '';
                 sidebar.style.top = '';
-                sidebar.style.left = '';
                 sidebar.style.bottom = '';
+                sidebar.style.insetInlineStart = '';
                 sidebar.style.zIndex = '';
                 sidebar.style.width = '';
+                sidebar.style.transform = '';
                 sidebar.style.boxShadow = '';
             }
             if (overlay) overlay.classList.remove('active');
