@@ -67,6 +67,10 @@
         <i class="ph ph-sign-in" aria-hidden="true"></i>
         <span id="login-submit-text" data-i18n="sign_in_btn">Sign In</span>
       </button>
+      <!-- PLT-AUD-002: Forgot Password Link -->
+      <div class="text-center mt-3">
+        <button type="button" id="forgot-password-btn" class="text-sm text-trust-blue font-medium hover:underline" data-i18n="forgot_password">Forgot your password?</button>
+      </div>
     </form>
 
     <!-- REGISTER FORM (hidden by default) -->
@@ -139,6 +143,19 @@
               <i class="ph ph-truck text-warning-yellow" aria-hidden="true"></i>
             </div>
             <span class="text-[11px] font-bold text-slate-700" data-i18n="role_supplier">Supplier</span>
+          </button>
+          <!-- PLT-AUD-003 FIX: Contractor and Tradesperson role cards -->
+          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="contractor">
+            <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue" aria-hidden="true"></i>
+            </div>
+            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_contractor">Contractor</span>
+          </button>
+          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="tradesperson">
+            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-wrench text-smoky-jade" aria-hidden="true"></i>
+            </div>
+            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_tradesperson">Tradesperson</span>
           </button>
         </div>
       </div>

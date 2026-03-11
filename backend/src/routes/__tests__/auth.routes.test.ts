@@ -93,7 +93,6 @@ describe('Auth Routes (HTTP Integration)', () => {
 
             expect(res.body.success).toBe(false);
             expect(res.body.error).toContain('Invalid role');
-            expect(res.body.error).toContain('donor, homeowner, engineer, supplier');
         });
 
         it('should return 400 for auditor self-registration', async () => {
@@ -171,7 +170,11 @@ describe('Auth Routes (HTTP Integration)', () => {
             expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
-        it('should return 201 with user data and JWT on successful registration', async () => {
+        // PLT-AUD-001 FIX: Registration now returns 200 with a generic response
+        // that is IDENTICAL to the existing-email path. No token, no user data.
+        // This is by design — the anti-enumeration defense requires both paths
+        // to be indistinguishable.
+        it('should return 200 with generic message on successful registration (anti-enumeration)', async () => {
             // DB: no existing user
             mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
             // DB: INSERT returns new user
@@ -182,6 +185,7 @@ describe('Auth Routes (HTTP Integration)', () => {
                     full_name: 'Test User',
                     role: 'donor',
                     is_active: false,
+                    is_email_verified: false,
                 }],
                 rowCount: 1,
             });
@@ -189,15 +193,13 @@ describe('Auth Routes (HTTP Integration)', () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send(VALID_BODY)
-                .expect(201);
+                .expect(200);
 
+            // Response must be identical to the existing-email response
             expect(res.body.success).toBe(true);
-            expect(res.body.data.user.user_id).toBe('new-uuid-001');
-            expect(res.body.data.user.role).toBe('donor');
-            expect(res.body.data.user.is_active).toBe(false);
-            expect(res.body.data.token).toBeDefined();
-            expect(typeof res.body.data.token).toBe('string');
-            expect(res.body.message).toContain('verify');
+            expect(res.body.message).toContain('verification email');
+            // NO user data or token should be present
+            expect(res.body.data).toBeUndefined();
         });
 
         it('should normalize email to lowercase in database queries', async () => {
@@ -206,6 +208,7 @@ describe('Auth Routes (HTTP Integration)', () => {
                 rows: [{
                     user_id: 'uuid', email: 'user@example.com',
                     full_name: 'Test', role: 'donor', is_active: false,
+                    is_email_verified: false,
                 }],
                 rowCount: 1,
             });
@@ -213,7 +216,7 @@ describe('Auth Routes (HTTP Integration)', () => {
             await request(app)
                 .post('/api/auth/register')
                 .send({ ...VALID_BODY, email: 'USER@Example.COM' })
-                .expect(201);
+                .expect(200);
 
             // Verify email was lowercased in the SELECT query
             expect(mockQuery).toHaveBeenCalledWith(

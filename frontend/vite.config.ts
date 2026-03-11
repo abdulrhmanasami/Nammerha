@@ -8,6 +8,8 @@ export default defineConfig({
             input: {
                 main: resolve(__dirname, 'index.html'),
                 auth: resolve(__dirname, 'auth.html'),
+                resetPassword: resolve(__dirname, 'reset-password.html'),
+                verifyEmail: resolve(__dirname, 'verify-email.html'),
                 wallet: resolve(__dirname, 'wallet.html'),
                 profile: resolve(__dirname, 'profile.html'),
                 homeownerReport: resolve(__dirname, 'homeowner-report.html'),

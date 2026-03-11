@@ -19,6 +19,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import { logger } from './utils/logger';
 import cookieParser from 'cookie-parser';
 
 // Load environment variables
@@ -266,9 +267,20 @@ function csrfProtection(
     next();
 }
 
+// PLT-AUD-004 FIX: Rate limiter for CSRF token generation.
+// crypto.randomBytes(32) consumes entropy — without throttling, an attacker
+// flooding this endpoint could exhaust the entropy pool and stall the event loop.
+const csrfLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,                     // 10 CSRF token requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many requests. Please try again later.' },
+});
+
 // Endpoint to obtain a CSRF token (the client calls this before making
 // state-changing requests without a Bearer token)
-app.get('/api/csrf-token', (_req, res) => {
+app.get('/api/csrf-token', csrfLimiter, (_req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     res.cookie('_csrf', token, {
         httpOnly: false,  // Client JS needs to read this to send as header
@@ -407,7 +419,7 @@ app.use((_req, res) => {
 // SEC-008 FIX: NEVER expose internal error messages to the client,
 // regardless of NODE_ENV. Internal details are logged server-side only.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error('[Server] Unhandled error:', err);
+    logger.error('Unhandled error in request pipeline', { error: err.message, stack: err.stack });
     res.status(500).json({
         success: false,
         error: 'Internal server error',
@@ -416,22 +428,20 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ─── Start Server & Graceful Shutdown (CRT-001: single listen) ──────────────
 const server = app.listen(PORT, () => {
-    console.warn(`
-╔════════════════════════════════════════════════════╗
-║       NAMMERHA BACKEND — OCDS Platform             ║
-║       Port: ${PORT}                                   ║
-║       Environment: ${process.env['NODE_ENV'] ?? 'development'}                    ║
-╚════════════════════════════════════════════════════╝
-    `);
+    logger.info('Nammerha backend started', {
+        port: PORT,
+        environment: process.env['NODE_ENV'] ?? 'development',
+        pid: process.pid,
+    });
 });
 
 async function gracefulShutdown(signal: string): Promise<void> {
-    console.warn(`[Nammerha] ${signal} received — shutting down gracefully...`);
+    logger.info('Graceful shutdown initiated', { signal });
 
     // LOW-AUD-002 FIX: Force-kill safety net — if draining hangs, forcibly exit
     // after 30 seconds to prevent zombie processes.
     const forceKillTimer = setTimeout(() => {
-        console.error('[Nammerha] Graceful shutdown timed out after 30s — forcing exit.');
+        logger.error('Graceful shutdown timed out after 30s — forcing exit');
         process.exit(1);
     }, 30_000);
     forceKillTimer.unref(); // Don't prevent exit if everything cleans up before 30s
@@ -439,7 +449,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
     // 1. Stop accepting new connections
     await new Promise<void>((resolve) => {
         server.close(() => {
-            console.warn('[Nammerha] HTTP server closed — no new connections accepted.');
+            logger.info('HTTP server closed — no new connections accepted');
             resolve();
         });
     });
@@ -448,13 +458,15 @@ async function gracefulShutdown(signal: string): Promise<void> {
     try {
         const { default: pool } = await import('./config/database');
         await pool.end();
-        console.warn('[Nammerha] Database pool drained — all connections released.');
+        logger.info('Database pool drained — all connections released');
     } catch (err) {
-        console.error('[Nammerha] Error closing database pool:', err);
+        logger.error('Error closing database pool', {
+            error: err instanceof Error ? err.message : String(err),
+        });
     }
 
     // 3. Clean exit
-    console.warn('[Nammerha] Graceful shutdown complete. Goodbye.');
+    logger.info('Graceful shutdown complete');
     process.exit(0);
 }
 

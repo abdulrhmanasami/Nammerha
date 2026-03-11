@@ -1,6 +1,27 @@
 import '../styles/main.css';
 import { auth } from '../api';
 
+// PLT-AUD-002: API helper for forgot password
+const API_BASE = '/api';
+
+// PLT-AUD-010: Type-safe i18n runtime lookup
+interface NammerhaI18nApi {
+    switchLanguage: (code: string) => void;
+    getCurrentLang: () => string;
+    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
+    t: (key: string, fallback?: string) => string;
+}
+declare global {
+    interface Window {
+        NammerhaI18n?: NammerhaI18nApi;
+    }
+}
+
+/** Safe i18n lookup — returns fallback if engine not yet loaded */
+function t(key: string, fallback: string): string {
+    return window.NammerhaI18n?.t(key, fallback) ?? fallback;
+}
+
 // ============================================================================
 // Nammerha — Auth Page Engine (Login + Register)
 // P0-003 FIX: Full authentication UI with API integration
@@ -191,7 +212,7 @@ formLogin?.addEventListener('submit', async (e) => {
     const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
 
     if (!email || !password) {
-        showBanner('error', 'Please enter your email and password.');
+        showBanner('error', t('auth_enter_email_password', 'Please enter your email and password.'));
         return;
     }
 
@@ -199,27 +220,27 @@ formLogin?.addEventListener('submit', async (e) => {
     const submitBtn = document.getElementById('login-submit') as HTMLButtonElement | null;
     const submitText = document.getElementById('login-submit-text');
     if (submitBtn) { submitBtn.disabled = true; }
-    if (submitText) { submitText.textContent = 'Signing in...'; }
+    if (submitText) { submitText.textContent = t('auth_signing_in', 'Signing in...'); }
 
     try {
         const response = await auth.login({ email, password });
         if (response.success && response.data) {
             // Store token and redirect
             localStorage.setItem('nammerha_token', response.data.token);
-            showBanner('success', 'Welcome back! Redirecting...');
+            showBanner('success', t('auth_welcome_back', 'Welcome back! Redirecting...'));
             setTimeout(() => {
                 window.location.href = '/';
             }, 800);
         } else {
-            showBanner('error', response.error ?? 'Invalid credentials. Please try again.');
+            showBanner('error', response.error ?? t('auth_login_failed', 'Invalid credentials. Please try again.'));
         }
     } catch (err) {
-        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        const message = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
         showBanner('error', message);
     } finally {
         state.isSubmitting = false;
         if (submitBtn) { submitBtn.disabled = false; }
-        if (submitText) { submitText.textContent = 'Sign In'; }
+        if (submitText) { submitText.textContent = t('sign_in_btn', 'Sign In'); }
     }
 });
 
@@ -228,7 +249,7 @@ formRegister?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (state.isSubmitting) { return; }
     if (!state.selectedRole) {
-        showBanner('error', 'Please select your role.');
+        showBanner('error', t('auth_select_role', 'Please select your role.'));
         return;
     }
 
@@ -242,19 +263,19 @@ formRegister?.addEventListener('submit', async (e) => {
     }
 
     if (password.length < 8) {
-        showBanner('error', 'Password must be at least 8 characters.');
+        showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
         return;
     }
 
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-        showBanner('error', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
+        showBanner('error', t('auth_password_weak', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
         return;
     }
 
     state.isSubmitting = true;
     if (regSubmit) { regSubmit.disabled = true; }
     const submitText = document.getElementById('reg-submit-text');
-    if (submitText) { submitText.textContent = 'Creating account...'; }
+    if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
     try {
         const response = await auth.register({
@@ -264,25 +285,27 @@ formRegister?.addEventListener('submit', async (e) => {
             role: state.selectedRole,
         });
 
+        // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
+        // The user must verify their email first, then log in.
         if (response.success) {
-            showBanner('success', 'Account created! You can now sign in.');
+            showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Please check your email to verify your account.'));
             // Switch to login tab after successful registration
             setTimeout(() => {
                 switchTab('login');
                 // Pre-fill email
                 const loginEmail = document.getElementById('login-email') as HTMLInputElement | null;
                 if (loginEmail) { loginEmail.value = email; }
-            }, 1200);
+            }, 2000);
         } else {
-            showBanner('error', response.error ?? 'Registration failed. Please try again.');
+            showBanner('error', response.error ?? t('auth_reg_failed', 'Registration failed. Please try again.'));
         }
     } catch (err) {
-        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        const message = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
         showBanner('error', message);
     } finally {
         state.isSubmitting = false;
         if (regSubmit) { regSubmit.disabled = false; }
-        if (submitText) { submitText.textContent = 'Create Account'; }
+        if (submitText) { submitText.textContent = t('auth_creating_account', 'Create Account'); }
     }
 });
 
@@ -296,3 +319,35 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// ─── PLT-AUD-002: Forgot Password Handler ───────────────────────────────────
+const forgotBtn = document.getElementById('forgot-password-btn');
+forgotBtn?.addEventListener('click', async () => {
+    const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
+    if (!email) {
+        showBanner('error', t('auth_forgot_enter_email', 'Please enter your email address first, then click "Forgot your password?"'));
+        return;
+    }
+
+    forgotBtn.textContent = t('auth_forgot_sending', 'Sending...');
+    (forgotBtn as HTMLButtonElement).disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+        const data = await res.json() as { success: boolean; message?: string; error?: string };
+        if (data.success) {
+            showBanner('success', data.message ?? 'If an account with that email exists, a password reset link has been sent.');
+        } else {
+            showBanner('error', data.error ?? 'Something went wrong. Please try again.');
+        }
+    } catch (err) {
+        showBanner('error', err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.'));
+    } finally {
+        forgotBtn.textContent = t('auth_forgot_link_text', 'Forgot your password?');
+        (forgotBtn as HTMLButtonElement).disabled = false;
+    }
+});

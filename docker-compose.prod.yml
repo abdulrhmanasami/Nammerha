@@ -218,6 +218,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+    # PLT-AUD-011 FIX: Read-only filesystem prevents backdoor implantation.
+    # tmpfs for /tmp allows Node.js to write temp files as needed.
+    read_only: true
+    tmpfs:
+      - /tmp:size=32M
 
   # ── SMTP Relay: Self-Hosted Postfix (OPS-2) ──────────────────────────
   # Zero external email service dependency — runs entirely on your own server.

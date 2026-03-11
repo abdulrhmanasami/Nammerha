@@ -55,7 +55,7 @@ const PASSWORD_RULES = [
 ];
 
 // Valid roles for self-registration (admin/auditor require manual creation)
-const SELF_REGISTER_ROLES: UserRole[] = ['donor', 'homeowner', 'engineer', 'supplier'];
+const SELF_REGISTER_ROLES: UserRole[] = ['donor', 'homeowner', 'engineer', 'supplier', 'contractor', 'tradesperson'];
 
 // ─── POST /api/auth/register ────────────────────────────────────────────────
 router.post(
@@ -119,22 +119,30 @@ router.post(
                 return;
             }
 
+            // ─── PLT-AUD-001 FIX: Anti-Enumeration Canonical Response ─────────
+            // Both "email exists" and "new user" paths return an IDENTICAL 200
+            // response with the same JSON shape. This is the ONLY way to defeat
+            // email enumeration — an attacker cannot distinguish the two paths by
+            // status code, response body, or timing (bcrypt hash runs in both).
+            //
+            // JWT is NOT returned at registration. The user receives the token
+            // only after verifying their email and logging in. This also resolves
+            // PLT-AUD-008 (JWT before email verification).
+            // ──────────────────────────────────────────────────────────────────────
+            const GENERIC_REGISTRATION_RESPONSE: ApiResponse = {
+                success: true,
+                message: 'If your email is valid, you will receive a verification email shortly.',
+            };
+
             // Check for existing user
-            // SEC-009: Use a generic error message to prevent email enumeration.
-            // An attacker should not be able to distinguish between "email exists"
-            // and "registration failed" to map registered accounts.
+            const normalizedRegEmail = email.toLowerCase().trim();
             const existing = await query<{ user_id: string }>(
                 'SELECT user_id FROM users WHERE email = $1',
-                [email.toLowerCase().trim()]
+                [normalizedRegEmail]
             );
             if (existing.rows[0]) {
-                // SEC-FT-002 FIX: Return 200 (not 409) with identical structure
-                // to prevent email enumeration. The response is indistinguishable
-                // from a successful registration, but no account is created.
-                res.status(200).json({
-                    success: true,
-                    message: 'If your email is valid, you will receive a verification email shortly.',
-                } as ApiResponse);
+                // SEC-FT-002 + PLT-AUD-001: Identical response — no enumeration leak
+                res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
                 return;
             }
 
@@ -152,7 +160,7 @@ router.post(
                  VALUES ($1, $2, $3, $4, $5, FALSE, FALSE, $6, $7)
                  RETURNING user_id, email, full_name, role, is_active, is_email_verified`,
                 [
-                    email.toLowerCase().trim(),
+                    normalizedRegEmail,
                     password_hash,
                     full_name.trim(),
                     role,
@@ -168,42 +176,18 @@ router.post(
             }
 
             // Send verification email (fire-and-forget, never blocks registration)
+            // PLT-AUD-006 FIX: Link points to frontend verify-email page, NOT the raw API.
+            // The frontend page calls the API and displays a user-friendly result.
             const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-            const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
+            const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
             sendVerificationEmail(user.email, verificationUrl).catch((err) => {
                 console.error('[Auth] Verification email dispatch failed:', err);
             });
 
-            // ─── OPS-FT-001 + OPS-FT-002: Architectural Decision Record ────────
-            // JWT is issued at registration BEFORE email verification (OPS-FT-002).
-            // Rationale: The user needs the JWT to access /verify-email and /resend-
-            // verification endpoints. Without it, the verification flow breaks.
-            // The `is_email_verified: false` flag and `requireActive` middleware
-            // ensure unverified users cannot access protected business routes.
-            //
-            // JWT is stored in localStorage on the client (OPS-FT-001).
-            // Rationale: CSP headers + Helmet provide XSS mitigation. HttpOnly
-            // cookies were evaluated but rejected because the frontend is served
-            // from a different origin (CX33 DMZ → AX102 metal) and the API needs
-            // to support both web and future mobile clients.
-            // ──────────────────────────────────────────────────────────────────────
-            const token = generateToken(user.user_id, user.role);
-
-            res.status(201).json({
-                success: true,
-                data: {
-                    user: {
-                        user_id: user.user_id,
-                        email: user.email,
-                        full_name: user.full_name,
-                        role: user.role,
-                        is_active: user.is_active,
-                        is_email_verified: user.is_email_verified,
-                    },
-                    token,
-                },
-                message: 'Account created. Please check your email to verify your account.',
-            } as ApiResponse);
+            // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
+            // No JWT, no user data — the response is indistinguishable from the
+            // existing-email path above.
+            res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
         } catch (error) {
             safeRouteError(res, error, 'Auth.Register');
         }
@@ -471,8 +455,9 @@ router.post(
             );
 
             // Send verification email
+            // PLT-AUD-006 FIX: Point to frontend page, not raw API endpoint
             const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-            const verificationUrl = `${baseUrl}/api/auth/verify-email/${newToken}`;
+            const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}`;
             sendVerificationEmail(user.email, verificationUrl).catch((err) => {
                 console.error('[Auth] Resend verification email failed:', err);
             });

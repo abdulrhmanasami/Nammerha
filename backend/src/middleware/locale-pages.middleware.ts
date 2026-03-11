@@ -310,8 +310,7 @@ localeRouter.get(
         if (!Object.hasOwn(PAGE_REGISTRY, pageSlug)) {
             res.status(404).json({
                 success: false,
-                error: `Page "${pageSlug}" not found.`,
-                availablePages: Object.keys(PAGE_REGISTRY),
+                error: 'Page not found.',
             });
             return;
         }

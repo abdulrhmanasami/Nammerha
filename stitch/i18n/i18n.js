@@ -309,6 +309,23 @@
         'failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
         'tp_failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
         'tp_failed_profile': { ar: 'فشل في تحميل الملف الشخصي', de: 'Profil konnte nicht geladen werden', fr: 'Échec du chargement du profil', tr: 'Profil yüklenemedi' },
+
+        // ═══ AUTH PAGE (PLT-AUD-010 FIX) ═══
+        'auth_signing_in': { ar: 'جارٍ تسجيل الدخول...', de: 'Wird angemeldet...', fr: 'Connexion en cours...', tr: 'Giriş yapılıyor...' },
+        'auth_creating_account': { ar: 'جارٍ إنشاء الحساب...', de: 'Konto wird erstellt...', fr: 'Création du compte...', tr: 'Hesap oluşturuluyor...' },
+        'auth_welcome_back': { ar: 'أهلاً بعودتك! جارٍ التحويل...', de: 'Willkommen zurück! Weiterleitung...', fr: 'Bon retour ! Redirection...', tr: 'Tekrar hoş geldiniz! Yönlendiriliyor...' },
+        'auth_enter_email_password': { ar: 'يرجى إدخال البريد الإلكتروني وكلمة المرور.', de: 'Bitte E-Mail und Passwort eingeben.', fr: 'Veuillez entrer votre e-mail et mot de passe.', tr: 'Lütfen e-posta ve şifrenizi girin.' },
+        'auth_network_error': { ar: 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.', de: 'Netzwerkfehler. Bitte versuchen Sie es erneut.', fr: 'Erreur réseau. Veuillez réessayer.', tr: 'Ağ hatası. Lütfen tekrar deneyin.' },
+        'auth_login_failed': { ar: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.', de: 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.', fr: 'Échec de la connexion. Veuillez réessayer.', tr: 'Giriş başarısız. Lütfen tekrar deneyin.' },
+        'auth_reg_success': { ar: 'تم إنشاء الحساب! يرجى التحقق من بريدك الإلكتروني.', de: 'Konto erstellt! Bitte prüfen Sie Ihre E-Mail.', fr: 'Compte créé ! Vérifiez votre e-mail.', tr: 'Hesap oluşturuldu! E-postanızı kontrol edin.' },
+        'auth_reg_failed': { ar: 'فشل التسجيل. يرجى المحاولة مرة أخرى.', de: 'Registrierung fehlgeschlagen.', fr: 'Échec de l\'inscription.', tr: 'Kayıt başarısız.' },
+        'auth_select_role': { ar: 'يرجى اختيار الدور.', de: 'Bitte eine Rolle auswählen.', fr: 'Veuillez sélectionner un rôle.', tr: 'Lütfen bir rol seçin.' },
+        'auth_password_weak': { ar: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل مع حرف كبير ورقم وحرف خاص.', de: 'Passwort muss mindestens 8 Zeichen mit Großbuchstabe, Zahl und Sonderzeichen enthalten.', fr: 'Le mot de passe doit contenir au moins 8 caractères avec majuscule, chiffre et caractère spécial.', tr: 'Şifre en az 8 karakter, büyük harf, rakam ve özel karakter içermelidir.' },
+        'auth_forgot_enter_email': { ar: 'يرجى إدخال بريدك الإلكتروني أولاً.', de: 'Bitte geben Sie zuerst Ihre E-Mail ein.', fr: 'Veuillez d\'abord entrer votre e-mail.', tr: 'Lütfen önce e-postanızı girin.' },
+        'auth_forgot_sending': { ar: 'جارٍ الإرسال...', de: 'Wird gesendet...', fr: 'Envoi en cours...', tr: 'Gönderiliyor...' },
+        'auth_forgot_link_text': { ar: 'هل نسيت كلمة المرور؟', de: 'Passwort vergessen?', fr: 'Mot de passe oublié ?', tr: 'Şifrenizi mi unuttunuz?' },
+        'auth_reset_resetting': { ar: 'جارٍ إعادة التعيين...', de: 'Wird zurückgesetzt...', fr: 'Réinitialisation...', tr: 'Sıfırlanıyor...' },
+        'auth_passwords_mismatch': { ar: 'كلمات المرور غير متطابقة.', de: 'Passwörter stimmen nicht überein.', fr: 'Les mots de passe ne correspondent pas.', tr: 'Şifreler uyuşmuyor.' },
     };
 
     // ─── State ────────────────────────────────────────────────────────────
@@ -714,6 +731,20 @@
         switchLanguage: applyLanguage,
         getCurrentLang: function () { return currentLang; },
         getSupportedLangs: function () { return LANGS.slice(); },
+        /**
+         * PLT-AUD-010: Runtime translation lookup for JavaScript-generated strings.
+         * Usage: window.NammerhaI18n.t('auth_signing_in', 'Signing in...')
+         * Returns the translated string if available, otherwise the fallback.
+         *
+         * @param {string} key - The i18n dictionary key
+         * @param {string} [fallback] - Fallback text if key not found or lang=en
+         * @returns {string}
+         */
+        t: function (key, fallback) {
+            if (currentLang === 'en') return fallback || key;
+            if (DICT[key] && DICT[key][currentLang]) return DICT[key][currentLang];
+            return fallback || key;
+        },
     };
 
 })();

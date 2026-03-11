@@ -529,13 +529,33 @@ export const paymentService = {
                         console.error(`[Payment] BOQ item ${payment.item_id} not found during webhook processing`);
                     } else {
                         // 4b. Calculate remaining need (P2-001 FIX: integer-safe BigInt arithmetic)
+                        //
+                        // PLT-AUD-009 FIX: Defensive decimal-to-integer conversion.
+                        // ─────────────────────────────────────────────────────────
+                        // GUARANTEE: required_quantity is DECIMAL(12,2) in the DB schema
+                        // (migration 001, line 258). However, as defense-in-depth, we
+                        // explicitly truncate to 2 decimal places. If the schema ever
+                        // changes or a computed column is added, this guard prevents
+                        // silent precision loss in financial calculations.
+                        //
+                        // Algorithm: Convert decimal to integer-cents by multiplying
+                        // by 100. e.g. 12.50 → split("12", "50") → 12*100 + 50 = 1250
                         const priceStr = String(boqItem.unit_price);
                         const qtyStr = String(boqItem.required_quantity);
                         const fundedStr = String(boqItem.funded_amount);
 
                         const qtyParts = qtyStr.split('.');
                         const qtyIntPart = qtyParts[0] ?? '0';
-                        const qtyDecPart = (qtyParts[1] ?? '').padEnd(2, '0').slice(0, 2);
+                        // Truncate decimal part to exactly 2 digits (defense-in-depth).
+                        // padEnd ensures "1.5" → "50", slice(0,2) ensures "1.553" → "55".
+                        const rawDecPart = qtyParts[1] ?? '';
+                        const qtyDecPart = rawDecPart.padEnd(2, '0').slice(0, 2);
+
+                        // Validate: decimal part must be purely numeric after truncation
+                        if (!/^\d{2}$/.test(qtyDecPart)) {
+                            console.error(`[Payment] PLT-AUD-009: Invalid quantity decimal "${qtyStr}" for BOQ ${payment.item_id}`);
+                            // Fail-safe: skip escrow rather than corrupt financial data
+                        } else {
                         const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
 
                         const totalCost = Number((BigInt(priceStr) * qtyFixed) / 100n);
@@ -582,6 +602,7 @@ export const paymentService = {
                                 );
                             }
                         }
+                        } // PLT-AUD-009: close decimal validation else
                     }
                 } catch (escrowErr) {
                     // P1-005 FIX: Record failure in audit_trail instead of silently swallowing.
