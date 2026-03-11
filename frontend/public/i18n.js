@@ -845,9 +845,26 @@
                 navbar.appendChild(widget);
             }
         } else {
-            // Fallback: append to body with fixed positioning
-            widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
-            document.body.appendChild(widget);
+            // Admin dashboard pages: inject into the header bar
+            var dashHeader = document.querySelector('header .page-header-title');
+            if (dashHeader) {
+                var headerBar = dashHeader.closest('header');
+                if (headerBar) {
+                    // Insert into the right-side flex container of the header
+                    var rightGroup = headerBar.querySelector('.flex.items-center.gap-4');
+                    if (rightGroup) {
+                        rightGroup.insertBefore(widget, rightGroup.firstChild);
+                    } else {
+                        headerBar.appendChild(widget);
+                    }
+                } else {
+                    document.body.appendChild(widget);
+                }
+            } else {
+                // Final fallback: append to body with fixed positioning
+                widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+                document.body.appendChild(widget);
+            }
         }
 
         // Apply stored/detected language
