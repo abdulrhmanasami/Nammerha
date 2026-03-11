@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ─── Concierge Escrow — Interactive Controller ─── */
 
@@ -251,7 +252,7 @@ function showToast(message: string): void {
     toast.style.animation = 'slideUp 0.3s ease-out';
     toast.innerHTML = `
     <i class="ph ph-check-circle text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-    <span class="text-sm font-medium">${message}</span>
+    <span class="text-sm font-medium">${esc(message)}</span>
   `;
 
     if (!document.getElementById('toast-styles')) {

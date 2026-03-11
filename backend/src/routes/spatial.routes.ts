@@ -8,6 +8,7 @@ import { requireRole } from '../middleware/role-guard.middleware';
 import * as satellite from '../services/satellite.service';
 import * as geofencing from '../services/geofencing.service';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -43,9 +44,7 @@ router.get('/satellite/project/:id/timeline', async (req: Request, res: Response
 
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Satellite] Timeline fetch failed:', error);
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Spatial.SatelliteTimeline');
     }
 });
 
@@ -69,9 +68,7 @@ router.get('/satellite/:id', async (req: Request, res: Response) => {
 
         res.json({ success: true, data: image } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Satellite] Image fetch failed:', error);
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Spatial.SatelliteImage');
     }
 });
 
@@ -90,9 +87,7 @@ router.get('/satellite/project/:id/stats', async (req: Request, res: Response) =
         const stats = await satellite.getProjectImageryStats(String(projectId));
         res.json({ success: true, data: stats } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Satellite] Stats fetch failed:', error);
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Spatial.SatelliteStats');
     }
 });
 
@@ -126,9 +121,7 @@ router.post(
             const result = await satellite.registerImagery(body, userId);
             res.status(201).json({ success: true, data: result } as ApiResponse);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[Satellite] Registration failed:', error);
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Spatial');
         }
     },
 );
@@ -156,9 +149,7 @@ router.delete(
 
             res.json({ success: true, data: { deleted: true } } as ApiResponse);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[Satellite] Deletion failed:', error);
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Spatial.SatelliteDelete');
         }
     },
 );
@@ -187,9 +178,7 @@ router.post('/geofencing/check', async (req: Request, res: Response) => {
         const result = await geofencing.checkProjectCompliance(lat, lng);
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Geofencing] Compliance check failed:', error);
-        res.status(400).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Spatial');
     }
 });
 
@@ -202,9 +191,7 @@ router.get('/geofencing/zones/geojson', async (_req: Request, res: Response) => 
         const geojson = await geofencing.getActiveZonesGeoJSON();
         res.json({ success: true, data: geojson } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Geofencing] GeoJSON fetch failed:', error);
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Spatial.GeofencingGeoJSON');
     }
 });
 
@@ -229,9 +216,7 @@ router.get(
 
             res.json({ success: true, data: result } as ApiResponse);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[Geofencing] Zone list failed:', error);
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Spatial.GeofencingZones');
         }
     },
 );
@@ -264,9 +249,7 @@ router.post(
             const zone = await geofencing.createZone(body, userId);
             res.status(201).json({ success: true, data: zone } as ApiResponse);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[Geofencing] Zone creation failed:', error);
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Spatial');
         }
     },
 );
@@ -294,9 +277,7 @@ router.delete(
 
             res.json({ success: true, data: { deactivated: true } } as ApiResponse);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            console.error('[Geofencing] Zone deactivation failed:', error);
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Spatial.GeofencingDeleteZone');
         }
     },
 );

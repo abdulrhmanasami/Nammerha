@@ -5,6 +5,7 @@
 import './styles/main.css';
 import { renderCartBadge } from './components/cart';
 import { marketplace, openData } from './api';
+import { escapeHtml } from './utils/xss';
 
 // ─── Map Initialization (self-executing on DOMContentLoaded) ────────────────
 // Must be imported here so Vite includes it in the production bundle.
@@ -52,7 +53,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
     <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up" style="${delay}">
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
-            ? `<img src="${project.cover_image_url}" class="absolute inset-0 w-full h-full object-cover" alt="${project.title}" loading="lazy" />`
+            ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
             : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60" style="font-size:48px" aria-hidden="true"></i></div>`}
         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
           <i class="ph ph-seal-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
@@ -61,7 +62,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
       </div>
       <div class="p-4 flex flex-col flex-1">
         <div class="flex justify-between items-start mb-2">
-          <h3 class="font-bold text-base leading-tight">${project.title}</h3>
+          <h3 class="font-bold text-base leading-tight">${escapeHtml(project.title)}</h3>
           <div class="relative size-10 shrink-0">
             <svg class="size-full -rotate-90" viewBox="0 0 36 36">
               <circle class="stroke-slate-200" cx="18" cy="18" r="16" fill="none" stroke-width="3"></circle>

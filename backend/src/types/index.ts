@@ -75,6 +75,13 @@ export interface User {
     engineering_license_number: string | null;
     guild_membership_id: string | null;
     is_active: boolean;
+    // Email verification (Migration 017)
+    is_email_verified: boolean;
+    email_verification_token: string | null;
+    email_token_expires_at: Date | null;
+    // Password reset (Migration 018)
+    password_reset_token: string | null;
+    reset_token_expires_at: Date | null;
     created_at: Date;
     updated_at: Date;
 }
@@ -459,6 +466,7 @@ export interface AuthUser {
 
 // Extend Express Request to include auth user
 declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace -- Declaration merging for Express.Request requires namespace syntax
     namespace Express {
         interface Request {
             authUser?: AuthUser;

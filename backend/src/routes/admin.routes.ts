@@ -1,10 +1,12 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Admin Routes (Path 4)
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as escrowService from '../services/escrow.service';
+import { safeRouteError } from '../utils/safe-error';
 import type { ReleaseEscrowDTO, FlagDiscrepancyDTO, ApiResponse } from '../types';
 
 const router = Router();
@@ -29,8 +31,7 @@ router.get(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Admin.GetVerifications');
         }
     }
 );
@@ -52,7 +53,7 @@ router.post(
                 return;
             }
 
-            const result = await escrowService.releaseEscrow(req.authUser!.user_id, dto);
+            const result = await escrowService.releaseEscrow(getAuthUser(req).user_id, dto);
 
             const response: ApiResponse = {
                 success: true,
@@ -61,9 +62,7 @@ router.post(
             };
             res.status(200).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Admin.ReleaseEscrow');
         }
     }
 );
@@ -85,7 +84,7 @@ router.post(
                 return;
             }
 
-            const proof = await escrowService.flagDiscrepancy(req.authUser!.user_id, dto);
+            const proof = await escrowService.flagDiscrepancy(getAuthUser(req).user_id, dto);
 
             const response: ApiResponse = {
                 success: true,
@@ -94,8 +93,7 @@ router.post(
             };
             res.status(200).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Admin.FlagDiscrepancy');
         }
     }
 );

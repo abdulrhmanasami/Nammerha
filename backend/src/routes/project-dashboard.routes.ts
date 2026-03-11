@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Project Dashboard Routes (Ticket 7.3)
 // Client-facing bird's eye view with daily logs + digital approvals
 // ============================================================================
@@ -7,6 +8,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as dashboard from '../services/project-dashboard.service';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -26,10 +28,8 @@ router.get(
                 data: overview,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'ProjectDashboard');
         }
     }
 );
@@ -51,9 +51,8 @@ router.get(
                 message: `${logs.length} daily logs`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'ProjectDashboard');
         }
     }
 );
@@ -75,7 +74,7 @@ router.post(
             }
 
             const log = await dashboard.createDailyLog(
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 String(req.params.projectId),
                 dto
             );
@@ -87,9 +86,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('assigned') ? 403 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'ProjectDashboard');
         }
     }
 );
@@ -111,7 +108,7 @@ router.post(
             }
 
             const approval = await dashboard.requestApproval(
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 String(req.params.projectId),
                 dto
             );
@@ -123,8 +120,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'ProjectDashboard');
         }
     }
 );
@@ -150,7 +146,7 @@ router.patch(
 
             const approval = await dashboard.respondToApproval(
                 String(req.params.approvalId),
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 decision,
                 note
             );
@@ -162,9 +158,7 @@ router.patch(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'ProjectDashboard');
         }
     }
 );
@@ -184,9 +178,8 @@ router.get(
                 message: `${approvals.length} approvals`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'ProjectDashboard');
         }
     }
 );

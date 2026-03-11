@@ -118,6 +118,55 @@
         }
     }
 
+    // ─── Responsive Sidebar Toggle (Dashboard Pages) ────────────────────
+    function initSidebarToggle() {
+        var sidebar = document.querySelector('.dashboard-sidebar');
+        if (!sidebar) return; // Not a dashboard page — bail silently
+
+        var toggleBtn = document.querySelector('.sidebar-toggle');
+        var overlay = document.querySelector('.sidebar-overlay');
+        if (!toggleBtn && !overlay) return;
+
+        function openSidebar() {
+            sidebar.classList.add('sidebar-open');
+            if (overlay) overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('sidebar-open');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                var isOpen = sidebar.classList.contains('sidebar-open');
+                if (isOpen) closeSidebar();
+                else openSidebar();
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar on navigation link click (mobile)
+        var sidebarLinks = sidebar.querySelectorAll('a[href]');
+        for (var i = 0; i < sidebarLinks.length; i++) {
+            sidebarLinks[i].addEventListener('click', function () {
+                if (window.innerWidth < 768) closeSidebar();
+            });
+        }
+
+        // Close on escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('sidebar-open')) {
+                closeSidebar();
+            }
+        });
+    }
+
     // ─── Init ────────────────────────────────────────────────────────────
     function init() {
         removeOldNavs();
@@ -128,6 +177,8 @@
             var currentPadding = parseInt(window.getComputedStyle(main).paddingBottom, 10) || 0;
             if (currentPadding < 80) main.style.paddingBottom = '96px';
         }
+
+        initSidebarToggle();
     }
 
     if (document.readyState === 'loading') {

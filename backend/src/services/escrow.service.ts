@@ -165,7 +165,7 @@ export async function releaseEscrow(
             [dto.proof_id]
         );
         const proof = proofResult.rows[0];
-        if (!proof) throw new Error(`Spatial proof ${dto.proof_id} not found`);
+        if (!proof) {throw new Error(`Spatial proof ${dto.proof_id} not found`);}
         if (proof.verification_status !== 'submitted') {
             throw new Error(`Proof already processed: status is '${proof.verification_status}'`);
         }
@@ -271,7 +271,7 @@ export async function flagDiscrepancy(
         );
 
         const proof = result.rows[0];
-        if (!proof) throw new Error(`Proof ${dto.proof_id} not found or already processed`);
+        if (!proof) {throw new Error(`Proof ${dto.proof_id} not found or already processed`);}
 
         // Notify engineer
         // HGH-AUD-007 FIX: Use i18n template keys

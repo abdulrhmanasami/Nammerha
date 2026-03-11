@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { donations, spatialProof } from '../api';
+import { escapeHtml as esc } from '../utils/xss';
 
 // ============================================================================
 // Nammerha — Donor Proof of Delivery Page Engine
@@ -118,7 +119,7 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
     if (verifiedBy && proof.verified_by_name) {
         verifiedBy.innerHTML = `
             <i class="ph ph-shield-check text-trust-blue ph-sm" aria-hidden="true"></i>
-            Verified by ${proof.verified_by_name}
+            Verified by ${esc(proof.verified_by_name)}
         `;
     }
 

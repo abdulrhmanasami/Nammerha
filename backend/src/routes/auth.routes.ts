@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Auth Routes
 // POST /api/auth/register  — Create a new user account
 // POST /api/auth/login     — Authenticate and receive JWT token
@@ -7,11 +8,14 @@
 // SEC-003: Password max length (128 chars) to prevent bcrypt DoS
 // SEC-009: Generic registration errors to prevent email enumeration
 // ============================================================================
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import crypto from 'node:crypto';
 import { query } from '../config/database';
-import { generateToken } from '../middleware/auth.middleware';
+import { generateToken, authMiddleware } from '../middleware/auth.middleware';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.service';
 import type { User, UserRole, ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -29,8 +33,17 @@ const LOCKOUT_DURATION_MINUTES = 15;
 
 const BCRYPT_SALT_ROUNDS = 12;
 
-// RFC 5322 simplified email validation
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+// Email verification token expiry
+const VERIFICATION_TOKEN_EXPIRY_HOURS = 24;
+// Password reset token expiry
+const RESET_TOKEN_EXPIRY_MINUTES = 60;
+// Resend verification rate limit (seconds)
+const RESEND_COOLDOWN_SECONDS = 60;
+
+// SEC-FIELD-002 FIX: ReDoS-safe email validation. The original RFC 5322 pattern
+// had nested quantifiers `(?:...)*` causing catastrophic backtracking on crafted input.
+// This version uses bounded {1,63} domain labels and requires at least one dot (TLD).
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,63}(?:\.[a-zA-Z]{2,63}){0,3}$/;
 
 // Password complexity: min 8 chars, 1 upper, 1 lower, 1 digit, 1 special
 const PASSWORD_RULES = [
@@ -47,7 +60,7 @@ const SELF_REGISTER_ROLES: UserRole[] = ['donor', 'homeowner', 'engineer', 'supp
 // ─── POST /api/auth/register ────────────────────────────────────────────────
 router.post(
     '/register',
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response): Promise<void> => {
         try {
             const { email, password, full_name, role, phone } = req.body as {
                 email: string;
@@ -115,9 +128,12 @@ router.post(
                 [email.toLowerCase().trim()]
             );
             if (existing.rows[0]) {
-                res.status(409).json({
-                    success: false,
-                    error: 'Registration failed. Please try again or contact support.',
+                // SEC-FT-002 FIX: Return 200 (not 409) with identical structure
+                // to prevent email enumeration. The response is indistinguishable
+                // from a successful registration, but no account is created.
+                res.status(200).json({
+                    success: true,
+                    message: 'If your email is valid, you will receive a verification email shortly.',
                 } as ApiResponse);
                 return;
             }
@@ -125,17 +141,24 @@ router.post(
             // Hash password with bcrypt
             const password_hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
-            // Create user
-            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active'>>(
-                `INSERT INTO users (email, password_hash, full_name, role, phone, is_active)
-                 VALUES ($1, $2, $3, $4, $5, FALSE)
-                 RETURNING user_id, email, full_name, role, is_active`,
+            // Generate email verification token
+            const verificationToken = crypto.randomUUID();
+            const tokenExpiry = new Date();
+            tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+
+            // Create user with verification token
+            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>>(
+                `INSERT INTO users (email, password_hash, full_name, role, phone, is_active, is_email_verified, email_verification_token, email_token_expires_at)
+                 VALUES ($1, $2, $3, $4, $5, FALSE, FALSE, $6, $7)
+                 RETURNING user_id, email, full_name, role, is_active, is_email_verified`,
                 [
                     email.toLowerCase().trim(),
                     password_hash,
                     full_name.trim(),
                     role,
                     phone ?? null,
+                    verificationToken,
+                    tokenExpiry,
                 ]
             );
 
@@ -144,7 +167,26 @@ router.post(
                 throw new Error('Failed to create user');
             }
 
-            // Generate JWT
+            // Send verification email (fire-and-forget, never blocks registration)
+            const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+            const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
+            sendVerificationEmail(user.email, verificationUrl).catch((err) => {
+                console.error('[Auth] Verification email dispatch failed:', err);
+            });
+
+            // ─── OPS-FT-001 + OPS-FT-002: Architectural Decision Record ────────
+            // JWT is issued at registration BEFORE email verification (OPS-FT-002).
+            // Rationale: The user needs the JWT to access /verify-email and /resend-
+            // verification endpoints. Without it, the verification flow breaks.
+            // The `is_email_verified: false` flag and `requireActive` middleware
+            // ensure unverified users cannot access protected business routes.
+            //
+            // JWT is stored in localStorage on the client (OPS-FT-001).
+            // Rationale: CSP headers + Helmet provide XSS mitigation. HttpOnly
+            // cookies were evaluated but rejected because the frontend is served
+            // from a different origin (CX33 DMZ → AX102 metal) and the API needs
+            // to support both web and future mobile clients.
+            // ──────────────────────────────────────────────────────────────────────
             const token = generateToken(user.user_id, user.role);
 
             res.status(201).json({
@@ -156,13 +198,14 @@ router.post(
                         full_name: user.full_name,
                         role: user.role,
                         is_active: user.is_active,
+                        is_email_verified: user.is_email_verified,
                     },
                     token,
                 },
-                message: 'Account created. KYC verification required for full access.',
+                message: 'Account created. Please check your email to verify your account.',
             } as ApiResponse);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.Register');
         }
     }
 );
@@ -170,7 +213,7 @@ router.post(
 // ─── POST /api/auth/login ───────────────────────────────────────────────────
 router.post(
     '/login',
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response): Promise<void> => {
         try {
             const { email, password } = req.body as {
                 email: string;
@@ -196,8 +239,8 @@ router.post(
 
             // Find user by email
             const normalizedEmail = email.toLowerCase().trim();
-            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'password_hash'>>(
-                'SELECT user_id, email, full_name, role, is_active, password_hash FROM users WHERE email = $1',
+            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified' | 'password_hash'>>(
+                'SELECT user_id, email, full_name, role, is_active, is_email_verified, password_hash FROM users WHERE email = $1',
                 [normalizedEmail]
             );
 
@@ -222,17 +265,17 @@ router.post(
                         SELECT COUNT(*) FROM audit_trail
                         WHERE entity_type = 'auth_failure'
                           AND entity_id = $1
-                          AND created_at > NOW() - INTERVAL '${LOCKOUT_DURATION_MINUTES} minutes'
+                          AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
                     ), 0)::int AS failed_attempts,
                     (
-                        SELECT created_at + INTERVAL '${LOCKOUT_DURATION_MINUTES} minutes'
+                        SELECT created_at + MAKE_INTERVAL(mins => $2)
                         FROM audit_trail
                         WHERE entity_type = 'auth_lockout'
                           AND entity_id = $1
-                          AND created_at > NOW() - INTERVAL '${LOCKOUT_DURATION_MINUTES} minutes'
+                          AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
                         ORDER BY created_at DESC LIMIT 1
                     ) AS locked_until`,
-                [lockoutScope]
+                [lockoutScope, LOCKOUT_DURATION_MINUTES]
             );
 
             const lockout = lockoutResult.rows[0];
@@ -299,14 +342,310 @@ router.post(
                         full_name: user.full_name,
                         role: user.role,
                         is_active: user.is_active,
+                        is_email_verified: user.is_email_verified,
                     },
                     token,
                 },
             } as ApiResponse);
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.Login');
         }
     }
 );
+
+// ─── GET /api/auth/verify-email/:token ──────────────────────────────────────
+router.get('/verify-email/:token', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { token } = req.params;
+        if (!token || token.length < 10) {
+            res.status(400).json({
+                success: false,
+                error: 'Invalid verification token',
+            } as ApiResponse);
+            return;
+        }
+
+        // Find user by token and check expiry
+        const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>>(
+            `SELECT user_id, email, is_email_verified, email_token_expires_at
+             FROM users WHERE email_verification_token = $1`,
+            [token]
+        );
+
+        const user = result.rows[0];
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                error: 'Verification token not found or already used',
+            } as ApiResponse);
+            return;
+        }
+
+        if (user.is_email_verified) {
+            res.json({
+                success: true,
+                message: 'Email already verified',
+            } as ApiResponse);
+            return;
+        }
+
+        // Check token expiry
+        if (user.email_token_expires_at && new Date(user.email_token_expires_at) < new Date()) {
+            res.status(410).json({
+                success: false,
+                error: 'Verification token has expired. Please request a new one.',
+            } as ApiResponse);
+            return;
+        }
+
+        // Verify the email + clear the token
+        await query(
+            `UPDATE users
+             SET is_email_verified = TRUE,
+                 email_verification_token = NULL,
+                 email_token_expires_at = NULL,
+                 updated_at = NOW()
+             WHERE user_id = $1`,
+            [user.user_id]
+        );
+
+        console.warn(`[Auth] Email verified for user ${user.user_id} (${user.email})`);
+
+        res.json({
+            success: true,
+            message: 'Email verified successfully. You can now access all platform features.',
+        } as ApiResponse);
+    } catch (error) {
+        safeRouteError(res, error, 'Auth.VerifyEmail');
+    }
+});
+
+// ─── POST /api/auth/resend-verification ─────────────────────────────────────
+router.post(
+    '/resend-verification',
+    authMiddleware,
+    async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userId = getAuthUser(req).user_id;
+
+            // Get user
+            const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>>(
+                'SELECT user_id, email, is_email_verified, email_token_expires_at FROM users WHERE user_id = $1',
+                [userId]
+            );
+            const user = result.rows[0];
+            if (!user) {
+                res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
+                return;
+            }
+
+            if (user.is_email_verified) {
+                res.json({ success: true, message: 'Email already verified' } as ApiResponse);
+                return;
+            }
+
+            // Rate limit: check if last token was generated less than RESEND_COOLDOWN_SECONDS ago
+            if (user.email_token_expires_at) {
+                const tokenCreatedAt = new Date(user.email_token_expires_at);
+                tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
+                const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+                if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+                    const waitSeconds = Math.ceil(RESEND_COOLDOWN_SECONDS - secondsSinceLastSend);
+                    res.status(429).json({
+                        success: false,
+                        error: `Please wait ${waitSeconds} seconds before requesting another verification email`,
+                    } as ApiResponse);
+                    return;
+                }
+            }
+
+            // Generate new token
+            const newToken = crypto.randomUUID();
+            const tokenExpiry = new Date();
+            tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+
+            await query(
+                `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW()
+                 WHERE user_id = $3`,
+                [newToken, tokenExpiry, userId]
+            );
+
+            // Send verification email
+            const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+            const verificationUrl = `${baseUrl}/api/auth/verify-email/${newToken}`;
+            sendVerificationEmail(user.email, verificationUrl).catch((err) => {
+                console.error('[Auth] Resend verification email failed:', err);
+            });
+
+            res.json({
+                success: true,
+                message: 'Verification email resent. Please check your inbox.',
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.ResendVerification');
+        }
+    }
+);
+
+// ─── POST /api/auth/forgot-password ─────────────────────────────────────────
+router.post('/forgot-password', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { email } = req.body as { email: string };
+
+        if (!email) {
+            res.status(400).json({
+                success: false,
+                error: 'Email is required',
+            } as ApiResponse);
+            return;
+        }
+
+        // ALWAYS return success to prevent email enumeration (SEC-009)
+        const successResponse = {
+            success: true,
+            message: 'If an account with that email exists, a password reset link has been sent.',
+        } as ApiResponse;
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const result = await query<Pick<User, 'user_id' | 'email'>>(
+            'SELECT user_id, email FROM users WHERE email = $1',
+            [normalizedEmail]
+        );
+
+        const user = result.rows[0];
+        if (!user) {
+            // Return same success response to prevent enumeration
+            res.json(successResponse);
+            return;
+        }
+
+        // Generate cryptographically secure reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpiry = new Date();
+        tokenExpiry.setMinutes(tokenExpiry.getMinutes() + RESET_TOKEN_EXPIRY_MINUTES);
+
+        await query(
+            `UPDATE users SET password_reset_token = $1, reset_token_expires_at = $2, updated_at = NOW()
+             WHERE user_id = $3`,
+            [resetToken, tokenExpiry, user.user_id]
+        );
+
+        // Send reset email
+        const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+        const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
+        sendPasswordResetEmail(user.email, resetUrl).catch((err) => {
+            console.error('[Auth] Password reset email failed:', err);
+        });
+
+        console.warn(`[Auth] Password reset requested for ${normalizedEmail}`);
+        res.json(successResponse);
+    } catch (error) {
+        safeRouteError(res, error, 'Auth.ForgotPassword');
+    }
+});
+
+// ─── POST /api/auth/reset-password ──────────────────────────────────────────
+router.post('/reset-password', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { token, new_password } = req.body as {
+            token: string;
+            new_password: string;
+        };
+
+        if (!token || !new_password) {
+            res.status(400).json({
+                success: false,
+                error: 'Token and new password are required',
+            } as ApiResponse);
+            return;
+        }
+
+        // Validate password complexity
+        const failedRules = PASSWORD_RULES
+            .filter(rule => !rule.test(new_password))
+            .map(rule => rule.msg);
+
+        if (failedRules.length > 0) {
+            res.status(400).json({
+                success: false,
+                error: `Password must contain: ${failedRules.join(', ')}`,
+            } as ApiResponse);
+            return;
+        }
+
+        if (new_password.length > MAX_PASSWORD_LENGTH) {
+            res.status(400).json({
+                success: false,
+                error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+            } as ApiResponse);
+            return;
+        }
+
+        // Find user by reset token
+        const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at'>>(
+            `SELECT user_id, email, reset_token_expires_at
+             FROM users WHERE password_reset_token = $1`,
+            [token]
+        );
+
+        const user = result.rows[0];
+        if (!user) {
+            res.status(400).json({
+                success: false,
+                error: 'Invalid or expired reset token',
+            } as ApiResponse);
+            return;
+        }
+
+        // Check token expiry
+        if (user.reset_token_expires_at && new Date(user.reset_token_expires_at) < new Date()) {
+            // Clear expired token
+            await query(
+                'UPDATE users SET password_reset_token = NULL, reset_token_expires_at = NULL WHERE user_id = $1',
+                [user.user_id]
+            );
+            res.status(410).json({
+                success: false,
+                error: 'Reset token has expired. Please request a new one.',
+            } as ApiResponse);
+            return;
+        }
+
+        // Hash new password, clear reset token, and invalidate all existing JWTs
+        const password_hash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
+        // MED-001 FIX: Setting token_invalidated_at = NOW() causes the auth
+        // middleware to reject any JWT issued before this moment. This ensures
+        // that stolen tokens become useless after a password reset.
+        await query(
+            `UPDATE users
+             SET password_hash = $1,
+                 password_reset_token = NULL,
+                 reset_token_expires_at = NULL,
+                 token_invalidated_at = NOW(),
+                 updated_at = NOW()
+             WHERE user_id = $2`,
+            [password_hash, user.user_id]
+        );
+
+        // Log security event
+        await query(
+            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+             VALUES ('password_reset_completed', 'user', $1, $1, $2)`,
+            [user.user_id, JSON.stringify({
+                email: user.email,
+                timestamp: new Date().toISOString(),
+            })]
+        );
+
+        console.warn(`[Auth] Password reset completed for user ${user.user_id}`);
+
+        res.json({
+            success: true,
+            message: 'Password has been reset successfully. You can now log in with your new password.',
+        } as ApiResponse);
+    } catch (error) {
+        safeRouteError(res, error, 'Auth.ResetPassword');
+    }
+});
 
 export default router;

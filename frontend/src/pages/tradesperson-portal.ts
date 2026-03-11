@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 
@@ -381,23 +382,7 @@ function setText(id: string, text: string): void {
     if (el) el.textContent = text;
 }
 
-/**
- * MED-AUD-001 FIX: XSS-safe escaping for BOTH text content AND attribute contexts.
- * The original implementation (textContent → innerHTML trick) only escapes < > & —
- * it does NOT escape quote characters, so injecting into HTML attributes like
- * data-id="${esc(val)}" would allow breakout if val contains a double quote.
- *
- * This version explicitly maps all dangerous characters for both contexts.
- */
-function esc(str: string): string {
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/`/g, '&#x60;');
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function tradeColor(trade: string): string {
     const c: Record<string, string> = {

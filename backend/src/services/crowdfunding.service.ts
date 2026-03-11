@@ -363,7 +363,7 @@ async function autoGeneratePO(
         ]
     );
 
-    console.log(`[PO] Auto-generated purchase order for item ${itemId} → supplier ${supplierName}`);
+    console.warn(`[PO] Auto-generated purchase order for item ${itemId} → supplier ${supplierName}`);
 }
 
 // ─── Donor Queries ──────────────────────────────────────────────────────────

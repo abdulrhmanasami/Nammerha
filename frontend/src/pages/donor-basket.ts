@@ -6,6 +6,7 @@
  */
 import '../styles/main.css';
 import { CartStore, type CartItem } from '../components/cart';
+import { escapeHtml } from '../utils/xss';
 
 function initDonorBasket(): void {
     const container = document.getElementById('cart-items-container');
@@ -141,11 +142,7 @@ function initDonorBasket(): void {
         }
     }
 
-    function escapeHtml(str: string): string {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
+    // HGH-001 FIX: Local escapeHtml removed — using centralized import from utils/xss.ts
 
     // Clear cart button
     clearBtn?.addEventListener('click', () => {

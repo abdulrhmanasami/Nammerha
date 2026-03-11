@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine
@@ -32,9 +33,6 @@ interface CatalogItem {
     lead_time_days: number;
     is_active: boolean;
 }
-
-// ─── State ──────────────────────────────────────────────────────────────────
-let activeTab: 'orders' | 'catalog' = 'orders';
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -71,7 +69,7 @@ function setupTabs(): void {
     const sectionCatalog = document.getElementById('section-catalog');
 
     tabOrders?.addEventListener('click', () => {
-        activeTab = 'orders';
+
         tabOrders.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabOrders.classList.remove('text-slate-600');
         tabCatalog?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
@@ -81,7 +79,7 @@ function setupTabs(): void {
     });
 
     tabCatalog?.addEventListener('click', () => {
-        activeTab = 'catalog';
+
         tabCatalog.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog.classList.remove('text-slate-600');
         tabOrders?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
@@ -395,18 +393,14 @@ function showBanner(type: 'error' | 'success', message: string): void {
     setTimeout(() => { banner.style.display = 'none'; }, 5000);
 }
 
-function esc(str: string): string {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function getToken(): string {
     return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {
-    if (typeof (window as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as Record<string, unknown>)['applyI18n'] as () => void)();
+    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
+        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
     }
 }

@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Translation & Locale Routes (Epic 10)
 // Hybrid Translation API + Glossary Admin + Locale Detection + Hreflang
 // ============================================================================
@@ -8,6 +9,7 @@ import { requireRole } from '../middleware/role-guard.middleware';
 import * as translation from '../services/translation.service';
 import * as locale from '../services/locale.service';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -119,9 +121,7 @@ router.post('/translate', async (req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('Unsupported') || message.includes('must be different') ? 400 : 500;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Translation');
     }
 });
 
@@ -201,9 +201,8 @@ router.post('/translate/batch', async (req: Request, res: Response) => {
             message: `${results.length} items translated`,
         };
         res.json(response);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'Translation');
     }
 });
 
@@ -226,9 +225,8 @@ router.get('/glossary', async (req: Request, res: Response) => {
             message: `${terms.length} glossary terms`,
         };
         res.json(response);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'Translation');
     }
 });
 
@@ -248,7 +246,7 @@ router.post(
                 return;
             }
 
-            const term = await translation.addGlossaryTerm(req.authUser!.user_id, dto);
+            const term = await translation.addGlossaryTerm(getAuthUser(req).user_id, dto);
 
             const response: ApiResponse = {
                 success: true,
@@ -257,8 +255,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Translation');
         }
     }
 );
@@ -287,9 +284,8 @@ router.delete(
                 message: 'Glossary term removed',
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Translation');
         }
     }
 );
@@ -312,9 +308,8 @@ router.get(
                 message: `${queue.length} pending reviews`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Translation');
         }
     }
 );
@@ -348,7 +343,7 @@ router.patch(
 
             const result = await translation.reviewTranslation(
                 String(req.params.reviewId),
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 resolution,
                 corrected_text
             );
@@ -360,9 +355,7 @@ router.patch(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Translation');
         }
     }
 );
@@ -381,9 +374,8 @@ router.get(
                 message: 'Translation engine statistics',
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Translation');
         }
     }
 );

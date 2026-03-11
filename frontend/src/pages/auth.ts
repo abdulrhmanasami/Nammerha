@@ -246,8 +246,8 @@ formRegister?.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-        showBanner('error', 'Password must contain at least 1 uppercase letter and 1 number.');
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+        showBanner('error', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
         return;
     }
 

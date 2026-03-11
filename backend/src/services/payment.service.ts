@@ -248,7 +248,7 @@ async function initiateVisaPayment(
             };
         }
 
-        console.log(`[Payment] Visa payment initiated: ${reference}, tx: ${body['transactionId'] ?? 'N/A'}`);
+        console.warn(`[Payment] Visa payment initiated: ${reference}, tx: ${body['transactionId'] ?? 'N/A'}`);
 
         return {
             success: true,
@@ -335,7 +335,7 @@ async function initiateFatoraPayment(
             };
         }
 
-        console.log(`[Payment] Fatora payment initiated: ${reference}, tx: ${body['transaction_id'] ?? 'N/A'}`);
+        console.warn(`[Payment] Fatora payment initiated: ${reference}, tx: ${body['transaction_id'] ?? 'N/A'}`);
 
         return {
             success: true,

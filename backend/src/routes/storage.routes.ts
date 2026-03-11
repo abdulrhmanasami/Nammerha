@@ -1,10 +1,12 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Storage Routes (P2-005)
 // Pre-signed URL upload flow + file management
 // SEC-001 FIX: All project-scoped endpoints now verify ownership.
 // ============================================================================
 import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { requireRole } from '../middleware/role-guard.middleware';
 import { query } from '../config/database';
 import {
     generateUploadUrl,
@@ -13,6 +15,7 @@ import {
     getFileMetadata,
     healthCheck,
 } from '../services/storage.service';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -81,10 +84,10 @@ async function verifyProjectAccessParam(
     }
 
     const allowed = await hasProjectAccess(
-        req.authUser!.user_id, req.authUser!.role, projectId
+        getAuthUser(req).user_id, getAuthUser(req).role, projectId
     );
     if (!allowed) {
-        console.warn(`[Storage] IDOR blocked: user ${req.authUser!.user_id} attempted to access project ${projectId}`);
+        console.warn(`[Storage] IDOR blocked: user ${getAuthUser(req).user_id} attempted to access project ${projectId}`);
         res.status(403).json({
             success: false,
             error: 'Access denied: you do not have permission to access this project\'s files',
@@ -117,10 +120,10 @@ async function verifyProjectAccessFromKey(
     }
 
     const allowed = await hasProjectAccess(
-        req.authUser!.user_id, req.authUser!.role, projectId
+        getAuthUser(req).user_id, getAuthUser(req).role, projectId
     );
     if (!allowed) {
-        console.warn(`[Storage] IDOR blocked: user ${req.authUser!.user_id} attempted to access file ${fileKey}`);
+        console.warn(`[Storage] IDOR blocked: user ${getAuthUser(req).user_id} attempted to access file ${fileKey}`);
         res.status(403).json({
             success: false,
             error: 'Access denied: you do not have permission to access this file',
@@ -154,10 +157,10 @@ router.post('/upload-url', async (req: Request, res: Response) => {
 
         // SEC-001: Verify the user has access to this project before generating upload URL
         const allowed = await hasProjectAccess(
-            req.authUser!.user_id, req.authUser!.role, project_id
+            getAuthUser(req).user_id, getAuthUser(req).role, project_id
         );
         if (!allowed) {
-            console.warn(`[Storage] IDOR blocked: user ${req.authUser!.user_id} attempted upload to project ${project_id}`);
+            console.warn(`[Storage] IDOR blocked: user ${getAuthUser(req).user_id} attempted upload to project ${project_id}`);
             res.status(403).json({
                 success: false,
                 error: 'Access denied: you do not have permission to upload to this project',
@@ -175,8 +178,7 @@ router.post('/upload-url', async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true, data: result });
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Upload URL generation failed';
-        res.status(400).json({ success: false, error: message });
+        safeRouteError(res, error, 'Storage');
     }
 });
 
@@ -193,8 +195,7 @@ router.get('/files/:projectId', verifyProjectAccessParam, async (req: Request, r
         const files = await listProjectFiles(projectId, category, Math.min(limit, 500));
         res.status(200).json({ success: true, data: files });
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to list files';
-        res.status(500).json({ success: false, error: message });
+        safeRouteError(res, error, 'Storage.ListFiles');
     }
 });
 
@@ -204,8 +205,12 @@ router.get('/files/:projectId', verifyProjectAccessParam, async (req: Request, r
 router.get('/metadata/*', verifyProjectAccessFromKey, async (req: Request, res: Response) => {
     try {
         const fileKey = req.params[0];
+        if (!fileKey) {
+            res.status(400).json({ success: false, error: 'File key is required' });
+            return;
+        }
 
-        const metadata = await getFileMetadata(fileKey!);
+        const metadata = await getFileMetadata(fileKey);
         if (!metadata) {
             res.status(404).json({ success: false, error: 'File not found' });
             return;
@@ -213,8 +218,7 @@ router.get('/metadata/*', verifyProjectAccessFromKey, async (req: Request, res: 
 
         res.status(200).json({ success: true, data: metadata });
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to get metadata';
-        res.status(500).json({ success: false, error: message });
+        safeRouteError(res, error, 'Storage.GetMetadata');
     }
 });
 
@@ -224,18 +228,21 @@ router.get('/metadata/*', verifyProjectAccessFromKey, async (req: Request, res: 
 router.delete('/files/*', verifyProjectAccessFromKey, async (req: Request, res: Response) => {
     try {
         const fileKey = req.params[0];
+        if (!fileKey) {
+            res.status(400).json({ success: false, error: 'File key is required' });
+            return;
+        }
 
-        await deleteFile(fileKey!);
+        await deleteFile(fileKey);
         res.status(200).json({ success: true, message: 'File deleted' });
     } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to delete file';
-        res.status(500).json({ success: false, error: message });
+        safeRouteError(res, error, 'Storage.DeleteFile');
     }
 });
 
 // ─── GET /health ────────────────────────────────────────────────────────────
-// Check storage connectivity (admin only).
-router.get('/health', async (_req: Request, res: Response) => {
+// SEC-FT-005: Restricted to admin/auditor to prevent infrastructure detail leaks.
+router.get('/health', requireRole('admin', 'auditor'), async (_req: Request, res: Response) => {
     try {
         const status = await healthCheck();
         const httpStatus = status.ok ? 200 : 503;

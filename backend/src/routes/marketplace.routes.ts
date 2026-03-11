@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import * as crowdfundingService from '../services/crowdfunding.service';
 import * as supplierService from '../services/supplier.service';
+import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -20,8 +21,7 @@ router.get('/projects', async (req: Request, res: Response) => {
         const response: ApiResponse = { success: true, data: projects };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Marketplace.GetProjects');
     }
 });
 
@@ -32,8 +32,7 @@ router.get('/projects/:id/boq', async (req: Request, res: Response) => {
         const response: ApiResponse = { success: true, data: boq };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Marketplace.GetProjectBOQ');
     }
 });
 
@@ -46,8 +45,7 @@ router.get('/suppliers', async (_req: Request, res: Response) => {
         const response: ApiResponse = { success: true, data: suppliers };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Marketplace.GetSuppliers');
     }
 });
 
@@ -64,8 +62,7 @@ router.get('/suppliers/:id/catalog', async (req: Request, res: Response) => {
         const response: ApiResponse = { success: true, data: catalog };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Marketplace.GetSupplierCatalog');
     }
 });
 

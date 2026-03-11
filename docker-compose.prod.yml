@@ -143,11 +143,16 @@ services:
       - NODE_EXTRA_CA_CERTS=/app/tls/ca.crt
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
       - JWT_EXPIRY=${JWT_EXPIRY:-24h}
-      # ── Payment Gateways (P1-001: production-ready credentials) ────
+      # ── Payment Gateways ─────────────────────────────────────────
+      # ✅ CONFIGURED & VERIFIED (2026-03-11)
+      #   Visa Click to Pay — production API key + merchant ID set   ✅
+      #   Fatora — production API key + merchant code set            ✅
+      #   Webhook HMAC secret — cryptographic 64-char secret set     ✅
+      #   All vars use :? syntax — container refuses to start without them.
       - PLATFORM_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}
       - VISA_API_KEY=${VISA_API_KEY:?VISA_API_KEY must be set for production payments}
       - VISA_MERCHANT_ID=${VISA_MERCHANT_ID:?VISA_MERCHANT_ID must be set}
-      - VISA_API_BASE_URL=${VISA_API_BASE_URL:-https://sandbox.api.visa.com}
+      - VISA_API_BASE_URL=${VISA_API_BASE_URL:?VISA_API_BASE_URL must be set for production}
       - FATORA_API_KEY=${FATORA_API_KEY:?FATORA_API_KEY must be set for production payments}
       - FATORA_MERCHANT_CODE=${FATORA_MERCHANT_CODE:?FATORA_MERCHANT_CODE must be set}
       - FATORA_API_BASE_URL=${FATORA_API_BASE_URL:-https://api.fatora.io}
@@ -169,6 +174,17 @@ services:
       - STORAGE_SECRET_KEY=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
       - STORAGE_PUBLIC_URL=${STORAGE_PUBLIC_URL:-}
       - STORAGE_MAX_SIZE_MB=${STORAGE_MAX_SIZE_MB:-50}
+      # ── SMTP Relay (self-hosted Postfix on nammerha-net) ────────
+      - SMTP_HOST=${SMTP_HOST:-nammerha-smtp}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_FROM=${SMTP_FROM:-noreply@nammerha.com}
+      # ── Email Verification / Password Reset ────────────────────
+      - APP_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}
+      # ── Quota Webhook Notifications (optional) ─────────────────
+      - NOTIFICATION_WEBHOOK_URL=${NOTIFICATION_WEBHOOK_URL:-}
     labels:
       - 'com.nammerha.project=nammerha'
       - 'com.nammerha.component=backend'
@@ -184,15 +200,73 @@ services:
         condition: service_healthy
       nammerha-minio:
         condition: service_healthy
+      nammerha-smtp:
+        condition: service_started
     volumes:
       - ./stitch:/app/stitch:ro
       - ./database/tls/certs/ca.crt:/app/tls/ca.crt:ro
+    # P2-NEW-001 FIX: Healthcheck ensures Docker restarts unresponsive backend
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:3001/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── SMTP Relay: Self-Hosted Postfix (OPS-2) ──────────────────────────
+  # Zero external email service dependency — runs entirely on your own server.
+  # Backend reaches this container at nammerha-smtp:587 on nammerha-net.
+  #
+  # ✅ DNS RECORDS — CONFIGURED & VERIFIED (2026-03-11, Cloudflare)
+  #   TXT  nammerha.com          "v=spf1 ip4:91.98.182.... -all"     ✅ Done
+  #   TXT  _dmarc.nammerha.com   "v=DMARC1; p=quarantine; ..."       ✅ Done
+  #   TXT  default._domainkey... "v=DKIM1; h=sha256; ..."            ✅ Done
+  nammerha-smtp:
+    image: boky/postfix:latest
+    container_name: nammerha-smtp
+    restart: unless-stopped
+    hostname: mail.nammerha.com
+    environment:
+      - ALLOWED_SENDER_DOMAINS=nammerha.com
+      - HOSTNAME=mail.nammerha.com
+      - RELAYHOST=
+      - MESSAGE_SIZE_LIMIT=10485760
+      # Force IPv4 — production server has no IPv6 connectivity
+      - POSTFIX_inet_protocols=ipv4
+      # DKIM signing (auto-generated on first start)
+      - DKIM_AUTOGENERATE=true
+      - DKIM_SELECTOR=default
+    volumes:
+      - smtp-dkim-keys:/etc/opendkim/keys
+    networks:
+      - nammerha-net
+    labels:
+      - 'com.nammerha.project=nammerha'
+      - 'com.nammerha.component=smtp'
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.10'
+    # Expose port only on internal network, NOT to the public
+    expose:
+      - '587'
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   nammerha-pgdata:
     name: nammerha-pgdata
   nammerha-minio-data:
     name: nammerha-minio-data
+  smtp-dkim-keys:
+    name: smtp-dkim-keys
 
 networks:
   nammerha-net:

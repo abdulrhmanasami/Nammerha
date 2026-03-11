@@ -15,6 +15,7 @@ export type SecurityEventType =
     | 'escrow_locked' | 'escrow_released' | 'escrow_refunded'
     | 'sanctions_screening' | 'sanctions_match_found' | 'dual_use_flagged'
     | 'account_locked' | 'password_changed' | 'kyc_status_changed'
+    | 'api_key_created' | 'api_key_revoked'
     | 'suspicious_activity';
 
 export type SecuritySeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
@@ -60,6 +61,8 @@ const DEFAULT_SEVERITY: Record<SecurityEventType, SecuritySeverity> = {
     account_locked: 'high',
     password_changed: 'low',
     kyc_status_changed: 'medium',
+    api_key_created: 'medium',
+    api_key_revoked: 'high',
     suspicious_activity: 'critical',
 };
 

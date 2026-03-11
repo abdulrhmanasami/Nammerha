@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ─── Compliance Dashboard — OCDS Audit & Financial Transparency Engine ─── */
 
@@ -182,18 +183,14 @@ function setKPI(name: string, value: number, prefix = ''): void {
     requestAnimationFrame(tick);
 }
 
-function esc(str: string): string {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function getToken(): string {
     return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {
-    if (typeof (window as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as Record<string, unknown>)['applyI18n'] as () => void)();
+    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
+        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
     }
 }

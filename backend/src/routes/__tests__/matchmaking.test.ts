@@ -383,6 +383,12 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
     describe('GET /api/matchmaking/project/:id/bids', () => {
         it('should return bids for homeowner', async () => {
             mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', is_active: true };
+            // DT-IDOR-003: First query is project ownership check
+            mockPoolQuery.mockResolvedValueOnce({
+                rows: [{ homeowner_id: 'ho-uuid-001' }],
+                rowCount: 1,
+            });
+            // Second query returns bids
             mockPoolQuery.mockResolvedValueOnce({
                 rows: [
                     { bid_id: 'b1', proposed_cost: 500000, status: 'submitted' },
@@ -419,13 +425,15 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
                 query: vi.fn()
                     // 1. get bid
                     .mockResolvedValueOnce({ rows: [{ bid_id: 'bid-001', project_id: 'proj-001', engineer_id: 'eng-001', status: 'pending' }], rowCount: 1 })
-                    // 2. accept bid
+                    // DT-IDOR-002: 2. ownership check — verify homeowner owns the project
+                    .mockResolvedValueOnce({ rows: [{ homeowner_id: 'ho-uuid-001' }], rowCount: 1 })
+                    // 3. accept bid
                     .mockResolvedValueOnce({ rows: [], rowCount: 1 })
-                    // 3. reject others
+                    // 4. reject others
                     .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-                    // 4. assign engineer
+                    // 5. assign engineer
                     .mockResolvedValueOnce({ rows: [], rowCount: 1 })
-                    // 5. recalculate win rate
+                    // 6. recalculate win rate
                     .mockResolvedValueOnce({ rows: [], rowCount: 0 }),
             };
             mockTransaction.mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) =>

@@ -73,7 +73,7 @@ export async function assignEngineer(
             [projectId]
         );
         const project = projectResult.rows[0];
-        if (!project) throw new Error(`Project ${projectId} not found`);
+        if (!project) { throw new Error(`Project ${projectId} not found`); }
         if (project.status !== 'draft') {
             throw new Error(`Cannot assign engineer: project status is '${project.status}', expected 'draft'`);
         }
@@ -238,7 +238,7 @@ export async function publishProject(
             [projectId]
         );
         const project = projectResult.rows[0];
-        if (!project) throw new Error(`Project ${projectId} not found`);
+        if (!project) { throw new Error(`Project ${projectId} not found`); }
         if (project.assigned_engineer_id !== engineerId) {
             throw new Error('You are not assigned to this project');
         }
@@ -265,7 +265,7 @@ export async function publishProject(
         );
 
         const result = updated.rows[0];
-        if (!result) throw new Error('Failed to publish project');
+        if (!result) { throw new Error('Failed to publish project'); }
         return result;
     });
 }

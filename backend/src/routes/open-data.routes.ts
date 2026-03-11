@@ -7,6 +7,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as openData from '../services/open-data.service';
 import { exportProjectsPDF, exportProjectsExcel } from '../services/report-export.service';
+import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -37,8 +38,7 @@ router.get('/projects', async (req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'OpenData.ListProjects');
     }
 });
 
@@ -53,9 +53,7 @@ router.get('/projects/:id', async (req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404 : 500;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'OpenData.GetProjectCard');
     }
 });
 
@@ -69,9 +67,7 @@ router.get('/projects/:id/ocds', async (req: Request, res: Response) => {
         res.setHeader('X-OCDS-Version', '1.1');
         res.json(releasePackage);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404 : 500;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'OpenData.GetOCDS');
     }
 });
 
@@ -93,8 +89,7 @@ router.get('/stats', async (_req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'OpenData.GetStats');
     }
 });
 
@@ -112,10 +107,8 @@ router.get(
         try {
             await exportProjectsPDF(res, String(req.params.id));
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 500;
             if (!res.headersSent) {
-                res.status(status).json({ success: false, error: message } as ApiResponse);
+                safeRouteError(res, error, 'OpenData.ExportPDF');
             }
         }
     }
@@ -131,10 +124,8 @@ router.get(
         try {
             await exportProjectsExcel(res, String(req.params.id));
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 500;
             if (!res.headersSent) {
-                res.status(status).json({ success: false, error: message } as ApiResponse);
+                safeRouteError(res, error, 'OpenData.ExportExcel');
             }
         }
     }

@@ -133,14 +133,19 @@ export async function authMiddleware(
 ): Promise<void> {
     try {
         let userId: string | undefined;
+        // MED-001: Track when the JWT was issued (iat claim) to compare
+        // against token_invalidated_at for server-side revocation.
+        let tokenIssuedAt: number | undefined;
 
         // Production: JWT from Authorization header
         const authHeader = req.headers['authorization'];
         if (authHeader?.startsWith('Bearer ')) {
             const token = authHeader.substring(7);
             try {
-                const payload = await verifyToken(token);
+            const payload = await verifyToken(token);
                 userId = payload.sub;
+                // MED-001: Preserve iat for token invalidation check below
+                tokenIssuedAt = payload.iat;
             } catch (err) {
                 if (err instanceof jwt.TokenExpiredError) {
                     res.status(401).json({ success: false, error: 'Token expired' });
@@ -170,8 +175,9 @@ export async function authMiddleware(
         }
 
         // Fetch user from database
-        const result = await query<Pick<User, 'user_id' | 'role' | 'is_active'>>(
-            'SELECT user_id, role, is_active FROM users WHERE user_id = $1',
+        // MED-001: Also fetch token_invalidated_at for JWT revocation check
+        const result = await query<Pick<User, 'user_id' | 'role' | 'is_active'> & { token_invalidated_at: string | null }>(
+            'SELECT user_id, role, is_active, token_invalidated_at FROM users WHERE user_id = $1',
             [userId]
         );
 
@@ -179,6 +185,21 @@ export async function authMiddleware(
         if (!user) {
             res.status(401).json({ success: false, error: 'User not found' });
             return;
+        }
+
+        // MED-001 FIX: Reject tokens issued before password reset / forced logout.
+        // token_invalidated_at stores the epoch when all prior tokens became invalid.
+        // Any JWT with iat < token_invalidated_at was issued before the security
+        // event and must be rejected — even if it hasn't expired yet.
+        if (user.token_invalidated_at && tokenIssuedAt) {
+            const invalidatedEpoch = Math.floor(new Date(user.token_invalidated_at).getTime() / 1000);
+            if (tokenIssuedAt < invalidatedEpoch) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Token invalidated — please log in again',
+                });
+                return;
+            }
         }
 
         // Attach to request
@@ -243,3 +264,9 @@ export function requireActive(
 
     next();
 }
+
+// DT-ARCH-001 FIX: requireRole() has been consolidated into role-guard.middleware.ts
+// as the single canonical implementation. The version previously here leaked required
+// role names in error messages ("Required role: admin or auditor"), giving attackers
+// intelligence about the access control structure.
+// Import from: '../middleware/role-guard.middleware'

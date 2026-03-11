@@ -189,6 +189,11 @@ export async function getScreeningResults(userId: string): Promise<ScreeningResu
 /**
  * Admin reviews a potential SDN match.
  * Can clear (false_positive) or confirm the match.
+ *
+ * P1-NEW-003 FIX: Wrapped in transaction to eliminate TOCTOU race condition.
+ * Previously, the screening result update and user status update were
+ * in separate queries outside a transaction, allowing a concurrent request
+ * to read stale user status between the two writes.
  */
 export async function reviewScreeningResult(
     resultId: string,
@@ -196,37 +201,48 @@ export async function reviewScreeningResult(
     decision: 'false_positive' | 'confirmed_match',
     notes?: string
 ): Promise<ScreeningResult> {
-    const { rows } = await pool.query(
-        `UPDATE sanctions_screening_results
-         SET status = $1, reviewed_by = $2, reviewed_at = NOW(), review_notes = $3
-         WHERE result_id = $4
-         RETURNING *`,
-        [decision, reviewerId, notes || null, resultId]
-    );
-    if (rows.length === 0) {
-        throw new Error('Screening result not found');
-    }
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
 
-    // If confirmed, block the user
-    if (decision === 'confirmed_match') {
-        await pool.query(
-            `UPDATE users SET is_active = false
-             WHERE user_id = (SELECT screened_user_id FROM sanctions_screening_results WHERE result_id = $1)`,
-            [resultId]
+        const { rows } = await client.query(
+            `UPDATE sanctions_screening_results
+             SET status = $1, reviewed_by = $2, reviewed_at = NOW(), review_notes = $3
+             WHERE result_id = $4
+             RETURNING *`,
+            [decision, reviewerId, notes || null, resultId]
         );
-    }
-    // If false positive, reactivate user if was auto-blocked
-    if (decision === 'false_positive') {
-        const result = rows[0];
-        if (result.auto_blocked) {
-            await pool.query(
-                `UPDATE users SET is_active = true WHERE user_id = $1`,
-                [result.screened_user_id]
+        if (rows.length === 0) {
+            throw new Error('Screening result not found');
+        }
+
+        // If confirmed, block the user
+        if (decision === 'confirmed_match') {
+            await client.query(
+                `UPDATE users SET is_active = false
+                 WHERE user_id = (SELECT screened_user_id FROM sanctions_screening_results WHERE result_id = $1)`,
+                [resultId]
             );
         }
-    }
+        // If false positive, reactivate user if was auto-blocked
+        if (decision === 'false_positive') {
+            const result = rows[0];
+            if (result.auto_blocked) {
+                await client.query(
+                    `UPDATE users SET is_active = true WHERE user_id = $1`,
+                    [result.screened_user_id]
+                );
+            }
+        }
 
-    return rows[0];
+        await client.query('COMMIT');
+        return rows[0];
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 /**
@@ -250,7 +266,8 @@ export async function importSDNList(dto: ImportSDNDTO): Promise<{ imported: numb
         const placeholders: string[] = [];
 
         for (let j = 0; j < batch.length; j++) {
-            const entry = batch[j]!;
+            const entry = batch[j];
+            if (!entry) { continue; }
             const offset = j * 8;
             placeholders.push(
                 `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8})`

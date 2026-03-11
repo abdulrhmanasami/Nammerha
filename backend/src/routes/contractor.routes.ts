@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Contractor Routes
 // Projects, KPIs, Bids, Marketplace, Profile, Payments
 // All endpoints require: JWT + KYC verified + role='contractor'
@@ -8,6 +9,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as contractorService from '../services/contractor.service';
 import * as matchmakingService from '../services/matchmaking.service';
+import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -22,24 +24,22 @@ router.get('/projects', async (req: Request, res: Response) => {
     try {
         const status = req.query['status'] as string | undefined;
         const projects = await contractorService.getMyProjects(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             status,
         );
         res.json({ success: true, data: projects } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.GetProjects');
     }
 });
 
 // ─── GET /api/contractor/stats — Dashboard KPIs ─────────────────────────────
 router.get('/stats', async (req: Request, res: Response) => {
     try {
-        const stats = await contractorService.getMyStats(req.authUser!.user_id);
+        const stats = await contractorService.getMyStats(getAuthUser(req).user_id);
         res.json({ success: true, data: stats } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.GetStats');
     }
 });
 
@@ -48,13 +48,12 @@ router.get('/bids', async (req: Request, res: Response) => {
     try {
         const status = req.query['status'] as string | undefined;
         const bids = await contractorService.getMyBids(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             status,
         );
         res.json({ success: true, data: bids } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.GetBids');
     }
 });
 
@@ -62,35 +61,31 @@ router.get('/bids', async (req: Request, res: Response) => {
 router.get('/marketplace', async (req: Request, res: Response) => {
     try {
         const projects = await contractorService.getAvailableProjects(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
         );
         res.json({ success: true, data: projects } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.GetMarketplace');
     }
 });
 
 // ─── GET /api/contractor/profile — My Score + Performance ───────────────────
 router.get('/profile', async (req: Request, res: Response) => {
     try {
-        const profile = await contractorService.getMyProfile(req.authUser!.user_id);
+        const profile = await contractorService.getMyProfile(getAuthUser(req).user_id);
         res.json({ success: true, data: profile } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = (error instanceof Error && error.message.includes('not found')) ? 404 : 500;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.GetProfile');
     }
 });
 
 // ─── GET /api/contractor/payments — My Escrow Payments ──────────────────────
 router.get('/payments', async (req: Request, res: Response) => {
     try {
-        const payments = await contractorService.getMyPayments(req.authUser!.user_id);
+        const payments = await contractorService.getMyPayments(getAuthUser(req).user_id);
         res.json({ success: true, data: payments } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.GetPayments');
     }
 });
 
@@ -114,8 +109,47 @@ router.post('/bids', async (req: Request, res: Response) => {
             return;
         }
 
+        if (proposed_cost <= 0 || estimated_days <= 0) {
+            res.status(400).json({
+                success: false,
+                error: 'proposed_cost and estimated_days must be positive',
+            } as ApiResponse);
+            return;
+        }
+
+        // DT-BL-001 FIX: FINOPS-004 integer validation — prevent floating-point precision attacks.
+        // Amounts in cents must be whole numbers. A bid of 100.5 cents would cause
+        // rounding issues in downstream arithmetic (escrow, PO generation).
+        if (!Number.isInteger(proposed_cost) || !Number.isInteger(estimated_days)) {
+            res.status(400).json({
+                success: false,
+                error: 'proposed_cost (cents) and estimated_days must be integers',
+            } as ApiResponse);
+            return;
+        }
+
+        // DT-BL-001 FIX: FINOPS-004 max cap — prevent integer overflow and absurd bids.
+        // $100M (10_000_000_000 cents) is a generous upper bound for construction.
+        // 3650 days (10 years) is the maximum realistic project timeline.
+        const MAX_BID_CENTS = 10_000_000_000;
+        const MAX_DAYS = 3650;
+        if (proposed_cost > MAX_BID_CENTS) {
+            res.status(400).json({
+                success: false,
+                error: `proposed_cost exceeds maximum (${MAX_BID_CENTS} cents / $100M)`,
+            } as ApiResponse);
+            return;
+        }
+        if (estimated_days > MAX_DAYS) {
+            res.status(400).json({
+                success: false,
+                error: `estimated_days exceeds maximum (${MAX_DAYS} days / 10 years)`,
+            } as ApiResponse);
+            return;
+        }
+
         const bid = await matchmakingService.submitBid(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             project_id,
             {
                 proposed_cost,
@@ -131,9 +165,7 @@ router.post('/bids', async (req: Request, res: Response) => {
             message: 'Bid submitted successfully',
         } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('already') ? 409 : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Contractor.SubmitBid');
     }
 });
 

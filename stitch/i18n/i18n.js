@@ -306,6 +306,7 @@
         'tp_days_ago': { ar: 'يوم مضى', de: 'Tage her', fr: 'jours', tr: 'gün önce' },
 
         // Error states
+        'failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
         'tp_failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
         'tp_failed_profile': { ar: 'فشل في تحميل الملف الشخصي', de: 'Profil konnte nicht geladen werden', fr: 'Échec du chargement du profil', tr: 'Profil yüklenemedi' },
     };

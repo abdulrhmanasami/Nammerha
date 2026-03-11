@@ -53,11 +53,18 @@ import donorRoutes from './routes/donor.routes';
 import routingRoutes from './routes/routing.routes';
 import spatialRoutes from './routes/spatial.routes';
 import localeRouter from './middleware/locale-pages.middleware';
+import adminStatsRoutes from './routes/admin-stats.routes';
+import apiKeysRoutes from './routes/api-keys.routes';
 import * as path from 'path';
 
 // ─── Create Express App ─────────────────────────────────────────────────────
 const app = express();
 const PORT = parseInt(process.env['PORT'] ?? '3001', 10);
+
+// P1-NEW-001 FIX: Trust the first proxy (Nginx/Caddy).
+// Without this, all requests appear from the container gateway IP,
+// breaking rate limiting and poisoning audit trail source IPs.
+app.set('trust proxy', 1);
 
 // ─── Security Headers (Report §5: Cybersecurity Architecture) ───────────────
 // Helmet v8 sets HSTS, CSP, X-Frame-Options, X-Content-Type-Options by default.
@@ -174,6 +181,40 @@ const complianceLimiter = rateLimit({
     message: { success: false, error: 'Too many compliance requests. Please try again later.' },
 });
 
+// HGH-002 FIX: Dedicated rate limiter for storage upload-url generation.
+// Each call produces a pre-signed URL that reserves cloud resources. Without
+// throttling, an attacker could exhaust storage quotas or generate millions of
+// pending upload slots.
+const storageLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,                     // 30 upload-url requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many storage requests. Please try again later.' },
+});
+
+// HGH-002 FIX: Dedicated rate limiter for translation endpoints.
+// Each call consumes external NMT/LLM quotas (DeepL, OpenAI). Without throttling,
+// an attacker could exhaust the paid API quota within minutes.
+const translationLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,                     // 20 translation requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many translation requests. Please try again later.' },
+});
+
+// HGH-002 FIX: Dedicated rate limiter for matchmaking search.
+// Search queries trigger heavy PostGIS distance calculations and scoring.
+// Without throttling, an attacker could DDOS the database via repeated queries.
+const matchmakingLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,                     // 30 search requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many matchmaking requests. Please try again later.' },
+});
+
 // HGH-AUD-006 FIX: CSRF Protection via Double-Submit Cookie pattern.
 // Since the platform uses JWT (Bearer token) for authentication — not session
 // cookies — traditional CSRF attacks have limited impact. However, the CORS
@@ -288,7 +329,8 @@ app.use('/api/payments', paymentLimiter, paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Phase 2: Matchmaking Engine (BuildZoom + Thumbtack hybrid)
-app.use('/api/matchmaking', matchmakingRoutes);
+// HGH-002: Protected with dedicated rate limiter (heavy PostGIS queries)
+app.use('/api/matchmaking', matchmakingLimiter, matchmakingRoutes);
 
 // Georavity Routing Intelligence (self-hosted Valhalla engine)
 app.use('/api/routing', routingRoutes);
@@ -331,10 +373,18 @@ app.use('/api/open-data', openDataRoutes);
 app.use('/api/compliance', complianceLimiter, complianceRoutes);
 
 // Phase 5: Translation Engine & Localization (hybrid NMT/LLM, glossary, locale detection)
-app.use('/api/translation', translationRoutes);
+// HGH-002: Protected with dedicated rate limiter (external API quota protection)
+app.use('/api/translation', translationLimiter, translationRoutes);
 
 // Phase 6: Storage Service (pre-signed S3-compatible uploads — P2-005)
-app.use('/api/storage', storageRoutes);
+// HGH-002: Protected with dedicated rate limiter (pre-signed URL abuse prevention)
+app.use('/api/storage', storageLimiter, storageRoutes);
+
+// Admin Statistics (time-series data for dashboard charts)
+app.use('/api/admin/stats', adminStatsRoutes);
+
+// API Key Management (Feature 5: create, list, revoke, usage)
+app.use('/api/keys', apiKeysRoutes);
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection
@@ -366,7 +416,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ─── Start Server & Graceful Shutdown (CRT-001: single listen) ──────────────
 const server = app.listen(PORT, () => {
-    console.log(`
+    console.warn(`
 ╔════════════════════════════════════════════════════╗
 ║       NAMMERHA BACKEND — OCDS Platform             ║
 ║       Port: ${PORT}                                   ║

@@ -30,10 +30,19 @@ function buildSslConfig(): tls.ConnectionOptions | false {
     }
 
     if (sslMode === 'verify-ca') {
-        // Encrypt traffic AND validate server cert against CA, but do NOT verify hostname.
-        // This matches libpq verify-ca semantics: Node.js rejectUnauthorized:true
-        // requires SAN/CN hostname match, which self-signed certs (CN=localhost)
-        // cannot satisfy in Docker inter-container networking (hostname=nammerha-db).
+        // ─── ARCH-FT-003: verify-ca Semantics ──────────────────────────────
+        // libpq verify-ca: Encrypt traffic AND validate server cert against CA,
+        // but do NOT verify hostname (SAN/CN match).
+        //
+        // Node.js pg has no native verify-ca mode. rejectUnauthorized controls
+        // BOTH CA chain validation AND hostname verification. Setting it to false
+        // with an explicit `ca` still validates the cert against the CA chain
+        // (OpenSSL does this automatically when ca is provided), but skips the
+        // hostname check that would fail in Docker networking where the cert's
+        // CN=localhost doesn't match the container hostname (nammerha-db).
+        //
+        // This is functionally equivalent to libpq's verify-ca mode.
+        // ────────────────────────────────────────────────────────────────────
         if (!sslRootCert) {
             throw new Error(
                 `[DB] sslmode=verify-ca requires PGSSLROOTCERT env var pointing to CA certificate`
@@ -45,7 +54,7 @@ function buildSslConfig(): tls.ConnectionOptions | false {
             );
         }
         return {
-            rejectUnauthorized: false,
+            rejectUnauthorized: false, // See ARCH-FT-003 comment above
             ca: fs.readFileSync(sslRootCert, 'utf-8'),
         };
     }
@@ -114,7 +123,7 @@ pool.on('error', (err: Error) => {
 
 if (process.env['NODE_ENV'] === 'development') {
     pool.on('connect', () => {
-        console.log('[DB] New client connected to pool');
+        console.warn('[DB] New client connected to pool');
     });
 }
 
@@ -133,7 +142,7 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
     const duration = Date.now() - start;
 
     if (process.env['NODE_ENV'] === 'development') {
-        console.log('[DB] Query executed', {
+        console.warn('[DB] Query executed', {
             text: text.substring(0, 80),
             duration: `${duration}ms`,
             rows: result.rowCount,

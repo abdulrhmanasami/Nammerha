@@ -88,7 +88,7 @@ const STRUCTURED_KEYWORDS = [
  * Per doc §1.3: financial/legal → NMT, marketing/UI → LLM.
  */
 export function detectContentType(text: string, hint?: ContentType): ContentType {
-    if (hint) return hint;
+    if (hint) { return hint; }
 
     const lower = text.toLowerCase();
 
@@ -99,11 +99,11 @@ export function detectContentType(text: string, hint?: ContentType): ContentType
 
     // Check for financial/legal keywords
     const structuredHits = STRUCTURED_KEYWORDS.filter((kw) => lower.includes(kw));
-    if (structuredHits.length >= 2) return 'financial';
+    if (structuredHits.length >= 2) { return 'financial'; }
 
     // Check for numbers density (tables, financial data)
     const numberRatio = (text.match(/\d/g) || []).length / text.length;
-    if (numberRatio > 0.15) return 'financial';
+    if (numberRatio > 0.15) { return 'financial'; }
 
     // Default: creative content
     return 'creative';
@@ -198,6 +198,7 @@ export async function translateText(dto: TranslateDTO): Promise<TranslationResul
     for (const term of glossaryTerms) {
         if (translatedText.includes(term.source_term)) {
             translatedText = translatedText.replace(
+                // eslint-disable-next-line security/detect-non-literal-regexp -- Input is sanitized by escapeRegex()
                 new RegExp(escapeRegex(term.source_term), 'gi'),
                 term.approved_translation
             );
@@ -403,7 +404,7 @@ export function evaluateQuality(
         primaryIssue = 'extreme_length_deviation';
     } else if (lengthRatio < 0.5 || lengthRatio > 2.5) {
         score -= 15;
-        if (primaryIssue === 'none') primaryIssue = 'length_deviation';
+        if (primaryIssue === 'none') { primaryIssue = 'length_deviation'; }
     }
 
     // 2. HTML tag preservation
@@ -414,18 +415,18 @@ export function evaluateQuality(
     if (sourceTags > 0 && sourceTags !== translatedTags) {
         const tagDiff = Math.abs(sourceTags - translatedTags);
         score -= tagDiff * 10;
-        if (primaryIssue === 'none') primaryIssue = 'tag_corruption';
+        if (primaryIssue === 'none') { primaryIssue = 'tag_corruption'; }
     }
 
     // 3. Untranslated markers
-    if (/\[.*UNTRANSLATED.*\]/.test(translated) || /\[.*ERROR.*\]/.test(translated) || /\[.*OFFLINE.*\]/.test(translated)) {
+    if (/\[.*?UNTRANSLATED.*?\]/.test(translated) || /\[.*?ERROR.*?\]/.test(translated) || /\[.*?OFFLINE.*?\]/.test(translated)) {
         score = 0;
         primaryIssue = 'provider_failure';
     }
 
-    // 4. Number preservation (financial data)
-    const sourceNumbers: string[] = source.match(/\d+([.,]\d+)?/g) ?? [];
-    const translatedNumbers: string[] = translated.match(/\d+([.,]\d+)?/g) ?? [];
+    // SEC-FIELD-002 FIX: Atomic-safe number regex (no alternation inside groups)
+    const sourceNumbers: string[] = source.match(/\d+(?:[.,]\d+)*/g) ?? [];
+    const translatedNumbers: string[] = translated.match(/\d+(?:[.,]\d+)*/g) ?? [];
     details.source_numbers = sourceNumbers.length;
     details.translated_numbers = translatedNumbers.length;
     if (sourceNumbers.length > 0) {
@@ -434,7 +435,7 @@ export function evaluateQuality(
         details.number_preservation = Math.round(preservationRate * 100);
         if (preservationRate < 0.8) {
             score -= 20;
-            if (primaryIssue === 'none') primaryIssue = 'number_loss';
+            if (primaryIssue === 'none') { primaryIssue = 'number_loss'; }
         }
     }
 

@@ -336,7 +336,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
             const res = await request(app)
                 .post('/api/admin/escrow/flag')
                 .send({ proof_id: 'nonexistent', reason: 'Testing' })
-                .expect(400);
+                .expect(404);
 
             expect(res.body.success).toBe(false);
         });

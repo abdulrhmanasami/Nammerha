@@ -10,10 +10,13 @@
 <link href="/i18n.css?v=4" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
-<div class="flex h-screen overflow-hidden">
+<div class="dashboard-layout">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" aria-hidden="true"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0">
+  <aside class="dashboard-sidebar">
     <div class="p-6 flex items-center gap-3">
       <div class="size-8 bg-trust-blue rounded-lg flex items-center justify-center text-white">
         <i class="ph ph-bank" style="font-size:18px" aria-hidden="true"></i>
@@ -61,10 +64,13 @@
   </aside>
 
   <!-- Main Content Area -->
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="dashboard-main">
     <!-- Top Bar -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0">
       <div class="flex items-center gap-2">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+          <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
+        </button>
         <span class="text-xs text-slate-400 font-medium uppercase tracking-wider" data-i18n="escrow_breadcrumb">Escrow</span>
         <span class="text-slate-300">/</span>
         <span class="text-xs text-trust-blue font-bold uppercase tracking-wider" data-i18n="verification_breadcrumb">Verification</span>
@@ -98,7 +104,7 @@
 
     <!-- Split Screen Content -->
     <main class="flex-1 overflow-y-auto px-6 pb-6">
-      <div class="grid grid-cols-2 gap-6 h-full" id="verification-panel">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full" id="verification-panel">
 
         <!-- LEFT: Financial Audit Documents -->
         <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
@@ -238,7 +244,7 @@
       </div>
 
       <!-- Action Bar -->
-      <div class="mt-6 flex items-center gap-4">
+      <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <button id="flag-btn" class="flex-[2] bg-white border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-warning-yellow transition-all">
           <i class="ph ph-warning-diamond" style="font-size:18px" aria-hidden="true"></i>
           Flag Discrepancy

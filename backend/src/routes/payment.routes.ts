@@ -1,13 +1,15 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha — Payment Routes
 // Endpoints for payment initiation, webhooks, and status checks
 // ============================================================================
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { paymentService, PaymentGateway } from '../services/payment.service';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { query } from '../config/database';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -23,7 +25,7 @@ router.post(
     authMiddleware,
     requireActive,
     requireRole('donor'),
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response): Promise<void> => {
         try {
             const { item_id, project_id, amount, gateway, currency, return_url } = req.body as {
                 item_id: string;
@@ -76,7 +78,7 @@ router.post(
                 return;
             }
 
-            const donorId = req.authUser!.user_id;
+            const donorId = getAuthUser(req).user_id;
 
             // NMR-AUD-007: Fetch donor details for gateway API (Fatora requires email)
             const donorResult = await query<{ full_name: string; email: string }>(
@@ -106,8 +108,8 @@ router.post(
                     gateway_tx_id: result.gateway_tx_id,
                 },
             });
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            safeRouteError(res, error, 'Payment.Initiate');
         }
     }
 );
@@ -116,7 +118,7 @@ router.post(
 // Public endpoint for gateway callbacks (no auth — verified by HMAC signature)
 router.post(
     '/webhook',
-    async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response): Promise<void> => {
         try {
             const { reference, gateway, status, gateway_tx_id, signature } = req.body as {
                 reference: string;
@@ -180,7 +182,8 @@ router.post(
 router.get(
     '/status/:ref',
     authMiddleware,
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    requireActive,
+    async (req: Request, res: Response): Promise<void> => {
         try {
             const reference = String(req.params['ref']);
 
@@ -195,8 +198,8 @@ router.get(
             }
 
             // MED-AUD-003: Ownership verification — prevent IDOR
-            const userRole = req.authUser!.role;
-            const userId = req.authUser!.user_id;
+            const userRole = getAuthUser(req).role;
+            const userId = getAuthUser(req).user_id;
             const isPrivileged = userRole === 'admin' || userRole === 'auditor';
             if (payment.donor_id !== userId && !isPrivileged) {
                 res.status(403).json({
@@ -217,8 +220,8 @@ router.get(
                     created_at: payment.created_at,
                 },
             });
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            safeRouteError(res, error, 'Payment.Status');
         }
     }
 );
@@ -230,16 +233,16 @@ router.get(
     authMiddleware,
     requireActive,
     requireRole('donor'),
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response): Promise<void> => {
         try {
-            const payments = await paymentService.getDonorPayments(req.authUser!.user_id);
+            const payments = await paymentService.getDonorPayments(getAuthUser(req).user_id);
 
             res.json({
                 success: true,
                 data: payments,
             });
-        } catch (err) {
-            next(err);
+        } catch (error) {
+            safeRouteError(res, error, 'Payment.Refund');
         }
     }
 );

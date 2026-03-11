@@ -41,7 +41,9 @@ export async function addCatalogItem(
         ],
     );
 
-    return result.rows[0]!;
+    const row = result.rows[0];
+    if (!row) { throw new Error('Insert returned no rows'); }
+    return row;
 }
 
 /**
@@ -98,7 +100,9 @@ export async function updateCatalogItem(
         throw new Error('Catalog item not found or not owned by you');
     }
 
-    return result.rows[0]!;
+    const row = result.rows[0];
+    if (!row) { throw new Error('Update returned no rows'); }
+    return row;
 }
 
 /**
@@ -205,7 +209,8 @@ export async function acknowledgeOrder(
             throw new Error('Purchase order not found or not assigned to you');
         }
 
-        const po = poRes.rows[0]!;
+        const po = poRes.rows[0];
+        if (!po) { throw new Error('Purchase order not found'); }
 
         // Validate status transition: only 'generated' or 'sent_to_supplier' → 'acknowledged'
         if (po.status !== 'generated' && po.status !== 'sent_to_supplier') {
@@ -233,7 +238,9 @@ export async function acknowledgeOrder(
             ],
         );
 
-        return result.rows[0]!;
+        const updatedPo = result.rows[0];
+        if (!updatedPo) { throw new Error('Update returned no rows'); }
+        return updatedPo;
     });
 }
 
@@ -267,7 +274,8 @@ export async function updateOrderStatus(
             throw new Error('Purchase order not found or not assigned to you');
         }
 
-        const po = poRes.rows[0]!;
+        const po = poRes.rows[0];
+        if (!po) { throw new Error('Purchase order not found'); }
         if (!allowedFrom.includes(po.status)) {
             throw new Error(
                 `Cannot transition from '${po.status}' to '${newStatus}'. Expected: ${allowedFrom.join(', ')}`,
@@ -301,7 +309,9 @@ export async function updateOrderStatus(
             ],
         );
 
-        return result.rows[0]!;
+        const updatedPo = result.rows[0];
+        if (!updatedPo) { throw new Error('Update returned no rows'); }
+        return updatedPo;
     });
 }
 

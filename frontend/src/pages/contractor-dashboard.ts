@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Dashboard — Project Execution & Bidding Engine
@@ -6,9 +7,6 @@ import '../styles/main.css';
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const API_BASE = '/api';
-
-// ─── State ──────────────────────────────────────────────────────────────────
-let activeTab: 'projects' | 'bids' = 'projects';
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -44,7 +42,7 @@ function setupTabs(): void {
     const sectionBids = document.getElementById('section-bids');
 
     tabProjects?.addEventListener('click', () => {
-        activeTab = 'projects';
+
         tabProjects.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabProjects.classList.remove('text-slate-600');
         tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
@@ -54,7 +52,7 @@ function setupTabs(): void {
     });
 
     tabBids?.addEventListener('click', () => {
-        activeTab = 'bids';
+
         tabBids.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabBids.classList.remove('text-slate-600');
         tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
@@ -248,18 +246,14 @@ function formatDate(iso: string): string {
     }
 }
 
-function esc(str: string): string {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function getToken(): string {
     return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {
-    if (typeof (window as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as Record<string, unknown>)['applyI18n'] as () => void)();
+    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
+        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
     }
 }

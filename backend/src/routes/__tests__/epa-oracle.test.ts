@@ -360,7 +360,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
             expect(res.body.message).toContain('FIDIC');
         });
 
-        it('should return 400 when FIDIC params violate constraints', async () => {
+        it('should return 422 when FIDIC params violate constraints', async () => {
             const res = await request(app)
                 .post('/api/oracle/epa/calculate')
                 .send({
@@ -368,7 +368,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
                     fidic_params: { ...VALID_FIDIC_PARAMS, Lo: 0 }, // division by zero
                     original_amount: 12500000,
                 })
-                .expect(400);
+                .expect(422);
 
             expect(res.body.error).toContain('FIDIC constraint');
         });

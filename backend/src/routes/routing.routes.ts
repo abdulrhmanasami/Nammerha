@@ -5,6 +5,7 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import * as georavity from '../services/georavity.service';
+import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
 import type { LatLng, CostingModel } from '../services/georavity.service';
 
@@ -26,9 +27,7 @@ router.get('/health', async (_req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Routing] Health check failed:', error);
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Routing.Health');
     }
 });
 
@@ -68,9 +67,7 @@ router.post('/route', async (req: Request, res: Response) => {
 
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Routing] Route calculation failed:', error);
-        res.status(502).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Routing.GetRoute', 502);
     }
 });
 
@@ -123,9 +120,7 @@ router.post('/matrix', async (req: Request, res: Response) => {
 
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Routing] Matrix calculation failed:', error);
-        res.status(502).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Routing.Matrix', 502);
     }
 });
 
@@ -182,9 +177,7 @@ router.post('/isochrone', async (req: Request, res: Response) => {
 
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Routing] Isochrone generation failed:', error);
-        res.status(502).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Routing.Isochrone', 502);
     }
 });
 

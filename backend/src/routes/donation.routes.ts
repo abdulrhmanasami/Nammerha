@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Donation Routes (Path 2 — Authenticated)
 // ============================================================================
 import { Router, Request, Response } from 'express';
@@ -6,6 +7,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as crowdfundingService from '../services/crowdfunding.service';
 import type { CreateDonationDTO, ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -87,7 +89,7 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
 
                 // First request: process the donation
                 const escrowEntries = await crowdfundingService.createDonation(
-                    req.authUser!.user_id,
+                    getAuthUser(req).user_id,
                     dto
                 );
 
@@ -102,7 +104,7 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
                 await client.query(
                     `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                      VALUES ('donation_created', 'idempotency', $1, $2, $3)`,
-                    [idempotencyKey, req.authUser!.user_id, JSON.stringify(responseData)]
+                    [idempotencyKey, getAuthUser(req).user_id, JSON.stringify(responseData)]
                 );
 
                 await client.query('COMMIT');
@@ -123,7 +125,7 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
 
         // No idempotency key — process normally (legacy behavior)
         const escrowEntries = await crowdfundingService.createDonation(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             dto
         );
 
@@ -140,31 +142,27 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
             message: `Successfully locked $${(totalLocked / 100).toFixed(2)} in escrow`,
         } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('fully funded') ? 409 : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Donation');
     }
 });
 
 // ─── GET /api/donations/my/summary — Donor Escrow Summary ──────────────────
 router.get('/my/summary', requireRole('donor'), async (req: Request, res: Response) => {
     try {
-        const summary = await crowdfundingService.getDonorEscrowSummary(req.authUser!.user_id);
+        const summary = await crowdfundingService.getDonorEscrowSummary(getAuthUser(req).user_id);
         res.json({ success: true, data: summary } as ApiResponse);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'Donation');
     }
 });
 
 // ─── GET /api/donations/my/history — Donor Donation History ─────────────────
 router.get('/my/history', requireRole('donor'), async (req: Request, res: Response) => {
     try {
-        const donations = await crowdfundingService.getDonorDonations(req.authUser!.user_id);
+        const donations = await crowdfundingService.getDonorDonations(getAuthUser(req).user_id);
         res.json({ success: true, data: donations } as ApiResponse);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'Donation');
     }
 });
 

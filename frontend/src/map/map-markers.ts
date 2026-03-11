@@ -5,6 +5,7 @@
 import maplibregl from 'maplibre-gl';
 import type { ProjectFilter } from './map-controls';
 import { t } from './i18n-bridge';
+import { escapeHtml } from '../utils/xss';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -264,11 +265,7 @@ function getStatusLabel(status: string): string {
     return labels[status] ?? status;
 }
 
-function escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// HGH-001 FIX: Local escapeHtml removed — using centralized import from utils/xss.ts
 
 // ─── Filter Support ─────────────────────────────────────────────────────────
 

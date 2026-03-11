@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — EPA Oracle Routes (Ticket 7.2)
 // FIDIC 13.8 Price Adjustment Engine + Oracle Admin CRUD
 // ============================================================================
@@ -7,6 +8,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as oracle from '../services/epa-oracle.service';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -28,9 +30,8 @@ router.get(
                 message: `${entries.length} oracle entries`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'EpaOracle');
         }
     }
 );
@@ -62,7 +63,7 @@ router.post(
                 return;
             }
 
-            const entry = await oracle.upsertOracleEntry(dto, req.authUser!.user_id);
+            const entry = await oracle.upsertOracleEntry(dto, getAuthUser(req).user_id);
 
             const response: ApiResponse = {
                 success: true,
@@ -71,8 +72,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'EPAOracle');
         }
     }
 );
@@ -93,7 +93,7 @@ router.post(
                 return;
             }
 
-            const adjustment = await oracle.calculateAndStoreEPA(dto, req.authUser!.user_id);
+            const adjustment = await oracle.calculateAndStoreEPA(dto, getAuthUser(req).user_id);
 
             const response: ApiResponse = {
                 success: true,
@@ -102,8 +102,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'EPAOracle');
         }
     }
 );
@@ -122,9 +121,8 @@ router.get(
                 message: `${history.length} EPA adjustments`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'EpaOracle');
         }
     }
 );
@@ -147,7 +145,7 @@ router.post(
 
             const result = await oracle.respondToEPA(
                 String(req.params.adjustmentId),
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 decision
             );
 
@@ -158,9 +156,7 @@ router.post(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'EPAOracle');
         }
     }
 );
@@ -179,9 +175,8 @@ router.get(
                 message: `${alerts.length} projects with >5% price drift`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'EpaOracle');
         }
     }
 );

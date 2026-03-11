@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Spatial Proof Routes (Path 3)
 // ============================================================================
 import { Router, Request, Response } from 'express';
@@ -6,6 +7,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as executionService from '../services/execution.service';
 import type { SubmitSpatialProofDTO, ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -17,7 +19,7 @@ router.post('/', requireRole('engineer'), async (req: Request, res: Response) =>
     try {
         const dto = req.body as SubmitSpatialProofDTO;
 
-        if (!dto.item_id || !dto.project_id || !dto.image_url || dto.gps_lat == null || dto.gps_lng == null) {
+        if (!dto.item_id || !dto.project_id || !dto.image_url || dto.gps_lat === null || dto.gps_lat === undefined || dto.gps_lng === null || dto.gps_lng === undefined) {
             const response: ApiResponse = {
                 success: false,
                 error: 'Missing required fields: item_id, project_id, image_url, gps_lat, gps_lng',
@@ -27,7 +29,7 @@ router.post('/', requireRole('engineer'), async (req: Request, res: Response) =>
         }
 
         const proof = await executionService.submitSpatialProof(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             dto
         );
 
@@ -38,9 +40,7 @@ router.post('/', requireRole('engineer'), async (req: Request, res: Response) =>
         };
         res.status(201).json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('GPS validation failed') ? 422 : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'SpatialProof');
     }
 });
 
@@ -52,9 +52,8 @@ router.get('/project/:id', async (req: Request, res: Response) => {
     try {
         const purchaseOrders = await executionService.getProjectPurchaseOrders(String(req.params['id']));
         res.json({ success: true, data: purchaseOrders } as ApiResponse);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'SpatialProof');
     }
 });
 

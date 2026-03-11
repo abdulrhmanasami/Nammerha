@@ -20,10 +20,10 @@ function verifyWebhookSignature(
     signature: string | undefined,
     webhookSecret: string
 ): boolean {
-    if (!webhookSecret) return false;
-    if (!signature) return false;
+    if (!webhookSecret) {return false;}
+    if (!signature) {return false;}
 
-    if (!HMAC_SHA256_HEX_REGEX.test(signature)) return false;
+    if (!HMAC_SHA256_HEX_REGEX.test(signature)) {return false;}
 
     try {
         const expected = crypto
@@ -34,7 +34,7 @@ function verifyWebhookSignature(
         const sigBuffer = Buffer.from(signature, 'hex');
         const expectedBuffer = Buffer.from(expected, 'hex');
 
-        if (sigBuffer.length !== expectedBuffer.length) return false;
+        if (sigBuffer.length !== expectedBuffer.length) {return false;}
 
         return crypto.timingSafeEqual(sigBuffer, expectedBuffer);
     } catch {

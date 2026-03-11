@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Matchmaking Routes (Ticket 7.1)
 // BuildZoom-style search, scoring, auto-match, and competitive bidding
 // ============================================================================
@@ -6,7 +7,9 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as matchmaking from '../services/matchmaking.service';
+import { query } from '../config/database';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -41,9 +44,8 @@ router.get('/search', async (req: Request, res: Response) => {
             message: `${engineers.length} engineers found`,
         };
         res.json(response);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'Matchmaking');
     }
 });
 
@@ -63,9 +65,7 @@ router.get(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Matchmaking.ProjectMatches');
         }
     }
 );
@@ -127,7 +127,7 @@ router.post(
             }
 
             const bid = await matchmaking.submitBid(
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 String(req.params.id),
                 dto
             );
@@ -139,9 +139,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('duplicate') ? 409 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Matchmaking');
         }
     }
 );
@@ -152,7 +150,21 @@ router.get(
     requireRole('homeowner', 'admin'),
     async (req: Request, res: Response) => {
         try {
-            const bids = await matchmaking.getProjectBids(String(req.params.id));
+            const projectId = String(req.params.id);
+
+            // DT-IDOR-003 FIX: Verify homeowner owns this project (admin bypasses)
+            if (getAuthUser(req).role === 'homeowner') {
+                const ownerCheck = await query<{ homeowner_id: string }>(
+                    'SELECT homeowner_id FROM projects WHERE project_id = $1',
+                    [projectId]
+                );
+                if (!ownerCheck.rows[0] || ownerCheck.rows[0].homeowner_id !== getAuthUser(req).user_id) {
+                    res.status(403).json({ success: false, error: 'Access denied' } as ApiResponse);
+                    return;
+                }
+            }
+
+            const bids = await matchmaking.getProjectBids(projectId);
 
             const response: ApiResponse = {
                 success: true,
@@ -161,8 +173,7 @@ router.get(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Matchmaking.GetBids');
         }
     }
 );
@@ -173,9 +184,11 @@ router.post(
     requireRole('homeowner', 'admin'),
     async (req: Request, res: Response) => {
         try {
+            // DT-IDOR-002 FIX: Pass role so service can verify ownership
             const bid = await matchmaking.acceptBid(
                 String(req.params.bidId),
-                req.authUser!.user_id
+                getAuthUser(req).user_id,
+                getAuthUser(req).role
             );
 
             const response: ApiResponse = {
@@ -185,9 +198,7 @@ router.post(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Matchmaking.AcceptBid');
         }
     }
 );
@@ -202,10 +213,8 @@ router.get('/engineer/:id/score', async (req: Request, res: Response) => {
             data: breakdown,
         };
         res.json(response);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404 : 500;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+            } catch (error) {
+                safeRouteError(res, error, 'Matchmaking');
     }
 });
 
@@ -224,8 +233,7 @@ router.post(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Matchmaking.Recalculate');
         }
     }
 );

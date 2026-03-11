@@ -5,6 +5,32 @@
 
 const API_BASE = '/api';
 
+// ─── P1-NEW-002 FIX: CSRF Token Management ─────────────────────────────────
+// The backend has a complete double-submit cookie CSRF implementation.
+// JWT Bearer tokens are inherently CSRF-safe (not auto-attached like cookies),
+// so the CSRF middleware correctly short-circuits for Bearer requests.
+// This utility provides defense-in-depth for any future cookie-based auth flows.
+async function ensureCsrfToken(): Promise<string | null> {
+    // Check if a CSRF token cookie already exists
+    const existing = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
+    if (existing) {
+        return existing;
+    }
+
+    // Fetch a new CSRF token from the backend
+    try {
+        const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
+        if (!res.ok) {
+            return null;
+        }
+        const data = await res.json() as { csrfToken?: string };
+        return data.csrfToken ?? null;
+    } catch {
+        // CSRF fetch failure is non-fatal — Bearer auth still works
+        return null;
+    }
+}
+
 interface ApiResponse<T = unknown> {
     success: boolean;
     data?: T;
@@ -27,10 +53,23 @@ async function request<T>(
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Development fallback: pass user ID header
-    const devUserId = localStorage.getItem('nammerha_dev_user_id');
-    if (devUserId && !token) {
-        headers['X-User-Id'] = devUserId;
+    // P1-NEW-002 FIX: Attach CSRF token for non-Bearer requests.
+    // When using cookie-based auth (no Bearer token), attach CSRF header.
+    if (!token) {
+        const csrfToken = await ensureCsrfToken();
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+    }
+
+    // P3-NEW-001 FIX: Guard dev header with Vite env check.
+    // import.meta.env.DEV is tree-shaken in production builds,
+    // eliminating unnecessary localStorage probing and header pollution.
+    if (import.meta.env.DEV) {
+        const devUserId = localStorage.getItem('nammerha_dev_user_id');
+        if (devUserId && !token) {
+            headers['X-User-Id'] = devUserId;
+        }
     }
 
     // MED-AUD-009 FIX: AbortController with 30s timeout to prevent indefinite
@@ -557,4 +596,366 @@ export const tradesperson = {
             method: 'PATCH',
             body: JSON.stringify({ status }),
         }),
+};
+
+// ─── P2-NEW-002 FIX: Supplier Portal (الموردين) ─────────────────────────────
+// Typed wrappers for all supplier endpoints — mirrors supplier.routes.ts exactly.
+
+interface CatalogItem {
+    catalog_item_id: string;
+    supplier_id: string;
+    material_name: string;
+    material_category: string;
+    unit: string;
+    unit_price_guide: number;
+    lead_time_days: number | null;
+    minimum_order: number | null;
+    is_active: boolean;
+    created_at: string;
+}
+
+interface PurchaseOrder {
+    order_id: string;
+    project_id: string;
+    project_title: string;
+    material_name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    status: string;
+    created_at: string;
+}
+
+interface SupplierStats {
+    active_catalog_items: number;
+    total_orders: number;
+    pending_orders: number;
+    total_revenue: number;
+}
+
+export const supplier = {
+    /** POST /api/supplier/catalog — Add material to catalog */
+    addCatalogItem: (data: {
+        material_name: string;
+        material_category: string;
+        unit: string;
+        unit_price_guide: number;
+        lead_time_days?: number;
+        minimum_order?: number;
+    }) => request<CatalogItem>('/supplier/catalog', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    /** GET /api/supplier/catalog — View my catalog */
+    getCatalog: () =>
+        request<CatalogItem[]>('/supplier/catalog'),
+
+    /** PATCH /api/supplier/catalog/:id — Update catalog item */
+    updateCatalogItem: (itemId: string, data: {
+        material_name?: string;
+        material_category?: string;
+        unit?: string;
+        unit_price_guide?: number;
+        lead_time_days?: number;
+        minimum_order?: number;
+    }) => request<CatalogItem>(`/supplier/catalog/${itemId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    }),
+
+    /** DELETE /api/supplier/catalog/:id — Deactivate catalog item */
+    deactivateItem: (itemId: string) =>
+        request(`/supplier/catalog/${itemId}`, { method: 'DELETE' }),
+
+    /** GET /api/supplier/orders — My purchase orders */
+    getOrders: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<PurchaseOrder[]>(`/supplier/orders${qs}`);
+    },
+
+    /** PATCH /api/supplier/orders/:id/status — Update PO status */
+    updateOrderStatus: (orderId: string, status: 'acknowledged' | 'shipped' | 'delivered') =>
+        request<PurchaseOrder>(`/supplier/orders/${orderId}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status }),
+        }),
+
+    /** GET /api/supplier/stats — Dashboard KPIs */
+    getStats: () =>
+        request<SupplierStats>('/supplier/stats'),
+};
+
+// ─── P2-NEW-002 FIX: Engineer Portal (المهندسين) ────────────────────────────
+// Typed wrappers for all engineer endpoints — mirrors engineer.routes.ts exactly.
+
+interface EngineerProject {
+    project_id: string;
+    title: string;
+    status: string;
+    damage_type: string;
+    homeowner_name: string;
+    created_at: string;
+}
+
+interface EngineerProfile {
+    full_name: string;
+    specialty: string | null;
+    years_experience: number | null;
+    score: number;
+    completed_projects: number;
+    average_rating: number | null;
+}
+
+interface EngineerBid {
+    bid_id: string;
+    project_title: string;
+    proposed_cost: number;
+    estimated_days: number;
+    status: string;
+    created_at: string;
+}
+
+interface EngineerStats {
+    assigned_projects: number;
+    completed_projects: number;
+    active_bids: number;
+    average_score: number;
+}
+
+export const engineer = {
+    /** GET /api/engineer/projects — My assigned projects */
+    getProjects: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<EngineerProject[]>(`/engineer/projects${qs}`);
+    },
+
+    /** GET /api/engineer/stats — Dashboard KPIs */
+    getStats: () =>
+        request<EngineerStats>('/engineer/stats'),
+
+    /** GET /api/engineer/bids — My bid history */
+    getBids: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<EngineerBid[]>(`/engineer/bids${qs}`);
+    },
+
+    /** GET /api/engineer/profile — My score + performance */
+    getProfile: () =>
+        request<EngineerProfile>('/engineer/profile'),
+
+    /** GET /api/engineer/captures — My recent captures */
+    getCaptures: (limit?: number) => {
+        const qs = limit ? `?limit=${limit}` : '';
+        return request(`/engineer/captures${qs}`);
+    },
+
+    /** POST /api/engineer/camera/capture — Submit reality capture */
+    submitCapture: (data: {
+        project_id: string;
+        file_url: string;
+        construction_phase: string;
+        capture_type?: string;
+        title?: string;
+        description?: string;
+        thumbnail_url?: string;
+        gps_lat?: number;
+        gps_lng?: number;
+        gps_accuracy_meters?: number;
+    }) => request('/engineer/camera/capture', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    /** POST /api/engineer/camera/spatial-proof — Submit GPS spatial proof */
+    submitSpatialProof: (data: {
+        item_id: string;
+        project_id: string;
+        image_url: string;
+        gps_lat: number;
+        gps_lng: number;
+        gps_accuracy_meters?: number;
+        description?: string;
+    }) => request('/engineer/camera/spatial-proof', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+};
+
+// ─── P2-NEW-002 FIX: Contractor Portal (المقاولين) ──────────────────────────
+// Typed wrappers for all contractor endpoints — mirrors contractor.routes.ts.
+
+interface ContractorProject {
+    project_id: string;
+    title: string;
+    status: string;
+    damage_type: string;
+    homeowner_name: string;
+    created_at: string;
+}
+
+interface ContractorBid {
+    bid_id: string;
+    project_title: string;
+    proposed_cost: number;
+    estimated_days: number;
+    status: string;
+    created_at: string;
+}
+
+interface ContractorProfile {
+    full_name: string;
+    specialty: string | null;
+    years_experience: number | null;
+    score: number;
+    completed_projects: number;
+    average_rating: number | null;
+}
+
+interface ContractorStats {
+    assigned_projects: number;
+    completed_projects: number;
+    active_bids: number;
+    total_earnings: number;
+}
+
+interface ContractorPayment {
+    payment_id: string;
+    project_title: string;
+    amount: number;
+    status: string;
+    released_at: string | null;
+}
+
+export const contractor = {
+    /** GET /api/contractor/projects — My assigned projects */
+    getProjects: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<ContractorProject[]>(`/contractor/projects${qs}`);
+    },
+
+    /** GET /api/contractor/stats — Dashboard KPIs */
+    getStats: () =>
+        request<ContractorStats>('/contractor/stats'),
+
+    /** GET /api/contractor/bids — My bid history */
+    getBids: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<ContractorBid[]>(`/contractor/bids${qs}`);
+    },
+
+    /** GET /api/contractor/marketplace — Available projects for bidding */
+    getMarketplace: () =>
+        request<ContractorProject[]>('/contractor/marketplace'),
+
+    /** GET /api/contractor/profile — My score + performance */
+    getProfile: () =>
+        request<ContractorProfile>('/contractor/profile'),
+
+    /** GET /api/contractor/payments — My escrow payments */
+    getPayments: () =>
+        request<ContractorPayment[]>('/contractor/payments'),
+
+    /** POST /api/contractor/bids — Submit a competitive bid */
+    submitBid: (data: {
+        project_id: string;
+        proposed_cost: number;
+        estimated_days: number;
+        cover_letter?: string;
+        methodology?: string;
+    }) => request('/contractor/bids', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+};
+
+// ─── P2-NEW-002 FIX: Homeowner Portal (أصحاب المنازل / المتضررين) ────────────
+// Typed wrappers for all homeowner endpoints — mirrors homeowner.routes.ts.
+
+interface HomeownerProject {
+    project_id: string;
+    title: string;
+    status: string;
+    damage_type: string;
+    damage_severity: string;
+    funded_percentage: number;
+    created_at: string;
+}
+
+interface HomeownerStats {
+    total_projects: number;
+    active_projects: number;
+    total_funded: number;
+    pending_approvals: number;
+}
+
+interface HomeownerServiceRequest {
+    request_id: string;
+    trade_needed: string;
+    title: string;
+    description: string | null;
+    urgency: string;
+    status: string;
+    created_at: string;
+}
+
+interface HomeownerApproval {
+    approval_id: string;
+    project_title: string;
+    title: string;
+    description: string | null;
+    status: string;
+    created_at: string;
+}
+
+interface HomeownerEscrowSummary {
+    total_escrowed: number;
+    total_released: number;
+    pending_release: number;
+}
+
+export const homeowner = {
+    /** GET /api/homeowner/projects — My projects */
+    getProjects: () =>
+        request<HomeownerProject[]>('/homeowner/projects'),
+
+    /** GET /api/homeowner/stats — Dashboard KPIs */
+    getStats: () =>
+        request<HomeownerStats>('/homeowner/stats'),
+
+    /** GET /api/homeowner/projects/:id/bids — Bid comparison */
+    getProjectBids: (projectId: string) =>
+        request(`/homeowner/projects/${projectId}/bids`),
+
+    /** POST /api/homeowner/service-requests — Create Thumbtack request */
+    createServiceRequest: (data: {
+        trade_needed: string;
+        title: string;
+        description?: string;
+        address_text?: string;
+        urgency?: 'low' | 'medium' | 'high' | 'emergency';
+        budget_min?: number;
+        budget_max?: number;
+    }) => request<HomeownerServiceRequest>('/homeowner/service-requests', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    /** GET /api/homeowner/service-requests — My service requests */
+    getServiceRequests: () =>
+        request<HomeownerServiceRequest[]>('/homeowner/service-requests'),
+
+    /** POST /api/homeowner/service-requests/:id/cancel — Cancel request */
+    cancelServiceRequest: (requestId: string) =>
+        request(`/homeowner/service-requests/${requestId}/cancel`, { method: 'POST' }),
+
+    /** GET /api/homeowner/approvals — Pending approvals */
+    getApprovals: (status?: string) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        return request<HomeownerApproval[]>(`/homeowner/approvals${qs}`);
+    },
+
+    /** GET /api/homeowner/escrow — Escrow summary */
+    getEscrow: () =>
+        request<HomeownerEscrowSummary>('/homeowner/escrow'),
 };

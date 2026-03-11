@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Tradesperson Routes (أصحاب المهن)
 // Profile, Stats, Requests (Thumbtack), Assignments (Subcontractor), Earnings
 // All endpoints require: JWT + KYC verified + role='tradesperson'
@@ -7,6 +8,7 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as tradespersonService from '../services/tradesperson.service';
+import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse, AvailabilityStatus } from '../types';
 
 const router = Router();
@@ -19,23 +21,20 @@ router.use(requireRole('tradesperson'));
 // ─── GET /api/tradesperson/profile — My Trade Profile ───────────────────────
 router.get('/profile', async (req: Request, res: Response) => {
     try {
-        const profile = await tradespersonService.getMyProfile(req.authUser!.user_id);
+        const profile = await tradespersonService.getMyProfile(getAuthUser(req).user_id);
         res.json({ success: true, data: profile } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404 : 500;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.GetProfile');
     }
 });
 
 // ─── GET /api/tradesperson/stats — Dashboard KPIs ───────────────────────────
 router.get('/stats', async (req: Request, res: Response) => {
     try {
-        const stats = await tradespersonService.getMyStats(req.authUser!.user_id);
+        const stats = await tradespersonService.getMyStats(getAuthUser(req).user_id);
         res.json({ success: true, data: stats } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.GetStats');
     }
 });
 
@@ -43,11 +42,10 @@ router.get('/stats', async (req: Request, res: Response) => {
 // Thumbtack mode: open requests matching my trade
 router.get('/requests', async (req: Request, res: Response) => {
     try {
-        const requests = await tradespersonService.getAvailableRequests(req.authUser!.user_id);
+        const requests = await tradespersonService.getAvailableRequests(getAuthUser(req).user_id);
         res.json({ success: true, data: requests } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.GetRequests');
     }
 });
 
@@ -55,7 +53,7 @@ router.get('/requests', async (req: Request, res: Response) => {
 router.post('/requests/:id/accept', async (req: Request, res: Response) => {
     try {
         const result = await tradespersonService.acceptRequest(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             String(req.params.id),
         );
         res.json({
@@ -64,11 +62,7 @@ router.post('/requests/:id/accept', async (req: Request, res: Response) => {
             message: 'Request accepted — contact the homeowner to schedule',
         } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404
-            : message.includes('no longer') ? 409
-                : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.AcceptRequest');
     }
 });
 
@@ -78,13 +72,12 @@ router.get('/assignments', async (req: Request, res: Response) => {
     try {
         const status = req.query['status'] as string | undefined;
         const assignments = await tradespersonService.getMyAssignments(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             status,
         );
         res.json({ success: true, data: assignments } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.GetAssignments');
     }
 });
 
@@ -101,7 +94,7 @@ router.post('/assignments/:id/respond', async (req: Request, res: Response) => {
         }
 
         const result = await tradespersonService.respondToAssignment(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             String(req.params.id),
             accept,
         );
@@ -111,22 +104,17 @@ router.post('/assignments/:id/respond', async (req: Request, res: Response) => {
             message: accept ? 'Assignment accepted' : 'Assignment declined',
         } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404
-            : message.includes('not assigned') ? 403
-                : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.RespondAssignment');
     }
 });
 
 // ─── GET /api/tradesperson/earnings — Payment History ───────────────────────
 router.get('/earnings', async (req: Request, res: Response) => {
     try {
-        const earnings = await tradespersonService.getMyEarnings(req.authUser!.user_id);
+        const earnings = await tradespersonService.getMyEarnings(getAuthUser(req).user_id);
         res.json({ success: true, data: earnings } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson.GetEarnings');
     }
 });
 
@@ -142,8 +130,20 @@ router.patch('/availability', async (req: Request, res: Response) => {
             return;
         }
 
+        // DT-ENUM-001 FIX: Validate availability status against allowed enum values.
+        // Without this, any arbitrary string is blindly cast to AvailabilityStatus,
+        // which would cause a PostgreSQL enum type error at best, or data corruption at worst.
+        const VALID_AVAILABILITY: readonly string[] = ['available', 'busy', 'offline'];
+        if (!VALID_AVAILABILITY.includes(newStatus)) {
+            res.status(400).json({
+                success: false,
+                error: `Invalid status. Allowed values: ${VALID_AVAILABILITY.join(', ')}`,
+            } as ApiResponse);
+            return;
+        }
+
         const result = await tradespersonService.updateAvailability(
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             newStatus as AvailabilityStatus,
         );
         res.json({
@@ -152,8 +152,7 @@ router.patch('/availability', async (req: Request, res: Response) => {
             message: `Availability updated to: ${result.availability}`,
         } as ApiResponse);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(400).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Tradesperson');
     }
 });
 

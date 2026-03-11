@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Compliance Routes (Epic 09)
 // SDN Screening + Export Controls + Security Event Logs
 // ============================================================================
@@ -8,6 +9,7 @@ import { requireRole } from '../middleware/role-guard.middleware';
 import * as compliance from '../services/compliance.service';
 import * as securityEvents from '../services/security-events.service';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -34,8 +36,8 @@ router.post(
                     ? 'sanctions_screening'
                     : 'sanctions_match_found',
                 severity: result.status === 'clear' ? 'info' : 'critical',
-                actor_id: req.authUser!.user_id,
-                actor_role: req.authUser!.role,
+                actor_id: getAuthUser(req).user_id,
+                actor_role: getAuthUser(req).role,
                 target_entity_type: 'user',
                 target_entity_id: String(req.params.userId),
                 ip_address: req.ip || undefined,
@@ -57,10 +59,8 @@ router.post(
                         : `Potential match (${(result.match_score * 100).toFixed(1)}%) — requires admin review`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -81,9 +81,8 @@ router.get(
                 message: `${results.length} screening results`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -102,9 +101,8 @@ router.get(
                 message: `${results.length} pending reviews`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -130,7 +128,7 @@ router.patch(
 
             const result = await compliance.reviewScreeningResult(
                 String(req.params.resultId),
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 decision,
                 notes
             );
@@ -142,9 +140,7 @@ router.patch(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -173,9 +169,8 @@ router.post(
                 message: `${result.imported} SDN entries imported`,
             };
             res.status(201).json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -198,9 +193,8 @@ router.get(
                 message: `${materials.length} controlled materials`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -222,7 +216,7 @@ router.post(
             }
 
             const material = await compliance.addControlledMaterial(
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 dto
             );
 
@@ -233,8 +227,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -253,9 +246,8 @@ router.get(
                 message: `${items.length} dual-use items flagged`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -293,9 +285,8 @@ router.get(
                 message: `${result.events.length} of ${result.total} security events`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -315,9 +306,8 @@ router.get(
             res.setHeader('Content-Type', 'text/plain; charset=utf-8');
             res.setHeader('Content-Disposition', 'attachment; filename="nammerha-security-events.cef"');
             res.send(cef);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -342,9 +332,8 @@ router.get(
                 total_events: events.length,
                 events,
             });
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'Compliance');
         }
     }
 );

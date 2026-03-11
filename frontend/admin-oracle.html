@@ -13,10 +13,13 @@
 <link href="/i18n.css?v=4" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
-<div class="flex h-screen overflow-hidden">
+<div class="dashboard-layout">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" aria-hidden="true"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="w-64 border-r border-slate-200 bg-white flex flex-col">
+  <aside class="dashboard-sidebar">
     <div class="p-6 flex items-center gap-3">
       <div class="size-8 bg-trust-blue rounded-lg flex items-center justify-center text-white">
         <i class="ph ph-bank" style="font-size:18px" aria-hidden="true"></i>
@@ -64,11 +67,14 @@
     </div>
   </aside>
 
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="dashboard-main">
     <!-- Top Bar / Live Ticker -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between shrink-0">
-      <div class="flex items-center gap-6 overflow-hidden">
-        <div class="flex items-center gap-2 border-r border-slate-200 pr-6 shrink-0">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0">
+      <div class="flex items-center gap-3 md:gap-6 overflow-hidden">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+          <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
+        </button>
+        <div class="hidden md:flex items-center gap-2 border-r border-slate-200 pr-6 shrink-0">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-smoky-jade opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-smoky-jade"></span>
@@ -106,12 +112,12 @@
 
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto p-6 space-y-6">
-      <div class="flex justify-between items-end">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
         <div>
-          <h2 class="text-2xl font-bold" data-i18n="pricing_oracle_epa">Pricing Oracle & EPA Engine</h2>
+          <h2 class="text-xl md:text-2xl font-bold" data-i18n="pricing_oracle_epa">Pricing Oracle & EPA Engine</h2>
           <p class="text-slate-500 text-sm" data-i18n="pricing_oracle_desc">Institutional analysis and automated FIDIC price adjustment protocols.</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 shrink-0 flex-wrap">
           <button class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
             <i class="ph ph-download ph-sm" aria-hidden="true"></i> <span data-i18n="export_report">Export Report</span>
           </button>
@@ -153,7 +159,7 @@
               </div>
             </div>
             <!-- Stats Row -->
-            <div class="grid grid-cols-3 gap-4 mt-8">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
               <div class="p-4 rounded-lg bg-slate-50 border border-slate-100">
                 <p class="text-[10px] font-bold text-slate-500 uppercase" data-i18n="steel_index_volatility">Steel Index Volatility</p>
                 <p class="text-lg font-bold mt-1 text-trust-blue">High (8.4)</p>
@@ -170,7 +176,7 @@
           </div>
 
           <!-- Regional + Feeds -->
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
               <h4 class="font-bold text-sm text-slate-800 mb-4" data-i18n="regional_supply_forecast">Regional Supply Forecast</h4>
               <div class="space-y-4">

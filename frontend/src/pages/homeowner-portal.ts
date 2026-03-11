@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Homeowner Portal — Dashboard, Projects, Service Requests, Approvals, Escrow
@@ -174,7 +175,7 @@ async function loadDashboardProjects(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Homeowner] Dashboard projects load failed:', err);
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
+        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
 
@@ -211,7 +212,7 @@ async function loadProjects(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Homeowner] Projects table load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -335,7 +336,7 @@ async function loadServiceRequests(): Promise<void> {
         });
     } catch (err) {
         console.error('[Homeowner] Service requests load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -406,7 +407,7 @@ async function loadApprovals(): Promise<void> {
         });
     } catch (err) {
         console.error('[Homeowner] Approvals load failed:', err);
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
+        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
 
@@ -451,7 +452,7 @@ async function loadEscrow(): Promise<void> {
         `;
     } catch (err) {
         console.error('[Homeowner] Escrow data load failed:', err);
-        container.innerHTML = `<p class="text-red-400 text-sm text-center">Failed to load escrow data</p>`;
+        container.innerHTML = `<p class="text-red-400 text-sm text-center" data-i18n="failed_to_load">Failed to load</p>`;
     }
 }
 
@@ -461,11 +462,7 @@ function setText(id: string, text: string): void {
     if (el) { el.textContent = text; }
 }
 
-function esc(str: string): string {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function statusColor(s: string): string {
     const c: Record<string, string> = {

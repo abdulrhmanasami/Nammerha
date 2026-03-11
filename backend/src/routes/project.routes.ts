@@ -1,11 +1,14 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Project Routes (Path 1)
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as projectService from '../services/project.service';
+import { query } from '../config/database';
 import type { CreateProjectDTO, AddBOQItemDTO, ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -21,9 +24,7 @@ router.get('/geojson', async (_req: Request, res: Response) => {
         res.set('Cache-Control', 'public, max-age=60');
         res.json(geojson);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[GeoJSON] Failed to generate project GeoJSON:', error);
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Project.GetGeoJSON');
     }
 });
 
@@ -37,7 +38,7 @@ router.post('/', requireRole('homeowner'), async (req: Request, res: Response) =
     try {
         const dto = req.body as CreateProjectDTO;
 
-        if (!dto.title || !dto.damage_type || dto.gps_lat == null || dto.gps_lng == null) {
+        if (!dto.title || !dto.damage_type || dto.gps_lat === null || dto.gps_lat === undefined || dto.gps_lng === null || dto.gps_lng === undefined) {
             const response: ApiResponse = {
                 success: false,
                 error: 'Missing required fields: title, damage_type, gps_lat, gps_lng',
@@ -46,25 +47,36 @@ router.post('/', requireRole('homeowner'), async (req: Request, res: Response) =
             return;
         }
 
-        const project = await projectService.createProject(req.authUser!.user_id, dto);
+        const project = await projectService.createProject(getAuthUser(req).user_id, dto);
         const response: ApiResponse = { success: true, data: project, message: 'Project created successfully' };
         res.status(201).json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Project.Create');
     }
 });
 
 // ─── POST /api/projects/:id/assign-engineer — Auto-Assign (System) ─────────
 router.post('/:id/assign-engineer', requireRole('admin', 'homeowner'), async (req: Request, res: Response) => {
     try {
-        const result = await projectService.assignEngineer(String(req.params['id']));
+        const projectId = String(req.params['id']);
+
+        // DT-IDOR-001 FIX: Verify homeowner owns this project (admin bypasses)
+        if (getAuthUser(req).role === 'homeowner') {
+            const ownerCheck = await query<{ homeowner_id: string }>(
+                'SELECT homeowner_id FROM projects WHERE project_id = $1',
+                [projectId]
+            );
+            if (!ownerCheck.rows[0] || ownerCheck.rows[0].homeowner_id !== getAuthUser(req).user_id) {
+                res.status(403).json({ success: false, error: 'Access denied' } as ApiResponse);
+                return;
+            }
+        }
+
+        const result = await projectService.assignEngineer(projectId);
         const response: ApiResponse = { success: true, data: result, message: 'Engineer assigned successfully' };
         res.status(200).json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not found') ? 404 : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Project.AssignEngineer');
     }
 });
 
@@ -73,7 +85,7 @@ router.post('/:id/boq', requireRole('engineer'), async (req: Request, res: Respo
     try {
         const dto = req.body as AddBOQItemDTO;
 
-        if (!dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null || !dto.preferred_supplier_id) {
+        if (!dto.material_name || !dto.unit || dto.unit_price === null || dto.unit_price === undefined || dto.required_quantity === null || dto.required_quantity === undefined || !dto.preferred_supplier_id) {
             const response: ApiResponse = {
                 success: false,
                 error: 'Missing required fields: material_name, unit, unit_price, required_quantity, preferred_supplier_id',
@@ -84,15 +96,13 @@ router.post('/:id/boq', requireRole('engineer'), async (req: Request, res: Respo
 
         const item = await projectService.addBOQItem(
             String(req.params['id']),
-            req.authUser!.user_id,
+            getAuthUser(req).user_id,
             dto
         );
         const response: ApiResponse = { success: true, data: item, message: 'BOQ item added' };
         res.status(201).json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        const status = message.includes('not assigned') ? 403 : 400;
-        res.status(status).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Project.AddBOQ');
     }
 });
 
@@ -101,13 +111,12 @@ router.patch('/:id/publish', requireRole('engineer'), async (req: Request, res: 
     try {
         const project = await projectService.publishProject(
             String(req.params['id']),
-            req.authUser!.user_id
+            getAuthUser(req).user_id
         );
         const response: ApiResponse = { success: true, data: project, message: 'Project published to marketplace' };
         res.status(200).json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(400).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Project.Publish');
     }
 });
 
@@ -118,15 +127,14 @@ router.get(
     requireRole('homeowner'),
     async (req: Request, res: Response) => {
         try {
-            const projects = await projectService.getHomeownerProjects(req.authUser!.user_id);
+            const projects = await projectService.getHomeownerProjects(getAuthUser(req).user_id);
             const response: ApiResponse = {
                 success: true,
                 data: projects,
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'Project.GetMyList');
         }
     }
 );
@@ -148,8 +156,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(500).json({ success: false, error: message } as ApiResponse);
+        safeRouteError(res, error, 'Project.GetById');
     }
 });
 

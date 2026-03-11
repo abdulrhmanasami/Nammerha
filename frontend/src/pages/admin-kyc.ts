@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ─── KYC Verification Portal — Interactive Controller ─── */
 
@@ -133,8 +134,8 @@ function renderDocumentViewer(index: number): void {
           <i class="${doc.icon} text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">${doc.name}</p>
-          <p class="text-[10px] text-slate-400">${doc.type} • ${doc.size}</p>
+          <p class="text-sm font-medium truncate">${esc(doc.name)}</p>
+          <p class="text-[10px] text-slate-400">${esc(doc.type)} • ${esc(doc.size)}</p>
         </div>
         <i class="ph ph-eye text-slate-400 hover:text-trust-blue cursor-pointer transition-colors" style="font-size:16px" aria-hidden="true"></i>
       </div>
@@ -337,7 +338,7 @@ function showToast(message: string): void {
     toast.style.animation = 'slideUp 0.3s ease-out';
     toast.innerHTML = `
     <i class="ph ph-check-circle text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-    <span class="text-sm font-medium">${message}</span>
+    <span class="text-sm font-medium">${esc(message)}</span>
   `;
 
     if (!document.getElementById('toast-styles')) {

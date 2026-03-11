@@ -135,7 +135,12 @@ describe('Auth Routes (HTTP Integration)', () => {
             expect(res.body.error).toContain('8 characters');
         });
 
-        it('should return 409 when email already exists', async () => {
+        // ─── SEC-FT-002: Anti-Enumeration Response ────────────────────
+        // When a duplicate email is submitted, the endpoint returns 200
+        // with a generic success-like message — identical in shape to a
+        // real registration — so an attacker cannot distinguish "email
+        // already exists" from "new account created."
+        it('should return 200 with generic message when email already exists (anti-enumeration)', async () => {
             // DB returns existing user for email check
             mockQuery.mockResolvedValueOnce({
                 rows: [{ user_id: 'existing-uuid' }],
@@ -145,15 +150,25 @@ describe('Auth Routes (HTTP Integration)', () => {
             const res = await request(app)
                 .post('/api/auth/register')
                 .send(VALID_BODY)
-                .expect(409);
+                .expect(200);
 
-            expect(res.body.success).toBe(false);
-            expect(res.body.error).toContain('Registration failed');
+            // The response MUST be indistinguishable from a real registration
+            // to prevent email enumeration attacks.
+            expect(res.body.success).toBe(true);
+            expect(res.body.message).toContain('verification email');
+
+            // Verify no user data or token was leaked for the existing user
+            expect(res.body.data).toBeUndefined();
+
             // Verify the query was called with lowercased email
             expect(mockQuery).toHaveBeenCalledWith(
                 'SELECT user_id FROM users WHERE email = $1',
                 ['newuser@example.com']
             );
+
+            // Verify that only the SELECT query was called — no INSERT
+            // should have been executed for an existing email.
+            expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
         it('should return 201 with user data and JWT on successful registration', async () => {
@@ -182,7 +197,7 @@ describe('Auth Routes (HTTP Integration)', () => {
             expect(res.body.data.user.is_active).toBe(false);
             expect(res.body.data.token).toBeDefined();
             expect(typeof res.body.data.token).toBe('string');
-            expect(res.body.message).toContain('KYC');
+            expect(res.body.message).toContain('verify');
         });
 
         it('should normalize email to lowercase in database queries', async () => {

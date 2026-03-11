@@ -587,7 +587,8 @@ export async function getProjectBids(projectId: string): Promise<ContractorBid[]
  */
 export async function acceptBid(
     bidId: string,
-    _deciderId: string
+    deciderId: string,
+    deciderRole: string = 'homeowner'
 ): Promise<ContractorBid> {
     // HGH-006: Use canonical transaction() utility instead of manual BEGIN/COMMIT
     const bid = await transaction(async (client) => {
@@ -602,6 +603,17 @@ export async function acceptBid(
         }
 
         const foundBid = bidRes.rows[0];
+
+        // DT-IDOR-002 FIX: Verify deciderId owns the project (admin bypasses)
+        if (deciderRole !== 'admin') {
+            const projectCheck = await client.query<{ homeowner_id: string }>(
+                'SELECT homeowner_id FROM projects WHERE project_id = $1',
+                [foundBid.project_id]
+            );
+            if (!projectCheck.rows[0] || projectCheck.rows[0].homeowner_id !== deciderId) {
+                throw new Error('Access denied: you do not own this project');
+            }
+        }
         const bidderId = foundBid.contractor_id || foundBid.engineer_id;
 
         // Accept this bid

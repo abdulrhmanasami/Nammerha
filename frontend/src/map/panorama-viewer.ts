@@ -2,7 +2,7 @@
 // Nammerha Frontend — Panorama Viewer Module
 // 360° panoramic image viewer for ground-truth verification
 // ============================================================================
-
+import { escapeHtml } from '../utils/xss';
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface PanoramaConfig {
@@ -427,8 +427,4 @@ function createControlButton(label: string, onClick: () => void): HTMLButtonElem
     return btn;
 }
 
-function escapeHtml(str: string): string {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
+// HGH-001 FIX: Local escapeHtml removed — using centralized import from utils/xss.ts

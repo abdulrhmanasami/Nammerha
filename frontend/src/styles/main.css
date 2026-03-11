@@ -555,3 +555,128 @@ body.dark-mode {
   width: 100% !important;
   height: 100% !important;
 }
+
+/* ─── Responsive Dashboard Sidebar System ──────────────────────────────────── */
+/* Mobile-first: sidebar hidden by default, shown via JS toggle or md+ screen  */
+@layer components {
+  /* The entire sidebar+main wrapper */
+  .dashboard-layout {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Sidebar: off-canvas on mobile, visible on md+ */
+  .dashboard-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 16rem;                          /* w-64 */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-inline-end: 1px solid var(--border-subtle);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  /* RTL support */
+  [dir='rtl'] .dashboard-sidebar {
+    transform: translateX(100%);
+  }
+  .dashboard-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+  [dir='rtl'] .dashboard-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  /* Dark overlay behind sidebar on mobile */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  .sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Main content takes full width on mobile */
+  .dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Hamburger toggle button — visible only on mobile */
+  .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sidebar-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--trust-blue);
+  }
+}
+
+/* md breakpoint (768px+): sidebar is always visible, toggle hidden */
+@media (min-width: 768px) {
+  .dashboard-sidebar {
+    position: relative;
+    transform: none !important;
+    flex-shrink: 0;
+  }
+  .sidebar-overlay {
+    display: none !important;
+  }
+  .sidebar-toggle {
+    display: none !important;
+  }
+}
+
+/* ─── Responsive Homepage Navbar ───────────────────────────────────────────── */
+/* On small screens, hide the full search bar and show only a search icon */
+@media (max-width: 639px) {
+  .nav-search-full {
+    display: none !important;
+  }
+  .nav-search-icon {
+    display: inline-flex !important;
+  }
+}
+@media (min-width: 640px) {
+  .nav-search-icon {
+    display: none !important;
+  }
+}
+
+/* ─── Responsive Header for Inner Pages ────────────────────────────────────── */
+/* Prevent long titles + lang-switcher from overflowing on mobile */
+.page-header-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}

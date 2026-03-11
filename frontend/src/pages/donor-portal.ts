@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
@@ -177,7 +178,7 @@ async function loadFundedProjects(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Donor] Funded projects load failed:', err);
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
+        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
 
@@ -226,7 +227,7 @@ async function loadMarketplace(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Donor] Marketplace load failed:', err);
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
+        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
 
@@ -258,7 +259,7 @@ async function loadDonations(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Donor] Donations load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -301,7 +302,7 @@ async function loadImpact(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Donor] Impact data load failed:', err);
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm">Failed to load</div>`;
+        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
 
@@ -347,7 +348,7 @@ async function loadProofs(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Donor] Proofs load failed:', err);
-        container.innerHTML = `<div class="col-span-full p-5 text-center text-red-400 text-sm">Failed to load</div>`;
+        container.innerHTML = `<div class="col-span-full p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
 
@@ -357,11 +358,7 @@ function setText(id: string, text: string): void {
     if (el) { el.textContent = text; }
 }
 
-function esc(str: string): string {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function statusColor(s: string): string {
     const c: Record<string, string> = {

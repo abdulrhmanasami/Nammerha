@@ -103,8 +103,8 @@ describe('Notification Service (Unit)', () => {
             const smtpHost = '';
             const channels = ['in_app', 'email', 'sms'];
             const available = channels.filter(c => {
-                if (c === 'email') return !!smtpHost;
-                if (c === 'sms') return false;  // Not implemented
+                if (c === 'email') {return !!smtpHost;}
+                if (c === 'sms') {return false;}  // Not implemented
                 return true;
             });
             expect(available).toEqual(['in_app']);
@@ -114,7 +114,7 @@ describe('Notification Service (Unit)', () => {
             const smtpHost = 'nammerha-smtp';
             const channels = ['in_app', 'email'];
             const available = channels.filter(c => {
-                if (c === 'email') return !!smtpHost;
+                if (c === 'email') {return !!smtpHost;}
                 return true;
             });
             expect(available).toEqual(['in_app', 'email']);
@@ -208,8 +208,8 @@ describe('Marketplace & Crowdfunding (Unit)', () => {
                 { title: 'C', funded_percentage: 50 },
             ];
             const sorted = [...projects].sort((a, b) => a.funded_percentage - b.funded_percentage);
-            expect(sorted[0]!.title).toBe('B');
-            expect(sorted[2]!.title).toBe('A');
+            expect(sorted[0]?.title).toBe('B');
+            expect(sorted[2]?.title).toBe('A');
         });
 
         it('should filter by damage_type', () => {

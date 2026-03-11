@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -62,7 +63,6 @@ interface Payment {
 
 // ─── State ──────────────────────────────────────────────────────────────────
 type TabName = 'dashboard' | 'marketplace' | 'bids' | 'payments';
-let currentTab: TabName = 'dashboard';
 
 // ─── DOM Init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -87,7 +87,6 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
-    currentTab = tab;
     const allTabs: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
 
     // Update sidebar
@@ -174,7 +173,7 @@ async function loadProjects(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Contractor] Projects load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load projects</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -225,7 +224,7 @@ async function loadMarketplace(): Promise<void> {
         });
     } catch (err) {
         console.error('[Contractor] Marketplace load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load marketplace</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -260,7 +259,7 @@ async function loadBids(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Contractor] Bids load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load bids</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -294,7 +293,7 @@ async function loadPayments(): Promise<void> {
         `).join('');
     } catch (err) {
         console.error('[Contractor] Payments load failed:', err);
-        tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm">Failed to load payments</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
 
@@ -384,11 +383,7 @@ function setText(id: string, text: string): void {
     if (el) { el.textContent = text; }
 }
 
-function esc(str: string): string {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
+// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
 function phaseColor(phase: string): string {
     const colors: Record<string, string> = {

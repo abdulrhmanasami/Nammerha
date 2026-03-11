@@ -150,6 +150,7 @@ export function validateUploadRequest(dto: UploadUrlRequest): void {
     if (!dto.filename || dto.filename.length > MAX_FILENAME_LENGTH) {
         throw new Error(`Invalid filename (max ${MAX_FILENAME_LENGTH} characters)`);
     }
+    // eslint-disable-next-line no-control-regex -- Intentionally blocking control characters in filenames (security: NUL byte injection, path traversal)
     if (/[<>:"/\\|?*\x00-\x1f]/.test(dto.filename)) {
         throw new Error('Filename contains invalid characters');
     }

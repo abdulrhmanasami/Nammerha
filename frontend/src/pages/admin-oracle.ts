@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ─── Pricing Oracle & EPA Engine — Interactive Controller ─── */
 
@@ -94,7 +95,7 @@ function showNotification(message: string): void {
     toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50 animate-slideUp';
     toast.innerHTML = `
     <i class="ph ph-check-circle text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-    <span class="text-sm font-medium">${message}</span>
+    <span class="text-sm font-medium">${esc(message)}</span>
   `;
 
     /* Add animation keyframes if not present */

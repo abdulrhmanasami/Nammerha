@@ -44,7 +44,7 @@ export async function createNotification(
     );
 
     const notification = result.rows[0];
-    if (!notification) throw new Error('Failed to create notification');
+    if (!notification) { throw new Error('Failed to create notification'); }
 
     // MED-AUD-001 FIX: Dispatch to channel-specific delivery provider.
     // Fire-and-forget with error isolation — failed delivery never crashes
@@ -70,7 +70,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
     in_app: async (input) => {
         // In-app: already persisted to DB above. No additional delivery needed.
         // eslint-disable-next-line no-console
-        console.log(`[Notification] in_app → ${input.user_id}: ${input.title}`);
+        console.warn(`[Notification] in_app → ${input.user_id}: ${input.title}`);
     },
 
     email: async (input) => {
@@ -127,7 +127,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
                     <p style="color:#94a3b8;font-size:12px;">Nammerha — National Reconstruction Platform</p>
                 </div>`,
             });
-            console.log(`[Notification] Email sent to ${userEmail}: ${input.title}`);
+            console.warn(`[Notification] Email sent to ${userEmail}: ${input.title}`);
         } catch (err) {
             console.error(`[Notification] Email delivery failed:`, err);
             // Never re-throw — email failure must not crash the calling operation
@@ -159,7 +159,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
             if (!response.ok) {
                 console.error(`[Notification] Webhook returned ${response.status}: ${response.statusText}`);
             } else {
-                console.log(`[Notification] Webhook dispatched for ${input.type} → ${input.user_id}`);
+                console.warn(`[Notification] Webhook dispatched for ${input.type} → ${input.user_id}`);
             }
         } catch (err) {
             console.error(`[Notification] Webhook delivery failed:`, err);

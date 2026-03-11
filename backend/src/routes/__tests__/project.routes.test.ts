@@ -41,22 +41,22 @@ describe('Project Route Validation (Unit)', () => {
     describe('POST /api/projects — Create Damage Report', () => {
         it('should reject missing title', () => {
             const dto = { ...VALID_PROJECT_DTO, title: '' };
-            expect(!dto.title || !dto.damage_type || dto.gps_lat == null || dto.gps_lng == null).toBe(true);
+            expect(!dto.title || !dto.damage_type || dto.gps_lat === null || dto.gps_lng === null).toBe(true);
         });
 
         it('should reject missing damage_type', () => {
             const dto = { ...VALID_PROJECT_DTO, damage_type: '' };
-            expect(!dto.title || !dto.damage_type || dto.gps_lat == null || dto.gps_lng == null).toBe(true);
+            expect(!dto.title || !dto.damage_type || dto.gps_lat === null || dto.gps_lng === null).toBe(true);
         });
 
         it('should reject missing GPS coordinates', () => {
             const dto = { ...VALID_PROJECT_DTO, gps_lat: null, gps_lng: null };
-            expect(!dto.title || !dto.damage_type || dto.gps_lat == null || dto.gps_lng == null).toBe(true);
+            expect(!dto.title || !dto.damage_type || dto.gps_lat === null || dto.gps_lng === null).toBe(true);
         });
 
         it('should accept valid project DTO', () => {
             const dto = VALID_PROJECT_DTO;
-            expect(!dto.title || !dto.damage_type || dto.gps_lat == null || dto.gps_lng == null).toBe(false);
+            expect(!dto.title || !dto.damage_type || dto.gps_lat === null || dto.gps_lng === null).toBe(false);
         });
 
         it('should validate GPS coordinates are within Syria bounds', () => {
@@ -74,28 +74,28 @@ describe('Project Route Validation (Unit)', () => {
         it('should reject missing material_name', () => {
             const dto = { ...VALID_BOQ_DTO, material_name: '' };
             expect(
-                !dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null || !dto.preferred_supplier_id,
+                !dto.material_name || !dto.unit || dto.unit_price === null || dto.required_quantity === null || !dto.preferred_supplier_id,
             ).toBe(true);
         });
 
         it('should reject missing unit', () => {
             const dto = { ...VALID_BOQ_DTO, unit: '' };
             expect(
-                !dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null || !dto.preferred_supplier_id,
+                !dto.material_name || !dto.unit || dto.unit_price === null || dto.required_quantity === null || !dto.preferred_supplier_id,
             ).toBe(true);
         });
 
         it('should reject missing supplier ID', () => {
             const dto = { ...VALID_BOQ_DTO, preferred_supplier_id: '' };
             expect(
-                !dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null || !dto.preferred_supplier_id,
+                !dto.material_name || !dto.unit || dto.unit_price === null || dto.required_quantity === null || !dto.preferred_supplier_id,
             ).toBe(true);
         });
 
         it('should accept valid BOQ item', () => {
             const dto = VALID_BOQ_DTO;
             expect(
-                !dto.material_name || !dto.unit || dto.unit_price == null || dto.required_quantity == null || !dto.preferred_supplier_id,
+                !dto.material_name || !dto.unit || dto.unit_price === null || dto.required_quantity === null || !dto.preferred_supplier_id,
             ).toBe(false);
         });
 

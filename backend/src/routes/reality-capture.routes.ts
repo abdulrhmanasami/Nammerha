@@ -1,4 +1,5 @@
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Reality Capture Routes (Ticket 8.1)
 // PlanRadar 360 + Houzz Pro LIDAR patterns
 // ============================================================================
@@ -7,6 +8,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as capture from '../services/reality-capture.service';
 import type { ApiResponse } from '../types';
+import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
@@ -30,7 +32,7 @@ router.post(
             }
 
             const result = await capture.submitCapture(
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 String(req.params.projectId),
                 dto
             );
@@ -42,10 +44,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('assigned') ? 403
-                : message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -71,9 +70,8 @@ router.get(
                 message: `${captures.length} captures`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -93,9 +91,8 @@ router.get(
                 message: `${works.length} hidden works captures (pre-concrete phases)`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -108,7 +105,7 @@ router.post(
         try {
             const result = await capture.verifyCapture(
                 String(req.params.captureId),
-                req.authUser!.user_id
+                getAuthUser(req).user_id
             );
 
             const response: ApiResponse = {
@@ -118,9 +115,7 @@ router.post(
             };
             res.json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -143,7 +138,7 @@ router.post(
 
             const annotation = await capture.addAnnotation(
                 String(req.params.captureId),
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 dto
             );
 
@@ -154,9 +149,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            const status = message.includes('not found') ? 404 : 400;
-            res.status(status).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -177,9 +170,8 @@ router.get(
                 message: `${annotations.length} annotations`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -201,7 +193,7 @@ router.post(
             }
 
             const plan = await capture.uploadFloorPlan(
-                req.authUser!.user_id,
+                getAuthUser(req).user_id,
                 String(req.params.projectId),
                 dto
             );
@@ -213,8 +205,7 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(400).json({ success: false, error: message } as ApiResponse);
+            safeRouteError(res, error, 'RealityCapture');
         }
     }
 );
@@ -233,9 +224,8 @@ router.get(
                 message: `${plans.length} floor plans`,
             };
             res.json(response);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({ success: false, error: message } as ApiResponse);
+                } catch (error) {
+                    safeRouteError(res, error, 'RealityCapture');
         }
     }
 );

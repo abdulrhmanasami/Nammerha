@@ -286,8 +286,22 @@ describe('Storage Routes (HTTP Integration)', () => {
     });
 
     // ─── GET /api/storage/health ────────────────────────────────────────
+    // SEC-FT-005: Health endpoint is restricted to admin/auditor roles
+    // to prevent infrastructure detail leakage to unprivileged users.
     describe('GET /api/storage/health', () => {
-        it('should return 200 when storage is healthy', async () => {
+        it('should return 403 for non-privileged users (SEC-FT-005)', async () => {
+            // Default mockAuthUser is role: 'donor' — must be rejected
+            const res = await request(app)
+                .get('/api/storage/health')
+                .expect(403);
+
+            expect(res.body.success).toBe(false);
+            expect(res.body.error).toContain('Insufficient permissions');
+        });
+
+        it('should return 200 when storage is healthy (admin role)', async () => {
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
+
             const res = await request(app)
                 .get('/api/storage/health')
                 .expect(200);
@@ -295,7 +309,18 @@ describe('Storage Routes (HTTP Integration)', () => {
             expect(res.body.success).toBe(true);
         });
 
-        it('should return 503 when storage is unreachable', async () => {
+        it('should return 200 for auditor role (auditor access)', async () => {
+            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', is_active: true };
+
+            const res = await request(app)
+                .get('/api/storage/health')
+                .expect(200);
+
+            expect(res.body.success).toBe(true);
+        });
+
+        it('should return 503 when storage is unreachable (admin role)', async () => {
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
             mockSend.mockRejectedValue(new Error('Connection refused'));
 
             const res = await request(app)
