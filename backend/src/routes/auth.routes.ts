@@ -314,6 +314,18 @@ router.post(
             // Login successful — clean up old failure records
             // (No need to delete, they expire naturally via the time window)
 
+            // PLT-MAR11-002 FIX: Reject login for unverified email accounts.
+            // The registration path correctly withholds JWT until verification,
+            // but without this gate the login path was a bypass. An attacker
+            // could register, skip verification, and still access the platform.
+            if (!user.is_email_verified) {
+                res.status(403).json({
+                    success: false,
+                    error: 'Please verify your email before signing in. Check your inbox for the verification link.',
+                } as ApiResponse);
+                return;
+            }
+
             // Generate JWT
             const token = generateToken(user.user_id, user.role);
 

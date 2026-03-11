@@ -245,6 +245,28 @@ export const auth = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+
+    // PLT-MAR11-004 FIX: Centralized forgotPassword — replaces raw fetch in auth.ts
+    forgotPassword: (data: { email: string }) =>
+        request('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // PLT-MAR11-006 FIX: Centralized verifyEmail — replaces raw fetch in verify-email.ts
+    verifyEmail: (token: string) =>
+        request(`/auth/verify-email/${encodeURIComponent(token)}`),
+
+    // PLT-MAR11-006 FIX: Centralized resetPassword — replaces raw fetch in reset-password.ts
+    resetPassword: (data: { token: string; new_password: string }) =>
+        request('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // Resend verification email (requires auth)
+    resendVerification: () =>
+        request('/auth/resend-verification', { method: 'POST' }),
 };
 
 // ─── Payments ───────────────────────────────────────────────────────────────

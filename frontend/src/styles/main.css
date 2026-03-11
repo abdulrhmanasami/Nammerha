@@ -680,3 +680,22 @@ body.dark-mode {
   white-space: nowrap;
   min-width: 0;
 }
+
+/* ─── MOB-007 FIX: Admin Table Mobile Responsiveness ──────────────────────── */
+/* Prevent table headers from wrapping letter-by-letter on narrow screens      */
+.dashboard-main table th {
+  white-space: nowrap;
+}
+.dashboard-main table td {
+  white-space: nowrap;
+}
+/* On mobile, give the table a min-width so overflow-x-auto kicks in properly */
+@media (max-width: 767px) {
+  .dashboard-main table {
+    min-width: 700px;
+  }
+  /* MOB-005/008: Reduce padding inside dashboard main on mobile */
+  .dashboard-main > main {
+    padding: 12px;
+  }
+}

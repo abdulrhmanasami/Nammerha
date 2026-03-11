@@ -304,6 +304,7 @@ describe('Auth Routes (HTTP Integration)', () => {
                     full_name: 'Valid User',
                     role: 'homeowner',
                     is_active: true,
+                    is_email_verified: true, // PLT-MAR11-002: Login requires verified email
                     password_hash: '$2b$12$valid_hash',
                 }],
                 rowCount: 1,
@@ -340,7 +341,9 @@ describe('Auth Routes (HTTP Integration)', () => {
             mockQuery.mockResolvedValueOnce({
                 rows: [{
                     user_id: 'u1', email: 'a@b.com', full_name: 'A',
-                    role: 'donor', is_active: true, password_hash: '$2b$12$secret',
+                    role: 'donor', is_active: true,
+                    is_email_verified: true, // PLT-MAR11-002: Login requires verified email
+                    password_hash: '$2b$12$secret',
                 }],
                 rowCount: 1,
             });

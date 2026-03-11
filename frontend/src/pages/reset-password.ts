@@ -1,11 +1,32 @@
 import '../styles/main.css';
+import { auth } from '../api';
+import { updatePasswordStrength } from '../utils/password-strength';
 
 // ============================================================================
 // Nammerha — Reset Password Page
 // PLT-AUD-002 FIX: Handles password reset flow from email link
+// PLT-MAR11-005 FIX: Uses shared password strength utility (DRY)
+// PLT-MAR11-006 FIX: Uses centralized API client (timeout + CSRF)
+// PLT-MAR11-007 FIX: All user-facing strings wrapped with i18n t()
 // ============================================================================
 
-const API_BASE = '/api';
+// ─── i18n ───────────────────────────────────────────────────────────────────
+interface NammerhaI18nApi {
+    switchLanguage: (code: string) => void;
+    getCurrentLang: () => string;
+    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
+    t: (key: string, fallback?: string) => string;
+}
+declare global {
+    interface Window {
+        NammerhaI18n?: NammerhaI18nApi;
+    }
+}
+
+/** Safe i18n lookup — returns fallback if engine not yet loaded */
+function t(key: string, fallback: string): string {
+    return window.NammerhaI18n?.t(key, fallback) ?? fallback;
+}
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const form = document.getElementById('form-reset') as HTMLFormElement | null;
@@ -26,52 +47,8 @@ const resetToken = urlParams.get('token');
 
 // If no token, show error immediately
 if (!resetToken) {
-    showBanner('error', 'Invalid or missing reset token. Please request a new password reset link.');
+    showBanner('error', t('reset_invalid_token', 'Invalid or missing reset token. Please request a new password reset link.'));
     if (form) { form.style.display = 'none'; }
-}
-
-// ─── Password Strength ─────────────────────────────────────────────────────
-function updatePasswordStrength(password: string): number {
-    let score = 0;
-    if (password.length >= 8) { score++; }
-    if (/[A-Z]/.test(password)) { score++; }
-    if (/[0-9]/.test(password)) { score++; }
-    if (/[^A-Za-z0-9]/.test(password)) { score++; }
-
-    const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400'];
-    const labels: Array<{ text: string; i18nKey: string }> = [
-        { text: 'Weak', i18nKey: 'pw_strength_weak' },
-        { text: 'Fair', i18nKey: 'pw_strength_fair' },
-        { text: 'Good', i18nKey: 'pw_strength_good' },
-        { text: 'Strong', i18nKey: 'pw_strength_strong' },
-    ];
-
-    if (strengthBars) {
-        for (let i = 0; i < strengthBars.length; i++) {
-            const bar = strengthBars[i] as HTMLElement;
-            if (i < score) {
-                bar.className = `h-1 flex-1 rounded-full ${colors[score - 1]}`;
-            } else {
-                bar.className = 'h-1 flex-1 rounded-full bg-slate-200';
-            }
-        }
-    }
-
-    if (strengthLabel && password.length > 0) {
-        const label = labels[score - 1];
-        if (label) {
-            strengthLabel.textContent = label.text;
-            strengthLabel.setAttribute('data-i18n', label.i18nKey);
-        } else {
-            strengthLabel.textContent = 'Too short';
-            strengthLabel.setAttribute('data-i18n', 'pw_strength_too_short');
-        }
-    } else if (strengthLabel) {
-        strengthLabel.textContent = '8+ chars, 1 uppercase, 1 number, 1 special';
-        strengthLabel.setAttribute('data-i18n', 'pw_requirements');
-    }
-
-    return score;
 }
 
 // ─── Form Validation ────────────────────────────────────────────────────────
@@ -91,7 +68,8 @@ function updateSubmitButton(): void {
 }
 
 newPasswordInput?.addEventListener('input', () => {
-    updatePasswordStrength(newPasswordInput.value);
+    // PLT-MAR11-005: Use shared utility (single source of truth)
+    updatePasswordStrength(newPasswordInput.value, strengthBars, strengthLabel);
     updateSubmitButton();
 });
 confirmPasswordInput?.addEventListener('input', updateSubmitButton);
@@ -102,9 +80,9 @@ if (toggle && newPasswordInput) {
     toggle.addEventListener('click', () => {
         const isPassword = newPasswordInput.type === 'password';
         newPasswordInput.type = isPassword ? 'text' : 'password';
-        const icon = toggle.querySelector('.ph');
-        if (icon) {
-            icon.className = isPassword ? 'ph ph-eye-slash' : 'ph ph-eye';
+        const toggleIcon = toggle.querySelector('.ph');
+        if (toggleIcon) {
+            toggleIcon.className = isPassword ? 'ph ph-eye-slash' : 'ph ph-eye';
         }
     });
 }
@@ -134,55 +112,46 @@ form?.addEventListener('submit', async (e) => {
     const newPassword = newPasswordInput?.value ?? '';
     const confirmPassword = confirmPasswordInput?.value ?? '';
 
+    // PLT-MAR11-007 FIX: All user-facing strings wrapped with i18n t()
     if (newPassword !== confirmPassword) {
-        showBanner('error', 'Passwords do not match.');
+        showBanner('error', t('reset_password_mismatch', 'Passwords do not match.'));
         return;
     }
 
     if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword)
         || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
-        showBanner('error', 'Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
+        showBanner('error', t('reset_password_weak', 'Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
         return;
     }
 
     isSubmitting = true;
     if (submitBtn) { submitBtn.disabled = true; }
-    if (submitText) { submitText.textContent = 'Resetting...'; }
-
-    // MED-AUD-009 FIX: AbortController with 30s timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+    if (submitText) { submitText.textContent = t('reset_resetting', 'Resetting...'); }
 
     try {
-        const res = await fetch(`${API_BASE}/auth/reset-password`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: resetToken, new_password: newPassword }),
-            signal: controller.signal,
-        });
+        // PLT-MAR11-006 FIX: Use centralized API client instead of raw fetch.
+        // Gains: 30s AbortController timeout, CSRF token, unified error handling.
+        const data = await auth.resetPassword({ token: resetToken, new_password: newPassword });
 
-        clearTimeout(timeoutId);
-        const data = await res.json() as { success: boolean; error?: string; message?: string };
-
-        if (res.ok && data.success) {
-            showBanner('success', data.message ?? 'Password reset successfully! Redirecting to sign in...');
+        if (data.success) {
+            showBanner('success', data.message ?? t('reset_success', 'Password reset successfully! Redirecting to sign in...'));
             if (form) { form.style.display = 'none'; }
             setTimeout(() => {
                 window.location.href = '/auth.html';
             }, 2000);
         } else {
-            showBanner('error', data.error ?? 'Password reset failed. The token may have expired.');
+            showBanner('error', data.error ?? t('reset_failed', 'Password reset failed. The token may have expired.'));
         }
     } catch (err) {
-        clearTimeout(timeoutId);
-        if (err instanceof DOMException && err.name === 'AbortError') {
-            showBanner('error', 'Request timed out — please check your network connection and try again.');
+        const message = err instanceof Error ? err.message : t('reset_network_error', 'Network error. Please try again.');
+        if (message.includes('timeout') || message.includes('abort')) {
+            showBanner('error', t('reset_timeout', 'Request timed out — please check your network connection and try again.'));
         } else {
-            showBanner('error', err instanceof Error ? err.message : 'Network error. Please try again.');
+            showBanner('error', message);
         }
     } finally {
         isSubmitting = false;
         if (submitBtn) { submitBtn.disabled = false; }
-        if (submitText) { submitText.textContent = 'Reset Password'; }
+        if (submitText) { submitText.textContent = t('reset_submit_btn', 'Reset Password'); }
     }
 });

@@ -72,13 +72,12 @@
                 'color:' + (active ? '#1A73E8' : '#94a3b8') + ';' +
                 'transition:color 0.2s;';
 
-            // Phosphor icon
+            // MOB-001 FIX: Use regular "ph" for ALL icons.
+            // The "ph-fill" weight requires Phosphor-Fill.woff2 which is NOT shipped.
+            // Active differentiation is via color (L72-73), not font weight.
             var icon = document.createElement('i');
             icon.className = 'ph ' + tab.icon;
             icon.setAttribute('aria-hidden', 'true');
-            if (active) {
-                icon.className = 'ph-fill ' + tab.icon;
-            }
             icon.style.fontSize = '22px';
 
             var lbl = document.createElement('span');

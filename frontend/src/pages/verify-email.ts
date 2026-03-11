@@ -1,15 +1,15 @@
 import '../styles/main.css';
+import { auth } from '../api';
 
 // ============================================================================
 // Nammerha — Email Verification Landing Page
 // PLT-AUD-006 FIX: User-friendly verification result display
+// PLT-MAR11-006 FIX: Uses centralized API client instead of raw fetch
 //
 // This page is loaded when a user clicks the verification link in their email.
 // It calls the backend API to verify the token, then displays a user-friendly
 // success or error message instead of raw JSON.
 // ============================================================================
-
-const API_BASE = '/api';
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const iconContainer = document.getElementById('verify-icon-container');
@@ -79,34 +79,29 @@ async function verifyEmail(): Promise<void> {
         return;
     }
 
-    // MED-AUD-009 FIX: AbortController with 30s timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30_000);
-
     try {
-        const res = await fetch(`${API_BASE}/auth/verify-email/${encodeURIComponent(verifyToken)}`, {
-            signal: controller.signal,
-        });
+        // PLT-MAR11-006 FIX: Uses centralized API client with 30s timeout,
+        // CSRF token attachment, and unified error handling.
+        const data = await auth.verifyEmail(verifyToken);
 
-        clearTimeout(timeoutId);
-        const data = await res.json() as { success: boolean; error?: string; message?: string };
-
-        if (res.ok && data.success) {
+        if (data.success) {
             showResult('success', 'Email Verified!', data.message ?? 'Your email has been verified. You can now sign in to access all platform features.');
-        } else if (res.status === 410) {
-            // Expired token
-            showResult('expired', 'Token Expired', data.error ?? 'Your verification link has expired. Please request a new one from the Sign In page.');
-        } else if (res.status === 404) {
-            showResult('error', 'Token Not Found', data.error ?? 'This verification link is invalid or has already been used.');
         } else {
+            // The API client returns the parsed response even on non-2xx
             showResult('error', 'Verification Failed', data.error ?? 'Something went wrong. Please try again or contact support.');
         }
     } catch (err) {
-        clearTimeout(timeoutId);
-        if (err instanceof DOMException && err.name === 'AbortError') {
+        // The centralized API client throws on network errors, timeouts, and non-2xx responses
+        const message = err instanceof Error ? err.message : 'Could not reach the server.';
+
+        if (message.includes('timeout') || message.includes('abort')) {
             showResult('error', 'Request Timeout', 'The request timed out. Please check your network connection and try again.');
+        } else if (message.includes('expired') || message.includes('410')) {
+            showResult('expired', 'Token Expired', 'Your verification link has expired. Please request a new one from the Sign In page.');
+        } else if (message.includes('not found') || message.includes('404')) {
+            showResult('error', 'Token Not Found', 'This verification link is invalid or has already been used.');
         } else {
-            showResult('error', 'Network Error', 'Could not reach the server. Please check your connection and try again.');
+            showResult('error', 'Network Error', message);
         }
     }
 }

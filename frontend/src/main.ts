@@ -28,14 +28,16 @@ interface ProjectCard {
 // LOW-AUD-003 FIX: Locale-aware currency formatting.
 // NMR-PLT-004 FIX: Use active page locale instead of hardcoded 'en-US'.
 // The i18n engine sets document.documentElement.lang on page load.
-function formatCents(cents: number, currency = 'USD'): string {
+function formatCents(cents: number | null | undefined, currency = 'USD'): string {
+    // MOB-002 FIX: Guard against null/undefined/NaN — API can return null for unfunded projects
+    const safeCents = Number(cents) || 0;
     const locale = document.documentElement.lang || 'en-US';
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-    }).format(cents / 100);
+    }).format(safeCents / 100);
 }
 
 function buildProjectCard(project: ProjectCard, index: number): string {

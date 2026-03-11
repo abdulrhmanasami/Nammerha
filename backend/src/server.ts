@@ -93,7 +93,7 @@ app.use(helmet({
                 "https://api.fatora.io",    // Fatora payment gateway
                 "https://checkout.fatora.io", // Fatora checkout iframe
             ],
-            frameSrc: ["'none'"],
+            frameSrc: ["'self'", "https://checkout.fatora.io"],
             objectSrc: ["'none'"],
             baseUri: ["'self'"],
             formAction: ["'self'"],

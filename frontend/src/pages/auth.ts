@@ -1,8 +1,7 @@
 import '../styles/main.css';
 import { auth } from '../api';
 
-// PLT-AUD-002: API helper for forgot password
-const API_BASE = '/api';
+// PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 
 // PLT-AUD-010: Type-safe i18n runtime lookup
 interface NammerhaI18nApi {
@@ -114,58 +113,16 @@ function setupPasswordToggle(toggleId: string, inputId: string): void {
 setupPasswordToggle('login-toggle-pw', 'login-password');
 setupPasswordToggle('reg-toggle-pw', 'reg-password');
 
+// PLT-MAR11-005 FIX: Import shared password strength utility (single source of truth)
+import { updatePasswordStrength } from '../utils/password-strength';
+
 // ─── Password Strength Meter ────────────────────────────────────────────────
 const regPassword = document.getElementById('reg-password') as HTMLInputElement | null;
 const strengthBars = document.getElementById('pw-strength-bars')?.children;
 const strengthLabel = document.getElementById('pw-strength-label');
 
-function updatePasswordStrength(password: string): number {
-    let score = 0;
-    if (password.length >= 8) { score++; }
-    if (/[A-Z]/.test(password)) { score++; }
-    if (/[0-9]/.test(password)) { score++; }
-    if (/[^A-Za-z0-9]/.test(password)) { score++; }
-
-    const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400'];
-
-    // NMR-AUD-304 FIX: Labels paired with i18n keys for translation engine
-    const labels: Array<{ text: string; i18nKey: string }> = [
-        { text: 'Weak', i18nKey: 'pw_strength_weak' },
-        { text: 'Fair', i18nKey: 'pw_strength_fair' },
-        { text: 'Good', i18nKey: 'pw_strength_good' },
-        { text: 'Strong', i18nKey: 'pw_strength_strong' },
-    ];
-
-    if (strengthBars) {
-        for (let i = 0; i < strengthBars.length; i++) {
-            const bar = strengthBars[i] as HTMLElement;
-            if (i < score) {
-                bar.className = `h-1 flex-1 rounded-full ${colors[score - 1]}`;
-            } else {
-                bar.className = 'h-1 flex-1 rounded-full bg-slate-200';
-            }
-        }
-    }
-
-    if (strengthLabel && password.length > 0) {
-        const label = labels[score - 1];
-        if (label) {
-            strengthLabel.textContent = label.text;
-            strengthLabel.setAttribute('data-i18n', label.i18nKey);
-        } else {
-            strengthLabel.textContent = 'Too short';
-            strengthLabel.setAttribute('data-i18n', 'pw_strength_too_short');
-        }
-    } else if (strengthLabel) {
-        strengthLabel.textContent = '8+ chars, 1 uppercase, 1 number';
-        strengthLabel.setAttribute('data-i18n', 'pw_strength_hint');
-    }
-
-    return score;
-}
-
 regPassword?.addEventListener('input', () => {
-    updatePasswordStrength(regPassword.value);
+    updatePasswordStrength(regPassword.value, strengthBars, strengthLabel);
     updateRegisterButton();
 });
 
@@ -305,7 +262,7 @@ formRegister?.addEventListener('submit', async (e) => {
     } finally {
         state.isSubmitting = false;
         if (regSubmit) { regSubmit.disabled = false; }
-        if (submitText) { submitText.textContent = t('auth_creating_account', 'Create Account'); }
+        if (submitText) { submitText.textContent = t('create_account_btn', 'Create Account'); }
     }
 });
 
@@ -333,12 +290,9 @@ forgotBtn?.addEventListener('click', async () => {
     (forgotBtn as HTMLButtonElement).disabled = true;
 
     try {
-        const res = await fetch(`${API_BASE}/auth/forgot-password`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
-        });
-        const data = await res.json() as { success: boolean; message?: string; error?: string };
+        // PLT-MAR11-004 FIX: Use centralized API client instead of raw fetch.
+        // Gains: 30s AbortController timeout, CSRF token, unified error handling.
+        const data = await auth.forgotPassword({ email });
         if (data.success) {
             showBanner('success', data.message ?? 'If an account with that email exists, a password reset link has been sent.');
         } else {
