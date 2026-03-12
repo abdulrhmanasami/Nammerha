@@ -11,6 +11,7 @@
 !tsconfig.json
 !tsconfig.node.json
 !vite.config.ts
+!vite-plugin-seo-locale.ts
 !tailwind.config.js
 !postcss.config.js
 
