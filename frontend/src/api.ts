@@ -3,6 +3,8 @@
 // Typed fetch wrapper for all backend endpoints
 // ============================================================================
 
+import { reportError } from './error-reporter';
+
 const API_BASE = '/api';
 
 // ─── P1-NEW-002 FIX: CSRF Token Management ─────────────────────────────────
@@ -95,10 +97,20 @@ async function request<T>(
         return body;
     } catch (err) {
         clearTimeout(timeoutId);
+
+        // PLT-FE-002 FIX: Route ALL API failures through centralized error reporter.
+        // This ensures every timeout, network error, and server error across all portals
+        // is captured in backend telemetry — not just uncaught global errors.
+        const reportedError = err instanceof DOMException && err.name === 'AbortError'
+            ? new Error(`API Timeout: ${endpoint}`)
+            : err instanceof Error ? err : new Error('Network error');
+
+        reportError(reportedError, { endpoint, method: options?.method ?? 'GET' });
+
         if (err instanceof DOMException && err.name === 'AbortError') {
             throw new Error('Request timed out — please check your network connection and try again.');
         }
-        if (err instanceof Error) throw err;
+        if (err instanceof Error) { throw err; }
         throw new Error('Network error');
     }
 }
@@ -484,11 +496,27 @@ export const compliance = {
 
     getSecurityEvents: (params?: { severity?: string; limit?: number }) => {
         const qs = new URLSearchParams();
-        if (params?.severity) qs.set('severity', params.severity);
-        if (params?.limit) qs.set('limit', String(params.limit));
+        if (params?.severity) { qs.set('severity', params.severity); }
+        if (params?.limit) { qs.set('limit', String(params.limit)); }
         const query = qs.toString();
         return request(`/compliance/security-events${query ? `?${query}` : ''}`);
     },
+
+    // PLT-RE-002 FIX: Dashboard-specific endpoints for compliance-dashboard.ts
+    getDashboardStats: () =>
+        request('/dashboard/compliance/stats'),
+
+    getMetrics: () =>
+        request('/compliance/metrics'),
+
+    getEscrowReviews: () =>
+        request('/compliance/escrow-reviews'),
+
+    approveReview: (reference: string) =>
+        request(`/compliance/escrow-reviews/${reference}/approve`, { method: 'POST' }),
+
+    flagReview: (reference: string) =>
+        request(`/compliance/escrow-reviews/${reference}/flag`, { method: 'POST' }),
 };
 
 // ─── Translation ────────────────────────────────────────────────────────────
@@ -647,6 +675,91 @@ interface PurchaseOrder {
     status: string;
     created_at: string;
 }
+
+// ─── PLT-FE-001 FIX: Donor Portal (المانحين / المتبرعين) ─────────────────────
+// Typed wrappers for all donor endpoints — mirrors donor.routes.ts exactly.
+
+interface DonorStats {
+    total_donated: number;
+    projects_supported: number;
+    items_funded: number;
+    escrow_locked: number;
+    escrow_released: number;
+    impact_score: number;
+}
+
+interface DonorDonation {
+    escrow_id: string;
+    project_title: string;
+    material_name: string;
+    amount_locked: number;
+    status: string;
+    locked_at: string;
+}
+
+interface DonorFundedProject {
+    project_id: string;
+    title: string;
+    damage_type: string;
+    region: string | null;
+    status: string;
+    my_total_donated: number;
+    funded_percentage: number;
+    items_i_funded: number;
+}
+
+interface DonorMarketProject {
+    project_id: string;
+    title: string;
+    damage_type: string;
+    region: string | null;
+    total_cost: number;
+    total_funded: number;
+    funded_percentage: number;
+    items_count: number;
+}
+
+interface DonorProof {
+    proof_id: string;
+    project_title: string;
+    material_name: string;
+    photo_url: string | null;
+    gps_lat: number | null;
+    gps_lng: number | null;
+    verified_by: string | null;
+    verified_at: string | null;
+    description: string | null;
+}
+
+export const donor = {
+    /** GET /api/donor/stats — Dashboard KPIs */
+    getStats: () =>
+        request<DonorStats>('/donor/stats'),
+
+    /** GET /api/donor/donations — Full donation history */
+    getDonations: (limit?: number) => {
+        const qs = limit ? `?limit=${limit}` : '';
+        return request<DonorDonation[]>(`/donor/donations${qs}`);
+    },
+
+    /** GET /api/donor/impact — Projects I funded */
+    getImpact: () =>
+        request<DonorFundedProject[]>('/donor/impact'),
+
+    /** GET /api/donor/marketplace — Browse projects for funding */
+    getMarketplace: () =>
+        request<DonorMarketProject[]>('/donor/marketplace'),
+
+    /** GET /api/donor/projects/:id/funding — My contributions to a project */
+    getProjectFunding: (projectId: string) =>
+        request(`/donor/projects/${projectId}/funding`),
+
+    /** GET /api/donor/proofs — GPS proof gallery */
+    getProofs: () =>
+        request<DonorProof[]>('/donor/proofs'),
+};
+
+// ─── Supplier Portal (الموردين) ─────────────────────────────────────────────
 
 interface SupplierStats {
     active_catalog_items: number;
@@ -980,4 +1093,11 @@ export const homeowner = {
     /** GET /api/homeowner/escrow — Escrow summary */
     getEscrow: () =>
         request<HomeownerEscrowSummary>('/homeowner/escrow'),
+
+    /** PATCH /api/dashboard/approvals/:id — Approve or reject an approval */
+    respondToApproval: (approvalId: string, decision: 'approved' | 'rejected') =>
+        request(`/dashboard/approvals/${approvalId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ decision }),
+        }),
 };

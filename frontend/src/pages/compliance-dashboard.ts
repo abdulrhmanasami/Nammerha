@@ -1,9 +1,13 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { compliance } from '../api';
 
-/* ─── Compliance Dashboard — OCDS Audit & Financial Transparency Engine ─── */
-
-const API_BASE = '/api';
+/* ═══════════════════════════════════════════════════════════════════════════
+   Compliance Dashboard — OCDS Audit & Financial Transparency Engine
+   PLT-RE-002 FIX: All API calls delegated to centralized api.ts client.
+   Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
+   wrapper — including 30s AbortController timeout for Syria's network conditions.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
     initTimestamp();
@@ -30,14 +34,12 @@ function initTimestamp(): void {
     setInterval(update, 1000);
 }
 
-/* ─── Load KPIs from API ─── */
+/* ─── Load KPIs ─── */
 async function loadKPIs(): Promise<void> {
     try {
-        const res = await fetch(`${API_BASE}/dashboard/compliance/stats`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { return; }
-        const data = await res.json() as Record<string, number>;
+        const res = await compliance.getDashboardStats();
+        if (!res.data) { return; }
+        const data = res.data as unknown as Record<string, number>;
 
         setKPI('total-audited', data['total_audited'] ?? 0, '$');
         setKPI('pending-reviews', data['pending_reviews'] ?? 0);
@@ -47,19 +49,17 @@ async function loadKPIs(): Promise<void> {
         // Badge count
         const reviewCount = document.getElementById('review-count');
         if (reviewCount) { reviewCount.textContent = String(data['pending_reviews'] ?? 0); }
-    } catch (err) {
-        console.warn('[Compliance] KPI load failed, showing defaults:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter via api.ts
     }
 }
 
 /* ─── Load OCDS Compliance Metrics ─── */
 async function loadComplianceMetrics(): Promise<void> {
     try {
-        const res = await fetch(`${API_BASE}/compliance/metrics`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { return; }
-        const data = await res.json() as Record<string, number | string>;
+        const res = await compliance.getMetrics();
+        if (!res.data) { return; }
+        const data = res.data as unknown as Record<string, number | string>;
 
         // OCDS compliance bar
         const ocdsBar = document.getElementById('ocds-bar');
@@ -79,8 +79,8 @@ async function loadComplianceMetrics(): Promise<void> {
         if (spatialAccuracy) {
             spatialAccuracy.textContent = `${data['spatial_accuracy'] ?? 0}%`;
         }
-    } catch (err) {
-        console.warn('[Compliance] Metrics load failed, keeping dashes:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter
     }
 }
 
@@ -90,11 +90,8 @@ async function loadEscrowReviewQueue(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API_BASE}/compliance/escrow-reviews`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-        const reviews = await res.json() as Array<Record<string, string | number>>;
+        const res = await compliance.getEscrowReviews();
+        const reviews = (res.data ?? []) as unknown as Array<Record<string, string | number | boolean>>;
 
         if (reviews.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
@@ -134,33 +131,24 @@ async function loadEscrowReviewQueue(): Promise<void> {
         });
 
         applyI18n();
-    } catch (err) {
-        console.error('[Compliance] Escrow review queue load failed:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter
     }
 }
 
 /* ─── Review Action Handler ─── */
 async function handleReviewAction(action: 'approve' | 'flag', reference: string): Promise<void> {
     try {
-        const endpoint = action === 'approve'
-            ? `${API_BASE}/compliance/escrow-reviews/${reference}/approve`
-            : `${API_BASE}/compliance/escrow-reviews/${reference}/flag`;
+        const res = action === 'approve'
+            ? await compliance.approveReview(reference)
+            : await compliance.flagReview(reference);
 
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`,
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (res.ok) {
-            // Refresh the queue
+        if (res.success) {
             await loadEscrowReviewQueue();
             await loadKPIs();
         }
-    } catch (err) {
-        console.error('[Compliance] Review action failed:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter
     }
 }
 
@@ -181,12 +169,6 @@ function setKPI(name: string, value: number, prefix = ''): void {
         if (progress < 1) { requestAnimationFrame(tick); }
     };
     requestAnimationFrame(tick);
-}
-
-// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
-
-function getToken(): string {
-    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {

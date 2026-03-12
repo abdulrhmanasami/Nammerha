@@ -1,14 +1,16 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { supplierStatusColor as statusColor } from '../utils/status-colors';
+import { supplier } from '../api';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine
-   Wires to: /api/supplier/stats, /api/supplier/orders, /api/supplier/catalog
+   PLT-FE-001 FIX: All API calls delegated to centralized api.ts client.
+   Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
+   wrapper — including 30s AbortController timeout for Syria's network conditions.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const API_BASE = '/api';
-
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Types (local rendering shapes) ─────────────────────────────────────────
 interface SupplierOrder {
     po_id: string;
     po_number: string;
@@ -74,8 +76,8 @@ function setupTabs(): void {
         tabOrders.classList.remove('text-slate-600');
         tabCatalog?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog?.classList.add('text-slate-600');
-        if (sectionOrders) sectionOrders.style.display = '';
-        if (sectionCatalog) sectionCatalog.style.display = 'none';
+        if (sectionOrders) { sectionOrders.style.display = ''; }
+        if (sectionCatalog) { sectionCatalog.style.display = 'none'; }
     });
 
     tabCatalog?.addEventListener('click', () => {
@@ -84,49 +86,42 @@ function setupTabs(): void {
         tabCatalog.classList.remove('text-slate-600');
         tabOrders?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabOrders?.classList.add('text-slate-600');
-        if (sectionCatalog) sectionCatalog.style.display = '';
-        if (sectionOrders) sectionOrders.style.display = 'none';
+        if (sectionCatalog) { sectionCatalog.style.display = ''; }
+        if (sectionOrders) { sectionOrders.style.display = 'none'; }
         loadCatalog();
     });
 }
 
-// ─── Load KPIs from /api/supplier/stats ─────────────────────────────────────
+// ─── Load KPIs ──────────────────────────────────────────────────────────────
 async function loadKPIs(): Promise<void> {
     try {
-        const res = await fetch(`${API_BASE}/supplier/stats`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { return; }
-        const json = await res.json() as { data: Record<string, number> };
-        const data = json.data;
+        const res = await supplier.getStats();
+        if (!res.data) { return; }
+        const data = res.data;
 
-        setKPI('pending-bids', data['pending_orders'] ?? 0);
-        setKPI('won-contracts', data['won_contracts'] ?? 0);
-        setKPI('in-transit', data['in_transit'] ?? 0);
-        setKPI('total-revenue', data['total_revenue'] ?? 0, '$');
+        setKPI('pending-bids', data.pending_orders ?? 0);
+        setKPI('won-contracts', (data as unknown as Record<string, number>)['won_contracts'] ?? 0);
+        setKPI('in-transit', (data as unknown as Record<string, number>)['in_transit'] ?? 0);
+        setKPI('total-revenue', (data as unknown as Record<string, number>)['total_revenue'] ?? 0, '$');
 
         // Badge count
         const bidCount = document.getElementById('bid-count');
-        if (bidCount) { bidCount.textContent = String(data['pending_orders'] ?? 0); }
+        if (bidCount) { bidCount.textContent = String(data.pending_orders ?? 0); }
         const notifCount = document.getElementById('notif-count');
-        if (notifCount) { notifCount.textContent = String(data['pending_orders'] ?? 0); }
-    } catch (err) {
-        console.warn('[Supplier] KPI load failed, showing defaults:', err);
+        if (notifCount) { notifCount.textContent = String(data.pending_orders ?? 0); }
+    } catch {
+        // Silent degradation — KPIs retain HTML defaults
     }
 }
 
-// ─── Load Purchase Orders from /api/supplier/orders ─────────────────────────
+// ─── Load Purchase Orders ───────────────────────────────────────────────────
 async function loadOrders(): Promise<void> {
     const tbody = document.getElementById('material-requests-body');
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API_BASE}/supplier/orders`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-        const json = await res.json() as { data: SupplierOrder[] };
-        const items = json.data;
+        const res = await supplier.getOrders();
+        const items = (res.data ?? []) as unknown as SupplierOrder[];
 
         if (!items || items.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
@@ -159,14 +154,14 @@ async function loadOrders(): Promise<void> {
             btn.addEventListener('click', async () => {
                 const poId = btn.getAttribute('data-po-id');
                 const action = btn.getAttribute('data-action');
-                if (!poId || !action) return;
-                await updatePOStatus(poId, action);
+                if (!poId || !action) { return; }
+                await updatePOStatus(poId, action as 'acknowledged' | 'shipped' | 'delivered');
             });
         });
 
         applyI18n();
-    } catch (err) {
-        console.error('[Supplier] Orders load failed:', err);
+    } catch {
+        // Silent — error captured by centralized reporter
     }
 }
 
@@ -176,12 +171,8 @@ async function loadCatalog(): Promise<void> {
     if (!container) { return; }
 
     try {
-        const res = await fetch(`${API_BASE}/supplier/catalog`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-        const json = await res.json() as { data: CatalogItem[] };
-        const items = json.data;
+        const res = await supplier.getCatalog();
+        const items = (res.data ?? []) as unknown as CatalogItem[];
 
         if (!items || items.length === 0) {
             container.innerHTML = `
@@ -218,38 +209,29 @@ async function loadCatalog(): Promise<void> {
         container.querySelectorAll('[data-deactivate]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-deactivate');
-                if (!id) return;
+                if (!id) { return; }
                 await deactivateItem(id);
             });
         });
-    } catch (err) {
-        console.error('[Supplier] Catalog load failed:', err);
+    } catch {
+        // Silent — error captured by centralized reporter
     }
 }
 
 // ─── Update PO Status ───────────────────────────────────────────────────────
-async function updatePOStatus(poId: string, status: string): Promise<void> {
+async function updatePOStatus(poId: string, status: 'acknowledged' | 'shipped' | 'delivered'): Promise<void> {
     try {
-        const res = await fetch(`${API_BASE}/supplier/orders/${poId}/status`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`,
-            },
-            body: JSON.stringify({ status }),
-        });
+        const res = await supplier.updateOrderStatus(poId, status);
 
-        if (!res.ok) {
-            const err = await res.json() as { error: string };
-            showBanner('error', err.error ?? 'Failed to update status');
+        if (!res.success) {
+            showBanner('error', res.error ?? 'Failed to update status');
             return;
         }
 
         showBanner('success', `Order status updated to "${status}"`);
         await loadOrders();
         await loadKPIs();
-    } catch (err) {
-        console.error('[Supplier] PO status update failed:', err);
+    } catch {
         showBanner('error', 'Network error. Please try again.');
     }
 }
@@ -262,11 +244,11 @@ function setupCatalogModal(): void {
     const form = document.getElementById('form-add-material') as HTMLFormElement | null;
 
     openBtn?.addEventListener('click', () => {
-        if (modal) modal.style.display = 'flex';
+        if (modal) { modal.style.display = 'flex'; }
     });
 
     cancelBtn?.addEventListener('click', () => {
-        if (modal) modal.style.display = 'none';
+        if (modal) { modal.style.display = 'none'; }
     });
 
     form?.addEventListener('submit', async (e) => {
@@ -274,36 +256,26 @@ function setupCatalogModal(): void {
         const fd = new FormData(form);
 
         try {
-            const res = await fetch(`${API_BASE}/supplier/catalog`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`,
-                },
-                body: JSON.stringify({
-                    material_name: fd.get('material_name'),
-                    material_category: fd.get('material_category'),
-                    unit: fd.get('unit'),
-                    unit_price_guide: Math.round(Number(fd.get('unit_price_guide')) * 100), // dollars→cents
-                    min_order_qty: Number(fd.get('min_order_qty')) || 1,
-                    lead_time_days: Number(fd.get('lead_time_days')) || 7,
-                    description: fd.get('description') || undefined,
-                }),
+            const res = await supplier.addCatalogItem({
+                material_name: fd.get('material_name') as string,
+                material_category: fd.get('material_category') as string,
+                unit: fd.get('unit') as string,
+                unit_price_guide: Math.round(Number(fd.get('unit_price_guide')) * 100), // dollars→cents
+                minimum_order: Number(fd.get('min_order_qty')) || 1,
+                lead_time_days: Number(fd.get('lead_time_days')) || 7,
             });
 
-            if (!res.ok) {
-                const err = await res.json() as { error: string };
-                showBanner('error', err.error ?? 'Failed to add material');
+            if (!res.success) {
+                showBanner('error', res.error ?? 'Failed to add material');
                 return;
             }
 
-            if (modal) modal.style.display = 'none';
+            if (modal) { modal.style.display = 'none'; }
             form.reset();
             showBanner('success', 'Material added to your catalog');
             await loadCatalog();
             await loadKPIs();
-        } catch (err) {
-            console.error('[Supplier] Catalog item add failed:', err);
+        } catch {
             showBanner('error', 'Network error. Please try again.');
         }
     });
@@ -312,20 +284,16 @@ function setupCatalogModal(): void {
 // ─── Deactivate Catalog Item ────────────────────────────────────────────────
 async function deactivateItem(catalogId: string): Promise<void> {
     try {
-        const res = await fetch(`${API_BASE}/supplier/catalog/${catalogId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
+        const res = await supplier.deactivateItem(catalogId);
 
-        if (!res.ok) {
+        if (!res.success) {
             showBanner('error', 'Failed to remove item');
             return;
         }
 
         showBanner('success', 'Material removed from catalog');
         await loadCatalog();
-    } catch (err) {
-        console.error('[Supplier] Catalog item deactivation failed:', err);
+    } catch {
         showBanner('error', 'Network error. Please try again.');
     }
 }
@@ -351,17 +319,7 @@ function setKPI(name: string, value: number, prefix = ''): void {
     requestAnimationFrame(tick);
 }
 
-function statusColor(status: string): string {
-    const map: Record<string, string> = {
-        generated: 'bg-warning-yellow/10 text-warning-yellow',
-        sent_to_supplier: 'bg-trust-blue/10 text-trust-blue',
-        acknowledged: 'bg-sky-100 text-sky-700',
-        shipped: 'bg-purple-100 text-purple-700',
-        delivered: 'bg-smoky-jade/10 text-smoky-jade',
-        cancelled: 'bg-red-100 text-red-700',
-    };
-    return map[status] ?? 'bg-slate-100 text-slate-600';
-}
+
 
 function renderActions(item: SupplierOrder): string {
     switch (item.status) {
@@ -385,18 +343,12 @@ function renderActions(item: SupplierOrder): string {
 
 function showBanner(type: 'error' | 'success', message: string): void {
     const banner = document.getElementById('dashboard-banner');
-    if (!banner) return;
+    if (!banner) { return; }
     banner.className = `px-4 py-3 rounded-lg text-sm font-medium mb-4 ${type === 'error' ? 'bg-red-50 text-red-700' : 'bg-smoky-jade/10 text-smoky-jade'
         }`;
     banner.textContent = message;
     banner.style.display = '';
     setTimeout(() => { banner.style.display = 'none'; }, 5000);
-}
-
-// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
-
-function getToken(): string {
-    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {

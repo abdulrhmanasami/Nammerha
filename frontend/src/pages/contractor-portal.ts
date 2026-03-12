@@ -1,30 +1,16 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { phaseColor, bidColor } from '../utils/status-colors';
+import { contractor } from '../api';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
-   Wires to: /api/contractor/*
+   PLT-FE-001 FIX: All API calls delegated to centralized api.ts client.
+   Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
+   wrapper — including 30s AbortController timeout for Syria's network conditions.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const API = '/api/contractor';
-
-function getToken(): string {
-    return localStorage.getItem('nammerha_token') ?? '';
-}
-
-const headers = (): Record<string, string> => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`,
-});
-
-// ─── Types ──────────────────────────────────────────────────────────────────
-interface Stats {
-    active_projects: number;
-    pending_bids: number;
-    won_bids: number;
-    total_escrow_received: number;
-}
-
+// ─── Types (local rendering shapes — raw API types are in api.ts) ────────────
 interface Project {
     project_id: string;
     title: string;
@@ -44,15 +30,6 @@ interface MarketProject {
     bid_count: number;
 }
 
-interface Bid {
-    bid_id: string;
-    project_title: string;
-    proposed_cost: number;
-    estimated_days: number;
-    status: string;
-    submitted_at: string;
-}
-
 interface Payment {
     transaction_id: string;
     project_title: string;
@@ -64,6 +41,9 @@ interface Payment {
 // ─── State ──────────────────────────────────────────────────────────────────
 type TabName = 'dashboard' | 'marketplace' | 'bids' | 'payments';
 
+// PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
+const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
+
 // ─── DOM Init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
@@ -73,9 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
 function setupTabs(): void {
-    const tabIds: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
-
-    for (const tab of tabIds) {
+    for (const tab of ALL_TABS) {
         const el = document.getElementById(`tab-${tab}`);
         if (!el) { continue; }
 
@@ -87,10 +65,8 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
-    const allTabs: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
-
     // Update sidebar
-    for (const t of allTabs) {
+    for (const t of ALL_TABS) {
         const el = document.getElementById(`tab-${t}`);
         if (!el) { continue; }
 
@@ -102,7 +78,7 @@ function switchTab(tab: TabName): void {
     }
 
     // Show/hide sections
-    for (const t of allTabs) {
+    for (const t of ALL_TABS) {
         const section = document.getElementById(`section-${t}`);
         if (section) {
             section.style.display = t === tab ? '' : 'none';
@@ -118,19 +94,17 @@ function switchTab(tab: TabName): void {
 // ─── KPI Cards ──────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
     try {
-        const res = await fetch(`${API}/stats`, { headers: headers() });
-        if (!res.ok) { return; }
+        const res = await contractor.getStats();
+        if (!res.data) { return; }
+        const s = res.data;
 
-        const json = await res.json() as { data: Stats };
-        const s = json.data;
-
-        setText('kpi-active', String(s.active_projects));
-        setText('kpi-pending', String(s.pending_bids));
-        setText('kpi-won', String(s.won_bids));
-        setText('kpi-escrow', `$${(s.total_escrow_received / 100).toLocaleString()}`);
-        setText('pending-bids-count', String(s.pending_bids));
-    } catch (err) {
-        console.warn('[Contractor] Stats load failed, showing defaults:', err);
+        setText('kpi-active', String(s.assigned_projects));
+        setText('kpi-pending', String(s.active_bids));
+        setText('kpi-won', String(s.completed_projects));
+        setText('kpi-escrow', `$${(s.total_earnings / 100).toLocaleString()}`);
+        setText('pending-bids-count', String(s.active_bids));
+    } catch {
+        // Silent degradation — KPIs retain HTML defaults
     }
 }
 
@@ -140,11 +114,8 @@ async function loadProjects(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API}/projects`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-
-        const json = await res.json() as { data: Project[] };
-        const projects = json.data;
+        const res = await contractor.getProjects();
+        const projects = (res.data ?? []) as unknown as Project[];
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
@@ -171,8 +142,7 @@ async function loadProjects(): Promise<void> {
                 </td>
             </tr>
         `).join('');
-    } catch (err) {
-        console.error('[Contractor] Projects load failed:', err);
+    } catch {
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -183,11 +153,8 @@ async function loadMarketplace(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API}/marketplace`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-
-        const json = await res.json() as { data: MarketProject[] };
-        const projects = json.data;
+        const res = await contractor.getMarketplace();
+        const projects = (res.data ?? []) as unknown as MarketProject[];
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
@@ -222,8 +189,7 @@ async function loadMarketplace(): Promise<void> {
                 if (projectId) { openBidModal(projectId); }
             });
         });
-    } catch (err) {
-        console.error('[Contractor] Marketplace load failed:', err);
+    } catch {
         tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -234,11 +200,8 @@ async function loadBids(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API}/bids`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-
-        const json = await res.json() as { data: Bid[] };
-        const bids = json.data;
+        const res = await contractor.getBids();
+        const bids = res.data ?? [];
 
         if (bids.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
@@ -254,11 +217,10 @@ async function loadBids(): Promise<void> {
                 <td class="px-5 py-3 font-mono text-sm">$${(b.proposed_cost / 100).toLocaleString()}</td>
                 <td class="px-5 py-3">${b.estimated_days}d</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${new Date(b.submitted_at).toLocaleDateString()}</td>
+                <td class="px-5 py-3 text-xs text-slate-400">${new Date(b.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch (err) {
-        console.error('[Contractor] Bids load failed:', err);
+    } catch {
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -269,11 +231,8 @@ async function loadPayments(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API}/payments`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-
-        const json = await res.json() as { data: Payment[] };
-        const payments = json.data;
+        const res = await contractor.getPayments();
+        const payments = (res.data ?? []) as unknown as Payment[];
 
         if (payments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
@@ -291,8 +250,7 @@ async function loadPayments(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(p.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch (err) {
-        console.error('[Contractor] Payments load failed:', err);
+    } catch {
         tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -347,20 +305,15 @@ function openBidModal(projectId: string): void {
         submitBtn.textContent = 'Submitting...';
 
         try {
-            const res = await fetch(`${API}/bids`, {
-                method: 'POST',
-                headers: headers(),
-                body: JSON.stringify({
-                    project_id: projectId,
-                    proposed_cost: cost * 100, // Convert to cents
-                    estimated_days: days,
-                    cover_letter: letter || undefined,
-                }),
+            const res = await contractor.submitBid({
+                project_id: projectId,
+                proposed_cost: cost * 100, // Convert to cents
+                estimated_days: days,
+                cover_letter: letter || undefined,
             });
 
-            if (!res.ok) {
-                const err = await res.json() as { error: string };
-                throw new Error(err.error ?? 'Bid failed');
+            if (!res.success) {
+                throw new Error(res.error ?? 'Bid failed');
             }
 
             modal.remove();
@@ -383,28 +336,7 @@ function setText(id: string, text: string): void {
     if (el) { el.textContent = text; }
 }
 
-// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
-function phaseColor(phase: string): string {
-    const colors: Record<string, string> = {
-        pending_execution: 'bg-amber-100 text-amber-700',
-        in_progress: 'bg-blue-100 text-blue-700',
-        completed: 'bg-green-100 text-green-700',
-        delivered: 'bg-emerald-100 text-emerald-700',
-    };
-    return colors[phase] ?? 'bg-slate-100 text-slate-600';
-}
-
-function bidColor(status: string): string {
-    const colors: Record<string, string> = {
-        pending: 'bg-amber-100 text-amber-700',
-        accepted: 'bg-green-100 text-green-700',
-        rejected: 'bg-red-100 text-red-600',
-        withdrawn: 'bg-slate-100 text-slate-500',
-        expired: 'bg-slate-100 text-slate-400',
-    };
-    return colors[status] ?? 'bg-slate-100 text-slate-600';
-}
 
 // ─── Expose for global access ───────────────────────────────────────────────
 (window as unknown as Record<string, unknown>)['contractorPortal'] = {

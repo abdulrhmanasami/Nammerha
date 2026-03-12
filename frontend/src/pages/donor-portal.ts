@@ -1,76 +1,19 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { statusColor, escrowColor } from '../utils/status-colors';
+import { donor } from '../api';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
-   Wires to: /api/donor/*
+   PLT-FE-001 FIX: All API calls delegated to centralized api.ts client.
+   Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
+   wrapper — including 30s AbortController timeout for Syria's network conditions.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const API = '/api/donor';
-
-function getToken(): string {
-    return localStorage.getItem('nammerha_token') ?? '';
-}
-
-const headers = (): Record<string, string> => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`,
-});
-
-// ─── Types ──────────────────────────────────────────────────────────────────
-interface Stats {
-    total_donated: number;
-    projects_supported: number;
-    items_funded: number;
-    escrow_locked: number;
-    escrow_released: number;
-    impact_score: number;
-}
-
-interface Donation {
-    escrow_id: string;
-    project_title: string;
-    material_name: string;
-    amount_locked: number;
-    status: string;
-    locked_at: string;
-}
-
-interface FundedProject {
-    project_id: string;
-    title: string;
-    damage_type: string;
-    region: string | null;
-    status: string;
-    my_total_donated: number;
-    funded_percentage: number;
-    items_i_funded: number;
-}
-
-interface MarketProject {
-    project_id: string;
-    title: string;
-    damage_type: string;
-    region: string | null;
-    total_cost: number;
-    total_funded: number;
-    funded_percentage: number;
-    items_count: number;
-}
-
-interface Proof {
-    proof_id: string;
-    project_title: string;
-    material_name: string;
-    photo_url: string | null;
-    gps_lat: number | null;
-    gps_lng: number | null;
-    verified_by: string | null;
-    verified_at: string | null;
-    description: string | null;
-}
-
 type TabName = 'dashboard' | 'marketplace' | 'donations' | 'impact' | 'proofs';
+
+// PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
+const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'donations', 'impact', 'proofs'];
 
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -81,9 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ─── Tab Navigation ─────────────────────────────────────────────────────────
 function setupTabs(): void {
-    const tabs: TabName[] = ['dashboard', 'marketplace', 'donations', 'impact', 'proofs'];
-
-    for (const tab of tabs) {
+    for (const tab of ALL_TABS) {
         const el = document.getElementById(`tab-${tab}`);
         if (!el) { continue; }
         el.addEventListener('click', (e) => {
@@ -94,9 +35,7 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
-    const allTabs: TabName[] = ['dashboard', 'marketplace', 'donations', 'impact', 'proofs'];
-
-    for (const t of allTabs) {
+    for (const t of ALL_TABS) {
         const el = document.getElementById(`tab-${t}`);
         if (!el) { continue; }
         el.className = t === tab
@@ -116,10 +55,9 @@ function switchTab(tab: TabName): void {
 // ─── KPIs ───────────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
     try {
-        const res = await fetch(`${API}/stats`, { headers: headers() });
-        if (!res.ok) { return; }
-        const json = await res.json() as { data: Stats };
-        const s = json.data;
+        const res = await donor.getStats();
+        if (!res.data) { return; }
+        const s = res.data;
 
         setText('kpi-donated', `$${(s.total_donated / 100).toLocaleString()}`);
         setText('kpi-projects', String(s.projects_supported));
@@ -127,8 +65,9 @@ async function loadStats(): Promise<void> {
         setText('kpi-score', `${s.impact_score}%`);
         setText('kpi-locked', `$${(s.escrow_locked / 100).toLocaleString()}`);
         setText('kpi-released', `$${(s.escrow_released / 100).toLocaleString()}`);
-    } catch (err) {
-        console.warn('[Donor] Stats load failed, showing defaults:', err);
+    } catch {
+        // PLT-FE-002: Silently degrade — KPIs retain default HTML values.
+        // Error is already captured by the centralized error-reporter via window.onerror.
     }
 }
 
@@ -138,11 +77,10 @@ async function loadFundedProjects(): Promise<void> {
     if (!container) { return; }
 
     try {
-        const res = await fetch(`${API}/impact`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-        const json = await res.json() as { data: FundedProject[] };
+        const res = await donor.getImpact();
+        const projects = res.data ?? [];
 
-        if (json.data.length === 0) {
+        if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
                 <i class="ph ph-hand-heart" style="font-size:40px" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">No funded projects yet</p>
@@ -151,7 +89,7 @@ async function loadFundedProjects(): Promise<void> {
             return;
         }
 
-        container.innerHTML = json.data.map((p) => `
+        container.innerHTML = projects.map((p) => `
             <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
@@ -176,8 +114,7 @@ async function loadFundedProjects(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch (err) {
-        console.error('[Donor] Funded projects load failed:', err);
+    } catch {
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -188,18 +125,17 @@ async function loadMarketplace(): Promise<void> {
     if (!container) { return; }
 
     try {
-        const res = await fetch(`${API}/marketplace`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-        const json = await res.json() as { data: MarketProject[] };
+        const res = await donor.getMarketplace();
+        const projects = res.data ?? [];
 
-        if (json.data.length === 0) {
+        if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
                 <p class="text-sm font-medium">No projects available at the moment</p>
             </div>`;
             return;
         }
 
-        container.innerHTML = json.data.map((p) => `
+        container.innerHTML = projects.map((p) => `
             <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
@@ -225,8 +161,7 @@ async function loadMarketplace(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch (err) {
-        console.error('[Donor] Marketplace load failed:', err);
+    } catch {
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -237,18 +172,17 @@ async function loadDonations(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API}/donations`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-        const json = await res.json() as { data: Donation[] };
+        const res = await donor.getDonations();
+        const donations = res.data ?? [];
 
-        if (json.data.length === 0) {
+        if (donations.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
                 <p class="text-sm font-medium">No donations yet</p>
             </td></tr>`;
             return;
         }
 
-        tbody.innerHTML = json.data.map((d) => `
+        tbody.innerHTML = donations.map((d) => `
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(d.material_name)}</td>
                 <td class="px-5 py-3 text-xs">${esc(d.project_title)}</td>
@@ -257,8 +191,7 @@ async function loadDonations(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(d.locked_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch (err) {
-        console.error('[Donor] Donations load failed:', err);
+    } catch {
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -269,18 +202,17 @@ async function loadImpact(): Promise<void> {
     if (!container) { return; }
 
     try {
-        const res = await fetch(`${API}/impact`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-        const json = await res.json() as { data: FundedProject[] };
+        const res = await donor.getImpact();
+        const projects = res.data ?? [];
 
-        if (json.data.length === 0) {
+        if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
                 <p class="text-sm font-medium">No impact data yet</p>
             </div>`;
             return;
         }
 
-        container.innerHTML = json.data.map((p) => `
+        container.innerHTML = projects.map((p) => `
             <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-center gap-4">
                     <div class="size-12 rounded-lg flex items-center justify-center ${p.status === 'completed' ? 'bg-green-100' : 'bg-emerald-100'}">
@@ -300,8 +232,7 @@ async function loadImpact(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch (err) {
-        console.error('[Donor] Impact data load failed:', err);
+    } catch {
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -312,11 +243,10 @@ async function loadProofs(): Promise<void> {
     if (!container) { return; }
 
     try {
-        const res = await fetch(`${API}/proofs`, { headers: headers() });
-        if (!res.ok) { throw new Error('Failed'); }
-        const json = await res.json() as { data: Proof[] };
+        const res = await donor.getProofs();
+        const proofs = res.data ?? [];
 
-        if (json.data.length === 0) {
+        if (proofs.length === 0) {
             container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400">
                 <i class="ph ph-camera" style="font-size:40px" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">No proofs yet</p>
@@ -325,7 +255,7 @@ async function loadProofs(): Promise<void> {
             return;
         }
 
-        container.innerHTML = json.data.map((proof) => `
+        container.innerHTML = proofs.map((proof) => `
             <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                 <div class="aspect-video bg-slate-100 flex items-center justify-center relative">
                     ${proof.photo_url
@@ -346,8 +276,7 @@ async function loadProofs(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch (err) {
-        console.error('[Donor] Proofs load failed:', err);
+    } catch {
         container.innerHTML = `<div class="col-span-full p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -358,24 +287,4 @@ function setText(id: string, text: string): void {
     if (el) { el.textContent = text; }
 }
 
-// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
-function statusColor(s: string): string {
-    const c: Record<string, string> = {
-        draft: 'bg-slate-100 text-slate-500',
-        pending_assessment: 'bg-amber-100 text-amber-700',
-        assessed: 'bg-indigo-100 text-indigo-700',
-        published: 'bg-purple-100 text-purple-700',
-        in_progress: 'bg-teal-100 text-teal-700',
-        completed: 'bg-green-100 text-green-700',
-        cancelled: 'bg-red-100 text-red-600',
-    };
-    return c[s] ?? 'bg-slate-100 text-slate-600';
-}
-
-function escrowColor(s: string): string {
-    return s === 'released' ? 'bg-green-100 text-green-700'
-        : s === 'locked' ? 'bg-emerald-100 text-emerald-700'
-            : s === 'refunded' ? 'bg-amber-100 text-amber-700'
-                : 'bg-slate-100 text-slate-600';
-}

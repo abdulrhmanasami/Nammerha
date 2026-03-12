@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
 import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 
@@ -384,57 +385,16 @@ function setText(id: string, text: string): void {
 
 // P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
 
-function tradeColor(trade: string): string {
-    const c: Record<string, string> = {
-        tiling: 'bg-blue-100 text-blue-700',
-        painting: 'bg-purple-100 text-purple-700',
-        plumbing: 'bg-cyan-100 text-cyan-700',
-        electrical: 'bg-yellow-100 text-yellow-700',
-        carpentry: 'bg-orange-100 text-orange-700',
-        welding: 'bg-red-100 text-red-700',
-        masonry: 'bg-stone-200 text-stone-700',
-        plastering: 'bg-slate-100 text-slate-600',
-        hvac: 'bg-sky-100 text-sky-700',
-        general: 'bg-teal-100 text-teal-700',
-    };
-    return c[trade] ?? 'bg-slate-100 text-slate-600';
-}
 
 /**
  * P2-FE-003 FIX: Locale-agnostic trade label.
  * Returns a <span> with data-i18n attribute so the i18n engine's
  * MutationObserver auto-translates it to the current locale.
- * Replaces the old hardcoded-Arabic tradeArabicLabel() function.
  */
 function tradeLabel(trade: string): string {
     if (!trade) { return '—'; }
     const colorClass = tradeColor(trade);
-    // English trade name as default text; data-i18n="trade_xxx" triggers i18n engine
     return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${colorClass}" data-i18n="trade_${trade}">${esc(trade)}</span>`;
-}
-
-function urgencyColor(u: string): string {
-    return u === 'emergency' ? 'bg-red-100 text-red-700'
-        : u === 'urgent' ? 'bg-amber-100 text-amber-700'
-            : 'bg-slate-100 text-slate-600';
-}
-
-function statusColor(s: string): string {
-    const c: Record<string, string> = {
-        pending: 'bg-amber-100 text-amber-700',
-        accepted: 'bg-blue-100 text-blue-700',
-        in_progress: 'bg-teal-100 text-teal-700',
-        completed: 'bg-green-100 text-green-700',
-        declined: 'bg-red-100 text-red-600',
-        cancelled: 'bg-slate-100 text-slate-500',
-    };
-    return c[s] ?? 'bg-slate-100 text-slate-600';
-}
-
-function availabilityBadge(s: string): string {
-    return s === 'available' ? 'bg-green-100 text-green-700'
-        : s === 'busy' ? 'bg-amber-100 text-amber-700'
-            : 'bg-slate-100 text-slate-500';
 }
 
 // NMR-AUD-305: timeAgo() removed — replaced by relativeTimeAgo() from '../utils/format'

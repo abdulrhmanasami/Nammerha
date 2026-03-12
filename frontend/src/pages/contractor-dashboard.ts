@@ -1,12 +1,14 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { phaseColor, bidColor } from '../utils/status-colors';
+import { engineer } from '../api';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Dashboard — Project Execution & Bidding Engine
-   Wires to: /api/engineer/stats, /api/engineer/projects, /api/engineer/bids
+   PLT-RE-001 FIX: All API calls delegated to centralized api.ts client.
+   Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
+   wrapper — including 30s AbortController timeout for Syria's network conditions.
    ═══════════════════════════════════════════════════════════════════════════ */
-
-const API_BASE = '/api';
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -42,36 +44,31 @@ function setupTabs(): void {
     const sectionBids = document.getElementById('section-bids');
 
     tabProjects?.addEventListener('click', () => {
-
         tabProjects.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabProjects.classList.remove('text-slate-600');
         tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabBids?.classList.add('text-slate-600');
-        if (sectionProjects) sectionProjects.style.display = '';
-        if (sectionBids) sectionBids.style.display = 'none';
+        if (sectionProjects) { sectionProjects.style.display = ''; }
+        if (sectionBids) { sectionBids.style.display = 'none'; }
     });
 
     tabBids?.addEventListener('click', () => {
-
         tabBids.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabBids.classList.remove('text-slate-600');
         tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabProjects?.classList.add('text-slate-600');
-        if (sectionBids) sectionBids.style.display = '';
-        if (sectionProjects) sectionProjects.style.display = 'none';
+        if (sectionBids) { sectionBids.style.display = ''; }
+        if (sectionProjects) { sectionProjects.style.display = 'none'; }
         loadBids();
     });
 }
 
-// ─── Load KPIs from /api/engineer/stats ─────────────────────────────────────
+// ─── Load KPIs from engineer.getStats() ─────────────────────────────────────
 async function loadKPIs(): Promise<void> {
     try {
-        const res = await fetch(`${API_BASE}/engineer/stats`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { return; }
-        const json = await res.json() as { data: Record<string, number> };
-        const data = json.data;
+        const res = await engineer.getStats();
+        if (!res.data) { return; }
+        const data = res.data as unknown as Record<string, number>;
 
         setKPI('assigned-projects', data['assigned_projects'] ?? 0);
         setKPI('proofs-pending', data['proofs_pending'] ?? 0);
@@ -83,25 +80,21 @@ async function loadKPIs(): Promise<void> {
         if (projectCount) { projectCount.textContent = String(data['assigned_projects'] ?? 0); }
         const proofPending = document.getElementById('proof-pending');
         if (proofPending) { proofPending.textContent = String(data['proofs_pending'] ?? 0); }
-    } catch (err) {
-        console.warn('[Engineer] KPI load failed, showing defaults:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter via api.ts
     }
 }
 
-// ─── Load Project Timeline from /api/engineer/projects ──────────────────────
+// ─── Load Project Timeline from engineer.getProjects() ──────────────────────
 async function loadProjectTimeline(): Promise<void> {
     const tbody = document.getElementById('project-timeline-body');
     if (!tbody) { return; }
 
     try {
-        const res = await fetch(`${API_BASE}/engineer/projects`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-        const json = await res.json() as { data: Array<Record<string, string | number>> };
-        const projects = json.data;
+        const res = await engineer.getProjects();
+        const projects = (res.data ?? []) as unknown as Array<Record<string, string | number>>;
 
-        if (!projects || projects.length === 0) {
+        if (projects.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="6" class="px-5 py-8 text-center text-slate-400">
                     <i class="ph ph-buildings" style="font-size:24px" aria-hidden="true"></i>
@@ -142,25 +135,21 @@ async function loadProjectTimeline(): Promise<void> {
         }).join('');
 
         applyI18n();
-    } catch (err) {
-        console.error('[Engineer] Project timeline load failed:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter
     }
 }
 
-// ─── Load My Bids from /api/engineer/bids ───────────────────────────────────
+// ─── Load My Bids from engineer.getBids() ───────────────────────────────────
 async function loadBids(): Promise<void> {
     const container = document.getElementById('bids-body');
     if (!container) { return; }
 
     try {
-        const res = await fetch(`${API_BASE}/engineer/bids`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-        });
-        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-        const json = await res.json() as { data: Array<Record<string, string | number | null>> };
-        const bids = json.data;
+        const res = await engineer.getBids();
+        const bids = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
 
-        if (!bids || bids.length === 0) {
+        if (bids.length === 0) {
             container.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="5" class="px-5 py-8 text-center text-slate-400">
                     <i class="ph ph-flag-banner" style="font-size:24px" aria-hidden="true"></i>
@@ -176,7 +165,7 @@ async function loadBids(): Promise<void> {
                 <td class="px-5 py-3 font-mono">$${((Number(b['proposed_cost']) || 0) / 100).toLocaleString()}</td>
                 <td class="px-5 py-3 text-slate-500">${b['estimated_days']} days</td>
                 <td class="px-5 py-3">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${bidStatusColor(String(b['status'] ?? ''))}">
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${bidColor(String(b['status'] ?? ''))}">
                         ${esc(String(b['status'] ?? ''))}
                     </span>
                 </td>
@@ -185,8 +174,8 @@ async function loadBids(): Promise<void> {
         `).join('');
 
         applyI18n();
-    } catch (err) {
-        console.error('[Engineer] Bids load failed:', err);
+    } catch {
+        // Silent degradation — error captured by centralized reporter
     }
 }
 
@@ -211,45 +200,15 @@ function setKPI(name: string, value: number, prefix = ''): void {
     requestAnimationFrame(tick);
 }
 
-function phaseColor(phase: string): string {
-    const map: Record<string, string> = {
-        draft: 'bg-slate-100 text-slate-600',
-        pending_assessment: 'bg-warning-yellow/10 text-warning-yellow',
-        assessed: 'bg-trust-blue/10 text-trust-blue',
-        published: 'bg-purple-100 text-purple-700',
-        funded: 'bg-smoky-jade/10 text-smoky-jade',
-        in_progress: 'bg-trust-blue/10 text-trust-blue',
-        completed: 'bg-smoky-jade/10 text-smoky-jade',
-    };
-    return map[phase] ?? 'bg-slate-100 text-slate-600';
-}
-
-function bidStatusColor(status: string): string {
-    const map: Record<string, string> = {
-        pending: 'bg-warning-yellow/10 text-warning-yellow',
-        accepted: 'bg-smoky-jade/10 text-smoky-jade',
-        rejected: 'bg-red-100 text-red-700',
-        expired: 'bg-slate-100 text-slate-500',
-    };
-    return map[status] ?? 'bg-slate-100 text-slate-600';
-}
-
 function formatDate(iso: string): string {
-    if (!iso) return '—';
+    if (!iso) { return '—'; }
     try {
         return new Date(iso).toLocaleDateString(undefined, {
             month: 'short', day: 'numeric', year: 'numeric',
         });
-    } catch (err) {
-        console.warn('[Engineer] Date format failed:', err);
+    } catch {
         return '—';
     }
-}
-
-// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
-
-function getToken(): string {
-    return localStorage.getItem('nammerha_token') ?? '';
 }
 
 function applyI18n(): void {
