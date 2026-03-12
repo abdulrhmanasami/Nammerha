@@ -28,13 +28,8 @@ vi.mock('nodemailer', () => ({
     createTransport: (...args: unknown[]) => mockCreateTransport(...args),
 }));
 
-// ─── Import AFTER mocks ────────────────────────────────────────────────────
-import {
-    sendEmail,
-    sendVerificationEmail,
-    sendPasswordResetEmail,
-    sendSecurityAlertEmail,
-} from '../../services/email.service';
+// ─── Import type-only reference (functions are re-imported dynamically per test) ──
+import type {} from '../../services/email.service';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Email Service Unit Tests
@@ -126,7 +121,8 @@ describe('Email Service', () => {
                 variables: { verification_url: 'https://nammerha.com/verify?token=UNIQUE_TOKEN' },
             });
 
-            const htmlArg = mockSendMail.mock.calls[0][0].html;
+            const firstCall = mockSendMail.mock.calls[0] as [{html: string}];
+            const htmlArg = firstCall[0].html;
             expect(htmlArg).toContain('UNIQUE_TOKEN');
             expect(htmlArg).not.toContain('{{verification_url}}');
         });
@@ -148,7 +144,8 @@ describe('Email Service', () => {
                 },
             });
 
-            const htmlArg = mockSendMail.mock.calls[0][0].html;
+            const firstCall = mockSendMail.mock.calls[0] as [{html: string}];
+            const htmlArg = firstCall[0].html;
             // XSS payload should be escaped, not raw
             expect(htmlArg).not.toContain('<script>');
             expect(htmlArg).toContain('&lt;script&gt;');
@@ -166,7 +163,8 @@ describe('Email Service', () => {
                 variables: { reset_url: 'https://nammerha.com/reset?token=RST123' },
             });
 
-            const htmlArg = mockSendMail.mock.calls[0][0].html;
+            const firstCall = mockSendMail.mock.calls[0] as [{html: string}];
+            const htmlArg = firstCall[0].html;
             expect(htmlArg).toContain('Reset Your Password');
             expect(htmlArg).toContain('RST123');
         });
@@ -223,7 +221,8 @@ describe('Email Service', () => {
             );
 
             expect(result.success).toBe(true);
-            const htmlArg = mockSendMail.mock.calls[0][0].html;
+            const firstCall = mockSendMail.mock.calls[0] as [{html: string}];
+            const htmlArg = firstCall[0].html;
             expect(htmlArg).toContain('API Key Created');
             expect(htmlArg).toContain('203.0.113.42');
         });

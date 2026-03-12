@@ -14,9 +14,14 @@ const router = Router();
 // ─── GET /api/marketplace/projects — Browse Published Projects ──────────────
 router.get('/projects', async (req: Request, res: Response) => {
     try {
+        // PLT-AUDIT-001 FIX: Forward pagination params to prevent unbounded result sets.
+        const limit = req.query['limit'] ? parseInt(String(req.query['limit']), 10) : undefined;
+        const offset = req.query['offset'] ? parseInt(String(req.query['offset']), 10) : undefined;
         const projects = await crowdfundingService.getMarketplaceProjects({
             damage_type: req.query['damage_type'] as string | undefined,
             sort_by: req.query['sort_by'] as 'funded_percentage' | 'published_at' | undefined,
+            limit: Number.isFinite(limit) ? limit : undefined,
+            offset: Number.isFinite(offset) ? offset : undefined,
         });
         const response: ApiResponse = { success: true, data: projects };
         res.json(response);

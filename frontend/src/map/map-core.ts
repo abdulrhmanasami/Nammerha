@@ -10,7 +10,7 @@ import { getBasemapStyleUrl, SYRIA_CENTER, DEFAULT_ZOOM } from './basemap-config
 let rtlPluginLoaded = false;
 
 function loadRTLPlugin(): void {
-    if (rtlPluginLoaded) return;
+    if (rtlPluginLoaded) {return;}
     rtlPluginLoaded = true;
 
     try {
@@ -59,7 +59,7 @@ async function fetchAndFixStyle(styleUrl: string): Promise<maplibregl.StyleSpeci
 
     // Helper: fix any http://currentHost URL to use page protocol
     const fixUrl = (url: string): string => {
-        if (!url) return url;
+        if (!url) {return url;}
         return url.replace(
             new RegExp(`http://${currentHost.replace(/\./g, '\\.')}`, 'g'),
             origin,
@@ -106,14 +106,15 @@ async function fetchAndFixStyle(styleUrl: string): Promise<maplibregl.StyleSpeci
                     }
 
                     // Copy metadata from TileJSON
-                    if (tileJson.minzoom !== undefined) source.minzoom = tileJson.minzoom;
-                    if (tileJson.maxzoom !== undefined) source.maxzoom = tileJson.maxzoom;
-                    if (tileJson.bounds) source.bounds = tileJson.bounds;
-                    if (tileJson.attribution) source.attribution = tileJson.attribution;
+                    if (tileJson.minzoom !== undefined) {source.minzoom = tileJson.minzoom;}
+                    if (tileJson.maxzoom !== undefined) {source.maxzoom = tileJson.maxzoom;}
+                    if (tileJson.bounds) {source.bounds = tileJson.bounds;}
+                    if (tileJson.attribution) {source.attribution = tileJson.attribution;}
 
                     // Remove the url property — we've inlined everything
                     delete source.url;
 
+                    // eslint-disable-next-line no-console -- Diagnostic: logs tile source inlining success
                     console.info(`[Nammerha Map] Source '${sourceName}' inlined:`, source.tiles);
                 }
             } catch (err) {

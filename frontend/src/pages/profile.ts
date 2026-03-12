@@ -1,39 +1,47 @@
 import '../styles/main.css';
+import { getCurrentUser, clearAuth } from '../auth';
 
 // ============================================================================
 // Nammerha — Profile Page Engine
 // P0-004 FIX: User profile, settings, and logout
+// V1-AUDIT FIX: No longer reads JWT from localStorage — uses auth module
 // ============================================================================
 
-// ─── Read Token & Extract User Info ─────────────────────────────────────────
-function parseJWT(token: string): Record<string, unknown> | null {
-    try {
-        const payload = token.split('.')[1];
-        if (!payload) { return null; }
-        return JSON.parse(atob(payload));
-    } catch (err) {
-        console.warn('[Profile] JWT parse failed:', err);
-        return null;
-    }
-}
-
-function loadUserInfo(): void {
-    const token = localStorage.getItem('nammerha_token');
+// ─── Load User Info ─────────────────────────────────────────────────────────
+async function loadUserInfo(): Promise<void> {
     const nameEl = document.getElementById('user-name');
     const emailEl = document.getElementById('user-email');
     const roleEl = document.getElementById('user-role');
 
-    if (!token) {
-        if (nameEl) { nameEl.textContent = 'Guest'; }
-        if (emailEl) { emailEl.textContent = 'Sign in to view your profile'; }
-        return;
+    // Try cached profile first (fast render)
+    const cached = getCurrentUser();
+    if (cached) {
+        if (nameEl) { nameEl.textContent = cached.full_name ?? 'User'; }
+        if (emailEl) { emailEl.textContent = cached.email ?? '—'; }
+        if (roleEl) { roleEl.textContent = cached.role.toUpperCase(); }
     }
 
-    const payload = parseJWT(token);
-    if (payload) {
-        if (nameEl) { nameEl.textContent = (payload.full_name as string) ?? (payload.name as string) ?? 'User'; }
-        if (emailEl) { emailEl.textContent = (payload.email as string) ?? '—'; }
-        if (roleEl) { roleEl.textContent = ((payload.role as string) ?? 'user').toUpperCase(); }
+    // V1-AUDIT FIX: Fetch fresh from /api/auth/me (httpOnly cookie sent automatically)
+    try {
+        const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        if (res.ok) {
+            const data = await res.json() as { data?: { user?: { full_name?: string; email?: string; role?: string } } };
+            const user = data.data?.user;
+            if (user) {
+                if (nameEl) { nameEl.textContent = user.full_name ?? 'User'; }
+                if (emailEl) { emailEl.textContent = user.email ?? '—'; }
+                if (roleEl) { roleEl.textContent = (user.role ?? 'user').toUpperCase(); }
+            }
+        } else if (!cached) {
+            if (nameEl) { nameEl.textContent = 'Guest'; }
+            if (emailEl) { emailEl.textContent = 'Sign in to view your profile'; }
+        }
+    } catch {
+        // Network error — fall back to cached data (already rendered above)
+        if (!cached) {
+            if (nameEl) { nameEl.textContent = 'Guest'; }
+            if (emailEl) { emailEl.textContent = 'Sign in to view your profile'; }
+        }
     }
 }
 
@@ -76,8 +84,8 @@ function initLangDisplay(): void {
 
 // ─── Logout ─────────────────────────────────────────────────────────────────
 function logout(): void {
-    localStorage.removeItem('nammerha_token');
-    localStorage.removeItem('nammerha_dev_user_id');
+    // V1-AUDIT FIX: clearAuth() now calls POST /api/auth/logout to clear httpOnly cookie
+    clearAuth();
     window.location.href = '/auth.html';
 }
 

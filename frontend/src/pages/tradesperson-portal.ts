@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupTabs(): void {
     for (const tab of ALL_TABS) {
         const el = document.getElementById(`tab-${tab}`);
-        if (!el) continue;
+        if (!el) {continue;}
         el.addEventListener('click', (e) => {
             e.preventDefault();
             switchTab(tab);
@@ -40,30 +40,30 @@ function setupTabs(): void {
 function switchTab(tab: TabName): void {
     for (const t of ALL_TABS) {
         const el = document.getElementById(`tab-${t}`);
-        if (!el) continue;
+        if (!el) {continue;}
         el.className = t === tab
             ? 'flex items-center gap-3 px-3 py-2 bg-teal-600/10 text-teal-700 rounded-lg cursor-pointer'
             : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
 
         const section = document.getElementById(`section-${t}`);
-        if (section) section.style.display = t === tab ? '' : 'none';
+        if (section) {section.style.display = t === tab ? '' : 'none';}
     }
 
-    if (tab === 'requests') loadRequests();
-    if (tab === 'assignments') loadAssignments();
-    if (tab === 'earnings') loadEarnings();
-    if (tab === 'profile') loadProfile();
+    if (tab === 'requests') {loadRequests();}
+    if (tab === 'assignments') {loadAssignments();}
+    if (tab === 'earnings') {loadEarnings();}
+    if (tab === 'profile') {loadProfile();}
 }
 
 // ─── Availability Toggle ────────────────────────────────────────────────────
 function setupAvailability(): void {
     const container = document.getElementById('availability-btns');
-    if (!container) return;
+    if (!container) {return;}
 
     container.querySelectorAll('button').forEach((btn) => {
         btn.addEventListener('click', async () => {
             const status = (btn as HTMLElement).dataset['status'];
-            if (!status) return;
+            if (!status) {return;}
 
             try {
                 await tradesperson.updateAvailability(status as 'available' | 'busy' | 'offline');
@@ -77,7 +77,7 @@ function setupAvailability(): void {
 
 function updateAvailabilityUI(status: string): void {
     const container = document.getElementById('availability-btns');
-    if (!container) return;
+    if (!container) {return;}
 
     container.querySelectorAll('button').forEach((btn) => {
         const s = (btn as HTMLElement).dataset['status'];
@@ -109,7 +109,7 @@ function updateAvailabilityUI(status: string): void {
 async function loadStats(): Promise<void> {
     try {
         const res = await tradesperson.getStats();
-        if (!res.data) return;
+        if (!res.data) {return;}
         const s = res.data;
 
         setText('kpi-active', String(s.active_jobs));
@@ -125,7 +125,7 @@ async function loadStats(): Promise<void> {
 // ─── Active Jobs Overview (Dashboard) ───────────────────────────────────────
 async function loadActiveJobs(): Promise<void> {
     const tbody = document.getElementById('active-jobs-body');
-    if (!tbody) return;
+    if (!tbody) {return;}
 
     try {
         const [reqRes, assRes] = await Promise.all([
@@ -176,7 +176,7 @@ async function loadActiveJobs(): Promise<void> {
 // ─── Service Requests (Thumbtack) ───────────────────────────────────────────
 async function loadRequests(): Promise<void> {
     const container = document.getElementById('requests-list');
-    if (!container) return;
+    if (!container) {return;}
 
     try {
         const res = await tradesperson.getRequests();
@@ -219,7 +219,7 @@ async function loadRequests(): Promise<void> {
         container.querySelectorAll('.accept-req-btn').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const requestId = (btn as HTMLElement).dataset['request'];
-                if (!requestId) return;
+                if (!requestId) {return;}
                 const b = btn as HTMLButtonElement;
                 b.disabled = true;
                 b.textContent = 'Accepting...';
@@ -250,7 +250,7 @@ async function loadRequests(): Promise<void> {
 // ─── Contractor Assignments ─────────────────────────────────────────────────
 async function loadAssignments(): Promise<void> {
     const tbody = document.getElementById('assignments-body');
-    if (!tbody) return;
+    if (!tbody) {return;}
 
     try {
         const res = await tradesperson.getAssignments();
@@ -290,7 +290,7 @@ async function loadAssignments(): Promise<void> {
             btn.addEventListener('click', async () => {
                 const id = (btn as HTMLElement).dataset['id'];
                 const accept = (btn as HTMLElement).dataset['accept'] === 'true';
-                if (!id) return;
+                if (!id) {return;}
 
                 try {
                     await tradesperson.respondToAssignment(id, accept);
@@ -310,7 +310,7 @@ async function loadAssignments(): Promise<void> {
 // ─── Earnings ───────────────────────────────────────────────────────────────
 async function loadEarnings(): Promise<void> {
     const tbody = document.getElementById('earnings-body');
-    if (!tbody) return;
+    if (!tbody) {return;}
 
     try {
         const res = await tradesperson.getEarnings();
@@ -341,11 +341,11 @@ async function loadEarnings(): Promise<void> {
 // ─── Profile ────────────────────────────────────────────────────────────────
 async function loadProfile(): Promise<void> {
     const container = document.getElementById('profile-content');
-    if (!container) return;
+    if (!container) {return;}
 
     try {
         const res = await tradesperson.getProfile();
-        if (!res.data) throw new Error('Profile not found');
+        if (!res.data) {throw new Error('Profile not found');}
         const p = res.data;
 
         updateAvailabilityUI(p.availability);
@@ -380,7 +380,7 @@ async function loadProfile(): Promise<void> {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function setText(id: string, text: string): void {
     const el = document.getElementById(id);
-    if (el) el.textContent = text;
+    if (el) {el.textContent = text;}
 }
 
 // P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts

@@ -3,9 +3,14 @@
 // P1-001 FIX: Dynamic data loading from API — no more hardcoded demo data
 // ============================================================================
 import './styles/main.css';
+import { initErrorReporter } from './error-reporter';
 import { renderCartBadge } from './components/cart';
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
+
+// PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
+// code runs — to capture initialization errors from downstream imports.
+initErrorReporter();
 
 // ─── Map Initialization (lazy-loaded) ───────────────────────────────────────
 // PLT-OPT-001: Dynamic import — maplibre-gl (~800KB) is loaded ONLY on pages

@@ -26,6 +26,8 @@ import type {
 export async function getMarketplaceProjects(filters?: {
     damage_type?: string;
     sort_by?: 'funded_percentage' | 'published_at';
+    limit?: number;
+    offset?: number;
 }): Promise<ProjectCard[]> {
     let sql = 'SELECT * FROM vw_project_cards';
     const params: unknown[] = [];
@@ -45,6 +47,16 @@ export async function getMarketplaceProjects(filters?: {
     } else {
         sql += ' ORDER BY published_at DESC';     // Newest first
     }
+
+    // PLT-AUDIT-001 FIX: Enforce pagination to prevent unbounded result sets.
+    // Without LIMIT, this endpoint returns every project in the database —
+    // a memory exhaustion risk at scale, especially on degraded Syrian networks.
+    const limit = Math.min(Math.max(filters?.limit ?? 25, 1), 100); // Clamp: 1–100
+    const offset = Math.max(filters?.offset ?? 0, 0);
+    params.push(limit);
+    sql += ` LIMIT $${params.length}`;
+    params.push(offset);
+    sql += ` OFFSET $${params.length}`;
 
     const result = await query<ProjectCard>(sql, params);
     return result.rows;

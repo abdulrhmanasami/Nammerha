@@ -161,6 +161,27 @@ export async function authMiddleware(
             }
         }
 
+        // V1-AUDIT FIX: Cookie-based JWT extraction (httpOnly cookie).
+        // Falls back to this when no Bearer header is present.
+        // The cookie is set on login and cleared on logout — JS cannot access it.
+        if (!userId && req.cookies?.['nammerha_jwt']) {
+            const cookieToken = req.cookies['nammerha_jwt'] as string;
+            try {
+                const payload = await verifyToken(cookieToken);
+                userId = payload.sub;
+                tokenIssuedAt = payload.iat;
+            } catch (err) {
+                // Clear invalid/expired cookie to prevent retry loops
+                res.clearCookie('nammerha_jwt', { httpOnly: true, path: '/' });
+                if (err instanceof jwt.TokenExpiredError) {
+                    res.status(401).json({ success: false, error: 'Session expired — please log in again' });
+                    return;
+                }
+                res.status(401).json({ success: false, error: 'Invalid session' });
+                return;
+            }
+        }
+
         // Development fallback: X-User-Id header
         // SEC-007: Log a warning whenever this bypass is used, even in development.
         if (!userId && process.env['NODE_ENV'] === 'development') {

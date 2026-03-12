@@ -73,9 +73,10 @@ describe('Crowdfunding Service', () => {
             expect(result).toHaveLength(2);
             expect((result[0] as (typeof result)[0]).project_id).toBe('p1');
             // Verify default sort
+            // PLT-AUDIT-001: params now include default LIMIT 25 and OFFSET 0
             expect(mockQuery).toHaveBeenCalledWith(
                 expect.stringContaining('ORDER BY published_at DESC'),
-                []
+                [25, 0]
             );
         });
 
@@ -84,9 +85,10 @@ describe('Crowdfunding Service', () => {
 
             await getMarketplaceProjects({ damage_type: 'structural' });
 
+            // PLT-AUDIT-001: params = [damage_type, limit, offset]
             expect(mockQuery).toHaveBeenCalledWith(
                 expect.stringContaining('damage_type = $1'),
-                ['structural']
+                ['structural', 25, 0]
             );
         });
 
@@ -95,9 +97,10 @@ describe('Crowdfunding Service', () => {
 
             await getMarketplaceProjects({ sort_by: 'funded_percentage' });
 
+            // PLT-AUDIT-001: params = [limit, offset]
             expect(mockQuery).toHaveBeenCalledWith(
                 expect.stringContaining('ORDER BY funded_percentage ASC'),
-                []
+                [25, 0]
             );
         });
 
@@ -110,7 +113,8 @@ describe('Crowdfunding Service', () => {
             const sql = (calls[0] as unknown[])[0] as string;
             expect(sql).toContain('damage_type = $1');
             expect(sql).toContain('ORDER BY funded_percentage ASC');
-            expect((calls[0] as unknown[])[1]).toEqual(['electrical']);
+            // PLT-AUDIT-001: params = [damage_type, limit, offset]
+            expect((calls[0] as unknown[])[1]).toEqual(['electrical', 25, 0]);
         });
     });
 

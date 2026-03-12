@@ -20,7 +20,7 @@ const DEV_USER_KEY = 'nammerha_dev_user_id';
 let currentUser: AuthUser | null = null;
 
 export function getCurrentUser(): AuthUser | null {
-    if (currentUser) return currentUser;
+    if (currentUser) {return currentUser;}
 
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -43,7 +43,11 @@ export function setCurrentUser(user: AuthUser): void {
 export function clearAuth(): void {
     currentUser = null;
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem('nammerha_token');
+    // V1-AUDIT FIX: Token is now in httpOnly cookie — cleared server-side.
+    // POST /api/auth/logout clears the cookie. Fire-and-forget.
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {
+        // Logout fetch failure is non-fatal — cookie will expire naturally
+    });
     localStorage.removeItem(DEV_USER_KEY);
 }
 

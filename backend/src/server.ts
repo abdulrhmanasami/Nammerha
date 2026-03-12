@@ -57,6 +57,8 @@ import localeRouter from './middleware/locale-pages.middleware';
 import adminStatsRoutes from './routes/admin-stats.routes';
 import apiKeysRoutes from './routes/api-keys.routes';
 import contactRoutes from './routes/contact.routes';
+import clientErrorRoutes from './routes/client-error.routes';
+import cspReportRoutes from './routes/csp-report.routes';
 import * as path from 'path';
 
 // ─── Create Express App ─────────────────────────────────────────────────────
@@ -83,6 +85,14 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],  // SEC-005: Removed 'unsafe-inline' — use nonce-based CSP for inline scripts
+            // PLT-AUDIT-008: styleSrc 'unsafe-inline' is an ACCEPTED RISK.
+            // ───────────────────────────────────────────────────────────────
+            // Required by: MapLibre GL (map library) which injects inline styles
+            // for canvas overlays, popup positioning, and marker transforms.
+            // Compensating controls:
+            //   1. scriptSrc does NOT allow 'unsafe-inline' (critical XSS vector)
+            //   2. CSP violation reporting enabled via reportUri
+            //   3. Style injection is low-severity compared to script injection
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "blob:", "https://*.nammerha.com"],
@@ -99,6 +109,8 @@ app.use(helmet({
             baseUri: ["'self'"],
             formAction: ["'self'"],
             upgradeInsecureRequests: [],
+            // PLT-AUDIT-008: CSP violation reporting for security monitoring
+            reportUri: '/api/csp-report',
         },
     },
 }));
@@ -404,6 +416,12 @@ app.use('/api/keys', apiKeysRoutes);
 
 // Contact Form (PLT-2026-MAR12-003 FIX)
 app.use('/api/contact', contactRoutes);
+
+// Client Error Reporting (PLT-AUDIT-007: server-side error visibility)
+app.use('/api/client-errors', clientErrorRoutes);
+
+// CSP Violation Reporting (PLT-AUDIT-008: security monitoring)
+app.use('/api/csp-report', cspReportRoutes);
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection

@@ -182,8 +182,23 @@ formLogin?.addEventListener('submit', async (e) => {
     try {
         const response = await auth.login({ email, password });
         if (response.success && response.data) {
-            // Store token and redirect
-            localStorage.setItem('nammerha_token', response.data.token);
+            // V1-AUDIT FIX: JWT is now in httpOnly cookie set by backend.
+            // Only store non-sensitive user profile data for UI rendering.
+            const userData = response.data.user as {
+                user_id: string;
+                full_name: string;
+                role: string;
+                email: string;
+                is_active: boolean;
+            };
+            const { setCurrentUser } = await import('../auth');
+            setCurrentUser({
+                user_id: userData.user_id,
+                full_name: userData.full_name,
+                role: userData.role as import('../auth').UserRole,
+                email: userData.email,
+                kyc_verified: userData.is_active,
+            });
             showBanner('success', t('auth_welcome_back', 'Welcome back! Redirecting...'));
             setTimeout(() => {
                 window.location.href = '/';

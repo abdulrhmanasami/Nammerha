@@ -44,20 +44,16 @@ async function request<T>(
     endpoint: string,
     options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-    const token = localStorage.getItem('nammerha_token');
-
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         ...(options.headers as Record<string, string> ?? {}),
     };
 
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    // P1-NEW-002 FIX: Attach CSRF token for non-Bearer requests.
-    // When using cookie-based auth (no Bearer token), attach CSRF header.
-    if (!token) {
+    // V1-AUDIT FIX: JWT is now in an httpOnly cookie — no localStorage access.
+    // The browser sends the cookie automatically with credentials: 'same-origin'.
+    // CSRF protection is required for all state-changing (non-GET) requests.
+    const method = options.method ?? 'GET';
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
         const csrfToken = await ensureCsrfToken();
         if (csrfToken) {
             headers['X-CSRF-Token'] = csrfToken;
@@ -69,7 +65,7 @@ async function request<T>(
     // eliminating unnecessary localStorage probing and header pollution.
     if (import.meta.env.DEV) {
         const devUserId = localStorage.getItem('nammerha_dev_user_id');
-        if (devUserId && !token) {
+        if (devUserId) {
             headers['X-User-Id'] = devUserId;
         }
     }
@@ -84,6 +80,7 @@ async function request<T>(
             ...options,
             headers,
             signal: controller.signal,
+            credentials: 'same-origin', // V1-AUDIT: Send httpOnly cookie
         });
 
         clearTimeout(timeoutId);
@@ -161,10 +158,10 @@ export const projects = {
 export const marketplace = {
     getProjects: (params?: { damage_type?: string; sort_by?: 'funded_percentage' | 'published_at'; limit?: number; offset?: number }) => {
         const qs = new URLSearchParams();
-        if (params?.damage_type) qs.set('damage_type', params.damage_type);
-        if (params?.sort_by) qs.set('sort_by', params.sort_by);
-        if (params?.limit) qs.set('limit', String(params.limit));
-        if (params?.offset) qs.set('offset', String(params.offset));
+        if (params?.damage_type) {qs.set('damage_type', params.damage_type);}
+        if (params?.sort_by) {qs.set('sort_by', params.sort_by);}
+        if (params?.limit) {qs.set('limit', String(params.limit));}
+        if (params?.offset) {qs.set('offset', String(params.offset));}
         const query = qs.toString();
         return request(`/marketplace/projects${query ? `?${query}` : ''}`);
     },
@@ -313,7 +310,7 @@ export const matchmaking = {
         const qs = new URLSearchParams();
         if (params) {
             Object.entries(params).forEach(([k, v]) => {
-                if (v !== undefined) qs.set(k, String(v));
+                if (v !== undefined) {qs.set(k, String(v));}
             });
         }
         const query = qs.toString();
@@ -464,8 +461,8 @@ export const realityCapture = {
 export const openData = {
     getProjectListings: (params?: { limit?: number; offset?: number }) => {
         const qs = new URLSearchParams();
-        if (params?.limit) qs.set('limit', String(params.limit));
-        if (params?.offset) qs.set('offset', String(params.offset));
+        if (params?.limit) {qs.set('limit', String(params.limit));}
+        if (params?.offset) {qs.set('offset', String(params.offset));}
         const query = qs.toString();
         return request(`/open-data/projects${query ? `?${query}` : ''}`);
     },

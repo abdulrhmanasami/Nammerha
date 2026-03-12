@@ -600,7 +600,11 @@ export const paymentService = {
                             const actualAmount = Math.min(payment.amount, remainingNeed);
 
                             // 4c. Create escrow entry (locked)
-                            const paymentMethod = data.gateway === 'visa' ? 'visa' : 'bank_transfer';
+                            // PLT-AUDIT-005 FIX: Use gateway name directly instead of
+                            // hardcoding Fatora → 'bank_transfer'. Fatora supports multiple
+                            // methods (credit cards, Apple Pay, wallets, bank transfer).
+                            // The actual sub-method is tracked by the gateway via payment_gateway_ref.
+                            const paymentMethod = data.gateway;
                             await client.query(
                                 `INSERT INTO escrow_ledger (
                                     donor_id, item_id, project_id, amount_locked, currency,

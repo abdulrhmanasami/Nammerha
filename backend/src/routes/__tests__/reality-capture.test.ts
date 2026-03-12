@@ -201,7 +201,8 @@ describe('Reality Capture Service', () => {
             await getProjectCaptures('proj-001', undefined, undefined, 999, 0);
 
             // Math.min(999, 100) = 100
-            const params = mockPoolQuery.mock.calls[0][1];
+            const firstCall = mockPoolQuery.mock.calls[0] as [string, unknown[]];
+            const params = firstCall[1];
             expect(params).toContain(100);
         });
     });

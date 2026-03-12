@@ -11,6 +11,23 @@ document.documentElement.classList.add('dark');
 
 const API_BASE = '/api';
 
+// ─── INF-SEC-002: CSRF Token for cookie-based auth ──────────────────────────
+// After V1 JWT httpOnly migration, POST requests use cookie auth which
+// triggers CSRF middleware. We must obtain and send the X-CSRF-Token header.
+async function getCsrfToken(): Promise<string | null> {
+    const existing = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
+    if (existing) { return existing; }
+
+    try {
+        const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
+        if (!res.ok) { return null; }
+        const data = await res.json() as { csrfToken?: string };
+        return data.csrfToken ?? null;
+    } catch {
+        return null;
+    }
+}
+
 // ─── State ──────────────────────────────────────────────────────────────────
 let projectId: string | null = null;
 let gpsLat: number | null = null;
@@ -229,16 +246,22 @@ function setupSync(): void {
         try {
             let uploaded = 0;
 
+            // INF-SEC-002: Obtain CSRF token once before upload loop
+            const csrfToken = await getCsrfToken();
+
             for (const dataUrl of capturedDataUrls) {
                 const blob = dataURLtoBlob(dataUrl);
                 const filename = `proof_${projectId}_${Date.now()}_${uploaded}.jpg`;
 
                 // 1. Get presigned URL
+                // V1-AUDIT FIX: Use httpOnly cookie (credentials: 'same-origin')
+                // instead of Bearer token from localStorage
                 const presignRes = await fetch(`${API_BASE}/storage/presign`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`,
+                        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
                     },
                     body: JSON.stringify({ filename, content_type: 'image/jpeg', purpose: 'spatial_proof' }),
                 });
@@ -246,7 +269,7 @@ function setupSync(): void {
                 if (!presignRes.ok) { throw new Error('Failed to get upload URL'); }
                 const presignData = await presignRes.json() as { data: { upload_url: string; public_url: string } };
 
-                // 2. Upload to storage
+                // 2. Upload to storage (no auth needed — presigned URL is self-authenticating)
                 await fetch(presignData.data.upload_url, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'image/jpeg' },
@@ -254,11 +277,13 @@ function setupSync(): void {
                 });
 
                 // 3. Submit spatial proof
+                // V1-AUDIT FIX: Use httpOnly cookie instead of Bearer token
                 const proofRes = await fetch(`${API_BASE}/engineer/camera/spatial-proof`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`,
+                        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
                     },
                     body: JSON.stringify({
                         project_id: projectId,
@@ -372,6 +397,4 @@ function showToast(message: string): void {
     setTimeout(() => { badge.remove(); }, 3000);
 }
 
-function getToken(): string {
-    return localStorage.getItem('nammerha_token') ?? '';
-}
+

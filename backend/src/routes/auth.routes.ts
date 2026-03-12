@@ -330,6 +330,16 @@ router.post(
             // Generate JWT
             const token = generateToken(user.user_id, user.role);
 
+            // V1-AUDIT FIX: Set JWT in httpOnly cookie — JS cannot read this token.
+            // This neutralizes XSS-based session theft entirely.
+            res.cookie('nammerha_jwt', token, {
+                httpOnly: true,
+                secure: process.env['NODE_ENV'] === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000, // 24h — mirrors JWT expiry
+                path: '/',
+            });
+
             res.json({
                 success: true,
                 data: {
@@ -341,6 +351,8 @@ router.post(
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                     },
+                    // V1-AUDIT: token still in body for backward compat during migration.
+                    // Frontend will stop reading this — auth is via httpOnly cookie.
                     token,
                 },
             } as ApiResponse);
@@ -645,5 +657,44 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
         safeRouteError(res, error, 'Auth.ResetPassword');
     }
 });
+
+// ─── POST /api/auth/logout ──────────────────────────────────────────────────
+// V1-AUDIT FIX: Server-side cookie clearance. The frontend cannot clear an
+// httpOnly cookie — only the server can. This endpoint clears the JWT cookie
+// to terminate the session.
+router.post('/logout', (_req: Request, res: Response): void => {
+    res.clearCookie('nammerha_jwt', {
+        httpOnly: true,
+        secure: process.env['NODE_ENV'] === 'production',
+        sameSite: 'strict',
+        path: '/',
+    });
+    res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
+});
+
+// ─── GET /api/auth/me ───────────────────────────────────────────────────────
+// V1-AUDIT FIX: Allows the frontend to check authentication status without
+// storing JWT in localStorage. The httpOnly cookie is sent automatically.
+router.get(
+    '/me',
+    authMiddleware,
+    async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userId = getAuthUser(req).user_id;
+            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>>(
+                'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
+                [userId]
+            );
+            const user = result.rows[0];
+            if (!user) {
+                res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
+                return;
+            }
+            res.json({ success: true, data: { user } } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.Me');
+        }
+    }
+);
 
 export default router;
