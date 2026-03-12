@@ -23,7 +23,7 @@ async function initHomepageMap(): Promise<void> {
     const map = await initMap({
         container: 'main-map',
         interactive: true,
-        attribution: true,
+        attribution: false,
     });
 
     // ─── Add Controls ───────────────────────────────────────────────────
