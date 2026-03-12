@@ -920,10 +920,66 @@
         '2_810_00': { ar: '٢٬٨١٠٫٠٠', de: '2.810,00', fr: '2 810,00', tr: '2.810,00' },
         '450_00': { ar: '٤٥٠٫٠٠', de: '450,00', fr: '450,00', tr: '450,00' },
         '920_00': { ar: '٩٢٠٫٠٠', de: '920,00', fr: '920,00', tr: '920,00' },
+
+        // ═══ HOMEOWNER REPORT — MISSING KEYS ═══
+        'detect_location_auto': { ar: 'اكتشف موقعي تلقائياً', de: 'Meinen Standort automatisch erkennen', fr: 'Détecter ma position automatiquement', tr: 'Konumumu otomatik algıla' },
+        'select_damage_type': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dommage', tr: 'Hasar türünü seçin' },
+
+        // ═══ SUPPLIER MATERIAL CATEGORIES ═══
+        'cat_cement': { ar: 'أسمنت', de: 'Zement', fr: 'Ciment', tr: 'Çimento' },
+        'cat_steel_rebar': { ar: 'حديد وتسليح', de: 'Stahl & Bewehrung', fr: 'Acier & Armature', tr: 'Çelik & Donatı' },
+        'cat_concrete': { ar: 'خرسانة', de: 'Beton', fr: 'Béton', tr: 'Beton' },
+        'cat_blocks_bricks': { ar: 'بلوك وطوب', de: 'Blöcke & Ziegel', fr: 'Blocs & Briques', tr: 'Blok & Tuğla' },
+        'cat_wood_timber': { ar: 'خشب وأخشاب', de: 'Holz & Bauholz', fr: 'Bois & Charpente', tr: 'Ahşap & Kereste' },
+        'cat_pipes_plumbing': { ar: 'أنابيب وسباكة', de: 'Rohre & Sanitär', fr: 'Tuyaux & Plomberie', tr: 'Borular & Tesisat' },
+        'cat_electrical': { ar: 'كهربائيات', de: 'Elektrik', fr: 'Électricité', tr: 'Elektrik' },
+        'cat_insulation': { ar: 'عزل', de: 'Isolierung', fr: 'Isolation', tr: 'Yalıtım' },
+        'cat_roofing': { ar: 'تسقيف', de: 'Dachmaterial', fr: 'Couverture', tr: 'Çatı Malzemesi' },
+        'cat_paint_finishing': { ar: 'دهان وتشطيب', de: 'Farbe & Ausbau', fr: 'Peinture & Finition', tr: 'Boya & Kaplama' },
+        'cat_sand_aggregate': { ar: 'رمل وحصى', de: 'Sand & Zuschlagstoffe', fr: 'Sable & Granulats', tr: 'Kum & Agrega' },
+        'cat_glass_windows': { ar: 'زجاج ونوافذ', de: 'Glas & Fenster', fr: 'Verre & Fenêtres', tr: 'Cam & Pencere' },
+        'cat_other': { ar: 'أخرى', de: 'Sonstige', fr: 'Autres', tr: 'Diğer' },
+
+        // ═══ SUPPLIER UNITS ═══
+        'unit_ton': { ar: 'طن', de: 'Tonne', fr: 'Tonne', tr: 'Ton' },
+        'unit_piece': { ar: 'قطعة', de: 'Stück', fr: 'Pièce', tr: 'Adet' },
+        'unit_box': { ar: 'صندوق', de: 'Karton', fr: 'Boîte', tr: 'Kutu' },
+        'unit_roll': { ar: 'لفة', de: 'Rolle', fr: 'Rouleau', tr: 'Rulo' },
+        'unit_liter': { ar: 'لتر', de: 'Liter', fr: 'Litre', tr: 'Litre' },
+
+        // ═══ PROJECT DETAILS NAV ═══
+        'nav_explore': { ar: 'استكشاف', de: 'Entdecken', fr: 'Explorer', tr: 'Keşfet' },
+        'nav_projects': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
+        'nav_impact': { ar: 'الأثر', de: 'Wirkung', fr: 'Impact', tr: 'Etki' },
+        'nav_profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+
+        // ═══ PROJECT DETAILS — BUTTONS & LABELS ═══
+        'Add to Cart': { ar: 'أضف للسلة', de: 'In den Warenkorb', fr: 'Ajouter au panier', tr: 'Sepete Ekle' },
+        'Funding Complete': { ar: 'اكتمل التمويل', de: 'Finanzierung abgeschlossen', fr: 'Financement complété', tr: 'Fonlama Tamamlandı' },
+        'map_region_aleppo': { ar: 'حلب', de: 'Aleppo, Syrien', fr: 'Alep, Syrie', tr: 'Halep, Suriye' },
+
+        // ═══ HOMEOWNER REPORT — GOVERNORATE ═══
+        'select_governorate': { ar: 'اختر المحافظة...', de: 'Gouvernement auswählen...', fr: 'Sélectionner le gouvernorat...', tr: 'Valilik seçin...' },
+
+        // ═══ SUPPLIER MODAL FORM ═══
+        'supplier_material_name': { ar: 'اسم المادة *', de: 'Materialname *', fr: 'Nom du matériau *', tr: 'Malzeme Adı *' },
+        'supplier_material_placeholder': { ar: 'مثال: أسمنت بورتلاند نوع II', de: 'z.B. Portland-Zement Typ II', fr: 'ex. Ciment Portland Type II', tr: 'örn. Portland Çimento Tip II' },
+        'supplier_category_label': { ar: 'الفئة *', de: 'Kategorie *', fr: 'Catégorie *', tr: 'Kategori *' },
+        'supplier_unit_label': { ar: 'الوحدة *', de: 'Einheit *', fr: 'Unité *', tr: 'Birim *' },
+        'supplier_guide_price': { ar: 'السعر الاسترشادي ($) *', de: 'Richtpreis ($) *', fr: 'Prix indicatif ($) *', tr: 'Rehber Fiyat ($) *' },
+        'supplier_min_order': { ar: 'الحد الأدنى للطلب', de: 'Mindestbestellmenge', fr: 'Quantité min. de commande', tr: 'Min. Sipariş Miktarı' },
+        'supplier_lead_time': { ar: 'مدة التسليم (أيام)', de: 'Lieferzeit (Tage)', fr: 'Délai de livraison (jours)', tr: 'Teslimat Süresi (gün)' },
+        'supplier_desc_optional': { ar: 'الوصف (اختياري)', de: 'Beschreibung (optional)', fr: 'Description (optionnel)', tr: 'Açıklama (isteğe bağlı)' },
+        'supplier_desc_placeholder': { ar: 'تفاصيل إضافية عن هذه المادة...', de: 'Weitere Details zu diesem Material...', fr: 'Détails supplémentaires sur ce matériau...', tr: 'Bu malzeme hakkında ek detaylar...' },
+        'supplier_add_to_catalog': { ar: 'إضافة للكتالوج', de: 'Zum Katalog hinzufügen', fr: 'Ajouter au catalogue', tr: 'Kataloğa Ekle' },
+        'supplier_modal_guide_price_info': { ar: 'أسعار استرشادية — المبالغ الفعلية لأوامر الشراء تستخدم أسعار جدول الكميات', de: 'Richtpreise — tatsächliche PO-Beträge verwenden LV-Preise', fr: 'Prix indicatifs — les montants réels des PO utilisent les prix du DQE', tr: 'Rehber fiyatlar — gerçek PO tutarları BOQ fiyatlarını kullanır' },
+        'supplier_catalog_desc': { ar: 'يتصفح المهندسون كتالوجك عند اختيار الموردين لبنود جدول الكميات', de: 'Ingenieure durchsuchen Ihren Katalog bei der Auswahl von Lieferanten für LV-Positionen', fr: 'Les ingénieurs parcourent votre catalogue lors de la sélection des fournisseurs pour les articles du DQE', tr: 'Mühendisler BOQ kalemleri için tedarikçi seçerken kataloğunuza göz atar' },
+        'Cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
+        'loading': { ar: 'جاري التحميل...', de: 'Laden...', fr: 'Chargement...', tr: 'Yükleniyor...' },
     };
 
     // ─── State ────────────────────────────────────────────────────────────
-    var currentLang = getStored() || detectBrowserLang() || 'en';
+    var currentLang = getStored() || detectBrowserLang() || 'ar';
     var dropdownOpen = false;
 
     function getStored() {
@@ -936,7 +992,7 @@
         for (var i = 0; i < LANGS.length; i++) {
             if (LANGS[i].code === code) return LANGS[i];
         }
-        return LANGS[1]; // English default
+        return LANGS[0]; // Arabic default
     }
     function detectBrowserLang() {
         var navLang = (navigator.language || '').split('-')[0];

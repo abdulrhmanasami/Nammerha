@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -109,21 +109,21 @@
     <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="governorate">Governorate</label>
     <div class="relative mb-5">
       <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm">
-        <option value="" disabled selected>Select governorate...</option>
-        <option value="aleppo">Aleppo (حلب)</option>
-        <option value="damascus">Damascus (دمشق)</option>
-        <option value="rif-dimashq">Rif Dimashq (ريف دمشق)</option>
-        <option value="homs">Homs (حمص)</option>
-        <option value="hama">Hama (حماة)</option>
-        <option value="latakia">Latakia (اللاذقية)</option>
-        <option value="tartus">Tartus (طرطوس)</option>
-        <option value="idlib">Idlib (إدلب)</option>
-        <option value="deir-ez-zor">Deir ez-Zor (دير الزور)</option>
-        <option value="raqqa">Raqqa (الرقة)</option>
-        <option value="hasakah">Al-Hasakah (الحسكة)</option>
-        <option value="daraa">Daraa (درعا)</option>
-        <option value="suwayda">As-Suwayda (السويداء)</option>
-        <option value="quneitra">Quneitra (القنيطرة)</option>
+        <option value="" disabled selected data-i18n="select_governorate">اختر المحافظة...</option>
+        <option value="aleppo">حلب</option>
+        <option value="damascus">دمشق</option>
+        <option value="rif-dimashq">ريف دمشق</option>
+        <option value="homs">حمص</option>
+        <option value="hama">حماة</option>
+        <option value="latakia">اللاذقية</option>
+        <option value="tartus">طرطوس</option>
+        <option value="idlib">إدلب</option>
+        <option value="deir-ez-zor">دير الزور</option>
+        <option value="raqqa">الرقة</option>
+        <option value="hasakah">الحسكة</option>
+        <option value="daraa">درعا</option>
+        <option value="suwayda">السويداء</option>
+        <option value="quneitra">القنيطرة</option>
       </select>
       <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
         <i class="ph ph-caret-down" aria-hidden="true"></i>
@@ -137,7 +137,7 @@
     <!-- Detect Location Button -->
     <button id="detect-location-btn" class="btn-secondary w-full !py-4 mb-4">
       <i class="ph ph-crosshair" aria-hidden="true"></i>
-      <span>Detect my location automatically</span>
+      <span data-i18n="detect_location_auto">Detect my location automatically</span>
     </button>
 
     <!-- GPS Result (hidden until detected) -->
@@ -220,7 +220,7 @@
        ═══════════════════════════════════════════════════════════════════════ -->
   <footer id="wizard-footer" class="p-6 pt-2 space-y-3">
     <button id="next-btn" class="btn-primary w-full !py-5 text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-opacity" disabled>
-      <span id="next-btn-text">Select damage type</span>
+      <span id="next-btn-text" data-i18n="select_damage_type">Select damage type</span>
       <i class="ph ph-arrow-right" aria-hidden="true"></i>
     </button>
     <div class="flex justify-center pb-2">

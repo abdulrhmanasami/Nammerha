@@ -5,6 +5,7 @@
 import { Pool, PoolClient, PoolConfig, QueryResult, QueryResultRow } from 'pg';
 import * as fs from 'fs';
 import * as tls from 'tls';
+import { logger } from '../utils/logger';
 
 // NOTE: dotenv.config() is called in server.ts before this module is imported.
 // Do NOT call it again here — duplicate calls can cause race conditions.
@@ -118,12 +119,12 @@ const pool = new Pool(poolConfig);
 pool.on('error', (err: Error) => {
     // HGH-007: Do NOT call process.exit(1) — a single transient error should not kill
     // the process and abort all in-flight requests. The pool self-recovers.
-    console.error('[DB] Unexpected pool error (pool will attempt recovery):', err.message);
+    logger.error('DB: Unexpected pool error (pool will attempt recovery)', { error: err.message });
 });
 
 if (process.env['NODE_ENV'] === 'development') {
     pool.on('connect', () => {
-        console.warn('[DB] New client connected to pool');
+        logger.debug('DB: New client connected to pool');
     });
 }
 
@@ -142,7 +143,7 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
     const duration = Date.now() - start;
 
     if (process.env['NODE_ENV'] === 'development') {
-        console.warn('[DB] Query executed', {
+        logger.debug('DB: Query executed', {
             text: text.substring(0, 80),
             duration: `${duration}ms`,
             rows: result.rowCount,

@@ -18,6 +18,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { logger } from '../utils/logger';
+
 interface APMConfig {
     provider: 'datadog' | 'newrelic' | 'none';
     serviceName: string;
@@ -38,7 +40,7 @@ export function initAPM(): void {
     const config = getAPMConfig();
 
     if (config.provider === 'none') {
-        console.warn('[APM] No APM provider configured (APM_PROVIDER=none). Skipping instrumentation.');
+        logger.info('APM: No provider configured (APM_PROVIDER=none) — skipping instrumentation');
         return;
     }
 
@@ -58,7 +60,7 @@ export function initAPM(): void {
                         component: 'backend',
                     },
                 });
-                console.warn(`[APM] Datadog dd-trace initialized (service: ${config.serviceName})`);
+                logger.info('APM: Datadog dd-trace initialized', { service: config.serviceName });
                 break;
             }
 
@@ -66,14 +68,14 @@ export function initAPM(): void {
                 // New Relic requires its agent to be loaded before everything else.
                 // eslint-disable-next-line @typescript-eslint/no-require-imports
                 require('newrelic');
-                console.warn(`[APM] New Relic agent initialized (service: ${config.serviceName})`);
+                logger.info('APM: New Relic agent initialized', { service: config.serviceName });
                 break;
             }
         }
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error(`[APM] Failed to initialize ${config.provider}: ${message}`);
-        console.error('[APM] Application will continue WITHOUT performance monitoring.');
+        logger.error(`APM: Failed to initialize ${config.provider}`, { error: message });
+        logger.error('APM: Application will continue WITHOUT performance monitoring');
         // Non-fatal: APM failure should never crash the application
     }
 }
@@ -96,8 +98,14 @@ export function requestTimingMiddleware() {
 
             // Log slow requests (>200ms threshold per SRS requirement)
             if (durationMs > 200) {
-                console.warn(
-                    `[PERF] Slow request: ${req.method} ${req.originalUrl} — ${durationMs.toFixed(2)}ms (status: ${res.statusCode})`,
+                logger.warn(
+                    'PERF: Slow request detected',
+                    {
+                        method: req.method,
+                        url: req.originalUrl,
+                        durationMs: parseFloat(durationMs.toFixed(2)),
+                        statusCode: res.statusCode,
+                    },
                 );
             }
         });

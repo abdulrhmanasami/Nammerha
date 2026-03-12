@@ -10,6 +10,7 @@ import * as translation from '../services/translation.service';
 import * as locale from '../services/locale.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -178,7 +179,7 @@ router.post('/translate/batch', async (req: Request, res: Response) => {
                     results.push(result.value);
                 } else {
                     // Log individual translation failure but continue batch
-                    console.error('[Translation] Batch item failed:', result.reason);
+                    logger.error('Translation: Batch item failed', { error: result.reason instanceof Error ? result.reason.message : String(result.reason) });
                     results.push({
                         original: '',
                         translated: '',

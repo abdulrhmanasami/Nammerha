@@ -16,6 +16,7 @@ import {
     healthCheck,
 } from '../services/storage.service';
 import { safeRouteError } from '../utils/safe-error';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -87,7 +88,7 @@ async function verifyProjectAccessParam(
         getAuthUser(req).user_id, getAuthUser(req).role, projectId
     );
     if (!allowed) {
-        console.warn(`[Storage] IDOR blocked: user ${getAuthUser(req).user_id} attempted to access project ${projectId}`);
+        logger.warn('Storage: IDOR blocked — project access denied', { userId: getAuthUser(req).user_id, projectId });
         res.status(403).json({
             success: false,
             error: 'Access denied: you do not have permission to access this project\'s files',
@@ -123,7 +124,7 @@ async function verifyProjectAccessFromKey(
         getAuthUser(req).user_id, getAuthUser(req).role, projectId
     );
     if (!allowed) {
-        console.warn(`[Storage] IDOR blocked: user ${getAuthUser(req).user_id} attempted to access file ${fileKey}`);
+        logger.warn('Storage: IDOR blocked — file access denied', { userId: getAuthUser(req).user_id, fileKey });
         res.status(403).json({
             success: false,
             error: 'Access denied: you do not have permission to access this file',
@@ -160,7 +161,7 @@ router.post('/upload-url', async (req: Request, res: Response) => {
             getAuthUser(req).user_id, getAuthUser(req).role, project_id
         );
         if (!allowed) {
-            console.warn(`[Storage] IDOR blocked: user ${getAuthUser(req).user_id} attempted upload to project ${project_id}`);
+            logger.warn('Storage: IDOR blocked — upload denied', { userId: getAuthUser(req).user_id, projectId: project_id });
             res.status(403).json({
                 success: false,
                 error: 'Access denied: you do not have permission to upload to this project',

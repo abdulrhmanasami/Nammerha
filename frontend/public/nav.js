@@ -191,6 +191,75 @@
         });
     }
 
+    // ─── Mobile Search Toggle ─────────────────────────────────────────────
+    // On mobile (<640px), the full search bar (.nav-search-full) is hidden by CSS.
+    // This wires the .nav-search-icon button to reveal/hide it with animation.
+    function initMobileSearchToggle() {
+        var searchIcon = document.querySelector('.nav-search-icon');
+        var searchFull = document.querySelector('.nav-search-full');
+        var searchInput = document.getElementById('search-input');
+        if (!searchIcon || !searchFull || !searchInput) return;
+
+        var isOpen = false;
+
+        function openSearch() {
+            isOpen = true;
+            // Override the CSS !important by using style.setProperty
+            searchFull.style.setProperty('display', 'block', 'important');
+            searchFull.style.position = 'absolute';
+            searchFull.style.top = '50%';
+            searchFull.style.left = '0';
+            searchFull.style.right = '0';
+            searchFull.style.transform = 'translateY(-50%)';
+            searchFull.style.zIndex = '60';
+            searchFull.style.maxWidth = '100%';
+            searchFull.style.margin = '0 8px';
+            searchFull.style.opacity = '1';
+            searchIcon.style.setProperty('display', 'none', 'important');
+            searchInput.focus();
+        }
+
+        function closeSearch() {
+            isOpen = false;
+            searchFull.style.removeProperty('display');
+            searchFull.style.position = '';
+            searchFull.style.top = '';
+            searchFull.style.left = '';
+            searchFull.style.right = '';
+            searchFull.style.transform = '';
+            searchFull.style.zIndex = '';
+            searchFull.style.maxWidth = '';
+            searchFull.style.margin = '';
+            searchFull.style.opacity = '';
+            searchIcon.style.removeProperty('display');
+            searchInput.blur();
+        }
+
+        searchIcon.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openSearch();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) closeSearch();
+        });
+
+        // Close when input loses focus (tap elsewhere)
+        searchInput.addEventListener('blur', function () {
+            // Small delay so clicking inside the search bar doesn't immediately close it
+            setTimeout(function () {
+                if (isOpen && document.activeElement !== searchInput) closeSearch();
+            }, 200);
+        });
+
+        // Close on window resize if now desktop
+        window.addEventListener('resize', function () {
+            if (isOpen && window.innerWidth >= 640) closeSearch();
+        });
+    }
+
     // ─── Init ────────────────────────────────────────────────────────────
     function init() {
         removeOldNavs();
@@ -203,6 +272,7 @@
         }
 
         initSidebarToggle();
+        initMobileSearchToggle();
     }
 
     if (document.readyState === 'loading') {

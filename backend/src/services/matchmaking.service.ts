@@ -76,12 +76,43 @@ export interface SearchEngineersDTO {
 // LOW-AUD-002 FIX: Environment-configurable scoring weights.
 // Defaults to BuildZoom methodology values. Can be tuned via env vars
 // without redeployment: SCORE_W_PROJECTS, SCORE_W_RESPONSE, SCORE_W_WINRATE, SCORE_W_LICENSE
+//
+// P1-NEW-002 FIX: safeParseFloat guards against NaN injection.
+// If SCORE_W_PROJECTS=abc or SCORE_W_PROJECTS= is set, parseFloat returns NaN
+// which silently corrupts ALL engineer scores. This guard validates isFinite()
+// and falls back to the documented BuildZoom default.
+
+function safeParseFloat(envValue: string | undefined, fallback: number): number {
+    if (envValue === undefined || envValue === '') {
+        return fallback;
+    }
+    const parsed = parseFloat(envValue);
+    if (!isFinite(parsed)) {
+        logger.error('P1-NEW-002: Invalid numeric env var — using fallback', {
+            raw_value: envValue,
+            fallback,
+        });
+        return fallback;
+    }
+    return parsed;
+}
+
 const SCORE_WEIGHTS = {
-    completed_projects: parseFloat(process.env['SCORE_W_PROJECTS'] ?? '0.35'),
-    response_speed: parseFloat(process.env['SCORE_W_RESPONSE'] ?? '0.20'),
-    bid_win_rate: parseFloat(process.env['SCORE_W_WINRATE'] ?? '0.30'),
-    license_status: parseFloat(process.env['SCORE_W_LICENSE'] ?? '0.15'),
+    completed_projects: safeParseFloat(process.env['SCORE_W_PROJECTS'], 0.35),
+    response_speed: safeParseFloat(process.env['SCORE_W_RESPONSE'], 0.20),
+    bid_win_rate: safeParseFloat(process.env['SCORE_W_WINRATE'], 0.30),
+    license_status: safeParseFloat(process.env['SCORE_W_LICENSE'], 0.15),
 } as const;
+
+// P1-NEW-002 FIX: Startup integrity check — weights must sum to 1.0 (±0.01 tolerance)
+const weightSum = SCORE_WEIGHTS.completed_projects + SCORE_WEIGHTS.response_speed
+    + SCORE_WEIGHTS.bid_win_rate + SCORE_WEIGHTS.license_status;
+if (Math.abs(weightSum - 1.0) > 0.01) {
+    logger.error('P1-NEW-002: Score weights do not sum to 1.0 — scoring integrity at risk', {
+        weights: SCORE_WEIGHTS,
+        sum: weightSum,
+    });
+}
 
 // P2-005 FIX: Shared scoring factor calculator — single source of truth
 export interface EngineerMetrics {

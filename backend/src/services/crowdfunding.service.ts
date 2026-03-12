@@ -177,34 +177,122 @@ export async function createDonation(
         return items;
     });
 
+    // ═══════════════════════════════════════════════════════════════════════
     // Phase 2: Call payment gateway OUTSIDE transaction (DB connection freed)
+    //
+    // P1-NEW-001 FIX: Each gateway call is individually wrapped in try/catch.
+    // If item N fails, items 1..N-1 (already charged) are preserved and
+    // items N..end are cancelled. This prevents:
+    //   - Orphaned 'pending' escrow entries with no gateway counterpart
+    //   - Silent partial charges with no user-facing error
+    //   - Stale records that no background job would clean up
+    // ═══════════════════════════════════════════════════════════════════════
     const gateway = dto.payment_method === 'visa' ? 'visa' as const : 'fatora' as const;
-    const gatewayResults: Array<{ escrow_id: string; reference: string }> = [];
 
-    for (const item of pendingItems) {
-        const paymentResult = await paymentService.initiate({
-            donor_id: donorId,
-            item_id: item.item_id,
-            project_id: item.project_id,
-            amount: item.actual_amount,
-            currency: 'USD',
-            gateway,
-            return_url: dto.return_url,
-        });
-        gatewayResults.push({ escrow_id: item.escrow_id, reference: paymentResult.reference });
+    interface GatewayResult {
+        escrow_id: string;
+        item_id: string;
+        reference: string;
+    }
+    interface GatewayFailure {
+        escrow_id: string;
+        item_id: string;
+        error: string;
     }
 
-    // Phase 3: Finalize — update escrow with gateway refs, check funding status
+    const succeededItems: GatewayResult[] = [];
+    const failedItems: GatewayFailure[] = [];
+
+    for (const item of pendingItems) {
+        try {
+            const paymentResult = await paymentService.initiate({
+                donor_id: donorId,
+                item_id: item.item_id,
+                project_id: item.project_id,
+                amount: item.actual_amount,
+                currency: 'USD',
+                gateway,
+                return_url: dto.return_url,
+            });
+            succeededItems.push({
+                escrow_id: item.escrow_id,
+                item_id: item.item_id,
+                reference: paymentResult.reference,
+            });
+        } catch (gatewayErr) {
+            const errorMessage = gatewayErr instanceof Error ? gatewayErr.message : String(gatewayErr);
+            logger.error('P1-NEW-001: Gateway call failed for item — cancelling remaining', {
+                item_id: item.item_id,
+                escrow_id: item.escrow_id,
+                error: errorMessage,
+                succeeded_count: succeededItems.length,
+                remaining_count: pendingItems.length - succeededItems.length - 1,
+            });
+            // Record this failure
+            failedItems.push({
+                escrow_id: item.escrow_id,
+                item_id: item.item_id,
+                error: errorMessage,
+            });
+            // Mark ALL remaining items (including this one) as failed
+            // by breaking here — remaining items won't be attempted.
+            for (const remaining of pendingItems) {
+                const alreadyProcessed = succeededItems.some(s => s.escrow_id === remaining.escrow_id)
+                    || failedItems.some(f => f.escrow_id === remaining.escrow_id);
+                if (!alreadyProcessed) {
+                    failedItems.push({
+                        escrow_id: remaining.escrow_id,
+                        item_id: remaining.item_id,
+                        error: 'Skipped: previous item gateway failure',
+                    });
+                }
+            }
+            break; // Stop attempting further gateway calls
+        }
+    }
+
+    // ── Cancel orphaned escrow entries for failed items ──────────────────
+    // P1-NEW-001 FIX: Immediately mark failed escrow entries as 'cancelled'
+    // so they never appear as stuck 'pending' in the donor's wallet.
+    if (failedItems.length > 0) {
+        const failedEscrowIds = failedItems.map(f => f.escrow_id);
+        try {
+            await query(
+                `UPDATE escrow_ledger
+                 SET payment_status = 'cancelled', updated_at = NOW()
+                 WHERE transaction_id = ANY($1) AND payment_status = 'pending'`,
+                [failedEscrowIds]
+            );
+            logger.info('P1-NEW-001: Cancelled orphaned escrow entries', {
+                cancelled_count: failedEscrowIds.length,
+                escrow_ids: failedEscrowIds,
+            });
+        } catch (cancelErr) {
+            // Non-fatal: log for manual reconciliation. The escrow entries
+            // remain as 'pending' but won't cause financial harm — they have
+            // no gateway reference and will never be locked or released.
+            logger.error('P1-NEW-001: Failed to cancel orphaned escrow entries — manual reconciliation required', {
+                escrow_ids: failedEscrowIds,
+                error: cancelErr instanceof Error ? cancelErr.message : String(cancelErr),
+            });
+        }
+    }
+
+    // If ALL items failed, throw with clear message (no partial success to report)
+    if (succeededItems.length === 0) {
+        const firstError = failedItems[0]?.error ?? 'Unknown gateway error';
+        throw new Error(`Payment gateway failed for all items: ${firstError}`);
+    }
+
+    // Phase 3: Finalize — update ONLY successfully-charged escrow entries
     const finalEntries = await transaction(async (client) => {
         const escrowEntries: EscrowLedger[] = [];
 
-        for (let i = 0; i < pendingItems.length; i++) {
-            const item = pendingItems[i];
-            const gatewayResult = gatewayResults[i];
-            if (!item || !gatewayResult) {
-                throw new Error('Phase 3 invariant: item/gateway result mismatch');
+        for (const gatewayResult of succeededItems) {
+            const item = pendingItems.find(p => p.escrow_id === gatewayResult.escrow_id);
+            if (!item) {
+                throw new Error('Phase 3 invariant: succeeded item not found in pending list');
             }
-            const gatewayRef = gatewayResult.reference;
 
             // Update escrow with gateway reference and lock status
             const updatedEscrow = await client.query<EscrowLedger>(
@@ -212,7 +300,7 @@ export async function createDonation(
                  SET payment_status = 'locked', payment_gateway_ref = $1
                  WHERE transaction_id = $2
                  RETURNING *`,
-                [gatewayRef, item.escrow_id]
+                [gatewayResult.reference, item.escrow_id]
             );
 
             const entry = updatedEscrow.rows[0];
@@ -244,6 +332,16 @@ export async function createDonation(
 
         return escrowEntries;
     });
+
+    // P1-NEW-001 FIX: Log partial success for monitoring and alerting
+    if (failedItems.length > 0) {
+        logger.warn('P1-NEW-001: Partial donation — some items failed', {
+            donor_id: donorId,
+            succeeded: succeededItems.length,
+            failed: failedItems.length,
+            failed_items: failedItems.map(f => ({ item_id: f.item_id, error: f.error })),
+        });
+    }
 
     return finalEntries;
 }

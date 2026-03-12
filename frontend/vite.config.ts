@@ -1,8 +1,11 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import seoLocalePlugin from './vite-plugin-seo-locale';
 
 export default defineConfig({
     root: '.',
+    // P2-NEW-001 FIX: Inject hreflang + localized SEO metadata into all HTML pages at build time
+    plugins: [seoLocalePlugin()],
     build: {
         rollupOptions: {
             input: {

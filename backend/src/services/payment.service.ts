@@ -311,11 +311,17 @@ async function initiateFatoraPayment(
                 amount: (amount / 100).toFixed(2), // Convert cents → decimal for API
                 currency,
                 order_id: reference,
-                // NMR-AUD-007 FIX: Pass real donor details instead of hardcoded empty strings.
-                // Fatora API requires a valid client email for payment notifications.
+                // NMR-AUD-007 + P2-NEW-003 FIX: Real donor details for gateway receipts.
+                // The initiate() method now resolves donor email from DB when not provided.
+                // Fallback to generic name is acceptable; fallback to fake email is NOT.
                 client: {
                     name: donorName ?? 'Nammerha Donor',
-                    email: donorEmail ?? 'donor@nammerha.com',
+                    email: donorEmail ?? (() => {
+                        logger.warn('P2-NEW-003: Fatora payment initiated without donor email — receipts will not be delivered', {
+                            reference,
+                        });
+                        return `noreply+${reference}@nammerha.com`;
+                    })(),
                 },
                 success_url: returnUrl ?? `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/complete`,
                 failure_url: `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/failed`,
@@ -407,6 +413,32 @@ export const paymentService = {
         }
 
         // ── Step 2: Call gateway OUTSIDE transaction (prevents pool starvation) ──
+
+        // P2-NEW-003 FIX: Resolve donor details for Fatora gateway.
+        // If caller didn't provide donor_name/donor_email, fetch from users table.
+        // This eliminates the hardcoded 'donor@nammerha.com' placeholder that was
+        // triggering Fatora fraud detection and sending receipts to a black hole.
+        let resolvedDonorName = data.donor_name;
+        let resolvedDonorEmail = data.donor_email;
+        if (data.gateway === 'fatora' && (!resolvedDonorName || !resolvedDonorEmail)) {
+            try {
+                const donorResult = await pool.query<{ full_name: string; email: string }>(
+                    'SELECT full_name, email FROM users WHERE user_id = $1',
+                    [data.donor_id]
+                );
+                const donor = donorResult.rows[0];
+                if (donor) {
+                    resolvedDonorName = resolvedDonorName || donor.full_name;
+                    resolvedDonorEmail = resolvedDonorEmail || donor.email;
+                }
+            } catch (lookupErr) {
+                logger.warn('P2-NEW-003: Failed to fetch donor details for Fatora — proceeding with available data', {
+                    donor_id: data.donor_id,
+                    error: lookupErr instanceof Error ? lookupErr.message : String(lookupErr),
+                });
+            }
+        }
+
         let gatewayResponse: GatewayResponse;
         if (data.gateway === 'visa') {
             gatewayResponse = await initiateVisaPayment(
@@ -415,7 +447,7 @@ export const paymentService = {
         } else {
             gatewayResponse = await initiateFatoraPayment(
                 reference, data.amount, data.currency || 'USD', data.return_url,
-                data.donor_name, data.donor_email,
+                resolvedDonorName, resolvedDonorEmail,
             );
         }
 

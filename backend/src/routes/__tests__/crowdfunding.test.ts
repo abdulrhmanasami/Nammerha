@@ -71,7 +71,7 @@ describe('Crowdfunding Service', () => {
             const result = await getMarketplaceProjects();
 
             expect(result).toHaveLength(2);
-            expect(result[0].project_id).toBe('p1');
+            expect((result[0] as (typeof result)[0]).project_id).toBe('p1');
             // Verify default sort
             expect(mockQuery).toHaveBeenCalledWith(
                 expect.stringContaining('ORDER BY published_at DESC'),
@@ -106,10 +106,11 @@ describe('Crowdfunding Service', () => {
 
             await getMarketplaceProjects({ damage_type: 'electrical', sort_by: 'funded_percentage' });
 
-            const sql = (mockQuery as Mock).mock.calls[0][0] as string;
+            const calls = (mockQuery as Mock).mock.calls;
+            const sql = (calls[0] as unknown[])[0] as string;
             expect(sql).toContain('damage_type = $1');
             expect(sql).toContain('ORDER BY funded_percentage ASC');
-            expect((mockQuery as Mock).mock.calls[0][1]).toEqual(['electrical']);
+            expect((calls[0] as unknown[])[1]).toEqual(['electrical']);
         });
     });
 
@@ -204,7 +205,7 @@ describe('Crowdfunding Service', () => {
             });
 
             expect(result).toHaveLength(1);
-            expect(result[0].payment_status).toBe('locked');
+            expect((result[0] as (typeof result)[0]).payment_status).toBe('locked');
             expect(mockPaymentInitiate).toHaveBeenCalledTimes(1);
             expect(mockTransaction).toHaveBeenCalledTimes(2); // Phase 1 + Phase 3
         });
@@ -317,15 +318,196 @@ describe('Crowdfunding Service', () => {
 
             const result = await createDonation('donor-001', {
                 items: [{ item_id: 'item-001', amount: 50000 }], // tries $500
-                payment_method: 'fatora',
+                payment_method: 'bank_transfer',
                 return_url: 'https://nammerha.com/callback',
             });
 
             // Escrow should have been created with capped amount
             expect(result).toHaveLength(1);
             // Verify the escrow INSERT was called with capped amount (20000 = $200)
-            const escrowInsertCall = mockClient1.query.mock.calls[1];
+            const escrowInsertCall = mockClient1.query.mock.calls[1] as unknown[];
             expect(escrowInsertCall[1]).toContain(20000); // 4th arg in VALUES
+        });
+
+        // ─── P1-NEW-001 FIX TESTS: Partial Gateway Failure ─────────────
+        it('should cancel orphaned escrow entries when gateway fails mid-batch (P1-NEW-001)', async () => {
+            // 2-item basket: item 1 succeeds, item 2 gateway fails
+            const mockClient1 = {
+                query: vi.fn()
+                    // Item 1: BOQ lookup
+                    .mockResolvedValueOnce({
+                        rows: [{
+                            item_id: 'item-001', project_id: 'proj-001',
+                            unit_price: 100000, required_quantity: 1,
+                            funded_amount: 0, status: 'verified',
+                        }],
+                        rowCount: 1,
+                    })
+                    // Item 1: Create escrow entry
+                    .mockResolvedValueOnce({
+                        rows: [{ transaction_id: 'escrow-001' }], rowCount: 1,
+                    })
+                    // Item 2: BOQ lookup
+                    .mockResolvedValueOnce({
+                        rows: [{
+                            item_id: 'item-002', project_id: 'proj-001',
+                            unit_price: 200000, required_quantity: 1,
+                            funded_amount: 0, status: 'verified',
+                        }],
+                        rowCount: 1,
+                    })
+                    // Item 2: Create escrow entry
+                    .mockResolvedValueOnce({
+                        rows: [{ transaction_id: 'escrow-002' }], rowCount: 1,
+                    }),
+            };
+
+            const mockClient3 = {
+                query: vi.fn()
+                    // Only item 1 gets to Phase 3 (item 2 failed)
+                    .mockResolvedValueOnce({
+                        rows: [{ transaction_id: 'escrow-001', amount_locked: 100000, payment_status: 'locked' }],
+                        rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({
+                        rows: [{ funded_amount: 100000 }], rowCount: 1,
+                    })
+                    // fully_funded update + auto PO
+                    .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+                    .mockResolvedValueOnce({
+                        rows: [{ material_name: 'Cement', material_category: 'masonry', unit: 'bag', unit_price: 100000, required_quantity: 1, preferred_supplier_id: null }],
+                        rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({
+                        rows: [{ user_id: 'sup-001', full_name: 'Supplier', commercial_register_number: 'CR-1' }], rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({ rows: [], rowCount: 1 }),
+            };
+
+            mockTransaction
+                .mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) => fn(mockClient1))
+                .mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) => fn(mockClient3));
+
+            // Item 1: gateway succeeds
+            mockPaymentInitiate.mockResolvedValueOnce({ reference: 'VIS-001' });
+            // Item 2: gateway FAILS
+            mockPaymentInitiate.mockRejectedValueOnce(new Error('Gateway timeout'));
+
+            // Also mock the orphan cancellation query (called directly on pool)
+            mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 1 });
+
+            const result = await createDonation('donor-001', {
+                items: [
+                    { item_id: 'item-001', amount: 100000 },
+                    { item_id: 'item-002', amount: 200000 },
+                ],
+                payment_method: 'visa',
+                return_url: 'https://nammerha.com/callback',
+            });
+
+            // Only 1 escrow entry should be returned (item 1)
+            expect(result).toHaveLength(1);
+            expect((result[0] as (typeof result)[0]).payment_status).toBe('locked');
+
+            // Verify cancelled escrow UPDATE was called for failed items
+            expect(mockQuery).toHaveBeenCalledWith(
+                expect.stringContaining("SET payment_status = 'cancelled'"),
+                expect.arrayContaining([expect.arrayContaining(['escrow-002'])])
+            );
+        });
+
+        it('should throw when ALL gateway calls fail (P1-NEW-001)', async () => {
+            const mockClient1 = {
+                query: vi.fn()
+                    .mockResolvedValueOnce({
+                        rows: [{
+                            item_id: 'item-001', project_id: 'proj-001',
+                            unit_price: 100000, required_quantity: 1,
+                            funded_amount: 0, status: 'verified',
+                        }],
+                        rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({
+                        rows: [{ transaction_id: 'escrow-001' }], rowCount: 1,
+                    }),
+            };
+
+            mockTransaction.mockImplementationOnce(
+                async (fn: (client: unknown) => Promise<unknown>) => fn(mockClient1)
+            );
+            // Gateway fails
+            mockPaymentInitiate.mockRejectedValueOnce(new Error('Service unavailable'));
+            // Orphan cancellation
+            mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 1 });
+
+            await expect(
+                createDonation('donor-001', {
+                    items: [{ item_id: 'item-001', amount: 100000 }],
+                    payment_method: 'bank_transfer',
+                    return_url: 'https://nammerha.com/callback',
+                })
+            ).rejects.toThrow('Payment gateway failed for all items');
+        });
+
+        it('should process multi-item donation successfully', async () => {
+            // 3-item basket, all gateway calls succeed
+            const mockClient1 = {
+                query: vi.fn(),
+            };
+            // Mock 3 BOQ lookups + 3 escrow creates
+            for (let i = 0; i < 3; i++) {
+                mockClient1.query
+                    .mockResolvedValueOnce({
+                        rows: [{
+                            item_id: `item-${i}`, project_id: 'proj-001',
+                            unit_price: 50000, required_quantity: 2,
+                            funded_amount: 0, status: 'verified',
+                        }],
+                        rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({
+                        rows: [{ transaction_id: `escrow-${i}` }], rowCount: 1,
+                    });
+            }
+
+            const mockClient3 = {
+                query: vi.fn(),
+            };
+            // Phase 3: 3 escrow updates + 3 funding checks + 3 status updates
+            for (let i = 0; i < 3; i++) {
+                mockClient3.query
+                    .mockResolvedValueOnce({
+                        rows: [{ transaction_id: `escrow-${i}`, amount_locked: 50000, payment_status: 'locked' }],
+                        rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({
+                        rows: [{ funded_amount: 50000 }], rowCount: 1,
+                    })
+                    .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // partially_funded update
+            }
+
+            mockTransaction
+                .mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) => fn(mockClient1))
+                .mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) => fn(mockClient3));
+
+            // All 3 gateway calls succeed
+            for (let i = 0; i < 3; i++) {
+                mockPaymentInitiate.mockResolvedValueOnce({ reference: `REF-${i}` });
+            }
+
+            const result = await createDonation('donor-001', {
+                items: [
+                    { item_id: 'item-0', amount: 50000 },
+                    { item_id: 'item-1', amount: 50000 },
+                    { item_id: 'item-2', amount: 50000 },
+                ],
+                payment_method: 'visa',
+                return_url: 'https://nammerha.com/callback',
+            });
+
+            expect(result).toHaveLength(3);
+            expect(mockPaymentInitiate).toHaveBeenCalledTimes(3);
+            expect(mockTransaction).toHaveBeenCalledTimes(2); // Phase 1 + Phase 3
         });
     });
 
@@ -340,7 +522,7 @@ describe('Crowdfunding Service', () => {
             const result = await getDonorEscrowSummary('donor-001');
 
             expect(result).toBeTruthy();
-            expect(result.total_locked).toBe(1500000);
+            expect((result as Record<string, unknown>).total_locked).toBe(1500000);
             expect(mockQuery).toHaveBeenCalledWith(
                 expect.stringContaining('vw_donor_escrow_summary'),
                 ['donor-001']
@@ -397,7 +579,8 @@ describe('Crowdfunding Service', () => {
             const result = await getVerifiedSuppliers();
 
             expect(result).toHaveLength(2);
-            const sql = (mockQuery as Mock).mock.calls[0][0] as string;
+            const calls = (mockQuery as Mock).mock.calls;
+            const sql = (calls[0] as unknown[])[0] as string;
             expect(sql).toContain("role = 'supplier'");
             expect(sql).toContain('is_active = TRUE');
             expect(sql).toContain("kyc_verification_status = 'verified'");

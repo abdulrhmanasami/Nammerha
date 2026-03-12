@@ -10,6 +10,7 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { query } from '../config/database';
 import { safeRouteError } from '../utils/safe-error';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -144,7 +145,7 @@ router.post(
                 ?? JSON.stringify({ reference, gateway, status, gateway_tx_id });
 
             if (!paymentService.verifySignature(rawPayload, signature)) {
-                console.error(`[Payment] Webhook signature verification failed for ${reference}`);
+                logger.error('Payment: Webhook signature verification failed', { reference });
                 res.status(401).json({
                     success: false,
                     error: 'Invalid webhook signature',
@@ -166,7 +167,7 @@ router.post(
             });
         } catch (err) {
             // Log but still respond 200 to prevent gateway retries
-            console.error('[Payment Webhook Error]', err);
+            logger.error('Payment: Webhook processing error', { error: err instanceof Error ? err.message : String(err) });
             res.status(200).json({
                 success: false,
                 processed: false,

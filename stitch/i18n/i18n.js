@@ -104,7 +104,7 @@
         'Add to Cart': { ar: 'أضف إلى السلة', de: 'In den Warenkorb', fr: 'Ajouter au panier', tr: 'Sepete Ekle' },
         'Funding Complete': { ar: 'التمويل مكتمل', de: 'Finanzierung abgeschlossen', fr: 'Financement terminé', tr: 'Finansman Tamamlandı' },
         'Secure Escrow': { ar: 'ضمان آمن', de: 'Sicheres Treuhandkonto', fr: 'Séquestre sécurisé', tr: 'Güvenli Emanet' },
-        'In Progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        // P3-NEW-002: 'In Progress' aliased to 'in_progress' via KEY_ALIASES
         'Harbor View Reconstruction': { ar: 'إعادة إعمار المرفأ', de: 'Harbor View Wiederaufbau', fr: 'Reconstruction Harbor View', tr: 'Harbor View Yeniden Yapımı' },
 
         // ═══ DONOR BASKET PAGE ═══
@@ -131,7 +131,7 @@
         'Field Photo Proof': { ar: 'إثبات الصور الميدانية', de: 'Fotobeweis vor Ort', fr: 'Preuve photo de terrain', tr: 'Saha Fotoğraf Kanıtı' },
         'Voice Snag': { ar: 'ملاحظة صوتية', de: 'Sprachmangel', fr: 'Note vocale', tr: 'Sesli Not' },
         'Capture 360 & Sync': { ar: 'تصوير 360 ومزامنة', de: '360° aufnehmen & synchronisieren', fr: 'Capturer 360 & Synchroniser', tr: '360 Çek & Senkronize Et' },
-        'Gallery': { ar: 'المعرض', de: 'Galerie', fr: 'Galerie', tr: 'Galeri' },
+        // P3-NEW-002: 'Gallery' aliased to 'gallery' via KEY_ALIASES
         'Verified Field Engineer': { ar: 'مهندس ميداني معتمد', de: 'Verifizierter Feldingenieur', fr: 'Ingénieur de terrain vérifié', tr: 'Doğrulanmış Saha Mühendisi' },
 
         // ═══ ENGINEER CAMERA PAGE ═══
@@ -139,19 +139,19 @@
         'GPS Coordinates': { ar: 'إحداثيات GPS', de: 'GPS-Koordinaten', fr: 'Coordonnées GPS', tr: 'GPS Koordinatları' },
         'Timestamp': { ar: 'الطابع الزمني', de: 'Zeitstempel', fr: 'Horodatage', tr: 'Zaman Damgası' },
         'Signature': { ar: 'التوقيع', de: 'Unterschrift', fr: 'Signature', tr: 'İmza' },
-        'Sync': { ar: 'مزامنة', de: 'Synchronisieren', fr: 'Synchroniser', tr: 'Senkronize Et' },
+        // P3-NEW-002: 'Sync' aliased to 'sync' via KEY_ALIASES
 
         // ═══ HOMEOWNER REPORT PAGE ═══
         'Submit Repair Request': { ar: 'تقديم طلب إصلاح', de: 'Reparaturanfrage einreichen', fr: 'Soumettre une demande de réparation', tr: 'Onarım Talebi Gönder' },
         'Upload Photos': { ar: 'رفع الصور', de: 'Fotos hochladen', fr: 'Télécharger des photos', tr: 'Fotoğraf Yükle' },
-        'Location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        // P3-NEW-002: 'Location' aliased to 'location' via KEY_ALIASES
         'Description': { ar: 'الوصف', de: 'Beschreibung', fr: 'Description', tr: 'Açıklama' },
         'Category': { ar: 'الفئة', de: 'Kategorie', fr: 'Catégorie', tr: 'Kategori' },
         'Priority': { ar: 'الأولوية', de: 'Priorität', fr: 'Priorité', tr: 'Öncelik' },
-        'Governorate': { ar: 'المحافظة', de: 'Gouvernement', fr: 'Gouvernorat', tr: 'İl' },
-        'Structural Damage': { ar: 'أضرار هيكلية', de: 'Strukturschäden', fr: 'Dommages structurels', tr: 'Yapısal Hasar' },
-        'Electrical': { ar: 'كهربائي', de: 'Elektrisch', fr: 'Électrique', tr: 'Elektrik' },
-        'General Repair': { ar: 'إصلاح عام', de: 'Allgemeine Reparatur', fr: 'Réparation générale', tr: 'Genel Onarım' },
+        // P3-NEW-002: 'Governorate' aliased to 'governorate' via KEY_ALIASES
+        // P3-NEW-002: 'Structural Damage' aliased to 'structural_damage' via KEY_ALIASES
+        // P3-NEW-002: 'Electrical' aliased to 'electrical' via KEY_ALIASES
+        // P3-NEW-002: 'General Repair' aliased to 'general_repair' via KEY_ALIASES
         'Urgent': { ar: 'عاجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
         'Request Summary': { ar: 'ملخص الطلب', de: 'Anfragezusammenfassung', fr: 'Résumé de la demande', tr: 'Talep Özeti' },
         'Request Submitted!': { ar: 'تم تقديم الطلب!', de: 'Anfrage eingereicht!', fr: 'Demande soumise !', tr: 'Talep Gönderildi!' },
@@ -176,8 +176,8 @@
         'Escrow Verification Queue': { ar: 'قائمة التحقق من الأمانات', de: 'Treuhand-Verifizierungswarteschlange', fr: 'File de vérification d\'entiercement', tr: 'Emanet Doğrulama Kuyruğu' },
         'Escrow Release Verification': { ar: 'التحقق من تحرير الأمانة', de: 'Treuhand-Freigabeprüfung', fr: 'Vérification de libération d\'entiercement', tr: 'Emanet Serbest Bırakma Doğrulaması' },
         'Funds Locked in Escrow': { ar: 'أموال محجوزة في الأمانة', de: 'Gelder in Treuhand gesperrt', fr: 'Fonds bloqués en entiercement', tr: 'Emanette Kilitli Fonlar' },
-        'Purchase Order': { ar: 'أمر الشراء', de: 'Bestellung', fr: 'Bon de commande', tr: 'Satın Alma Siparişi' },
-        'Vendor ID': { ar: 'معرف المورد', de: 'Lieferanten-ID', fr: 'ID fournisseur', tr: 'Tedarikçi Kimliği' },
+        // P3-NEW-002: 'Purchase Order' aliased to 'purchase_order' via KEY_ALIASES
+        // P3-NEW-002: 'Vendor ID' aliased to 'vendor_id' via KEY_ALIASES
         'Action Required': { ar: 'إجراء مطلوب', de: 'Aktion erforderlich', fr: 'Action requise', tr: 'İşlem Gerekli' },
 
         // ═══ ADMIN KYC PAGE ═══
@@ -196,7 +196,7 @@
         'Steel Index Volatility': { ar: 'تقلب مؤشر الحديد', de: 'Stahlindexvolatilität', fr: 'Volatilité de l\'indice acier', tr: 'Çelik Endeksi Volatilitesi' },
         'Stable': { ar: 'مستقر', de: 'Stabil', fr: 'Stable', tr: 'Stabil' },
         'Constraint Risk': { ar: 'مخاطر القيود', de: 'Einschränkungsrisiko', fr: 'Risque de contrainte', tr: 'Kısıtlama Riski' },
-        'Estimated': { ar: 'مُقدّر', de: 'Geschätzt', fr: 'Estimé', tr: 'Tahmini' },
+        // P3-NEW-002: 'Estimated' aliased to 'estimated' via KEY_ALIASES
         'Total Adjusted Cost': { ar: 'التكلفة المعدّلة الإجمالية', de: 'Gesamte bereinigte Kosten', fr: 'Coût total ajusté', tr: 'Toplam Düzeltilmiş Maliyet' },
         'Verified by Oracle': { ar: 'معتمد من المؤشر', de: 'Vom Orakel verifiziert', fr: 'Vérifié par l\'oracle', tr: 'Oracle Tarafından Doğrulandı' },
         'Market Data': { ar: 'بيانات السوق', de: 'Marktdaten', fr: 'Données du marché', tr: 'Piyasa Verileri' },
@@ -922,6 +922,40 @@
         '920_00': { ar: '٩٢٠٫٠٠', de: '920,00', fr: '920,00', tr: '920,00' },
     };
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // P3-NEW-002 FIX: Key Aliases — Canonical Deduplication
+    // ═══════════════════════════════════════════════════════════════════════
+    // During the migration from English-text keys to snake_case keys,
+    // ~12 entries existed in both formats with identical translations.
+    // This alias map redirects legacy English-text keys to the canonical
+    // snake_case entry, eliminating dictionary duplication.
+    //
+    // Usage: translatePage() and translateTextNodes() resolve through this
+    // map before DICT lookup. HTML pages using either format work correctly.
+    // ═══════════════════════════════════════════════════════════════════════
+    var KEY_ALIASES = {
+        'In Progress': 'in_progress',
+        'Fully Funded': 'fully_funded',
+        'Structural Damage': 'structural_damage',
+        'Electrical': 'electrical',
+        'General Repair': 'general_repair',
+        'Gallery': 'gallery',
+        'Sync': 'sync',
+        'Governorate': 'governorate',
+        'Location': 'location',
+        'Estimated': 'estimated',
+        'Purchase Order': 'purchase_order',
+        'Vendor ID': 'vendor_id',
+    };
+
+    /**
+     * Resolve a key through KEY_ALIASES, returning the canonical key.
+     * Falls through to the original key if no alias exists.
+     */
+    function resolveKey(key) {
+        return KEY_ALIASES[key] || key;
+    }
+
     // ─── State ────────────────────────────────────────────────────────────
     var currentLang = getStored() || detectBrowserLang() || 'en';
     var dropdownOpen = false;
@@ -986,7 +1020,9 @@
         var keyed = document.querySelectorAll('[data-i18n]');
         for (var i = 0; i < keyed.length; i++) {
             var el = keyed[i];
-            var key = el.getAttribute('data-i18n');
+            var rawKey = el.getAttribute('data-i18n');
+            // P3-NEW-002 FIX: Resolve through KEY_ALIASES for canonical lookup
+            var key = resolveKey(rawKey);
 
             // Store original English text on first run
             if (!el.dataset.i18nOriginal) {
@@ -1061,8 +1097,10 @@
             }
 
             // Check dictionary for exact match
-            if (DICT[text] && DICT[text][langCode]) {
-                node.textContent = node.textContent.replace(text, DICT[text][langCode]);
+            // P3-NEW-002 FIX: Resolve through KEY_ALIASES for canonical lookup
+            var resolvedText = resolveKey(text);
+            if (DICT[resolvedText] && DICT[resolvedText][langCode]) {
+                node.textContent = node.textContent.replace(text, DICT[resolvedText][langCode]);
             }
         }
     }

@@ -15,6 +15,7 @@
 // ============================================================================
 import type { Response } from 'express';
 import type { ApiResponse } from '../types';
+import { logger } from './logger';
 
 /**
  * Infer HTTP status code from error message content.
@@ -96,7 +97,7 @@ export function safeRouteError(
     if (httpStatus >= 500) {
         // ─── CRITICAL: Never expose internal error details ──────────────
         // Log the full error server-side for debugging
-        console.error(`[${context}] Internal error:`, error);
+        logger.error(`${context}: Internal error`, { error: error instanceof Error ? error.message : String(error) });
         const response: ApiResponse = {
             success: false,
             error: 'Internal server error',

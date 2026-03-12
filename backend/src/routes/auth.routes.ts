@@ -16,6 +16,7 @@ import { generateToken, authMiddleware } from '../middleware/auth.middleware';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.service';
 import type { User, UserRole, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -181,7 +182,7 @@ router.post(
             const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
             const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
             sendVerificationEmail(user.email, verificationUrl).catch((err) => {
-                console.error('[Auth] Verification email dispatch failed:', err);
+                logger.error('Auth: Verification email dispatch failed', { error: err instanceof Error ? err.message : String(err) });
             });
 
             // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
@@ -301,7 +302,7 @@ router.post(
                             duration_minutes: LOCKOUT_DURATION_MINUTES,
                         })]
                     );
-                    console.warn(`[Auth] IP locked: ${clientIp} for email ${normalizedEmail} — ${MAX_FAILED_ATTEMPTS} failed attempts`);
+                    logger.warn('Auth: IP locked due to failed attempts', { ip: clientIp, email: normalizedEmail, maxAttempts: MAX_FAILED_ATTEMPTS });
                 }
 
                 res.status(401).json({
@@ -405,7 +406,7 @@ router.get('/verify-email/:token', async (req: Request, res: Response): Promise<
             [user.user_id]
         );
 
-        console.warn(`[Auth] Email verified for user ${user.user_id} (${user.email})`);
+        logger.info('Auth: Email verified', { userId: user.user_id, email: user.email });
 
         res.json({
             success: true,
@@ -471,7 +472,7 @@ router.post(
             const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
             const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}`;
             sendVerificationEmail(user.email, verificationUrl).catch((err) => {
-                console.error('[Auth] Resend verification email failed:', err);
+                logger.error('Auth: Resend verification email failed', { error: err instanceof Error ? err.message : String(err) });
             });
 
             res.json({
@@ -531,10 +532,10 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
         const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
         const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
         sendPasswordResetEmail(user.email, resetUrl).catch((err) => {
-            console.error('[Auth] Password reset email failed:', err);
+            logger.error('Auth: Password reset email failed', { error: err instanceof Error ? err.message : String(err) });
         });
 
-        console.warn(`[Auth] Password reset requested for ${normalizedEmail}`);
+        logger.info('Auth: Password reset requested', { email: normalizedEmail });
         res.json(successResponse);
     } catch (error) {
         safeRouteError(res, error, 'Auth.ForgotPassword');
@@ -634,7 +635,7 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
             })]
         );
 
-        console.warn(`[Auth] Password reset completed for user ${user.user_id}`);
+        logger.info('Auth: Password reset completed', { userId: user.user_id });
 
         res.json({
             success: true,
