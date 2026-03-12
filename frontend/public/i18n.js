@@ -979,7 +979,10 @@
     };
 
     // ─── State ────────────────────────────────────────────────────────────
-    var currentLang = getStored() || detectBrowserLang() || 'ar';
+    // Arabic is ALWAYS the default language for Nammerha (Syria-focused platform).
+    // Browser language detection is used ONLY for the suggestion banner (§4.3),
+    // not for overriding the initial language.
+    var currentLang = getStored() || 'ar';
     var dropdownOpen = false;
 
     function getStored() {
