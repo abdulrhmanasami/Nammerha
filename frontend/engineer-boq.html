@@ -43,100 +43,31 @@
   <!-- Section Title -->
   <div class="flex items-center justify-between px-4 pb-2 pt-6">
     <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900" data-i18n="added_materials">Added Materials</h3>
-    <span class="badge-primary" data-i18n="3_items">3 Items</span>
+    <span class="badge-primary">—</span>
   </div>
 
-  <!-- Materials List -->
+  <!-- Materials List — dynamically populated by engineer-boq.ts renderAllItems() -->
   <div class="flex flex-col gap-3 px-4 pb-32">
-    <!-- Item 1: Cement -->
-    <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-      <div class="bg-gradient-to-br from-warm-earth/20 to-slate-200 rounded-lg size-20 shrink-0 flex items-center justify-center">
-        <i class="ph ph-package text-warm-earth" style="font-size:30px" aria-hidden="true"></i>
-      </div>
-      <div class="flex flex-1 flex-col justify-between">
-        <div>
-          <p class="text-base font-bold leading-tight" data-i18n="opc_cement_grade_43">OPC Cement (Grade 43)</p>
-          <p class="text-slate-500 text-xs mt-1 flex items-center gap-1">
-            <i class="ph ph-chart-bar text-trust-blue ph-sm" aria-hidden="true"></i>
-            Oracle: $9.00/bag
-          </p>
-        </div>
-        <div class="flex items-center justify-between mt-2">
-          <div class="flex flex-col">
-            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter" data-i18n="estimated">Estimated</p>
-            <p class="text-trust-blue text-base font-bold" data-i18n="450_00">$450.00</p>
-          </div>
-          <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
-            <button class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900 shadow-sm">
-              <i class="ph ph-minus ph-sm" aria-hidden="true"></i>
-            </button>
-            <span class="text-sm font-bold w-6 text-center">50</span>
-            <button class="flex h-7 w-7 items-center justify-center rounded-md bg-trust-blue text-white shadow-sm">
-              <i class="ph ph-plus ph-sm" aria-hidden="true"></i>
-            </button>
-          </div>
+    <!-- Loading skeleton: replaced by JS on DOMContentLoaded -->
+    <div class="boq-skeleton animate-pulse flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+      <div class="bg-slate-200 rounded-lg size-20 shrink-0"></div>
+      <div class="flex flex-1 flex-col gap-3">
+        <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+        <div class="h-3 bg-slate-100 rounded w-1/2"></div>
+        <div class="flex items-center justify-between mt-1">
+          <div class="h-5 bg-slate-200 rounded w-20"></div>
+          <div class="h-8 bg-slate-100 rounded w-24"></div>
         </div>
       </div>
     </div>
-
-    <!-- Item 2: Steel -->
-    <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-      <div class="bg-gradient-to-br from-slate-300/30 to-slate-200 rounded-lg size-20 shrink-0 flex items-center justify-center">
-        <i class="ph ph-ruler text-slate-600" style="font-size:30px" aria-hidden="true"></i>
-      </div>
-      <div class="flex flex-1 flex-col justify-between">
-        <div>
-          <p class="text-base font-bold leading-tight" data-i18n="tmt_steel_bars_12mm">TMT Steel Bars (12mm)</p>
-          <p class="text-slate-500 text-xs mt-1 flex items-center gap-1">
-            <i class="ph ph-chart-bar text-trust-blue ph-sm" aria-hidden="true"></i>
-            Oracle: $720.00/ton
-          </p>
-        </div>
-        <div class="flex items-center justify-between mt-2">
-          <div class="flex flex-col">
-            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter" data-i18n="estimated">Estimated</p>
-            <p class="text-trust-blue text-base font-bold" data-i18n="1_440_00">$1,440.00</p>
-          </div>
-          <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
-            <button class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900 shadow-sm">
-              <i class="ph ph-minus ph-sm" aria-hidden="true"></i>
-            </button>
-            <span class="text-sm font-bold w-6 text-center">2</span>
-            <button class="flex h-7 w-7 items-center justify-center rounded-md bg-trust-blue text-white shadow-sm">
-              <i class="ph ph-plus ph-sm" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Item 3: Door -->
-    <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-      <div class="bg-gradient-to-br from-warm-earth/10 to-slate-200 rounded-lg size-20 shrink-0 flex items-center justify-center">
-        <i class="ph ph-door text-warm-earth/70" style="font-size:30px" aria-hidden="true"></i>
-      </div>
-      <div class="flex flex-1 flex-col justify-between">
-        <div>
-          <p class="text-base font-bold leading-tight" data-i18n="flush_wood_door_32">Flush Wood Door (32")</p>
-          <p class="text-slate-500 text-xs mt-1 flex items-center gap-1">
-            <i class="ph ph-chart-bar text-trust-blue ph-sm" aria-hidden="true"></i>
-            Oracle: $115.00/unit
-          </p>
-        </div>
-        <div class="flex items-center justify-between mt-2">
-          <div class="flex flex-col">
-            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter" data-i18n="estimated">Estimated</p>
-            <p class="text-trust-blue text-base font-bold" data-i18n="920_00">$920.00</p>
-          </div>
-          <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
-            <button class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900 shadow-sm">
-              <i class="ph ph-minus ph-sm" aria-hidden="true"></i>
-            </button>
-            <span class="text-sm font-bold w-6 text-center">8</span>
-            <button class="flex h-7 w-7 items-center justify-center rounded-md bg-trust-blue text-white shadow-sm">
-              <i class="ph ph-plus ph-sm" aria-hidden="true"></i>
-            </button>
-          </div>
+    <div class="boq-skeleton animate-pulse flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+      <div class="bg-slate-200 rounded-lg size-20 shrink-0"></div>
+      <div class="flex flex-1 flex-col gap-3">
+        <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+        <div class="h-3 bg-slate-100 rounded w-2/5"></div>
+        <div class="flex items-center justify-between mt-1">
+          <div class="h-5 bg-slate-200 rounded w-20"></div>
+          <div class="h-8 bg-slate-100 rounded w-24"></div>
         </div>
       </div>
     </div>
@@ -148,7 +79,7 @@
       <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center px-2">
           <span class="text-slate-500 text-sm font-medium" data-i18n="total_project_estimate">Total Project Estimate</span>
-          <span class="text-xl font-extrabold tracking-tight" data-i18n="2_810_00">$2,810.00</span>
+          <span class="text-xl font-extrabold tracking-tight">—</span>
         </div>
         <button id="publish-btn" class="btn-primary w-full !h-14 !text-lg">
           <i class="ph ph-upload" aria-hidden="true"></i>

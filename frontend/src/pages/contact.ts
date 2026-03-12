@@ -1,0 +1,70 @@
+import '../styles/main.css';
+
+// ============================================================================
+// Nammerha — Contact Page Engine
+// PLT-2026-MAR12-003 FIX: Wires the contact form to POST /api/contact.
+// Handles form validation, submission, loading state, and success/error feedback.
+// ============================================================================
+
+const form = document.getElementById('contact-form') as HTMLFormElement | null;
+const submitBtn = document.getElementById('contact-submit') as HTMLButtonElement | null;
+const resultBox = document.getElementById('contact-result') as HTMLElement | null;
+
+form?.addEventListener('submit', async (e: Event) => {
+    e.preventDefault();
+    if (!form || !submitBtn) { return; }
+
+    // Gather form values
+    const formData = new FormData(form);
+    const name = (formData.get('name') as string ?? '').trim();
+    const email = (formData.get('email') as string ?? '').trim();
+    const subject = (formData.get('subject') as string ?? '').trim();
+    const message = (formData.get('message') as string ?? '').trim();
+    const category = (formData.get('category') as string ?? 'general');
+
+    // Client-side validation
+    if (!name || !email || !subject || !message) {
+        showResult('error', 'Please fill in all required fields.');
+        return;
+    }
+
+    // Set loading state
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> Sending...';
+
+    try {
+        const response = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, subject, message, category }),
+        });
+
+        const data = await response.json() as { success: boolean; message?: string; error?: string };
+
+        if (data.success) {
+            showResult('success', data.message ?? 'Your message has been received. We will respond within our published SLA.');
+            form.reset();
+        } else {
+            showResult('error', data.error ?? 'Failed to send message. Please try again.');
+        }
+    } catch {
+        showResult('error', 'Network error. Please check your connection and try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+});
+
+function showResult(type: 'success' | 'error', message: string): void {
+    if (!resultBox) { return; }
+    resultBox.className = type === 'success'
+        ? 'mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700'
+        : 'mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700';
+    resultBox.innerHTML = `
+        <div class="flex items-start gap-3">
+            <i class="ph ${type === 'success' ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-red-600'} shrink-0" style="font-size:20px" aria-hidden="true"></i>
+            <p>${message}</p>
+        </div>`;
+    resultBox.style.display = '';
+}

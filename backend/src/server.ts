@@ -56,6 +56,7 @@ import spatialRoutes from './routes/spatial.routes';
 import localeRouter from './middleware/locale-pages.middleware';
 import adminStatsRoutes from './routes/admin-stats.routes';
 import apiKeysRoutes from './routes/api-keys.routes';
+import contactRoutes from './routes/contact.routes';
 import * as path from 'path';
 
 // ─── Create Express App ─────────────────────────────────────────────────────
@@ -332,6 +333,10 @@ app.use('/api/donations', donationRoutes);
 app.use('/api/spatial-proof', spatialProofRoutes);
 
 // Path 4: Release → Notify (admin panel)
+// PLT-MAR12-005 FIX: adminStatsRoutes registered BEFORE adminRoutes.
+// Express matches routes in registration order — a future wildcard on
+// /api/admin/:param in adminRoutes would shadow /api/admin/stats.
+app.use('/api/admin/stats', adminStatsRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Payment Gateway (Visa + Fatora) — rate limited
@@ -392,11 +397,13 @@ app.use('/api/translation', translationLimiter, translationRoutes);
 // HGH-002: Protected with dedicated rate limiter (pre-signed URL abuse prevention)
 app.use('/api/storage', storageLimiter, storageRoutes);
 
-// Admin Statistics (time-series data for dashboard charts)
-app.use('/api/admin/stats', adminStatsRoutes);
+// (adminStatsRoutes registered above — before adminRoutes — see PLT-MAR12-005)
 
 // API Key Management (Feature 5: create, list, revoke, usage)
 app.use('/api/keys', apiKeysRoutes);
+
+// Contact Form (PLT-2026-MAR12-003 FIX)
+app.use('/api/contact', contactRoutes);
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection
