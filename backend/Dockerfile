@@ -9,10 +9,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
-# Copy source & compile TypeScript
+# Copy source & compile TypeScript (excluding test files for production)
 COPY tsconfig.json ./
 COPY src/ ./src/
-RUN npx tsc
+RUN rm -rf src/routes/__tests__ src/services/__tests__ && \
+    npx tsc --skipLibCheck
 
 # ── Production stage: Node.js Alpine (minimal)
 FROM node:22-alpine AS production
