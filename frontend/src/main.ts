@@ -69,7 +69,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
             : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60" style="font-size:48px" aria-hidden="true"></i></div>`}
         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
           <i class="ph ph-seal-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
-          <span class="text-[10px] font-bold text-smoky-jade">VERIFIED OCDS</span>
+          <span class="text-[10px] font-bold text-smoky-jade" data-i18n="verified_ocds">VERIFIED OCDS</span>
         </div>
       </div>
       <div class="p-4 flex flex-col flex-1">
@@ -86,7 +86,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         </div>
         <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100">
           <div>
-            <p class="text-[10px] text-slate-400 font-bold uppercase">Funded</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase" data-i18n="card_funded">Funded</p>
             <p class="text-sm font-bold text-trust-blue">${formatCents(project.funded_amount)}</p>
           </div>
           <a href="project-details.html?project=${project.project_id}" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">

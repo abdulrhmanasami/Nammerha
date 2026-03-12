@@ -176,7 +176,7 @@ async function loadMarketplace(): Promise<void> {
                 <td class="px-5 py-3">
                     <button class="bid-btn px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
                             data-project="${esc(p.project_id)}">
-                        Submit Bid
+                        <span data-i18n="submit_bid">Submit Bid</span>
                     </button>
                 </td>
             </tr>
@@ -265,7 +265,7 @@ function openBidModal(projectId: string): void {
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
     modal.innerHTML = `
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <h3 class="font-bold text-lg">Submit Bid</h3>
+            <h3 class="font-bold text-lg" data-i18n="submit_bid">Submit Bid</h3>
             <div>
                 <label class="text-xs font-bold text-slate-500 uppercase">Proposed Cost (USD)</label>
                 <input id="bid-cost" type="number" min="1" placeholder="25000" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
@@ -279,8 +279,8 @@ function openBidModal(projectId: string): void {
                 <textarea id="bid-letter" rows="3" placeholder="Why you're the best fit..." class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none"></textarea>
             </div>
             <div class="flex gap-3">
-                <button id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200">Cancel</button>
-                <button id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700">Submit</button>
+                <button id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200" data-i18n="btn_cancel">Cancel</button>
+                <button id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
             </div>
             <p id="bid-error" class="text-red-500 text-xs hidden"></p>
         </div>
@@ -302,7 +302,7 @@ function openBidModal(projectId: string): void {
 
         const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting...';
+        submitBtn.textContent = window.NammerhaI18n?.t('btn_submitting', 'Submitting...') ?? 'Submitting...';
 
         try {
             const res = await contractor.submitBid({
@@ -325,7 +325,7 @@ function openBidModal(projectId: string): void {
                 errorEl.classList.remove('hidden');
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit';
+            submitBtn.textContent = window.NammerhaI18n?.t('btn_submit', 'Submit') ?? 'Submit';
         }
     });
 }

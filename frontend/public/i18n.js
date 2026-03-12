@@ -449,6 +449,17 @@
         // ═══ FUND NOW BUTTON ═══
         'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
 
+        // ═══ PLT-FINAL-006: MISSING CARD & ACTION LABELS ═══
+        'verified_ocds': { ar: 'OCDS موثّق', de: 'OCDS VERIFIZIERT', fr: 'OCDS VÉRIFIÉ', tr: 'OCDS DOĞRULANDI' },
+        'card_funded': { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
+        'submit_bid': { ar: 'تقديم عرض', de: 'Angebot abgeben', fr: 'Soumettre une offre', tr: 'Teklif Ver' },
+        'btn_cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
+        'btn_submit': { ar: 'إرسال', de: 'Absenden', fr: 'Soumettre', tr: 'Gönder' },
+        'btn_submitting': { ar: 'جاري الإرسال...', de: 'Wird gesendet...', fr: 'Envoi en cours...', tr: 'Gönderiliyor...' },
+        'fully_funded': { ar: '✓ ممول بالكامل', de: '✓ Voll finanziert', fr: '✓ Entièrement financé', tr: '✓ Tamamen Finanse Edildi' },
+        'proof_submitted_title': { ar: 'تم إرسال الإثبات — بانتظار التحقق', de: 'Nachweis eingereicht — Überprüfung ausstehend', fr: 'Preuve soumise — En attente de vérification', tr: 'Kanıt Gönderildi — Doğrulama Bekleniyor' },
+        'submitted_label': { ar: 'مقدم', de: 'Eingereicht', fr: 'Soumis', tr: 'Gönderildi' },
+
         // ═══ INTERACTIVE MAP ═══
         // Filter Controls (map-controls.ts)
         'filter_all': { ar: 'الكل', de: 'Alle', fr: 'Tout', tr: 'Tümü' },

@@ -1,4 +1,63 @@
 /**
+ * Nammerha — Global Error Catcher + Unified Bottom Navigation Bar
+ * ═══════════════════════════════════════════════════════════════════
+ * PLT-FINAL-004 FIX: The TypeScript error-reporter module only covers
+ * index.html (loaded via main.ts). This lightweight catcher runs on
+ * EVERY page via nav.js, ensuring auth, wallet, profile, and all 24
+ * page entry points capture errors → sendBeacon to /api/client-errors.
+ *
+ * Idempotent: If the TS error-reporter already installed window.onerror,
+ * this will NOT overwrite it.
+ */
+(function () {
+    'use strict';
+    if (window.onerror) return; // TS module already installed — skip
+
+    var ERROR_ENDPOINT = '/api/client-errors';
+    var errCount = 0;
+    var MAX_PER_MIN = 10;
+    var lastReset = Date.now();
+
+    function shouldReport() {
+        if (Date.now() - lastReset > 60000) { errCount = 0; lastReset = Date.now(); }
+        if (errCount >= MAX_PER_MIN) return false;
+        errCount++;
+        return true;
+    }
+
+    function send(payload) {
+        if (!shouldReport()) return;
+        try {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(ERROR_ENDPOINT, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            }
+        } catch (e) { /* swallow — last resort, error already logged to console */ }
+    }
+
+    window.onerror = function (msg, source, lineno, colno, error) {
+        send({
+            message: typeof msg === 'string' ? msg : (error && error.message) || 'Unknown',
+            source: source, lineno: lineno, colno: colno,
+            stack: error && error.stack,
+            url: location.href,
+            timestamp: new Date().toISOString(),
+            type: 'error'
+        });
+    };
+
+    window.onunhandledrejection = function (event) {
+        var reason = event.reason;
+        send({
+            message: reason instanceof Error ? reason.message : String(reason || 'Unhandled rejection'),
+            stack: reason instanceof Error ? reason.stack : undefined,
+            url: location.href,
+            timestamp: new Date().toISOString(),
+            type: 'unhandledrejection'
+        });
+    };
+})();
+
+/**
  * Nammerha — Unified Bottom Navigation Bar (Frontend Build)
  * ═══════════════════════════════════════════════════════════
  * Auto-injects consistent 5-tab navigation into every page.

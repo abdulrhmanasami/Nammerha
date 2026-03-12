@@ -155,7 +155,7 @@ async function loadMarketplace(): Promise<void> {
                             <span class="text-xs text-slate-500">$${(p.total_funded / 100).toLocaleString()} / $${(p.total_cost / 100).toLocaleString()}</span>
                             ${p.funded_percentage < 100 ? `
                                 <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">Fund This</a>
-                            ` : `<span class="text-[10px] font-bold text-green-600">✓ Fully Funded</span>`}
+                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded">✓ Fully Funded</span>`}
                         </div>
                     </div>
                 </div>
