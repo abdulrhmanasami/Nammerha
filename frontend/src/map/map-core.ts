@@ -138,13 +138,14 @@ export async function initMap(options: NammerhaMapOptions): Promise<maplibregl.M
 
     const showAttribution = options.attribution !== false;
 
-    // Fetch and comprehensively fix the style
+    // Fetch and comprehensively fix the style — with public tile fallback
     let style: string | maplibregl.StyleSpecification;
     try {
         style = await fetchAndFixStyle(getBasemapStyleUrl());
     } catch (error) {
-        console.error('[Nammerha Map] Style fetch failed, using URL fallback:', error);
-        style = getBasemapStyleUrl();
+        console.warn('[Nammerha Map] Self-hosted tile server unreachable, falling back to public tiles:', error);
+        // Fallback: OpenFreeMap — free, open-source, no API key required
+        style = 'https://tiles.openfreemap.org/styles/liberty';
     }
 
     const map = new maplibregl.Map({
