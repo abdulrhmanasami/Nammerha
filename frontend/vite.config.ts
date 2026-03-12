@@ -35,6 +35,20 @@ export default defineConfig({
                 privacy: resolve(__dirname, 'privacy.html'),
                 refundPolicy: resolve(__dirname, 'refund-policy.html'),
             },
+            // PLT-OPT-001: Deterministic code-splitting.
+            // Extracts maplibre-gl (WebGL map engine, ~800KB) into its own chunk
+            // so it's lazy-loaded only on pages that use the map. Other vendor
+            // dependencies are grouped into a shared chunk for HTTP cache reuse.
+            output: {
+                manualChunks(id: string) {
+                    if (id.includes('node_modules/maplibre-gl')) {
+                        return 'vendor-maps';
+                    }
+                    if (id.includes('node_modules')) {
+                        return 'vendor';
+                    }
+                },
+            },
         },
     },
     server: {

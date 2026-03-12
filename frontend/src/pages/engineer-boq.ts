@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { projects, epaOracle, marketplace } from '../api';
+import { escapeHtml as esc } from '../utils/xss';
 
 // ============================================================================
 // Nammerha — Engineer BOQ Builder Page Engine
@@ -83,20 +84,20 @@ function renderItem(item: BOQItem, index: number): string {
     return `
     <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 animate-fade-in-up" data-index="${index}">
       <div class="bg-gradient-to-br from-warm-earth/20 to-slate-200 rounded-lg size-20 shrink-0 flex items-center justify-center">
-        <i class="ph ph-${icon} text-warm-earth" style="font-size:30px" aria-hidden="true"></i>
+        <i class="ph ph-${esc(icon)} text-warm-earth" style="font-size:30px" aria-hidden="true"></i>
       </div>
       <div class="flex flex-1 flex-col justify-between">
         <div>
-          <p class="text-base font-bold leading-tight">${item.material_name}</p>
+          <p class="text-base font-bold leading-tight">${esc(item.material_name)}</p>
           <p class="text-slate-500 text-xs mt-1 flex items-center gap-1">
             <i class="ph ph-chart-bar text-trust-blue ph-sm" aria-hidden="true"></i>
-            ${oracleDisplay}
+            ${esc(oracleDisplay)}
           </p>
         </div>
         <div class="flex items-center justify-between mt-2">
           <div class="flex flex-col">
             <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">Estimated</p>
-            <p class="text-trust-blue text-base font-bold">${formatCents(totalCostCents)}</p>
+            <p class="text-trust-blue text-base font-bold">${esc(formatCents(totalCostCents))}</p>
           </div>
           <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
             <button class="qty-minus flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900 shadow-sm" data-index="${index}">

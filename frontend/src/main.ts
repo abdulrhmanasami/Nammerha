@@ -7,10 +7,15 @@ import { renderCartBadge } from './components/cart';
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
 
-// ─── Map Initialization (self-executing on DOMContentLoaded) ────────────────
-// Must be imported here so Vite includes it in the production bundle.
-// The separate <script type="module"> tag in index.html is stripped during build.
-import './pages/homepage-map';
+// ─── Map Initialization (lazy-loaded) ───────────────────────────────────────
+// PLT-OPT-001: Dynamic import — maplibre-gl (~800KB) is loaded ONLY on pages
+// with a map container. Other pages (auth, wallet, profile, etc.) skip it entirely.
+// The map module self-initializes on DOMContentLoaded.
+async function initMapIfNeeded(): Promise<void> {
+    if (document.getElementById('map') || document.getElementById('nammerha-map')) {
+        await import('./pages/homepage-map');
+    }
+}
 
 // ─── Project Card Template ──────────────────────────────────────────────────
 interface ProjectCard {
@@ -145,6 +150,9 @@ function initDashboard(): void {
     // P1-001: Load dynamic data from API
     loadFeaturedProjects();
     loadStats();
+
+    // PLT-OPT-001: Lazy-load map module only when map container exists
+    initMapIfNeeded();
 }
 
 // Initialize when DOM is ready
@@ -153,3 +161,4 @@ if (document.readyState === 'loading') {
 } else {
     initDashboard();
 }
+
