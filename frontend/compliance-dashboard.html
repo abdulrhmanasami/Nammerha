@@ -89,7 +89,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_total_audited">Total Funds Audited</p>
-          <p class="text-2xl font-black mt-1" data-kpi="total-audited" data-prefix="$">$0</p>
+          <p class="text-2xl font-black mt-1" data-kpi="total-audited" data-prefix="$">
+            <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -99,7 +101,9 @@
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_pending">Pending</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_pending_reviews">Pending Reviews</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="pending-reviews">0</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="pending-reviews">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -108,7 +112,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_approved_releases">Approved Releases</p>
-          <p class="text-2xl font-black mt-1" data-kpi="approved-releases">0</p>
+          <p class="text-2xl font-black mt-1" data-kpi="approved-releases">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -117,7 +123,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_flagged">Flagged Issues</p>
-          <p class="text-2xl font-black mt-1 text-danger-red" data-kpi="flagged-issues">0</p>
+          <p class="text-2xl font-black mt-1 text-danger-red" data-kpi="flagged-issues">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
       </div>
 
@@ -132,7 +140,9 @@
             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
               <div class="h-full bg-smoky-jade rounded-full" id="ocds-bar" style="width:0%"></div>
             </div>
-            <span class="text-xs font-bold text-smoky-jade" id="ocds-percent">—%</span>
+            <span class="text-xs font-bold text-smoky-jade" id="ocds-percent">
+              <span class="inline-block h-4 w-10 bg-slate-200 rounded animate-pulse"></span>
+            </span>
           </div>
           <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_ocds_desc">All transactions verified against OCDS schema</p>
         </div>
@@ -142,7 +152,9 @@
             <h4 class="font-bold text-sm" data-i18n="auditor_audit_integrity">Audit Trail Integrity</h4>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-lg font-black text-smoky-jade" id="audit-integrity">—</span>
+            <span class="text-lg font-black text-smoky-jade" id="audit-integrity">
+              <span class="inline-block h-5 w-14 bg-slate-200 rounded animate-pulse"></span>
+            </span>
             <span class="text-xs text-slate-400" data-i18n="auditor_immutable">INSERT-only / immutable</span>
           </div>
           <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_no_deletions">Zero DELETE/UPDATE operations detected</p>
@@ -153,7 +165,9 @@
             <h4 class="font-bold text-sm" data-i18n="auditor_spatial_accuracy">Spatial Verification</h4>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-lg font-black" id="spatial-accuracy">—%</span>
+            <span class="text-lg font-black" id="spatial-accuracy">
+              <span class="inline-block h-5 w-12 bg-slate-200 rounded animate-pulse"></span>
+            </span>
             <span class="text-xs text-slate-400" data-i18n="auditor_gps_verified">GPS-verified proofs</span>
           </div>
           <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_spatial_desc">Average accuracy of submitted spatial proofs</p>

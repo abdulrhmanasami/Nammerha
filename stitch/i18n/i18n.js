@@ -46,12 +46,14 @@
 
     // ─── Bilingual Typography (Doc §6.2) ─────────────────────────────────
     // "Plus Jakarta Sans" for Latin/European, "IBM Plex Sans Arabic" for Arabic
+    // PLT-OPT-002: Self-hosted woff2 fonts — zero Google CDN dependency.
+    // Critical for Sustainable UX §6.5 (Syria low-bandwidth environments).
     var ARABIC_FONT_LOADED = false;
     function loadArabicFont() {
         if (ARABIC_FONT_LOADED) return;
         var link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap';
+        link.href = '/fonts/ibm-plex-sans-arabic.css';
         document.head.appendChild(link);
         ARABIC_FONT_LOADED = true;
     }
@@ -187,25 +189,6 @@
         'Approved': { ar: 'مُعتمد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' },
         'Rejected': { ar: 'مرفوض', de: 'Abgelehnt', fr: 'Rejeté', tr: 'Reddedildi' },
         'Active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
-        'kyc_verification': { ar: 'التحقق من الهوية', de: 'KYC-Verifizierung', fr: 'Vérification KYC', tr: 'KYC Doğrulaması' },
-        'kyc_institutional_access': { ar: 'وصول مؤسسي', de: 'Institutioneller Zugang', fr: 'Accès institutionnel', tr: 'Kurumsal Erişim' },
-        'kyc_portal_title': { ar: 'بوابة التحقق من الهوية', de: 'KYC-Verifizierungsportal', fr: 'Portail de vérification KYC', tr: 'KYC Doğrulama Portalı' },
-        'kyc_review_subtitle': { ar: 'مراجعة التراخيص المهنية وسجلات التجارة قبل منح حالة التوثيق.', de: 'Berufliche Lizenzen und Handelsregistereinträge prüfen, bevor der verifizierte Status gewährt wird.', fr: 'Examiner les licences professionnelles et les inscriptions commerciales avant d\'accorder le statut vérifié.', tr: 'Doğrulanmış statü vermeden önce mesleki lisansları ve ticaret tescillerini inceleyin.' },
-        'kyc_filter': { ar: 'تصفية', de: 'Filtern', fr: 'Filtrer', tr: 'Filtrele' },
-        'kyc_export': { ar: 'تصدير', de: 'Exportieren', fr: 'Exporter', tr: 'Dışa Aktar' },
-        'kyc_pending_review': { ar: 'بانتظار المراجعة', de: 'Überprüfung ausstehend', fr: 'En attente de révision', tr: 'İnceleme Bekliyor' },
-        'kyc_verified_mtd': { ar: 'تم التحقق (الشهر الحالي)', de: 'Verifiziert (MTD)', fr: 'Vérifiés (mois en cours)', tr: 'Doğrulanmış (ATB)' },
-        'kyc_status_pending': { ar: 'معلّق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
-        'kyc_docs_count_1': { ar: 'مستند واحد', de: '1 Dokument', fr: '1 document', tr: '1 belge' },
-        'kyc_docs_count_2': { ar: 'مستندان', de: '2 Dokumente', fr: '2 documents', tr: '2 belge' },
-        'kyc_docs_count_3': { ar: '3 مستندات', de: '3 Dokumente', fr: '3 documents', tr: '3 belge' },
-        'kyc_click_to_review': { ar: 'انقر على صف للمراجعة', de: 'Klicken Sie auf eine Zeile', fr: 'Cliquez sur une ligne', tr: 'İncelemek için bir satıra tıklayın' },
-        'kyc_select_applicant': { ar: 'اختر متقدماً من قائمة الانتظار', de: 'Wählen Sie einen Antragsteller aus der Warteschlange', fr: 'Sélectionnez un candidat dans la file d\'attente', tr: 'Kuyruktan bir başvuru sahibi seçin' },
-        'kyc_docs_appear_here': { ar: 'ستظهر المستندات هنا للمراجعة', de: 'Dokumente erscheinen hier zur Überprüfung', fr: 'Les documents apparaîtront ici pour examen', tr: 'Belgeler burada incelenmek üzere görünecek' },
-        'kyc_drag_drop': { ar: 'اسحب وأفلت المستندات هنا', de: 'Dokumente hierher ziehen', fr: 'Glisser-déposer les documents ici', tr: 'Belgeleri buraya sürükleyip bırakın' },
-        'kyc_click_browse': { ar: 'أو انقر لتصفح الملفات', de: 'oder klicken Sie zum Durchsuchen', fr: 'ou cliquez pour parcourir', tr: 'veya dosyalara göz atmak için tıklayın' },
-        'kyc_grant_verified': { ar: 'منح شارة التوثيق', de: 'Verifizierungsabzeichen erteilen', fr: 'Accorder le badge vérifié', tr: 'Doğrulanmış Rozet Ver' },
-        'kyc_reject_resubmit': { ar: 'رفض وطلب إعادة التقديم', de: 'Ablehnen & Neueinreichung anfordern', fr: 'Rejeter & demander une nouvelle soumission', tr: 'Reddet & Yeniden Gönderim Talep Et' },
 
         // ═══ ADMIN ORACLE PAGE ═══
         'Pricing Oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' },
@@ -249,83 +232,694 @@
         // ═══ TRUST / ESCROW BANNER ═══
         'Funds held in escrow': { ar: 'أموال محفوظة في حساب ضمان', de: 'Gelder auf Treuhandkonto', fr: 'Fonds en entiercement', tr: 'Emanette tutulan fonlar' },
 
-        // ═══ TRADESPERSON PORTAL (أصحاب المهن) ═══
-        // Trade names — 10 specializations
-        'trade_tiling': { ar: 'بلاط', de: 'Fliesenleger', fr: 'Carrelage', tr: 'Fayans' },
-        'trade_painting': { ar: 'دهان', de: 'Maler', fr: 'Peinture', tr: 'Boyacı' },
-        'trade_plumbing': { ar: 'سباكة', de: 'Klempner', fr: 'Plomberie', tr: 'Tesisatçı' },
-        'trade_electrical': { ar: 'كهرباء', de: 'Elektriker', fr: 'Électricité', tr: 'Elektrikçi' },
-        'trade_carpentry': { ar: 'نجارة', de: 'Schreiner', fr: 'Menuiserie', tr: 'Marangoz' },
-        'trade_welding': { ar: 'لحام', de: 'Schweißer', fr: 'Soudure', tr: 'Kaynakçı' },
-        'trade_masonry': { ar: 'بناء حجر', de: 'Maurer', fr: 'Maçonnerie', tr: 'Duvarcı' },
-        'trade_plastering': { ar: 'قصارة', de: 'Putzer', fr: 'Plâtrage', tr: 'Sıvacı' },
-        'trade_hvac': { ar: 'تكييف', de: 'Heizung/Klima', fr: 'Climatisation', tr: 'Klima' },
-        'trade_general': { ar: 'أعمال عامة', de: 'Allgemein', fr: 'Général', tr: 'Genel' },
+        // ═══ WALLET PAGE ═══
+        'wallet_title': { ar: 'المحفظة', de: 'Geldbörse', fr: 'Portefeuille', tr: 'Cüzdan' },
+        'total_escrow': { ar: 'إجمالي رصيد الضمان', de: 'Gesamtes Treuhandguthaben', fr: 'Solde total d\'entiercement', tr: 'Toplam Emanet Bakiyesi' },
+        'locked_items': { ar: '0 محجوز', de: '0 gesperrt', fr: '0 verrouillé', tr: '0 kilitli' },
+        'released_items': { ar: '0 محرر', de: '0 freigegeben', fr: '0 libéré', tr: '0 serbest' },
+        'donate': { ar: 'تبرّع', de: 'Spenden', fr: 'Donner', tr: 'Bağışla' },
+        'receipts': { ar: 'إيصالات', de: 'Quittungen', fr: 'Reçus', tr: 'Makbuzlar' },
+        'impact': { ar: 'الأثر', de: 'Wirkung', fr: 'Impact', tr: 'Etki' },
+        'recent_transactions': { ar: 'المعاملات الأخيرة', de: 'Letzte Transaktionen', fr: 'Transactions récentes', tr: 'Son İşlemler' },
 
-        // Dashboard — empty states & badges
-        'tp_no_active_work': { ar: 'لا يوجد عمل نشط', de: 'Keine aktive Arbeit', fr: 'Aucun travail actif', tr: 'Aktif iş yok' },
-        'tp_check_available': { ar: 'تحقق من الأعمال المتاحة للفرص الجديدة', de: 'Prüfen Sie verfügbare Aufträge', fr: 'Consultez les offres disponibles', tr: 'Yeni fırsatlar için müsait işleri kontrol edin' },
-        'tp_homeowner': { ar: 'صاحب المنزل', de: 'Eigentümer', fr: 'Propriétaire', tr: 'Ev sahibi' },
-        'tp_direct': { ar: 'مباشر', de: 'Direkt', fr: 'Direct', tr: 'Doğrudan' },
-        'tp_contractor': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
+        // ═══ PROFILE PAGE ═══
+        'profile_title': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'language_setting': { ar: 'اللغة', de: 'Sprache', fr: 'Langue', tr: 'Dil' },
+        'notification_setting': { ar: 'الإشعارات', de: 'Benachrichtigungen', fr: 'Notifications', tr: 'Bildirimler' },
+        'notification_desc': { ar: 'تنبيهات الدفع والبريد', de: 'Push- und E-Mail-Benachrichtigungen', fr: 'Alertes push et e-mail', tr: 'Push ve e-posta uyarıları' },
+        'kyc_verification': { ar: 'التحقق من الهوية', de: 'Identitätsverifizierung', fr: 'Vérification d\'identité', tr: 'Kimlik Doğrulaması' },
+        'kyc_detail': { ar: 'تحقق من هويتك', de: 'Identität verifizieren', fr: 'Vérifier votre identité', tr: 'Kimliğinizi doğrulayın' },
+        'kyc_pending': { ar: 'بانتظار التحقق', de: 'Ausstehende Verifizierung', fr: 'Vérification en attente', tr: 'Doğrulama Bekliyor' },
+        'about_nammerha': { ar: 'حول نمّرها', de: 'Über Nammerha', fr: 'À propos de Nammerha', tr: 'Nammerha Hakkında' },
+        'ocds_certified': { ar: 'معتمد OCDS', de: 'OCDS-zertifiziert', fr: 'Certifié OCDS', tr: 'OCDS Sertifikalı' },
+        'sign_out': { ar: 'تسجيل خروج', de: 'Abmelden', fr: 'Déconnexion', tr: 'Çıkış Yap' },
 
-        // Requests tab
-        'tp_no_requests': { ar: 'لا توجد طلبات مطابقة لتخصصك', de: 'Keine passenden Anfragen', fr: 'Aucune demande correspondante', tr: 'Mesleğinize uygun talep yok' },
-        'tp_new_requests_auto': { ar: 'ستظهر الطلبات الجديدة هنا تلقائياً', de: 'Neue Anfragen erscheinen automatisch', fr: 'Les nouvelles demandes apparaîtront ici', tr: 'Yeni talepler burada otomatik görünecek' },
-        'tp_no_description': { ar: 'بدون وصف', de: 'Keine Beschreibung', fr: 'Pas de description', tr: 'Açıklama yok' },
-        'tp_budget': { ar: 'الميزانية', de: 'Budget', fr: 'Budget', tr: 'Bütçe' },
-        'tp_accept_job': { ar: 'قبول العمل', de: 'Auftrag annehmen', fr: 'Accepter le travail', tr: 'İşi Kabul Et' },
-        'tp_accepting': { ar: 'جارٍ القبول...', de: 'Wird angenommen...', fr: 'Acceptation...', tr: 'Kabul ediliyor...' },
-        'tp_accepted': { ar: '✓ تم القبول', de: '✓ Angenommen', fr: '✓ Accepté', tr: '✓ Kabul Edildi' },
+        // ═══ AUTH PAGE ═══
+        'auth_welcome': { ar: 'أهلاً بك في نمّرها', de: 'Willkommen bei Nammerha', fr: 'Bienvenue sur Nammerha', tr: 'Nammerha\'ya Hoş Geldiniz' },
+        'auth_subtitle': { ar: 'منصة إعادة الإعمار الشفافة', de: 'Transparente Wiederaufbauplattform', fr: 'Plateforme de reconstruction transparente', tr: 'Şeffaf Yeniden Yapım Platformu' },
+        'tab_login': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Connexion', tr: 'Giriş' },
+        'tab_register': { ar: 'إنشاء حساب', de: 'Registrieren', fr: 'Inscription', tr: 'Kayıt Ol' },
+        'email_label': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
+        'password_label': { ar: 'كلمة المرور', de: 'Passwort', fr: 'Mot de passe', tr: 'Şifre' },
+        'full_name_label': { ar: 'الاسم الكامل', de: 'Vollständiger Name', fr: 'Nom complet', tr: 'Ad Soyad' },
+        'select_role': { ar: 'اختر دورك', de: 'Rolle auswählen', fr: 'Choisir votre rôle', tr: 'Rolünüzü seçin' },
+        'role_homeowner': { ar: 'صاحب منزل', de: 'Hauseigentümer', fr: 'Propriétaire', tr: 'Ev Sahibi' },
+        'role_donor': { ar: 'مانح', de: 'Spender', fr: 'Donateur', tr: 'Bağışçı' },
+        'role_engineer': { ar: 'مهندس', de: 'Ingenieur', fr: 'Ingénieur', tr: 'Mühendis' },
+        'role_supplier': { ar: 'مورد', de: 'Lieferant', fr: 'Fournisseur', tr: 'Tedarikçi' },
+        'btn_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
+        'btn_create_account': { ar: 'إنشاء حساب', de: 'Konto erstellen', fr: 'Créer un compte', tr: 'Hesap Oluştur' },
 
-        // Assignments tab
-        'tp_no_assignments': { ar: 'لا توجد مهام من المقاولين', de: 'Keine Auftragnehmer-Aufgaben', fr: 'Aucune mission de sous-traitance', tr: 'Müteahhit görevi yok' },
-        'Accept': { ar: 'قبول', de: 'Annehmen', fr: 'Accepter', tr: 'Kabul' },
-        'Decline': { ar: 'رفض', de: 'Ablehnen', fr: 'Refuser', tr: 'Reddet' },
+        // ═══ LEGAL PAGES — Headings ═══
+        'terms_title': { ar: 'شروط الخدمة', de: 'Nutzungsbedingungen', fr: 'Conditions d\'utilisation', tr: 'Kullanım Şartları' },
+        'privacy_title': { ar: 'سياسة الخصوصية', de: 'Datenschutzrichtlinie', fr: 'Politique de confidentialité', tr: 'Gizlilik Politikası' },
+        'tos_acceptance': { ar: '1. قبول الشروط', de: '1. Annahme der Bedingungen', fr: '1. Acceptation des conditions', tr: '1. Şartların Kabulü' },
+        'tos_accounts': { ar: '2. حسابات المستخدمين', de: '2. Benutzerkonten', fr: '2. Comptes utilisateurs', tr: '2. Kullanıcı Hesapları' },
+        'tos_escrow': { ar: '3. الضمان والمدفوعات', de: '3. Treuhand & Zahlungen', fr: '3. Entiercement & Paiements', tr: '3. Emanet & Ödemeler' },
+        'tos_data': { ar: '4. البيانات والخصوصية', de: '4. Daten & Datenschutz', fr: '4. Données & Confidentialité', tr: '4. Veri & Gizlilik' },
+        'tos_ocds': { ar: '5. التوافق مع OCDS', de: '5. OCDS-Konformität', fr: '5. Conformité OCDS', tr: '5. OCDS Uyumu' },
+        'tos_liability': { ar: '6. حدود المسؤولية', de: '6. Haftungsbeschränkung', fr: '6. Limitation de responsabilité', tr: '6. Sorumluluk Sınırlaması' },
+        'tos_governing': { ar: '7. القانون الحاكم', de: '7. Geltendes Recht', fr: '7. Droit applicable', tr: '7. Geçerli Hukuk' },
+        'pp_intro': { ar: '1. مقدمة', de: '1. Einleitung', fr: '1. Introduction', tr: '1. Giriş' },
+        'pp_collection': { ar: '2. المعلومات التي نجمعها', de: '2. Erfasste Informationen', fr: '2. Informations collectées', tr: '2. Topladığımız Bilgiler' },
+        'pp_use': { ar: '3. كيف نستخدم بياناتك', de: '3. Verwendung Ihrer Daten', fr: '3. Utilisation de vos données', tr: '3. Verilerinizi Nasıl Kullanırız' },
+        'pp_security': { ar: '4. أمن البيانات', de: '4. Datensicherheit', fr: '4. Sécurité des données', tr: '4. Veri Güvenliği' },
+        'pp_retention': { ar: '5. الاحتفاظ بالبيانات', de: '5. Datenaufbewahrung', fr: '5. Conservation des données', tr: '5. Veri Saklama' },
+        'pp_rights': { ar: '6. حقوقك', de: '6. Ihre Rechte', fr: '6. Vos droits', tr: '6. Haklarınız' },
 
-        // Earnings tab
-        'tp_no_earnings': { ar: 'لا توجد أرباح بعد', de: 'Noch keine Einnahmen', fr: 'Aucun revenu pour le moment', tr: 'Henüz kazanç yok' },
-        'tp_contractor_type': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
-        'tp_direct_type': { ar: 'مباشر', de: 'Direkt', fr: 'Direct', tr: 'Doğrudan' },
+        // ═══ LEGAL PAGES — Terms of Service Body Content ═══
+        'tos_last_updated': { ar: 'آخر تحديث: مارس 2026', de: 'Letzte Aktualisierung: März 2026', fr: 'Dernière mise à jour : mars 2026', tr: 'Son güncelleme: Mart 2026' },
+        'tos_acceptance_body': {
+            ar: 'بوصولك إلى منصة نمّرها ("المنصة") أو استخدامها، فإنك توافق على الالتزام بشروط الخدمة هذه. المنصة هي سوق إعادة إعمار متوافق مع معيار البيانات المفتوحة للتعاقد (OCDS) وتُشغَّل لتسهيل إعادة البناء المجتمعي الشفاف في سوريا.',
+            de: 'Durch den Zugriff auf oder die Nutzung der Nammerha-Plattform („Plattform") erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Die Plattform ist ein OCDS-konformer Wiederaufbaumarktplatz, der den transparenten, gemeinschaftsorientierten Wiederaufbau in Syrien ermöglicht.',
+            fr: 'En accédant ou en utilisant la plateforme Nammerha (« Plateforme »), vous acceptez d\'être lié par les présentes Conditions d\'utilisation. La Plateforme est un marché de reconstruction conforme à l\'OCDS, exploité pour faciliter la reconstruction communautaire transparente en Syrie.',
+            tr: 'Nammerha platformuna ("Platform") erişerek veya kullanarak bu Kullanım Şartlarına bağlı olmayı kabul edersiniz. Platform, Suriye\'de şeffaf, toplum odaklı yeniden yapılanmayı kolaylaştırmak amacıyla işletilen OCDS uyumlu bir yeniden yapım pazaryeridir.'
+        },
+        'tos_accounts_body_1': {
+            ar: 'يجب عليك التسجيل للحصول على حساب وإتمام التحقق من الهوية (KYC) للمشاركة في أنشطة التمويل أو الهندسة أو سلسلة التوريد. أنت مسؤول عن الحفاظ على سرية بيانات اعتماد حسابك.',
+            de: 'Sie müssen sich für ein Konto registrieren und die KYC-Verifizierung abschließen, um an Finanzierungs-, Ingenieur- oder Lieferkettenaktivitäten teilzunehmen. Sie sind für die Vertraulichkeit Ihrer Kontodaten verantwortlich.',
+            fr: 'Vous devez créer un compte et compléter la vérification KYC pour participer aux activités de financement, d\'ingénierie ou de chaîne d\'approvisionnement. Vous êtes responsable de la confidentialité de vos identifiants.',
+            tr: 'Finansman, mühendislik veya tedarik zinciri faaliyetlerine katılmak için bir hesap açmanız ve KYC doğrulamasını tamamlamanız gerekmektedir. Hesap bilgilerinizin gizliliğini korumaktan siz sorumlusunuz.'
+        },
+        'tos_accounts_body_2': {
+            ar: 'الحسابات مبنية على الأدوار: صاحب منزل، مانح، مهندس، أو مورّد. لكل دور أذونات والتزامات محددة كما تحددها المنصة.',
+            de: 'Konten sind rollenbasiert: Hauseigentümer, Spender, Ingenieur oder Lieferant. Jede Rolle hat spezifische Berechtigungen und Pflichten, die von der Plattform definiert werden.',
+            fr: 'Les comptes sont basés sur des rôles : Propriétaire, Donateur, Ingénieur ou Fournisseur. Chaque rôle dispose de permissions et d\'obligations spécifiques définies par la Plateforme.',
+            tr: 'Hesaplar rol tabanlıdır: Ev Sahibi, Bağışçı, Mühendis veya Tedarikçi. Her rolün Platform tarafından belirlenen özel izinleri ve yükümlülükleri vardır.'
+        },
+        'tos_escrow_body_1': {
+            ar: 'تُحتفظ بجميع التبرعات في حساب ضمان حتى يتم تأكيد تسليم المواد عبر إثباتات مكانية مُوثَّقة بنظام GPS. تُحرَّر الأموال فقط بعد تحقق المهندس وتقديم أدلة مصوّرة.',
+            de: 'Alle Spenden werden auf einem Treuhandkonto gehalten, bis die verifizierte Lieferung der Materialien durch GPS-verifizierte räumliche Nachweise bestätigt wird. Gelder werden nur nach Ingenieurverifizierung und fotografischem Nachweis freigegeben.',
+            fr: 'Tous les dons sont détenus sous séquestre jusqu\'à ce que la livraison vérifiée des matériaux soit confirmée par des preuves spatiales vérifiées par GPS. Les fonds ne sont libérés qu\'après vérification de l\'ingénieur et preuve photographique.',
+            tr: 'Tüm bağışlar, malzemelerin GPS doğrulamalı mekansal kanıtlarla teyit edilmiş teslimatına kadar emanette tutulur. Fonlar yalnızca mühendis doğrulaması ve fotoğrafik kanıt ile serbest bırakılır.'
+        },
+        'tos_escrow_body_2': {
+            ar: 'تُخزَّن جميع القيم النقدية كأعداد صحيحة (سنتات) لضمان الدقة المالية. تستخدم المنصة حسابات BIGINT لمنع أخطاء التقريب في جميع معاملات الضمان.',
+            de: 'Alle Geldwerte werden als Ganzzahlen (Cent) gespeichert, um finanzielle Präzision zu gewährleisten. Die Plattform verwendet BIGINT-Arithmetik, um Rundungsfehler bei allen Treuhandtransaktionen zu vermeiden.',
+            fr: 'Toutes les valeurs monétaires sont stockées en nombres entiers (centimes) pour garantir la précision financière. La Plateforme utilise l\'arithmétique BIGINT pour éviter les erreurs d\'arrondi sur toutes les transactions de séquestre.',
+            tr: 'Tüm parasal değerler, finansal hassasiyeti sağlamak için tam sayılar (kuruş) olarak saklanır. Platform, tüm emanet işlemlerinde yuvarlama hatalarını önlemek için BIGINT aritmetiği kullanır.'
+        },
+        'tos_data_body': {
+            ar: 'يخضع استخدامك للمنصة أيضاً لسياسة الخصوصية الخاصة بنا. نجمع بيانات KYC وإحداثيات GPS وبيانات المعاملات لضمان المساءلة ومنع الاحتيال.',
+            de: 'Ihre Nutzung der Plattform unterliegt auch unserer Datenschutzrichtlinie. Wir erheben KYC-Daten, GPS-Koordinaten und Transaktionsdaten, um Rechenschaftspflicht zu gewährleisten und Betrug zu verhindern.',
+            fr: 'Votre utilisation de la Plateforme est également régie par notre Politique de confidentialité. Nous collectons des données KYC, des coordonnées GPS et des données transactionnelles pour assurer la responsabilité et prévenir la fraude.',
+            tr: 'Platform kullanımınız ayrıca Gizlilik Politikamıza tabidir. Hesap verebilirliği sağlamak ve dolandırıcılığı önlemek için KYC verileri, GPS koordinatları ve işlem verileri topluyoruz.'
+        },
+        'tos_privacy_link': { ar: 'سياسة الخصوصية', de: 'Datenschutzrichtlinie', fr: 'Politique de confidentialité', tr: 'Gizlilik Politikası' },
+        'tos_ocds_body': {
+            ar: 'تلتزم المنصة بمعيار البيانات المفتوحة للتعاقد (OCDS). تُنشر جميع أنشطة الشراء وبيانات التسعير وتقدم المشاريع بشفافية ويمكن تدقيقها بشكل مستقل.',
+            de: 'Die Plattform entspricht dem Open Contracting Data Standard. Alle Beschaffungsaktivitäten, Preisdaten und Projektfortschritte werden transparent veröffentlicht und können unabhängig geprüft werden.',
+            fr: 'La Plateforme adhère au Standard de Données Ouvertes de la Commande Publique. Toutes les activités d\'approvisionnement, données tarifaires et avancements de projets sont publiés de manière transparente et auditables indépendamment.',
+            tr: 'Platform, Açık İhale Veri Standardına (OCDS) uygundur. Tüm tedarik faaliyetleri, fiyatlama verileri ve proje ilerlemeleri şeffaf bir şekilde yayınlanır ve bağımsız olarak denetlenebilir.'
+        },
+        'tos_liability_body': {
+            ar: 'توفر المنصة البنية التحتية التقنية لربط أصحاب المصلحة. نحن غير مسؤولين عن جودة أعمال البناء أو عيوب المواد أو النزاعات بين الأطراف بخلاف آلية الضمان المقدمة.',
+            de: 'Die Plattform stellt technologische Infrastruktur zur Verbindung von Interessengruppen bereit. Wir haften nicht für die Qualität der Bauarbeiten, Materialfehler oder Streitigkeiten zwischen den Parteien über den bereitgestellten Treuhandmechanismus hinaus.',
+            fr: 'La Plateforme fournit l\'infrastructure technologique pour connecter les parties prenantes. Nous ne sommes pas responsables de la qualité des travaux de construction, des défauts de matériaux ou des litiges entre les parties au-delà du mécanisme de séquestre fourni.',
+            tr: 'Platform, paydaşları birbirine bağlamak için teknoloji altyapısı sağlar. Sağlanan emanet mekanizması dışındaki inşaat kalitesi, malzeme kusurları veya taraflar arasındaki anlaşmazlıklardan sorumlu değiliz.'
+        },
+        'tos_governing_body': {
+            ar: 'تخضع هذه الشروط وتُفسَّر وفقاً للقانون الإنساني الدولي المعمول به وقوانين الولاية القضائية التي تأسست فيها نمّرها.',
+            de: 'Diese Bedingungen unterliegen dem geltenden internationalen humanitären Recht und den Gesetzen der Gerichtsbarkeit, in der Nammerha eingetragen ist, und werden danach ausgelegt.',
+            fr: 'Les présentes Conditions sont régies et interprétées conformément au droit international humanitaire applicable et aux lois de la juridiction dans laquelle Nammerha est constituée.',
+            tr: 'Bu Şartlar, yürürlükteki uluslararası insancıl hukuk ve Nammerha\'nın kurulduğu yargı alanının yasalarına göre yönetilir ve yorumlanır.'
+        },
+        'tos_trust_badge': {
+            ar: 'تضمن هذه الشروط الشفافية وتحمي جميع أصحاب المصلحة في عملية إعادة الإعمار.',
+            de: 'Diese Bedingungen gewährleisten Transparenz und schützen alle Beteiligten im Wiederaufbauprozess.',
+            fr: 'Ces conditions garantissent la transparence et protègent toutes les parties prenantes du processus de reconstruction.',
+            tr: 'Bu şartlar şeffaflığı sağlar ve yeniden yapım sürecindeki tüm paydaşları korur.'
+        },
 
-        // Profile labels
-        'Name': { ar: 'الاسم', de: 'Name', fr: 'Nom', tr: 'İsim' },
-        'Primary Trade': { ar: 'التخصص الأساسي', de: 'Haupthandwerk', fr: 'Métier principal', tr: 'Ana Meslek' },
-        'Experience': { ar: 'الخبرة', de: 'Erfahrung', fr: 'Expérience', tr: 'Deneyim' },
-        'Hourly Rate': { ar: 'الأجر بالساعة', de: 'Stundensatz', fr: 'Taux horaire', tr: 'Saatlik Ücret' },
-        'Daily Rate': { ar: 'الأجر اليومي', de: 'Tagessatz', fr: 'Taux journalier', tr: 'Günlük Ücret' },
-        'Dynamic Score': { ar: 'النقاط الديناميكية', de: 'Dynamische Bewertung', fr: 'Score dynamique', tr: 'Dinamik Puan' },
-        'Jobs Completed': { ar: 'الأعمال المنجزة', de: 'Erledigte Aufträge', fr: 'Travaux terminés', tr: 'Tamamlanan İşler' },
-        'Rating': { ar: 'التقييم', de: 'Bewertung', fr: 'Évaluation', tr: 'Değerlendirme' },
-        'tp_no_ratings': { ar: 'لا توجد تقييمات بعد', de: 'Noch keine Bewertungen', fr: 'Pas encore d\'évaluations', tr: 'Henüz değerlendirme yok' },
-        'Availability': { ar: 'التوفر', de: 'Verfügbarkeit', fr: 'Disponibilité', tr: 'Uygunluk' },
+        // ═══ LEGAL PAGES — Privacy Policy Body Content ═══
+        'pp_last_updated': { ar: 'آخر تحديث: مارس 2026', de: 'Letzte Aktualisierung: März 2026', fr: 'Dernière mise à jour : mars 2026', tr: 'Son güncelleme: Mart 2026' },
+        'pp_intro_body': {
+            ar: 'تلتزم نمّرها ("نحن"، "لنا"، "المنصة") بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمعنا واستخدامنا والكشف عن معلوماتك وحمايتها عند استخدامك لسوق إعادة الإعمار المتوافق مع OCDS.',
+            de: 'Nammerha („wir", „unser", „Plattform") ist dem Schutz Ihrer Privatsphäre verpflichtet. Diese Datenschutzrichtlinie erläutert, wie wir Ihre Informationen erfassen, verwenden, offenlegen und schützen, wenn Sie unseren OCDS-konformen Wiederaufbaumarktplatz nutzen.',
+            fr: 'Nammerha (« nous », « notre », « Plateforme ») s\'engage à protéger votre vie privée. Cette Politique de confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre marché de reconstruction conforme à l\'OCDS.',
+            tr: 'Nammerha ("biz", "bizim", "Platform") gizliliğinizi korumaya kararlıdır. Bu Gizlilik Politikası, OCDS uyumlu yeniden yapım pazaryerimizi kullandığınızda bilgilerinizi nasıl topladığımızı, kullandığımızı, ifşa ettiğimizi ve koruduğumuzu açıklar.'
+        },
+        'pp_data_identity': { ar: 'بيانات الهوية', de: 'Identitätsdaten', fr: 'Données d\'identité', tr: 'Kimlik Verileri' },
+        'pp_data_identity_detail': {
+            ar: 'الاسم الكامل، البريد الإلكتروني، الدور، ووثائق التحقق من الهوية (هوية حكومية، إثبات عنوان).',
+            de: 'Vollständiger Name, E-Mail, Rolle und KYC-Dokumente (amtlicher Ausweis, Adressnachweis).',
+            fr: 'Nom complet, e-mail, rôle et documents KYC (pièce d\'identité gouvernementale, justificatif de domicile).',
+            tr: 'Tam ad, e-posta, rol ve KYC belgeleri (resmi kimlik, adres kanıtı).'
+        },
+        'pp_data_location': { ar: 'بيانات الموقع', de: 'Standortdaten', fr: 'Données de localisation', tr: 'Konum Verileri' },
+        'pp_data_location_detail': {
+            ar: 'إحداثيات GPS للإثباتات المكانية والتحقق من التسليم.',
+            de: 'GPS-Koordinaten für räumliche Nachweise und Lieferverifizierung.',
+            fr: 'Coordonnées GPS pour les preuves spatiales et la vérification de livraison.',
+            tr: 'Mekansal kanıtlar ve teslimat doğrulaması için GPS koordinatları.'
+        },
+        'pp_data_financial': { ar: 'البيانات المالية', de: 'Finanzdaten', fr: 'Données financières', tr: 'Finansal Veriler' },
+        'pp_data_financial_detail': {
+            ar: 'مبالغ التبرعات، معاملات الضمان، وبيانات وسيلة الدفع.',
+            de: 'Spendenbeträge, Treuhandtransaktionen und Zahlungsmethode-Metadaten.',
+            fr: 'Montants des dons, transactions de séquestre et métadonnées de mode de paiement.',
+            tr: 'Bağış tutarları, emanet işlemleri ve ödeme yöntemi meta verileri.'
+        },
+        'pp_data_device': { ar: 'بيانات الجهاز', de: 'Gerätedaten', fr: 'Données de l\'appareil', tr: 'Cihaz Verileri' },
+        'pp_data_device_detail': {
+            ar: 'نوع المتصفح، عنوان IP، وبيانات الجهاز لمنع الاحتيال.',
+            de: 'Browsertyp, IP-Adresse, Gerätemetadaten zur Betrugsprävention.',
+            fr: 'Type de navigateur, adresse IP, métadonnées d\'appareil pour la prévention de la fraude.',
+            tr: 'Tarayıcı türü, IP adresi, dolandırıcılık önleme için cihaz meta verileri.'
+        },
+        'pp_use_kyc': {
+            ar: 'للتحقق من هويتك ومنع الاحتيال (الامتثال لـ KYC)',
+            de: 'Um Ihre Identität zu verifizieren und Betrug zu verhindern (KYC-Compliance)',
+            fr: 'Pour vérifier votre identité et prévenir la fraude (conformité KYC)',
+            tr: 'Kimliğinizi doğrulamak ve dolandırıcılığı önlemek için (KYC uyumu)'
+        },
+        'pp_use_donations': {
+            ar: 'لمعالجة التبرعات وإدارة معاملات الضمان',
+            de: 'Um Spenden zu verarbeiten und Treuhandtransaktionen zu verwalten',
+            fr: 'Pour traiter les dons et gérer les transactions de séquestre',
+            tr: 'Bağışları işlemek ve emanet işlemlerini yönetmek için'
+        },
+        'pp_use_delivery': {
+            ar: 'للتحقق من تسليم المواد عبر إثباتات مصوّرة بطابع GPS',
+            de: 'Um die Materiallieferung durch GPS-gestempelte fotografische Nachweise zu verifizieren',
+            fr: 'Pour vérifier la livraison des matériaux par des preuves photographiques horodatées GPS',
+            tr: 'Malzeme teslimatını GPS damgalı fotoğrafik kanıtlarla doğrulamak için'
+        },
+        'pp_use_ocds': {
+            ar: 'لنشر بيانات الشراء الشفافة وفق معايير OCDS',
+            de: 'Um transparente Beschaffungsdaten nach OCDS-Standards zu veröffentlichen',
+            fr: 'Pour publier des données d\'approvisionnement transparentes selon les standards OCDS',
+            tr: 'OCDS standartları kapsamında şeffaf tedarik verilerini yayınlamak için'
+        },
+        'pp_use_audit': {
+            ar: 'لإنشاء سجلات تدقيق للمساءلة والامتثال القانوني',
+            de: 'Um Prüfprotokolle für Rechenschaftspflicht und rechtliche Compliance zu erstellen',
+            fr: 'Pour générer des pistes d\'audit pour la responsabilité et la conformité juridique',
+            tr: 'Hesap verebilirlik ve yasal uyum için denetim izleri oluşturmak için'
+        },
+        'pp_security_body': {
+            ar: 'نطبّق تدابير أمنية وفق أعلى المعايير الصناعية تشمل:',
+            de: 'Wir implementieren branchenübliche Sicherheitsmaßnahmen, darunter:',
+            fr: 'Nous mettons en œuvre des mesures de sécurité conformes aux normes de l\'industrie, notamment :',
+            tr: 'Aşağıdakileri içeren endüstri standardı güvenlik önlemleri uyguluyoruz:'
+        },
+        'pp_sec_tls': { ar: 'تشفير TLS 1.3', de: 'TLS 1.3 Verschlüsselung', fr: 'Chiffrement TLS 1.3', tr: 'TLS 1.3 Şifreleme' },
+        'pp_sec_hash': { ar: 'بصمة SHA-256 للصور', de: 'SHA-256 Bild-Hash', fr: 'Hachage SHA-256 des images', tr: 'SHA-256 Görsel Doğrulaması' },
+        'pp_sec_jwt': { ar: 'رموز مصادقة JWT', de: 'JWT-Auth-Tokens', fr: 'Jetons d\'authentification JWT', tr: 'JWT Kimlik Doğrulama' },
+        'pp_sec_sql': { ar: 'استعلامات SQL مُعلَمَة', de: 'Parametrisiertes SQL', fr: 'SQL paramétré', tr: 'Parametrik SQL' },
+        'pp_retention_body': {
+            ar: 'نحتفظ ببياناتك طالما أن حسابك نشط وحسبما تقتضيه القوانين المعمول بها. تُحتفظ بالبيانات المالية وسجلات التدقيق بشكل دائم للامتثال لمعيار OCDS والمساءلة. يمكنك طلب حذف البيانات غير الضرورية عبر التواصل معنا.',
+            de: 'Wir speichern Ihre Daten, solange Ihr Konto aktiv ist und wie es das geltende Recht erfordert. Finanz- und Prüfpfaddaten werden zur OCDS-Compliance und Rechenschaftspflicht dauerhaft aufbewahrt. Sie können die Löschung nicht wesentlicher Daten beantragen, indem Sie uns kontaktieren.',
+            fr: 'Nous conservons vos données aussi longtemps que votre compte est actif et comme l\'exigent les lois applicables. Les données financières et les pistes d\'audit sont conservées de manière permanente pour la conformité OCDS et la responsabilité. Vous pouvez demander la suppression des données non essentielles en nous contactant.',
+            tr: 'Hesabınız aktif olduğu sürece ve yürürlükteki yasaların gerektirdiği şekilde verilerinizi saklıyoruz. Finansal ve denetim izi verileri, OCDS uyumu ve hesap verebilirlik için kalıcı olarak saklanır. Bizimle iletişime geçerek zorunlu olmayan verilerin silinmesini talep edebilirsiniz.'
+        },
+        'pp_rights_body': {
+            ar: 'لديك الحق في الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها. يمكنك سحب الموافقة على معالجة البيانات في أي وقت، مع مراعاة الالتزامات القانونية والتعاقدية. تواصل معنا عبر privacy@nammerha.org.',
+            de: 'Sie haben das Recht, auf Ihre personenbezogenen Daten zuzugreifen, sie zu korrigieren oder zu löschen. Sie können Ihre Einwilligung zur Datenverarbeitung jederzeit widerrufen, vorbehaltlich gesetzlicher und vertraglicher Verpflichtungen. Kontaktieren Sie uns unter privacy@nammerha.org.',
+            fr: 'Vous avez le droit d\'accéder à vos données personnelles, de les corriger ou de les supprimer. Vous pouvez retirer votre consentement au traitement des données à tout moment, sous réserve des obligations légales et contractuelles. Contactez-nous à privacy@nammerha.org.',
+            tr: 'Kişisel verilerinize erişme, düzeltme veya silme hakkınız vardır. Yasal ve sözleşmesel yükümlülüklere tabi olarak, veri işleme onayınızı istediğiniz zaman geri çekebilirsiniz. privacy@nammerha.org adresinden bize ulaşın.'
+        },
+        'pp_trust_badge': {
+            ar: 'بياناتك محمية بتشفير وفق أعلى المعايير الصناعية ولن تُباع لأطراف ثالثة أبداً.',
+            de: 'Ihre Daten sind durch branchenübliche Verschlüsselung geschützt und werden niemals an Dritte verkauft.',
+            fr: 'Vos données sont protégées par un chiffrement conforme aux normes de l\'industrie et ne sont jamais vendues à des tiers.',
+            tr: 'Verileriniz endüstri standardı şifreleme ile korunur ve asla üçüncü taraflara satılmaz.'
+        },
 
-        // Time expressions
-        'tp_just_now': { ar: 'الآن', de: 'Gerade eben', fr: 'À l\'instant', tr: 'Az önce' },
-        'tp_hours_ago': { ar: 'ساعة مضت', de: 'Stunden her', fr: 'heures', tr: 'saat önce' },
-        'tp_days_ago': { ar: 'يوم مضى', de: 'Tage her', fr: 'jours', tr: 'gün önce' },
+        // ═══ FUND NOW BUTTON ═══
+        'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
 
-        // Error states
-        'failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
-        'tp_failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
-        'tp_failed_profile': { ar: 'فشل في تحميل الملف الشخصي', de: 'Profil konnte nicht geladen werden', fr: 'Échec du chargement du profil', tr: 'Profil yüklenemedi' },
+        // ═══ INTERACTIVE MAP ═══
+        // Filter Controls (map-controls.ts)
+        'filter_all': { ar: 'الكل', de: 'Alle', fr: 'Tout', tr: 'Tümü' },
+        'filter_needs_funding': { ar: 'بحاجة لتمويل', de: 'Finanzierung benötigt', fr: 'Besoin de financement', tr: 'Finansman Gerekli' },
+        'filter_in_progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        'filter_completed': { ar: 'مكتمل', de: 'Abgeschlossen', fr: 'Terminé', tr: 'Tamamlandı' },
 
-        // ═══ AUTH PAGE (PLT-AUD-010 FIX) ═══
-        'auth_signing_in': { ar: 'جارٍ تسجيل الدخول...', de: 'Wird angemeldet...', fr: 'Connexion en cours...', tr: 'Giriş yapılıyor...' },
-        'auth_creating_account': { ar: 'جارٍ إنشاء الحساب...', de: 'Konto wird erstellt...', fr: 'Création du compte...', tr: 'Hesap oluşturuluyor...' },
-        'auth_welcome_back': { ar: 'أهلاً بعودتك! جارٍ التحويل...', de: 'Willkommen zurück! Weiterleitung...', fr: 'Bon retour ! Redirection...', tr: 'Tekrar hoş geldiniz! Yönlendiriliyor...' },
-        'auth_enter_email_password': { ar: 'يرجى إدخال البريد الإلكتروني وكلمة المرور.', de: 'Bitte E-Mail und Passwort eingeben.', fr: 'Veuillez entrer votre e-mail et mot de passe.', tr: 'Lütfen e-posta ve şifrenizi girin.' },
-        'auth_network_error': { ar: 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.', de: 'Netzwerkfehler. Bitte versuchen Sie es erneut.', fr: 'Erreur réseau. Veuillez réessayer.', tr: 'Ağ hatası. Lütfen tekrar deneyin.' },
-        'auth_login_failed': { ar: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.', de: 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.', fr: 'Échec de la connexion. Veuillez réessayer.', tr: 'Giriş başarısız. Lütfen tekrar deneyin.' },
-        'auth_reg_success': { ar: 'تم إنشاء الحساب! يرجى التحقق من بريدك الإلكتروني.', de: 'Konto erstellt! Bitte prüfen Sie Ihre E-Mail.', fr: 'Compte créé ! Vérifiez votre e-mail.', tr: 'Hesap oluşturuldu! E-postanızı kontrol edin.' },
-        'auth_reg_failed': { ar: 'فشل التسجيل. يرجى المحاولة مرة أخرى.', de: 'Registrierung fehlgeschlagen.', fr: 'Échec de l\'inscription.', tr: 'Kayıt başarısız.' },
-        'auth_select_role': { ar: 'يرجى اختيار الدور.', de: 'Bitte eine Rolle auswählen.', fr: 'Veuillez sélectionner un rôle.', tr: 'Lütfen bir rol seçin.' },
-        'auth_password_weak': { ar: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل مع حرف كبير ورقم وحرف خاص.', de: 'Passwort muss mindestens 8 Zeichen mit Großbuchstabe, Zahl und Sonderzeichen enthalten.', fr: 'Le mot de passe doit contenir au moins 8 caractères avec majuscule, chiffre et caractère spécial.', tr: 'Şifre en az 8 karakter, büyük harf, rakam ve özel karakter içermelidir.' },
-        'auth_forgot_enter_email': { ar: 'يرجى إدخال بريدك الإلكتروني أولاً.', de: 'Bitte geben Sie zuerst Ihre E-Mail ein.', fr: 'Veuillez d\'abord entrer votre e-mail.', tr: 'Lütfen önce e-postanızı girin.' },
-        'auth_forgot_sending': { ar: 'جارٍ الإرسال...', de: 'Wird gesendet...', fr: 'Envoi en cours...', tr: 'Gönderiliyor...' },
-        'auth_forgot_link_text': { ar: 'هل نسيت كلمة المرور؟', de: 'Passwort vergessen?', fr: 'Mot de passe oublié ?', tr: 'Şifrenizi mi unuttunuz?' },
-        'auth_reset_resetting': { ar: 'جارٍ إعادة التعيين...', de: 'Wird zurückgesetzt...', fr: 'Réinitialisation...', tr: 'Sıfırlanıyor...' },
-        'auth_passwords_mismatch': { ar: 'كلمات المرور غير متطابقة.', de: 'Passwörter stimmen nicht überein.', fr: 'Les mots de passe ne correspondent pas.', tr: 'Şifreler uyuşmuyor.' },
+        // Marker Popup Labels (map-markers.ts)
+        'map_funded': { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
+        'map_view_project': { ar: 'عرض المشروع ←', de: 'Projekt ansehen →', fr: 'Voir le projet →', tr: 'Projeyi Görüntüle →' },
+
+        // Status Badges
+        'map_status_needs_funding': { ar: '🟡 بحاجة لتمويل', de: '🟡 Finanzierung benötigt', fr: '🟡 Besoin de financement', tr: '🟡 Finansman Gerekli' },
+        'map_status_in_progress': { ar: '🔵 قيد التنفيذ', de: '🔵 In Bearbeitung', fr: '🔵 En cours', tr: '🔵 Devam Ediyor' },
+        'map_status_completed': { ar: '🟢 مكتمل', de: '🟢 Abgeschlossen', fr: '🟢 Terminé', tr: '🟢 Tamamlandı' },
+
+        // Stats Overlay (homepage-map.ts)
+        'map_loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
+        'map_active_projects_count': { ar: '{count} مشروع نشط', de: '{count} aktive Projekte', fr: '{count} projets actifs', tr: '{count} Aktif Proje' },
+
+        // Syrian Governorate Names (region resolver)
+        'map_region_syria': { ar: 'سوريا', de: 'Syrien', fr: 'Syrie', tr: 'Suriye' },
+        'map_region_damascus': { ar: 'دمشق', de: 'Damaskus', fr: 'Damas', tr: 'Şam' },
+        'map_region_aleppo': { ar: 'حلب', de: 'Aleppo', fr: 'Alep', tr: 'Halep' },
+        'map_region_homs': { ar: 'حمص', de: 'Homs', fr: 'Homs', tr: 'Humus' },
+        'map_region_hama': { ar: 'حماة', de: 'Hama', fr: 'Hama', tr: 'Hama' },
+        'map_region_lattakia': { ar: 'اللاذقية', de: 'Latakia', fr: 'Lattaquié', tr: 'Lazkiye' },
+        'map_region_deir_ez_zor': { ar: 'دير الزور', de: 'Deir ez-Zor', fr: 'Deir ez-Zor', tr: 'Deyrizor' },
+        'map_region_raqqa': { ar: 'الرقة', de: 'ar-Raqqa', fr: 'Raqqa', tr: 'Rakka' },
+        'map_region_daraa': { ar: 'درعا', de: 'Daraa', fr: 'Daraa', tr: 'Dera' },
+        'map_region_idlib': { ar: 'إدلب', de: 'Idlib', fr: 'Idleb', tr: 'İdlib' },
+        'map_region_hasakah': { ar: 'الحسكة', de: 'al-Hasaka', fr: 'Hassaké', tr: 'Haseke' },
+
+        // ═══ AUTH PAGE — MISSING KEYS (Screenshot-visible) ═══
+        'sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Connexion', tr: 'Giriş' },
+        'create_account': { ar: 'إنشاء حساب', de: 'Registrieren', fr: 'Inscription', tr: 'Kayıt Ol' },
+        'sign_in_btn': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
+        'create_account_btn': { ar: 'إنشاء حساب', de: 'Konto erstellen', fr: 'Créer un compte', tr: 'Hesap Oluştur' },
+        'your_role': { ar: 'اختر دورك', de: 'Ihre Rolle', fr: 'Votre rôle', tr: 'Rolünüz' },
+        'pw_requirements': { ar: '+٨ أحرف، حرف كبير، رقم', de: '8+ Zeichen, 1 Großbuchstabe, 1 Zahl', fr: '8+ car., 1 majuscule, 1 chiffre', tr: '8+ karakter, 1 büyük harf, 1 rakam' },
+        'forgot_password': { ar: 'نسيت كلمة المرور؟', de: 'Passwort vergessen?', fr: 'Mot de passe oublié ?', tr: 'Şifrenizi mi unuttunuz?' },
+        'auth_trust_1': { ar: 'معتمد OCDS', de: 'OCDS-verifiziert', fr: 'Vérifié OCDS', tr: 'OCDS Doğrulanmış' },
+        'auth_trust_2': { ar: 'تشفير 256-بت', de: '256-Bit verschlüsselt', fr: 'Chiffrement 256 bits', tr: '256-bit Şifreli' },
+        'auth_footer': { ar: 'بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية.', de: 'Durch Fortfahren stimmen Sie unseren Nutzungsbedingungen und der Datenschutzrichtlinie zu.', fr: 'En continuant, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.', tr: 'Devam ederek Kullanım Şartlarımızı ve Gizlilik Politikamızı kabul edersiniz.' },
+        'role_contractor': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
+        'role_tradesperson': { ar: 'حرفي', de: 'Handwerker', fr: 'Artisan', tr: 'Esnaf' },
+
+        // ═══ VERIFY EMAIL PAGE ═══
+        'verify_email_title': { ar: 'جاري التحقق من البريد…', de: 'E-Mail wird verifiziert…', fr: 'Vérification de l\'e-mail…', tr: 'E-posta Doğrulanıyor…' },
+        'verify_email_subtitle': { ar: 'يرجى الانتظار بينما نتحقق من بريدك الإلكتروني', de: 'Bitte warten Sie, während wir Ihre E-Mail verifizieren', fr: 'Veuillez patienter pendant la vérification de votre e-mail', tr: 'E-postanız doğrulanırken lütfen bekleyin' },
+        'back_to_login': { ar: '→ العودة لتسجيل الدخول', de: '← Zurück zur Anmeldung', fr: '← Retour à la connexion', tr: '← Girişe Dön' },
+
+        // ═══ RESET PASSWORD PAGE ═══
+        'reset_password_title': { ar: 'إعادة تعيين كلمة المرور', de: 'Passwort zurücksetzen', fr: 'Réinitialiser le mot de passe', tr: 'Şifre Sıfırlama' },
+        'reset_password_subtitle': { ar: 'أنشئ كلمة مرور جديدة وآمنة لحسابك', de: 'Erstellen Sie ein neues sicheres Passwort für Ihr Konto', fr: 'Créez un nouveau mot de passe sécurisé pour votre compte', tr: 'Hesabınız için yeni güvenli bir şifre oluşturun' },
+        'new_password_label': { ar: 'كلمة المرور الجديدة', de: 'Neues Passwort', fr: 'Nouveau mot de passe', tr: 'Yeni Şifre' },
+        'confirm_password_label': { ar: 'تأكيد كلمة المرور', de: 'Passwort bestätigen', fr: 'Confirmer le mot de passe', tr: 'Şifreyi Onayla' },
+        'reset_password_btn': { ar: 'إعادة تعيين كلمة المرور', de: 'Passwort zurücksetzen', fr: 'Réinitialiser le mot de passe', tr: 'Şifreyi Sıfırla' },
+
+        // ═══ CONTACT PAGE ═══
+        'contact_title': { ar: 'تواصل معنا', de: 'Kontakt', fr: 'Contactez-nous', tr: 'Bize Ulaşın' },
+        'contact_org_name': { ar: 'نمّرها', de: 'Nammerha', fr: 'Nammerha', tr: 'Nammerha' },
+        'contact_org_tagline': { ar: 'المنصة الوطنية لإعادة الإعمار', de: 'Nationale Wiederaufbauplattform', fr: 'Plateforme nationale de reconstruction', tr: 'Ulusal Yeniden Yapım Platformu' },
+        'contact_details': { ar: 'معلومات التواصل', de: 'Kontaktdaten', fr: 'Coordonnées', tr: 'İletişim Bilgileri' },
+        'contact_email_label': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
+        'contact_address_label': { ar: 'العنوان', de: 'Adresse', fr: 'Adresse', tr: 'Adres' },
+        'contact_address_value': { ar: 'دمشق، سوريا', de: 'Damaskus, Syrien', fr: 'Damas, Syrie', tr: 'Şam, Suriye' },
+        'contact_hours_label': { ar: 'ساعات العمل', de: 'Arbeitszeiten', fr: 'Horaires', tr: 'Çalışma Saatleri' },
+        'contact_hours_value': { ar: 'الأحد – الخميس، ٩ ص – ٥ م (توقيت دمشق)', de: 'So–Do, 9:00–17:00 (Damaskus)', fr: 'Dim–Jeu, 9h–17h (Damas)', tr: 'Paz–Per, 09:00–17:00 (Şam)' },
+        'contact_sla': { ar: 'أوقات الاستجابة', de: 'Reaktionszeiten', fr: 'Délais de réponse', tr: 'Yanıt Süreleri' },
+        'contact_sla_general': { ar: 'استفسارات عامة: ٤٨ ساعة عمل', de: 'Allgemeine Anfragen: 48 Arbeitsstunden', fr: 'Demandes générales : 48h ouvrées', tr: 'Genel sorular: 48 iş saati' },
+        'contact_sla_escrow': { ar: 'مسائل الضمان: ٢٤ ساعة عمل', de: 'Treuhandfragen: 24 Arbeitsstunden', fr: 'Questions d\'entiercement : 24h ouvrées', tr: 'Emanet sorunları: 24 iş saati' },
+        'contact_sla_security': { ar: 'تنبيهات أمنية: ٤ ساعات', de: 'Sicherheitswarnungen: 4 Stunden', fr: 'Alertes de sécurité : 4h', tr: 'Güvenlik uyarıları: 4 saat' },
+        'contact_legal': { ar: 'روابط قانونية', de: 'Rechtliche Links', fr: 'Liens juridiques', tr: 'Yasal Bağlantılar' },
+        'contact_link_tos': { ar: 'شروط الخدمة', de: 'Nutzungsbedingungen', fr: 'Conditions d\'utilisation', tr: 'Kullanım Şartları' },
+        'contact_link_privacy': { ar: 'سياسة الخصوصية', de: 'Datenschutzrichtlinie', fr: 'Politique de confidentialité', tr: 'Gizlilik Politikası' },
+        'contact_link_refund': { ar: 'سياسة الاسترداد', de: 'Rückerstattungsrichtlinie', fr: 'Politique de remboursement', tr: 'İade Politikası' },
+        'contact_trust': { ar: 'منصة معتمدة OCDS — الشفافية والمساءلة في كل معاملة.', de: 'OCDS-zertifizierte Plattform — Transparenz und Verantwortlichkeit bei jeder Transaktion.', fr: 'Plateforme certifiée OCDS — Transparence et responsabilité à chaque transaction.', tr: 'OCDS sertifikalı platform — Her işlemde şeffaflık ve hesap verebilirlik.' },
+
+        // ═══ COMMON UI / SHARED KEYS ═══
+        'common_loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
+        'common_logout': { ar: 'تسجيل خروج', de: 'Abmelden', fr: 'Déconnexion', tr: 'Çıkış Yap' },
+        'common_profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'common_status': { ar: 'الحالة', de: 'Status', fr: 'Statut', tr: 'Durum' },
+        'common_action': { ar: 'إجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+        'common_project': { ar: 'المشروع', de: 'Projekt', fr: 'Projet', tr: 'Proje' },
+        'common_amount': { ar: 'المبلغ', de: 'Betrag', fr: 'Montant', tr: 'Tutar' },
+        'common_material': { ar: 'المادة', de: 'Material', fr: 'Matériau', tr: 'Malzeme' },
+        'common_qty': { ar: 'الكمية', de: 'Menge', fr: 'Quantité', tr: 'Miktar' },
+        'common_verified': { ar: 'معتمد', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulandı' },
+        'common_po_number': { ar: 'رقم أمر الشراء', de: 'Bestellnummer', fr: 'N° de commande', tr: 'Sipariş No' },
+        'loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
+        'settings': { ar: 'الإعدادات', de: 'Einstellungen', fr: 'Paramètres', tr: 'Ayarlar' },
+        'profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'projects': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
+        'location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        'type': { ar: 'النوع', de: 'Typ', fr: 'Type', tr: 'Tür' },
+        'electrical': { ar: 'كهربائي', de: 'Elektrisch', fr: 'Électrique', tr: 'Elektrik' },
+        'plumbing': { ar: 'سباكة', de: 'Sanitär', fr: 'Plomberie', tr: 'Tesisat' },
+        'structural_damage': { ar: 'أضرار هيكلية', de: 'Strukturschäden', fr: 'Dommages structurels', tr: 'Yapısal Hasar' },
+        'general_repair': { ar: 'إصلاح عام', de: 'Allgemeine Reparatur', fr: 'Réparation générale', tr: 'Genel Onarım' },
+        'governorate': { ar: 'المحافظة', de: 'Gouvernement', fr: 'Gouvernorat', tr: 'İl' },
+        'photos': { ar: 'الصور', de: 'Fotos', fr: 'Photos', tr: 'Fotoğraflar' },
+        'estimated': { ar: 'مُقدّر', de: 'Geschätzt', fr: 'Estimé', tr: 'Tahmini' },
+        'in_progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        'fully_funded': { ar: 'مموّل بالكامل', de: 'Voll finanziert', fr: 'Entièrement financé', tr: 'Tamamen Finanse' },
+        'matched': { ar: 'مُطابق', de: 'Zugeordnet', fr: 'Associé', tr: 'Eşleştirildi' },
+        'sync': { ar: 'مزامنة', de: 'Synchronisieren', fr: 'Synchroniser', tr: 'Senkronize Et' },
+        'gallery': { ar: 'المعرض', de: 'Galerie', fr: 'Galerie', tr: 'Galeri' },
+        'oracle': { ar: 'المؤشر', de: 'Orakel', fr: 'Oracle', tr: 'Oracle' },
+        'vendor_id': { ar: 'معرف المورد', de: 'Lieferanten-ID', fr: 'ID fournisseur', tr: 'Tedarikçi Kimliği' },
+        'purchase_order': { ar: 'أمر الشراء', de: 'Bestellung', fr: 'Bon de commande', tr: 'Satın Alma Siparişi' },
+
+        // ═══ REFUND POLICY PAGE ═══
+        'refund_title': { ar: 'سياسة الاسترداد والضمان', de: 'Rückerstattungs- und Treuhandrichtlinie', fr: 'Politique de remboursement et d\'entiercement', tr: 'İade ve Emanet Politikası' },
+        'refund_how_escrow': { ar: 'كيف يعمل الضمان؟', de: 'Wie funktioniert die Treuhand?', fr: 'Comment fonctionne l\'entiercement ?', tr: 'Emanet nasıl çalışır?' },
+        'refund_escrow_intro': { ar: 'تُحتفظ جميع التبرعات في ضمان آمن حتى يتم التحقق من تسليم المواد.', de: 'Alle Spenden werden in sicherem Treuhandschutz gehalten, bis die Materiallieferung verifiziert ist.', fr: 'Tous les dons sont détenus sous séquestre jusqu\'à vérification de la livraison.', tr: 'Tüm bağışlar malzeme teslimatı doğrulanana kadar güvenli emanette tutulur.' },
+        'refund_escrow_release': { ar: 'تحرير الضمان', de: 'Treuhandfreigabe', fr: 'Libération de l\'entiercement', tr: 'Emanet Serbest Bırakma' },
+        'refund_escrow_detail': { ar: 'تُحرَّر الأموال فقط بعد إثبات التسليم الميداني بطابع GPS.', de: 'Gelder werden nur nach GPS-gestempeltem Feldliefernachweis freigegeben.', fr: 'Les fonds ne sont libérés qu\'après preuve de livraison GPS sur le terrain.', tr: 'Fonlar yalnızca GPS damgalı saha teslimat kanıtından sonra serbest bırakılır.' },
+        'refund_eligibility': { ar: 'أهلية الاسترداد', de: 'Rückerstattungsberechtigung', fr: 'Éligibilité au remboursement', tr: 'İade Uygunluğu' },
+        'refund_elig_pending': { ar: 'معلّق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
+        'refund_elig_pending_detail': { ar: 'استرداد كامل — لم يتم تخصيص الأموال بعد.', de: 'Volle Rückerstattung — Gelder noch nicht zugewiesen.', fr: 'Remboursement intégral — fonds non encore affectés.', tr: 'Tam iade — fonlar henüz tahsis edilmedi.' },
+        'refund_elig_released': { ar: 'محرر', de: 'Freigegeben', fr: 'Libéré', tr: 'Serbest' },
+        'refund_elig_released_detail': { ar: 'غير قابل للاسترداد — تم تسليم المواد والتحقق منها.', de: 'Nicht erstattungsfähig — Materialien geliefert und verifiziert.', fr: 'Non remboursable — matériaux livrés et vérifiés.', tr: 'İade edilemez — malzemeler teslim edildi ve doğrulandı.' },
+        'refund_elig_stalled': { ar: 'متوقف', de: 'Blockiert', fr: 'Bloqué', tr: 'Durmuş' },
+        'refund_elig_stalled_detail': { ar: 'استرداد كامل بعد ٩٠ يوماً من عدم النشاط.', de: 'Volle Rückerstattung nach 90 Tagen Inaktivität.', fr: 'Remboursement intégral après 90 jours d\'inactivité.', tr: '90 gün hareketsizlik sonrası tam iade.' },
+        'refund_processing': { ar: 'خطوات المعالجة', de: 'Bearbeitungsschritte', fr: 'Étapes de traitement', tr: 'İşlem Adımları' },
+        'refund_step_1': { ar: '١. تقديم طلب الاسترداد', de: '1. Rückerstattungsanfrage stellen', fr: '1. Soumettre une demande de remboursement', tr: '1. İade talebi gönderin' },
+        'refund_step_2': { ar: '٢. مراجعة فريق نمّرها', de: '2. Prüfung durch das Nammerha-Team', fr: '2. Examen par l\'équipe Nammerha', tr: '2. Nammerha ekibi tarafından inceleme' },
+        'refund_step_3': { ar: '٣. التحقق من حالة الضمان', de: '3. Treuhandstatus prüfen', fr: '3. Vérification du statut de l\'entiercement', tr: '3. Emanet durumu doğrulama' },
+        'refund_step_4': { ar: '٤. إصدار الاسترداد', de: '4. Rückerstattung ausstellen', fr: '4. Émission du remboursement', tr: '4. İade düzenleme' },
+        'refund_col_type': { ar: 'النوع', de: 'Typ', fr: 'Type', tr: 'Tür' },
+        'refund_col_time': { ar: 'الوقت المقدر', de: 'Geschätzte Zeit', fr: 'Temps estimé', tr: 'Tahmini Süre' },
+        'refund_time_pending': { ar: '٢٤-٤٨ ساعة عمل', de: '24–48 Arbeitsstunden', fr: '24–48h ouvrées', tr: '24–48 iş saati' },
+        'refund_time_stalled': { ar: '٥-٧ أيام عمل', de: '5–7 Werktage', fr: '5–7 jours ouvrés', tr: '5–7 iş günü' },
+        'refund_time_dispute': { ar: '١٤ يوم عمل', de: '14 Werktage', fr: '14 jours ouvrés', tr: '14 iş günü' },
+        'refund_time_approved': { ar: '٢٤ ساعة', de: '24 Stunden', fr: '24 heures', tr: '24 saat' },
+        'refund_dispute': { ar: 'حل النزاعات', de: 'Streitbeilegung', fr: 'Résolution des litiges', tr: 'Anlaşmazlık Çözümü' },
+        'refund_dispute_intro': { ar: 'في حال الخلاف، يفصل فريق التحقق بناءً على الأدلة الميدانية.', de: 'Bei Streitigkeiten entscheidet das Verifizierungsteam anhand der Feldnachweise.', fr: 'En cas de litige, l\'équipe de vérification tranche sur la base des preuves terrain.', tr: 'Anlaşmazlık durumunda doğrulama ekibi saha kanıtlarına göre karar verir.' },
+        'refund_antifraud': { ar: 'مكافحة الاحتيال', de: 'Betrugsbekämpfung', fr: 'Anti-fraude', tr: 'Dolandırıcılığa Karşı' },
+        'refund_antifraud_detail': { ar: 'تُسجَّل جميع المعاملات بطوابع GPS وزمنية لمنع الاحتيال.', de: 'Alle Transaktionen werden mit GPS- und Zeitstempeln zur Betrugsprävention aufgezeichnet.', fr: 'Toutes les transactions sont enregistrées avec horodatages GPS pour prévenir la fraude.', tr: 'Tüm işlemler dolandırıcılığı önlemek için GPS ve zaman damgalarıyla kaydedilir.' },
+        'refund_contact': { ar: 'تواصل معنا', de: 'Kontakt', fr: 'Contactez-nous', tr: 'Bize Ulaşın' },
+        'refund_contact_detail': { ar: 'لطلبات الاسترداد:', de: 'Für Rückerstattungsanfragen:', fr: 'Pour les demandes de remboursement :', tr: 'İade talepleri için:' },
+        'refund_contact_link': { ar: 'صفحة التواصل', de: 'Kontaktseite', fr: 'Page de contact', tr: 'İletişim sayfası' },
+        'refund_contact_or': { ar: 'أو أرسل بريداً إلى', de: 'oder eine E-Mail an', fr: 'ou envoyez un e-mail à', tr: 'veya e-posta gönderin' },
+        'refund_trust': { ar: 'منصة OCDS — الشفافية المالية في كل معاملة.', de: 'OCDS-Plattform — Finanzielle Transparenz bei jeder Transaktion.', fr: 'Plateforme OCDS — Transparence financière à chaque transaction.', tr: 'OCDS Platformu — Her işlemde finansal şeffaflık.' },
+
+        // ═══ ADMIN DASHBOARD NAVIGATION ═══
+        'nav_dashboard': { ar: 'لوحة المتابعة', de: 'Dashboard', fr: 'Tableau de bord', tr: 'Kontrol Paneli' },
+        'nav_donations': { ar: 'التبرعات', de: 'Spenden', fr: 'Dons', tr: 'Bağışlar' },
+        'nav_escrow_management': { ar: 'إدارة الأمانات', de: 'Treuhandverwaltung', fr: 'Gestion d\'entiercement', tr: 'Emanet Yönetimi' },
+        'nav_kyc_verification': { ar: 'التحقق من الهوية', de: 'KYC-Verifizierung', fr: 'Vérification KYC', tr: 'KYC Doğrulaması' },
+        'nav_pricing_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Endeksi' },
+        'nav_settings': { ar: 'الإعدادات', de: 'Einstellungen', fr: 'Paramètres', tr: 'Ayarlar' },
+        'admin_portal': { ar: 'بوابة الإدارة', de: 'Admin-Portal', fr: 'Portail admin', tr: 'Yönetici Portalı' },
+        'admin_command_center': { ar: 'مركز القيادة', de: 'Kommandozentrale', fr: 'Centre de commande', tr: 'Komuta Merkezi' },
+        'admin_dashboard': { ar: 'لوحة المتابعة', de: 'Dashboard', fr: 'Tableau de bord', tr: 'Kontrol Paneli' },
+        'admin_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
+        'admin_projects_desc': { ar: 'إجمالي المشاريع النشطة حالياً', de: 'Gesamte derzeit aktive Projekte', fr: 'Total des projets actuellement actifs', tr: 'Toplam aktif proje sayısı' },
+        'admin_registered_eng': { ar: 'المهندسون المسجلون', de: 'Registrierte Ingenieure', fr: 'Ingénieurs inscrits', tr: 'Kayıtlı Mühendisler' },
+        'admin_escrow_mgmt': { ar: 'إدارة الأمانات', de: 'Treuhandverwaltung', fr: 'Gestion d\'entiercement', tr: 'Emanet Yönetimi' },
+        'admin_escrow_queue': { ar: 'قائمة التحقق', de: 'Verifizierungswarteschlange', fr: 'File de vérification', tr: 'Doğrulama Kuyruğu' },
+        'admin_escrow_queue_desc': { ar: 'معاملات بانتظار المراجعة', de: 'Transaktionen ausstehend zur Prüfung', fr: 'Transactions en attente d\'examen', tr: 'İnceleme bekleyen işlemler' },
+        'admin_pending_verify': { ar: 'بانتظار التحقق', de: 'Ausstehende Verifizierung', fr: 'Vérification en attente', tr: 'Doğrulama Bekliyor' },
+        'admin_kyc_verify': { ar: 'التحقق من الهوية', de: 'Identitätsverifizierung', fr: 'Vérification d\'identité', tr: 'Kimlik Doğrulaması' },
+        'admin_pricing_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Endeksi' },
+        'admin_pricing_desc': { ar: 'مراقبة أسعار مواد البناء', de: 'Baumaterialpreise überwachen', fr: 'Surveiller les prix des matériaux', tr: 'Yapı malzemesi fiyatlarını izle' },
+        'admin_pricing_oracle_epa': { ar: 'مؤشر EPA للأسعار', de: 'EPA-Preisindex', fr: 'Indice des prix EPA', tr: 'EPA Fiyat Endeksi' },
+        'admin_settings': { ar: 'الإعدادات', de: 'Einstellungen', fr: 'Paramètres', tr: 'Ayarlar' },
+        'admin_institutional': { ar: 'الوصول المؤسسي', de: 'Institutioneller Zugang', fr: 'Accès institutionnel', tr: 'Kurumsal Erişim' },
+        'admin_ocds_compliant': { ar: 'متوافق مع OCDS', de: 'OCDS-konform', fr: 'Conforme OCDS', tr: 'OCDS Uyumlu' },
+        'admin_ocds_desc': { ar: 'معيار البيانات المفتوحة للتعاقد', de: 'Offener Vergabedatenstandard', fr: 'Standard de données ouvertes de la commande publique', tr: 'Açık İhale Veri Standardı' },
+        'expected_response': { ar: 'وقت الاستجابة المتوقع', de: 'Erwartete Antwortzeit', fr: 'Temps de réponse prévu', tr: 'Beklenen yanıt süresi' },
+        'export_report': { ar: 'تصدير التقرير', de: 'Bericht exportieren', fr: 'Exporter le rapport', tr: 'Raporu Dışa Aktar' },
+        'institutional_access': { ar: 'الوصول المؤسسي', de: 'Institutioneller Zugang', fr: 'Accès institutionnel', tr: 'Kurumsal Erişim' },
+        'automated_audit_log': { ar: 'سجل التدقيق التلقائي', de: 'Automatisches Prüfprotokoll', fr: 'Journal d\'audit automatique', tr: 'Otomatik Denetim Günlüğü' },
+        'financial_audit_docs': { ar: 'وثائق التدقيق المالي', de: 'Finanzprüfungsdokumente', fr: 'Documents d\'audit financier', tr: 'Finansal Denetim Belgeleri' },
+
+        // ═══ HOMEOWNER PORTAL ═══
+        'homeowner_portal': { ar: 'بوابة صاحب المنزل', de: 'Hauseigentümer-Portal', fr: 'Portail propriétaire', tr: 'Ev Sahibi Portalı' },
+        'homeowner_welcome': { ar: 'مرحباً بك في منزلك الرقمي', de: 'Willkommen in Ihrem digitalen Zuhause', fr: 'Bienvenue dans votre maison numérique', tr: 'Dijital evinize hoş geldiniz' },
+        'homeowner_subtitle': { ar: 'تتبع مشاريع الإصلاح والتمويل', de: 'Reparaturprojekte und Finanzierung verfolgen', fr: 'Suivez vos projets de réparation et financement', tr: 'Onarım projelerinizi ve finansmanı takip edin' },
+        'homeowner_my_projects': { ar: 'مشاريعي', de: 'Meine Projekte', fr: 'Mes projets', tr: 'Projelerim' },
+        'homeowner_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'homeowner_all_projects': { ar: 'جميع المشاريع', de: 'Alle Projekte', fr: 'Tous les projets', tr: 'Tüm Projeler' },
+        'homeowner_new_request': { ar: 'طلب جديد', de: 'Neue Anfrage', fr: 'Nouvelle demande', tr: 'Yeni Talep' },
+        'homeowner_report_damage': { ar: 'الإبلاغ عن أضرار', de: 'Schaden melden', fr: 'Signaler des dégâts', tr: 'Hasar Bildir' },
+        'homeowner_approvals': { ar: 'الموافقات', de: 'Genehmigungen', fr: 'Approbations', tr: 'Onaylar' },
+        'homeowner_pending_approvals': { ar: 'موافقات معلقة', de: 'Ausstehende Genehmigungen', fr: 'Approbations en attente', tr: 'Bekleyen Onaylar' },
+        'homeowner_approval_list': { ar: 'قائمة الموافقات', de: 'Genehmigungsliste', fr: 'Liste des approbations', tr: 'Onay Listesi' },
+        'homeowner_bids_received': { ar: 'عروض مستلمة', de: 'Erhaltene Angebote', fr: 'Offres reçues', tr: 'Alınan Teklifler' },
+        'homeowner_escrow': { ar: 'الضمان', de: 'Treuhand', fr: 'Entiercement', tr: 'Emanet' },
+        'homeowner_escrow_overview': { ar: 'نظرة عامة على الضمان', de: 'Treuhandübersicht', fr: 'Aperçu de l\'entiercement', tr: 'Emanet Özeti' },
+        'homeowner_payments': { ar: 'المدفوعات', de: 'Zahlungen', fr: 'Paiements', tr: 'Ödemeler' },
+        'homeowner_service_requests': { ar: 'طلبات الخدمة', de: 'Serviceanfragen', fr: 'Demandes de service', tr: 'Hizmet Talepleri' },
+        'no_projects_yet': { ar: 'لا توجد مشاريع بعد', de: 'Noch keine Projekte', fr: 'Aucun projet pour le moment', tr: 'Henüz proje yok' },
+
+        // ═══ DONOR PORTAL ═══
+        'donor_portal': { ar: 'بوابة المانح', de: 'Spenderportal', fr: 'Portail donateur', tr: 'Bağışçı Portalı' },
+        'donor_welcome': { ar: 'مرحباً أيها المانح الكريم', de: 'Willkommen, geschätzter Spender', fr: 'Bienvenue, cher donateur', tr: 'Hoş geldiniz, değerli bağışçı' },
+        'donor_subtitle': { ar: 'تتبع تبرعاتك وأثرها', de: 'Verfolgen Sie Ihre Spenden und deren Wirkung', fr: 'Suivez vos dons et leur impact', tr: 'Bağışlarınızı ve etkisini takip edin' },
+        'donor_marketplace': { ar: 'سوق المشاريع', de: 'Projektmarktplatz', fr: 'Marché des projets', tr: 'Proje Pazarı' },
+        'donor_browse': { ar: 'تصفح المشاريع', de: 'Projekte durchsuchen', fr: 'Parcourir les projets', tr: 'Projelere Göz At' },
+        'donor_my_impact': { ar: 'أثري', de: 'Meine Wirkung', fr: 'Mon impact', tr: 'Etkilerim' },
+        'donor_impact': { ar: 'الأثر', de: 'Wirkung', fr: 'Impact', tr: 'Etki' },
+        'donor_impact_details': { ar: 'تفاصيل الأثر', de: 'Wirkungsdetails', fr: 'Détails de l\'impact', tr: 'Etki Detayları' },
+        'donor_history': { ar: 'السجل', de: 'Verlauf', fr: 'Historique', tr: 'Geçmiş' },
+        'donor_donation_history': { ar: 'سجل التبرعات', de: 'Spendenverlauf', fr: 'Historique des dons', tr: 'Bağış Geçmişi' },
+        'donor_proofs': { ar: 'الإثباتات', de: 'Nachweise', fr: 'Preuves', tr: 'Kanıtlar' },
+        'donor_proof_gallery': { ar: 'معرض الإثباتات', de: 'Nachweisgalerie', fr: 'Galerie de preuves', tr: 'Kanıt Galerisi' },
+        'donor_projects': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
+        'donor_total': { ar: 'الإجمالي', de: 'Gesamt', fr: 'Total', tr: 'Toplam' },
+        'donor_items': { ar: 'البنود', de: 'Artikel', fr: 'Articles', tr: 'Kalemler' },
+        'donor_score': { ar: 'نقاط الأثر', de: 'Wirkungspunkte', fr: 'Score d\'impact', tr: 'Etki Puanı' },
+        'donor_in_escrow': { ar: 'في الضمان (مؤمّن)', de: 'Auf Treuhandkonto (Gesichert)', fr: 'Sous séquestre (Sécurisé)', tr: 'Emanette (Güvende)' },
+        'donor_released': { ar: 'تم تحريره للموردين', de: 'An Lieferanten freigegeben', fr: 'Libéré aux fournisseurs', tr: 'Tedarikçilere Serbest Bırakıldı' },
+        'donor_go_basket': { ar: 'انتقل إلى السلة', de: 'Zum Warenkorb', fr: 'Aller au panier', tr: 'Sepete Git' },
+        'browse_projects': { ar: 'تصفح المشاريع', de: 'Projekte durchsuchen', fr: 'Parcourir les projets', tr: 'Projelere Göz At' },
+        'browse_projects_hint': { ar: 'اكتشف مشاريع بحاجة لدعمك', de: 'Entdecken Sie Projekte, die Ihre Unterstützung brauchen', fr: 'Découvrez des projets qui ont besoin de votre soutien', tr: 'Desteğinize ihtiyaç duyan projeleri keşfedin' },
+        'confirm_funding': { ar: 'تأكيد التمويل', de: 'Finanzierung bestätigen', fr: 'Confirmer le financement', tr: 'Finansmanı Onayla' },
+        'basket_empty': { ar: 'سلتك فارغة', de: 'Ihr Warenkorb ist leer', fr: 'Votre panier est vide', tr: 'Sepetiniz boş' },
+        'construction_basket': { ar: 'سلة البناء', de: 'Baukorb', fr: 'Panier de construction', tr: 'İnşaat Sepeti' },
+
+        // ═══ SUPPLIER PORTAL ═══
+        'supplier_portal': { ar: 'بوابة المورد', de: 'Lieferantenportal', fr: 'Portail fournisseur', tr: 'Tedarikçi Portalı' },
+        'supplier_dashboard': { ar: 'لوحة المورد', de: 'Lieferanten-Dashboard', fr: 'Tableau de bord fournisseur', tr: 'Tedarikçi Paneli' },
+        'supplier_access': { ar: 'وصول المورد', de: 'Lieferantenzugang', fr: 'Accès fournisseur', tr: 'Tedarikçi Erişimi' },
+        'supplier_my_catalog': { ar: 'كتالوجي', de: 'Mein Katalog', fr: 'Mon catalogue', tr: 'Katalogum' },
+        'supplier_catalog': { ar: 'الكتالوج', de: 'Katalog', fr: 'Catalogue', tr: 'Katalog' },
+        'supplier_add_material': { ar: 'إضافة مادة', de: 'Material hinzufügen', fr: 'Ajouter un matériau', tr: 'Malzeme Ekle' },
+        'supplier_material_desc': { ar: 'وصف المادة', de: 'Materialbeschreibung', fr: 'Description du matériau', tr: 'Malzeme Açıklaması' },
+        'supplier_material_requests': { ar: 'طلبات المواد', de: 'Materialanfragen', fr: 'Demandes de matériaux', tr: 'Malzeme Talepleri' },
+        'supplier_orders': { ar: 'الطلبات', de: 'Bestellungen', fr: 'Commandes', tr: 'Siparişler' },
+        'supplier_payments': { ar: 'المدفوعات', de: 'Zahlungen', fr: 'Paiements', tr: 'Ödemeler' },
+        'supplier_pending_bids': { ar: 'عروض معلقة', de: 'Ausstehende Angebote', fr: 'Offres en attente', tr: 'Bekleyen Teklifler' },
+        'supplier_won_contracts': { ar: 'عقود مكتسبة', de: 'Gewonnene Verträge', fr: 'Contrats remportés', tr: 'Kazanılan Sözleşmeler' },
+        'supplier_total_revenue': { ar: 'إجمالي الإيرادات', de: 'Gesamtumsatz', fr: 'Revenu total', tr: 'Toplam Gelir' },
+        'supplier_in_transit': { ar: 'في الطريق', de: 'In Transit', fr: 'En transit', tr: 'Yolda' },
+
+        // ═══ CONTRACTOR PORTAL ═══
+        'contractor_portal': { ar: 'بوابة المقاول', de: 'Auftragnehmerportal', fr: 'Portail entrepreneur', tr: 'Müteahhit Portalı' },
+        'contractor_access': { ar: 'وصول المقاول', de: 'Auftragnehmerzugang', fr: 'Accès entrepreneur', tr: 'Müteahhit Erişimi' },
+        'contractor_welcome': { ar: 'مرحباً أيها المقاول', de: 'Willkommen, Auftragnehmer', fr: 'Bienvenue, entrepreneur', tr: 'Hoş geldiniz, müteahhit' },
+        'contractor_subtitle': { ar: 'إدارة المشاريع والعروض', de: 'Projekte und Angebote verwalten', fr: 'Gérer les projets et offres', tr: 'Projeleri ve teklifleri yönetin' },
+        'contractor_dashboard_title': { ar: 'لوحة المقاول', de: 'Auftragnehmer-Dashboard', fr: 'Tableau de bord entrepreneur', tr: 'Müteahhit Paneli' },
+        'contractor_my_projects': { ar: 'مشاريعي', de: 'Meine Projekte', fr: 'Mes projets', tr: 'Projelerim' },
+        'contractor_assigned_projects': { ar: 'المشاريع المسندة', de: 'Zugewiesene Projekte', fr: 'Projets assignés', tr: 'Atanan Projeler' },
+        'contractor_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
+        'contractor_marketplace': { ar: 'سوق المشاريع', de: 'Projektmarktplatz', fr: 'Marché des projets', tr: 'Proje Pazarı' },
+        'contractor_marketplace_title': { ar: 'سوق المناقصات', de: 'Ausschreibungsmarktplatz', fr: 'Marché des appels d\'offres', tr: 'İhale Pazarı' },
+        'contractor_my_bids': { ar: 'عروضي', de: 'Meine Angebote', fr: 'Mes offres', tr: 'Tekliflerim' },
+        'contractor_pending_bids': { ar: 'عروض معلقة', de: 'Ausstehende Angebote', fr: 'Offres en attente', tr: 'Bekleyen Teklifler' },
+        'contractor_won_bids': { ar: 'عروض مقبولة', de: 'Gewonnene Angebote', fr: 'Offres remportées', tr: 'Kazanılan Teklifler' },
+        'contractor_bid_history': { ar: 'سجل العروض', de: 'Angebotsverlauf', fr: 'Historique des offres', tr: 'Teklif Geçmişi' },
+        'contractor_pending': { ar: 'معلق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
+        'contractor_payments': { ar: 'المدفوعات', de: 'Zahlungen', fr: 'Paiements', tr: 'Ödemeler' },
+        'contractor_payment_history': { ar: 'سجل المدفوعات', de: 'Zahlungsverlauf', fr: 'Historique des paiements', tr: 'Ödeme Geçmişi' },
+        'contractor_escrow_total': { ar: 'إجمالي الضمان', de: 'Gesamte Treuhand', fr: 'Total entiercement', tr: 'Toplam Emanet' },
+        'contractor_escrow_released': { ar: 'ضمان محرر', de: 'Freigegebene Treuhand', fr: 'Entiercement libéré', tr: 'Serbest Emanet' },
+        'contractor_spatial_proofs': { ar: 'الإثباتات المكانية', de: 'Räumliche Nachweise', fr: 'Preuves spatiales', tr: 'Mekansal Kanıtlar' },
+        'contractor_proofs_verified': { ar: 'إثباتات معتمدة', de: 'Verifizierte Nachweise', fr: 'Preuves vérifiées', tr: 'Doğrulanmış Kanıtlar' },
+        'contractor_proofs_pending': { ar: 'إثباتات معلقة', de: 'Ausstehende Nachweise', fr: 'Preuves en attente', tr: 'Bekleyen Kanıtlar' },
+        'contractor_project_timeline': { ar: 'الجدول الزمني', de: 'Projektzeitplan', fr: 'Chronologie du projet', tr: 'Proje Zaman Çizelgesi' },
+        'contractor_timeline_desc': { ar: 'تقدم المراحل البنائية', de: 'Fortschritt der Bauphasen', fr: 'Avancement des phases de construction', tr: 'İnşaat aşamaları ilerlemesi' },
+        'contractor_th_project': { ar: 'المشروع', de: 'Projekt', fr: 'Projet', tr: 'Proje' },
+        'contractor_th_region': { ar: 'المنطقة', de: 'Region', fr: 'Région', tr: 'Bölge' },
+        'contractor_th_phase': { ar: 'المرحلة', de: 'Phase', fr: 'Phase', tr: 'Aşama' },
+        'contractor_th_progress': { ar: 'التقدم', de: 'Fortschritt', fr: 'Progrès', tr: 'İlerleme' },
+        'contractor_th_next_proof': { ar: 'الإثبات التالي', de: 'Nächster Nachweis', fr: 'Prochaine preuve', tr: 'Sonraki Kanıt' },
+        'contractor_th_action': { ar: 'إجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+
+        // ═══ TRADESPERSON PORTAL ═══
+        'tradesperson_portal': { ar: 'بوابة الحرفي', de: 'Handwerkerportal', fr: 'Portail artisan', tr: 'Esnaf Portalı' },
+        'tradesperson_welcome': { ar: 'مرحباً أيها الحرفي', de: 'Willkommen, Handwerker', fr: 'Bienvenue, artisan', tr: 'Hoş geldiniz, esnaf' },
+        'tradesperson_subtitle': { ar: 'إدارة المهام والأرباح', de: 'Aufgaben und Verdienste verwalten', fr: 'Gérer vos tâches et revenus', tr: 'Görevleri ve kazançları yönetin' },
+        'tradesperson_jobs': { ar: 'المهام', de: 'Aufträge', fr: 'Tâches', tr: 'İşler' },
+        'tradesperson_active_jobs': { ar: 'مهام نشطة', de: 'Aktive Aufträge', fr: 'Tâches actives', tr: 'Aktif İşler' },
+        'tradesperson_completed': { ar: 'مكتملة', de: 'Abgeschlossen', fr: 'Terminées', tr: 'Tamamlanan' },
+        'tradesperson_assignments': { ar: 'التكليفات', de: 'Zuweisungen', fr: 'Affectations', tr: 'Görevlendirmeler' },
+        'tradesperson_assignment_list': { ar: 'قائمة التكليفات', de: 'Zuweisungsliste', fr: 'Liste des affectations', tr: 'Görev Listesi' },
+        'tradesperson_available_requests': { ar: 'الطلبات المتاحة', de: 'Verfügbare Anfragen', fr: 'Demandes disponibles', tr: 'Mevcut Talepler' },
+        'tradesperson_earnings': { ar: 'الأرباح', de: 'Verdienste', fr: 'Revenus', tr: 'Kazançlar' },
+        'tradesperson_total_earnings': { ar: 'إجمالي الأرباح', de: 'Gesamtverdienst', fr: 'Revenus totaux', tr: 'Toplam Kazanç' },
+        'tradesperson_earnings_history': { ar: 'سجل الأرباح', de: 'Verdiensthistorie', fr: 'Historique des revenus', tr: 'Kazanç Geçmişi' },
+        'tradesperson_my_profile': { ar: 'ملفي الشخصي', de: 'Mein Profil', fr: 'Mon profil', tr: 'Profilim' },
+        'tradesperson_rating': { ar: 'التقييم', de: 'Bewertung', fr: 'Évaluation', tr: 'Değerlendirme' },
+
+        // ═══ AUDITOR PORTAL ═══
+        'auditor_portal': { ar: 'بوابة المدقق', de: 'Prüferportal', fr: 'Portail auditeur', tr: 'Denetçi Portalı' },
+        'auditor_access': { ar: 'وصول المدقق', de: 'Prüferzugang', fr: 'Accès auditeur', tr: 'Denetçi Erişimi' },
+        'auditor_dashboard_title': { ar: 'لوحة التدقيق', de: 'Prüfer-Dashboard', fr: 'Tableau de bord auditeur', tr: 'Denetçi Paneli' },
+        'auditor_review_queue': { ar: 'قائمة المراجعة', de: 'Prüfwarteschlange', fr: 'File de révision', tr: 'İnceleme Kuyruğu' },
+        'auditor_review_desc': { ar: 'معاملات بانتظار التدقيق', de: 'Transaktionen ausstehend zur Prüfung', fr: 'Transactions en attente d\'audit', tr: 'Denetim bekleyen işlemler' },
+        'auditor_pending_reviews': { ar: 'مراجعات معلقة', de: 'Ausstehende Prüfungen', fr: 'Examens en attente', tr: 'Bekleyen İncelemeler' },
+        'auditor_escrow_reviews': { ar: 'مراجعات الضمان', de: 'Treuhandprüfungen', fr: 'Examens d\'entiercement', tr: 'Emanet İncelemeleri' },
+        'auditor_approved_releases': { ar: 'تحريرات معتمدة', de: 'Genehmigte Freigaben', fr: 'Libérations approuvées', tr: 'Onaylanan Serbest Bırakmalar' },
+        'auditor_flagged': { ar: 'مُعلَّم', de: 'Markiert', fr: 'Signalé', tr: 'İşaretlendi' },
+        'auditor_total_audited': { ar: 'إجمالي المدقق', de: 'Gesamt geprüft', fr: 'Total audité', tr: 'Toplam Denetlenen' },
+        'auditor_financial_reports': { ar: 'التقارير المالية', de: 'Finanzberichte', fr: 'Rapports financiers', tr: 'Finansal Raporlar' },
+        'auditor_export': { ar: 'تصدير', de: 'Exportieren', fr: 'Exporter', tr: 'Dışa Aktar' },
+        'auditor_ocds_compliance': { ar: 'التوافق مع OCDS', de: 'OCDS-Konformität', fr: 'Conformité OCDS', tr: 'OCDS Uyumu' },
+        'auditor_ocds_desc': { ar: 'حالة التوافق مع معيار OCDS', de: 'Status der OCDS-Konformität', fr: 'Statut de conformité OCDS', tr: 'OCDS uyumluluk durumu' },
+        'auditor_ocds_status': { ar: 'حالة OCDS', de: 'OCDS-Status', fr: 'Statut OCDS', tr: 'OCDS Durumu' },
+        'auditor_spatial_accuracy': { ar: 'الدقة المكانية', de: 'Räumliche Genauigkeit', fr: 'Précision spatiale', tr: 'Mekansal Doğruluk' },
+        'auditor_spatial_desc': { ar: 'التحقق العالمي من الإثباتات المكانية', de: 'Globale räumliche Nachweisprüfung', fr: 'Vérification spatiale globale des preuves', tr: 'Küresel mekansal kanıt doğrulaması' },
+        'auditor_gps_verified': { ar: 'محقق GPS', de: 'GPS-verifiziert', fr: 'Vérifié GPS', tr: 'GPS Doğrulanmış' },
+        'auditor_immutable': { ar: 'غير قابل للتغيير', de: 'Unveränderlich', fr: 'Immuable', tr: 'Değiştirilemez' },
+        'auditor_no_deletions': { ar: 'لا حذف — لا تعديل', de: 'Keine Löschungen — keine Änderungen', fr: 'Aucune suppression — aucune modification', tr: 'Silme yok — değişiklik yok' },
+        'auditor_audit_integrity': { ar: 'نزاهة التدقيق', de: 'Prüfintegrität', fr: 'Intégrité de l\'audit', tr: 'Denetim Bütünlüğü' },
+        'auditor_audit_trail': { ar: 'سجل التدقيق', de: 'Prüfpfad', fr: 'Piste d\'audit', tr: 'Denetim İzi' },
+        'auditor_footer_desc': { ar: 'سجلات تدقيق ثابتة — لا حذف، لا تعديل، لا تلاعب.', de: 'Unveränderliche Prüfprotokolle — keine Löschungen, keine Änderungen, keine Manipulationen.', fr: 'Journaux d\'audit immuables — aucune suppression, modification ou manipulation.', tr: 'Değiştirilemez denetim günlükleri — silme, değişiklik veya manipülasyon yok.' },
+        'auditor_th_ref': { ar: 'المرجع', de: 'Referenz', fr: 'Référence', tr: 'Referans' },
+        'auditor_th_project': { ar: 'المشروع', de: 'Projekt', fr: 'Projet', tr: 'Proje' },
+        'auditor_th_donor': { ar: 'المانح', de: 'Spender', fr: 'Donateur', tr: 'Bağışçı' },
+        'auditor_th_amount': { ar: 'المبلغ', de: 'Betrag', fr: 'Montant', tr: 'Tutar' },
+        'auditor_th_proof': { ar: 'الإثبات', de: 'Nachweis', fr: 'Preuve', tr: 'Kanıt' },
+        'auditor_th_submitted': { ar: 'تاريخ التقديم', de: 'Eingereicht am', fr: 'Soumis le', tr: 'Gönderim Tarihi' },
+        'auditor_th_action': { ar: 'إجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+
+        // ═══ KYC PAGE ═══
+        'kyc_portal_title': { ar: 'التحقق من الهوية', de: 'Identitätsverifizierung', fr: 'Vérification d\'identité', tr: 'Kimlik Doğrulaması' },
+        'kyc_review_subtitle': { ar: 'مراجعة طلبات التحقق', de: 'Verifizierungsanträge prüfen', fr: 'Examiner les demandes de vérification', tr: 'Doğrulama başvurularını incele' },
+        'kyc_select_applicant': { ar: 'اختر مقدم طلب', de: 'Antragsteller auswählen', fr: 'Sélectionner un demandeur', tr: 'Başvuran seçin' },
+        'kyc_pending_review': { ar: 'بانتظار المراجعة', de: 'Prüfung ausstehend', fr: 'En attente d\'examen', tr: 'İnceleme Bekliyor' },
+        'kyc_status_pending': { ar: 'معلّق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
+        'kyc_verified_mtd': { ar: 'تم التحقق هذا الشهر', de: 'Diesen Monat verifiziert', fr: 'Vérifié ce mois', tr: 'Bu ay doğrulanan' },
+        'kyc_filter': { ar: 'تصفية', de: 'Filtern', fr: 'Filtrer', tr: 'Filtrele' },
+        'kyc_export': { ar: 'تصدير', de: 'Exportieren', fr: 'Exporter', tr: 'Dışa Aktar' },
+        'kyc_grant_verified': { ar: 'منح الاعتماد', de: 'Verifiziert bestätigen', fr: 'Accorder la vérification', tr: 'Doğrulama Ver' },
+        'kyc_reject_resubmit': { ar: 'رفض وإعادة تقديم', de: 'Ablehnen und Wiedereinreichung', fr: 'Rejeter et resoumettre', tr: 'Reddet ve yeniden gönder' },
+        'kyc_click_to_review': { ar: 'اضغط للمراجعة', de: 'Zur Prüfung klicken', fr: 'Cliquer pour examiner', tr: 'İncelemek için tıklayın' },
+        'kyc_drag_drop': { ar: 'اسحب وأفلت الملفات', de: 'Dateien hierher ziehen', fr: 'Glissez-déposez les fichiers', tr: 'Dosyaları sürükleyip bırakın' },
+        'kyc_click_browse': { ar: 'أو انقر لتصفح', de: 'oder zum Durchsuchen klicken', fr: 'ou cliquer pour parcourir', tr: 'veya tıklayarak göz atın' },
+        'kyc_docs_appear_here': { ar: 'ستظهر الوثائق هنا', de: 'Dokumente erscheinen hier', fr: 'Les documents apparaîtront ici', tr: 'Belgeler burada görünecek' },
+        'kyc_docs_count_1': { ar: 'وثيقة واحدة', de: '1 Dokument', fr: '1 document', tr: '1 belge' },
+        'kyc_docs_count_2': { ar: 'وثيقتان', de: '2 Dokumente', fr: '2 documents', tr: '2 belge' },
+        'kyc_docs_count_3': { ar: '٣ وثائق', de: '3 Dokumente', fr: '3 documents', tr: '3 belge' },
+        'kyc_institutional_access': { ar: 'الوصول المؤسسي', de: 'Institutioneller Zugang', fr: 'Accès institutionnel', tr: 'Kurumsal Erişim' },
+        'confidence_score': { ar: 'درجة الثقة', de: 'Vertrauensbewertung', fr: 'Score de confiance', tr: 'Güven Skoru' },
+
+        // ═══ ESCROW CHECKOUT / PROOF PAGES ═══
+        'escrow_breadcrumb': { ar: 'الأمانات', de: 'Treuhand', fr: 'Entiercement', tr: 'Emanet' },
+        'escrow_release_verification': { ar: 'التحقق من تحرير الأمانة', de: 'Treuhand-Freigabeprüfung', fr: 'Vérification de libération d\'entiercement', tr: 'Emanet Serbest Bırakma Doğrulaması' },
+        'escrow_release_desc': { ar: 'الموافقة على تحرير الأموال بعد التحقق', de: 'Freigabe der Gelder nach Verifizierung genehmigen', fr: 'Approuver la libération des fonds après vérification', tr: 'Doğrulamadan sonra fonların serbest bırakılmasını onayla' },
+        'escrow_checkout_disclaimer': { ar: 'جميع الأموال محتجزة في ضمان حتى التسليم المعتمد', de: 'Alle Gelder werden bis zur verifizierten Lieferung treuhänderisch verwahrt', fr: 'Tous les fonds sont séquestrés jusqu\'à livraison vérifiée', tr: 'Tüm fonlar doğrulanmış teslimat yapılana kadar emanette tutulur' },
+        'escrow_compliance_footer': { ar: 'متوافق مع OCDS — تدقيق شفاف', de: 'OCDS-konform — Transparente Prüfung', fr: 'Conforme OCDS — Audit transparent', tr: 'OCDS uyumlu — Şeffaf denetim' },
+        'funds_locked_escrow': { ar: 'أموال محجوزة في الأمانة', de: 'Gelder in Treuhand gesperrt', fr: 'Fonds bloqués en entiercement', tr: 'Emanette Kilitli Fonlar' },
+        'secure_escrow': { ar: 'ضمان آمن', de: 'Sicheres Treuhandkonto', fr: 'Séquestre sécurisé', tr: 'Güvenli Emanet' },
+        'secure_escrow_enabled': { ar: 'ضمان آمن مفعّل', de: 'Sicheres Treuhandkonto aktiviert', fr: 'Séquestre sécurisé activé', tr: 'Güvenli Emanet Etkin' },
+        'smart_contract_ready': { ar: 'جاهز للعقد الذكي', de: 'Smart-Contract-bereit', fr: 'Prêt pour le contrat intelligent', tr: 'Akıllı Sözleşme Hazır' },
+        'blockchain_verified': { ar: 'تم التحقق عبر البلوكتشين', de: 'Blockchain-verifiziert', fr: 'Vérifié par blockchain', tr: 'Blockchain Doğrulanmış' },
+        'proof_of_delivery': { ar: 'إثبات التسليم', de: 'Liefernachweis', fr: 'Preuve de livraison', tr: 'Teslimat Kanıtı' },
+        'proof_delivery_desc': { ar: 'تحقق ميداني مع طابع GPS', de: 'Feldverifizierung mit GPS-Stempel', fr: 'Vérification terrain avec horodatage GPS', tr: 'GPS damgalı saha doğrulaması' },
+        'view_project_progress': { ar: 'عرض تقدم المشروع', de: 'Projektfortschritt anzeigen', fr: 'Voir la progression', tr: 'Proje İlerlemesini Gör' },
+        'tax_deductible_receipt': { ar: 'إيصال قابل للخصم الضريبي', de: 'Steuerlich absetzbare Quittung', fr: 'Reçu déductible d\'impôt', tr: 'Vergiden Düşülebilir Makbuz' },
+        'gps_stamped_delivery': { ar: 'تحقق التسليم بطابع GPS', de: 'GPS-gestempelte Lieferverifizierung', fr: 'Vérification de livraison GPS', tr: 'GPS damgalı teslimat doğrulaması' },
+        'gps_visual_proof': { ar: 'إثبات بصري GPS', de: 'GPS-visueller Nachweis', fr: 'Preuve visuelle GPS', tr: 'GPS görsel kanıt' },
+        'live_progress_tracking': { ar: 'تتبع مباشر للتقدم', de: 'Live-Fortschrittsverfolgung', fr: 'Suivi en direct de la progression', tr: 'Canlı İlerleme Takibi' },
+        'verified_by_engineer': { ar: 'معتمد من المهندس', de: 'Vom Ingenieur verifiziert', fr: 'Vérifié par l\'ingénieur', tr: 'Mühendis Tarafından Doğrulandı' },
+        'verified_by_oracle': { ar: 'معتمد من المؤشر', de: 'Vom Orakel verifiziert', fr: 'Vérifié par l\'oracle', tr: 'Oracle Tarafından Doğrulandı' },
+        'verified_status': { ar: 'حالة الاعتماد', de: 'Verifizierungsstatus', fr: 'Statut de vérification', tr: 'Doğrulama Durumu' },
+        'verified_list': { ar: 'قائمة معتمدة', de: 'Verifizierte Liste', fr: 'Liste vérifiée', tr: 'Doğrulanmış Liste' },
+        'verified_field_engineer': { ar: 'مهندس ميداني معتمد', de: 'Verifizierter Feldingenieur', fr: 'Ingénieur de terrain vérifié', tr: 'Doğrulanmış Saha Mühendisi' },
+        'verify_btn': { ar: 'تحقق', de: 'Verifizieren', fr: 'Vérifier', tr: 'Doğrula' },
+        'verification_breadcrumb': { ar: 'التحقق', de: 'Verifizierung', fr: 'Vérification', tr: 'Doğrulama' },
+
+        // ═══ PROJECT DETAILS & ENGINEER PAGES ═══
+        'project_details': { ar: 'تفاصيل المشروع', de: 'Projektdetails', fr: 'Détails du projet', tr: 'Proje Detayları' },
+        'overall_funding': { ar: 'التمويل الإجمالي', de: 'Gesamtfinanzierung', fr: 'Financement global', tr: 'Genel Finansman' },
+        'itemized_needs_boq': { ar: 'الاحتياجات المفصلة (جدول الكميات)', de: 'Detaillierte Bedarfe (LV)', fr: 'Besoins détaillés (DQE)', tr: 'Detaylı İhtiyaçlar (BOQ)' },
+        'materials_to_fund': { ar: 'مواد تحتاج تمويل', de: 'Zu finanzierende Materialien', fr: 'Matériaux à financer', tr: 'Finanse Edilecek Malzemeler' },
+        'total_funding_amount': { ar: 'إجمالي مبلغ التمويل', de: 'Gesamtfinanzierungsbetrag', fr: 'Montant total du financement', tr: 'Toplam Finansman Tutarı' },
+        'total_impact_funded': { ar: 'إجمالي التأثير المموّل', de: 'Gesamtfinanzierte Wirkung', fr: 'Impact total financé', tr: 'Toplam Finanse Edilen Etki' },
+        'transparency_body': { ar: 'كل معاملة قابلة للتدقيق عبر سجلات OCDS.', de: 'Jede Transaktion ist über OCDS-Protokolle prüfbar.', fr: 'Chaque transaction est auditable via les registres OCDS.', tr: 'Her işlem OCDS kayıtları üzerinden denetlenebilir.' },
+        'engineer_boq_builder': { ar: 'منشئ جدول الكميات', de: 'LV-Editor', fr: 'Éditeur DQE', tr: 'BOQ Oluşturucu' },
+        'added_materials': { ar: 'المواد المضافة', de: 'Hinzugefügte Materialien', fr: 'Matériaux ajoutés', tr: 'Eklenen Malzemeler' },
+        'total_project_estimate': { ar: 'إجمالي تقدير المشروع', de: 'Gesamte Projektschätzung', fr: 'Estimation totale du projet', tr: 'Toplam Proje Tahmini' },
+        'site_validation': { ar: 'التحقق الميداني', de: 'Standortvalidierung', fr: 'Validation sur site', tr: 'Saha Doğrulaması' },
+        'site_verification': { ar: 'التحقق الميداني', de: 'Standortverifizierung', fr: 'Vérification du site', tr: 'Saha Doğrulaması' },
+        'field_photo_proof': { ar: 'إثبات الصور الميدانية', de: 'Fotobeweis vor Ort', fr: 'Preuve photo de terrain', tr: 'Saha Fotoğraf Kanıtı' },
+        'voice_snag': { ar: 'ملاحظة صوتية', de: 'Sprachmangel', fr: 'Note vocale', tr: 'Sesli Not' },
+        'capture_360_sync': { ar: 'تصوير 360 ومزامنة', de: '360° aufnehmen und synchronisieren', fr: 'Capturer 360 et synchroniser', tr: '360 Çek ve Senkronize Et' },
+        'gps_coordinates': { ar: 'إحداثيات GPS', de: 'GPS-Koordinaten', fr: 'Coordonnées GPS', tr: 'GPS Koordinatları' },
+        'timestamp_label': { ar: 'الطابع الزمني', de: 'Zeitstempel', fr: 'Horodatage', tr: 'Zaman Damgası' },
+        'signature_label': { ar: 'التوقيع', de: 'Unterschrift', fr: 'Signature', tr: 'İmza' },
+        'boq': { ar: 'جدول الكميات', de: 'Leistungsverzeichnis', fr: 'Devis quantitatif', tr: 'Metraj' },
+        'item_description': { ar: 'وصف البند', de: 'Artikelbeschreibung', fr: 'Description de l\'article', tr: 'Kalem Açıklaması' },
+        'items_label': { ar: 'البنود', de: 'Artikel', fr: 'Articles', tr: 'Kalemler' },
+        'invoice_label': { ar: 'الفاتورة', de: 'Rechnung', fr: 'Facture', tr: 'Fatura' },
+        'invoice_preview': { ar: 'معاينة الفاتورة', de: 'Rechnungsvorschau', fr: 'Aperçu de la facture', tr: 'Fatura Önizleme' },
+        'request_id': { ar: 'رقم الطلب', de: 'Anfrage-ID', fr: 'N° de demande', tr: 'Talep Numarası' },
+        'request_summary': { ar: 'ملخص الطلب', de: 'Anfragezusammenfassung', fr: 'Résumé de la demande', tr: 'Talep Özeti' },
+        'request_submitted': { ar: 'تم تقديم الطلب!', de: 'Anfrage eingereicht!', fr: 'Demande soumise !', tr: 'Talep Gönderildi!' },
+        'configure_indices': { ar: 'تكوين المؤشرات', de: 'Indizes konfigurieren', fr: 'Configurer les indices', tr: 'Endeksleri Yapılandır' },
+        'approve_adjustment': { ar: 'الموافقة على التعديل', de: 'Anpassung genehmigen', fr: 'Approuver l\'ajustement', tr: 'Düzeltmeyi Onayla' },
+        'regional_supply_forecast': { ar: 'توقعات العرض الإقليمي', de: 'Regionale Angebotsprognose', fr: 'Prévision d\'approvisionnement régional', tr: 'Bölgesel Tedarik Tahmini' },
+        'steel_index_volatility': { ar: 'تقلب مؤشر الحديد', de: 'Stahlindexvolatilität', fr: 'Volatilité de l\'indice acier', tr: 'Çelik Endeksi Volatilitesi' },
+        'total_adjusted_cost': { ar: 'التكلفة المعدّلة الإجمالية', de: 'Gesamte bereinigte Kosten', fr: 'Coût total ajusté', tr: 'Toplam Düzeltilmiş Maliyet' },
+        'pricing_oracle_desc': { ar: 'أسعار مواد البناء المحدّثة', de: 'Aktuelle Baumaterialpreise', fr: 'Prix actualisés des matériaux', tr: 'Güncel yapı malzemesi fiyatları' },
+        'pricing_oracle_epa': { ar: 'مؤشر EPA', de: 'EPA-Index', fr: 'Indice EPA', tr: 'EPA Endeksi' },
+        'live_market': { ar: 'السوق المباشر', de: 'Live-Markt', fr: 'Marché en direct', tr: 'Canlı Piyasa' },
+        'material_inflation_curves': { ar: 'منحنيات تضخم المواد', de: 'Materialinflationskurven', fr: 'Courbes d\'inflation des matériaux', tr: 'Malzeme Enflasyon Eğrileri' },
+        'oracle_feed_sources': { ar: 'مصادر بيانات المؤشر', de: 'Orakel-Datenquellen', fr: 'Sources de données oracle', tr: 'Oracle Veri Kaynakları' },
+        'mean_adjustment': { ar: 'التعديل المتوسط', de: 'Durchschnittliche Anpassung', fr: 'Ajustement moyen', tr: 'Ortalama Düzeltme' },
+        'price_index_adjustment': { ar: 'تعديل مؤشر الأسعار', de: 'Preisindexanpassung', fr: 'Ajustement de l\'indice des prix', tr: 'Fiyat Endeksi Düzeltmesi' },
+        'original_boq_cost': { ar: 'تكلفة جدول الكميات الأصلي', de: 'Ursprüngliche LV-Kosten', fr: 'Coût DQE original', tr: 'Orijinal BOQ Maliyeti' },
+        'fidic_formula': { ar: 'صيغة FIDIC', de: 'FIDIC-Formel', fr: 'Formule FIDIC', tr: 'FIDIC Formülü' },
+        'epa_approval_disclaimer': { ar: 'تعديلات الأسعار تخضع لموافقة EPA', de: 'Preisanpassungen unterliegen der EPA-Genehmigung', fr: 'Les ajustements de prix sont soumis à l\'approbation EPA', tr: 'Fiyat düzeltmeleri EPA onayına tabidir' },
+        'contribution_onsite': { ar: 'مساهمة في الموقع', de: 'Beitrag vor Ort', fr: 'Contribution sur site', tr: 'Sahada Katkı' },
+
+        // ═══ HOMEOWNER DAMAGE REPORT ═══
+        'report_damage': { ar: 'الإبلاغ عن أضرار', de: 'Schaden melden', fr: 'Signaler des dégâts', tr: 'Hasar Bildir' },
+        'what_kind_of_damage': { ar: 'ما نوع الضرر؟', de: 'Welche Art von Schaden?', fr: 'Quel type de dégât ?', tr: 'Hasar türü nedir?' },
+        'where_is_your': { ar: 'أين يقع منزلك؟', de: 'Wo befindet sich Ihr Haus?', fr: 'Où se trouve votre maison ?', tr: 'Eviniz nerede?' },
+        'describe_the_damage': { ar: 'صف الضرر', de: 'Beschreiben Sie den Schaden', fr: 'Décrivez les dégâts', tr: 'Hasarı tanımlayın' },
+        'describe_the_damage_clearly_we_ll_conve': { ar: 'صف الضرر بوضوح — سنحوّل كلامك إلى نص', de: 'Beschreiben Sie den Schaden deutlich — wir konvertieren Ihre Sprache in Text', fr: 'Décrivez les dégâts clairement — nous convertirons votre voix en texte', tr: 'Hasarı net tanımlayın — sesinizi metne çevireceğiz' },
+        'describe_the_issue_clearly_your_voice_n': { ar: 'صف المشكلة بوضوح — سيتم تحويل ملاحظتك الصوتية إلى نص', de: 'Beschreiben Sie das Problem klar — Ihre Sprachnotiz wird in Text umgewandelt', fr: 'Décrivez le problème clairement — votre note vocale sera convertie en texte', tr: 'Sorunu net açıklayın — sesli notunuz metne dönüştürülecek' },
+        'select_the_type_that_best_describes_your': { ar: 'اختر النوع الذي يصف ضررك بأفضل شكل', de: 'Wählen Sie den Typ, der Ihren Schaden am besten beschreibt', fr: 'Sélectionnez le type décrivant le mieux vos dégâts', tr: 'Hasarınızı en iyi tanımlayan türü seçin' },
+        'foundations_walls_ceilings_roofing': { ar: 'الأساسات، الجدران، الأسقف، السقف', de: 'Fundamente, Wände, Decken, Dach', fr: 'Fondations, murs, plafonds, toiture', tr: 'Temeller, duvarlar, tavanlar, çatı' },
+        'wiring_outlets_panels_and_generators': { ar: 'الأسلاك، المقابس، اللوحات والمولدات', de: 'Verkabelung, Steckdosen, Schalttafeln und Generatoren', fr: 'Câblage, prises, panneaux et générateurs', tr: 'Kablolama, prizler, paneller ve jeneratörler' },
+        'pipes_leaks_water_and_drainage_systems': { ar: 'الأنابيب، التسريبات، أنظمة المياه والصرف', de: 'Rohre, Lecks, Wasser- und Abflusssysteme', fr: 'Tuyaux, fuites, systèmes d\'eau et de drainage', tr: 'Borular, sızıntılar, su ve drenaj sistemleri' },
+        'doors_windows_finishing_or_other': { ar: 'الأبواب، النوافذ، التشطيبات أو غيرها', de: 'Türen, Fenster, Ausbau oder Sonstiges', fr: 'Portes, fenêtres, finitions ou autres', tr: 'Kapılar, pencereler, biten işler veya diğer' },
+        'neighborhood_or_area_name': { ar: 'الحي أو اسم المنطقة', de: 'Stadtviertel oder Ortsname', fr: 'Quartier ou nom de la zone', tr: 'Mahalle veya bölge adı' },
+        'we_need_this_to_connect_you_with_nearby': { ar: 'نحتاج هذا لربطك بالخبراء القريبين', de: 'Wir brauchen dies, um Sie mit Experten in der Nähe zu verbinden', fr: 'Nécessaire pour vous connecter aux experts à proximité', tr: 'Sizi yakındaki uzmanlara bağlamak için bu gerekli' },
+        'tap_to_upload_photos': { ar: 'اضغط لتحميل الصور', de: 'Tippen zum Hochladen von Fotos', fr: 'Appuyez pour télécharger des photos', tr: 'Fotoğrafları yüklemek için tıklayın' },
+        'upload_photos_of_damage_optional': { ar: 'حمّل صور الأضرار (اختياري)', de: 'Fotos der Schäden hochladen (optional)', fr: 'Téléchargez des photos des dégâts (optionnel)', tr: 'Hasar fotoğraflarını yükleyin (isteğe bağlı)' },
+        'maximum_5_photos_jpg_or_png': { ar: 'حد أقصى ٥ صور (JPG أو PNG)', de: 'Maximal 5 Fotos (JPG oder PNG)', fr: 'Maximum 5 photos (JPG ou PNG)', tr: 'Maksimum 5 fotoğraf (JPG veya PNG)' },
+        'or_tap_to_describe_with_your_voice': { ar: 'أو اضغط للوصف بصوتك', de: 'oder tippen, um per Sprache zu beschreiben', fr: 'ou appuyez pour décrire par la voix', tr: 'veya sesle tanımlamak için dokunun' },
+        'type_or_use_voice_to_tell_us_what_happen': { ar: 'اكتب أو استخدم الصوت لإخبارنا ما حدث', de: 'Tippen oder Sprache verwenden, um uns zu erzählen, was passiert ist', fr: 'Tapez ou utilisez la voix pour nous dire ce qui s\'est passé', tr: 'Neler olduğunu bize yazarak veya ses ile anlatın' },
+        'gps_timestamp_will_be_auto_embedded': { ar: 'سيتم تضمين الطابعين الزمني والمكاني تلقائياً', de: 'GPS-Zeitstempel wird automatisch eingebettet', fr: 'Horodatage GPS intégré automatiquement', tr: 'GPS zaman damgası otomatik eklenecek' },
+        'your_damage_report_has_been_registered': { ar: 'تم تسجيل بلاغ الضرر الخاص بك', de: 'Ihr Schadensbericht wurde registriert', fr: 'Votre rapport de dommages a été enregistré', tr: 'Hasar raporunuz kaydedildi' },
+        'listening': { ar: 'جاري الاستماع...', de: 'Hört zu...', fr: 'Écoute en cours...', tr: 'Dinleniyor...' },
+        'recording_snag_note': { ar: 'جاري تسجيل الملاحظة...', de: 'Notiz wird aufgenommen...', fr: 'Enregistrement de la note...', tr: 'Not kaydediliyor...' },
+        'location_detected': { ar: 'تم رصد الموقع', de: 'Standort erkannt', fr: 'Emplacement détecté', tr: 'Konum tespit edildi' },
+        'syncing_to_server': { ar: 'جاري المزامنة مع الخادم...', de: 'Synchronisierung mit Server...', fr: 'Synchronisation avec le serveur...', tr: 'Sunucuya senkronize ediliyor...' },
+        'point_camera_at_delivery_site': { ar: 'وجّه الكاميرا نحو موقع التسليم', de: 'Kamera auf den Lieferort richten', fr: 'Dirigez la caméra vers le site de livraison', tr: 'Kamerayı teslimat alanına doğrultun' },
+        'of_delivery': { ar: 'من التسليم', de: 'der Lieferung', fr: 'de la livraison', tr: 'teslimatın' },
+
+        // ═══ MATERIAL NAMES & STATIC DATA ═══
+        'reinforcement_steel': { ar: 'حديد التسليح', de: 'Bewehrungsstahl', fr: 'Acier d\'armature', tr: 'İnşaat Demiri' },
+        'opc_cement_grade_43': { ar: 'أسمنت OPC درجة ٤٣', de: 'OPC-Zement Klasse 43', fr: 'Ciment OPC grade 43', tr: 'OPC Çimento Sınıf 43' },
+        'tmt_steel_bars_12mm': { ar: 'قضبان فولاذ TMT ١٢مم', de: 'TMT-Stahlstäbe 12mm', fr: 'Barres d\'acier TMT 12mm', tr: 'TMT Çelik Çubuk 12mm' },
+        'flush_wood_door_32': { ar: 'باب خشب مسطح ٣٢', de: 'Bündige Holztür 32', fr: 'Porte bois affleurante 32', tr: 'Kaplamalı Ahşap Kapı 32' },
+        'harbor_view': { ar: 'منظر الميناء', de: 'Hafenblick', fr: 'Vue du port', tr: 'Liman Manzarası' },
+        'harbor_view_reconstruction': { ar: 'إعادة إعمار منظر الميناء', de: 'Wiederaufbau Hafenblick', fr: 'Reconstruction Vue du port', tr: 'Liman Manzarası Yeniden İnşa' },
+
+        // ═══ STATIC DATA / UNIT PRICES / REFERENCE CODES ═══
+        'unit_10_00_bag': { ar: '١٠٫٠٠ / كيس', de: '10,00 / Sack', fr: '10,00 / sac', tr: '10,00 / torba' },
+        'unit_35_00_panel': { ar: '٣٥٫٠٠ / لوح', de: '35,00 / Paneel', fr: '35,00 / panneau', tr: '35,00 / panel' },
+        'unit_4_50_meter': { ar: '٤٫٥٠ / متر', de: '4,50 / Meter', fr: '4,50 / mètre', tr: '4,50 / metre' },
+        'unit_6_00_meter': { ar: '٦٫٠٠ / متر', de: '6,00 / Meter', fr: '6,00 / mètre', tr: '6,00 / metre' },
+        'cost_850_00': { ar: '٨٥٠٫٠٠ $', de: '850,00 $', fr: '850,00 $', tr: '850,00 $' },
+        'nmr_hvr_001': { ar: 'NMR-HVR-001', de: 'NMR-HVR-001', fr: 'NMR-HVR-001', tr: 'NMR-HVR-001' },
+        'po_nmr_po_20260001_al_shams_materials': { ar: 'أمر شراء NMR-PO-20260001 — مواد الشمس', de: 'PO NMR-PO-20260001 — Al Shams Materials', fr: 'PO NMR-PO-20260001 — Matériaux Al Shams', tr: 'PO NMR-PO-20260001 — Al Shams Malzemeleri' },
+        '50_bags_opc_cement': { ar: '٥٠ كيس أسمنت OPC', de: '50 Sack OPC-Zement', fr: '50 sacs de ciment OPC', tr: '50 torba OPC çimento' },
+        '50_bags_of_cement': { ar: '٥٠ كيس أسمنت', de: '50 Sack Zement', fr: '50 sacs de ciment', tr: '50 torba çimento' },
+        '20m_copper_wiring': { ar: '٢٠م أسلاك نحاسية', de: '20m Kupferverdrahtung', fr: '20m câblage cuivre', tr: '20m bakır kablo' },
+        '30m_pvc_plumbing_pipes': { ar: '٣٠م أنابيب PVC', de: '30m PVC-Rohre', fr: '30m tuyaux PVC', tr: '30m PVC tesisat borusu' },
+        '12_glass_window_panels': { ar: '١٢ لوح زجاج نوافذ', de: '12 Glasfensterpaneele', fr: '12 panneaux de vitrage', tr: '12 cam pencere paneli' },
+        'funds_held_in_escrow_released_only_upo': { ar: 'الأموال محتجزة في الضمان — تُحرَّر فقط بعد التحقق', de: 'Gelder treuhänderisch verwahrt — Freigabe nur nach Verifizierung', fr: 'Fonds sous séquestre — libérés uniquement après vérification', tr: 'Fonlar emanette — yalnızca doğrulama sonrası serbest bırakılır' },
+        '15_funded': { ar: 'مموّل ١٥٪', de: '15 % finanziert', fr: '15 % financé', tr: '%15 finanse' },
+        '35_funded': { ar: 'مموّل ٣٥٪', de: '35 % finanziert', fr: '35 % financé', tr: '%35 finanse' },
+        '50_funded': { ar: 'مموّل ٥٠٪', de: '50 % finanziert', fr: '50 % financé', tr: '%50 finanse' },
+        '64_raised': { ar: 'تم جمع ٦٤٪', de: '64 % gesammelt', fr: '64 % collecté', tr: '%64 toplandı' },
+        '80_funded': { ar: 'مموّل ٨٠٪', de: '80 % finanziert', fr: '80 % financé', tr: '%80 finanse' },
+        '360_captured': { ar: 'تم التصوير ٣٦٠°', de: '360° aufgenommen', fr: '360° capturé', tr: '360° çekildi' },
+        '3_items': { ar: '٣ بنود', de: '3 Artikel', fr: '3 articles', tr: '3 kalem' },
+        '1_440_00': { ar: '١٬٤٤٠٫٠٠', de: '1.440,00', fr: '1 440,00', tr: '1.440,00' },
+        '2_810_00': { ar: '٢٬٨١٠٫٠٠', de: '2.810,00', fr: '2 810,00', tr: '2.810,00' },
+        '450_00': { ar: '٤٥٠٫٠٠', de: '450,00', fr: '450,00', tr: '450,00' },
+        '920_00': { ar: '٩٢٠٫٠٠', de: '920,00', fr: '920,00', tr: '920,00' },
     };
 
     // ─── State ────────────────────────────────────────────────────────────
@@ -474,10 +1068,12 @@
     }
 
     // ─── Language Selector Widget ─────────────────────────────────────────
+    // NOTE: Widget is injected INTO the navbar (not fixed-position overlay)
+    // to prevent overlap with user avatar and cart icon.
     function createSelector() {
         var wrap = document.createElement('div');
         wrap.id = 'nm-lang-widget';
-        wrap.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+        wrap.style.cssText = 'position:relative;z-index:10;font-family:"Plus Jakarta Sans",sans-serif;flex-shrink:0;';
 
         var btn = document.createElement('button');
         btn.id = 'nm-lang-btn';
@@ -587,18 +1183,15 @@
     }
 
     // ─── RTL Direction Fix for Widget ─────────────────────────────────────
+    // Since the widget is now inside the navbar (flex container), RTL
+    // direction is handled automatically by the parent's flex direction.
+    // We only need to flip the dropdown anchor side.
     function updateWidgetPosition() {
-        var widget = document.getElementById('nm-lang-widget');
-        if (!widget) return;
-        var isRTL = document.documentElement.getAttribute('dir') === 'rtl';
-        widget.style.right = isRTL ? 'auto' : '12px';
-        widget.style.left = isRTL ? '12px' : 'auto';
-
         var dd = document.getElementById('nm-lang-dd');
-        if (dd) {
-            dd.style.right = isRTL ? 'auto' : '0';
-            dd.style.left = isRTL ? '0' : 'auto';
-        }
+        if (!dd) return;
+        var isRTL = document.documentElement.getAttribute('dir') === 'rtl';
+        dd.style.right = isRTL ? 'auto' : '0';
+        dd.style.left = isRTL ? '0' : 'auto';
     }
 
     // ─── Suggestion Banner (Doc §4.3) ──────────────────────────────────
@@ -680,7 +1273,40 @@
         var old = document.getElementById('nm-lang-widget');
         if (old) old.remove();
 
-        document.body.appendChild(createSelector());
+        // Inject widget INTO the navbar (between cart and user avatar)
+        // This prevents the fixed-position overlap issue.
+        var widget = createSelector();
+        var navbar = document.querySelector('nav.glass-nav');
+        if (navbar) {
+            // Find the user avatar (last child = avatar div with rounded-full)
+            var userAvatar = navbar.querySelector('.rounded-full.border-2');
+            if (userAvatar) {
+                navbar.insertBefore(widget, userAvatar);
+            } else {
+                navbar.appendChild(widget);
+            }
+        } else {
+            // Admin dashboard pages: inject into the header bar
+            var dashHeader = document.querySelector('header .page-header-title');
+            if (dashHeader) {
+                var headerBar = dashHeader.closest('header');
+                if (headerBar) {
+                    // Insert into the right-side flex container of the header
+                    var rightGroup = headerBar.querySelector('.flex.items-center.gap-4');
+                    if (rightGroup) {
+                        rightGroup.insertBefore(widget, rightGroup.firstChild);
+                    } else {
+                        headerBar.appendChild(widget);
+                    }
+                } else {
+                    document.body.appendChild(widget);
+                }
+            } else {
+                // Final fallback: append to body with fixed positioning
+                widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+                document.body.appendChild(widget);
+            }
+        }
 
         // Apply stored/detected language
         applyLanguage(currentLang);
@@ -731,20 +1357,6 @@
         switchLanguage: applyLanguage,
         getCurrentLang: function () { return currentLang; },
         getSupportedLangs: function () { return LANGS.slice(); },
-        /**
-         * PLT-AUD-010: Runtime translation lookup for JavaScript-generated strings.
-         * Usage: window.NammerhaI18n.t('auth_signing_in', 'Signing in...')
-         * Returns the translated string if available, otherwise the fallback.
-         *
-         * @param {string} key - The i18n dictionary key
-         * @param {string} [fallback] - Fallback text if key not found or lang=en
-         * @returns {string}
-         */
-        t: function (key, fallback) {
-            if (currentLang === 'en') return fallback || key;
-            if (DICT[key] && DICT[key][currentLang]) return DICT[key][currentLang];
-            return fallback || key;
-        },
     };
 
 })();

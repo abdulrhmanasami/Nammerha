@@ -66,33 +66,65 @@
 
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="size-9 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <i class="ph ph-hand-heart text-emerald-600" style="font-size:18px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_total">Total Donated</p>
-          <p class="text-2xl font-black mt-1 text-emerald-600" id="kpi-donated">$0</p>
+          <p class="text-2xl font-black mt-1 text-emerald-600" id="kpi-donated">
+            <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="size-9 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_projects">Projects Supported</p>
-          <p class="text-2xl font-black mt-1" id="kpi-projects">0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-projects">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="size-9 rounded-lg bg-blue-100 flex items-center justify-center">
+              <i class="ph ph-package text-blue-600" style="font-size:18px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_items">Items Funded</p>
-          <p class="text-2xl font-black mt-1 text-blue-600" id="kpi-items">0</p>
+          <p class="text-2xl font-black mt-1 text-blue-600" id="kpi-items">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="size-9 rounded-lg bg-amber-100 flex items-center justify-center">
+              <i class="ph ph-chart-line-up text-amber-600" style="font-size:18px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_score">Impact Score</p>
-          <p class="text-2xl font-black mt-1 text-amber-600" id="kpi-score">0%</p>
+          <p class="text-2xl font-black mt-1 text-amber-600" id="kpi-score">
+            <span class="inline-block h-7 w-14 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
       </div>
 
       <!-- Escrow Summary -->
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-          <p class="text-[10px] font-bold text-emerald-500 uppercase">In Escrow (Secured)</p>
-          <p class="text-lg font-black text-emerald-700 mt-1" id="kpi-locked">$0</p>
+          <p class="text-[10px] font-bold text-emerald-500 uppercase" data-i18n="donor_in_escrow">In Escrow (Secured)</p>
+          <p class="text-lg font-black text-emerald-700 mt-1" id="kpi-locked">
+            <span class="inline-block h-6 w-16 bg-emerald-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-green-50 rounded-xl p-4 border border-green-100">
-          <p class="text-[10px] font-bold text-green-500 uppercase">Released to Suppliers</p>
-          <p class="text-lg font-black text-green-700 mt-1" id="kpi-released">$0</p>
+          <p class="text-[10px] font-bold text-green-500 uppercase" data-i18n="donor_released">Released to Suppliers</p>
+          <p class="text-lg font-black text-green-700 mt-1" id="kpi-released">
+            <span class="inline-block h-6 w-16 bg-green-200 rounded animate-pulse"></span>
+          </p>
         </div>
       </div>
 

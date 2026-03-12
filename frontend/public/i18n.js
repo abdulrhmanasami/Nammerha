@@ -663,6 +663,8 @@
         'donor_total': { ar: 'الإجمالي', de: 'Gesamt', fr: 'Total', tr: 'Toplam' },
         'donor_items': { ar: 'البنود', de: 'Artikel', fr: 'Articles', tr: 'Kalemler' },
         'donor_score': { ar: 'نقاط الأثر', de: 'Wirkungspunkte', fr: 'Score d\'impact', tr: 'Etki Puanı' },
+        'donor_in_escrow': { ar: 'في الضمان (مؤمّن)', de: 'Auf Treuhandkonto (Gesichert)', fr: 'Sous séquestre (Sécurisé)', tr: 'Emanette (Güvende)' },
+        'donor_released': { ar: 'تم تحريره للموردين', de: 'An Lieferanten freigegeben', fr: 'Libéré aux fournisseurs', tr: 'Tedarikçilere Serbest Bırakıldı' },
         'donor_go_basket': { ar: 'انتقل إلى السلة', de: 'Zum Warenkorb', fr: 'Aller au panier', tr: 'Sepete Git' },
         'browse_projects': { ar: 'تصفح المشاريع', de: 'Projekte durchsuchen', fr: 'Parcourir les projets', tr: 'Projelere Göz At' },
         'browse_projects_hint': { ar: 'اكتشف مشاريع بحاجة لدعمك', de: 'Entdecken Sie Projekte, die Ihre Unterstützung brauchen', fr: 'Découvrez des projets qui ont besoin de votre soutien', tr: 'Desteğinize ihtiyaç duyan projeleri keşfedin' },

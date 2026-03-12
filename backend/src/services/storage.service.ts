@@ -320,23 +320,58 @@ export async function listProjectFiles(
 
 /**
  * Check if storage service is configured and reachable.
+ * P3-010 FIX: Enhanced diagnostics — latency, object count, bucket accessibility.
  */
-export async function healthCheck(): Promise<{ ok: boolean; provider: string; bucket: string }> {
+export async function healthCheck(): Promise<{
+    ok: boolean;
+    provider: string;
+    bucket: string;
+    latency_ms: number;
+    object_count: number;
+    details: string;
+}> {
     const config = getStorageConfig();
+    const baseResult = {
+        ok: false,
+        provider: config.provider,
+        bucket: config.bucket,
+        latency_ms: -1,
+        object_count: 0,
+        details: '',
+    };
 
     if (!config.accessKeyId || !config.secretAccessKey) {
-        return { ok: false, provider: config.provider, bucket: config.bucket };
+        return { ...baseResult, details: 'Storage credentials not configured' };
     }
+
+    const startTime = performance.now();
 
     try {
         const client = getClient();
-        await client.send(new ListObjectsV2Command({
+        const result = await client.send(new ListObjectsV2Command({
             Bucket: config.bucket,
             MaxKeys: 1,
         }));
-        return { ok: true, provider: config.provider, bucket: config.bucket };
+
+        const latency = Math.round(performance.now() - startTime);
+        const objectCount = result.KeyCount ?? 0;
+
+        return {
+            ok: true,
+            provider: config.provider,
+            bucket: config.bucket,
+            latency_ms: latency,
+            object_count: objectCount,
+            details: `Bucket accessible, ${objectCount} object(s) sampled in ${latency}ms`,
+        };
     } catch (err) {
-        logger.error('Storage health check failed', { error: err instanceof Error ? err.message : String(err) });
-        return { ok: false, provider: config.provider, bucket: config.bucket };
+        const latency = Math.round(performance.now() - startTime);
+        const message = err instanceof Error ? err.message : String(err);
+        logger.error('Storage health check failed', { error: message, latency_ms: latency });
+        return {
+            ...baseResult,
+            latency_ms: latency,
+            details: `Health check failed: ${message}`,
+        };
     }
 }

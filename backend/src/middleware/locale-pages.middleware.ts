@@ -157,6 +157,17 @@ const PAGE_REGISTRY: Record<string, PageMeta> = {
             tr: { title: 'Nammerha — FIDIC Fiyat Ayarlama Motoru', description: 'Gerçek zamanlı piyasa verileri ile FIDIC 13.8 uyumlu fiyat ayarlama motoru.' },
         },
     },
+    contact: {
+        slug: 'contact',
+        stitchDir: 'contact_page',
+        meta: {
+            ar: { title: 'نَمِّرها — تواصل معنا', description: 'تواصل مع فريق نَمِّرها لأي استفسارات حول منصة إعادة الإعمار.' },
+            en: { title: 'Nammerha — Contact Us', description: 'Get in touch with the Nammerha team for questions about the reconstruction platform.' },
+            de: { title: 'Nammerha — Kontakt', description: 'Kontaktieren Sie das Nammerha-Team für Fragen zur Wiederaufbauplattform.' },
+            fr: { title: 'Nammerha — Contactez-nous', description: 'Contactez l\'équipe Nammerha pour toute question sur la plateforme de reconstruction.' },
+            tr: { title: 'Nammerha — İletişim', description: 'Yeniden yapılanma platformu hakkında sorularınız için Nammerha ekibiyle iletişime geçin.' },
+        },
+    },
 };
 
 // ─── Stitch Root Path ─────────────────────────────────────────────────────────────────
