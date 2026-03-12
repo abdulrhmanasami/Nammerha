@@ -6,6 +6,7 @@
 import pool, { transaction } from '../config/database';
 import { getDistanceMatrix } from './georavity.service';
 import type { MatrixEntry } from './georavity.service';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -444,7 +445,7 @@ async function enrichWithRoadDistances(
     ) && isFinite(projectLat) && isFinite(projectLng) && projectLat !== 0 && projectLng !== 0;
 
     if (!hasValidCoords) {
-        console.warn('[Matchmaking] Invalid coordinates detected — skipping Georavity enrichment');
+        logger.warn('Invalid coordinates detected — skipping Georavity enrichment');
         return candidates.map(c => ({
             ...c,
             road_distance_km: null,
@@ -462,10 +463,9 @@ async function enrichWithRoadDistances(
         );
     } catch (error) {
         // GRACEFUL DEGRADATION: Log and continue with Haversine distances
-        console.error(
-            '[Matchmaking] Georavity unavailable, falling back to Haversine ordering:',
-            error instanceof Error ? error.message : error
-        );
+        logger.error('Georavity unavailable, falling back to Haversine ordering', {
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
 
     // Enrich candidates with road distances
@@ -666,7 +666,7 @@ export async function acceptBid(
     try {
         await recalculateScore(bidderId);
     } catch (err) {
-        console.error(`[Matchmaking] Score recalculation failed for ${bidderId}:`, err);
+        logger.error('Score recalculation failed', { bidderId, error: err instanceof Error ? err.message : String(err) });
     }
 
     return bid;

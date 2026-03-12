@@ -14,6 +14,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'crypto';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -335,7 +336,7 @@ export async function healthCheck(): Promise<{ ok: boolean; provider: string; bu
         }));
         return { ok: true, provider: config.provider, bucket: config.bucket };
     } catch (err) {
-        console.error('[Storage] Health check failed:', err instanceof Error ? err.message : err);
+        logger.error('Storage health check failed', { error: err instanceof Error ? err.message : String(err) });
         return { ok: false, provider: config.provider, bucket: config.bucket };
     }
 }

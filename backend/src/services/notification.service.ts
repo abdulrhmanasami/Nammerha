@@ -6,6 +6,7 @@
 // ============================================================================
 import { query } from '../config/database';
 import type { Notification, NotificationType, NotificationChannel } from '../types';
+import { logger } from '../utils/logger';
 
 // ─── Create Notification ────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ export async function createNotification(
     // the calling transaction or blocks the HTTP response.
     const channel = input.channel ?? 'in_app';
     dispatchToProvider(channel, input).catch((err) => {
-        console.error(`[Notification] Dispatch failed for channel=${channel}:`, err);
+        logger.error('Notification dispatch failed', { channel, error: err instanceof Error ? err.message : String(err) });
     });
 
     return notification;
@@ -69,8 +70,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
     // eslint-disable-next-line require-await
     in_app: async (input) => {
         // In-app: already persisted to DB above. No additional delivery needed.
-        // eslint-disable-next-line no-console
-        console.warn(`[Notification] in_app → ${input.user_id}: ${input.title}`);
+        logger.info('In-app notification', { userId: input.user_id, title: input.title });
     },
 
     email: async (input) => {
@@ -81,7 +81,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
         const fromEmail = process.env['SMTP_FROM'] ?? 'noreply@nammerha.com';
 
         if (!smtpHost) {
-            console.warn(`[Notification] Email delivery requested but SMTP_HOST not configured — skipping.`);
+            logger.warn('Email delivery requested but SMTP_HOST not configured — skipping');
             return;
         }
 
@@ -111,7 +111,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
             );
             const userEmail = userResult.rows[0]?.email;
             if (!userEmail) {
-                console.warn(`[Notification] Cannot send email — no email found for user ${input.user_id}`);
+                logger.warn('Cannot send email — no email found for user', { userId: input.user_id });
                 return;
             }
 
@@ -127,9 +127,9 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
                     <p style="color:#94a3b8;font-size:12px;">Nammerha — National Reconstruction Platform</p>
                 </div>`,
             });
-            console.warn(`[Notification] Email sent to ${userEmail}: ${input.title}`);
+            logger.info('Email notification sent', { to: userEmail, title: input.title });
         } catch (err) {
-            console.error(`[Notification] Email delivery failed:`, err);
+            logger.error('Email delivery failed', { error: err instanceof Error ? err.message : String(err) });
             // Never re-throw — email failure must not crash the calling operation
         }
     },
@@ -138,7 +138,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
         // Webhook: POST notification payload to a configured endpoint
         const webhookUrl = process.env['NOTIFICATION_WEBHOOK_URL'];
         if (!webhookUrl) {
-            console.warn(`[Notification] Webhook delivery requested but NOTIFICATION_WEBHOOK_URL not set — skipping.`);
+            logger.warn('Webhook delivery requested but NOTIFICATION_WEBHOOK_URL not set — skipping');
             return;
         }
 
@@ -157,12 +157,12 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
                 }),
             });
             if (!response.ok) {
-                console.error(`[Notification] Webhook returned ${response.status}: ${response.statusText}`);
+                logger.error('Webhook returned error', { status: response.status, statusText: response.statusText });
             } else {
-                console.warn(`[Notification] Webhook dispatched for ${input.type} → ${input.user_id}`);
+                logger.info('Webhook dispatched', { type: input.type, userId: input.user_id });
             }
         } catch (err) {
-            console.error(`[Notification] Webhook delivery failed:`, err);
+            logger.error('Webhook delivery failed', { error: err instanceof Error ? err.message : String(err) });
         }
     },
 };

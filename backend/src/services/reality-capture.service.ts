@@ -4,6 +4,7 @@
 // Heavy media files stored on disk/S3, NOT in PostgreSQL.
 // ============================================================================
 import pool from '../config/database';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -185,7 +186,7 @@ async function validateGPSProximity(
                 ]
             );
         } catch (auditErr) {
-            console.error('[RealityCapture] Failed to log GPS violation to audit_trail:', auditErr);
+            logger.error('Failed to log GPS violation to audit_trail', { projectId, error: auditErr instanceof Error ? auditErr.message : String(auditErr) });
         }
 
         return `GPS location mismatch: capture was ${Math.round(distance)}m from the project site (max allowed: ${GPS_PROXIMITY_THRESHOLD_METERS}m). Photo must be taken on-site.`;

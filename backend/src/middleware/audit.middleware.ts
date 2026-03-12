@@ -6,6 +6,7 @@
 // ============================================================================
 import { Request, Response, NextFunction } from 'express';
 import { query } from '../config/database';
+import { logger } from '../utils/logger';
 
 // ─── Sensitive Field Masking (PLAT-WARN-03) ─────────────────────────────────
 // Keys are matched case-insensitively. Any nested object or array is scanned
@@ -108,7 +109,7 @@ export function auditMiddleware(
                     req.headers['user-agent'] ?? null,
                 ]
             ).catch((err: Error) => {
-                console.error('[Audit] Failed to log:', err.message);
+                logger.error('Audit trail persistence failed', { error: err.message });
             });
         }
 

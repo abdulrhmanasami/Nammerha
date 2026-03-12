@@ -12,6 +12,7 @@
 // ============================================================================
 import { createHash } from 'crypto';
 import pool from '../config/database';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -314,13 +315,13 @@ async function callProvider(
                     }),
                 });
                 if (!response.ok) {
-                    console.error(`[Translation] DeepL error: ${response.status}`);
+                    logger.error('DeepL API error', { status: response.status });
                     return `[DEEPL_ERROR:${response.status}] ${text}`;
                 }
                 const data = await response.json() as { translations: Array<{ text: string }> };
                 return data.translations[0]?.text ?? text;
             } catch (err) {
-                console.error('[Translation] DeepL call failed:', err);
+                logger.error('DeepL call failed', { error: err instanceof Error ? err.message : String(err) });
                 return `[DEEPL_OFFLINE] ${text}`;
             }
         }
@@ -351,7 +352,7 @@ async function callProvider(
                     }),
                 });
                 if (!response.ok) {
-                    console.error(`[Translation] OpenAI error: ${response.status}`);
+                    logger.error('OpenAI API error', { status: response.status });
                     return `[LLM_ERROR:${response.status}] ${text}`;
                 }
                 const data = await response.json() as {
@@ -359,7 +360,7 @@ async function callProvider(
                 };
                 return data.choices[0]?.message?.content?.trim() ?? text;
             } catch (err) {
-                console.error('[Translation] OpenAI call failed:', err);
+                logger.error('OpenAI call failed', { error: err instanceof Error ? err.message : String(err) });
                 return `[LLM_OFFLINE] ${text}`;
             }
         }

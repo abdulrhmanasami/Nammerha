@@ -8,6 +8,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 import { query } from '../config/database';
+import { logger } from '../utils/logger';
 import type { AuthUser, User } from '../types';
 
 // ─── Environment ────────────────────────────────────────────────────────────
@@ -24,7 +25,7 @@ const AUTH0_ENABLED = Boolean(AUTH0_DOMAIN && AUTH0_AUDIENCE);
 if (!AUTH0_ENABLED && !JWT_SECRET) {
     const msg = '[AUTH FATAL] Neither AUTH0_DOMAIN/AUTH0_AUDIENCE nor JWT_SECRET is configured. '
         + 'The server cannot authenticate any requests. Aborting startup.';
-    console.error(msg);
+    logger.error(msg);
     if (process.env['NODE_ENV'] !== 'test') {
         throw new Error(msg);
     }
@@ -165,7 +166,7 @@ export async function authMiddleware(
         if (!userId && process.env['NODE_ENV'] === 'development') {
             userId = req.headers['x-user-id'] as string | undefined;
             if (userId) {
-                console.warn(`[Auth] SEC-007 WARNING: X-User-Id dev bypass used for user ${userId} on ${req.method} ${req.path}`);
+                logger.warn('SEC-007: X-User-Id dev bypass used', { userId, method: req.method, path: req.path });
             }
         }
 
@@ -212,7 +213,7 @@ export async function authMiddleware(
         req.authUser = authUser;
         next();
     } catch (error) {
-        console.error('[Auth] Middleware error:', error);
+        logger.error('Authentication middleware error', { error: error instanceof Error ? error.message : String(error), path: req.path, method: req.method });
         res.status(500).json({ success: false, error: 'Authentication failed' });
     }
 }

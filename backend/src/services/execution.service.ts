@@ -10,6 +10,7 @@
 import crypto from 'crypto';
 import { query, transaction } from '../config/database';
 import type { SpatialProof, PurchaseOrder, SubmitSpatialProofDTO } from '../types';
+import { logger } from '../utils/logger';
 
 // GPS proximity threshold (meters) — configurable via env
 const GPS_THRESHOLD = parseInt(
@@ -169,7 +170,7 @@ export async function submitSpatialProof(
             // verification silently, defeating the purpose of integrity checking.
             // On a financial accountability platform, security > availability.
             const reason = hashErr instanceof Error ? hashErr.message : 'Unknown error';
-            console.error(`[Execution] Image integrity check failed for ${dto.image_url}:`, reason);
+            logger.error('Image integrity check failed', { imageUrl: dto.image_url, reason });
             throw new Error(
                 'Image verification failed: unable to download the image for SHA-256 integrity check. ' +
                 'Please ensure the image is uploaded to storage and accessible, then re-submit the proof.'

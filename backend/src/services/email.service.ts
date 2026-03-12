@@ -11,6 +11,7 @@
 // Non-throwing: failed emails are logged but never crash callers.
 // ============================================================================
 import type { Transporter } from 'nodemailer';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,7 +36,7 @@ async function getTransporter(): Promise<Transporter | null> {
 
     const host = process.env['SMTP_HOST'];
     if (!host) {
-        console.warn('[Email] SMTP_HOST not configured — email delivery disabled.');
+        logger.warn('SMTP_HOST not configured — email delivery disabled');
         return null;
     }
 
@@ -55,11 +56,10 @@ async function getTransporter(): Promise<Transporter | null> {
         }
 
         _transporter = nodemailer.createTransport(transportConfig);
-        // eslint-disable-next-line no-console
-        console.warn(`[Email] SMTP transport initialized → ${host}:${String(transportConfig['port'])}`);
+        logger.info('SMTP transport initialized', { host, port: transportConfig['port'] });
         return _transporter;
     } catch (err) {
-        console.error('[Email] Failed to initialize SMTP transport:', err);
+        logger.error('Failed to initialize SMTP transport', { error: err instanceof Error ? err.message : String(err) });
         return null;
     }
 }
@@ -235,7 +235,7 @@ export async function sendEmail(
     const transporter = await getTransporter();
     if (!transporter) {
         const msg = 'SMTP transport not available — email not sent';
-        console.warn(`[Email] ${msg}: ${options.subject} → ${options.to}`);
+        logger.warn('SMTP transport not available — email not sent', { subject: options.subject, to: options.to });
         return { success: false, error: msg };
     }
 
@@ -251,13 +251,11 @@ export async function sendEmail(
             html,
         });
 
-        // eslint-disable-next-line no-console
-        console.warn(`[Email] Sent "${options.subject}" → ${options.to}`);
+        logger.info('Email sent', { subject: options.subject, to: options.to });
         return { success: true };
     } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown email error';
-        // eslint-disable-next-line no-console
-        console.error(`[Email] Failed to send "${options.subject}" → ${options.to}:`, err);
+        logger.error('Failed to send email', { subject: options.subject, to: options.to, error: err instanceof Error ? err.message : String(err) });
         return { success: false, error: errorMsg };
     }
 }

@@ -9,6 +9,7 @@
 // ============================================================================
 import { query, transaction } from '../config/database';
 import { paymentService } from './payment.service';
+import { logger } from '../utils/logger';
 import type {
     ProjectCard,
     BOQFunding,
@@ -299,7 +300,7 @@ async function autoGeneratePO(
         );
         const supplier = supplierResult.rows[0];
         if (!supplier) {
-            console.error(`[PO] Pre-assigned supplier ${boqItem.preferred_supplier_id} is no longer active/verified for item ${itemId}`);
+            logger.error('Pre-assigned supplier is no longer active/verified', { supplierId: boqItem.preferred_supplier_id, itemId: itemId });
             return;
         }
         supplierId = supplier.user_id;
@@ -307,7 +308,7 @@ async function autoGeneratePO(
         supplierCommercialReg = supplier.commercial_register_number;
     } else {
         // 2b. Legacy fallback: random verified supplier (items created before migration 009)
-        console.warn(`[PO] Item ${itemId} has no preferred_supplier_id — using legacy random selection`);
+        logger.warn('Item has no preferred_supplier_id — using legacy random selection', { itemId });
         const supplierResult = await client.query<{
             user_id: string;
             full_name: string;
@@ -323,7 +324,7 @@ async function autoGeneratePO(
         );
         const supplier = supplierResult.rows[0];
         if (!supplier) {
-            console.warn(`[PO] No verified supplier available for item ${itemId}`);
+            logger.warn('No verified supplier available', { itemId });
             return;
         }
         supplierId = supplier.user_id;
@@ -363,7 +364,7 @@ async function autoGeneratePO(
         ]
     );
 
-    console.warn(`[PO] Auto-generated purchase order for item ${itemId} → supplier ${supplierName}`);
+    logger.info('Auto-generated purchase order', { itemId, supplierName });
 }
 
 // ─── Donor Queries ──────────────────────────────────────────────────────────

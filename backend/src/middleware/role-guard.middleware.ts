@@ -4,6 +4,7 @@
 // ============================================================================
 import { Request, Response, NextFunction } from 'express';
 import type { UserRole } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * Creates a middleware that restricts access to specific roles.
@@ -22,7 +23,7 @@ export function requireRole(...allowedRoles: UserRole[]) {
 
         if (!allowedRoles.includes(req.authUser.role)) {
             // HGH-004 FIX: Log details server-side; never disclose roles to the client
-            console.warn(`[RBAC] Access denied: user ${req.authUser.user_id} (role: ${req.authUser.role}) → required: ${allowedRoles.join(', ')}`);
+            logger.warn('RBAC access denied', { userId: req.authUser.user_id, userRole: req.authUser.role, requiredRoles: allowedRoles });
             res.status(403).json({
                 success: false,
                 error: 'Access denied. Insufficient permissions.',

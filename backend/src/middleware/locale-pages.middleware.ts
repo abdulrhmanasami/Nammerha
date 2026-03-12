@@ -19,6 +19,7 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface LocaleConfig {
@@ -357,11 +358,11 @@ localeRouter.get(
             res.setHeader('Content-Language', localeConfig.code);
             res.send(localizedHtml);
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error(
-                `[Locale Middleware] Error serving ${locale}/${pageSlug}:`,
-                error
-            );
+            logger.error('Error serving locale page', {
+                locale,
+                page: pageSlug,
+                error: error instanceof Error ? error.message : String(error),
+            });
             res.status(500).json({
                 success: false,
                 error: 'Internal server error while rendering locale page.',

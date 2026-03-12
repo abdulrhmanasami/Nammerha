@@ -5,6 +5,7 @@
 // webhook alerts when usage exceeds configurable thresholds.
 // ============================================================================
 import { query } from '../config/database';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -69,8 +70,7 @@ export async function trackUsage(
             [userId, endpoint, method, responseStatus]
         );
     } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('[Quota] Failed to track usage:', err);
+        logger.error('Failed to track usage', { error: err instanceof Error ? err.message : String(err) });
         // Never crash the request for tracking failures
     }
 }
@@ -170,17 +170,14 @@ export async function dispatchQuotaAlert(
         });
 
         if (!response.ok) {
-            // eslint-disable-next-line no-console
-            console.error(`[Quota] Webhook returned ${response.status}: ${response.statusText}`);
+            logger.error('Quota webhook returned error', { status: response.status, statusText: response.statusText });
         } else {
-            // eslint-disable-next-line no-console
-            console.warn(`[Quota] Alert dispatched for ${userId} (${status.usage_percentage}% usage)`);
+            logger.info('Quota alert dispatched', { userId, usagePercentage: status.usage_percentage });
         }
 
         markAlerted(userId);
     } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('[Quota] Webhook dispatch failed:', err);
+        logger.error('Quota webhook dispatch failed', { error: err instanceof Error ? err.message : String(err) });
     }
 }
 

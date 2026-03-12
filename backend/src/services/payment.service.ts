@@ -5,6 +5,7 @@
 
 import crypto from 'crypto';
 import pool, { transaction } from '../config/database';
+import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export type PaymentGateway = 'visa' | 'fatora';
@@ -76,15 +77,15 @@ function verifyWebhookSignature(
 ): boolean {
     if (!WEBHOOK_SECRET) {
         if (process.env['NODE_ENV'] === 'development') {
-            console.warn('[Payment] PAYMENT_WEBHOOK_SECRET not configured — skipping verification in development.');
+            logger.warn('PAYMENT_WEBHOOK_SECRET not configured — skipping verification in development');
             return true;
         }
-        console.error('[Payment] PAYMENT_WEBHOOK_SECRET not configured — rejecting webhook in production.');
+        logger.error('PAYMENT_WEBHOOK_SECRET not configured — rejecting webhook in production');
         return false;
     }
 
     if (!signature) {
-        console.error('[Payment] Webhook received without signature — rejected.');
+        logger.error('Webhook received without signature — rejected');
         return false;
     }
 
@@ -92,7 +93,7 @@ function verifyWebhookSignature(
     // HMAC-SHA256 always produces exactly 64 hex characters (32 bytes).
     // Reject early on obviously malformed input without touching crypto APIs.
     if (!HMAC_SHA256_HEX_REGEX.test(signature)) {
-        console.error('[Payment] Webhook signature is not valid HMAC-SHA256 hex (expected 64 hex chars) — rejected.');
+        logger.error('Webhook signature is not valid HMAC-SHA256 hex (expected 64 hex chars) — rejected');
         return false;
     }
 
@@ -110,7 +111,7 @@ function verifyWebhookSignature(
         // (32 bytes) which matches SHA-256 output. But defense-in-depth mandates
         // we never rely on a single gate for crash prevention.
         if (sigBuffer.length !== expectedBuffer.length) {
-            console.error(`[Payment] Webhook signature buffer length mismatch: got ${sigBuffer.length}, expected ${expectedBuffer.length} — rejected.`);
+            logger.error('Webhook signature buffer length mismatch — rejected', { got: sigBuffer.length, expected: expectedBuffer.length });
             return false;
         }
 
@@ -121,7 +122,7 @@ function verifyWebhookSignature(
         // CRT-NEW-001 Guard 3: Final safety net.
         // If any unforeseen edge case bypasses Guards 1 & 2, we log and return
         // false instead of allowing the process to crash.
-        console.error('[Payment] Webhook signature verification threw unexpectedly:', err);
+        logger.error('Webhook signature verification threw unexpectedly', { error: err instanceof Error ? err.message : String(err) });
         return false;
     }
 }
@@ -161,7 +162,7 @@ const VISA_CONFIG: GatewayCredentials | null = (() => {
 
     if (!apiKey || !merchantId) {
         if (IS_PRODUCTION) {
-            console.error('[Payment] ⛔ VISA_API_KEY or VISA_MERCHANT_ID not configured — Visa payments will be rejected in production.');
+            logger.error('VISA_API_KEY or VISA_MERCHANT_ID not configured — Visa payments will be rejected in production');
         }
         return null;
     }
@@ -179,7 +180,7 @@ const FATORA_CONFIG: GatewayCredentials | null = (() => {
 
     if (!apiKey || !merchantId) {
         if (IS_PRODUCTION) {
-            console.error('[Payment] ⛔ FATORA_API_KEY or FATORA_MERCHANT_CODE not configured — Fatora payments will be rejected in production.');
+            logger.error('FATORA_API_KEY or FATORA_MERCHANT_CODE not configured — Fatora payments will be rejected in production');
         }
         return null;
     }
@@ -204,7 +205,7 @@ async function initiateVisaPayment(
         if (IS_PRODUCTION) {
             return { success: false, reference, error: 'Visa gateway not configured. Contact administrator.' };
         }
-        console.warn(`[Payment] DEV MODE: Simulating Visa payment ${reference}, amount: ${amount} ${currency}`);
+        logger.warn('DEV MODE: Simulating Visa payment', { reference, amount, currency });
         return {
             success: true,
             payment_url: `/payment/visa/checkout?ref=${reference}`,
@@ -240,7 +241,7 @@ async function initiateVisaPayment(
         const body = await response.json() as Record<string, unknown>;
 
         if (!response.ok) {
-            console.error(`[Payment] Visa API ${response.status}:`, body);
+            logger.error('Visa API error', { status: response.status, body });
             return {
                 success: false,
                 reference,
@@ -248,7 +249,7 @@ async function initiateVisaPayment(
             };
         }
 
-        console.warn(`[Payment] Visa payment initiated: ${reference}, tx: ${body['transactionId'] ?? 'N/A'}`);
+        logger.info('Visa payment initiated', { reference, transactionId: (body['transactionId'] as string) ?? 'N/A' });
 
         return {
             success: true,
@@ -258,10 +259,10 @@ async function initiateVisaPayment(
         };
     } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
-            console.error(`[Payment] Visa API timeout after ${GATEWAY_TIMEOUT_MS}ms for ${reference}`);
+            logger.error('Visa API timeout', { reference, timeoutMs: GATEWAY_TIMEOUT_MS });
             return { success: false, reference, error: 'Payment gateway timeout. Please try again.' };
         }
-        console.error(`[Payment] Visa API network error for ${reference}:`, err);
+        logger.error('Visa API network error', { reference, error: err instanceof Error ? err.message : String(err) });
         return { success: false, reference, error: 'Payment gateway unavailable. Please try again later.' };
     } finally {
         clearTimeout(timeout);
@@ -285,7 +286,7 @@ async function initiateFatoraPayment(
         if (IS_PRODUCTION) {
             return { success: false, reference, error: 'Fatora gateway not configured. Contact administrator.' };
         }
-        console.warn(`[Payment] DEV MODE: Simulating Fatora payment ${reference}, amount: ${amount} ${currency}`);
+        logger.warn('DEV MODE: Simulating Fatora payment', { reference, amount, currency });
         return {
             success: true,
             payment_url: `/payment/fatora/checkout?ref=${reference}`,
@@ -327,7 +328,7 @@ async function initiateFatoraPayment(
         const body = await response.json() as Record<string, unknown>;
 
         if (!response.ok) {
-            console.error(`[Payment] Fatora API ${response.status}:`, body);
+            logger.error('Fatora API error', { status: response.status, body });
             return {
                 success: false,
                 reference,
@@ -335,7 +336,7 @@ async function initiateFatoraPayment(
             };
         }
 
-        console.warn(`[Payment] Fatora payment initiated: ${reference}, tx: ${body['transaction_id'] ?? 'N/A'}`);
+        logger.info('Fatora payment initiated', { reference, transactionId: (body['transaction_id'] as string) ?? 'N/A' });
 
         return {
             success: true,
@@ -345,10 +346,10 @@ async function initiateFatoraPayment(
         };
     } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
-            console.error(`[Payment] Fatora API timeout after ${GATEWAY_TIMEOUT_MS}ms for ${reference}`);
+            logger.error('Fatora API timeout', { reference, timeoutMs: GATEWAY_TIMEOUT_MS });
             return { success: false, reference, error: 'Payment gateway timeout. Please try again.' };
         }
-        console.error(`[Payment] Fatora API network error for ${reference}:`, err);
+        logger.error('Fatora API network error', { reference, error: err instanceof Error ? err.message : String(err) });
         return { success: false, reference, error: 'Payment gateway unavailable. Please try again later.' };
     } finally {
         clearTimeout(timeout);
@@ -486,7 +487,7 @@ export const paymentService = {
 
             const payment = paymentResult.rows[0];
             if (!payment) {
-                console.warn(`[Payment] Webhook: payment not found: ${data.reference}`);
+                logger.warn('Webhook: payment not found', { reference: data.reference });
                 return { processed: false };
             }
 
@@ -526,7 +527,7 @@ export const paymentService = {
 
                     const boqItem = boqResult.rows[0];
                     if (!boqItem) {
-                        console.error(`[Payment] BOQ item ${payment.item_id} not found during webhook processing`);
+                        logger.error('BOQ item not found during webhook processing', { itemId: payment.item_id });
                     } else {
                         // 4b. Calculate remaining need (P2-001 FIX: integer-safe BigInt arithmetic)
                         //
@@ -553,7 +554,7 @@ export const paymentService = {
 
                         // Validate: decimal part must be purely numeric after truncation
                         if (!/^\d{2}$/.test(qtyDecPart)) {
-                            console.error(`[Payment] PLT-AUD-009: Invalid quantity decimal "${qtyStr}" for BOQ ${payment.item_id}`);
+                            logger.error('PLT-AUD-009: Invalid quantity decimal', { quantity: qtyStr, itemId: payment.item_id });
                             // Fail-safe: skip escrow rather than corrupt financial data
                         } else {
                         const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
@@ -562,7 +563,7 @@ export const paymentService = {
                         const remainingNeed = totalCost - Number(BigInt(fundedStr));
 
                         if (remainingNeed <= 0) {
-                            console.warn(`[Payment] BOQ item ${payment.item_id} already fully funded, skipping escrow`);
+                            logger.warn('BOQ item already fully funded, skipping escrow', { itemId: payment.item_id });
                         } else {
                             const actualAmount = Math.min(payment.amount, remainingNeed);
 
@@ -609,7 +610,7 @@ export const paymentService = {
                     // Payment succeeded but escrow entry creation failed — this is a critical
                     // financial discrepancy that operations MUST remediate.
                     const errorMessage = escrowErr instanceof Error ? escrowErr.message : String(escrowErr);
-                    console.error(`[Payment] CRITICAL: Escrow recording failed for ${data.reference}:`, escrowErr);
+                    logger.error('CRITICAL: Escrow recording failed', { reference: data.reference, error: errorMessage });
                     try {
                         await client.query(
                             `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
@@ -629,7 +630,7 @@ export const paymentService = {
                         );
                     } catch (auditErr) {
                         // Last-resort: if even the audit trail fails, log to stderr
-                        console.error(`[Payment] FATAL: Audit trail write also failed for ${data.reference}:`, auditErr);
+                        logger.error('FATAL: Audit trail write also failed', { reference: data.reference, error: auditErr instanceof Error ? auditErr.message : String(auditErr) });
                     }
                 }
             }
