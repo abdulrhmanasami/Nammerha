@@ -17,6 +17,8 @@
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 
+import { logger } from '../utils/logger';
+
 const GEORAVITY_URL = process.env['GEORAVITY_URL'] ?? 'http://localhost:8002';
 const REQUEST_TIMEOUT_MS = 5000;
 
@@ -288,7 +290,12 @@ export async function healthCheck(): Promise<{
             url: GEORAVITY_URL,
             response_ms: Date.now() - start,
         };
-    } catch {
+    } catch (err) {
+        logger.warn('Georavity health check failed — engine unreachable', {
+            url: GEORAVITY_URL,
+            error: err instanceof Error ? err.message : String(err),
+            response_ms: Date.now() - start,
+        });
         return {
             healthy: false,
             url: GEORAVITY_URL,

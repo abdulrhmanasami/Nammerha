@@ -96,8 +96,11 @@ function stripSslParams(url: string): string {
         parsed.searchParams.delete('sslmode');
         parsed.searchParams.delete('sslrootcert');
         return parsed.toString();
-    } catch {
+    } catch (err) {
         // If URL parsing fails, strip via regex (fallback for edge cases)
+        logger.warn('PLT-2026-AUD-003: URL parsing failed in stripSslParams — using regex fallback', {
+            error: err instanceof Error ? err.message : String(err),
+        });
         return url
             .replace(/[?&]sslmode=[^&]*/g, '')
             .replace(/[?&]sslrootcert=[^&]*/g, '')
@@ -119,7 +122,15 @@ const pool = new Pool(poolConfig);
 pool.on('error', (err: Error) => {
     // HGH-007: Do NOT call process.exit(1) — a single transient error should not kill
     // the process and abort all in-flight requests. The pool self-recovers.
-    logger.error('DB: Unexpected pool error (pool will attempt recovery)', { error: err.message });
+    // F-006 FIX: Structured metadata enables APM alerting rules (e.g., DataDog/New Relic
+    // monitors can trigger on severity=critical + requires_ops_attention=true).
+    logger.error('DB: Unexpected pool error (pool will attempt recovery)', {
+        error: err.message,
+        stack: err.stack,
+        severity: 'critical',
+        component: 'database_pool',
+        requires_ops_attention: true,
+    });
 });
 
 if (process.env['NODE_ENV'] === 'development') {

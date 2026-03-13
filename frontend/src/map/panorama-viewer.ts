@@ -3,6 +3,7 @@
 // 360° panoramic image viewer for ground-truth verification
 // ============================================================================
 import { escapeHtml } from '../utils/xss';
+import { reportError } from '../error-reporter';
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface PanoramaConfig {
@@ -130,7 +131,7 @@ export function initPanoramaViewer(config: PanoramaConfig): void {
         }
     };
     img.onerror = () => {
-        console.error('[Panorama] Failed to load image:', config.imageUrl);
+        reportError(new Error(`[Panorama] Failed to load image: ${config.imageUrl}`), { component: 'panorama_viewer', action: 'load_image', imageUrl: config.imageUrl });
         const errorMsg = document.createElement('div');
         errorMsg.style.cssText = `
             position: absolute;

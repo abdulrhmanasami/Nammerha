@@ -209,7 +209,10 @@ function validateReturnUrl(url: string | undefined): string {
             return fallback;
         }
         return url;
-    } catch {
+    } catch (err) {
+        logger.warn('PLT-2026-AUD-003: Malformed return_url — falling back to default', {
+            url, error: err instanceof Error ? err.message : String(err),
+        });
         return fallback;
     }
 }
@@ -338,9 +341,13 @@ async function initiateFatoraPayment(
                 // NMR-AUD-007 + P2-NEW-003 FIX: Real donor details for gateway receipts.
                 // The initiate() method now resolves donor email from DB when not provided.
                 // Fallback to generic name is acceptable; fallback to fake email is NOT.
+                // P3-PLT-005 FIX: Simplified from eagerly-evaluated IIFE to clear
+                // if/else. Previous IIFE was correct (JS ?? short-circuits) but
+                // unnecessarily complex and confusing during code review.
                 client: {
                     name: donorName ?? 'Nammerha Donor',
-                    email: donorEmail ?? (() => {
+                    email: (() => {
+                        if (donorEmail) return donorEmail;
                         logger.warn('P2-NEW-003: Fatora payment initiated without donor email — receipts will not be delivered', {
                             reference,
                         });
@@ -703,8 +710,11 @@ export const paymentService = {
      * Get payment status by reference.
      */
     async getStatus(reference: string): Promise<PaymentRecord | null> {
+        // F-004 FIX: Explicit column list — no SELECT * (prevents schema drift).
         const result = await pool.query<PaymentRecord>(
-            `SELECT * FROM payment_transactions WHERE reference = $1`,
+            `SELECT payment_id, reference, donor_id, item_id, project_id,
+                    status, gateway, amount, currency, gateway_tx_id, created_at
+             FROM payment_transactions WHERE reference = $1`,
             [reference]
         );
         return result.rows[0] ?? null;
@@ -714,12 +724,16 @@ export const paymentService = {
      * Get payment history for a donor.
      */
     async getDonorPayments(donorId: string, limit = 50, offset = 0): Promise<PaymentRecord[]> {
+        // F-004 FIX: Explicit column list — no SELECT * (prevents schema drift).
+        // F-007 FIX: Math.floor() ensures integer values for LIMIT/OFFSET.
         const result = await pool.query<PaymentRecord>(
-            `SELECT * FROM payment_transactions
-       WHERE donor_id = $1
-       ORDER BY created_at DESC
-       LIMIT $2 OFFSET $3`,
-            [donorId, Math.min(limit, 100), Math.max(offset, 0)]
+            `SELECT payment_id, reference, donor_id, item_id, project_id,
+                    status, gateway, amount, currency, gateway_tx_id, created_at
+             FROM payment_transactions
+             WHERE donor_id = $1
+             ORDER BY created_at DESC
+             LIMIT $2 OFFSET $3`,
+            [donorId, Math.floor(Math.min(limit, 100)), Math.floor(Math.max(offset, 0))]
         );
         return result.rows;
     },

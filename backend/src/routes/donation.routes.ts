@@ -36,6 +36,15 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
             return;
         }
 
+        // F-001 FIX: Fail-fast on unsupported payment methods.
+        // Only 'visa' and 'fatora' are implemented gateways.
+        const VALID_PAYMENT_METHODS = new Set(['visa', 'fatora']);
+        if (!VALID_PAYMENT_METHODS.has(dto.payment_method)) {
+            const response: ApiResponse = { success: false, error: 'Unsupported payment method. Accepted: visa, fatora.' };
+            res.status(400).json(response);
+            return;
+        }
+
         // Validate each item has item_id and amount > 0
         for (const item of dto.items) {
             if (!item.item_id || !item.amount || item.amount <= 0) {

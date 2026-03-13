@@ -60,6 +60,7 @@ import contactRoutes from './routes/contact.routes';
 import clientErrorRoutes from './routes/client-error.routes';
 import cspReportRoutes from './routes/csp-report.routes';
 import * as path from 'path';
+import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
 
 // ─── Create Express App ─────────────────────────────────────────────────────
 const app = express();
@@ -319,7 +320,10 @@ app.get('/health', async (_req, res) => {
             version: '1.0.0',
             timestamp: new Date().toISOString(),
         });
-    } catch {
+    } catch (err) {
+        logger.warn('Health check: DB connectivity failed', {
+            error: err instanceof Error ? err.message : String(err),
+        });
         res.status(503).json({
             status: 'unhealthy',
             service: 'nammerha-backend',
@@ -458,10 +462,16 @@ const server = app.listen(PORT, () => {
         environment: process.env['NODE_ENV'] ?? 'development',
         pid: process.pid,
     });
+
+    // P1-PLT-001: Start background job to expire stale 'pending' payments
+    startStalePaymentCleanup();
 });
 
 async function gracefulShutdown(signal: string): Promise<void> {
     logger.info('Graceful shutdown initiated', { signal });
+
+    // P1-PLT-001: Stop stale payment cleanup before draining connections
+    stopStalePaymentCleanup();
 
     // LOW-AUD-002 FIX: Force-kill safety net — if draining hangs, forcibly exit
     // after 30 seconds to prevent zombie processes.

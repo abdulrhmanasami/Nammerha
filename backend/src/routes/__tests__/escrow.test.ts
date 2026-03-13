@@ -121,10 +121,9 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
         it('should allow auditor to view pending verifications', async () => {
             mockAuthUser = { user_id: 'auditor-001', role: 'auditor', is_active: true };
-            // Mock: main query returns empty + COUNT query
+            // Mock: main query returns empty (COUNT(*) OVER() is embedded in results)
             mockPoolQuery
-                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-                .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 });
+                .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
             const res = await request(app)
                 .get('/api/admin/verifications/pending')
@@ -137,16 +136,15 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
     // ─── GET /api/admin/verifications/pending ───────────────────────────
     describe('GET /api/admin/verifications/pending', () => {
         it('should return pending verification cases', async () => {
-            // Mock: main query returns 2 rows + COUNT query
+            // Mock: main query returns 2 rows (total_count via COUNT(*) OVER())
             mockPoolQuery
                 .mockResolvedValueOnce({
                     rows: [
-                        { proof_id: 'p1', project_id: 'proj-001', status: 'pending_verification' },
-                        { proof_id: 'p2', project_id: 'proj-002', status: 'pending_verification' },
+                        { proof_id: 'p1', project_id: 'proj-001', status: 'pending_verification', total_count: '2' },
+                        { proof_id: 'p2', project_id: 'proj-002', status: 'pending_verification', total_count: '2' },
                     ],
                     rowCount: 2,
-                })
-                .mockResolvedValueOnce({ rows: [{ count: '2' }], rowCount: 1 });
+                });
 
             const res = await request(app)
                 .get('/api/admin/verifications/pending')
@@ -158,10 +156,9 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         });
 
         it('should return empty list when no pending verifications', async () => {
-            // Mock: main query returns empty + COUNT query
+            // Mock: main query returns empty (COUNT(*) OVER() is embedded in results)
             mockPoolQuery
-                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-                .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 });
+                .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
             const res = await request(app)
                 .get('/api/admin/verifications/pending')

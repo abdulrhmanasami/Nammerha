@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
 import { tradesperson } from '../api';
@@ -69,7 +70,7 @@ function setupAvailability(): void {
                 await tradesperson.updateAvailability(status as 'available' | 'busy' | 'offline');
                 updateAvailabilityUI(status);
             } catch (err) {
-                console.error('[Tradesperson] Availability update failed:', err);
+                reportError(err instanceof Error ? err : new Error(String(err)), { component: 'tradesperson', action: 'availability_update' });
             }
         });
     });
@@ -118,7 +119,7 @@ async function loadStats(): Promise<void> {
         setText('kpi-rating', s.average_rating ? `${s.average_rating.toFixed(1)} ★` : '—');
         setText('pending-count', String(s.pending_requests));
     } catch (err) {
-        console.warn('[Tradesperson] Stats load failed, showing defaults:', err);
+        reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
     }
 }
 
@@ -168,7 +169,7 @@ async function loadActiveJobs(): Promise<void> {
         }
         tbody.innerHTML = html || `<tr><td colspan="4" class="px-5 py-4 text-center text-slate-400 text-sm" data-i18n="tp_no_active_work">No active work</td></tr>`;
     } catch (err) {
-        console.error('[Tradesperson] Active jobs load failed:', err);
+        reportError(err instanceof Error ? err : new Error('[Tradesperson] Active jobs load failed'), { component: 'tradesperson', action: 'load_active_jobs' });
         tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -242,7 +243,7 @@ async function loadRequests(): Promise<void> {
             });
         });
     } catch (err) {
-        console.error('[Tradesperson] Requests load failed:', err);
+        reportError(err instanceof Error ? err : new Error('[Tradesperson] Requests load failed'), { component: 'tradesperson', action: 'load_requests' });
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load requests</div>`;
     }
 }
@@ -297,12 +298,12 @@ async function loadAssignments(): Promise<void> {
                     loadAssignments();
                     loadStats();
                 } catch (err) {
-                    console.error('[Tradesperson] Assignment response failed:', err);
+                    reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignment response failed'), { component: 'tradesperson', action: 'respond_assignment' });
                 }
             });
         });
     } catch (err) {
-        console.error('[Tradesperson] Assignments load failed:', err);
+        reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignments load failed'), { component: 'tradesperson', action: 'load_assignments' });
         tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -333,7 +334,7 @@ async function loadEarnings(): Promise<void> {
             </tr>
         `).join('');
     } catch (err) {
-        console.error('[Tradesperson] Earnings load failed:', err);
+        reportError(err instanceof Error ? err : new Error('[Tradesperson] Earnings load failed'), { component: 'tradesperson', action: 'load_earnings' });
         tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -372,7 +373,7 @@ async function loadProfile(): Promise<void> {
             </div>
         `;
     } catch (err) {
-        console.error('[Tradesperson] Profile load failed:', err);
+        reportError(err instanceof Error ? err : new Error('[Tradesperson] Profile load failed'), { component: 'tradesperson', action: 'load_profile' });
         container.innerHTML = `<p class="text-red-400 text-sm text-center" data-i18n="tp_failed_profile">Failed to load profile</p>`;
     }
 }

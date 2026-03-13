@@ -5,6 +5,7 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getBasemapStyleUrl, SYRIA_CENTER, DEFAULT_ZOOM } from './basemap-config';
+import { reportWarning } from '../error-reporter';
 
 // ─── RTL Plugin Singleton Guard ─────────────────────────────────────────────
 let rtlPluginLoaded = false;
@@ -22,7 +23,7 @@ function loadRTLPlugin(): void {
             true,
         );
     } catch (error) {
-        console.warn('[Nammerha Map] RTL text plugin:', error);
+        reportWarning('[Nammerha Map] RTL text plugin load failed', { component: 'map_core', action: 'rtl_plugin', error: error instanceof Error ? error.message : String(error) });
     }
 }
 
@@ -118,7 +119,7 @@ async function fetchAndFixStyle(styleUrl: string): Promise<maplibregl.StyleSpeci
                     console.info(`[Nammerha Map] Source '${sourceName}' inlined:`, source.tiles);
                 }
             } catch (err) {
-                console.warn(`[Nammerha Map] TileJSON fetch failed for ${sourceName}, keeping URL ref:`, err);
+                reportWarning(`[Nammerha Map] TileJSON fetch failed for ${sourceName}, keeping URL ref`, { component: 'map_core', action: 'tilejson_fetch', source: sourceName, error: err instanceof Error ? err.message : String(err) });
                 source.url = tileJsonUrl;
             }
         }
@@ -144,7 +145,7 @@ export async function initMap(options: NammerhaMapOptions): Promise<maplibregl.M
     try {
         style = await fetchAndFixStyle(getBasemapStyleUrl());
     } catch (error) {
-        console.warn('[Nammerha Map] Self-hosted tile server unreachable, falling back to public tiles:', error);
+        reportWarning('[Nammerha Map] Self-hosted tile server unreachable, falling back to public tiles', { component: 'map_core', action: 'style_fetch', error: error instanceof Error ? error.message : String(error) });
         // Fallback: OpenFreeMap — free, open-source, no API key required
         style = 'https://tiles.openfreemap.org/styles/liberty';
     }

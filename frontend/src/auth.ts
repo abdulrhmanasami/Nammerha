@@ -2,6 +2,7 @@
 // Nammerha Frontend — Auth Module
 // Session management and role-based UI switching
 // ============================================================================
+import { reportError } from './error-reporter';
 
 export type UserRole = 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson' | 'admin' | 'auditor';
 
@@ -28,7 +29,9 @@ export function getCurrentUser(): AuthUser | null {
             currentUser = JSON.parse(stored) as AuthUser;
             return currentUser;
         } catch (err) {
-            console.warn('[Auth] Failed to parse stored user, clearing:', err);
+            // F-003 FIX: Use centralized error reporter instead of console.warn
+            // to ensure auth parse failures are captured by the monitoring pipeline.
+            reportError(err instanceof Error ? err : new Error(String(err)), { context: 'auth_parse_stored_user' });
             localStorage.removeItem(STORAGE_KEY);
         }
     }
@@ -131,8 +134,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
 
 export function devLogin(role: UserRole): void {
     if (!IS_DEV) {
-        console.warn('[AUTH] devLogin is disabled in production');
-        return;
+        return; // Silent no-op — dev bypass disabled in production
     }
     const user = DEV_USERS[role];
     if (user) {

@@ -248,7 +248,8 @@ router.get('/health', requireRole('admin', 'auditor'), async (_req: Request, res
         const status = await healthCheck();
         const httpStatus = status.ok ? 200 : 503;
         res.status(httpStatus).json({ success: status.ok, data: status });
-    } catch {
+    } catch (err) {
+        logger.warn('Storage health check failed', { error: err instanceof Error ? err.message : String(err) });
         res.status(503).json({ success: false, error: 'Storage health check failed' });
     }
 });

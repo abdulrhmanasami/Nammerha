@@ -6,6 +6,7 @@ import maplibregl from 'maplibre-gl';
 import type { ProjectFilter } from './map-controls';
 import { t } from './i18n-bridge';
 import { escapeHtml } from '../utils/xss';
+import { reportError } from '../error-reporter';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -143,7 +144,7 @@ export async function loadProjectMarkers(
         setupMarkerInteractions(map);
 
     } catch (error) {
-        console.error('[Nammerha Map] Failed to load project markers:', error);
+        reportError(error instanceof Error ? error : new Error('[Nammerha Map] Failed to load project markers'), { component: 'map_markers', action: 'load_markers' });
     }
 }
 
@@ -169,7 +170,7 @@ function setupClusterInteractions(map: maplibregl.Map): void {
                 duration: 400,
             });
         } catch (err) {
-            console.error('[Nammerha Map] Cluster expansion error:', err);
+            reportError(err instanceof Error ? err : new Error('[Nammerha Map] Cluster expansion error'), { component: 'map_markers', action: 'cluster_expand' });
         }
     });
 

@@ -174,7 +174,8 @@ export const marketplace = {
 export const donations = {
     create: (data: {
         items: Array<{ item_id: string; amount: number }>;
-        payment_method?: string;
+        // F-001 FIX: Typed to match CreateDonationDTO.payment_method (backend)
+        payment_method?: 'visa' | 'fatora';
     }) => request('/donations', { method: 'POST', body: JSON.stringify(data) }),
 
     getMyEscrow: () => request('/donations/my/summary'),
@@ -227,11 +228,12 @@ export const notifications = {
 };
 
 // ─── Health Check ───────────────────────────────────────────────────────────
+// P3-PLT-001 FIX: Uses centralized request() with 30s timeout and error reporting
+// instead of raw fetch() which bypassed all safeguards.
 export const health = {
     check: async () => {
         try {
-            const res = await fetch('/health');
-            return await res.json();
+            return await request('/health');
         } catch (err) {
             return { status: 'unreachable', error: err instanceof Error ? err.message : 'Health check failed' };
         }

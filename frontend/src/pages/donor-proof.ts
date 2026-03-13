@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportError, reportWarning } from '../error-reporter';
 import { donations, spatialProof } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 
@@ -61,7 +62,7 @@ function formatDate(dateStr: string): string {
             minute: '2-digit',
         });
     } catch (err) {
-        console.warn('[DonorProof] Date format failed:', err);
+        reportWarning('[DonorProof] Date format failed', { component: 'donor_proof', action: 'format_date', error: err instanceof Error ? err.message : String(err) });
         return dateStr;
     }
 }
@@ -173,7 +174,7 @@ async function loadProof(): Promise<void> {
                 );
             }
         } catch (err) {
-            console.warn('[DonorProof] Donation history load failed, continuing without context:', err);
+            reportWarning('[DonorProof] Donation history load failed, continuing without context', { component: 'donor_proof', action: 'load_history', error: err instanceof Error ? err.message : String(err) });
         }
 
         // Try to load spatial proof data
@@ -193,7 +194,7 @@ async function loadProof(): Promise<void> {
 
         // If no proof found, show static content (already in HTML)
     } catch (err) {
-        console.error('[DonorProof] Failed to load proof data:', err);
+        reportError(err instanceof Error ? err : new Error('[DonorProof] Failed to load proof data'), { component: 'donor_proof', action: 'load_proof' });
     }
 }
 

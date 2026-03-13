@@ -322,7 +322,7 @@ describe('Crowdfunding Service', () => {
 
             const result = await createDonation('donor-001', {
                 items: [{ item_id: 'item-001', amount: 50000 }], // tries $500
-                payment_method: 'bank_transfer',
+                payment_method: 'fatora',
                 return_url: 'https://nammerha.com/callback',
             });
 
@@ -447,7 +447,7 @@ describe('Crowdfunding Service', () => {
             await expect(
                 createDonation('donor-001', {
                     items: [{ item_id: 'item-001', amount: 100000 }],
-                    payment_method: 'bank_transfer',
+                    payment_method: 'fatora',
                     return_url: 'https://nammerha.com/callback',
                 })
             ).rejects.toThrow('Payment gateway failed for all items');

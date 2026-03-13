@@ -201,10 +201,11 @@ export async function reviewScreeningResult(
     decision: 'false_positive' | 'confirmed_match',
     notes?: string
 ): Promise<ScreeningResult> {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-
+    // P1-PLT-002 FIX: Use canonical transaction() utility instead of manual
+    // BEGIN/COMMIT/ROLLBACK. The transaction() utility handles rollback failures
+    // by destroying the connection (not returning it to the pool in a dirty
+    // transaction state), preventing data corruption from stale transactions.
+    return transaction(async (client) => {
         const { rows } = await client.query(
             `UPDATE sanctions_screening_results
              SET status = $1, reviewed_by = $2, reviewed_at = NOW(), review_notes = $3
@@ -235,14 +236,8 @@ export async function reviewScreeningResult(
             }
         }
 
-        await client.query('COMMIT');
         return rows[0];
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
-    }
+    });
 }
 
 /**
@@ -300,16 +295,34 @@ export async function importSDNList(dto: ImportSDNDTO): Promise<{ imported: numb
 
 /**
  * Get all pending screening results (potential matches awaiting review).
+ *
+ * P2-PLT-002 FIX: Added pagination to prevent unbounded result sets.
+ * Under sustained name-variation attack, the unpaginated version could
+ * grow unbounded, causing memory exhaustion and unbounded response times.
  */
-export async function getPendingScreenings(): Promise<ScreeningResult[]> {
+export async function getPendingScreenings(
+    limit = 50,
+    offset = 0,
+): Promise<{ results: ScreeningResult[]; total: number }> {
+    const safeLimit = Math.min(Math.max(limit, 1), 100);
+    const safeOffset = Math.max(offset, 0);
+
     const { rows } = await pool.query(
         `SELECT ssr.*, u.full_name AS user_name, u.role AS user_role, u.email AS user_email
          FROM sanctions_screening_results ssr
          JOIN users u ON u.user_id = ssr.screened_user_id
          WHERE ssr.status = 'potential_match'
-         ORDER BY ssr.match_score DESC, ssr.screened_at ASC`
+         ORDER BY ssr.match_score DESC, ssr.screened_at ASC
+         LIMIT $1 OFFSET $2`,
+        [safeLimit, safeOffset]
     );
-    return rows;
+
+    const countResult = await pool.query<{ count: string }>(
+        `SELECT COUNT(*) AS count FROM sanctions_screening_results WHERE status = 'potential_match'`
+    );
+    const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
+
+    return { results: rows, total };
 }
 
 // ─── Export Controls ────────────────────────────────────────────────────────

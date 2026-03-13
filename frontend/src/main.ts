@@ -3,7 +3,7 @@
 // P1-001 FIX: Dynamic data loading from API — no more hardcoded demo data
 // ============================================================================
 import './styles/main.css';
-import { initErrorReporter } from './error-reporter';
+import { initErrorReporter, reportWarning } from './error-reporter';
 import { renderCartBadge } from './components/cart';
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
@@ -112,7 +112,7 @@ async function loadFeaturedProjects(): Promise<void> {
         }
         // If API returns empty or fails, keep the static HTML fallback
     } catch (err) {
-        console.warn('[Dashboard] Featured projects load failed, keeping static fallback:', err);
+        reportWarning('[Dashboard] Featured projects load failed, keeping static fallback', { component: 'main', action: 'load_featured', error: err instanceof Error ? err.message : String(err) });
     }
 }
 
@@ -137,7 +137,7 @@ async function loadStats(): Promise<void> {
             }
         }
     } catch (err) {
-        console.warn('[Dashboard] Stats load failed, keeping default values:', err);
+        reportWarning('[Dashboard] Stats load failed, keeping default values', { component: 'main', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
     }
 }
 

@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportError } from '../error-reporter';
 import { projects, epaOracle, marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 
@@ -186,7 +187,7 @@ async function loadExistingBOQ(): Promise<void> {
             renderAllItems();
         }
     } catch (err) {
-        console.error('[BOQ] Failed to load existing items:', err);
+        reportError(err instanceof Error ? err : new Error('[BOQ] Failed to load existing items'), { component: 'engineer_boq', action: 'load_existing' });
     }
 }
 
@@ -231,7 +232,7 @@ materialSearch?.addEventListener('input', () => {
                 }
             }
         } catch (err) {
-            console.error('[BOQ] Oracle search failed:', err);
+            reportError(err instanceof Error ? err : new Error('[BOQ] Oracle search failed'), { component: 'engineer_boq', action: 'oracle_search' });
         }
     }, 400);
 });

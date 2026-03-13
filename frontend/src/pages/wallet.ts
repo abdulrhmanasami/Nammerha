@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportError, reportWarning } from '../error-reporter';
 import { donations, payments } from '../api';
 
 // ============================================================================
@@ -38,7 +39,7 @@ function formatDate(dateStr: string): string {
             year: 'numeric',
         });
     } catch (err) {
-        console.warn('[Wallet] Date format failed:', err);
+        reportWarning('[Wallet] Date format failed', { component: 'wallet', action: 'format_date', error: err instanceof Error ? err.message : String(err) });
         return dateStr;
     }
 }
@@ -58,7 +59,7 @@ async function loadEscrowSummary(): Promise<void> {
             if (releasedEl) { releasedEl.textContent = `${summary.released_count} released`; }
         }
     } catch (err) {
-        console.warn('[Wallet] Escrow summary load failed:', err);
+        reportWarning('[Wallet] Escrow summary load failed', { component: 'wallet', action: 'load_escrow', error: err instanceof Error ? err.message : String(err) });
         if (balanceEl) { balanceEl.textContent = '$0.00'; }
     }
 }
@@ -125,7 +126,7 @@ async function loadTransactions(): Promise<void> {
         transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         listEl.innerHTML = transactions.map(renderTransaction).join('');
     } catch (err) {
-        console.error('[Wallet] Transaction history load failed:', err);
+        reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
         listEl.innerHTML = `
         <div class="text-center py-8">
           <p class="text-slate-500 text-sm">Unable to load transactions. Please sign in.</p>

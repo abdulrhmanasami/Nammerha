@@ -5,6 +5,8 @@
  * Strict Phosphor Icons only — no external dependencies.
  */
 
+import { reportWarning } from '../error-reporter';
+
 export interface CartItem {
     id: string;
     name: string;
@@ -36,7 +38,7 @@ class CartStoreImpl {
                 }
             }
         } catch (err) {
-            console.warn('[Cart] Failed to hydrate cart from localStorage:', err);
+            reportWarning('[Cart] Failed to hydrate cart from localStorage', { component: 'cart', action: 'hydrate', error: err instanceof Error ? err.message : String(err) });
             this.items = [];
         }
     }
@@ -46,7 +48,7 @@ class CartStoreImpl {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
         } catch (err) {
-            console.warn('[Cart] Failed to persist cart to localStorage:', err);
+            reportWarning('[Cart] Failed to persist cart to localStorage', { component: 'cart', action: 'persist', error: err instanceof Error ? err.message : String(err) });
         }
         window.dispatchEvent(new CustomEvent(CART_EVENT, { detail: { items: this.items } }));
     }

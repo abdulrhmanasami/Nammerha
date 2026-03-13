@@ -441,8 +441,11 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
             );
 
             // recalculateScore uses pool.connect → client.query
+            // P2-PLT-001: Now wrapped in BEGIN/COMMIT with FOR UPDATE
             mockClientQuery
-                // 6. fetch engineer metrics
+                // BEGIN transaction
+                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+                // fetch engineer metrics (FOR UPDATE)
                 .mockResolvedValueOnce({
                     rows: [{
                         completed_projects_count: 10,
@@ -453,7 +456,9 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
                     }],
                     rowCount: 1,
                 })
-                // 7. persist score
+                // persist score
+                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+                // COMMIT
                 .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
             const res = await request(app)
@@ -517,8 +522,11 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
             mockAuthUser = { user_id: 'admin-001', role: 'admin', is_active: true };
 
             // recalculateScore uses pool.connect() → client.query
+            // P2-PLT-001: Now wrapped in BEGIN/COMMIT with FOR UPDATE
             mockClientQuery
-                // 1. fetch engineer metrics
+                // BEGIN transaction
+                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+                // 1. fetch engineer metrics (FOR UPDATE)
                 .mockResolvedValueOnce({
                     rows: [{
                         completed_projects_count: 15,
@@ -530,6 +538,8 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
                     rowCount: 1,
                 })
                 // 2. persist new score
+                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+                // COMMIT
                 .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
             const res = await request(app)

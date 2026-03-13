@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportWarning } from '../error-reporter';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -130,7 +131,7 @@ async function initCamera(): Promise<void> {
             viewfinder.insertBefore(video, viewfinder.firstChild);
         }
     } catch (err) {
-        console.warn('[EngineerCamera] Camera initialization failed, keeping placeholder:', err);
+        reportWarning('[EngineerCamera] Camera initialization failed, keeping placeholder', { component: 'engineer_camera', action: 'init_camera', error: err instanceof Error ? err.message : String(err) });
     }
 }
 

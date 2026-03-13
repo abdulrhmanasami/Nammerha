@@ -199,7 +199,14 @@ export async function createDonation(
     //   - Silent partial charges with no user-facing error
     //   - Stale records that no background job would clean up
     // ═══════════════════════════════════════════════════════════════════════
-    const gateway = dto.payment_method === 'visa' ? 'visa' as const : 'fatora' as const;
+    // F-001 FIX: Explicit gateway mapping — no silent catch-all fallback.
+    // CreateDonationDTO.payment_method is now typed as 'visa' | 'fatora',
+    // but defense-in-depth demands we never assume type safety alone.
+    const GATEWAY_MAP: Record<string, 'visa' | 'fatora'> = { visa: 'visa', fatora: 'fatora' };
+    const gateway = GATEWAY_MAP[dto.payment_method];
+    if (!gateway) {
+        throw new Error(`Unsupported payment method: ${dto.payment_method}`);
+    }
 
     interface GatewayResult {
         escrow_id: string;

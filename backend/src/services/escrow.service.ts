@@ -30,8 +30,9 @@ export async function getPendingVerifications(
     limit = 25,
     offset = 0
 ): Promise<{ cases: VerificationCase[]; total: number }> {
-    // HGH-005: Fixed N+1 query — was running 2 extra queries PER proof in a loop.
-    // Now uses a single query with correlated subqueries for PO and escrow data.
+    // P2-PLT-003 FIX: Use window function COUNT(*) OVER() to get total count
+    // atomically with the data query. The previous separate COUNT(*) query
+    // could return a stale total if a new proof was submitted between queries.
     const result = await query<{
         proof_id: string;
         proof_item_id: string;
@@ -55,6 +56,7 @@ export async function getPendingVerifications(
         engineer_name: string;
         po_data: unknown;
         escrow_data: unknown;
+        total_count: string;
     }>(`
     SELECT
       sp.proof_id AS proof_id,
@@ -85,7 +87,8 @@ export async function getPendingVerifications(
         'amount_locked', el.amount_locked,
         'payment_status', el.payment_status
     )) FROM escrow_ledger el
-       WHERE el.item_id = sp.item_id AND el.payment_status = 'locked') AS escrow_data
+       WHERE el.item_id = sp.item_id AND el.payment_status = 'locked') AS escrow_data,
+    COUNT(*) OVER() AS total_count
     FROM spatial_proof sp
     JOIN projects p ON p.project_id = sp.project_id
     JOIN itemized_boq b ON b.item_id = sp.item_id
@@ -96,11 +99,10 @@ export async function getPendingVerifications(
         [limit, offset]
     );
 
-    // Get total count for pagination metadata
-    const countResult = await query<{ count: string }>(
-        `SELECT COUNT(*) AS count FROM spatial_proof WHERE verification_status = 'submitted'`
-    );
-    const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
+    // Extract total from the first row's window function result (0 if no rows)
+    const total = result.rows.length > 0
+        ? parseInt(result.rows[0]?.total_count ?? '0', 10)
+        : 0;
 
     const cases: VerificationCase[] = result.rows.map((row) => ({
         proof: {

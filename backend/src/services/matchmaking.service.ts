@@ -176,7 +176,12 @@ export function calculateScoringFactors(eng: EngineerMetrics): ScoringFactors {
 export async function recalculateScore(engineerId: string): Promise<number> {
     const client = await pool.connect();
     try {
-        // Fetch current metrics
+        // P2-PLT-001 FIX: Wrapped in transaction with FOR UPDATE to prevent
+        // race condition where two concurrent recalculations read stale metrics
+        // and the last writer silently overwrites the other's score.
+        await client.query('BEGIN');
+
+        // Fetch current metrics — FOR UPDATE prevents concurrent recalculations
         const { rows } = await client.query(
             `SELECT
                 completed_projects_count,
@@ -184,11 +189,12 @@ export async function recalculateScore(engineerId: string): Promise<number> {
                 bid_win_rate,
                 engineering_license_number,
                 guild_membership_id
-            FROM users WHERE user_id = $1 AND role = 'engineer'`,
+            FROM users WHERE user_id = $1 AND role = 'engineer' FOR UPDATE`,
             [engineerId]
         );
 
         if (rows.length === 0) {
+            await client.query('ROLLBACK');
             throw new Error(`Engineer ${engineerId} not found`);
         }
 
@@ -201,7 +207,11 @@ export async function recalculateScore(engineerId: string): Promise<number> {
             [compositeScore, engineerId]
         );
 
+        await client.query('COMMIT');
         return compositeScore;
+    } catch (err) {
+        await client.query('ROLLBACK').catch(() => { /* swallow rollback failure */ });
+        throw err;
     } finally {
         client.release();
     }

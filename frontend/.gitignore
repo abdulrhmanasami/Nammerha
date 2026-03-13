@@ -1,0 +1,7 @@
+# Build artifacts (Vite handles transpilation — raw .ts is the source of truth)
+src/**/*.js
+src/**/*.js.map
+
+# Local env
+.env.local
+.env.*.local

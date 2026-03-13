@@ -280,7 +280,11 @@ export interface CreateDonationDTO {
         item_id: string;
         amount: number;             // in cents
     }>;
-    payment_method: 'visa' | 'bank_transfer' | 'crypto';
+    // F-001 FIX: Aligned with PaymentGateway type in payment.service.ts.
+    // Only 'visa' and 'fatora' are implemented gateways. Previous values
+    // ('bank_transfer', 'crypto') silently fell through to Fatora, creating
+    // a contract mismatch between API documentation and actual behavior.
+    payment_method: 'visa' | 'fatora';
     return_url?: string;            // Gateway redirect after checkout
 }
 

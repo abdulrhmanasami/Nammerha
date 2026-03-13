@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { reportWarning } from '../error-reporter';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 
@@ -83,8 +84,12 @@ async function loadKPIs(): Promise<void> {
         if (projectCount) { projectCount.textContent = String(data.assigned_projects ?? 0); }
         const bidCount = document.getElementById('bid-count');
         if (bidCount) { bidCount.textContent = String(data.active_bids ?? 0); }
-    } catch {
-        // Silent degradation — error captured by centralized reporter via api.ts
+    } catch (err) {
+        // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
+        reportWarning('[ContractorDashboard] KPI load failed', {
+            component: 'contractor-dashboard', action: 'load_kpis',
+            error: err instanceof Error ? err.message : String(err),
+        });
     }
 }
 
@@ -138,8 +143,12 @@ async function loadProjectTimeline(): Promise<void> {
         }).join('');
 
         applyI18n();
-    } catch {
-        // Silent degradation — error captured by centralized reporter
+    } catch (err) {
+        // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
+        reportWarning('[ContractorDashboard] Project timeline load failed', {
+            component: 'contractor-dashboard', action: 'load_timeline',
+            error: err instanceof Error ? err.message : String(err),
+        });
     }
 }
 
@@ -185,8 +194,12 @@ async function loadBids(): Promise<void> {
         `}).join('');
 
         applyI18n();
-    } catch {
-        // Silent degradation — error captured by centralized reporter
+    } catch (err) {
+        // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
+        reportWarning('[ContractorDashboard] Bids load failed', {
+            component: 'contractor-dashboard', action: 'load_bids',
+            error: err instanceof Error ? err.message : String(err),
+        });
     }
 }
 

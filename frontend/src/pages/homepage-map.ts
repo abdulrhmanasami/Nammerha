@@ -7,6 +7,7 @@ import { initMap } from '../map/map-core';
 import { loadProjectMarkers, getProjectStats, applyFilter } from '../map/map-markers';
 import { addStandardControls, createFilterControl } from '../map/map-controls';
 import { t, tParams } from '../map/i18n-bridge';
+import { reportWarning } from '../error-reporter';
 
 /**
  * Boot the interactive reconstruction map on the homepage.
@@ -15,7 +16,7 @@ import { t, tParams } from '../map/i18n-bridge';
 async function initHomepageMap(): Promise<void> {
     const container = document.getElementById('main-map');
     if (!container) {
-        console.warn('[Nammerha] #main-map container not found — skipping map init');
+        reportWarning('#main-map container not found — skipping map init', { component: 'homepage_map', action: 'init' });
         return;
     }
 

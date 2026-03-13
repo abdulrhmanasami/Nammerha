@@ -91,14 +91,17 @@ router.get(
 router.get(
     '/sdn/pending',
     requireRole('admin'),
-    async (_req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         try {
-            const results = await compliance.getPendingScreenings();
+            // P2-PLT-002: Accept pagination parameters
+            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+            const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+            const { results, total } = await compliance.getPendingScreenings(limit, offset);
 
             const response: ApiResponse = {
                 success: true,
-                data: results,
-                message: `${results.length} pending reviews`,
+                data: { results, total, limit, offset },
+                message: `${results.length} of ${total} pending reviews`,
             };
             res.json(response);
                 } catch (error) {
