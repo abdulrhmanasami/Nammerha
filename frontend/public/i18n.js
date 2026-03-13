@@ -924,6 +924,66 @@
         '2_810_00': { ar: '٢٬٨١٠٫٠٠', de: '2.810,00', fr: '2 810,00', tr: '2.810,00' },
         '450_00': { ar: '٤٥٠٫٠٠', de: '450,00', fr: '450,00', tr: '450,00' },
         '920_00': { ar: '٩٢٠٫٠٠', de: '920,00', fr: '920,00', tr: '920,00' },
+
+        // ═══ CONTACT FORM ═══
+        'contact_form_title': { ar: 'أرسل لنا رسالة', de: 'Senden Sie uns eine Nachricht', fr: 'Envoyez-nous un message', tr: 'Bize Mesaj Gönderin' },
+        'contact_name': { ar: 'الاسم الكامل', de: 'Vollständiger Name', fr: 'Nom complet', tr: 'Ad Soyad' },
+        'contact_email': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
+        'contact_subject': { ar: 'الموضوع', de: 'Betreff', fr: 'Sujet', tr: 'Konu' },
+        'contact_category': { ar: 'الفئة', de: 'Kategorie', fr: 'Catégorie', tr: 'Kategori' },
+        'contact_message': { ar: 'الرسالة', de: 'Nachricht', fr: 'Message', tr: 'Mesaj' },
+        'contact_send': { ar: 'إرسال الرسالة', de: 'Nachricht senden', fr: 'Envoyer le message', tr: 'Mesaj Gönder' },
+        'contact_cat_general': { ar: 'استفسار عام', de: 'Allgemeine Anfrage', fr: 'Demande générale', tr: 'Genel Sorgu' },
+        'contact_cat_escrow': { ar: 'مسائل الضمان', de: 'Treuhandfragen', fr: 'Questions d\'entiercement', tr: 'Emanet Sorunları' },
+        'contact_cat_security': { ar: 'تنبيه أمني', de: 'Sicherheitswarnung', fr: 'Alerte de sécurité', tr: 'Güvenlik Uyarısı' },
+        'contact_cat_partnership': { ar: 'شراكة', de: 'Partnerschaft', fr: 'Partenariat', tr: 'Ortaklık' },
+        'contact_cat_media': { ar: 'إعلام وصحافة', de: 'Medien & Presse', fr: 'Médias & Presse', tr: 'Medya & Basın' },
+        'contact_cat_other': { ar: 'أخرى', de: 'Sonstiges', fr: 'Autre', tr: 'Diğer' },
+
+        // ═══ MATERIAL CATEGORIES (Supplier Catalog) ═══
+        'cat_cement': { ar: 'أسمنت', de: 'Zement', fr: 'Ciment', tr: 'Çimento' },
+        'cat_steel_rebar': { ar: 'حديد تسليح', de: 'Bewehrungsstahl', fr: 'Acier d\'armature', tr: 'İnşaat Demiri' },
+        'cat_blocks_bricks': { ar: 'بلوك وطوب', de: 'Blöcke & Ziegel', fr: 'Blocs & Briques', tr: 'Blok & Tuğla' },
+        'cat_sand_aggregate': { ar: 'رمل وحصى', de: 'Sand & Zuschlag', fr: 'Sable & Granulats', tr: 'Kum & Agrega' },
+        'cat_wood_timber': { ar: 'خشب وأخشاب', de: 'Holz & Bauholz', fr: 'Bois & Bois de construction', tr: 'Ahşap & Kereste' },
+        'cat_electrical': { ar: 'مواد كهربائية', de: 'Elektromaterial', fr: 'Matériel électrique', tr: 'Elektrik Malzemeleri' },
+        'cat_pipes_plumbing': { ar: 'أنابيب وسباكة', de: 'Rohre & Sanitär', fr: 'Tuyaux & Plomberie', tr: 'Boru & Tesisat' },
+        'cat_paint_finishing': { ar: 'دهان وتشطيب', de: 'Farbe & Ausbau', fr: 'Peinture & Finition', tr: 'Boya & Son Kat' },
+        'cat_roofing': { ar: 'مواد سقف', de: 'Dachmaterial', fr: 'Matériaux de toiture', tr: 'Çatı Malzemeleri' },
+        'cat_insulation': { ar: 'عزل', de: 'Isolierung', fr: 'Isolation', tr: 'Yalıtım' },
+        'cat_glass_windows': { ar: 'زجاج ونوافذ', de: 'Glas & Fenster', fr: 'Verre & Fenêtres', tr: 'Cam & Pencere' },
+        'cat_concrete': { ar: 'خرسانة', de: 'Beton', fr: 'Béton', tr: 'Beton' },
+        'cat_other': { ar: 'أخرى', de: 'Sonstiges', fr: 'Autre', tr: 'Diğer' },
+
+        // ═══ UNITS ═══
+        'unit_ton': { ar: 'طن', de: 'Tonne', fr: 'Tonne', tr: 'Ton' },
+        'unit_piece': { ar: 'قطعة', de: 'Stück', fr: 'Pièce', tr: 'Adet' },
+        'unit_box': { ar: 'صندوق', de: 'Karton', fr: 'Boîte', tr: 'Kutu' },
+        'unit_roll': { ar: 'لفة', de: 'Rolle', fr: 'Rouleau', tr: 'Rulo' },
+        'unit_liter': { ar: 'لتر', de: 'Liter', fr: 'Litre', tr: 'Litre' },
+
+        // ═══ CONTRACTOR TABLE HEADERS ═══
+        'contractor_th_proposed_cost': { ar: 'التكلفة المقترحة', de: 'Vorgeschlagene Kosten', fr: 'Coût proposé', tr: 'Teklif Edilen Maliyet' },
+        'contractor_th_status': { ar: 'الحالة', de: 'Status', fr: 'Statut', tr: 'Durum' },
+        'contractor_th_submitted': { ar: 'تاريخ التقديم', de: 'Eingereicht am', fr: 'Soumis le', tr: 'Gönderim Tarihi' },
+        'contractor_th_timeline': { ar: 'الجدول الزمني', de: 'Zeitplan', fr: 'Calendrier', tr: 'Zaman Çizelgesi' },
+
+        // ═══ SUPPLIER MODAL FIELDS ═══
+        'supplier_add_to_catalog': { ar: 'إضافة إلى الكتالوج', de: 'Zum Katalog hinzufügen', fr: 'Ajouter au catalogue', tr: 'Kataloğa Ekle' },
+        'supplier_catalog_desc': { ar: 'إدارة مواد البناء الخاصة بك', de: 'Ihre Baumaterialien verwalten', fr: 'Gérez vos matériaux de construction', tr: 'Yapı malzemelerinizi yönetin' },
+        'supplier_material_name': { ar: 'اسم المادة', de: 'Materialname', fr: 'Nom du matériau', tr: 'Malzeme Adı' },
+        'supplier_category_label': { ar: 'الفئة', de: 'Kategorie', fr: 'Catégorie', tr: 'Kategori' },
+        'supplier_unit_label': { ar: 'الوحدة', de: 'Einheit', fr: 'Unité', tr: 'Birim' },
+        'supplier_guide_price': { ar: 'السعر التوجيهي ($)', de: 'Richtpreis ($)', fr: 'Prix indicatif ($)', tr: 'Yönlendirici Fiyat ($)' },
+        'supplier_min_order': { ar: 'الحد الأدنى للطلب', de: 'Mindestbestellmenge', fr: 'Commande minimum', tr: 'Minimum Sipariş' },
+        'supplier_lead_time': { ar: 'مدة التسليم (أيام)', de: 'Lieferzeit (Tage)', fr: 'Délai de livraison (jours)', tr: 'Teslimat Süresi (gün)' },
+        'supplier_desc_optional': { ar: 'الوصف (اختياري)', de: 'Beschreibung (optional)', fr: 'Description (optionnel)', tr: 'Açıklama (isteğe bağlı)' },
+        'supplier_modal_guide_price_info': { ar: 'سيقوم نظام EPA بضبط السعر حسب ظروف السوق', de: 'Das EPA-System passt den Preis an die Marktbedingungen an', fr: 'Le système EPA ajustera le prix selon les conditions du marché', tr: 'EPA sistemi fiyatı piyasa koşullarına göre ayarlayacaktır' },
+
+        // ═══ HOMEOWNER FORM ELEMENTS ═══
+        'select_damage_type': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dégât', tr: 'Hasar türünü seçin' },
+        'select_governorate': { ar: 'اختر المحافظة', de: 'Gouvernement auswählen', fr: 'Sélectionner le gouvernorat', tr: 'İl seçin' },
+        'detect_location_auto': { ar: 'كشف الموقع تلقائياً', de: 'Standort automatisch erkennen', fr: 'Détecter l\'emplacement automatiquement', tr: 'Konumu otomatik algıla' },
     };
 
     // ═══════════════════════════════════════════════════════════════════════
