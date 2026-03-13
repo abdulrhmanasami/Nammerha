@@ -719,6 +719,10 @@
         'contractor_th_progress': { ar: 'التقدم', de: 'Fortschritt', fr: 'Progrès', tr: 'İlerleme' },
         'contractor_th_next_proof': { ar: 'الإثبات التالي', de: 'Nächster Nachweis', fr: 'Prochaine preuve', tr: 'Sonraki Kanıt' },
         'contractor_th_action': { ar: 'إجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+        // PLT-2026-HGH-002: Contractor dashboard dynamic template i18n keys
+        'no_assigned_projects': { ar: 'لا توجد مشاريع مسندة بعد', de: 'Noch keine zugewiesenen Projekte', fr: 'Aucun projet assigné pour le moment', tr: 'Henüz atanmış proje yok' },
+        'browse_marketplace': { ar: 'تصفح السوق', de: 'Marktplatz durchsuchen', fr: 'Parcourir le marché', tr: 'Pazaryerini Gözat' },
+        'no_bids_submitted': { ar: 'لم يتم تقديم عروض بعد', de: 'Noch keine Angebote eingereicht', fr: 'Aucune offre soumise', tr: 'Henüz teklif verilmedi' },
 
         // ═══ TRADESPERSON PORTAL ═══
         'tradesperson_portal': { ar: 'بوابة الحرفي', de: 'Handwerkerportal', fr: 'Portail artisan', tr: 'Esnaf Portalı' },

@@ -1,13 +1,14 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { phaseColor, bidColor } from '../utils/status-colors';
-import { engineer } from '../api';
+import { contractor } from '../api';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Engineer Dashboard — Project Execution & Bidding Engine
-   PLT-RE-001 FIX: All API calls delegated to centralized api.ts client.
-   Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
-   wrapper — including 30s AbortController timeout for Syria's network conditions.
+   Contractor Dashboard — Project Execution & Bidding Engine
+   PLT-2026-CRT-001 FIX: Rewired from engineer → contractor API namespace.
+   The previous version imported { engineer } and displayed engineer data
+   (proofs, spatial captures) on the contractor dashboard — a critical
+   data wiring catastrophe discovered during the March 12 Platinum Audit.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
@@ -63,42 +64,44 @@ function setupTabs(): void {
     });
 }
 
-// ─── Load KPIs from engineer.getStats() ─────────────────────────────────────
+// ─── Load KPIs from contractor.getStats() ───────────────────────────────────
+// PLT-2026-CRT-001: Uses contractor stats shape:
+//   { assigned_projects, completed_projects, active_bids, total_earnings }
 async function loadKPIs(): Promise<void> {
     try {
-        const res = await engineer.getStats();
+        const res = await contractor.getStats();
         if (!res.data) { return; }
-        const data = res.data as unknown as Record<string, number>;
+        const data = res.data;
 
-        setKPI('assigned-projects', data['assigned_projects'] ?? 0);
-        setKPI('proofs-pending', data['proofs_pending'] ?? 0);
-        setKPI('proofs-verified', data['proofs_verified'] ?? 0);
-        setKPI('escrow-released', data['escrow_released'] ?? 0, '$');
+        setKPI('assigned-projects', data.assigned_projects ?? 0);
+        setKPI('active-bids', data.active_bids ?? 0);
+        setKPI('completed-projects', data.completed_projects ?? 0);
+        setKPI('total-earnings', data.total_earnings ?? 0, '$');
 
         // Badge counts
         const projectCount = document.getElementById('project-count');
-        if (projectCount) { projectCount.textContent = String(data['assigned_projects'] ?? 0); }
-        const proofPending = document.getElementById('proof-pending');
-        if (proofPending) { proofPending.textContent = String(data['proofs_pending'] ?? 0); }
+        if (projectCount) { projectCount.textContent = String(data.assigned_projects ?? 0); }
+        const bidCount = document.getElementById('bid-count');
+        if (bidCount) { bidCount.textContent = String(data.active_bids ?? 0); }
     } catch {
         // Silent degradation — error captured by centralized reporter via api.ts
     }
 }
 
-// ─── Load Project Timeline from engineer.getProjects() ──────────────────────
+// ─── Load Project Timeline from contractor.getProjects() ────────────────────
 async function loadProjectTimeline(): Promise<void> {
     const tbody = document.getElementById('project-timeline-body');
     if (!tbody) { return; }
 
     try {
-        const res = await engineer.getProjects();
+        const res = await contractor.getProjects();
         const projects = (res.data ?? []) as unknown as Array<Record<string, string | number>>;
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
-                <td colspan="6" class="px-5 py-8 text-center text-slate-400">
+                <td colspan="5" class="px-5 py-8 text-center text-slate-400">
                     <i class="ph ph-buildings" style="font-size:24px" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs">No assigned projects yet</p>
+                    <p class="mt-2 text-xs" data-i18n="no_assigned_projects">No assigned projects yet</p>
                 </td>
             </tr>`;
             return;
@@ -124,11 +127,11 @@ async function loadProjectTimeline(): Promise<void> {
                         <span class="text-[10px] font-bold text-slate-500">${progress}%</span>
                     </div>
                 </td>
-                <td class="px-5 py-3 text-slate-500 text-xs">${esc(String(p['next_proof_due'] ?? '—'))}</td>
                 <td class="px-5 py-3">
-                    <a href="engineer-camera.html?project=${esc(String(p['project_id'] ?? ''))}"
+                    <a href="contractor-portal.html?tab=marketplace"
                        class="text-xs font-semibold text-trust-blue hover:underline flex items-center gap-1">
-                       <i class="ph ph-camera" aria-hidden="true"></i> Upload Proof
+                       <i class="ph ph-list-magnifying-glass" aria-hidden="true"></i>
+                       <span data-i18n="browse_marketplace">Browse Marketplace</span>
                     </a>
                 </td>
             </tr>`;
@@ -140,30 +143,38 @@ async function loadProjectTimeline(): Promise<void> {
     }
 }
 
-// ─── Load My Bids from engineer.getBids() ───────────────────────────────────
+// ─── Load My Bids from contractor.getBids() ─────────────────────────────────
 async function loadBids(): Promise<void> {
     const container = document.getElementById('bids-body');
     if (!container) { return; }
 
     try {
-        const res = await engineer.getBids();
+        const res = await contractor.getBids();
         const bids = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
 
         if (bids.length === 0) {
             container.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="5" class="px-5 py-8 text-center text-slate-400">
                     <i class="ph ph-flag-banner" style="font-size:24px" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs">No bids submitted yet</p>
+                    <p class="mt-2 text-xs" data-i18n="no_bids_submitted">No bids submitted yet</p>
                 </td>
             </tr>`;
             return;
         }
 
-        container.innerHTML = bids.map((b) => `
+        container.innerHTML = bids.map((b) => {
+            const lang = document.documentElement.lang || 'en';
+            const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
+            const costFormatted = new Intl.NumberFormat(locale, {
+                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
+            }).format((Number(b['proposed_cost']) || 0) / 100);
+            const daysLabel = lang === 'ar' ? 'يوم' : lang === 'tr' ? 'gün' : 'days';
+
+            return `
             <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(String(b['project_title'] ?? ''))}</td>
-                <td class="px-5 py-3 font-mono">$${((Number(b['proposed_cost']) || 0) / 100).toLocaleString()}</td>
-                <td class="px-5 py-3 text-slate-500">${b['estimated_days']} days</td>
+                <td class="px-5 py-3 font-mono">${costFormatted}</td>
+                <td class="px-5 py-3 text-slate-500">${b['estimated_days']} ${daysLabel}</td>
                 <td class="px-5 py-3">
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${bidColor(String(b['status'] ?? ''))}">
                         ${esc(String(b['status'] ?? ''))}
@@ -171,7 +182,7 @@ async function loadBids(): Promise<void> {
                 </td>
                 <td class="px-5 py-3 text-slate-500 text-xs">${formatDate(String(b['submitted_at'] ?? ''))}</td>
             </tr>
-        `).join('');
+        `}).join('');
 
         applyI18n();
     } catch {
@@ -186,15 +197,21 @@ function setKPI(name: string, value: number, prefix = ''): void {
 
     const duration = 1200;
     const start = performance.now();
+    const lang = document.documentElement.lang || 'en';
+    const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
+
     const tick = (now: number): void => {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        const current = prefix === '$'
-            ? Math.round((value / 100) * eased)
-            : Math.round(value * eased);
-        el.textContent = prefix === '$'
-            ? `$${current.toLocaleString()}`
-            : current.toLocaleString();
+        if (prefix === '$') {
+            const current = Math.round((value / 100) * eased);
+            el.textContent = new Intl.NumberFormat(locale, {
+                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
+            }).format(current);
+        } else {
+            const current = Math.round(value * eased);
+            el.textContent = current.toLocaleString(locale);
+        }
         if (progress < 1) { requestAnimationFrame(tick); }
     };
     requestAnimationFrame(tick);
@@ -203,7 +220,9 @@ function setKPI(name: string, value: number, prefix = ''): void {
 function formatDate(iso: string): string {
     if (!iso) { return '—'; }
     try {
-        return new Date(iso).toLocaleDateString(undefined, {
+        const lang = document.documentElement.lang || 'en';
+        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
+        return new Date(iso).toLocaleDateString(locale, {
             month: 'short', day: 'numeric', year: 'numeric',
         });
     } catch {

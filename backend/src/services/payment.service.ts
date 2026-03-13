@@ -190,6 +190,30 @@ const FATORA_CONFIG: GatewayCredentials | null = (() => {
 /** Gateway HTTP request timeout (30 seconds) */
 const GATEWAY_TIMEOUT_MS = 30_000;
 
+/**
+ * PLT-2026-MED-002: Validate return_url to prevent open redirect attacks.
+ * Only allows URLs on the same hostname as PLATFORM_BASE_URL.
+ */
+function validateReturnUrl(url: string | undefined): string {
+    const base = process.env['PLATFORM_BASE_URL'] ?? 'https://nammerha.com';
+    const fallback = `${base}/payment/complete`;
+    if (!url) { return fallback; }
+    try {
+        const parsed = new URL(url);
+        const allowed = new URL(base);
+        if (parsed.hostname !== allowed.hostname) {
+            logger.warn('PLT-2026-MED-002: Blocked open redirect attempt in return_url', {
+                provided: url,
+                allowed: allowed.hostname,
+            });
+            return fallback;
+        }
+        return url;
+    } catch {
+        return fallback;
+    }
+}
+
 // ─── Visa REST API Integration ──────────────────────────────────────────────
 // Visa Checkout / Visa Direct API
 // Docs: https://developer.visa.com/
@@ -231,7 +255,7 @@ async function initiateVisaPayment(
                 currency,
                 orderNumber: reference,
                 callbackUrl: VISA_CONFIG.webhookUrl,
-                returnUrl: returnUrl ?? `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/complete`,
+                returnUrl: validateReturnUrl(returnUrl),
                 payer: { merchantCustomerId: reference },
                 transaction: { description: `Nammerha Donation: ${reference}` },
             }),
@@ -323,7 +347,7 @@ async function initiateFatoraPayment(
                         return `noreply+${reference}@nammerha.com`;
                     })(),
                 },
-                success_url: returnUrl ?? `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/complete`,
+                success_url: validateReturnUrl(returnUrl),
                 failure_url: `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/failed`,
                 webhook_url: FATORA_CONFIG.webhookUrl,
                 note: `Nammerha Platform Donation: ${reference}`,
@@ -689,13 +713,13 @@ export const paymentService = {
     /**
      * Get payment history for a donor.
      */
-    async getDonorPayments(donorId: string): Promise<PaymentRecord[]> {
+    async getDonorPayments(donorId: string, limit = 50, offset = 0): Promise<PaymentRecord[]> {
         const result = await pool.query<PaymentRecord>(
             `SELECT * FROM payment_transactions
        WHERE donor_id = $1
        ORDER BY created_at DESC
-       LIMIT 50`,
-            [donorId]
+       LIMIT $2 OFFSET $3`,
+            [donorId, Math.min(limit, 100), Math.max(offset, 0)]
         );
         return result.rows;
     },

@@ -31,7 +31,7 @@ git push origin master
 ### 3. Rsync to Production Server
 // turbo
 ```bash
-rsync -avz --delete --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.DS_Store' /Users/abdulrahman/Github/Nammerha/ root@91.98.182.243:/opt/nammerha/
+rsync -avz --delete --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.DS_Store' --exclude='.env' /Users/abdulrahman/Github/Nammerha/ root@91.98.182.243:/opt/nammerha/
 ```
 
 ### 4. Rebuild Docker Containers

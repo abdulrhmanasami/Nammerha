@@ -532,7 +532,8 @@ export async function getVerifiedSuppliers(): Promise<
          WHERE role = 'supplier'
            AND is_active = TRUE
            AND kyc_verification_status = 'verified'
-         ORDER BY full_name ASC`
+         ORDER BY full_name ASC
+         LIMIT 500`
     );
     return result.rows;
 }

@@ -104,7 +104,7 @@
         'Add to Cart': { ar: 'أضف إلى السلة', de: 'In den Warenkorb', fr: 'Ajouter au panier', tr: 'Sepete Ekle' },
         'Funding Complete': { ar: 'التمويل مكتمل', de: 'Finanzierung abgeschlossen', fr: 'Financement terminé', tr: 'Finansman Tamamlandı' },
         'Secure Escrow': { ar: 'ضمان آمن', de: 'Sicheres Treuhandkonto', fr: 'Séquestre sécurisé', tr: 'Güvenli Emanet' },
-        'In Progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        // P3-NEW-002: 'In Progress' aliased to 'in_progress' via KEY_ALIASES
         'Harbor View Reconstruction': { ar: 'إعادة إعمار المرفأ', de: 'Harbor View Wiederaufbau', fr: 'Reconstruction Harbor View', tr: 'Harbor View Yeniden Yapımı' },
 
         // ═══ DONOR BASKET PAGE ═══
@@ -131,7 +131,7 @@
         'Field Photo Proof': { ar: 'إثبات الصور الميدانية', de: 'Fotobeweis vor Ort', fr: 'Preuve photo de terrain', tr: 'Saha Fotoğraf Kanıtı' },
         'Voice Snag': { ar: 'ملاحظة صوتية', de: 'Sprachmangel', fr: 'Note vocale', tr: 'Sesli Not' },
         'Capture 360 & Sync': { ar: 'تصوير 360 ومزامنة', de: '360° aufnehmen & synchronisieren', fr: 'Capturer 360 & Synchroniser', tr: '360 Çek & Senkronize Et' },
-        'Gallery': { ar: 'المعرض', de: 'Galerie', fr: 'Galerie', tr: 'Galeri' },
+        // P3-NEW-002: 'Gallery' aliased to 'gallery' via KEY_ALIASES
         'Verified Field Engineer': { ar: 'مهندس ميداني معتمد', de: 'Verifizierter Feldingenieur', fr: 'Ingénieur de terrain vérifié', tr: 'Doğrulanmış Saha Mühendisi' },
 
         // ═══ ENGINEER CAMERA PAGE ═══
@@ -139,19 +139,19 @@
         'GPS Coordinates': { ar: 'إحداثيات GPS', de: 'GPS-Koordinaten', fr: 'Coordonnées GPS', tr: 'GPS Koordinatları' },
         'Timestamp': { ar: 'الطابع الزمني', de: 'Zeitstempel', fr: 'Horodatage', tr: 'Zaman Damgası' },
         'Signature': { ar: 'التوقيع', de: 'Unterschrift', fr: 'Signature', tr: 'İmza' },
-        'Sync': { ar: 'مزامنة', de: 'Synchronisieren', fr: 'Synchroniser', tr: 'Senkronize Et' },
+        // P3-NEW-002: 'Sync' aliased to 'sync' via KEY_ALIASES
 
         // ═══ HOMEOWNER REPORT PAGE ═══
         'Submit Repair Request': { ar: 'تقديم طلب إصلاح', de: 'Reparaturanfrage einreichen', fr: 'Soumettre une demande de réparation', tr: 'Onarım Talebi Gönder' },
         'Upload Photos': { ar: 'رفع الصور', de: 'Fotos hochladen', fr: 'Télécharger des photos', tr: 'Fotoğraf Yükle' },
-        'Location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        // P3-NEW-002: 'Location' aliased to 'location' via KEY_ALIASES
         'Description': { ar: 'الوصف', de: 'Beschreibung', fr: 'Description', tr: 'Açıklama' },
         'Category': { ar: 'الفئة', de: 'Kategorie', fr: 'Catégorie', tr: 'Kategori' },
         'Priority': { ar: 'الأولوية', de: 'Priorität', fr: 'Priorité', tr: 'Öncelik' },
-        'Governorate': { ar: 'المحافظة', de: 'Gouvernement', fr: 'Gouvernorat', tr: 'İl' },
-        'Structural Damage': { ar: 'أضرار هيكلية', de: 'Strukturschäden', fr: 'Dommages structurels', tr: 'Yapısal Hasar' },
-        'Electrical': { ar: 'كهربائي', de: 'Elektrisch', fr: 'Électrique', tr: 'Elektrik' },
-        'General Repair': { ar: 'إصلاح عام', de: 'Allgemeine Reparatur', fr: 'Réparation générale', tr: 'Genel Onarım' },
+        // P3-NEW-002: 'Governorate' aliased to 'governorate' via KEY_ALIASES
+        // P3-NEW-002: 'Structural Damage' aliased to 'structural_damage' via KEY_ALIASES
+        // P3-NEW-002: 'Electrical' aliased to 'electrical' via KEY_ALIASES
+        // P3-NEW-002: 'General Repair' aliased to 'general_repair' via KEY_ALIASES
         'Urgent': { ar: 'عاجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
         'Request Summary': { ar: 'ملخص الطلب', de: 'Anfragezusammenfassung', fr: 'Résumé de la demande', tr: 'Talep Özeti' },
         'Request Submitted!': { ar: 'تم تقديم الطلب!', de: 'Anfrage eingereicht!', fr: 'Demande soumise !', tr: 'Talep Gönderildi!' },
@@ -176,8 +176,8 @@
         'Escrow Verification Queue': { ar: 'قائمة التحقق من الأمانات', de: 'Treuhand-Verifizierungswarteschlange', fr: 'File de vérification d\'entiercement', tr: 'Emanet Doğrulama Kuyruğu' },
         'Escrow Release Verification': { ar: 'التحقق من تحرير الأمانة', de: 'Treuhand-Freigabeprüfung', fr: 'Vérification de libération d\'entiercement', tr: 'Emanet Serbest Bırakma Doğrulaması' },
         'Funds Locked in Escrow': { ar: 'أموال محجوزة في الأمانة', de: 'Gelder in Treuhand gesperrt', fr: 'Fonds bloqués en entiercement', tr: 'Emanette Kilitli Fonlar' },
-        'Purchase Order': { ar: 'أمر الشراء', de: 'Bestellung', fr: 'Bon de commande', tr: 'Satın Alma Siparişi' },
-        'Vendor ID': { ar: 'معرف المورد', de: 'Lieferanten-ID', fr: 'ID fournisseur', tr: 'Tedarikçi Kimliği' },
+        // P3-NEW-002: 'Purchase Order' aliased to 'purchase_order' via KEY_ALIASES
+        // P3-NEW-002: 'Vendor ID' aliased to 'vendor_id' via KEY_ALIASES
         'Action Required': { ar: 'إجراء مطلوب', de: 'Aktion erforderlich', fr: 'Action requise', tr: 'İşlem Gerekli' },
 
         // ═══ ADMIN KYC PAGE ═══
@@ -196,7 +196,7 @@
         'Steel Index Volatility': { ar: 'تقلب مؤشر الحديد', de: 'Stahlindexvolatilität', fr: 'Volatilité de l\'indice acier', tr: 'Çelik Endeksi Volatilitesi' },
         'Stable': { ar: 'مستقر', de: 'Stabil', fr: 'Stable', tr: 'Stabil' },
         'Constraint Risk': { ar: 'مخاطر القيود', de: 'Einschränkungsrisiko', fr: 'Risque de contrainte', tr: 'Kısıtlama Riski' },
-        'Estimated': { ar: 'مُقدّر', de: 'Geschätzt', fr: 'Estimé', tr: 'Tahmini' },
+        // P3-NEW-002: 'Estimated' aliased to 'estimated' via KEY_ALIASES
         'Total Adjusted Cost': { ar: 'التكلفة المعدّلة الإجمالية', de: 'Gesamte bereinigte Kosten', fr: 'Coût total ajusté', tr: 'Toplam Düzeltilmiş Maliyet' },
         'Verified by Oracle': { ar: 'معتمد من المؤشر', de: 'Vom Orakel verifiziert', fr: 'Vérifié par l\'oracle', tr: 'Oracle Tarafından Doğrulandı' },
         'Market Data': { ar: 'بيانات السوق', de: 'Marktdaten', fr: 'Données du marché', tr: 'Piyasa Verileri' },
@@ -448,17 +448,6 @@
 
         // ═══ FUND NOW BUTTON ═══
         'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
-
-        // ═══ PLT-FINAL-006: MISSING CARD & ACTION LABELS ═══
-        'verified_ocds': { ar: 'OCDS موثّق', de: 'OCDS VERIFIZIERT', fr: 'OCDS VÉRIFIÉ', tr: 'OCDS DOĞRULANDI' },
-        'card_funded': { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
-        'submit_bid': { ar: 'تقديم عرض', de: 'Angebot abgeben', fr: 'Soumettre une offre', tr: 'Teklif Ver' },
-        'btn_cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
-        'btn_submit': { ar: 'إرسال', de: 'Absenden', fr: 'Soumettre', tr: 'Gönder' },
-        'btn_submitting': { ar: 'جاري الإرسال...', de: 'Wird gesendet...', fr: 'Envoi en cours...', tr: 'Gönderiliyor...' },
-        'fully_funded': { ar: '✓ ممول بالكامل', de: '✓ Voll finanziert', fr: '✓ Entièrement financé', tr: '✓ Tamamen Finanse Edildi' },
-        'proof_submitted_title': { ar: 'تم إرسال الإثبات — بانتظار التحقق', de: 'Nachweis eingereicht — Überprüfung ausstehend', fr: 'Preuve soumise — En attente de vérification', tr: 'Kanıt Gönderildi — Doğrulama Bekleniyor' },
-        'submitted_label': { ar: 'مقدم', de: 'Eingereicht', fr: 'Soumis', tr: 'Gönderildi' },
 
         // ═══ INTERACTIVE MAP ═══
         // Filter Controls (map-controls.ts)
@@ -730,6 +719,10 @@
         'contractor_th_progress': { ar: 'التقدم', de: 'Fortschritt', fr: 'Progrès', tr: 'İlerleme' },
         'contractor_th_next_proof': { ar: 'الإثبات التالي', de: 'Nächster Nachweis', fr: 'Prochaine preuve', tr: 'Sonraki Kanıt' },
         'contractor_th_action': { ar: 'إجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+        // PLT-2026-HGH-002: Contractor dashboard dynamic template i18n keys
+        'no_assigned_projects': { ar: 'لا توجد مشاريع مسندة بعد', de: 'Noch keine zugewiesenen Projekte', fr: 'Aucun projet assigné pour le moment', tr: 'Henüz atanmış proje yok' },
+        'browse_marketplace': { ar: 'تصفح السوق', de: 'Marktplatz durchsuchen', fr: 'Parcourir le marché', tr: 'Pazaryerini Gözat' },
+        'no_bids_submitted': { ar: 'لم يتم تقديم عروض بعد', de: 'Noch keine Angebote eingereicht', fr: 'Aucune offre soumise', tr: 'Henüz teklif verilmedi' },
 
         // ═══ TRADESPERSON PORTAL ═══
         'tradesperson_portal': { ar: 'بوابة الحرفي', de: 'Handwerkerportal', fr: 'Portail artisan', tr: 'Esnaf Portalı' },
@@ -931,69 +924,44 @@
         '2_810_00': { ar: '٢٬٨١٠٫٠٠', de: '2.810,00', fr: '2 810,00', tr: '2.810,00' },
         '450_00': { ar: '٤٥٠٫٠٠', de: '450,00', fr: '450,00', tr: '450,00' },
         '920_00': { ar: '٩٢٠٫٠٠', de: '920,00', fr: '920,00', tr: '920,00' },
-
-        // ═══ HOMEOWNER REPORT — MISSING KEYS ═══
-        'detect_location_auto': { ar: 'اكتشف موقعي تلقائياً', de: 'Meinen Standort automatisch erkennen', fr: 'Détecter ma position automatiquement', tr: 'Konumumu otomatik algıla' },
-        'select_damage_type': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dommage', tr: 'Hasar türünü seçin' },
-
-        // ═══ SUPPLIER MATERIAL CATEGORIES ═══
-        'cat_cement': { ar: 'أسمنت', de: 'Zement', fr: 'Ciment', tr: 'Çimento' },
-        'cat_steel_rebar': { ar: 'حديد وتسليح', de: 'Stahl & Bewehrung', fr: 'Acier & Armature', tr: 'Çelik & Donatı' },
-        'cat_concrete': { ar: 'خرسانة', de: 'Beton', fr: 'Béton', tr: 'Beton' },
-        'cat_blocks_bricks': { ar: 'بلوك وطوب', de: 'Blöcke & Ziegel', fr: 'Blocs & Briques', tr: 'Blok & Tuğla' },
-        'cat_wood_timber': { ar: 'خشب وأخشاب', de: 'Holz & Bauholz', fr: 'Bois & Charpente', tr: 'Ahşap & Kereste' },
-        'cat_pipes_plumbing': { ar: 'أنابيب وسباكة', de: 'Rohre & Sanitär', fr: 'Tuyaux & Plomberie', tr: 'Borular & Tesisat' },
-        'cat_electrical': { ar: 'كهربائيات', de: 'Elektrik', fr: 'Électricité', tr: 'Elektrik' },
-        'cat_insulation': { ar: 'عزل', de: 'Isolierung', fr: 'Isolation', tr: 'Yalıtım' },
-        'cat_roofing': { ar: 'تسقيف', de: 'Dachmaterial', fr: 'Couverture', tr: 'Çatı Malzemesi' },
-        'cat_paint_finishing': { ar: 'دهان وتشطيب', de: 'Farbe & Ausbau', fr: 'Peinture & Finition', tr: 'Boya & Kaplama' },
-        'cat_sand_aggregate': { ar: 'رمل وحصى', de: 'Sand & Zuschlagstoffe', fr: 'Sable & Granulats', tr: 'Kum & Agrega' },
-        'cat_glass_windows': { ar: 'زجاج ونوافذ', de: 'Glas & Fenster', fr: 'Verre & Fenêtres', tr: 'Cam & Pencere' },
-        'cat_other': { ar: 'أخرى', de: 'Sonstige', fr: 'Autres', tr: 'Diğer' },
-
-        // ═══ SUPPLIER UNITS ═══
-        'unit_ton': { ar: 'طن', de: 'Tonne', fr: 'Tonne', tr: 'Ton' },
-        'unit_piece': { ar: 'قطعة', de: 'Stück', fr: 'Pièce', tr: 'Adet' },
-        'unit_box': { ar: 'صندوق', de: 'Karton', fr: 'Boîte', tr: 'Kutu' },
-        'unit_roll': { ar: 'لفة', de: 'Rolle', fr: 'Rouleau', tr: 'Rulo' },
-        'unit_liter': { ar: 'لتر', de: 'Liter', fr: 'Litre', tr: 'Litre' },
-
-        // ═══ PROJECT DETAILS NAV ═══
-        'nav_explore': { ar: 'استكشاف', de: 'Entdecken', fr: 'Explorer', tr: 'Keşfet' },
-        'nav_projects': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
-        'nav_impact': { ar: 'الأثر', de: 'Wirkung', fr: 'Impact', tr: 'Etki' },
-        'nav_profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
-
-        // ═══ PROJECT DETAILS — BUTTONS & LABELS ═══
-        'Add to Cart': { ar: 'أضف للسلة', de: 'In den Warenkorb', fr: 'Ajouter au panier', tr: 'Sepete Ekle' },
-        'Funding Complete': { ar: 'اكتمل التمويل', de: 'Finanzierung abgeschlossen', fr: 'Financement complété', tr: 'Fonlama Tamamlandı' },
-        'map_region_aleppo': { ar: 'حلب', de: 'Aleppo, Syrien', fr: 'Alep, Syrie', tr: 'Halep, Suriye' },
-
-        // ═══ HOMEOWNER REPORT — GOVERNORATE ═══
-        'select_governorate': { ar: 'اختر المحافظة...', de: 'Gouvernement auswählen...', fr: 'Sélectionner le gouvernorat...', tr: 'Valilik seçin...' },
-
-        // ═══ SUPPLIER MODAL FORM ═══
-        'supplier_material_name': { ar: 'اسم المادة *', de: 'Materialname *', fr: 'Nom du matériau *', tr: 'Malzeme Adı *' },
-        'supplier_material_placeholder': { ar: 'مثال: أسمنت بورتلاند نوع II', de: 'z.B. Portland-Zement Typ II', fr: 'ex. Ciment Portland Type II', tr: 'örn. Portland Çimento Tip II' },
-        'supplier_category_label': { ar: 'الفئة *', de: 'Kategorie *', fr: 'Catégorie *', tr: 'Kategori *' },
-        'supplier_unit_label': { ar: 'الوحدة *', de: 'Einheit *', fr: 'Unité *', tr: 'Birim *' },
-        'supplier_guide_price': { ar: 'السعر الاسترشادي ($) *', de: 'Richtpreis ($) *', fr: 'Prix indicatif ($) *', tr: 'Rehber Fiyat ($) *' },
-        'supplier_min_order': { ar: 'الحد الأدنى للطلب', de: 'Mindestbestellmenge', fr: 'Quantité min. de commande', tr: 'Min. Sipariş Miktarı' },
-        'supplier_lead_time': { ar: 'مدة التسليم (أيام)', de: 'Lieferzeit (Tage)', fr: 'Délai de livraison (jours)', tr: 'Teslimat Süresi (gün)' },
-        'supplier_desc_optional': { ar: 'الوصف (اختياري)', de: 'Beschreibung (optional)', fr: 'Description (optionnel)', tr: 'Açıklama (isteğe bağlı)' },
-        'supplier_desc_placeholder': { ar: 'تفاصيل إضافية عن هذه المادة...', de: 'Weitere Details zu diesem Material...', fr: 'Détails supplémentaires sur ce matériau...', tr: 'Bu malzeme hakkında ek detaylar...' },
-        'supplier_add_to_catalog': { ar: 'إضافة للكتالوج', de: 'Zum Katalog hinzufügen', fr: 'Ajouter au catalogue', tr: 'Kataloğa Ekle' },
-        'supplier_modal_guide_price_info': { ar: 'أسعار استرشادية — المبالغ الفعلية لأوامر الشراء تستخدم أسعار جدول الكميات', de: 'Richtpreise — tatsächliche PO-Beträge verwenden LV-Preise', fr: 'Prix indicatifs — les montants réels des PO utilisent les prix du DQE', tr: 'Rehber fiyatlar — gerçek PO tutarları BOQ fiyatlarını kullanır' },
-        'supplier_catalog_desc': { ar: 'يتصفح المهندسون كتالوجك عند اختيار الموردين لبنود جدول الكميات', de: 'Ingenieure durchsuchen Ihren Katalog bei der Auswahl von Lieferanten für LV-Positionen', fr: 'Les ingénieurs parcourent votre catalogue lors de la sélection des fournisseurs pour les articles du DQE', tr: 'Mühendisler BOQ kalemleri için tedarikçi seçerken kataloğunuza göz atar' },
-        'Cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
-        'loading': { ar: 'جاري التحميل...', de: 'Laden...', fr: 'Chargement...', tr: 'Yükleniyor...' },
     };
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // P3-NEW-002 FIX: Key Aliases — Canonical Deduplication
+    // ═══════════════════════════════════════════════════════════════════════
+    // During the migration from English-text keys to snake_case keys,
+    // ~12 entries existed in both formats with identical translations.
+    // This alias map redirects legacy English-text keys to the canonical
+    // snake_case entry, eliminating dictionary duplication.
+    //
+    // Usage: translatePage() and translateTextNodes() resolve through this
+    // map before DICT lookup. HTML pages using either format work correctly.
+    // ═══════════════════════════════════════════════════════════════════════
+    var KEY_ALIASES = {
+        'In Progress': 'in_progress',
+        'Fully Funded': 'fully_funded',
+        'Structural Damage': 'structural_damage',
+        'Electrical': 'electrical',
+        'General Repair': 'general_repair',
+        'Gallery': 'gallery',
+        'Sync': 'sync',
+        'Governorate': 'governorate',
+        'Location': 'location',
+        'Estimated': 'estimated',
+        'Purchase Order': 'purchase_order',
+        'Vendor ID': 'vendor_id',
+    };
+
+    /**
+     * Resolve a key through KEY_ALIASES, returning the canonical key.
+     * Falls through to the original key if no alias exists.
+     */
+    function resolveKey(key) {
+        return KEY_ALIASES[key] || key;
+    }
+
     // ─── State ────────────────────────────────────────────────────────────
-    // Arabic is ALWAYS the default language for Nammerha (Syria-focused platform).
-    // Browser language detection is used ONLY for the suggestion banner (§4.3),
-    // not for overriding the initial language.
-    var currentLang = getStored() || 'ar';
+    var currentLang = getStored() || detectBrowserLang() || 'en';
     var dropdownOpen = false;
 
     function getStored() {
@@ -1006,7 +974,7 @@
         for (var i = 0; i < LANGS.length; i++) {
             if (LANGS[i].code === code) return LANGS[i];
         }
-        return LANGS[0]; // Arabic default
+        return LANGS[1]; // English default
     }
     function detectBrowserLang() {
         var navLang = (navigator.language || '').split('-')[0];
@@ -1056,7 +1024,9 @@
         var keyed = document.querySelectorAll('[data-i18n]');
         for (var i = 0; i < keyed.length; i++) {
             var el = keyed[i];
-            var key = el.getAttribute('data-i18n');
+            var rawKey = el.getAttribute('data-i18n');
+            // P3-NEW-002 FIX: Resolve through KEY_ALIASES for canonical lookup
+            var key = resolveKey(rawKey);
 
             // Store original English text on first run
             if (!el.dataset.i18nOriginal) {
@@ -1131,8 +1101,10 @@
             }
 
             // Check dictionary for exact match
-            if (DICT[text] && DICT[text][langCode]) {
-                node.textContent = node.textContent.replace(text, DICT[text][langCode]);
+            // P3-NEW-002 FIX: Resolve through KEY_ALIASES for canonical lookup
+            var resolvedText = resolveKey(text);
+            if (DICT[resolvedText] && DICT[resolvedText][langCode]) {
+                node.textContent = node.textContent.replace(text, DICT[resolvedText][langCode]);
             }
         }
     }
