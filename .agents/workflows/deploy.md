@@ -1,13 +1,22 @@
 ---
-description: How to deploy Nammerha changes to production (CX33 Hetzner)
+description: How to deploy Nammerha changes to production (DMZ Architecture)
 ---
 
 # Nammerha Production Deployment Workflow
 
+## Architecture (DMZ Security Isolation)
+
+| Server | IP | Role | What Runs |
+|:-------|:---|:-----|:----------|
+| **Metal (Dedicated)** | `91.98.182.243` | Backend | Backend + DB + MinIO + SMTP |
+| **Cloud (CX33)** | `46.224.113.10` | Frontend | Nginx + Vite static assets |
+
+> **Security**: Frontend on cloud is the only public-facing surface (via Cloudflare: `nammerha.com` → `46.224.113.10`). Backend on metal is isolated — no direct public access.
+
 ## Prerequisites
-- SSH access to `root@91.98.182.243` (CX33 Hetzner)
-- All changes committed and pushed to `master` branch
-- Local `npm run build` passes before deploying
+- SSH access to both servers
+- All changes committed and pushed to `master`
+- Local build passes before deploying
 
 ## Steps
 
@@ -26,64 +35,67 @@ git commit --no-verify -m "description"
 git push origin master
 ```
 
-> **Note**: `--no-verify` bypasses husky pre-commit hooks which fail due to missing eslint binary in lint-staged config. This is a known issue (ENOENT on `eslint --fix`).
+> **Note**: `--no-verify` bypasses husky pre-commit hooks which fail due to missing eslint binary in lint-staged config.
 
-### 3. Rsync to Production Server
+### 3a. Deploy Frontend → Cloud (CX33)
+// turbo
+```bash
+rsync -avz --delete --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.DS_Store' --exclude='.env' --exclude='backend' /Users/abdulrahman/Github/Nammerha/ root@46.224.113.10:/opt/nammerha-frontend/
+```
+
+### 3b. Rebuild Frontend Container on Cloud
+```bash
+ssh root@46.224.113.10 'cd /opt/nammerha-frontend && docker compose -f docker-compose.cloud.yml up -d --build --no-deps nammerha-frontend'
+```
+
+### 4a. Deploy Backend → Metal (if backend changed)
 // turbo
 ```bash
 rsync -avz --delete --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.DS_Store' --exclude='.env' /Users/abdulrahman/Github/Nammerha/ root@91.98.182.243:/opt/nammerha/
 ```
 
-### 4. Rebuild Docker Containers
+### 4b. Rebuild Backend Container on Metal (if backend changed)
 ```bash
-ssh root@91.98.182.243 'cd /opt/nammerha && docker compose -f docker-compose.prod.yml --env-file .env up -d --build --no-deps nammerha-frontend nammerha-backend'
+ssh root@91.98.182.243 'cd /opt/nammerha && docker compose -f docker-compose.prod.yml --env-file .env up -d --build --no-deps nammerha-backend'
 ```
 
-> **CRITICAL**: The `.env` file at `/opt/nammerha/.env` on the server contains ALL 40 required environment variables. It was extracted from running containers on 2026-03-12. Without it, `docker compose` will fail with `required variable ... is missing a value`.
-
 ### 5. Verify Health
+
+#### Cloud (Frontend)
+// turbo
+```bash
+ssh root@46.224.113.10 "docker ps --format '{{.Names}} {{.Status}}' | grep nammerha"
+```
+
+#### Metal (Backend)
 // turbo
 ```bash
 ssh root@91.98.182.243 "docker ps --format '{{.Names}} {{.Status}}' | grep nammerha"
 ```
 
-Expected output (all 5 healthy):
-```
-nammerha-backend   Up X seconds (healthy)
-nammerha-frontend  Up X seconds (healthy)
-nammerha-smtp      Up X hours (healthy)
-nammerha-minio     Up X hours (healthy)
-nammerha-db        Up X hours (healthy)
-```
-
 ## Database Migration (if needed)
 ```bash
-# Stage 1: Copy migration to server
+# Stage 1: Copy migration to metal server
 scp database/migrations/NNN_name.sql root@91.98.182.243:/tmp/NNN_name.sql
 
 # Stage 2: Apply inside container
 ssh root@91.98.182.243 "docker cp /tmp/NNN_name.sql nammerha-db:/tmp/NNN_name.sql && docker exec nammerha-db psql -U nammerha -d nammerha -f /tmp/NNN_name.sql"
 ```
 
-## Docker Compose Service Names
-| Service | Container | Purpose |
-|---|---|---|
-| `nammerha-db` | `nammerha-db` | PostgreSQL 16 + PostGIS |
-| `nammerha-backend` | `nammerha-backend` | Node.js Express API (port 3001) |
-| `nammerha-frontend` | `nammerha-frontend` | Nginx + Vite static assets |
-| `nammerha-minio` | `nammerha-minio` | S3-compatible object storage |
-| `nammerha-smtp` | `nammerha-smtp` | Postfix SMTP relay |
+## Docker Compose Files
+
+| Server | Compose File | Path |
+|:-------|:-------------|:-----|
+| Cloud (CX33) | `docker-compose.cloud.yml` | `/opt/nammerha-frontend/` |
+| Metal | `docker-compose.prod.yml` | `/opt/nammerha/` |
 
 ## Troubleshooting
 
-### "required variable ... is missing a value"
-The `.env` file is missing on the server. Extract from running containers:
-```bash
-ssh root@91.98.182.243 'for c in nammerha-db nammerha-minio nammerha-backend; do docker inspect $c --format "{{json .Config.Env}}" | python3 -c "import sys,json; envs=json.loads(sys.stdin.read()); [print(e) for e in envs if not any(e.startswith(x) for x in [\"PATH=\",\"NODE_\"])]"; done | sort -u > /opt/nammerha/.env'
-```
+### Frontend compose fails with "required variable ... is missing"
+Use `docker-compose.cloud.yml` (frontend-only), NOT `docker-compose.prod.yml` which requires all backend env vars.
 
 ### Git commit fails with husky error
 Use `--no-verify` flag: `git commit --no-verify -m "msg"`
 
-### rsync to nammerha.com times out
-Use the IP directly: `root@91.98.182.243` — DNS may not resolve SSH correctly.
+### rsync times out
+Use IPs directly — DNS may not resolve SSH correctly.
