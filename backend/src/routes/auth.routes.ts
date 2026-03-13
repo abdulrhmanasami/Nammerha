@@ -407,10 +407,16 @@ router.get('/verify-email/:token', async (req: Request, res: Response): Promise<
             return;
         }
 
-        // Verify the email + clear the token
+        // Verify the email + activate the account + clear the token
+        // PLT-AUTH-001 FIX: CRITICAL — previous code set is_email_verified = TRUE
+        // but NEVER set is_active = TRUE. This caused requireActive() middleware
+        // (used on ALL 20+ route files) to reject every verified user with 403
+        // "Account not activated. KYC verification required." — making the
+        // entire platform inaccessible to all self-registered users.
         await query(
             `UPDATE users
              SET is_email_verified = TRUE,
+                 is_active = TRUE,
                  email_verification_token = NULL,
                  email_token_expires_at = NULL,
                  updated_at = NOW()
@@ -430,26 +436,42 @@ router.get('/verify-email/:token', async (req: Request, res: Response): Promise<
 });
 
 // ─── POST /api/auth/resend-verification ─────────────────────────────────────
+// PLT-AUTH-002 FIX: Removed authMiddleware — unverified users cannot login
+// (blocked by the is_email_verified gate at L322), which created an inescapable
+// dead-end: can't login → can't resend verification → can't verify → can't login.
+// Now accepts email in body and does its own user lookup with rate limiting.
 router.post(
     '/resend-verification',
-    authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = getAuthUser(req).user_id;
+            const { email } = req.body as { email?: string };
 
-            // Get user
-            const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>>(
-                'SELECT user_id, email, is_email_verified, email_token_expires_at FROM users WHERE user_id = $1',
-                [userId]
-            );
-            const user = result.rows[0];
-            if (!user) {
-                res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
+            if (!email) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Email is required',
+                } as ApiResponse);
                 return;
             }
 
-            if (user.is_email_verified) {
-                res.json({ success: true, message: 'Email already verified' } as ApiResponse);
+            // Anti-enumeration: always return success regardless of outcome
+            const GENERIC_RESPONSE: ApiResponse = {
+                success: true,
+                message: 'If your email is registered and unverified, a new verification link has been sent.',
+            };
+
+            const normalizedEmail = email.toLowerCase().trim();
+
+            // Find user by email
+            const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>>(
+                'SELECT user_id, email, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
+                [normalizedEmail]
+            );
+            const user = result.rows[0];
+
+            // If user not found or already verified, return generic response (anti-enumeration)
+            if (!user || user.is_email_verified) {
+                res.json(GENERIC_RESPONSE);
                 return;
             }
 
@@ -476,7 +498,7 @@ router.post(
             await query(
                 `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW()
                  WHERE user_id = $3`,
-                [newToken, tokenExpiry, userId]
+                [newToken, tokenExpiry, user.user_id]
             );
 
             // Send verification email
@@ -487,10 +509,7 @@ router.post(
                 logger.error('Auth: Resend verification email failed', { error: err instanceof Error ? err.message : String(err) });
             });
 
-            res.json({
-                success: true,
-                message: 'Verification email resent. Please check your inbox.',
-            } as ApiResponse);
+            res.json(GENERIC_RESPONSE);
         } catch (error) {
             safeRouteError(res, error, 'Auth.ResendVerification');
         }

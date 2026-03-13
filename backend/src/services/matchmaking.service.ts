@@ -610,15 +610,23 @@ export async function submitBid(
  */
 // P1-NEW-005 FIX: Previous JOIN only matched engineer_id, ignoring contractor bids.
 // Now uses COALESCE(contractor_id, engineer_id) to include both bid sources.
-export async function getProjectBids(projectId: string): Promise<ContractorBid[]> {
+// PLT-2026-AUD-004 FIX: Added pagination to prevent memory exhaustion at scale.
+export async function getProjectBids(
+    projectId: string,
+    limit = 50,
+    offset = 0,
+): Promise<ContractorBid[]> {
+    const safeLim = Math.min(Math.max(1, limit), 50);
+    const safeOff = Math.max(0, offset);
     const { rows } = await pool.query(
         `SELECT b.*, u.full_name AS engineer_name, u.dynamic_score AS current_score,
                 u.completed_projects_count, u.engineering_license_number
          FROM contractor_bids b
          JOIN users u ON u.user_id = COALESCE(b.contractor_id, b.engineer_id)
          WHERE b.project_id = $1
-         ORDER BY b.engineer_score_snapshot DESC, b.proposed_cost ASC`,
-        [projectId]
+         ORDER BY b.engineer_score_snapshot DESC, b.proposed_cost ASC
+         LIMIT $2 OFFSET $3`,
+        [projectId, safeLim, safeOff]
     );
     return rows;
 }

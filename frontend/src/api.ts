@@ -275,9 +275,14 @@ export const auth = {
             body: JSON.stringify(data),
         }),
 
-    // Resend verification email (requires auth)
-    resendVerification: () =>
-        request('/auth/resend-verification', { method: 'POST' }),
+    // PLT-AUTH-002 FIX: No longer requires auth — accepts email in body.
+    // Unverified users can't login, so the previous auth-gated endpoint
+    // was an inescapable dead-end.
+    resendVerification: (data: { email: string }) =>
+        request('/auth/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
 };
 
 // ─── Payments ───────────────────────────────────────────────────────────────

@@ -18,7 +18,8 @@
         "noUncheckedIndexedAccess": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
-        "isolatedModules": true
+        "isolatedModules": true,
+        "noEmit": true
     },
     "include": [
         "src"

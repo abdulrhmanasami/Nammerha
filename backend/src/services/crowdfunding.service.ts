@@ -506,6 +506,10 @@ export async function getDonorDonations(
     limit = 50,
     offset = 0,
 ): Promise<EscrowLedger[]> {
+    // PLT-2026-AUD-003 FIX: Enforce max limit to prevent DoS via unbounded result sets.
+    // Matches the defensive Math.min() pattern used in searchEngineers and other queries.
+    const safeLim = Math.min(Math.max(1, limit), 50);
+    const safeOff = Math.max(0, offset);
     const result = await query<EscrowLedger>(
         `SELECT e.*, b.material_name, p.title AS project_title
      FROM escrow_ledger e
@@ -514,7 +518,7 @@ export async function getDonorDonations(
      WHERE e.donor_id = $1
      ORDER BY e.locked_at DESC
      LIMIT $2 OFFSET $3`,
-        [donorId, limit, offset]
+        [donorId, safeLim, safeOff]
     );
     return result.rows;
 }

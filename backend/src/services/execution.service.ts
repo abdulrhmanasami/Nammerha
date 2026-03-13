@@ -215,8 +215,16 @@ export async function submitSpatialProof(
 export async function getProjectPurchaseOrders(
     projectId: string
 ): Promise<PurchaseOrder[]> {
+    // PLT-2026-AUD-002 FIX: Explicit column list — eliminates SELECT * drift.
+    // Mirrors PurchaseOrder interface from types/index.ts exactly.
     const result = await query<PurchaseOrder>(
-        'SELECT * FROM purchase_orders WHERE project_id = $1 ORDER BY generated_at DESC',
+        `SELECT po_id, po_number, item_id, project_id, supplier_id,
+                amount, currency, status, material_name, material_category,
+                quantity, unit, unit_price, supplier_name, supplier_commercial_reg,
+                generated_at, sent_at, acknowledged_at, shipped_at, delivered_at,
+                cancelled_at, created_by, created_at, updated_at
+         FROM purchase_orders WHERE project_id = $1
+         ORDER BY generated_at DESC`,
         [projectId]
     );
     return result.rows;
@@ -228,8 +236,14 @@ export async function getProjectPurchaseOrders(
 export async function getPurchaseOrderByNumber(
     poNumber: string
 ): Promise<PurchaseOrder | null> {
+    // PLT-2026-AUD-002 FIX: Explicit column list — no SELECT * drift.
     const result = await query<PurchaseOrder>(
-        'SELECT * FROM purchase_orders WHERE po_number = $1',
+        `SELECT po_id, po_number, item_id, project_id, supplier_id,
+                amount, currency, status, material_name, material_category,
+                quantity, unit, unit_price, supplier_name, supplier_commercial_reg,
+                generated_at, sent_at, acknowledged_at, shipped_at, delivered_at,
+                cancelled_at, created_by, created_at, updated_at
+         FROM purchase_orders WHERE po_number = $1`,
         [poNumber]
     );
     return result.rows[0] ?? null;
@@ -243,19 +257,30 @@ export async function updatePOStatus(
     newStatus: 'sent_to_supplier' | 'acknowledged' | 'shipped' | 'delivered',
     actorId: string
 ): Promise<PurchaseOrder> {
-    const validFields: Record<string, string> = {
-        sent_to_supplier: 'sent_at',
-        acknowledged: 'acknowledged_at',
-        shipped: 'shipped_at',
-        delivered: 'delivered_at',
-    };
+    // PLT-2026-AUD-005 FIX: Pure-parameterized SQL — no interpolated column names.
+    // CASE-based UPDATE is immune to injection even if the TypeScript type guard
+    // were somehow bypassed. Each timestamp column updates ONLY when $1 matches
+    // its corresponding status; otherwise it retains its current value.
+    const validStatuses = new Set(['sent_to_supplier', 'acknowledged', 'shipped', 'delivered']);
+    if (!validStatuses.has(newStatus)) {
+        throw new Error(`Invalid PO status: ${newStatus}`);
+    }
 
-    // Validate status is a known value before using as SQL column name
-    if (!(newStatus in validFields)) { throw new Error(`Invalid PO status: ${newStatus}`); }
-    const field = validFields[newStatus];
-
+    // PLT-2026-AUD-002 FIX: Explicit RETURNING column list — no SELECT * drift.
     const result = await query<PurchaseOrder>(
-        `UPDATE purchase_orders SET status = $1, ${field} = NOW() WHERE po_id = $2 RETURNING *`,
+        `UPDATE purchase_orders SET
+            status = $1,
+            sent_at         = CASE WHEN $1 = 'sent_to_supplier' THEN NOW() ELSE sent_at END,
+            acknowledged_at = CASE WHEN $1 = 'acknowledged'     THEN NOW() ELSE acknowledged_at END,
+            shipped_at      = CASE WHEN $1 = 'shipped'          THEN NOW() ELSE shipped_at END,
+            delivered_at    = CASE WHEN $1 = 'delivered'         THEN NOW() ELSE delivered_at END,
+            updated_at      = NOW()
+         WHERE po_id = $2
+         RETURNING po_id, po_number, item_id, project_id, supplier_id,
+                   amount, currency, status, material_name, material_category,
+                   quantity, unit, unit_price, supplier_name, supplier_commercial_reg,
+                   generated_at, sent_at, acknowledged_at, shipped_at, delivered_at,
+                   cancelled_at, created_by, created_at, updated_at`,
         [newStatus, poId]
     );
 
