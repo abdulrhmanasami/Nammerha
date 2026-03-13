@@ -252,38 +252,52 @@
 
     // ─── Mobile Search Toggle ─────────────────────────────────────────────
     // On mobile (<640px), the full search bar (.nav-search-full) is hidden by CSS.
-    // Clicking the .nav-search-icon toggles a .nav-search-expanded class on the
-    // parent <nav>, which triggers CSS rules to show the search bar as a full-width
-    // overlay. This class-based approach is robust — no fragile inline !important
-    // style battles with the stylesheet.
+    // Clicking .nav-search-icon toggles .nav-search-expanded on the parent <nav>.
+    //
+    // ARCHITECTURE: Uses event delegation on document.body for defense-in-depth.
+    // This guarantees the click handler fires even if DOM shifts or nav.js loads
+    // before elements are fully painted. The delegated handler matches clicks on
+    // .nav-search-icon *or any of its children* (e.g. the <i> icon inside).
     function initMobileSearchToggle() {
-        var searchIcon = document.querySelector('.nav-search-icon');
-        var searchFull = document.querySelector('.nav-search-full');
         var searchInput = document.getElementById('search-input');
-        if (!searchIcon || !searchFull || !searchInput) return;
-
-        // The parent <nav> element that receives the toggle class
-        var navBar = searchIcon.closest('nav');
-        if (!navBar) return;
+        if (!searchInput) return;
 
         var isOpen = false;
 
+        function getNavBar() {
+            var icon = document.querySelector('.nav-search-icon');
+            return icon ? icon.closest('nav') : null;
+        }
+
         function openSearch() {
+            var navBar = getNavBar();
+            if (!navBar) return;
             isOpen = true;
             navBar.classList.add('nav-search-expanded');
             searchInput.focus();
         }
 
         function closeSearch() {
+            var navBar = getNavBar();
+            if (!navBar) return;
             isOpen = false;
             navBar.classList.remove('nav-search-expanded');
             searchInput.blur();
         }
 
-        searchIcon.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            openSearch();
+        // Event delegation: catch click on .nav-search-icon or any child of it
+        document.addEventListener('click', function (e) {
+            var target = e.target;
+            // Walk up from click target to see if we hit .nav-search-icon
+            while (target && target !== document) {
+                if (target.classList && target.classList.contains('nav-search-icon')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openSearch();
+                    return;
+                }
+                target = target.parentElement;
+            }
         });
 
         // Close on Escape
@@ -293,7 +307,6 @@
 
         // Close when input loses focus (tap elsewhere)
         searchInput.addEventListener('blur', function () {
-            // Small delay so clicking inside the search bar doesn't immediately close it
             setTimeout(function () {
                 if (isOpen && document.activeElement !== searchInput) closeSearch();
             }, 200);
