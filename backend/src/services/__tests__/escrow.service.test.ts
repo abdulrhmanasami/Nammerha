@@ -66,12 +66,12 @@ describe('Escrow Service', () => {
                 escrow_data: [
                     { transaction_id: 'tx-001', donor_id: 'donor-001', amount_locked: 500000, payment_status: 'locked' },
                 ],
+                // PLT-AUD-FIX: Include total_count from COUNT(*) OVER() window function
+                total_count: '1',
             }];
 
-            // Main query
+            // Single query with COUNT(*) OVER() window function — no separate count query
             mockQuery.mockResolvedValueOnce({ rows: mockRows, rowCount: 1 });
-            // Count query
-            mockQuery.mockResolvedValueOnce({ rows: [{ count: '1' }], rowCount: 1 });
 
             const result = await getPendingVerifications();
 
@@ -99,8 +99,8 @@ describe('Escrow Service', () => {
         });
 
         it('should apply custom pagination parameters', async () => {
+            // Single query with COUNT(*) OVER() — empty result set means total = 0
             mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
-            mockQuery.mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 });
 
             const result = await getPendingVerifications(10, 20);
 
@@ -137,10 +137,12 @@ describe('Escrow Service', () => {
                     engineer_name: 'Eng. Sara',
                     po_data: null,      // No purchase order
                     escrow_data: null,   // No escrow entries
+                    // PLT-AUD-FIX: Include total_count from COUNT(*) OVER() window function
+                    total_count: '1',
                 }],
                 rowCount: 1,
             });
-            mockQuery.mockResolvedValueOnce({ rows: [{ count: '1' }], rowCount: 1 });
+            // Single query — no separate count query needed
 
             const result = await getPendingVerifications();
 

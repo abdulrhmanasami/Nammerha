@@ -82,6 +82,9 @@ export interface User {
     // Password reset (Migration 018)
     password_reset_token: string | null;
     reset_token_expires_at: Date | null;
+    // JWT revocation timestamp (PLAT-AUD-003 FIX: was missing from type)
+    // Auth middleware checks: if token.iat < token_invalidated_at, reject JWT
+    token_invalidated_at: Date | null;
     created_at: Date;
     updated_at: Date;
 }

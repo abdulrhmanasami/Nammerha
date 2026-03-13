@@ -404,7 +404,10 @@ export async function addControlledMaterial(
  */
 export async function listControlledMaterials(): Promise<ControlledMaterial[]> {
     const { rows } = await pool.query(
-        `SELECT * FROM controlled_materials WHERE is_active = true ORDER BY material_category, material_name`
+        // M-001 FIX: Explicit column list — prevents schema drift.
+        `SELECT material_id, material_name, material_category, hs_code,
+                regulation, description, risk_level, is_active, created_at
+         FROM controlled_materials WHERE is_active = true ORDER BY material_category, material_name`
     );
     return rows;
 }

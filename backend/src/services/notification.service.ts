@@ -190,7 +190,10 @@ export async function getUserNotifications(
     userId: string,
     options?: { unread_only?: boolean; limit?: number }
 ): Promise<Notification[]> {
-    let sql = 'SELECT * FROM notifications WHERE user_id = $1';
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    let sql = `SELECT notification_id, user_id, type, title, body, data,
+                      channel, is_read, read_at, created_at
+               FROM notifications WHERE user_id = $1`;
     const params: unknown[] = [userId];
 
     if (options?.unread_only) {

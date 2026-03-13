@@ -131,15 +131,22 @@ export async function buildOCDSRelease(projectId: string): Promise<OCDSReleasePa
     }
     const project = projRes.rows[0];
 
-    // 2. Get BOQ items
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const boqRes = await pool.query(
-        `SELECT * FROM itemized_boq WHERE project_id = $1 ORDER BY created_at`,
+        `SELECT item_id, project_id, material_name, material_category,
+                description, image_url, unit, unit_price, required_quantity,
+                funded_amount, oracle_reference_price, oracle_price_date,
+                preferred_supplier_id, status, created_by, verified_by,
+                created_at, updated_at
+         FROM itemized_boq WHERE project_id = $1 ORDER BY created_at`,
         [projectId]
     );
 
-    // 3. Get milestones
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const milestoneRes = await pool.query(
-        `SELECT * FROM milestones WHERE project_id = $1 ORDER BY milestone_order`,
+        `SELECT milestone_id, project_id, title, description,
+                milestone_order, completed_at, created_at
+         FROM milestones WHERE project_id = $1 ORDER BY milestone_order`,
         [projectId]
     );
 
@@ -160,9 +167,11 @@ export async function buildOCDSRelease(projectId: string): Promise<OCDSReleasePa
         [projectId]
     );
 
-    // 6. Get reality captures (OCDS extension)
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const capturesRes = await pool.query(
-        `SELECT * FROM reality_captures
+        `SELECT capture_id, project_id, capture_type, construction_phase,
+                captured_at, file_url, is_verified, created_at
+         FROM reality_captures
          WHERE project_id = $1
          ORDER BY captured_at`,
         [projectId]

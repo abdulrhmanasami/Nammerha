@@ -131,7 +131,10 @@ export async function getMyCatalog(
     supplierId: string,
 ): Promise<SupplierCatalogItem[]> {
     const result = await query<SupplierCatalogItem>(
-        `SELECT * FROM supplier_catalog
+        `SELECT catalog_id, supplier_id, material_name, material_category,
+                description, image_url, unit, unit_price_guide,
+                min_order_qty, lead_time_days, is_active, created_at, updated_at
+         FROM supplier_catalog
          WHERE supplier_id = $1
          ORDER BY material_category ASC, material_name ASC`,
         [supplierId],
@@ -147,7 +150,10 @@ export async function getSupplierCatalog(
     supplierId: string,
     category?: string,
 ): Promise<SupplierCatalogItem[]> {
-    let sql = `SELECT * FROM supplier_catalog
+    let sql = `SELECT catalog_id, supplier_id, material_name, material_category,
+                      description, image_url, unit, unit_price_guide,
+                      min_order_qty, lead_time_days, is_active, created_at, updated_at
+               FROM supplier_catalog
                WHERE supplier_id = $1 AND is_active = true`;
     const params: unknown[] = [supplierId];
 
@@ -200,7 +206,12 @@ export async function acknowledgeOrder(
     return transaction(async (client) => {
         // Lock the PO row to prevent concurrent updates
         const poRes = await client.query<PurchaseOrder>(
-            `SELECT * FROM purchase_orders
+            `SELECT po_id, po_number, item_id, project_id, supplier_id,
+                    amount, currency, status, material_name, material_category,
+                    quantity, unit, unit_price, supplier_name, supplier_commercial_reg,
+                    generated_at, sent_at, acknowledged_at, shipped_at, delivered_at,
+                    cancelled_at, created_by, created_at, updated_at
+             FROM purchase_orders
              WHERE po_id = $1 AND supplier_id = $2 FOR UPDATE`,
             [poId, supplierId],
         );
@@ -265,7 +276,12 @@ export async function updateOrderStatus(
 
     return transaction(async (client) => {
         const poRes = await client.query<PurchaseOrder>(
-            `SELECT * FROM purchase_orders
+            `SELECT po_id, po_number, item_id, project_id, supplier_id,
+                    amount, currency, status, material_name, material_category,
+                    quantity, unit, unit_price, supplier_name, supplier_commercial_reg,
+                    generated_at, sent_at, acknowledged_at, shipped_at, delivered_at,
+                    cancelled_at, created_by, created_at, updated_at
+             FROM purchase_orders
              WHERE po_id = $1 AND supplier_id = $2 FOR UPDATE`,
             [poId, supplierId],
         );

@@ -3,6 +3,7 @@ import { escapeHtml as esc } from '../utils/xss';
 import { reportWarning } from '../error-reporter';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
+import { getLocale, formatDate, applyI18n } from '../utils/locale';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Dashboard — Project Execution & Bidding Engine
@@ -27,15 +28,17 @@ function initTimestamp(): void {
 
     const update = (): void => {
         const now = new Date();
-        const lang = document.documentElement.lang || 'en';
-        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-        el.textContent = now.toLocaleString(locale, {
+        // PLAT-AUD-005 FIX: Use centralized getLocale() instead of inline detection.
+        el.textContent = now.toLocaleString(getLocale(), {
             weekday: 'short', month: 'short', day: 'numeric',
             year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
         });
     };
     update();
-    setInterval(update, 1000);
+    // M-002 FIX: Store interval ID and clear on page unload to prevent
+    // ghost intervals from accumulating during SPA-like navigation.
+    const intervalId = setInterval(update, 1000);
+    window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
@@ -172,11 +175,10 @@ async function loadBids(): Promise<void> {
         }
 
         container.innerHTML = bids.map((b) => {
-            const lang = document.documentElement.lang || 'en';
-            const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-            const costFormatted = new Intl.NumberFormat(locale, {
+            const costFormatted = new Intl.NumberFormat(getLocale(), {
                 style: 'currency', currency: 'USD', minimumFractionDigits: 0,
             }).format((Number(b['proposed_cost']) || 0) / 100);
+            const lang = document.documentElement.lang || 'en';
             const daysLabel = lang === 'ar' ? 'يوم' : lang === 'tr' ? 'gün' : 'days';
 
             return `
@@ -210,8 +212,8 @@ function setKPI(name: string, value: number, prefix = ''): void {
 
     const duration = 1200;
     const start = performance.now();
-    const lang = document.documentElement.lang || 'en';
-    const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
+    // PLAT-AUD-005 FIX: Use centralized getLocale() instead of inline detection.
+    const locale = getLocale();
 
     const tick = (now: number): void => {
         const progress = Math.min((now - start) / duration, 1);
@@ -230,21 +232,4 @@ function setKPI(name: string, value: number, prefix = ''): void {
     requestAnimationFrame(tick);
 }
 
-function formatDate(iso: string): string {
-    if (!iso) { return '—'; }
-    try {
-        const lang = document.documentElement.lang || 'en';
-        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-        return new Date(iso).toLocaleDateString(locale, {
-            month: 'short', day: 'numeric', year: 'numeric',
-        });
-    } catch {
-        return '—';
-    }
-}
-
-function applyI18n(): void {
-    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
-    }
-}
+// PLAT-AUD-005 FIX: formatDate and applyI18n are now imported from utils/locale.

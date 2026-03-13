@@ -162,8 +162,13 @@ export async function releaseEscrow(
 ): Promise<{ released_count: number; total_released: number }> {
     return transaction(async (client) => {
         // 1. Verify the proof exists and is in 'submitted' status
+        // M-001 FIX: Explicit column list — prevents schema drift.
         const proofResult = await client.query<SpatialProof>(
-            'SELECT * FROM spatial_proof WHERE proof_id = $1 FOR UPDATE',
+            `SELECT proof_id, item_id, project_id, engineer_id,
+                    gps_coordinates, gps_accuracy_meters, captured_at,
+                    image_url, image_hash, description, device_info,
+                    verification_status, verified_by, verified_at, created_at
+             FROM spatial_proof WHERE proof_id = $1 FOR UPDATE`,
             [dto.proof_id]
         );
         const proof = proofResult.rows[0];
@@ -263,12 +268,16 @@ export async function flagDiscrepancy(
 ): Promise<SpatialProof> {
     return transaction(async (client) => {
         // 1. Verify and update proof
+        // PLAT-AUD-002 FIX: Explicit RETURNING column list — no RETURNING * (prevents schema drift).
         const result = await client.query<SpatialProof>(
             `UPDATE spatial_proof
        SET verification_status = 'rejected', verified_by = $1, verified_at = NOW(),
         description = COALESCE(description, '') || E'\n[REJECTED] ' || $2
        WHERE proof_id = $3 AND verification_status = 'submitted'
-    RETURNING * `,
+    RETURNING proof_id, item_id, project_id, engineer_id,
+              gps_coordinates, gps_accuracy_meters, captured_at,
+              image_url, image_hash, description, device_info,
+              verification_status, verified_by, verified_at, created_at`,
             [auditorId, dto.reason, dto.proof_id]
         );
 

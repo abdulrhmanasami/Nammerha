@@ -543,8 +543,11 @@ export const paymentService = {
             );
 
             // 1. Look up payment
+            // M-001 FIX: Explicit column list — prevents schema drift.
             const paymentResult = await client.query<PaymentRecord>(
-                `SELECT * FROM payment_transactions WHERE reference = $1 AND gateway = $2`,
+                `SELECT payment_id, reference, donor_id, item_id, project_id,
+                        status, gateway, amount, currency, gateway_tx_id, created_at
+                 FROM payment_transactions WHERE reference = $1 AND gateway = $2`,
                 [data.reference, data.gateway]
             );
 

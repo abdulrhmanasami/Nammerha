@@ -113,7 +113,11 @@ export async function getSecurityEvents(
     limit = 100,
     offset = 0
 ): Promise<{ events: SecurityEvent[]; total: number }> {
-    let sql = `SELECT * FROM security_events WHERE 1=1`;
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    let sql = `SELECT event_id, event_type, severity, actor_id, actor_role,
+                      target_entity_type, target_entity_id, ip_address,
+                      user_agent, payload, created_at
+               FROM security_events WHERE 1=1`;
     let countSql = `SELECT COUNT(*) FROM security_events WHERE 1=1`;
     const params: unknown[] = [];
     const countParams: unknown[] = [];
@@ -185,7 +189,11 @@ export async function exportCEF(
     to_date?: string,
     limit = 1000
 ): Promise<string> {
-    let sql = `SELECT * FROM security_events WHERE 1=1`;
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    let sql = `SELECT event_id, event_type, severity, actor_id, actor_role,
+                      target_entity_type, target_entity_id, ip_address,
+                      user_agent, payload, created_at
+               FROM security_events WHERE 1=1`;
     const params: unknown[] = [];
     let paramIdx = 1;
 
@@ -247,7 +255,11 @@ export async function exportJSON(
     to_date?: string,
     limit = 1000
 ): Promise<SecurityEvent[]> {
-    let sql = `SELECT * FROM security_events WHERE 1=1`;
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    let sql = `SELECT event_id, event_type, severity, actor_id, actor_role,
+                      target_entity_type, target_entity_id, ip_address,
+                      user_agent, payload, created_at
+               FROM security_events WHERE 1=1`;
     const params: unknown[] = [];
     let paramIdx = 1;
 

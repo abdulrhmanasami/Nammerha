@@ -29,7 +29,12 @@ export async function getMarketplaceProjects(filters?: {
     limit?: number;
     offset?: number;
 }): Promise<ProjectCard[]> {
-    let sql = 'SELECT * FROM vw_project_cards';
+    // PLAT-AUD-001 FIX: Explicit column list — no SELECT * (prevents schema drift).
+    let sql = `SELECT project_id, title, description, cover_image_url, address_text,
+                      damage_type, status, total_estimated_cost, total_funded_amount,
+                      funded_percentage, homeowner_name, latitude, longitude,
+                      published_at, total_items, fully_funded_items
+               FROM vw_project_cards`;
     const params: unknown[] = [];
     const conditions: string[] = [];
 
@@ -69,8 +74,15 @@ export async function getMarketplaceProjects(filters?: {
  * Uses the vw_boq_funding view.
  */
 export async function getProjectBOQ(projectId: string): Promise<BOQFunding[]> {
+    // PLAT-AUD-001 FIX: Explicit column list — no SELECT * (prevents schema drift).
     const result = await query<BOQFunding>(
-        'SELECT * FROM vw_boq_funding WHERE project_id = $1 ORDER BY material_category, material_name',
+        `SELECT item_id, project_id, material_name, material_category, unit,
+                unit_price, required_quantity, total_cost, funded_amount,
+                funded_percentage, status, image_url, oracle_reference_price,
+                project_title, supplier_id, supplier_name, supplier_commercial_reg
+         FROM vw_boq_funding
+         WHERE project_id = $1
+         ORDER BY material_category, material_name`,
         [projectId]
     );
     return result.rows;
@@ -314,11 +326,16 @@ export async function createDonation(
             }
 
             // Update escrow with gateway reference and lock status
+            // PLAT-AUD-001 FIX: Explicit RETURNING column list — no RETURNING * (prevents schema drift).
             const updatedEscrow = await client.query<EscrowLedger>(
                 `UPDATE escrow_ledger
                  SET payment_status = 'locked', payment_gateway_ref = $1
                  WHERE transaction_id = $2
-                 RETURNING *`,
+                 RETURNING transaction_id, donor_id, item_id, project_id,
+                          amount_locked, currency, payment_status, payment_method,
+                          payment_gateway_ref, locked_at, released_at, released_by,
+                          release_proof_id, refunded_at, blockchain_tx_hash,
+                          created_at, updated_at`,
                 [gatewayResult.reference, item.escrow_id]
             );
 
@@ -490,8 +507,17 @@ async function autoGeneratePO(
  * Get a donor's escrow summary.
  */
 export async function getDonorEscrowSummary(donorId: string) {
-    const result = await query(
-        'SELECT * FROM vw_donor_escrow_summary WHERE donor_id = $1',
+    // PLAT-AUD-001 FIX: Explicit column list — no SELECT * (prevents schema drift).
+    const result = await query<{
+        donor_id: string;
+        total_locked: number;
+        total_released: number;
+        total_refunded: number;
+        active_escrows: number;
+    }>(
+        `SELECT donor_id, total_locked, total_released, total_refunded, active_escrows
+         FROM vw_donor_escrow_summary
+         WHERE donor_id = $1`,
         [donorId]
     );
     return result.rows[0] ?? null;
@@ -510,14 +536,20 @@ export async function getDonorDonations(
     // Matches the defensive Math.min() pattern used in searchEngineers and other queries.
     const safeLim = Math.min(Math.max(1, limit), 50);
     const safeOff = Math.max(0, offset);
+    // PLAT-AUD-001 FIX: Explicit column list — no e.* (prevents schema drift).
     const result = await query<EscrowLedger>(
-        `SELECT e.*, b.material_name, p.title AS project_title
-     FROM escrow_ledger e
-     JOIN itemized_boq b ON b.item_id = e.item_id
-     JOIN projects p ON p.project_id = e.project_id
-     WHERE e.donor_id = $1
-     ORDER BY e.locked_at DESC
-     LIMIT $2 OFFSET $3`,
+        `SELECT e.transaction_id, e.donor_id, e.item_id, e.project_id,
+                e.amount_locked, e.currency, e.payment_status, e.payment_method,
+                e.payment_gateway_ref, e.locked_at, e.released_at, e.released_by,
+                e.release_proof_id, e.refunded_at, e.blockchain_tx_hash,
+                e.created_at, e.updated_at,
+                b.material_name, p.title AS project_title
+         FROM escrow_ledger e
+         JOIN itemized_boq b ON b.item_id = e.item_id
+         JOIN projects p ON p.project_id = e.project_id
+         WHERE e.donor_id = $1
+         ORDER BY e.locked_at DESC
+         LIMIT $2 OFFSET $3`,
         [donorId, safeLim, safeOff]
     );
     return result.rows;

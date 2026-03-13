@@ -642,8 +642,13 @@ export async function acceptBid(
     // HGH-006: Use canonical transaction() utility instead of manual BEGIN/COMMIT
     const bid = await transaction(async (client) => {
         // Get the bid
+        // M-001 FIX: Explicit column list — prevents schema drift.
         const bidRes = await client.query(
-            `SELECT * FROM contractor_bids WHERE bid_id = $1 AND status = 'pending'`,
+            `SELECT bid_id, engineer_id, contractor_id, project_id,
+                    proposed_cost, currency, estimated_days, cover_letter,
+                    methodology, status, engineer_score_snapshot,
+                    submitted_at, responded_at, expires_at
+             FROM contractor_bids WHERE bid_id = $1 AND status = 'pending'`,
             [bidId]
         );
 

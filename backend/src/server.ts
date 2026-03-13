@@ -254,6 +254,17 @@ function csrfProtection(
         return next();
     }
 
+    // M-003 FIX: Skip CSRF for logout endpoint.
+    // clearAuth() in the frontend fires POST /api/auth/logout without a CSRF
+    // token (fire-and-forget). Without this exemption, CSRF middleware rejects
+    // the request with 403, silently preventing the JWT httpOnly cookie from
+    // being cleared — the user appears logged out but their session persists
+    // for up to 24 hours. Logout is safe to exempt because it only destroys
+    // session state (cookie clearance), never creates or modifies data.
+    if (req.path === '/auth/logout') {
+        return next();
+    }
+
     // JWT Bearer tokens are inherently CSRF-safe (not auto-attached like cookies).
     // If the request uses Bearer auth, it's not vulnerable to CSRF.
     const authHeader = req.headers['authorization'];

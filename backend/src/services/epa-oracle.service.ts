@@ -232,15 +232,19 @@ export async function getEPAHistory(projectId: string): Promise<EPAAdjustment[]>
 export async function getOracleEntries(
     materialCode?: string
 ): Promise<OracleEntry[]> {
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    const oracleColumns = `oracle_id, entry_id, material_code, material_name,
+                           unit, base_price, current_price, price_change_pct,
+                           source, recorded_by, effective_date, created_at`;
     let sql = `
-        SELECT * FROM pricing_oracle_entries
+        SELECT ${oracleColumns} FROM pricing_oracle_entries
         ORDER BY material_code, effective_date DESC
     `;
     const params: string[] = [];
 
     if (materialCode) {
         sql = `
-            SELECT * FROM pricing_oracle_entries
+            SELECT ${oracleColumns} FROM pricing_oracle_entries
             WHERE material_code = $1
             ORDER BY effective_date DESC
         `;

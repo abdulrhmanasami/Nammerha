@@ -83,8 +83,11 @@ export async function trackUsage(
  */
 export async function checkQuota(userId: string, role: string): Promise<QuotaStatus> {
     // Get quota config for role
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const configResult = await query<QuotaConfig>(
-        'SELECT * FROM quota_configs WHERE role = $1 AND is_active = TRUE',
+        `SELECT quota_id, role, max_requests_per_day, max_projects,
+                webhook_url, alert_threshold_pct, is_active
+         FROM quota_configs WHERE role = $1 AND is_active = TRUE`,
         [role]
     );
 

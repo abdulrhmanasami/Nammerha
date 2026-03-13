@@ -114,9 +114,6 @@ async function fetchAndFixStyle(styleUrl: string): Promise<maplibregl.StyleSpeci
 
                     // Remove the url property — we've inlined everything
                     delete source.url;
-
-                    // eslint-disable-next-line no-console -- Diagnostic: logs tile source inlining success
-                    console.info(`[Nammerha Map] Source '${sourceName}' inlined:`, source.tiles);
                 }
             } catch (err) {
                 reportWarning(`[Nammerha Map] TileJSON fetch failed for ${sourceName}, keeping URL ref`, { component: 'map_core', action: 'tilejson_fetch', source: sourceName, error: err instanceof Error ? err.message : String(err) });

@@ -68,8 +68,14 @@ export async function assignEngineer(
 ): Promise<{ engineer_id: string; engineer_name: string }> {
     return transaction(async (client) => {
         // 1. Get project to verify status and location
+        // M-001 FIX: Explicit column list — prevents schema drift.
         const projectResult = await client.query<Project>(
-            'SELECT * FROM projects WHERE project_id = $1 FOR UPDATE',
+            `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+                    title, description, cover_image_url, gps_location, address_text,
+                    damage_type, damage_severity, status, is_public,
+                    total_estimated_cost, total_funded_amount, ocds_release_id,
+                    published_at, completed_at, created_at, updated_at
+             FROM projects WHERE project_id = $1 FOR UPDATE`,
             [projectId]
         );
         const project = projectResult.rows[0];
@@ -133,8 +139,14 @@ export async function addBOQItem(
 ): Promise<ItemizedBOQ> {
     return transaction(async (client) => {
         // 1. Verify engineer assignment
+        // M-001 FIX: Explicit column list — prevents schema drift.
         const projectResult = await client.query<Project>(
-            'SELECT * FROM projects WHERE project_id = $1',
+            `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+                    title, description, cover_image_url, gps_location, address_text,
+                    damage_type, damage_severity, status, is_public,
+                    total_estimated_cost, total_funded_amount, ocds_release_id,
+                    published_at, completed_at, created_at, updated_at
+             FROM projects WHERE project_id = $1`,
             [projectId]
         );
         const project = projectResult.rows[0];
@@ -233,8 +245,14 @@ export async function publishProject(
 ): Promise<Project> {
     return transaction(async (client) => {
         // 1. Verify project and engineer
+        // M-001 FIX: Explicit column list — prevents schema drift.
         const projectResult = await client.query<Project>(
-            'SELECT * FROM projects WHERE project_id = $1 FOR UPDATE',
+            `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+                    title, description, cover_image_url, gps_location, address_text,
+                    damage_type, damage_severity, status, is_public,
+                    total_estimated_cost, total_funded_amount, ocds_release_id,
+                    published_at, completed_at, created_at, updated_at
+             FROM projects WHERE project_id = $1 FOR UPDATE`,
             [projectId]
         );
         const project = projectResult.rows[0];
@@ -276,8 +294,14 @@ export async function publishProject(
  * Get a single project by ID.
  */
 export async function getProjectById(projectId: string): Promise<Project | null> {
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const result = await query<Project>(
-        'SELECT * FROM projects WHERE project_id = $1',
+        `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+                title, description, cover_image_url, gps_location, address_text,
+                damage_type, damage_severity, status, is_public,
+                total_estimated_cost, total_funded_amount, ocds_release_id,
+                published_at, completed_at, created_at, updated_at
+         FROM projects WHERE project_id = $1`,
         [projectId]
     );
     return result.rows[0] ?? null;
@@ -348,8 +372,14 @@ export async function getProjectsGeoJSON(): Promise<GeoJSON.FeatureCollection> {
  * Get all projects for a homeowner.
  */
 export async function getHomeownerProjects(homeownerId: string): Promise<Project[]> {
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const result = await query<Project>(
-        'SELECT * FROM projects WHERE homeowner_id = $1 ORDER BY created_at DESC',
+        `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+                title, description, cover_image_url, gps_location, address_text,
+                damage_type, damage_severity, status, is_public,
+                total_estimated_cost, total_funded_amount, ocds_release_id,
+                published_at, completed_at, created_at, updated_at
+         FROM projects WHERE homeowner_id = $1 ORDER BY created_at DESC`,
         [homeownerId]
     );
     return result.rows;

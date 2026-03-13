@@ -155,9 +155,12 @@ export async function translateText(dto: TranslateDTO): Promise<TranslationResul
 
     const textHash = hashText(text);
 
-    // 2. Cache check
+    // M-001 FIX: Explicit column list — prevents schema drift.
     const cached = await pool.query(
-        `SELECT * FROM translations
+        `SELECT translation_id, source_text_hash, source_text, source_lang,
+                target_lang, translated_text, provider, content_type,
+                qe_score, qe_details, status, cache_expires_at, created_at
+         FROM translations
          WHERE source_text_hash = $1 AND target_lang = $2
            AND status IN ('auto_published', 'approved')
            AND (cache_expires_at IS NULL OR cache_expires_at > NOW())
@@ -464,7 +467,10 @@ async function getGlossaryForPair(
     targetLang: SupportedLocale,
     context?: string | null
 ): Promise<GlossaryTerm[]> {
-    let sql = `SELECT * FROM translation_glossary
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    let sql = `SELECT term_id, source_term, source_lang, target_lang,
+                      approved_translation, context, is_active, created_at
+               FROM translation_glossary
                WHERE source_lang = $1 AND target_lang = $2 AND is_active = true`;
     const params: unknown[] = [sourceLang, targetLang];
 
@@ -514,7 +520,10 @@ export async function listGlossaryTerms(
     targetLang?: SupportedLocale,
     context?: string
 ): Promise<GlossaryTerm[]> {
-    let sql = `SELECT * FROM translation_glossary WHERE is_active = true`;
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    let sql = `SELECT term_id, source_term, source_lang, target_lang,
+                      approved_translation, context, is_active, created_at
+               FROM translation_glossary WHERE is_active = true`;
     const params: unknown[] = [];
     let paramIdx = 1;
 
