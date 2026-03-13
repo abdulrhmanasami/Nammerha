@@ -657,13 +657,30 @@ body.dark-mode {
 }
 
 /* ─── Responsive Homepage Navbar ───────────────────────────────────────────── */
-/* On small screens, hide the full search bar and show only a search icon */
+/* On small screens, hide the full search bar and show only a search icon.
+   When .nav-search-expanded is toggled by JS, the search bar is revealed
+   as a full-width overlay (class-based toggle, not inline style). */
 @media (max-width: 639px) {
   .nav-search-full {
     display: none !important;
   }
   .nav-search-icon {
     display: inline-flex !important;
+  }
+  /* JS adds this class to the <nav> parent to reveal the search bar */
+  .nav-search-expanded .nav-search-full {
+    display: block !important;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 60;
+    max-width: 100%;
+    margin: 0 8px;
+  }
+  .nav-search-expanded .nav-search-icon {
+    display: none !important;
   }
 }
 @media (min-width: 640px) {

@@ -252,45 +252,31 @@
 
     // ─── Mobile Search Toggle ─────────────────────────────────────────────
     // On mobile (<640px), the full search bar (.nav-search-full) is hidden by CSS.
-    // This wires the .nav-search-icon button to reveal/hide it with animation.
+    // Clicking the .nav-search-icon toggles a .nav-search-expanded class on the
+    // parent <nav>, which triggers CSS rules to show the search bar as a full-width
+    // overlay. This class-based approach is robust — no fragile inline !important
+    // style battles with the stylesheet.
     function initMobileSearchToggle() {
         var searchIcon = document.querySelector('.nav-search-icon');
         var searchFull = document.querySelector('.nav-search-full');
         var searchInput = document.getElementById('search-input');
         if (!searchIcon || !searchFull || !searchInput) return;
 
+        // The parent <nav> element that receives the toggle class
+        var navBar = searchIcon.closest('nav');
+        if (!navBar) return;
+
         var isOpen = false;
 
         function openSearch() {
             isOpen = true;
-            // Override the CSS !important by using style.setProperty
-            searchFull.style.setProperty('display', 'block', 'important');
-            searchFull.style.position = 'absolute';
-            searchFull.style.top = '50%';
-            searchFull.style.left = '0';
-            searchFull.style.right = '0';
-            searchFull.style.transform = 'translateY(-50%)';
-            searchFull.style.zIndex = '60';
-            searchFull.style.maxWidth = '100%';
-            searchFull.style.margin = '0 8px';
-            searchFull.style.opacity = '1';
-            searchIcon.style.setProperty('display', 'none', 'important');
+            navBar.classList.add('nav-search-expanded');
             searchInput.focus();
         }
 
         function closeSearch() {
             isOpen = false;
-            searchFull.style.removeProperty('display');
-            searchFull.style.position = '';
-            searchFull.style.top = '';
-            searchFull.style.left = '';
-            searchFull.style.right = '';
-            searchFull.style.transform = '';
-            searchFull.style.zIndex = '';
-            searchFull.style.maxWidth = '';
-            searchFull.style.margin = '';
-            searchFull.style.opacity = '';
-            searchIcon.style.removeProperty('display');
+            navBar.classList.remove('nav-search-expanded');
             searchInput.blur();
         }
 
