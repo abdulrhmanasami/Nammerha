@@ -17,7 +17,7 @@ initErrorReporter();
 // with a map container. Other pages (auth, wallet, profile, etc.) skip it entirely.
 // The map module self-initializes on DOMContentLoaded.
 async function initMapIfNeeded(): Promise<void> {
-    if (document.getElementById('map') || document.getElementById('nammerha-map')) {
+    if (document.getElementById('main-map') || document.getElementById('map') || document.getElementById('nammerha-map')) {
         await import('./pages/homepage-map');
     }
 }
