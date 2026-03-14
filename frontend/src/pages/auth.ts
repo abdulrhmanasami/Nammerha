@@ -301,7 +301,11 @@ formRegister?.addEventListener('submit', async (e) => {
     }
 
     state.isSubmitting = true;
-    if (regSubmit) { regSubmit.disabled = true; }
+    // FIX-REG-004: NEVER use .disabled — use pointer-events to prevent double-submit
+    if (regSubmit) {
+        regSubmit.style.pointerEvents = 'none';
+        regSubmit.style.opacity = '0.5';
+    }
     const submitText = document.getElementById('reg-submit-text');
     if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
@@ -332,7 +336,11 @@ formRegister?.addEventListener('submit', async (e) => {
         showBanner('error', message);
     } finally {
         state.isSubmitting = false;
-        if (regSubmit) { regSubmit.disabled = false; }
+        // FIX-REG-004: Restore pointer-events instead of disabled
+        if (regSubmit) {
+            regSubmit.style.pointerEvents = '';
+            regSubmit.style.opacity = '1';
+        }
         if (submitText) { submitText.textContent = t('create_account_btn', 'Create Account'); }
     }
 });
