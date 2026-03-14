@@ -320,14 +320,41 @@ formRegister?.addEventListener('submit', async (e) => {
     if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
     try {
-        console.log('[DEBUG-REG] Calling auth.register with:', { email, full_name, role: state.selectedRole });
-        const response = await auth.register({
-            email,
-            password,
-            full_name,
-            role: state.selectedRole!, // Safe: validateRegisterForm() guarantees non-null
+        console.log('[DEBUG-REG] === DIRECT FETCH BYPASS (no auth.register) ===');
+
+        // Step 1: Get CSRF token (inline — bypasses api.ts request())
+        let csrfToken: string | null = null;
+        const existingCookie = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
+        if (existingCookie) {
+            csrfToken = existingCookie;
+            console.log('[DEBUG-REG] CSRF from cookie');
+        } else {
+            try {
+                const csrfRes = await fetch('/api/csrf-token', { credentials: 'same-origin' });
+                if (csrfRes.ok) {
+                    const csrfData = await csrfRes.json() as { csrfToken?: string };
+                    csrfToken = csrfData.csrfToken ?? null;
+                    console.log('[DEBUG-REG] CSRF from fetch:', csrfToken ? 'OK' : 'MISSING');
+                }
+            } catch (csrfErr) {
+                console.error('[DEBUG-REG] CSRF fetch error:', csrfErr);
+            }
+        }
+
+        // Step 2: POST to /api/auth/register directly
+        const regHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (csrfToken) { regHeaders['X-CSRF-Token'] = csrfToken; }
+
+        console.log('[DEBUG-REG] POSTing to /api/auth/register...');
+        const regRes = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: regHeaders,
+            body: JSON.stringify({ email, password, full_name, role: state.selectedRole }),
+            credentials: 'same-origin',
         });
-        console.log('[DEBUG-REG] auth.register() returned:', JSON.stringify(response));
+        console.log('[DEBUG-REG] POST response status:', regRes.status);
+        const response = await regRes.json() as { success: boolean; message?: string; error?: string };
+        console.log('[DEBUG-REG] Response body:', JSON.stringify(response));
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.
