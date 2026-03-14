@@ -13,7 +13,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import type { UserRole } from '../../types';
+import type { AuthUser } from '../../types';
 
 // ─── Mock Database BEFORE imports ───────────────────────────────────────────
 const mockPoolQuery = vi.fn();
@@ -31,7 +31,7 @@ vi.mock('../../services/notification.service', () => ({
 }));
 
 // ─── Mock auth middleware ───────────────────────────────────────────────────
-let mockAuthUser: { user_id: string; role: UserRole; is_active: boolean } | null = null;
+let mockAuthUser: AuthUser | null = null;
 
 vi.mock('../../middleware/auth.middleware', () => ({
     authMiddleware: (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -72,7 +72,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         vi.clearAllMocks();
         app = createApp();
         // Default: authenticated admin
-        mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
+        mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
     });
 
     // ─── Authentication & Authorization ────────────────────────────────
@@ -87,7 +87,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         });
 
         it('should reject donor role from all admin endpoints', async () => {
-            mockAuthUser = { user_id: 'donor-001', role: 'donor', is_active: true };
+            mockAuthUser = { user_id: 'donor-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
 
             const res = await request(app)
                 .get('/api/admin/verifications/pending')
@@ -98,7 +98,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         });
 
         it('should reject engineer role from releasing escrow', async () => {
-            mockAuthUser = { user_id: 'eng-001', role: 'engineer', is_active: true };
+            mockAuthUser = { user_id: 'eng-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
 
             const res = await request(app)
                 .post('/api/admin/escrow/release')
@@ -109,7 +109,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         });
 
         it('should reject homeowner from flagging discrepancy', async () => {
-            mockAuthUser = { user_id: 'ho-001', role: 'homeowner', is_active: true };
+            mockAuthUser = { user_id: 'ho-001', role: 'homeowner', roles: ['homeowner'], activeRole: 'homeowner', is_active: true };
 
             const res = await request(app)
                 .post('/api/admin/escrow/flag')
@@ -120,7 +120,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         });
 
         it('should allow auditor to view pending verifications', async () => {
-            mockAuthUser = { user_id: 'auditor-001', role: 'auditor', is_active: true };
+            mockAuthUser = { user_id: 'auditor-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
             // Mock: main query returns empty (COUNT(*) OVER() is embedded in results)
             mockPoolQuery
                 .mockResolvedValueOnce({ rows: [], rowCount: 0 });
@@ -251,7 +251,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         });
 
         it('should allow auditor to release escrow', async () => {
-            mockAuthUser = { user_id: 'auditor-001', role: 'auditor', is_active: true };
+            mockAuthUser = { user_id: 'auditor-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
 
             const mockClient = {
                 query: vi.fn()

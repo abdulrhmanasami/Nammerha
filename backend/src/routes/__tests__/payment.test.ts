@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import crypto from 'crypto';
-import type { UserRole } from '../../types';
+import type { AuthUser } from '../../types';
 
 // ─── Mock Database BEFORE importing routes ──────────────────────────────────
 const mockQuery = vi.fn();
@@ -26,7 +26,7 @@ vi.mock('../../config/database', () => ({
 
 // ─── Mock auth middleware to inject test user ───────────────────────────────
 // The payment routes import authMiddleware internally, so we mock at module level
-let mockAuthUser: { user_id: string; role: UserRole; is_active: boolean } | null = null;
+let mockAuthUser: AuthUser | null = null;
 
 vi.mock('../../middleware/auth.middleware', () => ({
     authMiddleware: (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -71,7 +71,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         vi.clearAllMocks();
         app = createApp();
         // Default: authenticated donor
-        mockAuthUser = { user_id: 'donor-uuid-001', role: 'donor', is_active: true };
+        mockAuthUser = { user_id: 'donor-uuid-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -258,7 +258,7 @@ describe('Payment Routes (HTTP Integration)', () => {
 
         it('should return 403 when non-owner queries someone else\'s payment', async () => {
             // Authenticate as engineer (not donor and not admin)
-            mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', is_active: true };
+            mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
 
             // Mock: getStatus returns payment owned by DIFFERENT user
             mockQuery.mockResolvedValueOnce({
@@ -284,7 +284,7 @@ describe('Payment Routes (HTTP Integration)', () => {
 
         it('should allow admin to view any payment', async () => {
             // Authenticate as admin
-            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
 
             // Mock: payment owned by someone else
             mockQuery.mockResolvedValueOnce({
@@ -309,7 +309,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         });
 
         it('should allow auditor to view any payment', async () => {
-            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', is_active: true };
+            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
 
             mockQuery.mockResolvedValueOnce({
                 rows: [{

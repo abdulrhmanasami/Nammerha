@@ -64,25 +64,28 @@ router.post(
     '/register',
     async (req: Request, res: Response): Promise<void> => {
         try {
-            const { email, password, full_name, role, phone } = req.body as {
+            const { email, password, full_name, role: rawRole, phone } = req.body as {
                 email: string;
                 password: string;
                 full_name: string;
-                role: UserRole;
+                role?: UserRole; // Now OPTIONAL — defaults to 'donor'
                 phone?: string;
             };
 
+            // Multi-Role Architecture: role is optional, defaults to 'donor'
+            const role: UserRole = rawRole ?? 'donor';
+
             // Validate required fields
-            if (!email || !password || !full_name || !role) {
+            if (!email || !password || !full_name) {
                 res.status(400).json({
                     success: false,
-                    error: 'Missing required fields: email, password, full_name, role',
+                    error: 'Missing required fields: email, password, full_name',
                 } as ApiResponse);
                 return;
             }
 
-            // Validate role
-            if (!SELF_REGISTER_ROLES.includes(role)) {
+            // Validate role (if provided)
+            if (rawRole && !SELF_REGISTER_ROLES.includes(role)) {
                 res.status(400).json({
                     success: false,
                     error: `Invalid role. Allowed: ${SELF_REGISTER_ROLES.join(', ')}`,
@@ -175,6 +178,32 @@ router.post(
             const user = result.rows[0];
             if (!user) {
                 throw new Error('Failed to create user');
+            }
+
+            // Multi-Role Architecture: Insert into user_roles junction table
+            await query(
+                `INSERT INTO user_roles (user_id, role_id, status, is_primary)
+                 SELECT $1, r.role_id, 'active', TRUE
+                 FROM roles r WHERE r.role_name = $2
+                 ON CONFLICT (user_id, role_id) DO NOTHING`,
+                [user.user_id, role]
+            );
+
+            // Create role-specific profile
+            const profileMap: Record<string, string> = {
+                donor: 'donor_profiles',
+                contractor: 'contractor_profiles',
+                engineer: 'engineer_profiles',
+                supplier: 'supplier_profiles',
+                tradesperson: 'tradesperson_profiles',
+                homeowner: 'homeowner_profiles',
+            };
+            const profileTable = profileMap[role];
+            if (profileTable) {
+                await query(
+                    `INSERT INTO ${profileTable} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
+                    [user.user_id]
+                );
             }
 
             // Send verification email (fire-and-forget, never blocks registration)
@@ -328,8 +357,21 @@ router.post(
                 return;
             }
 
-            // Generate JWT
-            const token = generateToken(user.user_id, user.role);
+            // Fetch all active roles for multi-role JWT
+            const userRolesResult = await query<{ role_name: string }>(
+                `SELECT r.role_name FROM user_roles ur
+                 JOIN roles r ON r.role_id = ur.role_id
+                 WHERE ur.user_id = $1 AND ur.status = 'active'`,
+                [user.user_id]
+            );
+            const allRoles = userRolesResult.rows.map(r => r.role_name);
+
+            // Generate JWT with all roles
+            const token = generateToken(
+                user.user_id,
+                user.role,
+                allRoles.length > 0 ? allRoles : [user.role]
+            );
 
             // V1-AUDIT FIX: Set JWT in httpOnly cookie — JS cannot read this token.
             // This neutralizes XSS-based session theft entirely.

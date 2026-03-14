@@ -59,6 +59,7 @@ import apiKeysRoutes from './routes/api-keys.routes';
 import contactRoutes from './routes/contact.routes';
 import clientErrorRoutes from './routes/client-error.routes';
 import cspReportRoutes from './routes/csp-report.routes';
+import roleRoutes from './routes/role.routes';
 import * as path from 'path';
 import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
 
@@ -437,6 +438,9 @@ app.use('/api/client-errors', clientErrorRoutes);
 
 // CSP Violation Reporting (PLT-AUDIT-008: security monitoring)
 app.use('/api/csp-report', cspReportRoutes);
+
+// ─── Role Management (Multi-Role Architecture) ─────────────────────────────
+app.use('/api/roles', roleRoutes);
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection

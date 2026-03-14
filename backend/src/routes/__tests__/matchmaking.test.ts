@@ -13,7 +13,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import type { UserRole } from '../../types';
+import type { AuthUser } from '../../types';
 
 // ─── Mock Database BEFORE importing routes ──────────────────────────────────
 const mockPoolQuery = vi.fn();
@@ -37,7 +37,7 @@ vi.mock('../../config/database', () => ({
 }));
 
 // ─── Mock auth middleware ───────────────────────────────────────────────────
-let mockAuthUser: { user_id: string; role: UserRole; is_active: boolean } | null = null;
+let mockAuthUser: AuthUser | null = null;
 
 vi.mock('../../middleware/auth.middleware', () => ({
     authMiddleware: (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -204,7 +204,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         });
         app = createApp();
         // Default: authenticated engineer
-        mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', is_active: true };
+        mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
     });
 
     // ─── Authentication ────────────────────────────────────────────────
@@ -250,7 +250,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         });
 
         it('should return matches for homeowner', async () => {
-            mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', is_active: true };
+            mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', roles: ['homeowner'], activeRole: 'homeowner', is_active: true };
             // First query: project lookup
             mockPoolQuery.mockResolvedValueOnce({
                 rows: [{ project_id: 'proj-001', gps_location: 'POINT(37.1 36.2)', damage_type: 'structural' }],
@@ -369,7 +369,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         });
 
         it('should reject non-engineer from bidding', async () => {
-            mockAuthUser = { user_id: 'ho-001', role: 'homeowner', is_active: true };
+            mockAuthUser = { user_id: 'ho-001', role: 'homeowner', roles: ['homeowner'], activeRole: 'homeowner', is_active: true };
             const res = await request(app)
                 .post('/api/matchmaking/project/proj-001/bid')
                 .send({ proposed_cost: 500000, estimated_days: 30 })
@@ -382,7 +382,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
     // ─── GET /api/matchmaking/project/:id/bids ──────────────────────────
     describe('GET /api/matchmaking/project/:id/bids', () => {
         it('should return bids for homeowner', async () => {
-            mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', is_active: true };
+            mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', roles: ['homeowner'], activeRole: 'homeowner', is_active: true };
             // DT-IDOR-003: First query is project ownership check
             mockPoolQuery.mockResolvedValueOnce({
                 rows: [{ homeowner_id: 'ho-uuid-001' }],
@@ -418,7 +418,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
     // ─── POST /api/matchmaking/bids/:bidId/accept ───────────────────────
     describe('POST /api/matchmaking/bids/:bidId/accept', () => {
         it('should accept bid as homeowner', async () => {
-            mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', is_active: true };
+            mockAuthUser = { user_id: 'ho-uuid-001', role: 'homeowner', roles: ['homeowner'], activeRole: 'homeowner', is_active: true };
 
             // acceptBid uses transaction() then calls recalculateScore (pool.connect)
             const mockClient = {
@@ -519,7 +519,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         });
 
         it('should recalculate score as admin', async () => {
-            mockAuthUser = { user_id: 'admin-001', role: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
 
             // recalculateScore uses pool.connect() → client.query
             // P2-PLT-001: Now wrapped in BEGIN/COMMIT with FOR UPDATE

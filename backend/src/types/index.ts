@@ -467,7 +467,9 @@ export interface TradeAssignment {
 
 export interface AuthUser {
     user_id: string;
-    role: UserRole;
+    role: UserRole;           // primary_role (backward compat)
+    roles: UserRole[];        // ALL active roles from user_roles table
+    activeRole: UserRole;     // currently selected role context
     is_active: boolean;
 }
 

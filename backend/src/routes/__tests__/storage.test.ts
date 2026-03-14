@@ -14,7 +14,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import type { UserRole } from '../../types';
+import type { AuthUser } from '../../types';
 
 // ─── Set required env vars BEFORE any imports ───────────────────────────────
 process.env['STORAGE_ACCESS_KEY'] = 'test-access-key';
@@ -54,7 +54,7 @@ vi.mock('@aws-sdk/s3-request-presigner', () => ({
 }));
 
 // ─── Mock auth middleware ───────────────────────────────────────────────────
-let mockAuthUser: { user_id: string; role: UserRole; is_active: boolean } | null = null;
+let mockAuthUser: AuthUser | null = null;
 
 vi.mock('../../middleware/auth.middleware', () => ({
     authMiddleware: (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -214,7 +214,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         mockSend.mockReset();
         mockSend.mockResolvedValue({});
         app = createApp();
-        mockAuthUser = { user_id: 'user-uuid-001', role: 'donor', is_active: true };
+        mockAuthUser = { user_id: 'user-uuid-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
     });
 
     // ─── Authentication ────────────────────────────────────────────────
@@ -300,7 +300,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         });
 
         it('should return 200 when storage is healthy (admin role)', async () => {
-            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
 
             const res = await request(app)
                 .get('/api/storage/health')
@@ -310,7 +310,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         });
 
         it('should return 200 for auditor role (auditor access)', async () => {
-            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', is_active: true };
+            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
 
             const res = await request(app)
                 .get('/api/storage/health')
@@ -320,7 +320,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         });
 
         it('should return 503 when storage is unreachable (admin role)', async () => {
-            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
             mockSend.mockRejectedValue(new Error('Connection refused'));
 
             const res = await request(app)

@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 import { query } from '../config/database';
 import { logger } from '../utils/logger';
-import type { AuthUser, User } from '../types';
+import type { AuthUser, User, UserRole } from '../types';
 
 // ─── Environment ────────────────────────────────────────────────────────────
 
@@ -224,10 +224,27 @@ export async function authMiddleware(
             }
         }
 
-        // Attach to request
+        // Fetch user + all active roles from user_roles junction table
+        const rolesResult = await query<{ role_name: UserRole; is_primary: boolean }>(
+            `SELECT r.role_name, ur.is_primary
+             FROM user_roles ur
+             JOIN roles r ON r.role_id = ur.role_id
+             WHERE ur.user_id = $1 AND ur.status = 'active'`,
+            [userId]
+        );
+
+        const allRoles = rolesResult.rows.map(r => r.role_name);
+        const primaryRoleRow = rolesResult.rows.find(r => r.is_primary);
+
+        // Determine active role: primary from user_roles, else fallback to legacy users.role
+        const activeRole: UserRole = primaryRoleRow?.role_name ?? user.role;
+
+        // Attach to request — multi-role aware
         const authUser: AuthUser = {
             user_id: user.user_id,
-            role: user.role,
+            role: user.role,                    // legacy primary_role (backward compat)
+            roles: allRoles.length > 0 ? allRoles : [user.role],  // all active roles
+            activeRole: activeRole,             // currently selected context
             is_active: user.is_active,
         };
 
@@ -248,13 +265,13 @@ export async function authMiddleware(
  * NOTE: In production with Auth0, tokens are issued by Auth0 directly.
  * This function serves as a fallback for internal/dev token generation.
  */
-export function generateToken(userId: string, role: string): string {
+export function generateToken(userId: string, role: string, roles?: string[]): string {
     if (!JWT_SECRET) {
         throw new Error('[AUTH FATAL] JWT_SECRET is required for token generation');
     }
     const expiresIn = process.env['JWT_EXPIRY'] ?? '24h';
     return jwt.sign(
-        { sub: userId, role },
+        { sub: userId, role, roles: roles ?? [role] },
         JWT_SECRET,
         { expiresIn, algorithm: 'HS256' } as jwt.SignOptions
     );

@@ -21,9 +21,13 @@ export function requireRole(...allowedRoles: UserRole[]) {
             return;
         }
 
-        if (!allowedRoles.includes(req.authUser.role)) {
+        // Multi-role check: allow access if user has ANY of the required roles
+        const userRoles = req.authUser.roles ?? [req.authUser.role]; // fallback for backward compat
+        const hasAccess = allowedRoles.some(r => userRoles.includes(r));
+
+        if (!hasAccess) {
             // HGH-004 FIX: Log details server-side; never disclose roles to the client
-            logger.warn('RBAC access denied', { userId: req.authUser.user_id, userRole: req.authUser.role, requiredRoles: allowedRoles });
+            logger.warn('RBAC access denied', { userId: req.authUser.user_id, userRoles, requiredRoles: allowedRoles });
             res.status(403).json({
                 success: false,
                 error: 'Access denied. Insufficient permissions.',

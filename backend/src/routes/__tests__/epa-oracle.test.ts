@@ -13,7 +13,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import type { UserRole } from '../../types';
+import type { AuthUser } from '../../types';
 
 // ─── Mock Database BEFORE importing anything that uses it ───────────────────
 const mockQuery = vi.fn();
@@ -25,7 +25,7 @@ vi.mock('../../config/database', () => ({
 }));
 
 // ─── Mock auth middleware ───────────────────────────────────────────────────
-let mockAuthUser: { user_id: string; role: UserRole; is_active: boolean } | null = null;
+let mockAuthUser: AuthUser | null = null;
 
 vi.mock('../../middleware/auth.middleware', () => ({
     authMiddleware: (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -171,7 +171,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         vi.clearAllMocks();
         app = createApp();
         // Default: authenticated admin
-        mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', is_active: true };
+        mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
     });
 
     // ─── Authentication & Authorization ────────────────────────────────
@@ -186,7 +186,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         });
 
         it('should reject donor role from accessing oracle prices', async () => {
-            mockAuthUser = { user_id: 'donor-001', role: 'donor', is_active: true };
+            mockAuthUser = { user_id: 'donor-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
             const res = await request(app)
                 .get('/api/oracle/prices')
                 .expect(403);
@@ -196,7 +196,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         });
 
         it('should allow engineer to read oracle prices', async () => {
-            mockAuthUser = { user_id: 'eng-001', role: 'engineer', is_active: true };
+            mockAuthUser = { user_id: 'eng-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
             mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
             const res = await request(app)
@@ -207,7 +207,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         });
 
         it('should reject non-admin from creating oracle entries', async () => {
-            mockAuthUser = { user_id: 'eng-001', role: 'engineer', is_active: true };
+            mockAuthUser = { user_id: 'eng-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
             const res = await request(app)
                 .post('/api/oracle/prices')
                 .send({
@@ -223,7 +223,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         });
 
         it('should reject donor from EPA alerts', async () => {
-            mockAuthUser = { user_id: 'donor-001', role: 'donor', is_active: true };
+            mockAuthUser = { user_id: 'donor-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
             await request(app).get('/api/oracle/epa/alerts').expect(403);
         });
     });
