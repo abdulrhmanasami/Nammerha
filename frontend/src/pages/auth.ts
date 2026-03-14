@@ -244,14 +244,19 @@ formLogin?.addEventListener('submit', async (e) => {
                 user_id: string;
                 full_name: string;
                 role: string;
+                roles?: string[];
+                activeRole?: string;
                 email: string;
                 is_active: boolean;
             };
             const { setCurrentUser } = await import('../auth');
+            const userRole = userData.role as import('../auth').UserRole;
             setCurrentUser({
                 user_id: userData.user_id,
                 full_name: userData.full_name,
-                role: userData.role as import('../auth').UserRole,
+                role: userRole,
+                roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
+                activeRole: (userData.activeRole ?? userData.role) as import('../auth').UserRole,
                 email: userData.email,
                 kyc_verified: userData.is_active,
             });

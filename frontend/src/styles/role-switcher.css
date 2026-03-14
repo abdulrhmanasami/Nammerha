@@ -1,0 +1,266 @@
+/* ============================================================================
+   Nammerha — Role Switcher Component Styles
+   Glassmorphism dropdown with per-role accent theming.
+   ============================================================================ */
+
+/* ─── Trigger Button ─────────────────────────────────────────────────────── */
+.role-switcher-trigger {
+    position: relative;
+    appearance: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 51;
+}
+
+.role-switcher-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+    letter-spacing: 0.01em;
+}
+
+.role-switcher-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.role-switcher-badge i:first-child {
+    font-size: 16px;
+}
+
+.role-switcher-label {
+    display: none;
+}
+
+/* Show label on md+ screens */
+@media (min-width: 640px) {
+    .role-switcher-label {
+        display: inline;
+    }
+}
+
+.role-switcher-caret {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.role-switcher-trigger[aria-expanded="true"] .role-switcher-caret {
+    transform: rotate(180deg);
+}
+
+/* ─── Login Prompt (unauthenticated) ─────────────────────────────────────── */
+.role-switcher-login {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(46, 125, 223, 0.1);
+    color: #2e7ddf;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+}
+
+.role-switcher-login:hover {
+    background: rgba(46, 125, 223, 0.18);
+    transform: translateY(-1px);
+}
+
+.role-switcher-login i {
+    font-size: 16px;
+}
+
+/* ─── Dropdown ───────────────────────────────────────────────────────────── */
+.role-switcher-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 240px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    z-index: 100;
+    overflow: hidden;
+    animation: roleSwitcherFadeIn 0.15s ease-out;
+}
+
+/* RTL: flip dropdown to left */
+[dir="rtl"] .role-switcher-dropdown {
+    right: auto;
+    left: 0;
+}
+
+@keyframes roleSwitcherFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ─── Dropdown Header ────────────────────────────────────────────────────── */
+.role-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.role-dropdown-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* ─── Role Options List ──────────────────────────────────────────────────── */
+.role-dropdown-list {
+    padding: 6px;
+}
+
+.role-option-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+}
+
+.role-option-row:hover {
+    background: rgba(148, 163, 184, 0.06);
+}
+
+.role-option-active {
+    background: rgba(46, 125, 223, 0.04);
+}
+
+.role-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: none;
+    background: none;
+    appearance: none;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.role-option-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.role-option-icon i {
+    font-size: 16px;
+}
+
+.role-option-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    flex: 1;
+    text-align: start;
+}
+
+.role-option-check {
+    font-size: 16px;
+    margin-inline-start: auto;
+}
+
+/* ─── Dashboard Shortcut Link ────────────────────────────────────────────── */
+.role-dashboard-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: #94a3b8;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.role-dashboard-link:hover {
+    background: rgba(148, 163, 184, 0.12);
+    color: #475569;
+}
+
+.role-dashboard-link i {
+    font-size: 14px;
+}
+
+/* ─── Add Role Button ────────────────────────────────────────────────────── */
+.role-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    appearance: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2e7ddf;
+    transition: all 0.15s ease;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.role-add-btn:hover {
+    background: rgba(46, 125, 223, 0.06);
+}
+
+.role-add-btn i {
+    font-size: 16px;
+}
+
+/* ─── Mount Container ────────────────────────────────────────────────────── */
+#role-switcher-mount {
+    position: relative;
+    display: flex;
+    align-items: center;
+}

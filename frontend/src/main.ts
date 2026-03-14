@@ -5,6 +5,7 @@
 import './styles/main.css';
 import { initErrorReporter, reportWarning } from './error-reporter';
 import { renderCartBadge } from './components/cart';
+import './components/role-switcher';  // Self-injecting: attaches to #role-switcher-mount
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
 
