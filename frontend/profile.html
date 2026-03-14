@@ -8,6 +8,7 @@
   <meta name="description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/profile.ts"></script>
+  <script type="module" src="/src/components/role-switcher.ts"></script>
   <link href="/i18n.css?v=5" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
@@ -40,6 +41,42 @@
           <i class="ph ph-shield-check ph-xs" aria-hidden="true"></i>
           <span data-i18n="kyc_pending">Pending KYC</span>
         </span>
+      </div>
+      <!-- Profile Completion Progress -->
+      <div class="w-full mt-4" id="profile-completion-container">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="profile_completion">Profile Completion</span>
+          <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">0%</span>
+        </div>
+        <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- My Roles Section -->
+  <section class="px-4 pt-6 animate-fade-in-up" style="animation-delay:0.1s">
+    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="my_roles">My Roles</h3>
+    <div id="roles-list" class="flex flex-col gap-2">
+      <!-- Roles rendered dynamically by profile.ts -->
+      <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-100">
+        <i class="ph ph-spinner-gap ph-spin text-slate-300" style="font-size:20px" aria-hidden="true"></i>
+      </div>
+    </div>
+    <!-- Add New Role Button -->
+    <button id="add-role-btn" class="w-full mt-3 py-3 text-sm font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center justify-center gap-2">
+      <i class="ph ph-plus-circle" style="font-size:18px" aria-hidden="true"></i>
+      <span data-i18n="add_new_role">Activate a New Role</span>
+    </button>
+    <!-- Role Activation Modal (hidden by default) -->
+    <div id="role-activation-modal" class="hidden mt-3">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg">
+        <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">Choose a role to activate</h4>
+        <div id="available-roles-grid" class="grid grid-cols-2 gap-2">
+          <!-- Available roles rendered dynamically -->
+        </div>
+        <button id="cancel-role-activation" class="w-full mt-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors" data-i18n="cancel">Cancel</button>
       </div>
     </div>
   </section>
