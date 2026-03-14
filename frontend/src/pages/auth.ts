@@ -129,23 +129,20 @@ regPassword?.addEventListener('input', () => {
     updateRegisterButton();
 });
 
-// ─── Role Selection ─────────────────────────────────────────────────────────
+// ─── Role Selection (LEGACY — kept for backward compat but hidden) ──────────
+// Multi-Role Architecture: Role selection removed from registration.
+// Users start as 'donor' by default and activate additional roles from their dashboard.
 const roleCards = document.querySelectorAll<HTMLButtonElement>('.role-card');
 const roleGrid = document.getElementById('role-grid');
-const roleValidationMsg = document.getElementById('role-validation-msg');
+
+// Hide role grid if it exists (backward compat with old HTML)
+if (roleGrid) { roleGrid.style.display = 'none'; }
 
 roleCards.forEach((card) => {
     card.addEventListener('click', () => {
-        // Deselect all
-        roleCards.forEach((c) => {
-            c.classList.remove('glass-card-active');
-        });
-        // Select clicked
+        roleCards.forEach((c) => { c.classList.remove('glass-card-active'); });
         card.classList.add('glass-card-active');
         state.selectedRole = (card.dataset.role as UserRole) ?? null;
-        // FIX-REG-002: Clear role validation error on selection
-        if (roleGrid) { roleGrid.style.outline = ''; }
-        if (roleValidationMsg) { roleValidationMsg.style.display = 'none'; }
         updateRegisterButton();
     });
 });
@@ -159,7 +156,8 @@ function updateRegisterButton(): void {
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     const password = regPassword?.value ?? '';
 
-    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && state.selectedRole !== null;
+    // Multi-Role Architecture: role no longer required for registration
+    const valid = Boolean(name) && Boolean(email) && password.length >= 8;
     // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
     // The button is ALWAYS clickable so the submit handler can show validation feedback.
     regSubmit.style.opacity = valid ? '1' : '0.6';
@@ -212,20 +210,8 @@ function validateRegisterForm(): boolean {
         return false;
     }
 
-    // FIX-REG-001: Check role selection — THE PRIMARY ROOT CAUSE
-    if (!state.selectedRole) {
-        showBanner('error', t('auth_select_role', 'Please select your role to continue.'));
-        // Highlight role grid with red border
-        if (roleGrid) {
-            roleGrid.style.outline = '2px solid #ef4444';
-            roleGrid.style.outlineOffset = '4px';
-            roleGrid.style.borderRadius = '12px';
-            roleGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        // Show inline validation message
-        if (roleValidationMsg) { roleValidationMsg.style.display = 'block'; }
-        return false;
-    }
+    // Multi-Role Architecture: role selection removed from registration.
+    // Users default to 'donor' and can activate additional roles later.
 
     return true;
 }
@@ -347,7 +333,7 @@ formRegister?.addEventListener('submit', async (e) => {
         const regRes = await fetch('/api/auth/register', {
             method: 'POST',
             headers: regHeaders,
-            body: JSON.stringify({ email, password, full_name, role: state.selectedRole }),
+            body: JSON.stringify({ email, password, full_name }),
             credentials: 'same-origin',
         });
         const response = await regRes.json() as { success: boolean; message?: string; error?: string };

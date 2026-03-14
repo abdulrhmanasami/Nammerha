@@ -114,50 +114,9 @@
         </div>
         <p class="text-[10px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 number</p>
       </div>
-      <!-- Role Selection -->
-      <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"><span data-i18n="your_role">Your Role</span> <span class="text-red-500">*</span></label>
-        <div class="grid grid-cols-2 gap-3" id="role-grid">
-          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="homeowner">
-            <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
-              <i class="ph ph-house text-trust-blue" aria-hidden="true"></i>
-            </div>
-            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_homeowner">Homeowner</span>
-          </button>
-          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="donor">
-            <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center">
-              <i class="ph ph-hand-heart text-warm-earth" aria-hidden="true"></i>
-            </div>
-            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_donor">Donor</span>
-          </button>
-          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="engineer">
-            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
-              <i class="ph ph-hard-hat text-smoky-jade" aria-hidden="true"></i>
-            </div>
-            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_engineer">Engineer</span>
-          </button>
-          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="supplier">
-            <div class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center">
-              <i class="ph ph-truck text-warning-yellow" aria-hidden="true"></i>
-            </div>
-            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_supplier">Supplier</span>
-          </button>
-          <!-- PLT-AUD-003 FIX: Contractor and Tradesperson role cards -->
-          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="contractor">
-            <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
-              <i class="ph ph-buildings text-trust-blue" aria-hidden="true"></i>
-            </div>
-            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_contractor">Contractor</span>
-          </button>
-          <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="tradesperson">
-            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
-              <i class="ph ph-wrench text-smoky-jade" aria-hidden="true"></i>
-            </div>
-            <span class="text-[11px] font-bold text-slate-700" data-i18n="role_tradesperson">Tradesperson</span>
-          </button>
-        </div>
-        <p id="role-validation-msg" class="text-xs text-red-500 font-medium mt-2" style="display:none" data-i18n="auth_select_role_required">Please select your role to continue</p>
-      </div>
+      <!-- Multi-Role Architecture: Role selection removed from registration.
+           Users start as 'donor' by default and activate additional roles from dashboard. -->
+
       <!-- Submit -->
       <button type="submit" id="reg-submit" class="btn-primary mt-2">
         <i class="ph ph-user-plus" aria-hidden="true"></i>
