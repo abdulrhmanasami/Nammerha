@@ -160,7 +160,8 @@ ON CONFLICT (fee_name) DO NOTHING;
 -- 6. REVENUE SUMMARY VIEW UPDATE
 -- Extend the platform revenue summary to include escrow fees.
 -- ─────────────────────────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW vw_platform_revenue_summary AS
+DROP VIEW IF EXISTS vw_platform_revenue_summary;
+CREATE VIEW vw_platform_revenue_summary AS
 SELECT
     -- Commissions
     (SELECT COALESCE(SUM(commission_amount_cents), 0)
