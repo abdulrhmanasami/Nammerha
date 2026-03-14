@@ -47,6 +47,13 @@ async function getTransporter(): Promise<Transporter | null> {
             host,
             port: parseInt(process.env['SMTP_PORT'] ?? '587', 10),
             secure: process.env['SMTP_SECURE'] === 'true',
+            // FIX-EMAIL-001: Accept self-signed certificates from internal SMTP container.
+            // The nammerha-smtp Postfix container on the private Docker network uses a
+            // self-signed cert for STARTTLS. Without this, Node.js rejects the connection
+            // with "self-signed certificate" error and ALL emails fail silently.
+            tls: {
+                rejectUnauthorized: false,
+            },
         };
 
         const user = process.env['SMTP_USER'];
