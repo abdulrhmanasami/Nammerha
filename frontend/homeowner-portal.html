@@ -92,13 +92,13 @@
       <div id="section-dashboard" class="space-y-4">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold">Active Projects</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Your reconstruction progress at a glance</p>
+            <h3 class="font-bold" data-i18n="homeowner_active_projects">Active Projects</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_progress_glance">Your reconstruction progress at a glance</p>
           </div>
           <div id="active-projects-list" class="divide-y divide-slate-100">
             <div class="p-5 text-center text-slate-400">
               <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-              <p class="mt-2 text-xs">Loading...</p>
+              <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
             </div>
           </div>
         </div>
@@ -110,9 +110,9 @@
           <div class="p-5 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 class="font-bold" data-i18n="homeowner_all_projects">All Projects</h3>
-              <p class="text-xs text-slate-500 mt-0.5">Damage reports and their lifecycle</p>
+              <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_projects_desc">Damage reports and their lifecycle</p>
             </div>
-            <a href="/homeowner-report.html" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">+ New Report</a>
+            <a href="/homeowner-report.html" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700" data-i18n="homeowner_new_report">+ New Report</a>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -142,7 +142,7 @@
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_new_request">Request a Repair</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Post a service request and we'll match nearby tradespeople</p>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_request_hint">Post a service request and we'll match nearby tradespeople</p>
           </div>
           <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -170,23 +170,23 @@
             </div>
             <div class="md:col-span-2">
               <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
-              <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+              <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div class="md:col-span-2">
               <label class="text-[10px] font-bold text-slate-400 uppercase">Description (optional)</label>
-              <textarea id="sr-description" rows="2" placeholder="Describe the issue..." class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm resize-none"></textarea>
+              <textarea id="sr-description" rows="2" placeholder="Describe the issue..." data-i18n-placeholder="ho_sr_desc_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm resize-none"></textarea>
             </div>
             <div>
               <label class="text-[10px] font-bold text-slate-400 uppercase">Location</label>
-              <input id="sr-address" type="text" placeholder="Address or neighborhood" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+              <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div>
               <label class="text-[10px] font-bold text-slate-400 uppercase">Max Budget ($)</label>
-              <input id="sr-budget" type="number" placeholder="Optional" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+              <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div class="md:col-span-2">
               <button id="submit-sr-btn" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="ph ph-megaphone" aria-hidden="true"></i> Submit Request
+                <i class="ph ph-megaphone" aria-hidden="true"></i> <span data-i18n="homeowner_submit_request">Submit Request</span>
               </button>
             </div>
           </div>
@@ -194,7 +194,7 @@
         <!-- My Requests List -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold">My Service Requests</h3>
+            <h3 class="font-bold" data-i18n="homeowner_my_requests">My Service Requests</h3>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -221,7 +221,7 @@
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_approval_list">Engineer Approvals</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Review and approve engineer requests for your projects</p>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_approval_hint">Review and approve engineer requests for your projects</p>
           </div>
           <div id="approvals-list" class="divide-y divide-slate-100">
             <div class="p-5 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
@@ -234,7 +234,7 @@
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_escrow_overview">Escrow Overview</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Funds held in secure escrow for your construction projects</p>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_escrow_hint">Funds held in secure escrow for your construction projects</p>
           </div>
           <div class="p-5" id="escrow-content">
             <div class="text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>

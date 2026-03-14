@@ -1,11 +1,36 @@
 import '../styles/main.css';
+import { contact } from '../api';
 
 // ============================================================================
 // Nammerha — Contact Page Engine
 // PLT-2026-MAR12-003 FIX: Wires the contact form to POST /api/contact.
-// Handles form validation, submission, loading state, and success/error feedback.
+// SEC-003 FIX: Migrated from raw fetch() to centralized api.ts — gains CSRF,
+//              AbortController timeout, and unified error reporting.
+// I18N-002 FIX: All user-facing strings wrapped with i18n t().
 // ============================================================================
 
+// ─── i18n ───────────────────────────────────────────────────────────────────
+interface NammerhaI18nApi {
+    switchLanguage: (code: string) => void;
+    getCurrentLang: () => string;
+    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
+    t: (key: string, fallback?: string) => string;
+}
+declare global {
+    interface Window {
+        NammerhaI18n?: NammerhaI18nApi;
+    }
+}
+
+/** Safe i18n lookup — returns fallback if engine not yet loaded */
+function t(key: string, fallback: string): string {
+    if (typeof window.NammerhaI18n?.t === 'function') {
+        return window.NammerhaI18n.t(key, fallback) ?? fallback;
+    }
+    return fallback;
+}
+
+// ─── DOM ────────────────────────────────────────────────────────────────────
 const form = document.getElementById('contact-form') as HTMLFormElement | null;
 const submitBtn = document.getElementById('contact-submit') as HTMLButtonElement | null;
 const resultBox = document.getElementById('contact-result') as HTMLElement | null;
@@ -24,32 +49,30 @@ form?.addEventListener('submit', async (e: Event) => {
 
     // Client-side validation
     if (!name || !email || !subject || !message) {
-        showResult('error', 'Please fill in all required fields.');
+        showResult('error', t('contact_fill_required', 'Please fill in all required fields.'));
         return;
     }
 
     // Set loading state
     submitBtn.disabled = true;
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> Sending...';
+    submitBtn.innerHTML = `<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> ${t('contact_sending', 'Sending...')}`;
 
     try {
-        const response = await fetch('/api/contact', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, subject, message, category }),
-        });
-
-        const data = await response.json() as { success: boolean; message?: string; error?: string };
+        // SEC-003 FIX: Uses centralized API client.
+        // Gains: CSRF token auto-attachment, 30s AbortController timeout,
+        // centralized error reporting via reportError().
+        const data = await contact.submit({ name, email, subject, message, category });
 
         if (data.success) {
-            showResult('success', data.message ?? 'Your message has been received. We will respond within our published SLA.');
+            showResult('success', data.data?.message ?? data.message ?? t('contact_success', 'Your message has been received. We will respond within our published SLA.'));
             form.reset();
         } else {
-            showResult('error', data.error ?? 'Failed to send message. Please try again.');
+            showResult('error', data.error ?? t('contact_failed', 'Failed to send message. Please try again.'));
         }
-    } catch {
-        showResult('error', 'Network error. Please check your connection and try again.');
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : t('contact_network_error', 'Network error. Please check your connection and try again.');
+        showResult('error', msg);
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;

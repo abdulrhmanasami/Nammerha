@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
 
@@ -49,7 +50,7 @@ async function loadKPIs(): Promise<void> {
         // Badge count
         const reviewCount = document.getElementById('review-count');
         if (reviewCount) { reviewCount.textContent = String(data['pending_reviews'] ?? 0); }
-    } catch {
+    } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — error captured by centralized reporter via api.ts
     }
 }
@@ -79,7 +80,7 @@ async function loadComplianceMetrics(): Promise<void> {
         if (spatialAccuracy) {
             spatialAccuracy.textContent = `${data['spatial_accuracy'] ?? 0}%`;
         }
-    } catch {
+    } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — error captured by centralized reporter
     }
 }
@@ -131,7 +132,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
         });
 
         applyI18n();
-    } catch {
+    } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — error captured by centralized reporter
     }
 }
@@ -147,7 +148,7 @@ async function handleReviewAction(action: 'approve' | 'flag', reference: string)
             await loadEscrowReviewQueue();
             await loadKPIs();
         }
-    } catch {
+    } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — error captured by centralized reporter
     }
 }

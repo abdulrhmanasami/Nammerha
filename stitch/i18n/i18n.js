@@ -924,6 +924,54 @@
         '2_810_00': { ar: '٢٬٨١٠٫٠٠', de: '2.810,00', fr: '2 810,00', tr: '2.810,00' },
         '450_00': { ar: '٤٥٠٫٠٠', de: '450,00', fr: '450,00', tr: '450,00' },
         '920_00': { ar: '٩٢٠٫٠٠', de: '920,00', fr: '920,00', tr: '920,00' },
+
+        // ═══ FORENSIC AUDIT REMEDIATION — New i18n Keys (March 2026) ═══
+        // Homeowner Portal — Untranslated headings and helper text
+        'homeowner_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
+        'homeowner_progress_glance': { ar: 'تقدم إعادة الإعمار بنظرة واحدة', de: 'Ihr Wiederaufbaufortschritt auf einen Blick', fr: 'Votre progression de reconstruction en un coup d\'œil', tr: 'Yeniden yapım ilerlemeniz bir bakışta' },
+        'homeowner_projects_desc': { ar: 'تقارير الأضرار ودورة حياتها', de: 'Schadensberichte und ihr Lebenszyklus', fr: 'Rapports de dommages et leur cycle de vie', tr: 'Hasar raporları ve yaşam döngüleri' },
+        'homeowner_new_report': { ar: '+ تقرير جديد', de: '+ Neuer Bericht', fr: '+ Nouveau rapport', tr: '+ Yeni Rapor' },
+        'homeowner_request_hint': { ar: 'أرسل طلب خدمة وسنربطك بحرفيين قريبين', de: 'Stellen Sie eine Serviceanfrage und wir verbinden Sie mit Handwerkern in der Nähe', fr: 'Publiez une demande et nous trouverons des artisans à proximité', tr: 'Bir hizmet talebi gönderin, yakındaki ustaları eşleştireceğiz' },
+        'homeowner_submit_request': { ar: 'إرسال الطلب', de: 'Anfrage senden', fr: 'Envoyer la demande', tr: 'Talep Gönder' },
+        'homeowner_my_requests': { ar: 'طلبات الخدمة الخاصة بي', de: 'Meine Serviceanfragen', fr: 'Mes demandes de service', tr: 'Hizmet Taleplerim' },
+        'homeowner_approval_hint': { ar: 'مراجعة وقبول طلبات المهندسين لمشاريعك', de: 'Ingenieuranfragen für Ihre Projekte prüfen und genehmigen', fr: 'Examiner et approuver les demandes d\'ingénieurs pour vos projets', tr: 'Projeleriniz için mühendis taleplerini inceleyin ve onaylayın' },
+        'homeowner_escrow_hint': { ar: 'أموال محتجزة في ضمان آمن لمشاريعك الإنشائية', de: 'Gelder sicher auf Treuhandkonto für Ihre Bauprojekte verwahrt', fr: 'Fonds détenus sous séquestre pour vos projets de construction', tr: 'İnşaat projeleriniz için güvenli emanette tutulan fonlar' },
+
+        // Homeowner Portal — Placeholder translations
+        'ho_sr_title_placeholder': { ar: 'مثال: إصلاح تسريب أنبوب المطبخ', de: 'z.B. Undichte Küchenleitung reparieren', fr: 'ex: Réparer une fuite de tuyau de cuisine', tr: 'örn: Mutfak borusu sızıntısını tamir et' },
+        'ho_sr_desc_placeholder': { ar: 'صف المشكلة...', de: 'Beschreiben Sie das Problem...', fr: 'Décrivez le problème...', tr: 'Sorunu açıklayın...' },
+        'ho_sr_address_placeholder': { ar: 'العنوان أو الحي', de: 'Adresse oder Nachbarschaft', fr: 'Adresse ou quartier', tr: 'Adres veya mahalle' },
+        'common_optional': { ar: 'اختياري', de: 'Optional', fr: 'Optionnel', tr: 'İsteğe bağlı' },
+
+        // Homeowner Report — Placeholder translations
+        'ho_neighborhood_placeholder': { ar: 'مثال: الميدان، المدينة القديمة...', de: 'z.B. Al-Majidiya, Altstadt...', fr: 'ex: Al-Majidiya, Vieille ville...', tr: 'örn: Al-Majidiya, Eski Şehir...' },
+        'ho_damage_desc_placeholder': { ar: 'صف الضرر بكلماتك الخاصة...', de: 'Beschreiben Sie den Schaden mit Ihren eigenen Worten...', fr: 'Décrivez les dégâts dans vos propres mots...', tr: 'Hasarı kendi kelimelerinizle tanımlayın...' },
+
+        // Engineer BOQ — Search placeholder
+        'eng_search_materials': { ar: 'بحث المواد (إسمنت، حديد، أبواب)', de: 'Materialien suchen (Zement, Stahl, Türen)', fr: 'Rechercher matériaux (Ciment, Acier, Portes)', tr: 'Malzeme ara (Çimento, Çelik, Kapılar)' },
+
+        // Donor Portal — Untranslated helper text
+        'donor_supported_projects': { ar: 'المشاريع التي دعمتها', de: 'Projekte, die Sie unterstützt haben', fr: 'Projets que vous avez soutenus', tr: 'Desteklediğiniz Projeler' },
+        'donor_marketplace_hint': { ar: 'اختر بنوداً لتمويلها وأضفها إلى سلتك', de: 'Wählen Sie Artikel zur Finanzierung und fügen Sie sie Ihrem Warenkorb hinzu', fr: 'Sélectionnez des articles à financer et ajoutez-les à votre panier', tr: 'Finanse edilecek kalemleri seçin ve sepetinize ekleyin' },
+        'donor_impact_hint': { ar: 'كيف تُغيّر مساهماتك حياة الناس', de: 'Wie Ihre Beiträge Leben verändern', fr: 'Comment vos contributions changent des vies', tr: 'Katkılarınız hayatları nasıl değiştiriyor' },
+        'donor_proof_hint': { ar: 'صور ميدانية تثبت تسليم المواد واستخدامها', de: 'Vor-Ort-Fotos beweisen die Lieferung und Verwendung Ihrer Materialien', fr: 'Photos sur site prouvant que vos matériaux ont été livrés et utilisés', tr: 'Malzemelerinizin teslim edilip kullanıldığını kanıtlayan saha fotoğrafları' },
+
+        // Contractor Dashboard — Bid description
+        'contractor_bids_desc': { ar: 'العروض التنافسية التي قدمتها على المشاريع المنشورة', de: 'Wettbewerbsangebote, die Sie auf veröffentlichte Projekte eingereicht haben', fr: 'Offres concurrentielles soumises sur les projets publiés', tr: 'Yayınlanan projelere verdiğiniz rekabetçi teklifler' },
+
+        // Admin KYC — Consistent key naming
+        'kyc_select_title': { ar: 'اختر طلباً', de: 'Antrag auswählen', fr: 'Sélectionner une demande', tr: 'Bir Başvuru Seçin' },
+
+        // Auth — placeholder translations
+        'auth_fullname_placeholder': { ar: 'الاسم الكامل', de: 'Vollständiger Name', fr: 'Nom complet', tr: 'Ad Soyad' },
+        'auth_password_hint': { ar: '+٨ أحرف، حرف كبير، رقم', de: 'Min. 8 Zeichen, 1 Großbuchstabe, 1 Zahl', fr: 'Min 8 car., 1 majuscule, 1 chiffre', tr: 'Min 8 karakter, 1 büyük harf, 1 rakam' },
+
+        // Tradesperson Portal — Untranslated headings and helper text
+        'tradesperson_current_work': { ar: 'العمل الحالي', de: 'Aktuelle Arbeit', fr: 'Travail en cours', tr: 'Mevcut İş' },
+        'tradesperson_current_desc': { ar: 'مهامك وتكليفاتك النشطة', de: 'Ihre aktiven Aufträge und Zuweisungen', fr: 'Vos tâches et affectations actives', tr: 'Aktif işleriniz ve görevlendirmeleriniz' },
+        'tradesperson_requests_hint': { ar: 'طلبات إصلاح من أصحاب المنازل تتوافق مع حرفتك', de: 'Reparaturanfragen von Hauseigentümern passend zu Ihrem Handwerk', fr: 'Demandes de réparation de propriétaires correspondant à votre métier', tr: 'Mesleğinizle eşleşen ev sahibi onarım talepleri' },
+        'tradesperson_assignments_hint': { ar: 'مهام من المقاولين على المشاريع', de: 'Aufgaben von Auftragnehmern bei Projekten', fr: 'Tâches assignées par les entrepreneurs sur les projets', tr: 'Projelerdeki müteahhitler tarafından verilen görevler' },
+        'tradesperson_earnings_hint': { ar: 'المهام المكتملة والمدفوعات المستلمة', de: 'Abgeschlossene Aufträge und erhaltene Zahlungen', fr: 'Tâches terminées et paiements reçus', tr: 'Tamamlanan işler ve alınan ödemeler' },
     };
 
     // ═══════════════════════════════════════════════════════════════════════

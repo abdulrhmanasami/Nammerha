@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { supplier } from '../api';
@@ -109,7 +110,7 @@ async function loadKPIs(): Promise<void> {
         if (bidCount) { bidCount.textContent = String(data.pending_orders ?? 0); }
         const notifCount = document.getElementById('notif-count');
         if (notifCount) { notifCount.textContent = String(data.pending_orders ?? 0); }
-    } catch {
+    } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults
     }
 }
@@ -160,7 +161,7 @@ async function loadOrders(): Promise<void> {
         });
 
         applyI18n();
-    } catch {
+    } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent — error captured by centralized reporter
     }
 }
@@ -213,7 +214,7 @@ async function loadCatalog(): Promise<void> {
                 await deactivateItem(id);
             });
         });
-    } catch {
+    } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent — error captured by centralized reporter
     }
 }
@@ -231,7 +232,7 @@ async function updatePOStatus(poId: string, status: 'acknowledged' | 'shipped' |
         showBanner('success', `Order status updated to "${status}"`);
         await loadOrders();
         await loadKPIs();
-    } catch {
+    } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         showBanner('error', 'Network error. Please try again.');
     }
 }
@@ -275,7 +276,7 @@ function setupCatalogModal(): void {
             showBanner('success', 'Material added to your catalog');
             await loadCatalog();
             await loadKPIs();
-        } catch {
+        } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
             showBanner('error', 'Network error. Please try again.');
         }
     });
@@ -293,7 +294,7 @@ async function deactivateItem(catalogId: string): Promise<void> {
 
         showBanner('success', 'Material removed from catalog');
         await loadCatalog();
-    } catch {
+    } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         showBanner('error', 'Network error. Please try again.');
     }
 }

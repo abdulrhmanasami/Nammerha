@@ -310,38 +310,11 @@ formRegister?.addEventListener('submit', async (e) => {
         }
         if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
-        // FIX-REG-005: Direct inline fetch — bypasses api.ts request() chain
-        // which had an unexplained module execution hang where auth.register()
-        // called request() but request() never entered.
-
-        // Step 1: Acquire CSRF token
-        let csrfToken: string | null = null;
-        const existingCookie = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
-        if (existingCookie) {
-            csrfToken = existingCookie;
-        } else {
-            try {
-                const csrfRes = await fetch('/api/csrf-token', { credentials: 'same-origin' });
-                if (csrfRes.ok) {
-                    const csrfData = await csrfRes.json() as { csrfToken?: string };
-                    csrfToken = csrfData.csrfToken ?? null;
-                }
-            } catch {
-                // CSRF fetch failure is non-fatal — proceed without it
-            }
-        }
-
-        // Step 2: POST to /api/auth/register
-        const regHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (csrfToken) { regHeaders['X-CSRF-Token'] = csrfToken; }
-
-        const regRes = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: regHeaders,
-            body: JSON.stringify({ email, password, full_name }),
-            credentials: 'same-origin',
-        });
-        const response = await regRes.json() as { success: boolean; message?: string; error?: string };
+        // ARCH-001 FIX: FIX-REG-005 workaround (inline fetch) removed.
+        // The root cause was an indefinite hang without AbortController timeout.
+        // api.ts request() now has a 30s AbortController (MED-AUD-009), resolving the hang.
+        // Using centralized auth.register() gains: CSRF, timeout, and error reporting.
+        const response = await auth.register({ email, password, full_name });
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.

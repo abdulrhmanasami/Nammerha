@@ -5,11 +5,29 @@ import { auth } from '../api';
 // Nammerha — Email Verification Landing Page
 // PLT-AUD-006 FIX: User-friendly verification result display
 // PLT-MAR11-006 FIX: Uses centralized API client instead of raw fetch
-//
-// This page is loaded when a user clicks the verification link in their email.
-// It calls the backend API to verify the token, then displays a user-friendly
-// success or error message instead of raw JSON.
+// I18N-001 FIX: All user-facing strings wrapped with i18n t()
 // ============================================================================
+
+// ─── i18n ───────────────────────────────────────────────────────────────────
+interface NammerhaI18nApi {
+    switchLanguage: (code: string) => void;
+    getCurrentLang: () => string;
+    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
+    t: (key: string, fallback?: string) => string;
+}
+declare global {
+    interface Window {
+        NammerhaI18n?: NammerhaI18nApi;
+    }
+}
+
+/** Safe i18n lookup — returns fallback if engine not yet loaded */
+function t(key: string, fallback: string): string {
+    if (typeof window.NammerhaI18n?.t === 'function') {
+        return window.NammerhaI18n.t(key, fallback) ?? fallback;
+    }
+    return fallback;
+}
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const iconContainer = document.getElementById('verify-icon-container');
@@ -75,7 +93,10 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
 // ─── Verify Token via API ───────────────────────────────────────────────────
 async function verifyEmail(): Promise<void> {
     if (!verifyToken) {
-        showResult('error', 'Invalid Link', 'No verification token found. Please check your email for the correct link.');
+        // I18N-001 FIX: Wrapped with t()
+        showResult('error',
+            t('verify_invalid_link', 'Invalid Link'),
+            t('verify_no_token', 'No verification token found. Please check your email for the correct link.'));
         return;
     }
 
@@ -85,23 +106,34 @@ async function verifyEmail(): Promise<void> {
         const data = await auth.verifyEmail(verifyToken);
 
         if (data.success) {
-            showResult('success', 'Email Verified!', data.message ?? 'Your email has been verified. You can now sign in to access all platform features.');
+            showResult('success',
+                t('verify_success_title', 'Email Verified!'),
+                data.message ?? t('verify_success_body', 'Your email has been verified. You can now sign in to access all platform features.'));
         } else {
-            // The API client returns the parsed response even on non-2xx
-            showResult('error', 'Verification Failed', data.error ?? 'Something went wrong. Please try again or contact support.');
+            showResult('error',
+                t('verify_failed_title', 'Verification Failed'),
+                data.error ?? t('verify_failed_body', 'Something went wrong. Please try again or contact support.'));
         }
     } catch (err) {
         // The centralized API client throws on network errors, timeouts, and non-2xx responses
-        const message = err instanceof Error ? err.message : 'Could not reach the server.';
+        const message = err instanceof Error ? err.message : t('verify_server_unreachable', 'Could not reach the server.');
 
         if (message.includes('timeout') || message.includes('abort')) {
-            showResult('error', 'Request Timeout', 'The request timed out. Please check your network connection and try again.');
+            showResult('error',
+                t('verify_timeout_title', 'Request Timeout'),
+                t('verify_timeout_body', 'The request timed out. Please check your network connection and try again.'));
         } else if (message.includes('expired') || message.includes('410')) {
-            showResult('expired', 'Token Expired', 'Your verification link has expired. Please request a new one from the Sign In page.');
+            showResult('expired',
+                t('verify_expired_title', 'Token Expired'),
+                t('verify_expired_body', 'Your verification link has expired. Please request a new one from the Sign In page.'));
         } else if (message.includes('not found') || message.includes('404')) {
-            showResult('error', 'Token Not Found', 'This verification link is invalid or has already been used.');
+            showResult('error',
+                t('verify_not_found_title', 'Token Not Found'),
+                t('verify_not_found_body', 'This verification link is invalid or has already been used.'));
         } else {
-            showResult('error', 'Network Error', message);
+            showResult('error',
+                t('verify_network_error', 'Network Error'),
+                message);
         }
     }
 }

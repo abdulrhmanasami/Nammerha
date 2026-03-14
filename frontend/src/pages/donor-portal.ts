@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { statusColor, escrowColor } from '../utils/status-colors';
 import { donor } from '../api';
@@ -65,7 +66,7 @@ async function loadStats(): Promise<void> {
         setText('kpi-score', `${s.impact_score}%`);
         setText('kpi-locked', `$${(s.escrow_locked / 100).toLocaleString()}`);
         setText('kpi-released', `$${(s.escrow_released / 100).toLocaleString()}`);
-    } catch {
+    } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // PLT-FE-002: Silently degrade — KPIs retain default HTML values.
         // Error is already captured by the centralized error-reporter via window.onerror.
     }
@@ -114,7 +115,7 @@ async function loadFundedProjects(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -161,7 +162,7 @@ async function loadMarketplace(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -191,7 +192,7 @@ async function loadDonations(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(d.locked_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -232,7 +233,7 @@ async function loadImpact(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -276,7 +277,7 @@ async function loadProofs(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<div class="col-span-full p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }

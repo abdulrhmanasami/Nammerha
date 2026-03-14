@@ -1,7 +1,11 @@
 import '../styles/main.css';
-import { getCurrentUser, clearAuth, type UserRole } from '../auth';
-import { reportError } from '../error-reporter';
+import { getCurrentUser, clearAuth, setCurrentUser, type UserRole } from '../auth';
+import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml } from '../utils/xss';
+import { auth, roles as rolesApi } from '../api';
+// DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
+// instead of maintaining a duplicate copy.
+import { ROLE_META, getRoleLabel } from '../components/role-switcher';
 
 // ============================================================================
 // Nammerha — Profile Page Engine
@@ -9,39 +13,35 @@ import { escapeHtml } from '../utils/xss';
 // V1-AUDIT FIX: No longer reads JWT from localStorage — uses auth module
 // MULTI-ROLE-005: Role management, progressive profiling, profile completion
 // MED-001 FIX: All innerHTML uses escapeHtml() for any dynamic content
-// MED-003 FIX: Uses centralized api.ts request() for CSRF-protected calls
-// MED-004 FIX: Correct API response contract parsing
-// LOW-003 FIX: De-duplicated profile completion scoring
+// SEC-001 FIX: All raw fetch() migrated to centralized api.ts (CSRF + timeout)
+// DUP-001 FIX: ROLE_META, getRoleLabel, isRTL imported from role-switcher.ts
+// I18N-003 FIX: All user-facing strings wrapped with i18n t()
+// LOGOUT-001 FIX: Logout calls /api/auth/logout to invalidate server token
 // ============================================================================
 
-// ─── Role Metadata (duplicated from role-switcher for decoupling) ───────────
-interface RoleMeta {
-    icon: string;
-    labelEn: string;
-    labelAr: string;
-    accentColor: string;
-    verificationLabel: string;
+// ─── i18n ───────────────────────────────────────────────────────────────────
+interface NammerhaI18nApi {
+    switchLanguage: (code: string) => void;
+    getCurrentLang: () => string;
+    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
+    t: (key: string, fallback?: string) => string;
+}
+declare global {
+    interface Window {
+        NammerhaI18n?: NammerhaI18nApi;
+    }
 }
 
-const ROLE_META: Record<string, RoleMeta> = {
-    donor:        { icon: 'ph-hand-heart',    labelEn: 'Donor',       labelAr: 'مانح',       accentColor: '#c0956c', verificationLabel: 'Email Verified' },
-    homeowner:    { icon: 'ph-house',         labelEn: 'Homeowner',   labelAr: 'صاحب منزل',  accentColor: '#2e7ddf', verificationLabel: 'Property Proof' },
-    engineer:     { icon: 'ph-hard-hat',      labelEn: 'Engineer',    labelAr: 'مهندس',      accentColor: '#5a8a7a', verificationLabel: 'License Verified' },
-    supplier:     { icon: 'ph-truck',         labelEn: 'Supplier',    labelAr: 'مورّد',       accentColor: '#d4a72c', verificationLabel: 'Business KYB' },
-    contractor:   { icon: 'ph-buildings',     labelEn: 'Contractor',  labelAr: 'مقاول',      accentColor: '#2e7ddf', verificationLabel: 'Licensed' },
-    tradesperson: { icon: 'ph-wrench',        labelEn: 'Tradesperson', labelAr: 'حرفي',      accentColor: '#5a8a7a', verificationLabel: 'Certified' },
-    admin:        { icon: 'ph-shield-check',  labelEn: 'Admin',       labelAr: 'مدير',       accentColor: '#ef4444', verificationLabel: 'System Admin' },
-    auditor:      { icon: 'ph-detective',     labelEn: 'Auditor',     labelAr: 'مدقق',       accentColor: '#8b5cf6', verificationLabel: 'Auditor' },
-};
+/** Safe i18n lookup — returns fallback if engine not yet loaded */
+function t(key: string, fallback: string): string {
+    if (typeof window.NammerhaI18n?.t === 'function') {
+        return window.NammerhaI18n.t(key, fallback) ?? fallback;
+    }
+    return fallback;
+}
 
 function isRTL(): boolean {
     return document.documentElement.dir === 'rtl' || document.documentElement.lang === 'ar';
-}
-
-function getRoleLabel(role: string): string {
-    const meta = ROLE_META[role];
-    if (!meta) { return role; }
-    return isRTL() ? meta.labelAr : meta.labelEn;
 }
 
 // ─── LOW-003 FIX: Profile Completion Calculator (de-duplicated) ─────────────
@@ -77,30 +77,28 @@ async function loadUserInfo(): Promise<void> {
 
     const cached = getCurrentUser();
     if (cached) {
-        if (nameEl) { nameEl.textContent = cached.full_name ?? 'User'; }
+        if (nameEl) { nameEl.textContent = cached.full_name ?? t('profile_user', 'User'); }
         if (emailEl) { emailEl.textContent = cached.email ?? '—'; }
         if (roleEl) { roleEl.textContent = getRoleLabel(cached.activeRole ?? cached.role); }
         updateProfileCompletion(cached);
     }
 
     try {
-        const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
-        if (res.ok) {
-            const data = await res.json() as { data?: { user?: { full_name?: string; email?: string; role?: string; roles?: string[] } } };
-            const user = data.data?.user;
-            if (user) {
-                if (nameEl) { nameEl.textContent = user.full_name ?? 'User'; }
-                if (emailEl) { emailEl.textContent = user.email ?? '—'; }
-                if (roleEl) { roleEl.textContent = getRoleLabel(user.role ?? 'donor'); }
-            }
+        // SEC-001 FIX: Uses centralized api.ts with 30s timeout + error reporting
+        const result = await auth.getMe();
+        if (result.success && result.data?.user) {
+            const user = result.data.user;
+            if (nameEl) { nameEl.textContent = user.full_name ?? t('profile_user', 'User'); }
+            if (emailEl) { emailEl.textContent = user.email ?? '—'; }
+            if (roleEl) { roleEl.textContent = getRoleLabel(user.role ?? 'donor'); }
         } else if (!cached) {
-            if (nameEl) { nameEl.textContent = 'Guest'; }
-            if (emailEl) { emailEl.textContent = 'Sign in to view your profile'; }
+            if (nameEl) { nameEl.textContent = t('profile_guest', 'Guest'); }
+            if (emailEl) { emailEl.textContent = t('profile_sign_in_prompt', 'Sign in to view your profile'); }
         }
-    } catch {
+    } catch (err) { reportWarning('[Profile] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         if (!cached) {
-            if (nameEl) { nameEl.textContent = 'Guest'; }
-            if (emailEl) { emailEl.textContent = 'Sign in to view your profile'; }
+            if (nameEl) { nameEl.textContent = t('profile_guest', 'Guest'); }
+            if (emailEl) { emailEl.textContent = t('profile_sign_in_prompt', 'Sign in to view your profile'); }
         }
     }
 }
@@ -124,37 +122,28 @@ async function loadUserRoles(): Promise<void> {
         rolesListEl.innerHTML = `
             <div class="bg-white rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
                 <i class="ph ph-sign-in" style="font-size:24px" aria-hidden="true"></i>
-                <p class="mt-2">Sign in to manage your roles</p>
+                <p class="mt-2">${t('profile_sign_in_roles', 'Sign in to manage your roles')}</p>
             </div>`;
         return;
     }
 
-    // Try to fetch from API — MED-004 FIX: correct response shape
+    // SEC-001 FIX: Uses centralized api.ts with timeout + error reporting
     let roles = user.roles ?? [user.role];
     try {
-        const res = await fetch('/api/roles/my-roles', { credentials: 'same-origin' });
-        if (res.ok) {
-            // Backend returns: { data: { roles: [...], activeRole: "..." } }
-            const body = await res.json() as {
-                data?: {
-                    roles?: { role_name: string; status: string; is_primary: boolean }[];
-                    activeRole?: string;
-                };
-            };
-            if (body.data?.roles && Array.isArray(body.data.roles)) {
-                roles = body.data.roles
-                    .filter(r => r.status === 'active')
-                    .map(r => r.role_name as UserRole);
-            }
+        const result = await rolesApi.getMyRoles();
+        if (result.success && result.data?.roles && Array.isArray(result.data.roles)) {
+            roles = result.data.roles
+                .filter(r => r.status === 'active')
+                .map(r => r.role_name as UserRole);
         }
-    } catch {
+    } catch (err) { reportWarning('[Profile] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Fall back to cached roles
     }
 
     if (roles.length === 0) {
         rolesListEl.innerHTML = `
             <div class="bg-white rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
-                <p>No active roles yet</p>
+                <p>${t('profile_no_roles', 'No active roles yet')}</p>
             </div>`;
         return;
     }
@@ -176,7 +165,7 @@ async function loadUserRoles(): Promise<void> {
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                         <p class="text-sm font-bold">${label}</p>
-                        ${isActive ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">Active</span>' : ''}
+                        ${isActive ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">${t('profile_active', 'Active')}</span>` : ''}
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
                         <i class="ph ph-shield-check text-emerald-500" style="font-size:12px" aria-hidden="true"></i>
@@ -189,7 +178,7 @@ async function loadUserRoles(): Promise<void> {
 }
 
 // ─── Role Activation ────────────────────────────────────────────────────────
-// MED-003 FIX: Uses centralized API request for proper CSRF handling
+// SEC-001 FIX: Uses centralized api.ts for CSRF, timeout, and error reporting
 async function loadAvailableRoles(): Promise<void> {
     const gridEl = document.getElementById('available-roles-grid');
     if (!gridEl) { return; }
@@ -198,19 +187,18 @@ async function loadAvailableRoles(): Promise<void> {
     const userRoles = user?.roles ?? [];
 
     try {
-        const res = await fetch('/api/roles/available', { credentials: 'same-origin' });
-        if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-        const data = await res.json() as { data?: { role_name: string; display_name_en: string; display_name_ar: string }[] };
+        // SEC-001 FIX: Uses centralized api.ts
+        const result = await rolesApi.getAvailable();
 
-        if (!data.data || !Array.isArray(data.data)) { return; }
+        if (!result.success || !result.data || !Array.isArray(result.data)) { return; }
 
-        const available = data.data.filter(r =>
+        const available = result.data.filter(r =>
             !userRoles.includes(r.role_name as UserRole) &&
             !['admin', 'auditor'].includes(r.role_name)
         );
 
         if (available.length === 0) {
-            gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-4">All roles activated!</p>`;
+            gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-4">${t('profile_all_roles_active', 'All roles activated!')}</p>`;
             return;
         }
 
@@ -241,48 +229,23 @@ async function loadAvailableRoles(): Promise<void> {
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error(String(err)), { context: 'load_available_roles' });
-        gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-red-400 py-4">Failed to load roles</p>`;
+        gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-red-400 py-4">${t('profile_load_roles_failed', 'Failed to load roles')}</p>`;
     }
 }
 
-// MED-003 FIX: Proper CSRF token acquisition before state-changing request
-async function ensureCsrfToken(): Promise<string> {
-    try {
-        const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
-        if (res.ok) {
-            const data = await res.json() as { csrfToken?: string };
-            return data.csrfToken ?? '';
-        }
-    } catch {
-        // Fall through — CSRF endpoint may not be available
-    }
-    return '';
-}
-
+// SEC-001 FIX: Uses centralized api.ts instead of duplicated ensureCsrfToken + raw fetch
 async function activateRole(role: UserRole): Promise<void> {
     try {
-        // MED-003 FIX: Acquire CSRF token from dedicated endpoint
-        const csrfToken = await ensureCsrfToken();
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (csrfToken) { headers['X-CSRF-Token'] = csrfToken; }
+        const result = await rolesApi.activate(role);
 
-        const res = await fetch('/api/roles/activate', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ role }),
-            credentials: 'same-origin',
-        });
-
-        if (!res.ok) {
-            const body = await res.json() as { error?: string };
-            throw new Error(body.error ?? `Activation failed: ${res.status}`);
+        if (!result.success) {
+            throw new Error(result.error ?? `Activation failed`);
         }
 
         // Update local user state
         const user = getCurrentUser();
         if (user && !user.roles.includes(role)) {
             user.roles.push(role);
-            const { setCurrentUser } = await import('../auth');
             setCurrentUser(user);
         }
 
@@ -332,7 +295,15 @@ function initLangDisplay(): void {
 }
 
 // ─── Logout ─────────────────────────────────────────────────────────────────
-function logout(): void {
+// LOGOUT-001 FIX: Now calls /api/auth/logout to invalidate server-side JWT
+// cookie BEFORE clearing local state. Previous version only cleared local
+// storage, leaving the httpOnly cookie valid until expiry.
+async function logout(): Promise<void> {
+    try {
+        await auth.logout();
+    } catch (err) { reportWarning('[Profile] Operation failed', { error: err instanceof Error ? err.message : String(err) });
+        // Logout API failure is non-fatal — clear local state regardless
+    }
     clearAuth();
     window.location.href = '/auth.html';
 }

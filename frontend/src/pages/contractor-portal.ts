@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
@@ -103,7 +104,7 @@ async function loadStats(): Promise<void> {
         setText('kpi-won', String(s.completed_projects));
         setText('kpi-escrow', `$${(s.total_earnings / 100).toLocaleString()}`);
         setText('pending-bids-count', String(s.active_bids));
-    } catch {
+    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults
     }
 }
@@ -142,7 +143,7 @@ async function loadProjects(): Promise<void> {
                 </td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -189,7 +190,7 @@ async function loadMarketplace(): Promise<void> {
                 if (projectId) { openBidModal(projectId); }
             });
         });
-    } catch {
+    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -220,7 +221,7 @@ async function loadBids(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(b.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -250,7 +251,7 @@ async function loadPayments(): Promise<void> {
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(p.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }

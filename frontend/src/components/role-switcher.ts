@@ -5,6 +5,7 @@
 // ============================================================================
 import { getCurrentUser, switchActiveRole, type UserRole } from '../auth';
 import { reportError } from '../error-reporter';
+import { roles as rolesApi } from '../api';
 import '../styles/role-switcher.css';
 
 // ─── Role Metadata ──────────────────────────────────────────────────────────
@@ -14,6 +15,7 @@ interface RoleMeta {
     labelAr: string;
     accentColor: string; // CSS custom property value
     dashboardUrl: string;
+    verificationLabel: string; // DUP-001: Merged from profile.ts duplicate
 }
 
 const ROLE_META: Record<string, RoleMeta> = {
@@ -23,6 +25,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'مانح',
         accentColor: '#c0956c',  // warm-earth
         dashboardUrl: '/donor-portal.html',
+        verificationLabel: 'Email Verified',
     },
     homeowner: {
         icon: 'ph-house',
@@ -30,6 +33,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'صاحب منزل',
         accentColor: '#2e7ddf',  // trust-blue
         dashboardUrl: '/homeowner-portal.html',
+        verificationLabel: 'Property Proof',
     },
     engineer: {
         icon: 'ph-hard-hat',
@@ -38,6 +42,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         accentColor: '#5a8a7a',  // smoky-jade
         // LOW-001 FIX: Was incorrectly pointing to contractor-portal.html
         dashboardUrl: '/engineer-boq.html',
+        verificationLabel: 'License Verified',
     },
     supplier: {
         icon: 'ph-truck',
@@ -45,6 +50,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'مورّد',
         accentColor: '#d4a72c',  // warning-yellow
         dashboardUrl: '/supplier-dashboard.html',
+        verificationLabel: 'Business KYB',
     },
     contractor: {
         icon: 'ph-buildings',
@@ -52,6 +58,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'مقاول',
         accentColor: '#2e7ddf',  // trust-blue
         dashboardUrl: '/contractor-dashboard.html',
+        verificationLabel: 'Licensed',
     },
     tradesperson: {
         icon: 'ph-wrench',
@@ -59,6 +66,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'حرفي',
         accentColor: '#5a8a7a',  // smoky-jade
         dashboardUrl: '/tradesperson-portal.html',
+        verificationLabel: 'Certified',
     },
     admin: {
         icon: 'ph-shield-check',
@@ -66,6 +74,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'مدير',
         accentColor: '#ef4444',  // red
         dashboardUrl: '/admin-dashboard.html',
+        verificationLabel: 'System Admin',
     },
     auditor: {
         icon: 'ph-detective',
@@ -73,6 +82,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelAr: 'مدقق',
         accentColor: '#8b5cf6',  // purple
         dashboardUrl: '/compliance-dashboard.html',
+        verificationLabel: 'Auditor',
     },
 };
 
@@ -260,16 +270,12 @@ async function handleRoleSwitch(role: UserRole): Promise<void> {
 
     // Sync with backend
     try {
-        const res = await fetch('/api/roles/switch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ role }),
-            credentials: 'same-origin',
-        });
+        // SEC-002 FIX: Was raw fetch() without CSRF token — CSRF vulnerability.
+        // Now uses centralized api.ts with automatic CSRF, 30s timeout, and error reporting.
+        const result = await rolesApi.switch(role);
 
-        if (!res.ok) {
-            const body = await res.json() as { error?: string };
-            throw new Error(body.error ?? `Switch failed: ${res.status}`);
+        if (!result.success) {
+            throw new Error(result.error ?? 'Switch failed');
         }
 
         // Navigate to the role's dashboard

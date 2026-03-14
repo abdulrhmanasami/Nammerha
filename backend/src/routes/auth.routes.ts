@@ -14,10 +14,25 @@ import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { query } from '../config/database';
 import { generateToken, authMiddleware } from '../middleware/auth.middleware';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.service';
+import { sendVerificationEmail, sendPasswordResetEmail, type EmailLocale } from '../services/email.service';
 import type { User, UserRole, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
+
+// ─── I18N-004: Locale Detection ─────────────────────────────────────────────
+/**
+ * Extract the email locale from the request's Accept-Language header.
+ * Returns 'ar' if Arabic is preferred, otherwise defaults to 'en'.
+ * This ensures email templates are rendered in the user's preferred language.
+ */
+function getEmailLocale(req: Request): EmailLocale {
+    const acceptLang = req.headers['accept-language'] ?? '';
+    // Accept-Language: ar, ar-SA, ar-SY, etc.
+    if (/\bar/i.test(acceptLang)) {
+        return 'ar';
+    }
+    return 'en';
+}
 
 const router = Router();
 
@@ -213,7 +228,7 @@ router.post(
             // The frontend page calls the API and displays a user-friendly result.
             const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
             const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-            sendVerificationEmail(user.email, verificationUrl).catch((err) => {
+            sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
                 logger.error('Auth: Verification email dispatch failed', { error: err instanceof Error ? err.message : String(err) });
             });
 
@@ -555,7 +570,7 @@ router.post(
             // PLT-AUD-006 FIX: Point to frontend page, not raw API endpoint
             const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
             const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}`;
-            sendVerificationEmail(user.email, verificationUrl).catch((err) => {
+            sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
                 logger.error('Auth: Resend verification email failed', { error: err instanceof Error ? err.message : String(err) });
             });
 
@@ -612,7 +627,7 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
         // Send reset email
         const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
         const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
-        sendPasswordResetEmail(user.email, resetUrl).catch((err) => {
+        sendPasswordResetEmail(user.email, resetUrl, getEmailLocale(req)).catch((err) => {
             logger.error('Auth: Password reset email failed', { error: err instanceof Error ? err.message : String(err) });
         });
 

@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
@@ -97,7 +98,7 @@ async function loadStats(): Promise<void> {
         setText('kpi-approvals', String(s.pending_approvals));
         setText('kpi-escrow', `$${(s.total_funded / 100).toLocaleString()}`);
         setText('approval-count', String(s.pending_approvals));
-    } catch {
+    } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults
     }
 }
@@ -142,7 +143,7 @@ async function loadDashboardProjects(): Promise<void> {
                 </div>
             </div>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -176,7 +177,7 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
             </tr>
         `).join('');
-    } catch {
+    } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -287,12 +288,12 @@ async function loadServiceRequests(): Promise<void> {
                     await homeowner.cancelServiceRequest(id);
                     loadServiceRequests();
                     loadStats();
-                } catch {
+                } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
                     // Silent — error captured by centralized reporter
                 }
             });
         });
-    } catch {
+    } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
     }
 }
@@ -351,12 +352,12 @@ async function loadApprovals(): Promise<void> {
                     await homeowner.respondToApproval(id, decision);
                     loadApprovals();
                     loadStats();
-                } catch {
+                } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
                     // Silent — error captured by centralized reporter
                 }
             });
         });
-    } catch {
+    } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
     }
 }
@@ -398,7 +399,7 @@ async function loadEscrow(): Promise<void> {
                 </div>
             ` : ''}
         `;
-    } catch {
+    } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         container.innerHTML = `<p class="text-red-400 text-sm text-center" data-i18n="failed_to_load">Failed to load</p>`;
     }
 }

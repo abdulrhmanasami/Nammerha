@@ -256,7 +256,7 @@ export const auth = {
         email: string;
         password: string;
         full_name: string;
-        role: 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson';
+        role?: 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson';
     }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
     login: (data: { email: string; password: string }) =>
@@ -291,6 +291,57 @@ export const auth = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+
+    // SEC-001 FIX: Centralized getMe — replaces raw fetch in profile.ts
+    getMe: () =>
+        request<{ user: { full_name?: string; email?: string; role?: string; roles?: string[] } }>('/auth/me'),
+
+    // SEC-001/LOGOUT-001 FIX: Server-side logout — invalidates JWT + clears httpOnly cookie
+    logout: () =>
+        request('/auth/logout', { method: 'POST' }),
+};
+
+// ─── SEC-001 FIX: Role Management (centralized) ────────────────────────────
+// Replaces raw fetch() calls in profile.ts and role-switcher.ts that were
+// missing CSRF token, AbortController timeout, and centralized error reporting.
+export const roles = {
+    /** GET /api/roles/my-roles — Current user's active roles */
+    getMyRoles: () =>
+        request<{ roles: { role_name: string; status: string; is_primary: boolean }[]; activeRole?: string }>('/roles/my-roles'),
+
+    /** GET /api/roles/available — Roles the user can still activate */
+    getAvailable: () =>
+        request<{ role_name: string; display_name_en: string; display_name_ar: string }[]>('/roles/available'),
+
+    /** POST /api/roles/activate — Activate a new role */
+    activate: (role: string) =>
+        request('/roles/activate', {
+            method: 'POST',
+            body: JSON.stringify({ role }),
+        }),
+
+    /** POST /api/roles/switch — Switch active role context */
+    switch: (role: string) =>
+        request('/roles/switch', {
+            method: 'POST',
+            body: JSON.stringify({ role }),
+        }),
+};
+
+// ─── SEC-003 FIX: Contact (centralized) ─────────────────────────────────────
+// Replaces raw fetch() in contact.ts that lacked CSRF token and timeout.
+export const contact = {
+    /** POST /api/contact — Submit contact form */
+    submit: (data: {
+        name: string;
+        email: string;
+        subject: string;
+        message: string;
+        category?: string;
+    }) => request<{ message?: string }>('/contact', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
 };
 
 // ─── Payments ───────────────────────────────────────────────────────────────
