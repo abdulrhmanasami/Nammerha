@@ -1459,6 +1459,14 @@
         switchLanguage: applyLanguage,
         getCurrentLang: function () { return currentLang; },
         getSupportedLangs: function () { return LANGS.slice(); },
+        t: function (key, fallback) {
+            if (currentLang === 'en') return fallback || key;
+            var resolved = resolveKey(key);
+            if (DICT[resolved] && DICT[resolved][currentLang]) {
+                return DICT[resolved][currentLang];
+            }
+            return fallback || key;
+        },
     };
 
 })();

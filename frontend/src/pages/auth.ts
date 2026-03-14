@@ -18,7 +18,10 @@ declare global {
 
 /** Safe i18n lookup — returns fallback if engine not yet loaded */
 function t(key: string, fallback: string): string {
-    return window.NammerhaI18n?.t(key, fallback) ?? fallback;
+    if (typeof window.NammerhaI18n?.t === 'function') {
+        return window.NammerhaI18n.t(key, fallback) ?? fallback;
+    }
+    return fallback;
 }
 
 // ============================================================================

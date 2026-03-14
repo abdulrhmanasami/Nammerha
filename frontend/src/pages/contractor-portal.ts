@@ -302,7 +302,7 @@ function openBidModal(projectId: string): void {
 
         const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
         submitBtn.disabled = true;
-        submitBtn.textContent = window.NammerhaI18n?.t('btn_submitting', 'Submitting...') ?? 'Submitting...';
+        submitBtn.textContent = (typeof window.NammerhaI18n?.t === 'function' ? window.NammerhaI18n.t('btn_submitting', 'Submitting...') : null) ?? 'Submitting...';
 
         try {
             const res = await contractor.submitBid({
@@ -325,7 +325,7 @@ function openBidModal(projectId: string): void {
                 errorEl.classList.remove('hidden');
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = window.NammerhaI18n?.t('btn_submit', 'Submit') ?? 'Submit';
+            submitBtn.textContent = (typeof window.NammerhaI18n?.t === 'function' ? window.NammerhaI18n.t('btn_submit', 'Submit') : null) ?? 'Submit';
         }
     });
 }
