@@ -395,6 +395,10 @@ router.post(
                         email: user.email,
                         full_name: user.full_name,
                         role: user.role,
+                        // HIGH-002 FIX: Include all roles so frontend role-switcher
+                        // can display all user roles immediately after login
+                        roles: allRoles.length > 0 ? allRoles : [user.role],
+                        activeRole: user.role,
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                     },

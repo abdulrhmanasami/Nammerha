@@ -3,8 +3,8 @@
 // Handles multi-role operations: listing, switching, activating roles.
 // ============================================================================
 import { Router, Request, Response } from 'express';
-import { query } from '../config/database';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { query, transaction } from '../config/database';
+import { authMiddleware, generateToken } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
 import type { UserRole } from '../types';
 
@@ -12,6 +12,18 @@ const router = Router();
 
 // All role routes require authentication
 router.use(authMiddleware);
+
+// ─── CRIT-001 FIX: Static profile table whitelist ───────────────────────────
+// NEVER construct table names from user input via string interpolation.
+// This static map is the ONLY source of truth for profile table names.
+const PROFILE_TABLE_MAP: Record<string, string> = {
+    donor: 'donor_profiles',
+    contractor: 'contractor_profiles',
+    engineer: 'engineer_profiles',
+    supplier: 'supplier_profiles',
+    tradesperson: 'tradesperson_profiles',
+    homeowner: 'homeowner_profiles',
+};
 
 // ─── GET /api/roles/available — List all available platform roles ────────────
 
@@ -85,6 +97,8 @@ router.get('/my-roles', async (req: Request, res: Response) => {
 });
 
 // ─── POST /api/roles/switch — Switch active role context ─────────────────────
+// HIGH-001 FIX: All 3 updates run inside a single DB transaction.
+// HIGH-003 FIX: Reissues JWT cookie with updated primary role after switch.
 
 router.post('/switch', async (req: Request, res: Response) => {
     try {
@@ -116,29 +130,44 @@ router.post('/switch', async (req: Request, res: Response) => {
             return;
         }
 
-        // Update primary role in users table for backward compatibility
-        await query(
-            'UPDATE users SET role = $1, updated_at = NOW() WHERE user_id = $2',
-            [role, req.authUser.user_id]
-        );
+        // HIGH-001 FIX: Atomic transaction — all 3 updates succeed or all fail
+        const userId = req.authUser.user_id;
+        await transaction(async (client) => {
+            // 1. Update primary role in users table (backward compat)
+            await client.query(
+                'UPDATE users SET role = $1, updated_at = NOW() WHERE user_id = $2',
+                [role, userId]
+            );
+            // 2. Clear all is_primary flags
+            await client.query(
+                'UPDATE user_roles SET is_primary = FALSE WHERE user_id = $1',
+                [userId]
+            );
+            // 3. Set new primary
+            await client.query(
+                `UPDATE user_roles SET is_primary = TRUE
+                 WHERE user_id = $1 AND role_id = (SELECT role_id FROM roles WHERE role_name = $2)`,
+                [userId, role]
+            );
+        });
 
-        // Update is_primary in user_roles
-        await query(
-            'UPDATE user_roles SET is_primary = FALSE WHERE user_id = $1',
-            [req.authUser.user_id]
-        );
-        await query(
-            `UPDATE user_roles SET is_primary = TRUE
-             WHERE user_id = $1 AND role_id = (SELECT role_id FROM roles WHERE role_name = $2)`,
-            [req.authUser.user_id, role]
-        );
+        // HIGH-003 FIX: Reissue JWT with updated primary role
+        const allRoles = req.authUser.roles;
+        const token = generateToken(req.authUser.user_id, role, allRoles);
+        res.cookie('nammerha_jwt', token, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000,
+            path: '/',
+        });
 
         logger.info('Role switched', { userId: req.authUser.user_id, newRole: role });
 
         res.json({
             success: true,
             message: 'Role switched successfully',
-            data: { activeRole: role },
+            data: { activeRole: role, roles: allRoles },
         });
     } catch (error) {
         logger.error('Failed to switch role', { error: error instanceof Error ? error.message : String(error) });
@@ -177,53 +206,46 @@ router.post('/activate', async (req: Request, res: Response) => {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- guarded by rows.length check above
-        const roleData = roleInfo.rows[0]!;
+        // eslint guard: roleInfo.rows[0] is guaranteed by the length > 0 check above
+        const roleData = roleInfo.rows[0] as NonNullable<typeof roleInfo.rows[0]>;
 
         if (!roleData.is_self_assignable) {
             res.status(403).json({ success: false, error: 'This role cannot be self-assigned' });
             return;
         }
 
-        // Check if user already has this role
-        const existing = await query(
-            `SELECT id, status FROM user_roles
-             WHERE user_id = $1 AND role_id = $2`,
-            [req.authUser.user_id, roleData.role_id]
+        // MED-002 FIX: Use upsert pattern to eliminate TOCTOU race condition.
+        // INSERT ... ON CONFLICT handles the check-and-insert atomically.
+        const initialStatus = roleData.requires_kyb ? 'pending_kyb'
+            : (roleData.requires_kyc ? 'pending_kyc' : 'active');
+
+        const upsertResult = await query<{ status: string; was_existing: boolean }>(
+            `INSERT INTO user_roles (user_id, role_id, status, is_primary)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (user_id, role_id) DO UPDATE SET
+                status = CASE
+                    WHEN user_roles.status = 'active' THEN user_roles.status  -- keep active
+                    ELSE EXCLUDED.status                                       -- reactivate
+                END,
+                activated_at = CASE
+                    WHEN user_roles.status = 'active' THEN user_roles.activated_at
+                    ELSE NOW()
+                END
+             RETURNING status,
+                       (xmax <> 0) AS was_existing`,
+            [req.authUser.user_id, roleData.role_id, initialStatus,
+             req.authUser.roles.length === 0]
         );
 
-        if (existing.rows.length > 0) {
-            const status = (existing.rows[0] as { status: string }).status;
-            if (status === 'active') {
-                res.status(409).json({ success: false, error: 'You already have this role' });
-                return;
-            }
-            // Reactivate suspended/revoked role
-            await query(
-                `UPDATE user_roles SET status = $1, activated_at = NOW()
-                 WHERE user_id = $2 AND role_id = $3`,
-                [roleData.requires_kyb ? 'pending_kyb' : (roleData.requires_kyc ? 'pending_kyc' : 'active'),
-                 req.authUser.user_id, roleData.role_id]
-            );
-        } else {
-            // Create new role assignment
-            const initialStatus = roleData.requires_kyb ? 'pending_kyb'
-                : (roleData.requires_kyc ? 'pending_kyc' : 'active');
-
-            await query(
-                `INSERT INTO user_roles (user_id, role_id, status, is_primary)
-                 VALUES ($1, $2, $3, $4)`,
-                [req.authUser.user_id, roleData.role_id, initialStatus,
-                 req.authUser.roles.length === 0]  // first role becomes primary
-            );
+        const resultRow = upsertResult.rows[0];
+        if (resultRow?.was_existing && resultRow.status === 'active') {
+            res.status(409).json({ success: false, error: 'You already have this role' });
+            return;
         }
 
-        // Create role-specific profile if it doesn't exist
-        const profileTable = `${role}_profiles`;
-        const profileTables = ['donor_profiles', 'contractor_profiles', 'engineer_profiles',
-                              'supplier_profiles', 'tradesperson_profiles', 'homeowner_profiles'];
-
-        if (profileTables.includes(profileTable)) {
+        // CRIT-001 FIX: Use static lookup map — NEVER interpolate user input into SQL
+        const profileTable = PROFILE_TABLE_MAP[role];
+        if (profileTable) {
             await query(
                 `INSERT INTO ${profileTable} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
                 [req.authUser.user_id]
@@ -233,7 +255,7 @@ router.post('/activate', async (req: Request, res: Response) => {
         logger.info('Role activated', {
             userId: req.authUser.user_id,
             role,
-            status: roleData.requires_kyb ? 'pending_kyb' : (roleData.requires_kyc ? 'pending_kyc' : 'active'),
+            status: resultRow?.status ?? initialStatus,
         });
 
         res.json({
@@ -243,7 +265,7 @@ router.post('/activate', async (req: Request, res: Response) => {
                 : 'Role activated successfully',
             data: {
                 role,
-                status: roleData.requires_kyb ? 'pending_kyb' : (roleData.requires_kyc ? 'pending_kyc' : 'active'),
+                status: resultRow?.status ?? initialStatus,
                 requires_kyc: roleData.requires_kyc,
                 requires_kyb: roleData.requires_kyb,
             },

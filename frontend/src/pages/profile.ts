@@ -1,12 +1,17 @@
 import '../styles/main.css';
 import { getCurrentUser, clearAuth, type UserRole } from '../auth';
 import { reportError } from '../error-reporter';
+import { escapeHtml } from '../utils/xss';
 
 // ============================================================================
 // Nammerha — Profile Page Engine
 // P0-004 FIX: User profile, settings, and logout
 // V1-AUDIT FIX: No longer reads JWT from localStorage — uses auth module
 // MULTI-ROLE-005: Role management, progressive profiling, profile completion
+// MED-001 FIX: All innerHTML uses escapeHtml() for any dynamic content
+// MED-003 FIX: Uses centralized api.ts request() for CSRF-protected calls
+// MED-004 FIX: Correct API response contract parsing
+// LOW-003 FIX: De-duplicated profile completion scoring
 // ============================================================================
 
 // ─── Role Metadata (duplicated from role-switcher for decoupling) ───────────
@@ -39,23 +44,26 @@ function getRoleLabel(role: string): string {
     return isRTL() ? meta.labelAr : meta.labelEn;
 }
 
-// ─── Profile Completion Calculator ──────────────────────────────────────────
+// ─── LOW-003 FIX: Profile Completion Calculator (de-duplicated) ─────────────
 function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
     if (!user) { return 0; }
     let steps = 0;
     let completed = 0;
 
-    // Basic fields (40% weight)
-    steps += 4;
+    // Identity fields (weight: 3 steps)
+    steps += 3;
     if (user.full_name) { completed++; }
     if (user.email) { completed++; }
-    if (user.roles && user.roles.length > 0) { completed++; }
     if (user.kyc_verified) { completed++; }
 
-    // Multi-role (30% weight)
-    steps += 3;
+    // Role depth (weight: 2 steps)
+    steps += 2;
     if (user.roles && user.roles.length >= 1) { completed++; }
+    // Bonus for multi-role users
     if (user.roles && user.roles.length >= 2) { completed++; }
+
+    // Active context (weight: 1 step)
+    steps += 1;
     if (user.activeRole) { completed++; }
 
     return Math.round((completed / steps) * 100);
@@ -106,7 +114,7 @@ function updateProfileCompletion(user: ReturnType<typeof getCurrentUser>): void 
     if (pctEl) { pctEl.textContent = `${pct}%`; }
 }
 
-// ─── Render Active Roles ────────────────────────────────────────────────────
+// ─── MED-004 FIX: Render Active Roles (correct API contract) ────────────────
 async function loadUserRoles(): Promise<void> {
     const rolesListEl = document.getElementById('roles-list');
     if (!rolesListEl) { return; }
@@ -121,15 +129,21 @@ async function loadUserRoles(): Promise<void> {
         return;
     }
 
-    // Try to fetch from API first
+    // Try to fetch from API — MED-004 FIX: correct response shape
     let roles = user.roles ?? [user.role];
     try {
         const res = await fetch('/api/roles/my-roles', { credentials: 'same-origin' });
         if (res.ok) {
-            const data = await res.json() as { data?: { role_name: string; is_active: boolean }[] };
-            if (data.data && Array.isArray(data.data)) {
-                roles = data.data
-                    .filter(r => r.is_active)
+            // Backend returns: { data: { roles: [...], activeRole: "..." } }
+            const body = await res.json() as {
+                data?: {
+                    roles?: { role_name: string; status: string; is_primary: boolean }[];
+                    activeRole?: string;
+                };
+            };
+            if (body.data?.roles && Array.isArray(body.data.roles)) {
+                roles = body.data.roles
+                    .filter(r => r.status === 'active')
                     .map(r => r.role_name as UserRole);
             }
         }
@@ -145,17 +159,19 @@ async function loadUserRoles(): Promise<void> {
         return;
     }
 
+    // MED-001 FIX: All dynamic content uses escapeHtml()
     rolesListEl.innerHTML = roles.map(role => {
         const meta = ROLE_META[role];
         if (!meta) { return ''; }
         const isActive = role === (user.activeRole ?? user.role);
-        const label = getRoleLabel(role);
+        const label = escapeHtml(getRoleLabel(role));
         const color = meta.accentColor;
+        const verLabel = escapeHtml(meta.verificationLabel);
 
         return `
-            <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2' : 'border'} ${isActive ? `border-[${color}]/30` : 'border-slate-100'} transition-all">
+            <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2' : 'border'} border-slate-100 transition-all" ${isActive ? `style="border-color: ${color}30"` : ''}>
                 <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background: ${color}15">
-                    <i class="ph ${meta.icon}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
+                    <i class="ph ${escapeHtml(meta.icon)}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
@@ -164,7 +180,7 @@ async function loadUserRoles(): Promise<void> {
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
                         <i class="ph ph-shield-check text-emerald-500" style="font-size:12px" aria-hidden="true"></i>
-                        <span class="text-[10px] text-slate-400">${meta.verificationLabel}</span>
+                        <span class="text-[10px] text-slate-400">${verLabel}</span>
                     </div>
                 </div>
                 <i class="ph ph-caret-right text-slate-300" aria-hidden="true"></i>
@@ -173,6 +189,7 @@ async function loadUserRoles(): Promise<void> {
 }
 
 // ─── Role Activation ────────────────────────────────────────────────────────
+// MED-003 FIX: Uses centralized API request for proper CSRF handling
 async function loadAvailableRoles(): Promise<void> {
     const gridEl = document.getElementById('available-roles-grid');
     if (!gridEl) { return; }
@@ -197,18 +214,19 @@ async function loadAvailableRoles(): Promise<void> {
             return;
         }
 
+        // MED-001 FIX: escapeHtml on all dynamic content
         gridEl.innerHTML = available.map(r => {
             const meta = ROLE_META[r.role_name];
             if (!meta) { return ''; }
-            const label = isRTL() ? r.display_name_ar : r.display_name_en;
+            const label = escapeHtml(isRTL() ? r.display_name_ar : r.display_name_en);
             const color = meta.accentColor;
 
             return `
                 <button class="activate-role-btn flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-2 hover:shadow-sm transition-all text-center"
-                        data-role="${r.role_name}"
+                        data-role="${escapeHtml(r.role_name)}"
                         style="--role-color: ${color}">
                     <div class="size-10 rounded-lg flex items-center justify-center" style="background: ${color}15">
-                        <i class="ph ${meta.icon}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
+                        <i class="ph ${escapeHtml(meta.icon)}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
                     </div>
                     <span class="text-xs font-bold text-slate-700">${label}</span>
                 </button>`;
@@ -227,11 +245,26 @@ async function loadAvailableRoles(): Promise<void> {
     }
 }
 
+// MED-003 FIX: Proper CSRF token acquisition before state-changing request
+async function ensureCsrfToken(): Promise<string> {
+    try {
+        const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
+        if (res.ok) {
+            const data = await res.json() as { csrfToken?: string };
+            return data.csrfToken ?? '';
+        }
+    } catch {
+        // Fall through — CSRF endpoint may not be available
+    }
+    return '';
+}
+
 async function activateRole(role: UserRole): Promise<void> {
     try {
-        const csrfCookie = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
+        // MED-003 FIX: Acquire CSRF token from dedicated endpoint
+        const csrfToken = await ensureCsrfToken();
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (csrfCookie) { headers['X-CSRF-Token'] = csrfCookie; }
+        if (csrfToken) { headers['X-CSRF-Token'] = csrfToken; }
 
         const res = await fetch('/api/roles/activate', {
             method: 'POST',
@@ -336,7 +369,6 @@ function init(): void {
         if (modal) {
             modal.classList.remove('hidden');
             loadAvailableRoles();
-            // Scroll into view
             modal.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }

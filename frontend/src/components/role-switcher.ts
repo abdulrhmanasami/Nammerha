@@ -36,7 +36,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelEn: 'Engineer',
         labelAr: 'مهندس',
         accentColor: '#5a8a7a',  // smoky-jade
-        dashboardUrl: '/contractor-portal.html',
+        // LOW-001 FIX: Was incorrectly pointing to contractor-portal.html
+        dashboardUrl: '/engineer-boq.html',
     },
     supplier: {
         icon: 'ph-truck',
@@ -161,9 +162,13 @@ function renderSwitcher(): void {
     const trigger = mountEl.querySelector('.role-switcher-trigger');
     trigger?.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (hasMultiRoles || user.roles.length <= 1) {
+        // LOW-002 FIX: Only toggle dropdown for multi-role users
+        // Single-role users get navigated directly to profile to add roles
+        if (hasMultiRoles) {
             isDropdownOpen = !isDropdownOpen;
             renderSwitcher();
+        } else {
+            window.location.href = '/profile.html?tab=roles';
         }
     });
 
@@ -245,6 +250,9 @@ async function handleRoleSwitch(role: UserRole): Promise<void> {
         return;
     }
 
+    // LOW-004 FIX: Capture previous role BEFORE optimistic switch for correct rollback
+    const previousRole = user.activeRole;
+
     // Optimistic update — switch locally first
     switchActiveRole(role);
     isDropdownOpen = false;
@@ -274,11 +282,9 @@ async function handleRoleSwitch(role: UserRole): Promise<void> {
             context: 'role_switch',
             targetRole: role,
         });
-        // Revert on failure — switch back
-        if (user) {
-            switchActiveRole(user.activeRole);
-            renderSwitcher();
-        }
+        // LOW-004 FIX: Revert to the PREVIOUS role (not the mutated one)
+        switchActiveRole(previousRole);
+        renderSwitcher();
     }
 }
 
