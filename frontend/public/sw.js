@@ -1,0 +1,305 @@
+// ============================================================================
+// Nammerha — Service Worker (Field-Grade Offline Capabilities)
+// ============================================================================
+// Strategies:
+//   1. App Shell (Cache-First)    — HTML, CSS, JS, fonts, images
+//   2. API Read (Network-First)   — GET /api/* → try network, fallback cache
+//   3. API Write (Queue)          — POST/PUT/DELETE → queue if offline
+//   4. Never Cache                — /api/auth/*, /api/csrf-token
+// ============================================================================
+
+const CACHE_VERSION = 'v1';
+const SHELL_CACHE  = `nammerha-shell-${CACHE_VERSION}`;
+const API_CACHE    = `nammerha-api-${CACHE_VERSION}`;
+const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;
+
+// Network timeout for API requests before falling back to cache (ms)
+const API_NETWORK_TIMEOUT_MS = 3000;
+
+// ─── App Shell: Pre-cached on install ───────────────────────────────────────
+const SHELL_ASSETS = [
+    '/',
+    '/index.html',
+    '/auth.html',
+    '/nav.js',
+    '/i18n.js',
+    '/i18n.css',
+];
+
+// Paths that must NEVER be cached (authentication, security tokens)
+const NEVER_CACHE_PATHS = [
+    '/api/auth/',
+    '/api/csrf-token',
+    '/api/client-errors',
+    '/api/csp-report',
+];
+
+// ─── DB Constants for Offline Queue ─────────────────────────────────────────
+const DB_NAME    = 'nammerha-offline';
+const DB_VERSION = 1;
+const STORE_NAME = 'pending-requests';
+
+// ─── Install: Pre-cache App Shell ───────────────────────────────────────────
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(SHELL_CACHE)
+            .then((cache) => cache.addAll(SHELL_ASSETS))
+            .then(() => self.skipWaiting())
+    );
+});
+
+// ─── Activate: Clean old caches ─────────────────────────────────────────────
+self.addEventListener('activate', (event) => {
+    const currentCaches = new Set([SHELL_CACHE, API_CACHE, IMG_CACHE]);
+    event.waitUntil(
+        caches.keys()
+            .then((names) => names.filter((n) => !currentCaches.has(n)))
+            .then((old) => Promise.all(old.map((n) => caches.delete(n))))
+            .then(() => self.clients.claim())
+    );
+});
+
+// ─── Fetch: Route to appropriate strategy ───────────────────────────────────
+self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+
+    // Skip: non-HTTP(S), browser-extension, Chrome DevTools
+    if (!url.protocol.startsWith('http')) return;
+
+    // Skip: Never-cache paths
+    if (NEVER_CACHE_PATHS.some((p) => url.pathname.startsWith(p))) return;
+
+    // ── API Requests ────────────────────────────────────────────────────
+    if (url.pathname.startsWith('/api/')) {
+        if (event.request.method === 'GET') {
+            event.respondWith(networkFirstWithCache(event.request));
+        } else {
+            // POST/PUT/DELETE: try network, queue if offline
+            event.respondWith(networkOrQueue(event.request));
+        }
+        return;
+    }
+
+    // ── Image / Media Assets ────────────────────────────────────────────
+    if (isImageRequest(url.pathname)) {
+        event.respondWith(cacheFirstWithNetwork(event.request, IMG_CACHE));
+        return;
+    }
+
+    // ── App Shell (HTML, CSS, JS, Fonts) ────────────────────────────────
+    event.respondWith(cacheFirstWithNetwork(event.request, SHELL_CACHE));
+});
+
+// ─── Strategy: Network-First (API reads) ────────────────────────────────────
+// Try network with a short timeout. If offline or slow, serve from cache.
+// Always update cache with fresh response when network succeeds.
+function networkFirstWithCache(request) {
+    return new Promise((resolve) => {
+        const timeoutId = setTimeout(() => {
+            // Timeout — try cache
+            caches.match(request).then((cached) => {
+                if (cached) resolve(cached);
+            });
+        }, API_NETWORK_TIMEOUT_MS);
+
+        fetch(request)
+            .then((response) => {
+                clearTimeout(timeoutId);
+                if (response.ok) {
+                    const clone = response.clone();
+                    caches.open(API_CACHE).then((cache) => cache.put(request, clone));
+                }
+                resolve(response);
+            })
+            .catch(() => {
+                clearTimeout(timeoutId);
+                caches.match(request).then((cached) => {
+                    resolve(cached || offlineResponse('Unable to fetch data — you are offline'));
+                });
+            });
+    });
+}
+
+// ─── Strategy: Cache-First (App Shell + Images) ─────────────────────────────
+// Serve from cache immediately. Update cache in background for next visit.
+function cacheFirstWithNetwork(request, cacheName) {
+    return caches.match(request).then((cached) => {
+        // Background update: fetch from network and update cache
+        const networkUpdate = fetch(request)
+            .then((response) => {
+                if (response.ok) {
+                    caches.open(cacheName).then((cache) => cache.put(request, response));
+                }
+                return response.clone();
+            })
+            .catch(() => null);
+
+        // Return cached immediately, or wait for network
+        if (cached) return cached;
+        return networkUpdate.then((res) => res || offlineResponse('Resource unavailable offline'));
+    });
+}
+
+// ─── Strategy: Network or Queue (API writes) ────────────────────────────────
+// Try to send the request. If offline, save to IndexedDB for later replay.
+function networkOrQueue(request) {
+    return fetch(request.clone())
+        .catch(() => {
+            // Offline — queue the request for Background Sync
+            return saveToQueue(request).then(() => {
+                return new Response(
+                    JSON.stringify({
+                        success: true,
+                        offline: true,
+                        message: 'Saved offline — will sync when connection returns',
+                        message_ar: 'تم الحفظ بدون اتصال — ستتم المزامنة عند عودة الاتصال',
+                    }),
+                    {
+                        status: 202,
+                        headers: { 'Content-Type': 'application/json' },
+                    }
+                );
+            });
+        });
+}
+
+// ─── IndexedDB: Save request to offline queue ───────────────────────────────
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+    });
+}
+
+async function saveToQueue(request) {
+    const body = await request.text();
+    const entry = {
+        url: request.url,
+        method: request.method,
+        headers: Object.fromEntries(request.headers.entries()),
+        body,
+        timestamp: Date.now(),
+        retries: 0,
+    };
+
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).add(entry);
+        tx.oncomplete = () => {
+            // Request Background Sync if available
+            if (self.registration && self.registration.sync) {
+                self.registration.sync.register('replay-queue').catch(() => {});
+            }
+            resolve();
+        };
+        tx.onerror = (e) => reject(e.target.error);
+    });
+}
+
+// ─── Background Sync: Replay queued requests ────────────────────────────────
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'replay-queue') {
+        event.waitUntil(replayQueue());
+    }
+});
+
+async function replayQueue() {
+    const db = await openDB();
+
+    const entries = await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const req = tx.objectStore(STORE_NAME).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = (e) => reject(e.target.error);
+    });
+
+    for (const entry of entries) {
+        try {
+            const response = await fetch(entry.url, {
+                method: entry.method,
+                headers: entry.headers,
+                body: entry.method !== 'GET' ? entry.body : undefined,
+                credentials: 'same-origin',
+            });
+
+            if (response.ok || response.status < 500) {
+                // Success or client error (4xx) — remove from queue
+                await removeFromQueue(db, entry.id);
+                notifyClients('sync-success', { url: entry.url, method: entry.method });
+            } else if (entry.retries < 3) {
+                // Server error — increment retry count
+                await updateRetryCount(db, entry.id, entry.retries + 1);
+            } else {
+                // Max retries — remove and notify failure
+                await removeFromQueue(db, entry.id);
+                notifyClients('sync-failed', { url: entry.url, method: entry.method });
+            }
+        } catch {
+            // Still offline — stop replaying, will retry on next sync
+            break;
+        }
+    }
+}
+
+function removeFromQueue(db, id) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e.target.error);
+    });
+}
+
+function updateRetryCount(db, id, retries) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(id);
+        req.onsuccess = () => {
+            const entry = req.result;
+            if (entry) {
+                entry.retries = retries;
+                store.put(entry);
+            }
+        };
+        tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e.target.error);
+    });
+}
+
+// ─── Client Notifications ───────────────────────────────────────────────────
+function notifyClients(type, data) {
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+        for (const client of clients) {
+            client.postMessage({ type, ...data });
+        }
+    });
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+function isImageRequest(pathname) {
+    return /\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$/i.test(pathname);
+}
+
+function offlineResponse(message) {
+    return new Response(
+        JSON.stringify({
+            success: false,
+            offline: true,
+            error: message,
+            error_ar: 'أنت غير متصل بالإنترنت',
+        }),
+        {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+        }
+    );
+}

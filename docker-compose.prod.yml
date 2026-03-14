@@ -116,6 +116,12 @@ services:
           memory: 128M
           cpus: '0.25'
     read_only: true
+    # FIX-008: Added healthcheck — frontend was the only container without one.
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8080/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
     tmpfs:
       - /var/cache/nginx:uid=1001,gid=1001
       - /var/log/nginx:uid=1001,gid=1001

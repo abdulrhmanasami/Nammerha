@@ -3,12 +3,13 @@ import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Matchmaking Routes (Ticket 7.1)
 // BuildZoom-style search, scoring, auto-match, and competitive bidding
 // ============================================================================
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { requireAttributes } from '../middleware/abac.middleware';
 import * as matchmaking from '../services/matchmaking.service';
 import { query } from '../config/database';
-import type { ApiResponse } from '../types';
+import type { AbacPolicyKey, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
@@ -75,6 +76,14 @@ router.get(
 router.post(
     '/project/:id/bid',
     requireRole('engineer', 'contractor'),
+    // ABAC: Determine policy based on user's active role
+    (req: Request, res: Response, next: NextFunction): void => {
+        const userRoles = req.authUser?.roles ?? [req.authUser?.role ?? ''];
+        const policyKey: AbacPolicyKey = userRoles.includes('contractor')
+            ? 'contractor:bid'
+            : 'engineer:assess';
+        requireAttributes(policyKey)(req, res, next);
+    },
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as matchmaking.SubmitBidDTO;

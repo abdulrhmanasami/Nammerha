@@ -60,6 +60,9 @@ import contactRoutes from './routes/contact.routes';
 import clientErrorRoutes from './routes/client-error.routes';
 import cspReportRoutes from './routes/csp-report.routes';
 import roleRoutes from './routes/role.routes';
+import reviewRoutes from './routes/review.routes';
+import privacyRoutes from './routes/privacy.routes';
+import impactRoutes from './routes/impact.routes';
 import * as path from 'path';
 import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
 
@@ -441,6 +444,11 @@ app.use('/api/csp-report', cspReportRoutes);
 
 // ─── Role Management (Multi-Role Architecture) ─────────────────────────────
 app.use('/api/roles', roleRoutes);
+
+// ─── Reviews System (Polymorphic Multi-Dimensional Reviews) ─────────────────
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/privacy', privacyRoutes);
+app.use('/api/impact', impactRoutes);
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection

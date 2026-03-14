@@ -53,6 +53,13 @@ vi.mock('../../middleware/auth.middleware', () => ({
     },
 }));
 
+// ─── Mock ABAC middleware (test isolation: matchmaking tests verify matchmaking logic, not ABAC) ─
+vi.mock('../../middleware/abac.middleware', () => ({
+    requireAttributes: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        next();
+    },
+}));
+
 // ─── Import AFTER mocks ────────────────────────────────────────────────────
 import matchmakingRoutes from '../../routes/matchmaking.routes';
 import { calculateScoringFactors, type EngineerMetrics } from '../../services/matchmaking.service';

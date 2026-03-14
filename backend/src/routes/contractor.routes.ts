@@ -7,6 +7,7 @@ import { getAuthUser } from '../utils/auth-guard';
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { requireAttributes } from '../middleware/abac.middleware';
 import * as contractorService from '../services/contractor.service';
 import * as matchmakingService from '../services/matchmaking.service';
 import { safeRouteError } from '../utils/safe-error';
@@ -91,7 +92,7 @@ router.get('/payments', async (req: Request, res: Response) => {
 
 // ─── POST /api/contractor/bids — Submit a Competitive Bid ───────────────────
 // Proxy to matchmaking.submitBid() with contractor context
-router.post('/bids', async (req: Request, res: Response) => {
+router.post('/bids', requireAttributes('contractor:bid'), async (req: Request, res: Response) => {
     try {
         const { project_id, proposed_cost, estimated_days, cover_letter, methodology } = req.body as {
             project_id: string;

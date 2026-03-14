@@ -3,15 +3,26 @@
 // P1-001 FIX: Dynamic data loading from API — no more hardcoded demo data
 // ============================================================================
 import './styles/main.css';
+import './styles/offline.css';
+import './styles/tour.css';
 import { initErrorReporter, reportWarning } from './error-reporter';
 import { renderCartBadge } from './components/cart';
 import './components/role-switcher';  // Self-injecting: attaches to #role-switcher-mount
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
+import { registerServiceWorker } from './offline/sw-register';
+import './offline/network-status';  // Self-injecting: bilingual offline status bar
+import { autoTriggerTour } from './components/tour-engine';
 
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
 initErrorReporter();
+
+// Register Service Worker for offline capabilities (field operations)
+registerServiceWorker();
+
+// Launch interactive guided tour on first portal visit
+autoTriggerTour();
 
 // ─── Map Initialization (lazy-loaded) ───────────────────────────────────────
 // PLT-OPT-001: Dynamic import — maplibre-gl (~800KB) is loaded ONLY on pages

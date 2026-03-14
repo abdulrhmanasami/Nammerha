@@ -190,6 +190,7 @@ router.post(
             );
 
             // Create role-specific profile
+            // FIX-008: Explicit allowlist validation — mirrors CRIT-001 in role.routes.ts.
             const profileMap: Record<string, string> = {
                 donor: 'donor_profiles',
                 contractor: 'contractor_profiles',
@@ -198,8 +199,9 @@ router.post(
                 tradesperson: 'tradesperson_profiles',
                 homeowner: 'homeowner_profiles',
             };
+            const ALLOWED_PROFILE_TABLES: ReadonlySet<string> = new Set(Object.values(profileMap));
             const profileTable = profileMap[role];
-            if (profileTable) {
+            if (profileTable && ALLOWED_PROFILE_TABLES.has(profileTable)) {
                 await query(
                     `INSERT INTO ${profileTable} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
                     [user.user_id]
@@ -778,6 +780,7 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
 // ─── GET /api/auth/me ───────────────────────────────────────────────────────
 // V1-AUDIT FIX: Allows the frontend to check authentication status without
 // storing JWT in localStorage. The httpOnly cookie is sent automatically.
+// FIX-002: Returns roles[] and activeRole — mirrors login response contract.
 router.get(
     '/me',
     authMiddleware,
@@ -793,7 +796,26 @@ router.get(
                 res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
                 return;
             }
-            res.json({ success: true, data: { user } } as ApiResponse);
+
+            // FIX-002: Fetch all active roles (mirrors login endpoint at L361-367)
+            const rolesResult = await query<{ role_name: string }>(
+                `SELECT r.role_name FROM user_roles ur
+                 JOIN roles r ON r.role_id = ur.role_id
+                 WHERE ur.user_id = $1 AND ur.status = 'active'`,
+                [userId]
+            );
+            const allRoles = rolesResult.rows.map(r => r.role_name);
+
+            res.json({
+                success: true,
+                data: {
+                    user: {
+                        ...user,
+                        roles: allRoles.length > 0 ? allRoles : [user.role],
+                        activeRole: user.role,
+                    },
+                },
+            } as ApiResponse);
         } catch (error) {
             safeRouteError(res, error, 'Auth.Me');
         }

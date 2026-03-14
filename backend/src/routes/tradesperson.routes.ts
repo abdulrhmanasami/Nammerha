@@ -7,6 +7,7 @@ import { getAuthUser } from '../utils/auth-guard';
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { requireAttributes } from '../middleware/abac.middleware';
 import * as tradespersonService from '../services/tradesperson.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse, AvailabilityStatus } from '../types';
@@ -50,7 +51,7 @@ router.get('/requests', async (req: Request, res: Response) => {
 });
 
 // ─── POST /api/tradesperson/requests/:id/accept — Accept a Request ──────────
-router.post('/requests/:id/accept', async (req: Request, res: Response) => {
+router.post('/requests/:id/accept', requireAttributes('tradesperson:accept_job'), async (req: Request, res: Response) => {
     try {
         const result = await tradespersonService.acceptRequest(
             getAuthUser(req).user_id,
@@ -82,7 +83,7 @@ router.get('/assignments', async (req: Request, res: Response) => {
 });
 
 // ─── POST /api/tradesperson/assignments/:id/respond — Accept/Decline ────────
-router.post('/assignments/:id/respond', async (req: Request, res: Response) => {
+router.post('/assignments/:id/respond', requireAttributes('tradesperson:respond_assignment'), async (req: Request, res: Response) => {
     try {
         const { accept } = req.body as { accept: boolean };
         if (typeof accept !== 'boolean') {

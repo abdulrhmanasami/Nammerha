@@ -502,3 +502,243 @@ export interface VerificationCase {
     escrow_entries: Array<Pick<EscrowLedger, 'transaction_id' | 'donor_id' | 'amount_locked' | 'payment_status'>>;
     engineer_name: string;
 }
+
+// ─── Review System (Migration 029) ──────────────────────────────────────────
+
+export type ReviewableType =
+    | 'contractor_profiles'
+    | 'supplier_profiles'
+    | 'engineer_profiles'
+    | 'tradesperson_profiles'
+    | 'homeowner_profiles'
+    | 'project';
+
+export type ReviewStatus = 'published' | 'hidden' | 'flagged' | 'removed';
+
+export type FlagReason = 'spam' | 'inappropriate' | 'fake' | 'conflict_of_interest' | 'other';
+
+export type FlagStatus = 'pending' | 'reviewed' | 'dismissed' | 'actioned';
+
+export interface ReviewDimension {
+    dimension_id: number;
+    reviewable_type: ReviewableType;
+    dimension_key: string;
+    label_en: string;
+    label_ar: string;
+    weight: number;
+    sort_order: number;
+}
+
+export interface Review {
+    review_id: string;
+    reviewer_id: string;
+    reviewable_type: ReviewableType;
+    reviewable_id: string;
+    project_id: string | null;
+    overall_rating: number;       // 1-5
+    title: string | null;
+    body: string;
+    is_verified_interaction: boolean;
+    verification_context: Record<string, unknown> | null;
+    status: ReviewStatus;
+    edit_count: number;
+    edited_at: Date | null;
+    helpful_count: number;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface ReviewRating {
+    id: string;
+    review_id: string;
+    dimension_id: number;
+    score: number;                // 1-5
+}
+
+export interface ReviewResponse {
+    response_id: string;
+    review_id: string;
+    responder_id: string;
+    body: string;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface ReviewFlag {
+    flag_id: string;
+    review_id: string;
+    reporter_id: string;
+    reason: FlagReason;
+    description: string | null;
+    status: FlagStatus;
+    reviewed_by: string | null;
+    reviewed_at: Date | null;
+    created_at: Date;
+}
+
+export interface ReviewAggregate {
+    reviewable_type: ReviewableType;
+    reviewable_id: string;
+    total_reviews: number;
+    average_rating: number;
+    verified_reviews: number;
+    dimension_averages: Record<string, number>;
+    rating_distribution: Record<string, number>;
+    trust_score: number;
+    last_review_at: Date | null;
+    recalculated_at: Date;
+}
+
+// ─── Review DTOs ────────────────────────────────────────────────────────────
+
+export interface CreateReviewDTO {
+    reviewable_type: ReviewableType;
+    reviewable_id: string;
+    project_id?: string;
+    overall_rating: number;
+    title?: string;
+    body: string;
+    ratings: Array<{
+        dimension_key: string;
+        score: number;
+    }>;
+}
+
+export interface UpdateReviewDTO {
+    overall_rating?: number;
+    title?: string;
+    body?: string;
+    ratings?: Array<{
+        dimension_key: string;
+        score: number;
+    }>;
+}
+
+export interface CreateResponseDTO {
+    body: string;
+}
+
+export interface FlagReviewDTO {
+    reason: FlagReason;
+    description?: string;
+}
+
+// ─── Review View Interfaces ─────────────────────────────────────────────────
+
+export interface ReviewWithDetails extends Review {
+    reviewer_name: string;
+    reviewer_avatar_url: string | null;
+    ratings: Array<{
+        dimension_key: string;
+        label_en: string;
+        label_ar: string;
+        score: number;
+    }>;
+    response: Pick<ReviewResponse, 'response_id' | 'body' | 'created_at'> & {
+        responder_name: string;
+    } | null;
+    viewer_vote: boolean | null;  // helpful vote from current viewer
+}
+
+export interface ReviewAggregateView extends ReviewAggregate {
+    dimensions: Array<{
+        dimension_key: string;
+        label_en: string;
+        label_ar: string;
+        average: number;
+        weight: number;
+    }>;
+}
+
+// ─── ABAC System (Migration 030) ────────────────────────────────────────────
+
+export type CredentialStatus = 'pending' | 'valid' | 'expired' | 'suspended' | 'revoked';
+
+export type CredentialType =
+    | 'insurance'
+    | 'commercial_license'
+    | 'engineering_license'
+    | 'commercial_register'
+    | 'guild_membership'
+    | 'certification'
+    | 'verification';
+
+export type AbacPolicyKey =
+    | 'contractor:bid'
+    | 'contractor:manage_project'
+    | 'engineer:assess'
+    | 'engineer:verify_proof'
+    | 'supplier:fulfill_order'
+    | 'supplier:manage_catalog'
+    | 'tradesperson:accept_job'
+    | 'tradesperson:respond_assignment';
+
+export interface CredentialCheckResult {
+    passed: boolean;
+    failures: Array<{
+        credential: string;
+        reason: string;      // e.g. "Insurance expired on 2025-12-01"
+        reason_ar: string;   // Arabic translation
+    }>;
+}
+
+export interface CredentialAuditEntry {
+    log_id: string;
+    user_id: string;
+    credential_type: CredentialType;
+    old_status: string | null;
+    new_status: string;
+    old_expiry: Date | null;
+    new_expiry: Date | null;
+    changed_by: string | null;
+    reason: string | null;
+    metadata: Record<string, unknown> | null;
+    created_at: Date;
+}
+
+// ─── Privacy Controls (Migration 031) ───────────────────────────────────────
+
+export type PrivacyVisibility = 'public' | 'project_members' | 'private';
+
+export type ViewerContext = 'self' | 'project_member' | 'public';
+
+/** Field name → visibility tier mapping for a single role */
+export type PrivacyFieldSettings = Record<string, PrivacyVisibility>;
+
+/** Full privacy settings: role → field → visibility */
+export type PrivacySettingsMap = Record<string, PrivacyFieldSettings>;
+
+export interface PrivacySettings {
+    user_id: string;
+    settings: PrivacySettingsMap;
+    consent_version: number;
+    consent_given_at: Date;
+    last_reviewed_at: Date | null;
+    created_at: Date;
+    updated_at: Date;
+}
+
+// ─── Impact Communications (Migration 032) ──────────────────────────────────
+
+export type ImpactEventType =
+    | 'donation_received'
+    | 'contractor_assigned'
+    | 'construction_started'
+    | 'milestone_completed'
+    | 'photo_proof_added'
+    | 'escrow_released'
+    | 'project_completed';
+
+export interface ImpactMessage {
+    message_id: string;
+    donor_id: string;
+    project_id: string | null;
+    event_type: ImpactEventType;
+    title_en: string;
+    title_ar: string;
+    body_en: string;
+    body_ar: string;
+    metadata: Record<string, unknown>;
+    read_at: Date | null;
+    created_at: Date;
+}

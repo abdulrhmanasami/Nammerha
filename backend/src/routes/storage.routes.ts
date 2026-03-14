@@ -5,7 +5,7 @@ import { getAuthUser } from '../utils/auth-guard';
 // SEC-001 FIX: All project-scoped endpoints now verify ownership.
 // ============================================================================
 import { Router, Request, Response, NextFunction } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { query } from '../config/database';
 import {
@@ -21,7 +21,9 @@ import { logger } from '../utils/logger';
 const router = Router();
 
 // All storage routes require authentication
+// FIX-003: Added requireActive — deactivated/unverified users must not upload files.
 router.use(authMiddleware);
+router.use(requireActive);
 
 // ─── SEC-001 FIX: Project-Ownership Verification ───────────────────────────
 // Prevents IDOR: only the homeowner, assigned engineer, or admin/auditor

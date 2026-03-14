@@ -243,7 +243,7 @@ router.get(
                 data: payments,
             });
         } catch (error) {
-            safeRouteError(res, error, 'Payment.Refund');
+            safeRouteError(res, error, 'Payment.History');
         }
     }
 );

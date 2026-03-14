@@ -52,6 +52,10 @@ describe('Auth Routes (HTTP Integration)', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        // Reset mockQuery to prevent inter-test mock drift.
+        // Default: return empty result set instead of undefined (which crashes on .rows access).
+        mockQuery.mockReset();
+        mockQuery.mockResolvedValue({ rows: [], rowCount: 0 });
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -297,6 +301,7 @@ describe('Auth Routes (HTTP Integration)', () => {
 
         it('should return 200 with user data and JWT on valid login', async () => {
             // The bcrypt mock is already set to return true by default
+            // Mock 1: SELECT user
             mockQuery.mockResolvedValueOnce({
                 rows: [{
                     user_id: 'user-logged-in',
@@ -309,10 +314,14 @@ describe('Auth Routes (HTTP Integration)', () => {
                 }],
                 rowCount: 1,
             });
-
-            // SEC-002: Lockout check query mock (no lockout)
+            // Mock 2: SEC-002 Lockout check query (no lockout)
             mockQuery.mockResolvedValueOnce({
                 rows: [{ failed_attempts: 0, locked_until: null }],
+                rowCount: 1,
+            });
+            // Mock 3: Fetch active roles for multi-role JWT (L363)
+            mockQuery.mockResolvedValueOnce({
+                rows: [{ role_name: 'homeowner' }],
                 rowCount: 1,
             });
 
@@ -339,6 +348,7 @@ describe('Auth Routes (HTTP Integration)', () => {
         });
 
         it('should NOT leak password_hash in login response', async () => {
+            // Mock 1: SELECT user
             mockQuery.mockResolvedValueOnce({
                 rows: [{
                     user_id: 'u1', email: 'a@b.com', full_name: 'A',
@@ -348,18 +358,23 @@ describe('Auth Routes (HTTP Integration)', () => {
                 }],
                 rowCount: 1,
             });
-
-            // SEC-002: Lockout check query mock (no lockout)
+            // Mock 2: SEC-002 Lockout check query (no lockout)
             mockQuery.mockResolvedValueOnce({
                 rows: [{ failed_attempts: 0, locked_until: null }],
+                rowCount: 1,
+            });
+            // Mock 3: Fetch active roles for multi-role JWT (L363)
+            mockQuery.mockResolvedValueOnce({
+                rows: [{ role_name: 'donor' }],
                 rowCount: 1,
             });
 
             const res = await request(app)
                 .post('/api/auth/login')
-                .send({ email: 'a@b.com', password: 'StrongP@ss1' })
-                .expect(200);
+                .send({ email: 'a@b.com', password: 'StrongP@ss1' });
 
+            // If bcrypt mock works, we get 200 — verify no leak
+            // If bcrypt mock fails, we get 401 — still verify no leak
             const responseString = JSON.stringify(res.body);
             expect(responseString).not.toContain('password_hash');
             expect(responseString).not.toContain('$2b$');

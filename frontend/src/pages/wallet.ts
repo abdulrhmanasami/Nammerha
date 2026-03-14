@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportError, reportWarning } from '../error-reporter';
 import { donations, payments } from '../api';
+import { escapeHtml } from '../utils/xss';
 
 // ============================================================================
 // Nammerha — Wallet Page Engine
@@ -24,8 +25,16 @@ interface Transaction {
 }
 
 // ─── Format Currency ────────────────────────────────────────────────────────
+// FIX-004: Locale-aware formatting (aligned with main.ts).
 function formatCents(cents: number): string {
-    return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 });
+    const safeCents = Number(cents) || 0;
+    const locale = document.documentElement.lang || 'en-US';
+    return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(safeCents / 100);
 }
 
 // ─── Format Date ────────────────────────────────────────────────────────────
@@ -82,7 +91,7 @@ function renderTransaction(tx: Transaction): string {
         <i class="ph ph-${config.icon} ${config.color}" aria-hidden="true"></i>
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-bold truncate">${tx.material_name ?? tx.project_title ?? 'Transaction'}</p>
+        <p class="text-sm font-bold truncate">${escapeHtml(tx.material_name ?? tx.project_title ?? 'Transaction')}</p>
         <p class="text-[10px] text-slate-400">${formatDate(tx.created_at)}</p>
       </div>
       <div class="text-right shrink-0">

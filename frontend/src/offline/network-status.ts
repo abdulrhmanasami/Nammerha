@@ -1,0 +1,205 @@
+// ============================================================================
+// Nammerha — Network Status Bar (Self-Injecting Component)
+// ============================================================================
+// Bilingual (EN/AR) floating status bar that shows:
+//   - "Offline" warning when disconnected
+//   - "Syncing..." when replaying queued requests
+//   - "Online" confirmation that auto-fades
+//   - SW update notification with refresh button
+//
+// Follows the Self-Injecting Component pattern:
+//   import './offline/network-status';  // Just import — auto-mounts
+// ============================================================================
+
+import { listenToServiceWorker, initNetworkListeners, isOnline } from './sw-register';
+import { getPendingCount, replayQueue } from './offline-queue';
+
+const STATUS_BAR_ID = 'nammerha-network-status';
+
+// Bilingual messages
+const MESSAGES = {
+    offline: {
+        en: 'You are offline — changes will sync when connection returns',
+        ar: 'أنت غير متصل — ستُزامَن التغييرات عند عودة الاتصال',
+    },
+    syncing: {
+        en: 'Syncing offline changes...',
+        ar: 'جارٍ مزامنة التغييرات...',
+    },
+    online: {
+        en: 'Back online',
+        ar: 'متصل مجدداً',
+    },
+    syncSuccess: {
+        en: 'All changes synced successfully',
+        ar: 'تمت مزامنة جميع التغييرات بنجاح',
+    },
+    syncFailed: {
+        en: 'Some changes could not be synced',
+        ar: 'لم يتم مزامنة بعض التغييرات',
+    },
+    swUpdate: {
+        en: 'New version available — ',
+        ar: 'نسخة جديدة متاحة — ',
+    },
+    refresh: {
+        en: 'Refresh',
+        ar: 'تحديث',
+    },
+    pending: {
+        en: 'pending changes',
+        ar: 'تغييرات معلقة',
+    },
+} as const;
+
+type StatusType = 'offline' | 'syncing' | 'online' | 'syncSuccess' | 'syncFailed' | 'swUpdate';
+
+function getLocale(): 'en' | 'ar' {
+    const lang = document.documentElement.lang || 'en';
+    return lang.startsWith('ar') ? 'ar' : 'en';
+}
+
+function createStatusBar(): HTMLElement {
+    const existing = document.getElementById(STATUS_BAR_ID);
+    if (existing) {
+        return existing;
+    }
+
+    const bar = document.createElement('div');
+    bar.id = STATUS_BAR_ID;
+    bar.className = 'network-status-bar';
+    bar.setAttribute('role', 'alert');
+    bar.setAttribute('aria-live', 'polite');
+    document.body.appendChild(bar);
+    return bar;
+}
+
+function showStatus(type: StatusType, autoHideMs?: number): void {
+    const bar = createStatusBar();
+    const locale = getLocale();
+    const isRtl = locale === 'ar';
+
+    bar.dir = isRtl ? 'rtl' : 'ltr';
+    bar.className = `network-status-bar network-status--${type}`;
+
+    if (type === 'swUpdate') {
+        const msg = MESSAGES.swUpdate[locale];
+        const refreshLabel = MESSAGES.refresh[locale];
+        bar.innerHTML = `
+            <span class="network-status__icon">🔄</span>
+            <span class="network-status__text">${msg}</span>
+            <button class="network-status__action" onclick="location.reload()">${refreshLabel}</button>
+        `;
+    } else {
+        const icons: Record<StatusType, string> = {
+            offline: '⚡',
+            syncing: '🔄',
+            online: '✅',
+            syncSuccess: '✅',
+            syncFailed: '⚠️',
+            swUpdate: '🔄',
+        };
+        bar.innerHTML = `
+            <span class="network-status__icon">${icons[type]}</span>
+            <span class="network-status__text">${MESSAGES[type][locale]}</span>
+        `;
+    }
+
+    bar.classList.add('network-status--visible');
+
+    if (autoHideMs) {
+        setTimeout(() => {
+            bar.classList.remove('network-status--visible');
+        }, autoHideMs);
+    }
+}
+
+function hideStatus(): void {
+    const bar = document.getElementById(STATUS_BAR_ID);
+    if (bar) {
+        bar.classList.remove('network-status--visible');
+    }
+}
+
+// ─── Initialize: Wire up all event listeners ────────────────────────────────
+function init(): void {
+    // Network listeners (emits nammerha:online / nammerha:offline events)
+    initNetworkListeners();
+
+    // Show initial state if offline
+    if (!isOnline()) {
+        showStatus('offline');
+    }
+
+    // Online → sync queued requests
+    document.addEventListener('nammerha:online', async () => {
+        const pendingCount = await getPendingCount();
+
+        if (pendingCount > 0) {
+            showStatus('syncing');
+            const result = await replayQueue();
+            if (result.failed === 0) {
+                showStatus('syncSuccess', 3000);
+            } else {
+                showStatus('syncFailed', 5000);
+            }
+        } else {
+            showStatus('online', 2000);
+        }
+    });
+
+    // Offline → show warning
+    document.addEventListener('nammerha:offline', () => {
+        showStatus('offline');
+    });
+
+    // SW messages (Background Sync results)
+    listenToServiceWorker((msg) => {
+        switch (msg.type) {
+            case 'sync-success':
+                showStatus('syncSuccess', 3000);
+                break;
+            case 'sync-failed':
+                showStatus('syncFailed', 5000);
+                break;
+        }
+    });
+
+    // SW update notification
+    document.addEventListener('nammerha:sw-updated', () => {
+        showStatus('swUpdate');
+    });
+
+    // Periodic pending count check (update badge if bar is visible)
+    setInterval(async () => {
+        if (!isOnline()) {
+            const count = await getPendingCount();
+            if (count > 0) {
+                const bar = document.getElementById(STATUS_BAR_ID);
+                if (bar) {
+                    const locale = getLocale();
+                    const badge = bar.querySelector('.network-status__badge');
+                    const badgeText = `${count} ${MESSAGES.pending[locale]}`;
+                    if (badge) {
+                        badge.textContent = badgeText;
+                    } else {
+                        const span = document.createElement('span');
+                        span.className = 'network-status__badge';
+                        span.textContent = badgeText;
+                        bar.appendChild(span);
+                    }
+                }
+            }
+        }
+    }, 10_000);
+}
+
+// Self-inject on DOM ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// Re-export hide for programmatic use
+export { hideStatus, showStatus };
