@@ -116,7 +116,7 @@
       </div>
       <!-- Role Selection -->
       <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="your_role">Your Role</label>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"><span data-i18n="your_role">Your Role</span> <span class="text-red-500">*</span></label>
         <div class="grid grid-cols-2 gap-3" id="role-grid">
           <button type="button" class="role-card glass-card p-3 rounded-xl flex flex-col items-center text-center gap-1.5 transition-all" data-role="homeowner">
             <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
@@ -156,9 +156,10 @@
             <span class="text-[11px] font-bold text-slate-700" data-i18n="role_tradesperson">Tradesperson</span>
           </button>
         </div>
+        <p id="role-validation-msg" class="text-xs text-red-500 font-medium mt-2" style="display:none" data-i18n="auth_select_role_required">Please select your role to continue</p>
       </div>
       <!-- Submit -->
-      <button type="submit" id="reg-submit" class="btn-primary mt-2" disabled>
+      <button type="submit" id="reg-submit" class="btn-primary mt-2">
         <i class="ph ph-user-plus" aria-hidden="true"></i>
         <span id="reg-submit-text" data-i18n="create_account_btn">Create Account</span>
       </button>

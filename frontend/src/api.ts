@@ -172,10 +172,13 @@ export const marketplace = {
 
 // ─── Donations (Path 2 — Authenticated) ─────────────────────────────────────
 export const donations = {
+    // NMR-AUD-M003 FIX: Added return_url to match backend CreateDonationDTO.
     create: (data: {
         items: Array<{ item_id: string; amount: number }>;
         // F-001 FIX: Typed to match CreateDonationDTO.payment_method (backend)
         payment_method?: 'visa' | 'fatora';
+        /** NMR-AUD-M003: Payment gateway redirect URL (falls back to server default) */
+        return_url?: string;
     }) => request('/donations', { method: 'POST', body: JSON.stringify(data) }),
 
     getMyEscrow: () => request('/donations/my/summary'),
@@ -201,8 +204,14 @@ export const spatialProof = {
 
 // ─── Admin (Path 4) ─────────────────────────────────────────────────────────
 export const admin = {
-    getPendingVerifications: () =>
-        request('/admin/verifications/pending'),
+    // NMR-AUD-M002 FIX: Added pagination to match backend support.
+    getPendingVerifications: (params?: { limit?: number; offset?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.limit) { qs.set('limit', String(params.limit)); }
+        if (params?.offset) { qs.set('offset', String(params.offset)); }
+        const q = qs.toString();
+        return request(`/admin/verifications/pending${q ? `?${q}` : ''}`);
+    },
 
     releaseEscrow: (data: { proof_id: string; item_id: string }) =>
         request('/admin/escrow/release', {
@@ -299,8 +308,14 @@ export const payments = {
     getStatus: (reference: string) =>
         request(`/payments/status/${reference}`),
 
-    getMyPayments: () =>
-        request('/payments/my'),
+    // NMR-AUD-M002 FIX: Added pagination to match backend support.
+    getMyPayments: (params?: { limit?: number; offset?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.limit) { qs.set('limit', String(params.limit)); }
+        if (params?.offset) { qs.set('offset', String(params.offset)); }
+        const q = qs.toString();
+        return request(`/payments/my${q ? `?${q}` : ''}`);
+    },
 };
 
 // ─── Matchmaking ────────────────────────────────────────────────────────────
@@ -991,9 +1006,14 @@ export const contractor = {
     getProfile: () =>
         request<ContractorProfile>('/contractor/profile'),
 
-    /** GET /api/contractor/payments — My escrow payments */
-    getPayments: () =>
-        request<ContractorPayment[]>('/contractor/payments'),
+    // NMR-AUD-M002 FIX: Added pagination to match backend support.
+    getPayments: (params?: { limit?: number; offset?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.limit) { qs.set('limit', String(params.limit)); }
+        if (params?.offset) { qs.set('offset', String(params.offset)); }
+        const q = qs.toString();
+        return request<ContractorPayment[]>(`/contractor/payments${q ? `?${q}` : ''}`);
+    },
 
     /** POST /api/contractor/bids — Submit a competitive bid */
     submitBid: (data: {

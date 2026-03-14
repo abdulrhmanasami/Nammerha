@@ -128,6 +128,8 @@ regPassword?.addEventListener('input', () => {
 
 // ─── Role Selection ─────────────────────────────────────────────────────────
 const roleCards = document.querySelectorAll<HTMLButtonElement>('.role-card');
+const roleGrid = document.getElementById('role-grid');
+const roleValidationMsg = document.getElementById('role-validation-msg');
 
 roleCards.forEach((card) => {
     card.addEventListener('click', () => {
@@ -138,6 +140,9 @@ roleCards.forEach((card) => {
         // Select clicked
         card.classList.add('glass-card-active');
         state.selectedRole = (card.dataset.role as UserRole) ?? null;
+        // FIX-REG-002: Clear role validation error on selection
+        if (roleGrid) { roleGrid.style.outline = ''; }
+        if (roleValidationMsg) { roleValidationMsg.style.display = 'none'; }
         updateRegisterButton();
     });
 });
@@ -152,13 +157,75 @@ function updateRegisterButton(): void {
     const password = regPassword?.value ?? '';
 
     const valid = Boolean(name) && Boolean(email) && password.length >= 8 && state.selectedRole !== null;
-    regSubmit.disabled = !valid;
+    // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
+    // The button is ALWAYS clickable so the submit handler can show validation feedback.
+    regSubmit.style.opacity = valid ? '1' : '0.6';
 }
 
 // Listen for all register form inputs
 ['reg-name', 'reg-email'].forEach((id) => {
     document.getElementById(id)?.addEventListener('input', updateRegisterButton);
 });
+
+// Initialize button opacity
+updateRegisterButton();
+
+/**
+ * FIX-REG-003: Validate all register fields and show clear feedback.
+ * Returns true if all fields are valid, false otherwise.
+ * Scrolls to and highlights the first invalid field.
+ */
+function validateRegisterForm(): boolean {
+    const nameInput = document.getElementById('reg-name') as HTMLInputElement | null;
+    const emailInput = document.getElementById('reg-email') as HTMLInputElement | null;
+    const passwordInput = document.getElementById('reg-password') as HTMLInputElement | null;
+
+    // Check name
+    if (!nameInput?.value.trim()) {
+        showBanner('error', t('auth_name_required', 'Please enter your full name.'));
+        nameInput?.focus();
+        return false;
+    }
+
+    // Check email
+    if (!emailInput?.value.trim()) {
+        showBanner('error', t('auth_email_required', 'Please enter your email address.'));
+        emailInput?.focus();
+        return false;
+    }
+
+    // Check password length
+    const password = passwordInput?.value ?? '';
+    if (password.length < 8) {
+        showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
+        passwordInput?.focus();
+        return false;
+    }
+
+    // Check password complexity
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+        showBanner('error', t('auth_password_complexity', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
+        passwordInput?.focus();
+        return false;
+    }
+
+    // FIX-REG-001: Check role selection — THE PRIMARY ROOT CAUSE
+    if (!state.selectedRole) {
+        showBanner('error', t('auth_select_role', 'Please select your role to continue.'));
+        // Highlight role grid with red border
+        if (roleGrid) {
+            roleGrid.style.outline = '2px solid #ef4444';
+            roleGrid.style.outlineOffset = '4px';
+            roleGrid.style.borderRadius = '12px';
+            roleGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        // Show inline validation message
+        if (roleValidationMsg) { roleValidationMsg.style.display = 'block'; }
+        return false;
+    }
+
+    return true;
+}
 
 // ─── Form Submission: LOGIN ─────────────────────────────────────────────────
 formLogin?.addEventListener('submit', async (e) => {
@@ -220,27 +287,16 @@ formLogin?.addEventListener('submit', async (e) => {
 formRegister?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (state.isSubmitting) { return; }
-    if (!state.selectedRole) {
-        showBanner('error', t('auth_select_role', 'Please select your role.'));
-        return;
-    }
+
+    // FIX-REG-003: Comprehensive validation with clear per-field feedback
+    if (!validateRegisterForm()) { return; }
 
     const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
 
     if (!full_name || !email || !password) {
-        showBanner('error', 'Please fill in all required fields.');
-        return;
-    }
-
-    if (password.length < 8) {
-        showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
-        return;
-    }
-
-    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-        showBanner('error', t('auth_password_weak', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
+        showBanner('error', t('auth_fill_all_fields', 'Please fill in all required fields.'));
         return;
     }
 
@@ -254,7 +310,7 @@ formRegister?.addEventListener('submit', async (e) => {
             email,
             password,
             full_name,
-            role: state.selectedRole,
+            role: state.selectedRole!, // Safe: validateRegisterForm() guarantees non-null
         });
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.

@@ -326,7 +326,8 @@ describe('Auth Routes (HTTP Integration)', () => {
                 expect(res.body.success).toBe(true);
                 expect(res.body.data.user.user_id).toBe('user-logged-in');
                 expect(res.body.data.user.role).toBe('homeowner');
-                expect(res.body.data.token).toBeDefined();
+                // NMR-AUD-H001: Token must NOT be in response body (httpOnly cookie only)
+                expect(res.body.data.token).toBeUndefined();
                 // Ensure password_hash is NOT leaked in response
                 expect(res.body.data.user.password_hash).toBeUndefined();
             } else {

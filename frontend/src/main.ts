@@ -109,8 +109,14 @@ async function loadFeaturedProjects(): Promise<void> {
             carousel.innerHTML = (response.data as ProjectCard[])
                 .map((p, i) => buildProjectCard(p, i))
                 .join('');
+        } else {
+            // NMR-AUD-H002 FIX: Show empty state instead of infinite skeleton.
+            // Previous code kept the skeleton visible when API returned empty data.
+            const skeleton = document.getElementById('projects-skeleton');
+            const empty = document.getElementById('projects-empty');
+            if (skeleton) { skeleton.remove(); }
+            if (empty) { empty.classList.remove('hidden'); }
         }
-        // If API returns empty or fails, keep the static HTML fallback
     } catch (err) {
         reportWarning('[Dashboard] Featured projects load failed, keeping static fallback', { component: 'main', action: 'load_featured', error: err instanceof Error ? err.message : String(err) });
     }

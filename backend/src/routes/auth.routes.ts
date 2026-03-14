@@ -10,6 +10,7 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { query } from '../config/database';
 import { generateToken, authMiddleware } from '../middleware/auth.middleware';
@@ -340,6 +341,10 @@ router.post(
                 path: '/',
             });
 
+            // NMR-AUD-H001 FIX: JWT is NO LONGER returned in the response body.
+            // The httpOnly cookie migration is complete — the frontend uses
+            // credentials: 'same-origin' exclusively. Removing the body token
+            // eliminates the XSS token theft vector entirely.
             res.json({
                 success: true,
                 data: {
@@ -351,9 +356,6 @@ router.post(
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                     },
-                    // V1-AUDIT: token still in body for backward compat during migration.
-                    // Frontend will stop reading this — auth is via httpOnly cookie.
-                    token,
                 },
             } as ApiResponse);
         } catch (error) {
@@ -678,10 +680,46 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
 });
 
 // ─── POST /api/auth/logout ──────────────────────────────────────────────────
-// V1-AUDIT FIX: Server-side cookie clearance. The frontend cannot clear an
-// httpOnly cookie — only the server can. This endpoint clears the JWT cookie
-// to terminate the session.
-router.post('/logout', (_req: Request, res: Response): void => {
+// V1-AUDIT FIX: Server-side cookie clearance + NMR-AUD-M004 FIX: Token invalidation.
+//
+// Two-layer defense:
+//   1. Set token_invalidated_at = NOW() in the database (invalidates any
+//      already-captured or in-flight JWT tokens immediately)
+//   2. Clear the httpOnly cookie (prevents future browser-sent requests)
+//
+// IMPORTANT: This route does NOT use authMiddleware. If the JWT is expired or
+// malformed, authMiddleware would return 401 and the cookie would never be
+// cleared — trapping the user in a logout loop. Instead, we use "soft auth":
+// attempt to extract the user_id from the token, but always clear the cookie
+// regardless of whether the token is valid.
+router.post('/logout', async (req: Request, res: Response): Promise<void> => {
+    // NMR-AUD-M004 FIX: Soft-auth token invalidation.
+    // Try to decode the JWT to get the user_id and invalidate all their tokens.
+    // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
+    try {
+        const token = req.cookies?.['nammerha_jwt'] as string | undefined;
+        if (token) {
+            // Decode WITHOUT verification — we only need the user_id.
+            // The token is about to be invalidated anyway; verifying it first
+            // would just block logout for users with expired tokens.
+            const decoded = jwt.decode(token) as { sub?: string; user_id?: string } | null;
+            const userId = decoded?.sub ?? decoded?.user_id;
+            if (userId) {
+                await query(
+                    'UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1',
+                    [userId]
+                );
+                logger.info('Auth: Token invalidated on logout', { userId });
+            }
+        }
+    } catch (err) {
+        // Non-fatal: cookie will still be cleared below.
+        // The token will expire naturally within 24h even if invalidation fails.
+        logger.error('Auth: Failed to invalidate token on logout', {
+            error: err instanceof Error ? err.message : String(err),
+        });
+    }
+
     res.clearCookie('nammerha_jwt', {
         httpOnly: true,
         secure: process.env['NODE_ENV'] === 'production',

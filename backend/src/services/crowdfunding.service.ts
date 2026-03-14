@@ -561,10 +561,19 @@ export async function getDonorDonations(
  * List all verified, active suppliers for the engineer BOQ picker.
  * Per strategic study §7.2: engineers select pre-assigned suppliers when adding BOQ items.
  * Per strategic study §7.1: donors see supplier name in the basket UI for transparency.
+ *
+ * NMR-AUD-M001 FIX: Added pagination to prevent unbounded PII exposure.
  */
-export async function getVerifiedSuppliers(): Promise<
+export async function getVerifiedSuppliers(
+    limit = 100,
+    offset = 0,
+): Promise<
     { user_id: string; full_name: string; commercial_register_number: string | null }[]
 > {
+    // Clamp limit to prevent abuse (max 500, min 1)
+    const safeLim = Math.min(Math.max(Number(limit) || 100, 1), 500);
+    const safeOff = Math.max(Number(offset) || 0, 0);
+
     const result = await query<{
         user_id: string;
         full_name: string;
@@ -576,7 +585,8 @@ export async function getVerifiedSuppliers(): Promise<
            AND is_active = TRUE
            AND kyc_verification_status = 'verified'
          ORDER BY full_name ASC
-         LIMIT 500`
+         LIMIT $1 OFFSET $2`,
+        [safeLim, safeOff]
     );
     return result.rows;
 }
