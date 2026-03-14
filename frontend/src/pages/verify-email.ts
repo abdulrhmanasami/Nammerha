@@ -1,33 +1,14 @@
 import '../styles/main.css';
 import { auth } from '../api';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Email Verification Landing Page
 // PLT-AUD-006 FIX: User-friendly verification result display
 // PLT-MAR11-006 FIX: Uses centralized API client instead of raw fetch
 // I18N-001 FIX: All user-facing strings wrapped with i18n t()
+// FIX-004: i18n interface now from shared utils/i18n.ts
 // ============================================================================
-
-// ─── i18n ───────────────────────────────────────────────────────────────────
-interface NammerhaI18nApi {
-    switchLanguage: (code: string) => void;
-    getCurrentLang: () => string;
-    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
-    t: (key: string, fallback?: string) => string;
-}
-declare global {
-    interface Window {
-        NammerhaI18n?: NammerhaI18nApi;
-    }
-}
-
-/** Safe i18n lookup — returns fallback if engine not yet loaded */
-function t(key: string, fallback: string): string {
-    if (typeof window.NammerhaI18n?.t === 'function') {
-        return window.NammerhaI18n.t(key, fallback) ?? fallback;
-    }
-    return fallback;
-}
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const iconContainer = document.getElementById('verify-icon-container');

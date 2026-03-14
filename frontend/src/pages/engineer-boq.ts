@@ -2,6 +2,8 @@ import '../styles/main.css';
 import { reportError } from '../error-reporter';
 import { projects, epaOracle, marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
+import { formatCents } from '../utils/format';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Engineer BOQ Builder Page Engine
@@ -45,10 +47,7 @@ function getProjectId(): string | null {
     return params.get('project');
 }
 
-// ─── Format Currency ────────────────────────────────────────────────────────
-function formatCents(cents: number): string {
-    return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+// HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
 // ─── Calculate Total ────────────────────────────────────────────────────────
 function calculateTotal(): number {
@@ -60,7 +59,7 @@ function calculateTotal(): number {
 // ─── Update Footer Summary ──────────────────────────────────────────────────
 function updateSummary(): void {
     if (itemCountBadge) {
-        itemCountBadge.textContent = `${state.items.length} Item${state.items.length !== 1 ? 's' : ''}`;
+        itemCountBadge.textContent = `${state.items.length} ${t('boq_items', state.items.length !== 1 ? 'Items' : 'Item')}`;
     }
     if (totalEstimate) {
         totalEstimate.textContent = formatCents(calculateTotal());
@@ -79,8 +78,8 @@ function renderItem(item: BOQItem, index: number): string {
     const icon = iconMap[item.material_category] ?? 'cube';
     const totalCostCents = item.unit_price * item.required_quantity;
     const oracleDisplay = item.oracle_price
-        ? `Oracle: ${formatCents(item.oracle_price)}/${item.unit}`
-        : 'No oracle price';
+        ? `${t('boq_oracle', 'Oracle')}: ${formatCents(item.oracle_price)}/${item.unit}`
+        : t('boq_no_oracle_price', 'No oracle price');
 
     return `
     <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 animate-fade-in-up" data-index="${index}">
@@ -97,7 +96,7 @@ function renderItem(item: BOQItem, index: number): string {
         </div>
         <div class="flex items-center justify-between mt-2">
           <div class="flex flex-col">
-            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">Estimated</p>
+            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">${t('boq_estimated', 'Estimated')}</p>
             <p class="text-trust-blue text-base font-bold">${esc(formatCents(totalCostCents))}</p>
           </div>
           <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
@@ -121,8 +120,8 @@ function renderAllItems(): void {
         itemsContainer.innerHTML = `
         <div class="text-center py-16">
           <i class="ph ph-clipboard-text text-slate-300" style="font-size:64px" aria-hidden="true"></i>
-          <p class="text-slate-500 font-bold mt-4">No materials added yet</p>
-          <p class="text-slate-400 text-sm mt-1">Search for materials above to build your BOQ</p>
+          <p class="text-slate-500 font-bold mt-4">${t('boq_no_materials', 'No materials added yet')}</p>
+          <p class="text-slate-400 text-sm mt-1">${t('boq_search_hint', 'Search for materials above to build your BOQ')}</p>
         </div>`;
         return;
     }
@@ -244,7 +243,7 @@ publishBtn?.addEventListener('click', async () => {
     state.isPublishing = true;
     if (publishBtn) {
         publishBtn.disabled = true;
-        publishBtn.innerHTML = '<i class="ph ph-spinner ph-lg animate-spin" aria-hidden="true"></i> Publishing...';
+        publishBtn.innerHTML = `<i class="ph ph-spinner ph-lg animate-spin" aria-hidden="true"></i> ${t('boq_publishing', 'Publishing...')}`;
     }
 
     try {
@@ -265,7 +264,7 @@ publishBtn?.addEventListener('click', async () => {
         await projects.publish(state.projectId);
 
         if (publishBtn) {
-            publishBtn.innerHTML = '<i class="ph ph-check-circle" aria-hidden="true"></i> Published!';
+            publishBtn.innerHTML = `<i class="ph ph-check-circle" aria-hidden="true"></i> ${t('boq_published', 'Published!')}`;
             publishBtn.classList.remove('btn-primary');
             publishBtn.classList.add('btn-jade');
         }
@@ -274,11 +273,16 @@ publishBtn?.addEventListener('click', async () => {
             window.location.href = `/project-details.html?project=${state.projectId}`;
         }, 1200);
     } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to publish';
-        alert(message);
+        const message = err instanceof Error ? err.message : t('boq_publish_failed', 'Failed to publish');
+        // HIGH-002 FIX: Replace alert() with inline error banner
+        const errDiv = document.createElement('div');
+        errDiv.className = 'fixed bottom-20 left-4 right-4 rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 shadow-lg z-50 animate-fade-in-up';
+        errDiv.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${esc(message)}`;
+        document.body.appendChild(errDiv);
+        setTimeout(() => errDiv.remove(), 5000);
         if (publishBtn) {
             publishBtn.disabled = false;
-            publishBtn.innerHTML = '<i class="ph ph-upload" aria-hidden="true"></i> Publish to Marketplace';
+            publishBtn.innerHTML = `<i class="ph ph-upload" aria-hidden="true"></i> ${t('boq_publish_to_marketplace', 'Publish to Marketplace')}`;
         }
     } finally {
         state.isPublishing = false;

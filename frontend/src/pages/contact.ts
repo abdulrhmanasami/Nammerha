@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { contact } from '../api';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Contact Page Engine
@@ -7,28 +8,8 @@ import { contact } from '../api';
 // SEC-003 FIX: Migrated from raw fetch() to centralized api.ts — gains CSRF,
 //              AbortController timeout, and unified error reporting.
 // I18N-002 FIX: All user-facing strings wrapped with i18n t().
+// FIX-004: i18n interface now from shared utils/i18n.ts
 // ============================================================================
-
-// ─── i18n ───────────────────────────────────────────────────────────────────
-interface NammerhaI18nApi {
-    switchLanguage: (code: string) => void;
-    getCurrentLang: () => string;
-    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
-    t: (key: string, fallback?: string) => string;
-}
-declare global {
-    interface Window {
-        NammerhaI18n?: NammerhaI18nApi;
-    }
-}
-
-/** Safe i18n lookup — returns fallback if engine not yet loaded */
-function t(key: string, fallback: string): string {
-    if (typeof window.NammerhaI18n?.t === 'function') {
-        return window.NammerhaI18n.t(key, fallback) ?? fallback;
-    }
-    return fallback;
-}
 
 // ─── DOM ────────────────────────────────────────────────────────────────────
 const form = document.getElementById('contact-form') as HTMLFormElement | null;

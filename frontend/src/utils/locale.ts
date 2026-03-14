@@ -36,18 +36,11 @@ export function formatDate(iso: string | null | undefined): string {
 }
 
 /**
- * Formats a number of cents as a localized currency string.
- * Returns '$0' for null/undefined/NaN.
+ * MED-003 FIX: formatCents re-exported from format.ts (single source of truth).
+ * Previously had a local copy here with slightly different signature.
+ * Backward-compatible: existing `import { formatCents } from '../utils/locale'` still works.
  */
-export function formatCents(cents: number | null | undefined, currency = 'USD'): string {
-    const safeCents = Number(cents) || 0;
-    return new Intl.NumberFormat(getLocale(), {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(safeCents / 100);
-}
+export { formatCents } from './format';
 
 /**
  * Re-applies the i18n engine to dynamically inserted DOM content.

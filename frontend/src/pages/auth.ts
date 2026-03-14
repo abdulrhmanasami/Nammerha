@@ -1,28 +1,9 @@
 import '../styles/main.css';
 import { auth } from '../api';
+import { t } from '../utils/i18n';
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
-
-// PLT-AUD-010: Type-safe i18n runtime lookup
-interface NammerhaI18nApi {
-    switchLanguage: (code: string) => void;
-    getCurrentLang: () => string;
-    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
-    t: (key: string, fallback?: string) => string;
-}
-declare global {
-    interface Window {
-        NammerhaI18n?: NammerhaI18nApi;
-    }
-}
-
-/** Safe i18n lookup — returns fallback if engine not yet loaded */
-function t(key: string, fallback: string): string {
-    if (typeof window.NammerhaI18n?.t === 'function') {
-        return window.NammerhaI18n.t(key, fallback) ?? fallback;
-    }
-    return fallback;
-}
+// PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
 
 // ============================================================================
 // Nammerha — Auth Page Engine (Login + Register)
@@ -129,23 +110,8 @@ regPassword?.addEventListener('input', () => {
     updateRegisterButton();
 });
 
-// ─── Role Selection (LEGACY — kept for backward compat but hidden) ──────────
 // Multi-Role Architecture: Role selection removed from registration.
 // Users start as 'donor' by default and activate additional roles from their dashboard.
-const roleCards = document.querySelectorAll<HTMLButtonElement>('.role-card');
-const roleGrid = document.getElementById('role-grid');
-
-// Hide role grid if it exists (backward compat with old HTML)
-if (roleGrid) { roleGrid.style.display = 'none'; }
-
-roleCards.forEach((card) => {
-    card.addEventListener('click', () => {
-        roleCards.forEach((c) => { c.classList.remove('glass-card-active'); });
-        card.classList.add('glass-card-active');
-        state.selectedRole = (card.dataset.role as UserRole) ?? null;
-        updateRegisterButton();
-    });
-});
 
 // ─── Register Button State ──────────────────────────────────────────────────
 const regSubmit = document.getElementById('reg-submit') as HTMLButtonElement | null;
@@ -371,9 +337,9 @@ forgotBtn?.addEventListener('click', async () => {
         // Gains: 30s AbortController timeout, CSRF token, unified error handling.
         const data = await auth.forgotPassword({ email });
         if (data.success) {
-            showBanner('success', data.message ?? 'If an account with that email exists, a password reset link has been sent.');
+            showBanner('success', data.message ?? t('auth_forgot_sent', 'If an account with that email exists, a password reset link has been sent.'));
         } else {
-            showBanner('error', data.error ?? 'Something went wrong. Please try again.');
+            showBanner('error', data.error ?? t('auth_forgot_error', 'Something went wrong. Please try again.'));
         }
     } catch (err) {
         showBanner('error', err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.'));

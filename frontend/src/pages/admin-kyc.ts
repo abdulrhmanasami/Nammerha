@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { t } from '../utils/i18n';
 
 /* ─── KYC Verification Portal — Interactive Controller ─── */
 
@@ -275,7 +276,7 @@ function initActionButtons(): void {
                 return;
             }
             if (reason.trim() === '') {
-                alert('A reason is required for rejection.');
+                showToast('A reason is required for rejection.');
                 return;
             }
 
@@ -302,10 +303,10 @@ function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
 
     if (status === 'verified') {
         badge.className = 'bg-smoky-jade/10 text-smoky-jade text-[10px] font-bold px-2 py-0.5 rounded-full';
-        badge.textContent = '✓ Verified';
+        badge.textContent = t('kyc_verified', '✓ Verified');
     } else {
         badge.className = 'bg-rose-50 text-rose-500 text-[10px] font-bold px-2 py-0.5 rounded-full';
-        badge.textContent = '✗ Rejected';
+        badge.textContent = t('kyc_rejected', '✗ Rejected');
     }
 }
 

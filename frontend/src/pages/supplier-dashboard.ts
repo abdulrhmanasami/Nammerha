@@ -3,6 +3,7 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { supplier } from '../api';
+import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine
@@ -128,7 +129,7 @@ async function loadOrders(): Promise<void> {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="7" class="px-5 py-8 text-center text-slate-400">
                     <i class="ph ph-package" style="font-size:24px" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs">No purchase orders yet</p>
+                    <p class="mt-2 text-xs">${esc(t('supplier_no_orders', 'No purchase orders yet'))}</p>
                 </td>
             </tr>`;
             return;
@@ -179,8 +180,8 @@ async function loadCatalog(): Promise<void> {
             container.innerHTML = `
                 <div class="col-span-full text-center py-12 text-slate-400">
                     <i class="ph ph-storefront" style="font-size:32px" aria-hidden="true"></i>
-                    <p class="mt-3 text-sm">Your catalog is empty</p>
-                    <p class="text-xs mt-1">Add your first material to start receiving purchase orders</p>
+                    <p class="mt-3 text-sm">${esc(t('supplier_catalog_empty', 'Your catalog is empty'))}</p>
+                    <p class="text-xs mt-1">${esc(t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'))}</p>
                 </div>`;
             return;
         }
@@ -191,17 +192,17 @@ async function loadCatalog(): Promise<void> {
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${item.is_active
                 ? '<span class="size-2 rounded-full bg-smoky-jade"></span>'
-                : '<span class="text-[9px] text-slate-400">Inactive</span>'}
+                : `<span class="text-[9px] text-slate-400">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
                 </div>
                 <h3 class="font-bold text-sm mb-2">${esc(item.material_name)}</h3>
                 <div class="space-y-1 text-xs text-slate-500">
-                    <p><span class="font-semibold text-slate-700">Guide Price:</span> $${(item.unit_price_guide / 100).toLocaleString()} / ${esc(item.unit)}</p>
-                    <p><span class="font-semibold text-slate-700">Min Order:</span> ${item.min_order_qty} ${esc(item.unit)}</p>
-                    <p><span class="font-semibold text-slate-700">Lead Time:</span> ${item.lead_time_days} days</p>
+                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_guide_price', 'Guide Price'))}:</span> $${(item.unit_price_guide / 100).toLocaleString()} / ${esc(item.unit)}</p>
+                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_min_order', 'Min Order'))}:</span> ${item.min_order_qty} ${esc(item.unit)}</p>
+                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${item.lead_time_days} ${t('supplier_days', 'days')}</p>
                 </div>
                 ${item.is_active ? `
                 <button class="mt-3 text-[10px] font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
-                    <i class="ph ph-trash" aria-hidden="true"></i> Remove
+                    <i class="ph ph-trash" aria-hidden="true"></i> ${t('supplier_remove', 'Remove')}
                 </button>` : ''}
             </div>
         `).join('');
@@ -225,15 +226,15 @@ async function updatePOStatus(poId: string, status: 'acknowledged' | 'shipped' |
         const res = await supplier.updateOrderStatus(poId, status);
 
         if (!res.success) {
-            showBanner('error', res.error ?? 'Failed to update status');
+            showBanner('error', res.error ?? t('supplier_update_failed', 'Failed to update status'));
             return;
         }
 
-        showBanner('success', `Order status updated to "${status}"`);
+        showBanner('success', t('supplier_status_updated', 'Order status updated successfully'));
         await loadOrders();
         await loadKPIs();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        showBanner('error', 'Network error. Please try again.');
+        showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
     }
 }
 
@@ -267,17 +268,17 @@ function setupCatalogModal(): void {
             });
 
             if (!res.success) {
-                showBanner('error', res.error ?? 'Failed to add material');
+                showBanner('error', res.error ?? t('supplier_add_failed', 'Failed to add material'));
                 return;
             }
 
             if (modal) { modal.style.display = 'none'; }
             form.reset();
-            showBanner('success', 'Material added to your catalog');
+            showBanner('success', t('supplier_material_added', 'Material added to your catalog'));
             await loadCatalog();
             await loadKPIs();
         } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-            showBanner('error', 'Network error. Please try again.');
+            showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
         }
     });
 }
@@ -288,14 +289,14 @@ async function deactivateItem(catalogId: string): Promise<void> {
         const res = await supplier.deactivateItem(catalogId);
 
         if (!res.success) {
-            showBanner('error', 'Failed to remove item');
+            showBanner('error', t('supplier_remove_failed', 'Failed to remove item'));
             return;
         }
 
-        showBanner('success', 'Material removed from catalog');
+        showBanner('success', t('supplier_material_removed', 'Material removed from catalog'));
         await loadCatalog();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        showBanner('error', 'Network error. Please try again.');
+        showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
     }
 }
 
@@ -327,15 +328,15 @@ function renderActions(item: SupplierOrder): string {
         case 'generated':
         case 'sent_to_supplier':
             return `<button class="text-xs font-semibold text-trust-blue hover:underline" data-action="acknowledged" data-po-id="${item.po_id}">
-                <i class="ph ph-check-circle" aria-hidden="true"></i> Acknowledge
+                <i class="ph ph-check-circle" aria-hidden="true"></i> ${t('supplier_acknowledge', 'Acknowledge')}
             </button>`;
         case 'acknowledged':
             return `<button class="text-xs font-semibold text-purple-600 hover:underline" data-action="shipped" data-po-id="${item.po_id}">
-                <i class="ph ph-truck" aria-hidden="true"></i> Mark Shipped
+                <i class="ph ph-truck" aria-hidden="true"></i> ${t('supplier_mark_shipped', 'Mark Shipped')}
             </button>`;
         case 'shipped':
             return `<button class="text-xs font-semibold text-smoky-jade hover:underline" data-action="delivered" data-po-id="${item.po_id}">
-                <i class="ph ph-package" aria-hidden="true"></i> Mark Delivered
+                <i class="ph ph-package" aria-hidden="true"></i> ${t('supplier_mark_delivered', 'Mark Delivered')}
             </button>`;
         default:
             return '<span class="text-[10px] text-slate-400">—</span>';

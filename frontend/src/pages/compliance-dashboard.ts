@@ -2,6 +2,7 @@ import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
+import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Compliance Dashboard — OCDS Audit & Financial Transparency Engine
@@ -98,7 +99,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="7" class="px-5 py-8 text-center text-slate-400">
                     <i class="ph ph-check-circle" style="font-size:24px" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs">All escrow releases reviewed</p>
+                    <p class="mt-2 text-xs">${esc(t('compliance_all_reviewed', 'All escrow releases reviewed'))}</p>
                 </td>
             </tr>`;
             return;
@@ -109,16 +110,16 @@ async function loadEscrowReviewQueue(): Promise<void> {
                 <td class="px-5 py-3 font-mono text-xs">${esc(String(r['reference'] ?? ''))}</td>
                 <td class="px-5 py-3 font-medium">${esc(String(r['project_title'] ?? ''))}</td>
                 <td class="px-5 py-3 font-mono">$${Number(r['amount'] ?? 0).toLocaleString()}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(String(r['donor_name'] ?? 'Anonymous'))}</td>
+                <td class="px-5 py-3 text-slate-500">${esc(String(r['donor_name'] ?? t('compliance_anonymous', 'Anonymous')))}</td>
                 <td class="px-5 py-3">
                     ${r['has_spatial_proof']
-                ? '<span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">Verified</span>'
-                : '<span class="text-[10px] font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">Pending</span>'}
+                ? `<span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">${esc(t('compliance_verified', 'Verified'))}</span>`
+                : `<span class="text-[10px] font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'Pending'))}</span>`}
                 </td>
                 <td class="px-5 py-3 text-slate-500 text-xs">${esc(String(r['submitted_at'] ?? '—'))}</td>
                 <td class="px-5 py-3 flex gap-2">
-                    <button class="text-xs font-semibold text-smoky-jade hover:underline" data-action="approve" data-ref="${esc(String(r['reference'] ?? ''))}">Approve</button>
-                    <button class="text-xs font-semibold text-danger-red hover:underline" data-action="flag" data-ref="${esc(String(r['reference'] ?? ''))}">Flag</button>
+                    <button class="text-xs font-semibold text-smoky-jade hover:underline" data-action="approve" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_approve', 'Approve'))}</button>
+                    <button class="text-xs font-semibold text-danger-red hover:underline" data-action="flag" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_flag', 'Flag'))}</button>
                 </td>
             </tr>
         `).join('');

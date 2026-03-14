@@ -42,8 +42,8 @@ export async function registerServiceWorker(): Promise<void> {
             });
         }, 60 * 60 * 1000);
 
-        // eslint-disable-next-line no-console
-        console.log('[SW] Registered successfully, scope:', registration.scope);
+        // MED-002 FIX: Demoted from console.log to dev-only debug.
+        if (import.meta.env.DEV) { console.debug('[SW] Registered, scope:', registration.scope); }
     } catch (error) {
         console.error('[SW] Registration failed:', error);
     }

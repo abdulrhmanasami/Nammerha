@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { projects } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
+import { t } from '../utils/i18n';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -64,7 +65,7 @@ function showStep(step: number): void {
     if (step <= TOTAL_STEPS) {
         const pct = (step / TOTAL_STEPS) * 100;
         if (progressFill) { progressFill.style.width = `${pct}%`; }
-        if (stepLabel) { stepLabel.textContent = `Step ${step} of ${TOTAL_STEPS}`; }
+        if (stepLabel) { stepLabel.textContent = `${t('hr_step', 'Step')} ${step} ${t('hr_of', 'of')} ${TOTAL_STEPS}`; }
     }
 
     // Update button text and state
@@ -73,7 +74,7 @@ function showStep(step: number): void {
     } else if (step === 2) {
         updateNextButton();
     } else if (step === 3) {
-        if (nextBtnText) { nextBtnText.textContent = 'Submit Request'; }
+        if (nextBtnText) { nextBtnText.textContent = t('hr_submit_request', 'Submit Request'); }
         if (nextBtn) {
             nextBtn.disabled = false;
             const icon = nextBtn.querySelector('.ph-arrow-right');
@@ -85,7 +86,7 @@ function showStep(step: number): void {
     } else if (step === 4) {
         // Confirmation step — hide footer
         if (wizardFooter) { wizardFooter.classList.add('hidden'); }
-        if (stepLabel) { stepLabel.textContent = 'Done!'; }
+        if (stepLabel) { stepLabel.textContent = t('hr_done', 'Done!'); }
         if (progressFill) { progressFill.style.width = '100%'; }
         populateSummary();
     }
@@ -96,12 +97,12 @@ function updateNextButton(): void {
 
     if (state.currentStep === 1) {
         nextBtn.disabled = !state.damageType;
-        nextBtnText.textContent = state.damageType ? 'Next Step' : 'Select damage type';
+        nextBtnText.textContent = state.damageType ? t('hr_next_step', 'Next Step') : t('hr_select_damage', 'Select damage type');
     } else if (state.currentStep === 2) {
         const gov = (document.getElementById('governorate') as HTMLSelectElement)?.value;
         const hood = (document.getElementById('neighborhood') as HTMLInputElement)?.value.trim();
         nextBtn.disabled = !gov || !hood;
-        nextBtnText.textContent = (gov && hood) ? 'Next Step' : 'Enter location details';
+        nextBtnText.textContent = (gov && hood) ? t('hr_next_step', 'Next Step') : t('hr_enter_location', 'Enter location details');
     }
 }
 
@@ -126,7 +127,7 @@ if (nextBtn) {
             // P1-002 FIX: Submit to backend API instead of showing fake ID
             if (nextBtn) {
                 nextBtn.disabled = true;
-                if (nextBtnText) { nextBtnText.textContent = 'Submitting...'; }
+                if (nextBtnText) { nextBtnText.textContent = t('hr_submitting', 'Submitting...'); }
             }
 
             try {
@@ -155,10 +156,15 @@ if (nextBtn) {
 
                 showStep(4);
             } catch (err) {
-                const message = err instanceof Error ? err.message : 'Submission failed';
-                alert(message);
+                const message = err instanceof Error ? err.message : t('hr_submission_failed', 'Submission failed');
+                // HIGH-002 FIX: Replace alert() with inline error banner
+                const errDiv = document.createElement('div');
+                errDiv.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mx-4 mt-2 animate-fade-in-up';
+                errDiv.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${esc(message)}`;
+                steps[2]?.prepend(errDiv);
+                setTimeout(() => errDiv.remove(), 5000);
                 if (nextBtn) { nextBtn.disabled = false; }
-                if (nextBtnText) { nextBtnText.textContent = 'Submit Request'; }
+                if (nextBtnText) { nextBtnText.textContent = t('hr_submit_request', 'Submit Request'); }
             }
         }
     });
@@ -235,7 +241,11 @@ const gpsDisplay = document.getElementById('gps-display');
 if (detectLocationBtn) {
     detectLocationBtn.addEventListener('click', () => {
         if (!('geolocation' in navigator)) {
-            alert('Geolocation is not supported on this device.');
+            // HIGH-002 FIX: Replace alert() with inline feedback
+            const btnLabel = detectLocationBtn.querySelector('span');
+            if (btnLabel) { btnLabel.textContent = t('hr_geo_not_supported', 'Geolocation not supported'); }
+            (detectLocationBtn as HTMLButtonElement).disabled = true;
+            detectLocationBtn.classList.add('opacity-60');
             return;
         }
 
@@ -245,7 +255,7 @@ if (detectLocationBtn) {
             btnIcon.classList.add('ph-spinner');
         }
         const btnLabel = detectLocationBtn.querySelector('span');
-        if (btnLabel) { btnLabel.textContent = 'Detecting...'; }
+        if (btnLabel) { btnLabel.textContent = t('hr_detecting', 'Detecting...'); }
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -259,7 +269,7 @@ if (detectLocationBtn) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-check-circle');
                 }
-                if (btnLabel) { btnLabel.textContent = 'Location detected'; }
+                if (btnLabel) { btnLabel.textContent = t('hr_location_detected', 'Location detected'); }
                 (detectLocationBtn as HTMLButtonElement).disabled = true;
                 detectLocationBtn.classList.add('opacity-60');
             },
@@ -268,7 +278,7 @@ if (detectLocationBtn) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-crosshair');
                 }
-                if (btnLabel) { btnLabel.textContent = 'Could not detect — enter manually'; }
+                if (btnLabel) { btnLabel.textContent = t('hr_location_fallback', 'Could not detect — enter manually'); }
             },
             { enableHighAccuracy: true, timeout: 8000 }
         );

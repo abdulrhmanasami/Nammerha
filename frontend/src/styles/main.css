@@ -491,6 +491,42 @@ body.dark-mode {
   gap: 16px;
 }
 
+/* ─── Platform Tip Buttons ─────────────────────────────────────────────────── */
+@layer components {
+  .tip-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--cloud-white);
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .tip-btn:hover {
+    border-color: var(--trust-blue);
+    color: var(--trust-blue);
+    background: var(--trust-blue-light);
+  }
+  .tip-btn-active,
+  .tip-btn-active:hover {
+    background: var(--trust-blue);
+    color: white;
+    border-color: var(--trust-blue);
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+    transform: scale(1.02);
+  }
+  .tip-btn-custom {
+    max-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 /* ─── Field Engineer: CAPTURE 360 Button (Massive Zero UI target) ──────────── */
 @layer components {
   .btn-field-capture {

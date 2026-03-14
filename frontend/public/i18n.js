@@ -984,7 +984,101 @@
         'select_damage_type': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dégât', tr: 'Hasar türünü seçin' },
         'select_governorate': { ar: 'اختر المحافظة', de: 'Gouvernement auswählen', fr: 'Sélectionner le gouvernorat', tr: 'İl seçin' },
         'detect_location_auto': { ar: 'كشف الموقع تلقائياً', de: 'Standort automatisch erkennen', fr: 'Détecter l\'emplacement automatiquement', tr: 'Konumu otomatik algıla' },
+
+        // ═══ WALLET PAGE (FIX-001) ═══
+        'wallet_locked': { ar: 'محجوز', de: 'gesperrt', fr: 'verrouillé', tr: 'kilitli' },
+        'wallet_released': { ar: 'محرّر', de: 'freigegeben', fr: 'libéré', tr: 'serbest' },
+        'wallet_status_locked': { ar: 'محجوز', de: 'Gesperrt', fr: 'Verrouillé', tr: 'Kilitli' },
+        'wallet_status_released': { ar: 'محرّر', de: 'Freigegeben', fr: 'Libéré', tr: 'Serbest' },
+        'wallet_status_refunded': { ar: 'مُستردّ', de: 'Erstattet', fr: 'Remboursé', tr: 'İade Edildi' },
+        'wallet_status_completed': { ar: 'مكتمل', de: 'Abgeschlossen', fr: 'Terminé', tr: 'Tamamlandı' },
+        'wallet_status_pending': { ar: 'معلّق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
+        'wallet_transaction': { ar: 'معاملة', de: 'Transaktion', fr: 'Transaction', tr: 'İşlem' },
+        'wallet_no_transactions': { ar: 'لا توجد معاملات بعد', de: 'Noch keine Transaktionen', fr: 'Aucune transaction pour le moment', tr: 'Henüz işlem yok' },
+        'wallet_history_description': { ar: 'سيظهر سجل تبرعاتك ومدفوعاتك هنا', de: 'Ihr Spenden- und Zahlungsverlauf erscheint hier', fr: 'Votre historique de dons et paiements apparaîtra ici', tr: 'Bağış ve ödeme geçmişiniz burada görünecek' },
+        'wallet_load_failed': { ar: 'تعذّر تحميل المعاملات. يرجى تسجيل الدخول.', de: 'Transaktionen konnten nicht geladen werden. Bitte melden Sie sich an.', fr: 'Impossible de charger les transactions. Veuillez vous connecter.', tr: 'İşlemler yüklenemedi. Lütfen giriş yapın.' },
+        'wallet_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
+
+        // ═══ DONOR BASKET (FIX-002) ═══
+        'basket_decrease_qty': { ar: 'تقليل الكمية', de: 'Menge verringern', fr: 'Diminuer la quantité', tr: 'Miktarı azalt' },
+        'basket_increase_qty': { ar: 'زيادة الكمية', de: 'Menge erhöhen', fr: 'Augmenter la quantité', tr: 'Miktarı artır' },
+        'basket_per_unit': { ar: 'للقطعة', de: 'Stk.', fr: 'pièce', tr: 'adet' },
+        'basket_checkout_msg': { ar: 'جاري التوجه للدفع الآمن', de: 'Weiter zur sicheren Kasse', fr: 'Passage à la caisse sécurisée', tr: 'Güvenli ödemeye ilerleniyor' },
+        'basket_items': { ar: 'عناصر', de: 'Artikel', fr: 'articles', tr: 'öğe' },
+        'basket_gateway_soon': { ar: 'بوابة الدفع قريباً.', de: 'Zahlungs-Gateway kommt bald.', fr: 'Passerelle de paiement bientôt disponible.', tr: 'Ödeme ağ geçidi yakında.' },
+
+        // ═══ AUDIT REMEDIATION — ENGINEER BOQ ═══
+        'boq_items': { ar: 'بنود', de: 'Posten', fr: 'Articles', tr: 'Kalemler' },
+        'boq_oracle': { ar: 'المؤشر', de: 'Orakel', fr: 'Oracle', tr: 'Oracle' },
+        'boq_no_oracle_price': { ar: 'لا يوجد سعر مرجعي', de: 'Kein Orakelpreis', fr: 'Pas de prix oracle', tr: 'Oracle fiyatı yok' },
+        'boq_estimated': { ar: 'مُقدّر', de: 'Geschätzt', fr: 'Estimé', tr: 'Tahmini' },
+        'boq_no_materials': { ar: 'لم تُضف مواد بعد', de: 'Noch keine Materialien hinzugefügt', fr: 'Aucun matériau ajouté', tr: 'Henüz malzeme eklenmedi' },
+        'boq_search_hint': { ar: 'ابحث عن مواد أعلاه لبناء جدول الكميات', de: 'Oben nach Materialien suchen, um Ihr LV zu erstellen', fr: 'Rechercher des matériaux ci-dessus pour construire votre DQE', tr: 'BOQ\'nuzu oluşturmak için yukarıdan malzeme arayın' },
+        'boq_publishing': { ar: 'جاري النشر...', de: 'Wird veröffentlicht...', fr: 'Publication...', tr: 'Yayınlanıyor...' },
+        'boq_published': { ar: 'تم النشر!', de: 'Veröffentlicht!', fr: 'Publié !', tr: 'Yayınlandı!' },
+        'boq_publish_failed': { ar: 'فشل النشر', de: 'Veröffentlichung fehlgeschlagen', fr: 'Échec de la publication', tr: 'Yayınlama başarısız' },
+        'boq_publish_to_marketplace': { ar: 'نشر في السوق', de: 'Auf dem Marktplatz veröffentlichen', fr: 'Publier sur le marché', tr: 'Pazaryerine Yayınla' },
+
+        // ═══ AUDIT REMEDIATION — ENGINEER CAMERA ═══
+        'cam_gps_unavailable': { ar: 'GPS غير متاح', de: 'GPS nicht verfügbar', fr: 'GPS indisponible', tr: 'GPS kullanılamıyor' },
+        'cam_accuracy': { ar: 'الدقة', de: 'Genauigkeit', fr: 'Précision', tr: 'Doğruluk' },
+        'cam_gps_denied': { ar: 'تم رفض إذن GPS', de: 'GPS-Berechtigung verweigert', fr: 'Permission GPS refusée', tr: 'GPS izni reddedildi' },
+        'cam_gps_fallback': { ar: 'GPS: وضع بديل', de: 'GPS: Fallback-Modus', fr: 'GPS : Mode de secours', tr: 'GPS: Yedek Mod' },
+        'cam_max_captures': { ar: 'الحد الأقصى 8 لقطات لكل جلسة. أرسل إثباتاتك.', de: 'Maximal 8 Aufnahmen pro Sitzung. Reichen Sie Ihre Nachweise ein.', fr: 'Maximum 8 captures par session. Soumettez vos preuves.', tr: 'Oturum başına maksimum 8 çekim. Kanıtlarınızı gönderin.' },
+        'cam_captured': { ar: 'تم الالتقاط', de: 'Aufgenommen', fr: 'Capturé', tr: 'Çekildi' },
+        'cam_capture_360': { ar: 'تصوير 360 ومزامنة', de: '360° aufnehmen & synchronisieren', fr: 'Capturer 360 & Synchroniser', tr: '360 Çek & Senkronize Et' },
+        'cam_no_captures': { ar: 'لا توجد لقطات للمزامنة. التقط صوراً أولاً.', de: 'Keine Aufnahmen zum Synchronisieren. Nehmen Sie zuerst Fotos auf.', fr: 'Pas de captures à synchroniser. Capturez d\'abord des photos.', tr: 'Senkronize edilecek çekim yok. Önce fotoğraf çekin.' },
+        'cam_no_project': { ar: 'لم يتم اختيار مشروع. انتقل من لوحة المتابعة.', de: 'Kein Projekt ausgewählt. Navigieren Sie vom Dashboard.', fr: 'Aucun projet sélectionné. Naviguez depuis le tableau de bord.', tr: 'Proje seçilmedi. Kontrol panelinden gidin.' },
+        'cam_gps_required': { ar: 'إحداثيات GPS مطلوبة. يرجى تفعيل خدمات الموقع.', de: 'GPS-Koordinaten erforderlich. Bitte aktivieren Sie die Standortdienste.', fr: 'Coordonnées GPS requises. Veuillez activer les services de localisation.', tr: 'GPS koordinatları gerekli. Lütfen konum servislerini etkinleştirin.' },
+        'cam_uploading': { ar: 'جاري الرفع...', de: 'Wird hochgeladen...', fr: 'Téléchargement...', tr: 'Yükleniyor...' },
+        'cam_proofs_synced': { ar: 'إثبات(ات) تمت مزامنتها', de: 'Nachweis(e) synchronisiert', fr: 'Preuve(s) synchronisée(s)', tr: 'Kanıt(lar) senkronize edildi' },
+        'cam_proofs_submitted': { ar: 'إثبات(ات) مكانية أُرسلت للتحقق', de: 'Räumliche(r) Nachweis(e) zur Verifizierung eingereicht', fr: 'Preuve(s) spatiale(s) soumise(s) pour vérification', tr: 'Mekansal kanıt(lar) doğrulama için gönderildi' },
+        'cam_sync_failed': { ar: 'فشلت المزامنة', de: 'Synchronisierung fehlgeschlagen', fr: 'Échec de la synchronisation', tr: 'Senkronizasyon başarısız' },
+        'cam_sync_to_server': { ar: 'مزامنة مع الخادم', de: 'Zum Server synchronisieren', fr: 'Synchroniser avec le serveur', tr: 'Sunucuya Senkronize Et' },
+        'cam_snag_saved': { ar: 'تم حفظ ملاحظة الخلل', de: 'Mängelnotiz gespeichert', fr: 'Note de réserve enregistrée', tr: 'Arıza notu kaydedildi' },
+
+        // ═══ AUDIT REMEDIATION — HOMEOWNER REPORT ═══
+        'hr_step': { ar: 'الخطوة', de: 'Schritt', fr: 'Étape', tr: 'Adım' },
+        'hr_of': { ar: 'من', de: 'von', fr: 'sur', tr: '/' },
+        'hr_submit_request': { ar: 'إرسال الطلب', de: 'Anfrage einreichen', fr: 'Soumettre la demande', tr: 'Talep Gönder' },
+        'hr_done': { ar: 'تم!', de: 'Fertig!', fr: 'Terminé !', tr: 'Tamamlandı!' },
+        'hr_next_step': { ar: 'الخطوة التالية', de: 'Nächster Schritt', fr: 'Étape suivante', tr: 'Sonraki Adım' },
+        'hr_select_damage': { ar: 'اختر نوع الأضرار', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dommage', tr: 'Hasar türünü seçin' },
+        'hr_enter_location': { ar: 'أدخل تفاصيل الموقع', de: 'Standortdetails eingeben', fr: 'Entrer les détails de l\'emplacement', tr: 'Konum detaylarını girin' },
+        'hr_submitting': { ar: 'جاري الإرسال...', de: 'Wird eingereicht...', fr: 'Soumission...', tr: 'Gönderiliyor...' },
+        'hr_submission_failed': { ar: 'فشل الإرسال', de: 'Einreichung fehlgeschlagen', fr: 'Échec de la soumission', tr: 'Gönderim başarısız' },
+        'hr_geo_not_supported': { ar: 'تحديد الموقع غير مدعوم', de: 'Geolokalisierung nicht unterstützt', fr: 'Géolocalisation non prise en charge', tr: 'Konum belirleme desteklenmiyor' },
+        'hr_detecting': { ar: 'جاري الكشف...', de: 'Wird erkannt...', fr: 'Détection...', tr: 'Algılanıyor...' },
+        'hr_location_detected': { ar: 'تم كشف الموقع', de: 'Standort erkannt', fr: 'Emplacement détecté', tr: 'Konum algılandı' },
+        'hr_location_fallback': { ar: 'تعذّر الكشف — أدخل يدوياً', de: 'Nicht erkannt — manuell eingeben', fr: 'Détection impossible — saisie manuelle', tr: 'Algılanamadı — manuel girin' },
+
+        // ═══ AUDIT REMEDIATION — ADMIN ESCROW ═══
+        'esc_release_funds': { ar: 'تم التحقق: تحرير الأموال للمورد', de: 'Übereinstimmung geprüft: Gelder an Lieferant freigeben', fr: 'Correspondance vérifiée : Libérer les fonds au fournisseur', tr: 'Eşleşme Doğrulandı: Fonları Tedarikçiye Serbest Bırak' },
+        'esc_flag_discrepancy': { ar: 'الإبلاغ عن تناقض', de: 'Abweichung melden', fr: 'Signaler un écart', tr: 'Uyuşmazlık Bildir' },
+        'esc_funds_released': { ar: '✓ تم تحرير الأموال — سجل التدقيق مُحدَّث', de: '✓ Gelder freigegeben — Prüfpfad aktualisiert', fr: '✓ Fonds libérés — Piste d\'audit mise à jour', tr: '✓ Fonlar Serbest — Denetim İzi Güncellendi' },
+        'esc_discrepancy_flagged': { ar: '⚠ تم الإبلاغ عن تناقض', de: '⚠ Abweichung gemeldet', fr: '⚠ Écart signalé', tr: '⚠ Uyuşmazlık Bildirildi' },
+
+        // ═══ AUDIT REMEDIATION — ADMIN KYC ═══
+        'kyc_verified': { ar: '✓ معتمد', de: '✓ Verifiziert', fr: '✓ Vérifié', tr: '✓ Doğrulandı' },
+        'kyc_rejected': { ar: '✗ مرفوض', de: '✗ Abgelehnt', fr: '✗ Rejeté', tr: '✗ Reddedildi' },
+
+        // ═══ AUDIT REMEDIATION — ADMIN ORACLE ═══
+        'oracle_approved': { ar: 'مُعتمد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' },
+
+        // ═══ AUDIT REMEDIATION — TRADESPERSON PORTAL ═══
+        'tp_accepting': { ar: 'جاري القبول...', de: 'Wird angenommen...', fr: 'Acceptation...', tr: 'Kabul ediliyor...' },
+        'tp_accepted': { ar: '✓ تم القبول', de: '✓ Angenommen', fr: '✓ Accepté', tr: '✓ Kabul Edildi' },
+
+        // ═══ AUDIT REMEDIATION — CONTRACTOR PORTAL ═══
+        'ct_no_assigned_projects': { ar: 'لا توجد مشاريع مسندة بعد', de: 'Noch keine zugewiesenen Projekte', fr: 'Aucun projet assigné', tr: 'Henüz atanmış proje yok' },
+        'ct_browse_marketplace': { ar: 'تصفح السوق وقدّم عروضاً', de: 'Marktplatz durchsuchen und Angebote einreichen', fr: 'Parcourir le marché et soumettre des offres', tr: 'Pazaryerine göz atın ve teklif verin' },
+        'ct_no_projects_available': { ar: 'لا مشاريع متاحة', de: 'Keine Projekte verfügbar', fr: 'Aucun projet disponible', tr: 'Mevcut proje yok' },
+        'ct_new_projects_appear': { ar: 'ستظهر المشاريع الجديدة هنا عند نشرها', de: 'Neue Projekte erscheinen hier wenn veröffentlicht', fr: 'Les nouveaux projets apparaîtront ici', tr: 'Yeni projeler yayınlandığında burada görünecek' },
+        'ct_no_bids_yet': { ar: 'لم يتم تقديم عروض بعد', de: 'Noch keine Angebote eingereicht', fr: 'Aucune offre soumise', tr: 'Henüz teklif verilmedi' },
+        'ct_no_payments_yet': { ar: 'لا توجد مدفوعات بعد', de: 'Noch keine Zahlungen', fr: 'Aucun paiement', tr: 'Henüz ödeme yok' },
+        'ct_fill_cost_days': { ar: 'يرجى تعبئة التكلفة والأيام', de: 'Bitte Kosten und Tage ausfüllen', fr: 'Veuillez remplir le coût et les jours', tr: 'Lütfen maliyet ve günleri doldurun' },
     };
+
 
     // ═══════════════════════════════════════════════════════════════════════
     // P3-NEW-002 FIX: Key Aliases — Canonical Deduplication

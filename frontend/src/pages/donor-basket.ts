@@ -2,11 +2,18 @@
  * donor-basket.ts — Dynamic Construction Basket
  *
  * Reads CartStore and renders materials dynamically.
- * Supports quantity adjustment, item removal, and total calculation.
+ * Supports quantity adjustment, item removal, total calculation,
+ * and optional platform tip selection per profitability study §1.
  */
 import '../styles/main.css';
 import { CartStore, type CartItem } from '../components/cart';
 import { escapeHtml } from '../utils/xss';
+import { t } from '../utils/i18n';
+
+// ─── Tip State ──────────────────────────────────────────────────────────────
+let selectedTipPercentage = 3;  // Default: 3% (geo-appropriate for humanitarian context)
+let customTipAmount: number | null = null;
+let isCustomTip = false;
 
 function initDonorBasket(): void {
     const container = document.getElementById('cart-items-container');
@@ -18,10 +25,78 @@ function initDonorBasket(): void {
     const confirmBtn = document.getElementById('confirm-funding-btn');
     const trustFeatures = document.getElementById('trust-features');
 
+    // Tip elements
+    const tipAmountEl = document.getElementById('tip-amount');
+    const totalWithTipEl = document.getElementById('total-with-tip');
+    const tipCustomInputWrap = document.getElementById('tip-custom-input-wrap');
+    const tipCustomInput = document.getElementById('tip-custom-input') as HTMLInputElement | null;
+
     if (!container) {
         return;
     }
 
+    // ─── Tip Logic ──────────────────────────────────────────────────────────
+    function getTipAmount(): number {
+        if (isCustomTip && customTipAmount !== null) {
+            return Math.max(0, customTipAmount);
+        }
+        const total = CartStore.getTotal();
+        return Math.round(total * (selectedTipPercentage / 100) * 100) / 100;
+    }
+
+    function updateTipDisplay(): void {
+        const tipAmount = getTipAmount();
+        const cartTotal = CartStore.getTotal();
+        const grandTotal = cartTotal + tipAmount;
+
+        if (tipAmountEl) {
+            tipAmountEl.textContent = `$${tipAmount.toFixed(2)}`;
+        }
+        if (totalWithTipEl) {
+            totalWithTipEl.textContent = `$${grandTotal.toFixed(2)}`;
+        }
+    }
+
+    function initTipButtons(): void {
+        const tipButtons = document.querySelectorAll<HTMLButtonElement>('.tip-btn');
+
+        tipButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const tipValue = btn.dataset['tip'];
+
+                // Update active state
+                tipButtons.forEach((b) => b.classList.remove('tip-btn-active'));
+                btn.classList.add('tip-btn-active');
+
+                if (tipValue === 'custom') {
+                    isCustomTip = true;
+                    customTipAmount = 0;
+                    if (tipCustomInputWrap) {
+                        tipCustomInputWrap.classList.remove('hidden');
+                    }
+                    tipCustomInput?.focus();
+                } else {
+                    isCustomTip = false;
+                    customTipAmount = null;
+                    selectedTipPercentage = parseInt(tipValue ?? '0', 10);
+                    if (tipCustomInputWrap) {
+                        tipCustomInputWrap.classList.add('hidden');
+                    }
+                }
+
+                updateTipDisplay();
+            });
+        });
+
+        // Custom tip input handler
+        tipCustomInput?.addEventListener('input', () => {
+            const val = parseFloat(tipCustomInput.value);
+            customTipAmount = isNaN(val) ? 0 : Math.max(0, val);
+            updateTipDisplay();
+        });
+    }
+
+    // ─── Render ─────────────────────────────────────────────────────────────
     function render(): void {
         const items = CartStore.getItems();
         const heading = container!.querySelector('h3');
@@ -87,17 +162,17 @@ function initDonorBasket(): void {
       </div>
       <div class="flex items-center gap-3 shrink-0 ml-3">
         <div class="flex items-center gap-1">
-          <button class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="Decrease quantity">
+          <button class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="${t('basket_decrease_qty', 'Decrease quantity')}">
             <i class="ph ph-minus ph-xs" aria-hidden="true"></i>
           </button>
           <span class="qty-display text-sm font-bold w-6 text-center">${item.quantity}</span>
-          <button class="qty-btn qty-plus size-7 rounded-full bg-trust-blue/10 hover:bg-trust-blue/20 text-trust-blue flex items-center justify-center transition-colors" aria-label="Increase quantity">
+          <button class="qty-btn qty-plus size-7 rounded-full bg-trust-blue/10 hover:bg-trust-blue/20 text-trust-blue flex items-center justify-center transition-colors" aria-label="${t('basket_increase_qty', 'Increase quantity')}">
             <i class="ph ph-plus ph-xs" aria-hidden="true"></i>
           </button>
         </div>
         <div class="text-right min-w-[60px]">
           <div class="font-bold text-slate-900">$${(item.unitPrice * item.quantity).toFixed(2)}</div>
-          <div class="text-[10px] text-slate-400">$${item.unitPrice.toFixed(2)}/ea</div>
+          <div class="text-[10px] text-slate-400">$${item.unitPrice.toFixed(2)}/${t('basket_per_unit', 'ea')}</div>
         </div>
       </div>
     `;
@@ -140,6 +215,9 @@ function initDonorBasket(): void {
         if (countEl) {
             countEl.textContent = String(count);
         }
+
+        // Update tip display when totals change
+        updateTipDisplay();
     }
 
     // HGH-001 FIX: Local escapeHtml removed — using centralized import from utils/xss.ts
@@ -158,16 +236,31 @@ function initDonorBasket(): void {
         if (CartStore.getItems().length === 0) {
             return;
         }
-        // Future: integrate with payment gateway
+        // HIGH-002 FIX: Replace alert() with inline checkout banner
         const total = CartStore.getTotal();
         const count = CartStore.getCount();
-        alert(`Proceeding to secure checkout:\n${count} items — $${total.toFixed(2)}\n\nPayment gateway integration coming soon.`);
+        const tipAmount = getTipAmount();
+        const grandTotal = total + tipAmount;
+
+        const banner = document.createElement('div');
+        banner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 mt-3 animate-fade-in-up';
+
+        const tipText = tipAmount > 0
+            ? ` + $${tipAmount.toFixed(2)} ${t('tip_label', 'tip')}`
+            : '';
+
+        banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${t('basket_checkout_msg', 'Proceeding to secure checkout')}: ${count} ${t('basket_items', 'items')} — $${total.toFixed(2)}${tipText} = $${grandTotal.toFixed(2)}. ${t('basket_gateway_soon', 'Payment gateway coming soon.')}`;
+        checkoutSheet?.appendChild(banner);
+        setTimeout(() => banner.remove(), 5000);
     });
 
     // Listen for external cart updates
     window.addEventListener('cart:updated', () => {
         render();
     });
+
+    // Initialize tip buttons
+    initTipButtons();
 
     // Initial render
     render();

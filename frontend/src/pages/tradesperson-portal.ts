@@ -4,6 +4,7 @@ import { escapeHtml as esc } from '../utils/xss';
 import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
 import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
+import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Tradesperson Portal — Dashboard, Requests, Assignments, Earnings, Profile
@@ -223,7 +224,7 @@ async function loadRequests(): Promise<void> {
                 if (!requestId) {return;}
                 const b = btn as HTMLButtonElement;
                 b.disabled = true;
-                b.textContent = 'Accepting...';
+                b.textContent = t('tp_accepting', 'Accepting...');
                 b.setAttribute('data-i18n', 'tp_accepting');
 
                 try {
@@ -231,7 +232,7 @@ async function loadRequests(): Promise<void> {
                     if (!res2.success) {
                         throw new Error(res2.error ?? 'Failed');
                     }
-                    b.textContent = '✓ Accepted';
+                    b.textContent = t('tp_accepted', '✓ Accepted');
                     b.setAttribute('data-i18n', 'tp_accepted');
                     b.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
                     loadStats();

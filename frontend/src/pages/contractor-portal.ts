@@ -3,6 +3,7 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
+import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -121,8 +122,8 @@ async function loadProjects(): Promise<void> {
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
                 <i class="ph ph-clipboard-text" style="font-size:32px" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">No assigned projects yet</p>
-                <p class="text-xs mt-1">Browse the marketplace and submit bids</p>
+                <p class="mt-2 text-sm font-medium">${t('ct_no_assigned_projects', 'No assigned projects yet')}</p>
+                <p class="text-xs mt-1">${t('ct_browse_marketplace', 'Browse the marketplace and submit bids')}</p>
             </td></tr>`;
             return;
         }
@@ -160,8 +161,8 @@ async function loadMarketplace(): Promise<void> {
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
                 <i class="ph ph-magnifying-glass" style="font-size:32px" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">No projects available</p>
-                <p class="text-xs mt-1">New projects will appear here when published</p>
+                <p class="mt-2 text-sm font-medium">${t('ct_no_projects_available', 'No projects available')}</p>
+                <p class="text-xs mt-1">${t('ct_new_projects_appear', 'New projects will appear here when published')}</p>
             </td></tr>`;
             return;
         }
@@ -207,7 +208,7 @@ async function loadBids(): Promise<void> {
         if (bids.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
                 <i class="ph ph-flag-banner" style="font-size:32px" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">No bids submitted yet</p>
+                <p class="mt-2 text-sm font-medium">${t('ct_no_bids_yet', 'No bids submitted yet')}</p>
             </td></tr>`;
             return;
         }
@@ -238,7 +239,7 @@ async function loadPayments(): Promise<void> {
         if (payments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
                 <i class="ph ph-wallet" style="font-size:32px" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">No payments yet</p>
+                <p class="mt-2 text-sm font-medium">${t('ct_no_payments_yet', 'No payments yet')}</p>
             </td></tr>`;
             return;
         }
@@ -297,7 +298,7 @@ function openBidModal(projectId: string): void {
         const errorEl = document.getElementById('bid-error');
 
         if (!cost || !days || cost <= 0 || days <= 0) {
-            if (errorEl) { errorEl.textContent = 'Please fill in cost and days'; errorEl.classList.remove('hidden'); }
+            if (errorEl) { errorEl.textContent = t('ct_fill_cost_days', 'Please fill in cost and days'); errorEl.classList.remove('hidden'); }
             return;
         }
 

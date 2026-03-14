@@ -63,6 +63,9 @@ import roleRoutes from './routes/role.routes';
 import reviewRoutes from './routes/review.routes';
 import privacyRoutes from './routes/privacy.routes';
 import impactRoutes from './routes/impact.routes';
+import monetizationRoutes from './routes/monetization.routes';
+import subscriptionRoutes from './routes/subscription.routes';
+import enterpriseRoutes from './routes/enterprise.routes';
 import * as path from 'path';
 import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
 
@@ -449,6 +452,15 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/impact', impactRoutes);
+
+// Phase 1 Monetization: Commission engine + Donor tipping (per profitability study)
+app.use('/api/revenue', monetizationRoutes);
+
+// Phase 2 SaaS Subscriptions: Plan management + Feature gating (per profitability study §2)
+app.use('/api/subscriptions', subscriptionRoutes);
+
+// Phase 3 FinTech + Enterprise TaaS: Escrow fees + OCDS dashboards (per profitability study §5-§6)
+app.use('/api/enterprise', enterpriseRoutes);
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection

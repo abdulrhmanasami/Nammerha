@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { auth } from '../api';
 import { updatePasswordStrength } from '../utils/password-strength';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Reset Password Page
@@ -8,28 +9,8 @@ import { updatePasswordStrength } from '../utils/password-strength';
 // PLT-MAR11-005 FIX: Uses shared password strength utility (DRY)
 // PLT-MAR11-006 FIX: Uses centralized API client (timeout + CSRF)
 // PLT-MAR11-007 FIX: All user-facing strings wrapped with i18n t()
+// FIX-004: i18n interface now from shared utils/i18n.ts
 // ============================================================================
-
-// ─── i18n ───────────────────────────────────────────────────────────────────
-interface NammerhaI18nApi {
-    switchLanguage: (code: string) => void;
-    getCurrentLang: () => string;
-    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
-    t: (key: string, fallback?: string) => string;
-}
-declare global {
-    interface Window {
-        NammerhaI18n?: NammerhaI18nApi;
-    }
-}
-
-/** Safe i18n lookup — returns fallback if engine not yet loaded */
-function t(key: string, fallback: string): string {
-    if (typeof window.NammerhaI18n?.t === 'function') {
-        return window.NammerhaI18n.t(key, fallback) ?? fallback;
-    }
-    return fallback;
-}
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const form = document.getElementById('form-reset') as HTMLFormElement | null;

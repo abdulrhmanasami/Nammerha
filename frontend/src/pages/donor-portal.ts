@@ -3,6 +3,7 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { statusColor, escrowColor } from '../utils/status-colors';
 import { donor } from '../api';
+import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
@@ -84,8 +85,8 @@ async function loadFundedProjects(): Promise<void> {
         if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
                 <i class="ph ph-hand-heart" style="font-size:40px" aria-hidden="true"></i>
-                <p class="mt-3 text-sm font-medium">No funded projects yet</p>
-                <p class="text-xs mt-1">Browse projects and start making an impact</p>
+                <p class="mt-3 text-sm font-medium">${esc(t('donor_no_funded_projects', 'No funded projects yet'))}</p>
+                <p class="text-xs mt-1">${esc(t('donor_browse_start_impact', 'Browse projects and start making an impact'))}</p>
             </div>`;
             return;
         }
@@ -101,8 +102,8 @@ async function loadFundedProjects(): Promise<void> {
                         <div class="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
-                            <span class="text-emerald-600 font-bold">My contribution: $${(p.my_total_donated / 100).toLocaleString()}</span>
-                            <span>${p.items_i_funded} items</span>
+                            <span class="text-emerald-600 font-bold">${esc(t('donor_my_contribution', 'My contribution'))}: $${(p.my_total_donated / 100).toLocaleString()}</span>
+                            <span>${p.items_i_funded} ${esc(t('donor_items_label', 'items'))}</span>
                         </div>
                         <!-- Funding Progress Bar -->
                         <div class="mt-3 flex items-center gap-3">
@@ -131,7 +132,7 @@ async function loadMarketplace(): Promise<void> {
 
         if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <p class="text-sm font-medium">No projects available at the moment</p>
+                <p class="text-sm font-medium">${esc(t('donor_no_marketplace_projects', 'No projects available at the moment'))}</p>
             </div>`;
             return;
         }
@@ -144,7 +145,7 @@ async function loadMarketplace(): Promise<void> {
                         <div class="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
-                            <span>${p.items_count} items</span>
+                            <span>${p.items_count} ${esc(t('donor_items_label', 'items'))}</span>
                         </div>
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -155,7 +156,7 @@ async function loadMarketplace(): Promise<void> {
                         <div class="flex items-center justify-between mt-2">
                             <span class="text-xs text-slate-500">$${(p.total_funded / 100).toLocaleString()} / $${(p.total_cost / 100).toLocaleString()}</span>
                             ${p.funded_percentage < 100 ? `
-                                <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">Fund This</a>
+                                <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
                             ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded">✓ Fully Funded</span>`}
                         </div>
                     </div>
@@ -178,7 +179,7 @@ async function loadDonations(): Promise<void> {
 
         if (donations.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <p class="text-sm font-medium">No donations yet</p>
+                <p class="text-sm font-medium">${esc(t('donor_no_donations', 'No donations yet'))}</p>
             </td></tr>`;
             return;
         }
@@ -208,7 +209,7 @@ async function loadImpact(): Promise<void> {
 
         if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <p class="text-sm font-medium">No impact data yet</p>
+                <p class="text-sm font-medium">${esc(t('donor_no_impact', 'No impact data yet'))}</p>
             </div>`;
             return;
         }
@@ -225,9 +226,9 @@ async function loadImpact(): Promise<void> {
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
                         <div class="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
-                            <span>Donated: <strong class="text-emerald-600">$${(p.my_total_donated / 100).toLocaleString()}</strong></span>
-                            <span>${p.items_i_funded} items funded</span>
-                            <span>Progress: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</strong></span>
+                            <span>${esc(t('donor_donated_label', 'Donated'))}: <strong class="text-emerald-600">$${(p.my_total_donated / 100).toLocaleString()}</strong></span>
+                            <span>${p.items_i_funded} ${esc(t('donor_items_funded', 'items funded'))}</span>
+                            <span>${esc(t('donor_progress_label', 'Progress'))}: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</strong></span>
                         </div>
                     </div>
                 </div>
@@ -250,8 +251,8 @@ async function loadProofs(): Promise<void> {
         if (proofs.length === 0) {
             container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400">
                 <i class="ph ph-camera" style="font-size:40px" aria-hidden="true"></i>
-                <p class="mt-3 text-sm font-medium">No proofs yet</p>
-                <p class="text-xs mt-1">GPS-verified photos appear here after on-site verification</p>
+                <p class="mt-3 text-sm font-medium">${esc(t('donor_no_proofs', 'No proofs yet'))}</p>
+                <p class="text-xs mt-1">${esc(t('donor_proofs_hint', 'GPS-verified photos appear here after on-site verification'))}</p>
             </div>`;
             return;
         }
@@ -260,7 +261,7 @@ async function loadProofs(): Promise<void> {
             <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                 <div class="aspect-video bg-slate-100 flex items-center justify-center relative">
                     ${proof.photo_url
-                ? `<img src="${esc(proof.photo_url)}" alt="Site proof" class="w-full h-full object-cover" />`
+                ? `<img src="${esc(proof.photo_url)}" alt="${esc(t('donor_site_proof', 'Site proof'))}" class="w-full h-full object-cover" />`
                 : `<i class="ph ph-image text-slate-300" style="font-size:40px" aria-hidden="true"></i>`
             }
                     ${proof.gps_lat ? `

@@ -2,6 +2,8 @@ import '../styles/main.css';
 import { reportError, reportWarning } from '../error-reporter';
 import { donations, payments } from '../api';
 import { escapeHtml } from '../utils/xss';
+import { formatCents } from '../utils/format';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Wallet Page Engine
@@ -24,18 +26,7 @@ interface Transaction {
     created_at: string;
 }
 
-// ─── Format Currency ────────────────────────────────────────────────────────
-// FIX-004: Locale-aware formatting (aligned with main.ts).
-function formatCents(cents: number): string {
-    const safeCents = Number(cents) || 0;
-    const locale = document.documentElement.lang || 'en-US';
-    return new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(safeCents / 100);
-}
+// HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
 // ─── Format Date ────────────────────────────────────────────────────────────
 function formatDate(dateStr: string): string {
@@ -64,8 +55,8 @@ async function loadEscrowSummary(): Promise<void> {
         if (response.success && response.data) {
             const summary = response.data as EscrowSummary;
             if (balanceEl) { balanceEl.textContent = formatCents(summary.total_locked); }
-            if (lockedEl) { lockedEl.textContent = `${summary.locked_count} locked`; }
-            if (releasedEl) { releasedEl.textContent = `${summary.released_count} released`; }
+            if (lockedEl) { lockedEl.textContent = `${summary.locked_count} ${t('wallet_locked', 'locked')}`; }
+            if (releasedEl) { releasedEl.textContent = `${summary.released_count} ${t('wallet_released', 'released')}`; }
         }
     } catch (err) {
         reportWarning('[Wallet] Escrow summary load failed', { component: 'wallet', action: 'load_escrow', error: err instanceof Error ? err.message : String(err) });
@@ -76,14 +67,14 @@ async function loadEscrowSummary(): Promise<void> {
 // ─── Render Transaction Item ────────────────────────────────────────────────
 function renderTransaction(tx: Transaction): string {
     const statusConfig: Record<string, { icon: string; color: string; label: string }> = {
-        locked: { icon: 'lock-simple', color: 'text-trust-blue', label: 'Locked' },
-        released: { icon: 'check-circle', color: 'text-smoky-jade', label: 'Released' },
-        refunded: { icon: 'arrow-counter-clockwise', color: 'text-warm-earth', label: 'Refunded' },
-        completed: { icon: 'check-circle', color: 'text-smoky-jade', label: 'Completed' },
-        pending: { icon: 'clock', color: 'text-warning-yellow', label: 'Pending' },
+        locked: { icon: 'lock-simple', color: 'text-trust-blue', label: t('wallet_status_locked', 'Locked') },
+        released: { icon: 'check-circle', color: 'text-smoky-jade', label: t('wallet_status_released', 'Released') },
+        refunded: { icon: 'arrow-counter-clockwise', color: 'text-warm-earth', label: t('wallet_status_refunded', 'Refunded') },
+        completed: { icon: 'check-circle', color: 'text-smoky-jade', label: t('wallet_status_completed', 'Completed') },
+        pending: { icon: 'clock', color: 'text-warning-yellow', label: t('wallet_status_pending', 'Pending') },
     };
 
-    const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: 'Pending' };
+    const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: t('wallet_status_pending', 'Pending') };
 
     return `
     <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up">
@@ -91,7 +82,7 @@ function renderTransaction(tx: Transaction): string {
         <i class="ph ph-${config.icon} ${config.color}" aria-hidden="true"></i>
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-bold truncate">${escapeHtml(tx.material_name ?? tx.project_title ?? 'Transaction')}</p>
+        <p class="text-sm font-bold truncate">${escapeHtml(tx.material_name ?? tx.project_title ?? t('wallet_transaction', 'Transaction'))}</p>
         <p class="text-[10px] text-slate-400">${formatDate(tx.created_at)}</p>
       </div>
       <div class="text-right shrink-0">
@@ -125,8 +116,8 @@ async function loadTransactions(): Promise<void> {
             listEl.innerHTML = `
             <div class="text-center py-12">
               <i class="ph ph-wallet text-slate-300" style="font-size:48px" aria-hidden="true"></i>
-              <p class="text-slate-500 font-bold mt-4">No transactions yet</p>
-              <p class="text-slate-400 text-sm mt-1">Your donation and payment history will appear here</p>
+              <p class="text-slate-500 font-bold mt-4">${t('wallet_no_transactions', 'No transactions yet')}</p>
+              <p class="text-slate-400 text-sm mt-1">${t('wallet_history_description', 'Your donation and payment history will appear here')}</p>
             </div>`;
             return;
         }
@@ -138,8 +129,8 @@ async function loadTransactions(): Promise<void> {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
         listEl.innerHTML = `
         <div class="text-center py-8">
-          <p class="text-slate-500 text-sm">Unable to load transactions. Please sign in.</p>
-          <a href="auth.html" class="btn-primary !w-auto !px-6 mt-4 inline-flex">Sign In</a>
+          <p class="text-slate-500 text-sm">${t('wallet_load_failed', 'Unable to load transactions. Please sign in.')}</p>
+          <a href="auth.html" class="btn-primary !w-auto !px-6 mt-4 inline-flex">${t('wallet_sign_in', 'Sign In')}</a>
         </div>`;
     }
 }

@@ -9,6 +9,7 @@
 // ============================================================================
 import { query, transaction } from '../config/database';
 import { paymentService } from './payment.service';
+import { recordCommissionInTransaction } from './commission.service';
 import { logger } from '../utils/logger';
 import type {
     ProjectCard,
@@ -474,7 +475,7 @@ async function autoGeneratePO(
     const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
     const totalAmount = Number((BigInt(boqItem.unit_price) * qtyFixed) / 100n);
 
-    await client.query(
+    const poResult = await client.query<{ po_id: string }>(
         `INSERT INTO purchase_orders (
       po_number, item_id, project_id, supplier_id, amount, status,
       material_name, material_category, quantity, unit, unit_price,
@@ -482,7 +483,7 @@ async function autoGeneratePO(
     ) VALUES (
       generate_po_number(), $1, $2, $3, $4, 'generated',
       $5, $6, $7, $8, $9, $10, $11
-    )`,
+    ) RETURNING po_id`,
         [
             itemId,
             projectId,
@@ -498,7 +499,30 @@ async function autoGeneratePO(
         ]
     );
 
-    logger.info('Auto-generated purchase order', { itemId, supplierName });
+    const poId = poResult.rows[0]?.po_id;
+    logger.info('Auto-generated purchase order', { itemId, supplierName, poId });
+
+    // Record platform commission per profitability study §1 (Supplier Commission Strategy)
+    if (poId) {
+        try {
+            const commission = await recordCommissionInTransaction(
+                client, poId, supplierId, projectId, totalAmount,
+            );
+            if (commission) {
+                logger.info('Commission recorded for PO', {
+                    poId,
+                    rate_bps: commission.commission_rate_bps,
+                    amount: commission.commission_amount_cents,
+                    tier: commission.tier_name,
+                });
+            }
+        } catch (err) {
+            // Commission failure must NOT block PO creation — log and continue
+            logger.error('Failed to record commission (non-blocking)', {
+                poId, supplierId, totalAmount, error: String(err),
+            });
+        }
+    }
 }
 
 // ─── Donor Queries ──────────────────────────────────────────────────────────

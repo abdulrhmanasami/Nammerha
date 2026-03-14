@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
+import { t } from '../utils/i18n';
 
 /* ─── Pricing Oracle & EPA Engine — Interactive Controller ─── */
 
@@ -44,7 +45,7 @@ function initApproveButton(): void {
         /* Update badge */
         const badge = document.querySelector('.badge-primary');
         if (badge) {
-            badge.textContent = 'Approved';
+            badge.textContent = t('oracle_approved', 'Approved');
             badge.classList.remove('badge-primary');
             badge.classList.add('bg-smoky-jade/10', 'text-smoky-jade', 'text-[10px]', 'font-bold', 'px-2', 'py-0.5', 'rounded-full', 'uppercase');
         }

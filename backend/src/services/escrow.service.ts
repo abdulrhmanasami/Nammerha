@@ -9,6 +9,12 @@
 // ============================================================================
 import { query, transaction } from '../config/database';
 import { createNotification } from './notification.service';
+import {
+    calculateEscrowFee,
+    getActiveFeeConfig,
+    recordEscrowFeeInTransaction,
+} from './escrow-fee.service';
+import { logger } from '../utils/logger';
 import type {
     VerificationCase,
     SpatialProof,
@@ -249,9 +255,64 @@ export async function releaseEscrow(
             });
         }
 
+        // ─── Phase 3: Escrow Transaction Fee (Commercial Projects Only) ──────
+        // Per study §5: 1-3% fee on commercial (homeowner-funded) projects.
+        // Humanitarian projects (donor-funded) are ALWAYS exempt.
+        let feeCharged = 0;
+        try {
+            // Determine if commercial: check if donors are the homeowner themselves
+            const projectCheck = await client.query<{
+                homeowner_id: string;
+                donor_count: string;
+            }>(
+                `SELECT p.homeowner_id,
+                        (SELECT COUNT(DISTINCT donor_id)
+                         FROM escrow_ledger
+                         WHERE project_id = p.project_id
+                           AND donor_id != p.homeowner_id) AS donor_count
+                 FROM projects p WHERE p.project_id = $1`,
+                [proof.project_id],
+            );
+            const projectData = projectCheck.rows[0];
+            const isCommercial = projectData
+                && parseInt(projectData.donor_count, 10) === 0;
+
+            if (isCommercial && totalReleased > 0) {
+                const feeConfig = await getActiveFeeConfig();
+                if (feeConfig && feeConfig.is_active) {
+                    const feeCents = calculateEscrowFee(
+                        totalReleased,
+                        feeConfig.fee_rate_bps,
+                        feeConfig.min_fee_cents,
+                        feeConfig.max_fee_cents,
+                    );
+                    if (feeCents > 0) {
+                        await recordEscrowFeeInTransaction(
+                            client,
+                            proof.project_id,
+                            dto.item_id,
+                            totalReleased,
+                            feeConfig.fee_rate_bps,
+                            feeCents,
+                            feeConfig.fee_name,
+                        );
+                        feeCharged = feeCents;
+                    }
+                }
+            }
+        } catch (feeErr) {
+            // Fee recording failure should NOT block escrow release
+            logger.error('Escrow fee recording failed (non-blocking)', {
+                projectId: proof.project_id,
+                itemId: dto.item_id,
+                error: feeErr instanceof Error ? feeErr.message : String(feeErr),
+            });
+        }
+
         return {
             released_count: releaseResult.rowCount ?? 0,
             total_released: totalReleased,
+            fee_charged: feeCharged,
         };
     });
 }

@@ -6,6 +6,7 @@ import { auth, roles as rolesApi } from '../api';
 // DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
 // instead of maintaining a duplicate copy.
 import { ROLE_META, getRoleLabel } from '../components/role-switcher';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Profile Page Engine
@@ -17,28 +18,8 @@ import { ROLE_META, getRoleLabel } from '../components/role-switcher';
 // DUP-001 FIX: ROLE_META, getRoleLabel, isRTL imported from role-switcher.ts
 // I18N-003 FIX: All user-facing strings wrapped with i18n t()
 // LOGOUT-001 FIX: Logout calls /api/auth/logout to invalidate server token
+// FIX-004: i18n interface now from shared utils/i18n.ts
 // ============================================================================
-
-// ─── i18n ───────────────────────────────────────────────────────────────────
-interface NammerhaI18nApi {
-    switchLanguage: (code: string) => void;
-    getCurrentLang: () => string;
-    getSupportedLangs: () => Array<{ code: string; name: string; dir: string }>;
-    t: (key: string, fallback?: string) => string;
-}
-declare global {
-    interface Window {
-        NammerhaI18n?: NammerhaI18nApi;
-    }
-}
-
-/** Safe i18n lookup — returns fallback if engine not yet loaded */
-function t(key: string, fallback: string): string {
-    if (typeof window.NammerhaI18n?.t === 'function') {
-        return window.NammerhaI18n.t(key, fallback) ?? fallback;
-    }
-    return fallback;
-}
 
 function isRTL(): boolean {
     return document.documentElement.dir === 'rtl' || document.documentElement.lang === 'ar';

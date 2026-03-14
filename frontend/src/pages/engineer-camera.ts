@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
+import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -77,7 +78,7 @@ function initTimestamp(): void {
 // ─── GPS Acquisition ────────────────────────────────────────────────────────
 function initGPS(): void {
     if (!('geolocation' in navigator)) {
-        if (gpsCoordsEl) { gpsCoordsEl.textContent = 'GPS unavailable'; }
+        if (gpsCoordsEl) { gpsCoordsEl.textContent = t('cam_gps_unavailable', 'GPS unavailable'); }
         return;
     }
 
@@ -91,12 +92,12 @@ function initGPS(): void {
                     `${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° E`;
             }
             if (gpsAccuracyEl) {
-                gpsAccuracyEl.textContent = `Accuracy: ±${pos.coords.accuracy.toFixed(1)}m`;
+                gpsAccuracyEl.textContent = `${t('cam_accuracy', 'Accuracy')}: ±${pos.coords.accuracy.toFixed(1)}m`;
             }
         },
         () => {
-            if (gpsCoordsEl) { gpsCoordsEl.textContent = 'GPS permission denied'; }
-            if (gpsAccuracyEl) { gpsAccuracyEl.textContent = 'GPS: Fallback Mode'; }
+            if (gpsCoordsEl) { gpsCoordsEl.textContent = t('cam_gps_denied', 'GPS permission denied'); }
+            if (gpsAccuracyEl) { gpsAccuracyEl.textContent = t('cam_gps_fallback', 'GPS: Fallback Mode'); }
         },
         { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
     );
@@ -141,7 +142,7 @@ function setupCapture(): void {
 
     captureBtn.addEventListener('click', () => {
         if (captureCount >= MAX_CAPTURES) {
-            showToast('Maximum 8 captures per session. Submit your proofs.');
+            showToast(t('cam_max_captures', 'Maximum 8 captures per session. Submit your proofs.'));
             return;
         }
 
@@ -193,7 +194,7 @@ function setupCapture(): void {
                 iconEl.classList.add('ph-check-circle');
             }
             const textEl = captureBtn.querySelector('span');
-            if (textEl) { textEl.textContent = `Captured #${captureCount} ✓`; }
+            if (textEl) { textEl.textContent = `${t('cam_captured', 'Captured')} #${captureCount} ✓`; }
 
             setTimeout(() => {
                 cameraReady.classList.remove('hidden');
@@ -204,7 +205,7 @@ function setupCapture(): void {
                     icon.classList.remove('ph-check-circle');
                     icon.classList.add('ph-camera');
                 }
-                if (textEl) { textEl.textContent = 'Capture 360 & Sync'; }
+                if (textEl) { textEl.textContent = t('cam_capture_360', 'Capture 360 & Sync'); }
             }, 2000);
         }
 
@@ -221,17 +222,17 @@ function setupSync(): void {
 
     syncBtn.addEventListener('click', async () => {
         if (captureCount === 0) {
-            showToast('No captures to sync. Capture photos first.');
+            showToast(t('cam_no_captures', 'No captures to sync. Capture photos first.'));
             return;
         }
 
         if (!projectId) {
-            showToast('No project selected. Navigate from the dashboard.');
+            showToast(t('cam_no_project', 'No project selected. Navigate from the dashboard.'));
             return;
         }
 
         if (gpsLat === null || gpsLng === null) {
-            showToast('GPS coordinates required. Please enable location services.');
+            showToast(t('cam_gps_required', 'GPS coordinates required. Please enable location services.'));
             return;
         }
 
@@ -242,7 +243,7 @@ function setupSync(): void {
             icon.classList.add('ph-spinner', 'animate-spin');
         }
         const label = syncBtn.querySelector('span');
-        if (label) { label.textContent = 'Uploading...'; }
+        if (label) { label.textContent = t('cam_uploading', 'Uploading...'); }
 
         try {
             let uploaded = 0;
@@ -311,25 +312,25 @@ function setupSync(): void {
                 (icon as HTMLElement).style.color = '#109173';
             }
             if (label) {
-                label.textContent = `${uploaded} Proof(s) Synced ✓`;
+                label.textContent = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} ✓`;
                 label.style.color = '#109173';
             }
 
-            showToast(`${uploaded} spatial proof(s) submitted for verification`);
+            showToast(`${uploaded} ${t('cam_proofs_submitted', 'spatial proof(s) submitted for verification')}`);
 
             // Reset state
             capturedDataUrls.length = 0;
             captureCount = 0;
             if (photoCountEl) { photoCountEl.textContent = '0 / 8'; }
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'Sync failed';
+            const message = err instanceof Error ? err.message : t('cam_sync_failed', 'Sync failed');
             showToast(message);
 
             if (icon) {
                 icon.classList.remove('ph-spinner', 'animate-spin');
                 icon.classList.add('ph-cloud-arrow-up');
             }
-            if (label) { label.textContent = 'Sync to Server'; }
+            if (label) { label.textContent = t('cam_sync_to_server', 'Sync to Server'); }
         }
     });
 }
@@ -374,7 +375,7 @@ function setupVoice(): void {
         if (voiceTimerEl) { voiceTimerEl.textContent = '00:00'; }
 
         const duration = Math.floor((Date.now() - recordingStart) / 1000);
-        if (duration > 1) { showToast(`Snag note saved (${duration}s)`); }
+        if (duration > 1) { showToast(`${t('cam_snag_saved', 'Snag note saved')} (${duration}s)`); }
     });
 }
 

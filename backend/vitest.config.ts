@@ -11,7 +11,7 @@ export default defineConfig({
             include: ['src/routes/**', 'src/services/**', 'src/middleware/**'],
         },
         env: {
-            NODE_ENV: 'development',
+            NODE_ENV: 'test',
             JWT_SECRET: 'test-secret-key-for-vitest-never-use-in-production',
             DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
             PAYMENT_WEBHOOK_SECRET: 'test-webhook-secret-for-vitest-never-use-in-production',

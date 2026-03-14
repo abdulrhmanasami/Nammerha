@@ -6,6 +6,7 @@
  */
 import '../styles/main.css';
 import { CartStore, renderCartBadge, flyToCart } from '../components/cart';
+import { t } from '../utils/i18n';
 
 function initProjectDetails(): void {
     const cartBadge = document.getElementById('header-cart-badge');
@@ -72,7 +73,7 @@ function markAsAdded(btn: HTMLButtonElement): void {
     btn.classList.add('btn-added');
     btn.innerHTML = `
     <i class="ph ph-check-circle" style="font-size:20px" aria-hidden="true"></i>
-    Added to Cart
+    ${t('project_added_to_cart', 'Added to Cart')}
   `;
     btn.disabled = true;
 }

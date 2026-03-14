@@ -2,6 +2,8 @@ import '../styles/main.css';
 import { reportError, reportWarning } from '../error-reporter';
 import { donations, spatialProof } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
+import { formatCents } from '../utils/format';
+import { t } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Donor Proof of Delivery Page Engine
@@ -67,35 +69,32 @@ function formatDate(dateStr: string): string {
     }
 }
 
-// ─── Format Currency ────────────────────────────────────────────────────────
-function formatCents(cents: number): string {
-    return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 });
-}
+// HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
 // ─── Update UI with Proof Data ──────────────────────────────────────────────
 function renderProofData(proof: ProofData, donation?: DonationRecord): void {
     // Status-based header
     const statusMap: Record<string, { title: string; badge: string; icon: string }> = {
         verified: {
-            title: 'Success! Your contribution is on-site',
-            badge: 'Verified',
+            title: t('proof_status_verified_title', 'Success! Your contribution is on-site'),
+            badge: t('proof_badge_verified', 'Verified'),
             icon: 'check-circle',
         },
         submitted: {
-            title: 'Proof Submitted — Awaiting Verification',
-            badge: 'Pending',
+            title: t('proof_status_submitted_title', 'Proof Submitted — Awaiting Verification'),
+            badge: t('proof_badge_pending', 'Pending'),
             icon: 'clock',
         },
         rejected: {
-            title: 'Proof Flagged — Under Review',
-            badge: 'Flagged',
+            title: t('proof_status_rejected_title', 'Proof Flagged — Under Review'),
+            badge: t('proof_badge_flagged', 'Flagged'),
             icon: 'warning',
         },
     };
 
     const status = statusMap[proof.verification_status] ?? {
-        title: 'Proof Submitted — Awaiting Verification',
-        badge: 'Pending',
+        title: t('proof_status_submitted_title', 'Proof Submitted — Awaiting Verification'),
+        badge: t('proof_badge_pending', 'Pending'),
         icon: 'clock',
     };
 
@@ -115,21 +114,24 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
 
     // Project info
     if (projectTitle) {
-        projectTitle.textContent = donation?.project_title ?? `Project ${proof.proof_id.slice(0, 8)}`;
+        projectTitle.textContent = donation?.project_title ?? `${t('proof_project_label', 'Project')} ${proof.proof_id.slice(0, 8)}`;
     }
     if (verifiedBy && proof.verified_by_name) {
         verifiedBy.innerHTML = `
             <i class="ph ph-shield-check text-trust-blue ph-sm" aria-hidden="true"></i>
-            Verified by ${esc(proof.verified_by_name)}
+            ${esc(t('proof_verified_by', 'Verified by'))} ${esc(proof.verified_by_name)}
         `;
     }
 
     // Description
     if (descriptionPara) {
         if (donation) {
-            const materialName = donation.material_name ?? 'materials';
+            const materialName = donation.material_name ?? t('proof_materials', 'materials');
             const amount = formatCents(donation.amount_locked);
-            descriptionPara.textContent = `Your ${amount} contribution of ${materialName} for Project ${donation.project_id} has been ${proof.verification_status === 'verified' ? 'received and verified on-site' : 'submitted for verification'}.`;
+            const verifiedText = proof.verification_status === 'verified'
+                ? t('proof_received_verified', 'received and verified on-site')
+                : t('proof_submitted_for_verification', 'submitted for verification');
+            descriptionPara.textContent = `${t('proof_your_contribution', 'Your')} ${amount} ${t('proof_contribution_of', 'contribution of')} ${materialName} ${t('proof_for_project', 'for Project')} ${donation.project_id} ${t('proof_has_been', 'has been')} ${verifiedText}.`;
         }
     }
 
@@ -145,7 +147,7 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
     if (photoContainer && proof.image_url) {
         const img = document.createElement('img');
         img.src = proof.image_url;
-        img.alt = 'Delivery proof photo';
+        img.alt = t('proof_delivery_photo', 'Delivery proof photo');
         img.className = 'absolute inset-0 w-full h-full object-cover';
         // Replace placeholder icon
         const placeholder = photoContainer.querySelector('.flex.items-center.justify-center');

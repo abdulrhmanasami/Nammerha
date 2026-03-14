@@ -10,6 +10,7 @@ import { renderCartBadge } from './components/cart';
 import './components/role-switcher';  // Self-injecting: attaches to #role-switcher-mount
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
+import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
 import './offline/network-status';  // Self-injecting: bilingual offline status bar
 import { autoTriggerTour } from './components/tour-engine';
@@ -47,20 +48,8 @@ interface ProjectCard {
     compliance_level?: string;
 }
 
-// LOW-AUD-003 FIX: Locale-aware currency formatting.
-// NMR-PLT-004 FIX: Use active page locale instead of hardcoded 'en-US'.
-// The i18n engine sets document.documentElement.lang on page load.
-function formatCents(cents: number | null | undefined, currency = 'USD'): string {
-    // MOB-002 FIX: Guard against null/undefined/NaN — API can return null for unfunded projects
-    const safeCents = Number(cents) || 0;
-    const locale = document.documentElement.lang || 'en-US';
-    return new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(safeCents / 100);
-}
+// HIGH-001 FIX: formatCents() consolidated — single source of truth in utils/format.ts.
+// Previously had an inline copy here (L53-63) that duplicated the canonical implementation.
 
 function buildProjectCard(project: ProjectCard, index: number): string {
     const pct = Math.min(100, project.funded_percentage ?? 0);
