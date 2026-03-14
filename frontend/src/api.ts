@@ -15,19 +15,25 @@ const API_BASE = '/api';
 async function ensureCsrfToken(): Promise<string | null> {
     // Check if a CSRF token cookie already exists
     const existing = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
+    console.log('[DEBUG-CSRF] Cookie check:', existing ? 'FOUND' : 'NOT FOUND');
     if (existing) {
         return existing;
     }
 
     // Fetch a new CSRF token from the backend
     try {
+        console.log('[DEBUG-CSRF] Fetching /api/csrf-token...');
         const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
+        console.log('[DEBUG-CSRF] Fetch response status:', res.status);
         if (!res.ok) {
+            console.log('[DEBUG-CSRF] Response NOT OK, returning null');
             return null;
         }
         const data = await res.json() as { csrfToken?: string };
+        console.log('[DEBUG-CSRF] Token received:', data.csrfToken ? 'YES' : 'NO');
         return data.csrfToken ?? null;
-    } catch {
+    } catch (err) {
+        console.error('[DEBUG-CSRF] Fetch FAILED:', err);
         // CSRF fetch failure is non-fatal — Bearer auth still works
         return null;
     }
@@ -76,12 +82,14 @@ async function request<T>(
     const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
     try {
+        console.log('[DEBUG-REQ] Making fetch to:', `${API_BASE}${endpoint}`, 'method:', method);
         const res = await fetch(`${API_BASE}${endpoint}`, {
             ...options,
             headers,
             signal: controller.signal,
             credentials: 'same-origin', // V1-AUDIT: Send httpOnly cookie
         });
+        console.log('[DEBUG-REQ] Fetch response:', res.status, res.statusText);
 
         clearTimeout(timeoutId);
 

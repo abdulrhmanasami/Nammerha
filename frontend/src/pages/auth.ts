@@ -286,21 +286,28 @@ formLogin?.addEventListener('submit', async (e) => {
 // ─── Form Submission: REGISTER ──────────────────────────────────────────────
 formRegister?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (state.isSubmitting) { return; }
+    console.log('[DEBUG-REG] Submit event fired. isSubmitting:', state.isSubmitting);
+    if (state.isSubmitting) { console.log('[DEBUG-REG] Already submitting, returning'); return; }
 
     // FIX-REG-003: Comprehensive validation with clear per-field feedback
-    if (!validateRegisterForm()) { return; }
+    console.log('[DEBUG-REG] Running validation...');
+    if (!validateRegisterForm()) { console.log('[DEBUG-REG] Validation FAILED'); return; }
+    console.log('[DEBUG-REG] Validation PASSED');
 
     const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
 
+    console.log('[DEBUG-REG] Fields:', { full_name, email, password: '***', role: state.selectedRole });
+
     if (!full_name || !email || !password) {
         showBanner('error', t('auth_fill_all_fields', 'Please fill in all required fields.'));
+        console.log('[DEBUG-REG] Missing fields, returning');
         return;
     }
 
     state.isSubmitting = true;
+    console.log('[DEBUG-REG] Calling auth.register()...');
     // FIX-REG-004: NEVER use .disabled — use pointer-events to prevent double-submit
     if (regSubmit) {
         regSubmit.style.pointerEvents = 'none';
@@ -310,16 +317,19 @@ formRegister?.addEventListener('submit', async (e) => {
     if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
     try {
+        console.log('[DEBUG-REG] Calling auth.register with:', { email, full_name, role: state.selectedRole });
         const response = await auth.register({
             email,
             password,
             full_name,
             role: state.selectedRole!, // Safe: validateRegisterForm() guarantees non-null
         });
+        console.log('[DEBUG-REG] auth.register() returned:', JSON.stringify(response));
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.
         if (response.success) {
+            console.log('[DEBUG-REG] SUCCESS! Showing success banner');
             showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Please check your email to verify your account.'));
             // Switch to login tab after successful registration
             setTimeout(() => {
@@ -329,12 +339,15 @@ formRegister?.addEventListener('submit', async (e) => {
                 if (loginEmail) { loginEmail.value = email; }
             }, 2000);
         } else {
+            console.log('[DEBUG-REG] FAILURE response:', response.error);
             showBanner('error', response.error ?? t('auth_reg_failed', 'Registration failed. Please try again.'));
         }
     } catch (err) {
+        console.error('[DEBUG-REG] CATCH error:', err);
         const message = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
         showBanner('error', message);
     } finally {
+        console.log('[DEBUG-REG] FINALLY block reached');
         state.isSubmitting = false;
         // FIX-REG-004: Restore pointer-events instead of disabled
         if (regSubmit) {
