@@ -286,80 +286,72 @@ formLogin?.addEventListener('submit', async (e) => {
 // ─── Form Submission: REGISTER ──────────────────────────────────────────────
 formRegister?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log('[DEBUG-REG] Submit event fired. isSubmitting:', state.isSubmitting);
-    if (state.isSubmitting) { console.log('[DEBUG-REG] Already submitting, returning'); return; }
+    if (state.isSubmitting) { return; }
 
     // FIX-REG-003: Comprehensive validation with clear per-field feedback
-    console.log('[DEBUG-REG] Running validation...');
-    if (!validateRegisterForm()) { console.log('[DEBUG-REG] Validation FAILED'); return; }
-    console.log('[DEBUG-REG] Validation PASSED');
+    if (!validateRegisterForm()) { return; }
 
     const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
 
-    console.log('[DEBUG-REG] Fields:', { full_name, email, password: '***', role: state.selectedRole });
-
     if (!full_name || !email || !password) {
         showBanner('error', t('auth_fill_all_fields', 'Please fill in all required fields.'));
-        console.log('[DEBUG-REG] Missing fields, returning');
         return;
     }
 
+    // FIX-REG-006: MASTER try/catch wraps EVERYTHING after this point.
+    // Previous bug: code between isSubmitting=true and the inner try{} was
+    // unprotected — if t() or any DOM operation threw, the async handler
+    // silently died as an unhandled rejection with no error banner and
+    // the button stuck in loading state forever.
     state.isSubmitting = true;
-    console.log('[DEBUG-REG] Calling auth.register()...');
-    console.log('[DEBUG-REG] typeof auth:', typeof auth, 'typeof auth.register:', typeof auth.register);
-    console.log('[DEBUG-REG] auth keys:', Object.keys(auth));
-    console.log('[DEBUG-REG] auth.register === function?', typeof auth.register === 'function');
-    // FIX-REG-004: NEVER use .disabled — use pointer-events to prevent double-submit
-    if (regSubmit) {
-        regSubmit.style.pointerEvents = 'none';
-        regSubmit.style.opacity = '0.5';
-    }
     const submitText = document.getElementById('reg-submit-text');
-    if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
     try {
-        console.log('[DEBUG-REG] === DIRECT FETCH BYPASS (no auth.register) ===');
+        // Visual feedback — inside try so any error is caught
+        if (regSubmit) {
+            regSubmit.style.pointerEvents = 'none';
+            regSubmit.style.opacity = '0.5';
+        }
+        if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
-        // Step 1: Get CSRF token (inline — bypasses api.ts request())
+        // FIX-REG-005: Direct inline fetch — bypasses api.ts request() chain
+        // which had an unexplained module execution hang where auth.register()
+        // called request() but request() never entered.
+
+        // Step 1: Acquire CSRF token
         let csrfToken: string | null = null;
         const existingCookie = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
         if (existingCookie) {
             csrfToken = existingCookie;
-            console.log('[DEBUG-REG] CSRF from cookie');
         } else {
             try {
                 const csrfRes = await fetch('/api/csrf-token', { credentials: 'same-origin' });
                 if (csrfRes.ok) {
                     const csrfData = await csrfRes.json() as { csrfToken?: string };
                     csrfToken = csrfData.csrfToken ?? null;
-                    console.log('[DEBUG-REG] CSRF from fetch:', csrfToken ? 'OK' : 'MISSING');
                 }
-            } catch (csrfErr) {
-                console.error('[DEBUG-REG] CSRF fetch error:', csrfErr);
+            } catch {
+                // CSRF fetch failure is non-fatal — proceed without it
             }
         }
 
-        // Step 2: POST to /api/auth/register directly
+        // Step 2: POST to /api/auth/register
         const regHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
         if (csrfToken) { regHeaders['X-CSRF-Token'] = csrfToken; }
 
-        console.log('[DEBUG-REG] POSTing to /api/auth/register...');
         const regRes = await fetch('/api/auth/register', {
             method: 'POST',
             headers: regHeaders,
             body: JSON.stringify({ email, password, full_name, role: state.selectedRole }),
             credentials: 'same-origin',
         });
-        console.log('[DEBUG-REG] POST response status:', regRes.status);
         const response = await regRes.json() as { success: boolean; message?: string; error?: string };
-        console.log('[DEBUG-REG] Response body:', JSON.stringify(response));
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.
         if (response.success) {
-            console.log('[DEBUG-REG] SUCCESS! Showing success banner');
             showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Please check your email to verify your account.'));
             // Switch to login tab after successful registration
             setTimeout(() => {
@@ -369,17 +361,13 @@ formRegister?.addEventListener('submit', async (e) => {
                 if (loginEmail) { loginEmail.value = email; }
             }, 2000);
         } else {
-            console.log('[DEBUG-REG] FAILURE response:', response.error);
             showBanner('error', response.error ?? t('auth_reg_failed', 'Registration failed. Please try again.'));
         }
     } catch (err) {
-        console.error('[DEBUG-REG] CATCH error:', err);
         const message = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
         showBanner('error', message);
     } finally {
-        console.log('[DEBUG-REG] FINALLY block reached');
         state.isSubmitting = false;
-        // FIX-REG-004: Restore pointer-events instead of disabled
         if (regSubmit) {
             regSubmit.style.pointerEvents = '';
             regSubmit.style.opacity = '1';
