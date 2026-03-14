@@ -50,11 +50,11 @@ async function request<T>(
     endpoint: string,
     options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
+    console.log('[DEBUG-REQ] >>> request() ENTERED. endpoint:', endpoint, 'method:', options.method);
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         ...(options.headers as Record<string, string> ?? {}),
     };
-
     // V1-AUDIT FIX: JWT is now in an httpOnly cookie — no localStorage access.
     // The browser sends the cookie automatically with credentials: 'same-origin'.
     // CSRF protection is required for all state-changing (non-GET) requests.

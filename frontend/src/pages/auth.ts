@@ -308,6 +308,9 @@ formRegister?.addEventListener('submit', async (e) => {
 
     state.isSubmitting = true;
     console.log('[DEBUG-REG] Calling auth.register()...');
+    console.log('[DEBUG-REG] typeof auth:', typeof auth, 'typeof auth.register:', typeof auth.register);
+    console.log('[DEBUG-REG] auth keys:', Object.keys(auth));
+    console.log('[DEBUG-REG] auth.register === function?', typeof auth.register === 'function');
     // FIX-REG-004: NEVER use .disabled — use pointer-events to prevent double-submit
     if (regSubmit) {
         regSubmit.style.pointerEvents = 'none';
