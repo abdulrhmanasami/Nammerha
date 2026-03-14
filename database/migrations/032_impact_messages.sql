@@ -19,7 +19,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS impact_messages (
     message_id   UUID         DEFAULT uuid_generate_v4() PRIMARY KEY,
     donor_id     UUID         NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    project_id   UUID         REFERENCES projects(project_id) ON DELETE SET NULL,
+    project_id   VARCHAR(36)  REFERENCES projects(project_id) ON DELETE SET NULL,
     event_type   VARCHAR(50)  NOT NULL
                  CHECK (event_type IN (
                      'donation_received',

@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     reviewer_id             UUID         NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     reviewable_type         VARCHAR(50)  NOT NULL,
     reviewable_id           UUID         NOT NULL,
-    project_id              UUID         REFERENCES projects(project_id) ON DELETE SET NULL,
+    project_id              VARCHAR(36)  REFERENCES projects(project_id) ON DELETE SET NULL,
     overall_rating          SMALLINT     NOT NULL CHECK (overall_rating BETWEEN 1 AND 5),
     title                   VARCHAR(200),
     body                    TEXT         NOT NULL CHECK (char_length(body) >= 10),
