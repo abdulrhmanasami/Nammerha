@@ -11,6 +11,7 @@
  * Sustainable UX: Respects prefers-reduced-motion for Syria
  * low-bandwidth/accessibility environments.
  */
+import '../styles/main.css';
 
 (function initAboutPage(): void {
     // ─── Respect reduced motion preferences ─────────────────────────────
