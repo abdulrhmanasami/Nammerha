@@ -189,6 +189,33 @@
     html[data-theme="light"] .footer-copy {
       color: rgba(26,32,44,0.4);
     }
+    /* CTA */
+    html[data-theme="light"] .cta-box {
+      background: linear-gradient(135deg, #f0f4f8, #e8edf3);
+    }
+    html[data-theme="light"] .cta-box::before {
+      background: none;
+    }
+    html[data-theme="light"] .cta-box h2 {
+      color: #1a202c;
+    }
+    html[data-theme="light"] .cta-box p {
+      color: rgba(26,32,44,0.6);
+    }
+    html[data-theme="light"] .cta-btn {
+      background: var(--trust-blue);
+      color: white;
+      box-shadow: 0 4px 16px rgba(26,115,232,0.2);
+    }
+    html[data-theme="light"] .cta-btn:hover {
+      box-shadow: 0 8px 24px rgba(26,115,232,0.3);
+    }
+    html[data-theme="light"] .cta-links a {
+      color: rgba(26,32,44,0.5);
+    }
+    html[data-theme="light"] .cta-links a:hover {
+      color: #1a202c;
+    }
     /* Buttons */
     html[data-theme="light"] .nav-back,
     html[data-theme="light"] .nav-lang {
@@ -984,7 +1011,8 @@
     <div class="orb" style="width:250px;height:250px;top:40%;right:20%;background:rgba(194,149,107,0.04);"></div>
 
     <div class="hero-logo">
-      <img src="/brand/Nammerha_logo_Full.svg?v=2" alt="نعمّرها" id="heroLogo" />
+      <img src="/brand/Nammerha_logo_Full.svg?v=2" alt="نعمّرها" id="heroLogo" class="logo-light" />
+      <img src="/brand/Nammerha_logo_Full_dark.svg?v=1" alt="نعمّرها" id="heroLogoDark" class="logo-dark" />
     </div>
 
     <h1 class="hero-title" id="heroTitle">نُعيد بناء سوريا، بيتاً بيتاً</h1>
