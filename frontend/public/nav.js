@@ -76,10 +76,18 @@
         'homeowner-report.html': 'projects',
         'donor-basket.html': 'impact',
         'donor-proof.html': 'impact',
+        'wallet.html': 'wallet',
+        'profile.html': 'profile',
+        'about.html': 'profile',
         'admin-dashboard.html': 'home',
         'admin-escrow.html': 'wallet',
         'admin-kyc.html': 'profile',
         'admin-oracle.html': 'projects',
+        'admin-revenue.html': 'wallet',
+        'admin-fintech.html': 'wallet',
+        'compliance-dashboard.html': 'projects',
+        'contractor-dashboard.html': 'projects',
+        'supplier-dashboard.html': 'projects',
     };
 
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────
