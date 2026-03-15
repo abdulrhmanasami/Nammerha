@@ -62,99 +62,144 @@
 
     /* ─── Light Mode Overrides ────────────────────────── */
     html[data-theme="light"] {
-      --bg-primary: #f5f7fa;
-      --bg-secondary: #edf0f5;
-      --bg-card: rgba(0,0,0,0.02);
-      --bg-glass: rgba(255,255,255,0.7);
-      --bg-glass-hover: rgba(255,255,255,0.85);
-      --border-glass: rgba(0,0,0,0.08);
-      --border-glass-hover: rgba(0,0,0,0.14);
+      --bg-primary: #f8f9fc;
+      --bg-secondary: #eef1f6;
+      --bg-card: rgba(255,255,255,0.9);
+      --bg-glass: rgba(255,255,255,0.85);
+      --bg-glass-hover: rgba(255,255,255,0.95);
+      --border-glass: rgba(0,0,0,0.06);
+      --border-glass-hover: rgba(0,0,0,0.12);
       --text-primary: #1a202c;
-      --text-secondary: rgba(26,32,44,0.65);
-      --text-tertiary: rgba(26,32,44,0.4);
+      --text-secondary: rgba(26,32,44,0.6);
+      --text-tertiary: rgba(26,32,44,0.35);
     }
+    html[data-theme="light"] body {
+      background: #f8f9fc;
+      color: #1a202c;
+    }
+    /* Nav */
     html[data-theme="light"] .top-nav {
-      background: rgba(245,247,250,0.85);
+      background: rgba(255,255,255,0.88);
       border-bottom-color: rgba(0,0,0,0.06);
+      backdrop-filter: blur(20px);
     }
     html[data-theme="light"] .top-nav.scrolled {
-      background: rgba(245,247,250,0.95);
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
     }
+    /* Hero — clean, no heavy gradient */
     html[data-theme="light"] .hero::before {
-      background:
-        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(26,115,232,0.08), transparent),
-        radial-gradient(ellipse 60% 50% at 25% 75%, rgba(16,145,115,0.06), transparent),
-        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(194,149,107,0.04), transparent);
+      background: none;
     }
     html[data-theme="light"] .hero::after {
       background-image:
-        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+        linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
     }
     html[data-theme="light"] .hero-title {
-      background: linear-gradient(135deg, #1a202c 0%, rgba(26,32,44,0.7) 100%);
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    html[data-theme="light"] .hero-subtitle {
+      color: rgba(26,32,44,0.6);
+    }
     html[data-theme="light"] .hero-logo img {
-      filter: drop-shadow(0 0 30px rgba(26,115,232,0.15));
+      filter: drop-shadow(0 4px 20px rgba(26,115,232,0.12));
     }
     html[data-theme="light"] .badge {
-      background: rgba(0,0,0,0.04);
-      border-color: rgba(0,0,0,0.08);
-      color: var(--text-secondary);
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(0,0,0,0.08);
+      color: #4a5568;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
     html[data-theme="light"] .scroll-hint .mouse {
-      border-color: rgba(0,0,0,0.15);
+      border-color: rgba(0,0,0,0.12);
     }
     html[data-theme="light"] .scroll-hint .mouse::after {
-      background: rgba(0,0,0,0.25);
+      background: rgba(0,0,0,0.2);
     }
+    /* Glass cards */
     html[data-theme="light"] .glass {
-      background: var(--bg-glass);
-      border-color: var(--border-glass);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     }
     html[data-theme="light"] .glass:hover {
-      background: var(--bg-glass-hover);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.1);
     }
     html[data-theme="light"] .bento-large {
-      background: linear-gradient(135deg, rgba(26,115,232,0.05), rgba(16,145,115,0.03)) !important;
-      border-color: rgba(26,115,232,0.1) !important;
+      background: linear-gradient(135deg, rgba(26,115,232,0.04), rgba(16,145,115,0.02)) !important;
+      border-color: rgba(26,115,232,0.08) !important;
     }
+    /* Section titles */
+    html[data-theme="light"] .section-title {
+      color: #1a202c;
+    }
+    html[data-theme="light"] .section-subtitle {
+      color: rgba(26,32,44,0.55);
+    }
+    /* Timeline */
     html[data-theme="light"] .timeline-track-bg {
-      background: rgba(0,0,0,0.06);
+      background: rgba(0,0,0,0.05);
     }
+    /* Stats */
     html[data-theme="light"] .stats-section {
-      background: linear-gradient(135deg, rgba(26,115,232,0.04), rgba(16,145,115,0.03));
-      border-color: rgba(0,0,0,0.06);
+      background: linear-gradient(135deg, rgba(26,115,232,0.03), rgba(16,145,115,0.02));
+      border-color: rgba(0,0,0,0.05);
     }
     html[data-theme="light"] .stat-item {
-      background: rgba(0,0,0,0.03);
-      border-color: rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.7);
+      border-color: rgba(0,0,0,0.05);
     }
+    /* Orbs — softer in light mode */
+    html[data-theme="light"] .orb {
+      opacity: 0.3;
+    }
+    /* Dividers */
     html[data-theme="light"] .divider {
-      background: linear-gradient(to right, transparent, rgba(0,0,0,0.08), transparent);
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.06), transparent);
     }
+    /* Leader cards */
+    html[data-theme="light"] .leader-card {
+      background: rgba(255,255,255,0.9) !important;
+    }
+    html[data-theme="light"] .leader-card h3,
+    html[data-theme="light"] .leader-card p {
+      color: #2d3748;
+    }
+    /* Footer */
     html[data-theme="light"] .site-footer {
-      border-top-color: rgba(0,0,0,0.06);
+      background: #f0f2f7;
+      border-top-color: rgba(0,0,0,0.05);
     }
     html[data-theme="light"] .footer-logo img {
       filter: none;
-      opacity: 0.5;
+      opacity: 0.6;
     }
+    html[data-theme="light"] .footer-links a {
+      color: rgba(26,32,44,0.55);
+    }
+    html[data-theme="light"] .footer-links a:hover {
+      color: #1a202c;
+    }
+    html[data-theme="light"] .footer-copy {
+      color: rgba(26,32,44,0.4);
+    }
+    /* Buttons */
     html[data-theme="light"] .nav-back,
     html[data-theme="light"] .nav-lang {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.08);
-      color: var(--text-secondary);
+      color: #4a5568;
     }
     html[data-theme="light"] .nav-back:hover,
     html[data-theme="light"] .nav-lang:hover {
       background: rgba(0,0,0,0.08);
-      color: var(--text-primary);
+      color: #1a202c;
     }
     /* Theme transition */
     html.theme-transition,
