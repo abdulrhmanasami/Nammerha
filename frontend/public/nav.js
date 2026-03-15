@@ -406,6 +406,11 @@
             '  border-color: rgba(0,0,0,0.12);',
             '  color: #1a202c;',
             '}',
+            /* Logo swap */
+            '.logo-dark { display: none; }',
+            '.logo-light { display: inline; }',
+            'html[data-theme="light"] .logo-dark { display: inline; }',
+            'html[data-theme="light"] .logo-light { display: none; }',
         ].join('\n');
         document.head.appendChild(style);
     }

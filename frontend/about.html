@@ -902,6 +902,12 @@
 
     /* Force-hide floating i18n widget injected by i18n.js */
     #nm-lang-widget { display: none !important; }
+
+    /* Theme-aware logo swapping */
+    .logo-dark { display: none; }
+    .logo-light { display: inline; }
+    html[data-theme="light"] .logo-dark { display: inline; }
+    html[data-theme="light"] .logo-light { display: none; }
   </style>
 </head>
 <body>
@@ -910,7 +916,8 @@
   <nav class="top-nav" id="topNav">
     <div class="nav-logo">
       <img src="/brand/Nammerha_logo_icon.svg?v=2" alt="نعمّرها" />
-      <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="Nammerha" style="height:20px" />
+      <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light" style="height:20px" />
+      <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark" style="height:20px" />
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <button class="nav-back" id="themeToggle" title="تبديل السمة">
@@ -1179,7 +1186,8 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-logo">
-        <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" />
+        <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light" />
+        <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark" />
       </div>
       <nav class="footer-links">
         <a href="terms.html">شروط الخدمة</a>
