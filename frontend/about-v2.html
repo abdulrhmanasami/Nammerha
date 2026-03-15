@@ -100,22 +100,8 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
 
-    /* ─── Scroll Reveal Base ───────────────────────────── */
-    /* Only hide when GSAP is confirmed loaded OR fallback IO is active */
-    .io-ready .reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-    }
-    .io-ready .reveal.active,
-    .force-visible .reveal {
-      opacity: 1 !important;
-      transform: translateY(0) !important;
-    }
-    /* GSAP-managed: GSAP overrides these with inline styles */
-    .gsap-ready .reveal {
-      transition: none; /* GSAP handles everything */
-    }
+    /* Animations are purely progressive enhancement via GSAP.
+       All content is visible by default. */
 
     /* ─── Floating Ambient Orbs ────────────────────────── */
     .orb {
@@ -867,12 +853,12 @@
   <section class="section" id="storySection">
     <div class="container">
       <div style="text-align:center;margin-bottom:64px">
-        <span class="section-label section-label-blue reveal">
+        <span class="section-label section-label-blue" data-anim>
           <i class="ph ph-book-open"></i>
           الرحلة التي أوصلتنا إلى هنا
         </span>
-        <h2 class="section-title reveal">قصتنا</h2>
-        <p class="section-desc reveal" style="margin:0 auto">
+        <h2 class="section-title" data-anim>قصتنا</h2>
+        <p class="section-desc" data-anim style="margin:0 auto">
           من مراقبة الفجوة الإنسانية إلى بناء نظام بيئي متكامل لإعادة الإعمار
         </p>
       </div>
@@ -884,7 +870,7 @@
         </div>
 
         <!-- Phase 1 -->
-        <div class="timeline-item reveal">
+        <div class="timeline-item" data-anim>
           <div class="timeline-dot dot-blue">1</div>
           <div class="timeline-card glass">
             <div class="timeline-phase phase-blue">النداء</div>
@@ -894,7 +880,7 @@
         </div>
 
         <!-- Phase 2 -->
-        <div class="timeline-item reveal">
+        <div class="timeline-item" data-anim>
           <div class="timeline-dot dot-jade">2</div>
           <div class="timeline-card glass">
             <div class="timeline-phase phase-jade">الفريق</div>
@@ -904,7 +890,7 @@
         </div>
 
         <!-- Phase 3 -->
-        <div class="timeline-item reveal">
+        <div class="timeline-item" data-anim>
           <div class="timeline-dot dot-earth">3</div>
           <div class="timeline-card glass">
             <div class="timeline-phase phase-earth">النظام المتكامل</div>
@@ -922,15 +908,15 @@
   <section class="section" id="leadershipSection">
     <div class="container">
       <div style="text-align:center;margin-bottom:64px">
-        <span class="section-label section-label-jade reveal">
+        <span class="section-label section-label-jade" data-anim>
           <i class="ph ph-users-three"></i>
           حوكمة مؤسسية، لا سلطة شخصية
         </span>
-        <h2 class="section-title reveal">القيادة</h2>
+        <h2 class="section-title" data-anim>القيادة</h2>
       </div>
 
       <div class="leaders-grid">
-        <div class="leader-card glass leader-blue reveal">
+        <div class="leader-card glass leader-blue" data-anim>
           <div class="leader-avatar leader-avatar-blue">
             <i class="ph ph-user-circle"></i>
           </div>
@@ -944,7 +930,7 @@
           </div>
         </div>
 
-        <div class="leader-card glass leader-jade reveal">
+        <div class="leader-card glass leader-jade" data-anim>
           <div class="leader-avatar leader-avatar-jade">
             <i class="ph ph-user-circle"></i>
           </div>
@@ -967,16 +953,16 @@
   <section class="section" id="approachSection">
     <div class="container">
       <div style="text-align:center;margin-bottom:64px">
-        <span class="section-label section-label-earth reveal">
+        <span class="section-label section-label-earth" data-anim>
           <i class="ph ph-strategy"></i>
           الشفافية الجذرية وهندسة الأثر
         </span>
-        <h2 class="section-title reveal">منهجيتنا</h2>
+        <h2 class="section-title" data-anim>منهجيتنا</h2>
       </div>
 
       <div class="bento">
         <!-- Large Card: Theory of Change -->
-        <div class="bento-card glass bento-large reveal">
+        <div class="bento-card glass bento-large" data-anim>
           <div class="bento-icon bento-icon-blue">
             <i class="ph ph-graph"></i>
           </div>
@@ -985,7 +971,7 @@
         </div>
 
         <!-- TaaS -->
-        <div class="bento-card glass reveal">
+        <div class="bento-card glass" data-anim>
           <div class="bento-icon bento-icon-jade">
             <i class="ph ph-shield-check"></i>
           </div>
@@ -994,7 +980,7 @@
         </div>
 
         <!-- Hybrid Model -->
-        <div class="bento-card glass reveal">
+        <div class="bento-card glass" data-anim>
           <div class="bento-icon bento-icon-earth">
             <i class="ph ph-scales"></i>
           </div>
@@ -1003,7 +989,7 @@
         </div>
 
         <!-- MEAL -->
-        <div class="bento-card glass reveal" style="grid-column: span 2">
+        <div class="bento-card glass" data-anim style="grid-column: span 2">
           <div class="bento-icon bento-icon-blue">
             <i class="ph ph-chart-bar"></i>
           </div>
@@ -1019,7 +1005,7 @@
   <!-- ═══ TRUST & COMPLIANCE — Stats ════════════════════════════════════════ -->
   <section class="section" id="trustSection">
     <div class="container">
-      <div class="stats-section reveal">
+      <div class="stats-section" data-anim>
         <div style="text-align:center;margin-bottom:48px;position:relative;z-index:2">
           <h2 class="section-title" style="display:flex;align-items:center;justify-content:center;gap:12px">
             <i class="ph ph-shield-check" style="color:var(--smoky-jade);font-size:32px"></i>
@@ -1056,7 +1042,7 @@
   <!-- ═══ CTA ═══════════════════════════════════════════════════════════════ -->
   <section class="cta-section">
     <div class="container">
-      <div class="cta-box reveal">
+      <div class="cta-box" data-anim>
         <i class="ph ph-hand-heart" style="font-size:56px;opacity:0.15;position:relative;z-index:2;display:block;margin-bottom:16px"></i>
         <h2>رؤيتك في بناء عالم أكثر أماناً تبدأ من هنا</h2>
         <p>
@@ -1119,181 +1105,108 @@
       });
     }
 
-    // ─── Fallback: IntersectionObserver (if GSAP blocked) ─────────────────
-    var ioFallbackTimer = null;
-    function initIOFallback() {
-      document.body.classList.add('io-ready');
-      var reveals = document.querySelectorAll('.reveal');
-      if ('IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function(entries) {
-          entries.forEach(function(e) {
-            if (e.isIntersecting) {
-              e.target.classList.add('active');
-              observer.unobserve(e.target);
-            }
-          });
-        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-        reveals.forEach(function(el) { observer.observe(el); });
-      } else {
-        // No IO support: show everything
-        document.body.classList.add('force-visible');
-      }
-    }
-
-    // Start IO fallback immediately (works without GSAP)
-    initIOFallback();
-
-    // Safety net: if GSAP doesn't load in 4s, force everything visible
-    var gsapTimeout = setTimeout(function() {
-      document.body.classList.add('force-visible');
-    }, 4000);
-
-    // ─── Wait for GSAP ───────────────────────────────────────────────────
+    // ─── GSAP: Pure progressive enhancement (content is ALWAYS visible) ─
     var gsapRetries = 0;
     function initGSAP() {
       if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
         gsapRetries++;
         if (gsapRetries < 30) { setTimeout(initGSAP, 100); }
-        return;
+        return; // Content is visible regardless
       }
-      clearTimeout(gsapTimeout);
-      document.body.classList.remove('io-ready');
-      document.body.classList.add('gsap-ready');
-      // Remove IO-added .active classes so GSAP takes over
-      document.querySelectorAll('.reveal.active').forEach(function(el) {
-        el.classList.remove('active');
-      });
-      gsap.registerPlugin(ScrollTrigger);
 
-      // ─── Reveal animations ─────────────────────────────────────────────
-      var reveals = document.querySelectorAll('.reveal');
-      reveals.forEach(function(el, i) {
-        gsap.fromTo(el,
-          { opacity: 0, y: 40 },
-          {
-            opacity: 1, y: 0,
-            duration: 0.8,
+      try {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero entrance animation
+        var heroTl = gsap.timeline();
+        heroTl
+          .from('#heroLogo', { opacity: 0, scale: 0.8, duration: 1.2, ease: 'power3.out' })
+          .from('#heroTitle', { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' }, '-=0.6')
+          .from('#heroSub', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' }, '-=0.4')
+          .from('.hero-badges .badge', { opacity: 0, y: 15, duration: 0.5, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
+          .from('.scroll-hint', { opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2');
+
+        // Scroll-driven reveal for [data-anim] elements
+        gsap.utils.toArray('[data-anim]').forEach(function(el) {
+          gsap.from(el, {
+            opacity: 0,
+            y: 30,
+            duration: 0.7,
             ease: 'power3.out',
             scrollTrigger: {
               trigger: el,
-              start: 'top 85%',
+              start: 'top 90%',
               toggleActions: 'play none none none',
             }
-          }
-        );
-      });
-
-      // ─── Hero elements stagger ─────────────────────────────────────────
-      var heroTl = gsap.timeline();
-      heroTl
-        .from('#heroLogo', { opacity: 0, scale: 0.8, duration: 1.2, ease: 'power3.out' })
-        .from('#heroTitle', { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' }, '-=0.6')
-        .from('#heroSub', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' }, '-=0.4')
-        .from('.hero-badges .badge', { opacity: 0, y: 15, duration: 0.5, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
-        .from('.scroll-hint', { opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2');
-
-      // ─── Timeline fill on scroll ───────────────────────────────────────
-      var timelineFill = document.getElementById('timelineFill');
-      if (timelineFill) {
-        ScrollTrigger.create({
-          trigger: '.timeline',
-          start: 'top 70%',
-          end: 'bottom 40%',
-          scrub: 1,
-          onUpdate: function(self) {
-            timelineFill.style.height = (self.progress * 100) + '%';
-          }
+          });
         });
+
+        // Timeline fill on scroll
+        var timelineFill = document.getElementById('timelineFill');
+        if (timelineFill) {
+          ScrollTrigger.create({
+            trigger: '.timeline',
+            start: 'top 70%',
+            end: 'bottom 40%',
+            scrub: 1,
+            onUpdate: function(self) {
+              timelineFill.style.height = (self.progress * 100) + '%';
+            }
+          });
+        }
+
+        // Counter animation
+        document.querySelectorAll('[data-count]').forEach(function(counter) {
+          var target = parseInt(counter.dataset.count, 10);
+          var suffix = counter.dataset.suffix || '';
+          ScrollTrigger.create({
+            trigger: counter,
+            start: 'top 90%',
+            once: true,
+            onEnter: function() {
+              gsap.to({ val: 0 }, {
+                val: target,
+                duration: 2,
+                ease: 'power2.out',
+                onUpdate: function() {
+                  counter.textContent = Math.round(this.targets()[0].val) + suffix;
+                }
+              });
+            }
+          });
+        });
+
+        // Parallax orbs
+        gsap.utils.toArray('.orb').forEach(function(orb) {
+          gsap.to(orb, {
+            y: -60,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: orb.parentElement,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 2,
+            }
+          });
+        });
+
+        // Leader cards 3D hover
+        document.querySelectorAll('.leader-card').forEach(function(card) {
+          card.addEventListener('mousemove', function(e) {
+            var rect = card.getBoundingClientRect();
+            var x = (e.clientX - rect.left) / rect.width - 0.5;
+            var y = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.transform = 'translateY(-4px) perspective(600px) rotateY(' + (x * 4) + 'deg) rotateX(' + (-y * 4) + 'deg)';
+          });
+          card.addEventListener('mouseleave', function() {
+            card.style.transform = '';
+          });
+        });
+
+      } catch(e) {
+        // GSAP failed — content is already visible, no action needed
+        console.warn('GSAP enhancement skipped:', e);
       }
-
-      // ─── Timeline items stagger ────────────────────────────────────────
-      gsap.utils.toArray('.timeline-item').forEach(function(item, i) {
-        gsap.from(item.querySelector('.timeline-card'), {
-          opacity: 0,
-          x: 40,
-          duration: 0.7,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: item,
-            start: 'top 80%',
-          }
-        });
-        gsap.from(item.querySelector('.timeline-dot'), {
-          scale: 0,
-          duration: 0.5,
-          ease: 'back.out(2)',
-          scrollTrigger: {
-            trigger: item,
-            start: 'top 80%',
-          }
-        });
-      });
-
-      // ─── Bento cards stagger ───────────────────────────────────────────
-      gsap.utils.toArray('.bento-card').forEach(function(card, i) {
-        gsap.from(card, {
-          opacity: 0,
-          y: 30,
-          scale: 0.97,
-          duration: 0.6,
-          delay: i * 0.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: card,
-            start: 'top 85%',
-          }
-        });
-      });
-
-      // ─── Counter animation ─────────────────────────────────────────────
-      var counters = document.querySelectorAll('[data-count]');
-      counters.forEach(function(counter) {
-        var target = parseInt(counter.dataset.count, 10);
-        var suffix = counter.dataset.suffix || '';
-
-        ScrollTrigger.create({
-          trigger: counter,
-          start: 'top 85%',
-          once: true,
-          onEnter: function() {
-            gsap.to({ val: 0 }, {
-              val: target,
-              duration: 2,
-              ease: 'power2.out',
-              onUpdate: function() {
-                counter.textContent = Math.round(this.targets()[0].val) + suffix;
-              }
-            });
-          }
-        });
-      });
-
-      // ─── Parallax orbs ─────────────────────────────────────────────────
-      gsap.utils.toArray('.orb').forEach(function(orb) {
-        gsap.to(orb, {
-          y: -60,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: orb.parentElement,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 2,
-          }
-        });
-      });
-
-      // ─── Leader cards hover depth ──────────────────────────────────────
-      document.querySelectorAll('.leader-card').forEach(function(card) {
-        card.addEventListener('mousemove', function(e) {
-          var rect = card.getBoundingClientRect();
-          var x = (e.clientX - rect.left) / rect.width - 0.5;
-          var y = (e.clientY - rect.top) / rect.height - 0.5;
-          card.style.transform = 'translateY(-4px) perspective(600px) rotateY(' + (x * 4) + 'deg) rotateX(' + (-y * 4) + 'deg)';
-        });
-        card.addEventListener('mouseleave', function() {
-          card.style.transform = '';
-        });
-      });
     }
 
     initGSAP();
