@@ -31,6 +31,33 @@ export function formatCents(
 }
 
 /**
+ * Format a dollar amount (float) to a locale-aware currency string.
+ * P1-003 FIX: Companion to formatCents() for dollar-denominated values
+ * (e.g. CartStore.unitPrice). Prevents manual `$${...toFixed(2)}` formatting
+ * that breaks in Arabic/RTL locales.
+ *
+ * @param dollars - Amount in dollars (float). e.g., 1500.50 = "$1,500.50"
+ * @param currency - ISO 4217 currency code. Default: 'USD'.
+ * @param locale - BCP 47 locale tag. Default: auto-detected from browser.
+ * @returns Formatted currency string, e.g. "$1,500.50" or "١٬٥٠٠٫٥٠ $"
+ */
+export function formatDollars(
+    dollars: number,
+    currency = 'USD',
+    locale?: string,
+): string {
+    const resolvedLocale = locale
+        ?? (document.documentElement.lang || navigator.language || 'en-US');
+
+    return new Intl.NumberFormat(resolvedLocale, {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(dollars);
+}
+
+/**
  * Format a relative time in a locale-aware way.
  * NMR-AUD-305 FIX: Replaces manual concatenation that broke in RTL locales.
  * Uses Intl.RelativeTimeFormat for proper Arabic/RTL rendering.

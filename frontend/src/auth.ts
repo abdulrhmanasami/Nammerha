@@ -55,10 +55,9 @@ export function clearAuth(): void {
     currentUser = null;
     localStorage.removeItem(STORAGE_KEY);
     // V1-AUDIT FIX: Token is now in httpOnly cookie — cleared server-side.
-    // POST /api/auth/logout clears the cookie. Fire-and-forget.
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {
-        // Logout fetch failure is non-fatal — cookie will expire naturally
-    });
+    // P2-DUP-001 FIX: Removed internal logout fetch. Portal pages (donor-portal,
+    // profile) already call authApi.logout() explicitly before clearAuth().
+    // The previous implementation fired TWO HTTP POST logout requests.
     localStorage.removeItem(DEV_USER_KEY);
 }
 

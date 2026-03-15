@@ -309,11 +309,13 @@ formRegister?.addEventListener('submit', async (e) => {
     }
 });
 
-// ─── Auth Tab CSS (injected inline — minimal, no external file needed) ──────
+// ─── Auth Tab CSS ───────────────────────────────────────────────────────────
+// P1-002 FIX: Uses var(--surface) instead of hardcoded 'white'.
+// Dark mode override in main.css handles html[data-theme="dark"] .auth-tab-active.
 const style = document.createElement('style');
 style.textContent = `
   .auth-tab-active {
-    background: white;
+    background: var(--surface);
     color: var(--trust-blue);
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   }

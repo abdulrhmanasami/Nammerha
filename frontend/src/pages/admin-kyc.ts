@@ -121,8 +121,8 @@ function renderDocumentViewer(index: number): void {
         title.textContent = applicant.name;
     }
     if (subtitle) {
-        const roleLabel = applicant.role === 'engineer' ? 'Engineer' : 'Supplier';
-        subtitle.textContent = `${roleLabel} • Submitted ${applicant.submitted}`;
+        const roleLabel = applicant.role === 'engineer' ? t('kyc_role_engineer', 'Engineer') : t('kyc_role_supplier', 'Supplier');
+        subtitle.textContent = `${roleLabel} • ${t('kyc_submitted', 'Submitted')} ${applicant.submitted}`;
     }
 
     /* Render document list */
@@ -157,7 +157,7 @@ function renderDocumentViewer(index: number): void {
                 if (verifyBtn) {
                     verifyBtn.disabled = true;
                     verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    verifyBtn.innerHTML = '<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ✓ Verified Badge Granted';
+                    verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verified_granted', '✓ Verified Badge Granted')}`;
                 }
                 if (rejectBtn) {
                     rejectBtn.disabled = true;
@@ -167,7 +167,7 @@ function renderDocumentViewer(index: number): void {
                 if (rejectBtn) {
                     rejectBtn.disabled = true;
                     rejectBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    rejectBtn.innerHTML = '<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ✗ Rejected — Resubmission Requested';
+                    rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_rejected_state', '✗ Rejected — Resubmission Requested')}`;
                 }
                 if (verifyBtn) {
                     verifyBtn.disabled = true;
@@ -182,12 +182,12 @@ function renderDocumentViewer(index: number): void {
             if (verifyBtn) {
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                verifyBtn.innerHTML = '<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> Grant Verified Badge';
+                verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
             }
             if (rejectBtn) {
                 rejectBtn.disabled = false;
                 rejectBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                rejectBtn.innerHTML = '<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> Reject & Request Resubmission';
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_reject_btn', 'Reject & Request Resubmission')}`;
             }
         }
     }
@@ -212,7 +212,7 @@ function initDropZone(): void {
     zone.addEventListener('drop', (e: DragEvent) => {
         e.preventDefault();
         zone.classList.remove('border-trust-blue', 'bg-trust-blue/5');
-        showToast('Document uploaded successfully');
+        showToast(t('kyc_doc_uploaded', 'Document uploaded successfully'));
     });
 }
 
@@ -221,70 +221,82 @@ function initActionButtons(): void {
     const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
     const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
 
+    // FIX-02: Click-twice-to-confirm replaces blocking confirm() for verification.
+    let verifyPending = false;
+
     if (verifyBtn) {
         verifyBtn.addEventListener('click', () => {
-            if (selectedIndex < 0) {
-                return;
-            }
-
+            if (selectedIndex < 0) { return; }
             const applicant = APPLICANTS[selectedIndex];
-            if (!applicant) {
+            if (!applicant) { return; }
+
+            if (!verifyPending) {
+                // First click: confirmation state
+                verifyPending = true;
+                verifyBtn.classList.add('bg-amber-500', 'text-white');
+                verifyBtn.classList.remove('bg-smoky-jade/10', 'text-smoky-jade');
+                verifyBtn.innerHTML = `<i class="ph ph-warning" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(applicant.name)}`;
+                // Auto-reset after 5s
+                setTimeout(() => {
+                    if (verifyPending) {
+                        verifyPending = false;
+                        verifyBtn.classList.remove('bg-amber-500', 'text-white');
+                        verifyBtn.classList.add('bg-smoky-jade/10', 'text-smoky-jade');
+                        verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                    }
+                }, 5000);
                 return;
             }
 
-            const confirmed = confirm(
-                `Grant Verified Badge?\n\n` +
-                `Applicant: ${applicant.name}\n` +
-                `Role: ${applicant.role === 'engineer' ? 'Engineer' : 'Supplier'}\n` +
-                `Documents: ${applicant.documents.length} reviewed\n\n` +
-                `This will:\n` +
-                `• Activate their account for platform operations\n` +
-                `• Display "✓ Verified" badge on their profile\n` +
-                `• Allow them to receive project assignments / purchase orders\n` +
-                `• Log to immutable audit trail`
-            );
-
-            if (!confirmed) {
-                return;
-            }
-
+            // Second click: execute verification
+            verifyPending = false;
             resolvedApplicants.set(selectedIndex, 'verified');
             updateRowBadge(selectedIndex, 'verified');
             updateStats('verify');
             renderDocumentViewer(selectedIndex);
-            showToast(`Verified Badge granted to: ${applicant.name}`);
+            showToast(`${t('kyc_verified_toast', 'Verified Badge granted to')}: ${esc(applicant.name)}`);
         });
     }
 
+    // FIX-02: Inline reason input replaces blocking prompt() for rejection.
     if (rejectBtn) {
+        let rejectInputVisible = false;
+        let rejectInput: HTMLInputElement | null = null;
+
         rejectBtn.addEventListener('click', () => {
-            if (selectedIndex < 0) {
-                return;
-            }
-
+            if (selectedIndex < 0) { return; }
             const applicant = APPLICANTS[selectedIndex];
-            if (!applicant) {
+            if (!applicant) { return; }
+
+            if (!rejectInputVisible) {
+                // First click: show inline reason input
+                rejectInputVisible = true;
+                rejectInput = document.createElement('input');
+                rejectInput.type = 'text';
+                rejectInput.placeholder = t('kyc_reject_placeholder', 'Reason: expired license, illegible scan, missing documents...');
+                rejectInput.className = 'w-full mt-2 px-3 py-2 text-sm rounded-lg border border-rose-200 bg-rose-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300';
+                rejectBtn.parentElement?.insertBefore(rejectInput, rejectBtn.nextSibling);
+                rejectInput.focus();
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
+                rejectBtn.classList.add('border-rose-300', 'text-rose-600');
                 return;
             }
 
-            const reason = prompt(
-                `Reject Application — ${applicant.name}\n\n` +
-                `Enter reason for rejection (e.g., expired license, illegible scan, missing documents):`
-            );
-
-            if (reason === null) {
-                return;
-            }
-            if (reason.trim() === '') {
-                showToast('A reason is required for rejection.');
+            // Second click: submit rejection
+            const reason = rejectInput?.value.trim() ?? '';
+            if (reason === '') {
+                showToast(t('kyc_reason_required', 'A reason is required for rejection.'));
+                rejectInput?.focus();
                 return;
             }
 
+            rejectInputVisible = false;
+            rejectInput?.remove();
             resolvedApplicants.set(selectedIndex, 'rejected');
             updateRowBadge(selectedIndex, 'rejected');
             updateStats('reject');
             renderDocumentViewer(selectedIndex);
-            showToast(`Application rejected: ${applicant.name}. Resubmission requested.`);
+            showToast(`${t('kyc_rejected_toast', 'Application rejected')}: ${esc(applicant.name)}. ${t('kyc_resubmission', 'Resubmission requested.')}`);
         });
     }
 }

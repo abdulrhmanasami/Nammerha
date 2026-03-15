@@ -6,6 +6,7 @@ import { auth as authApi } from '../api';
 import { statusColor, escrowColor } from '../utils/status-colors';
 import { donor } from '../api';
 import { t } from '../utils/i18n';
+import { formatCents } from '../utils/format';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
@@ -70,12 +71,12 @@ async function loadStats(): Promise<void> {
         if (!res.data) { return; }
         const s = res.data;
 
-        setText('kpi-donated', `$${(s.total_donated / 100).toLocaleString()}`);
+        setText('kpi-donated', formatCents(s.total_donated));
         setText('kpi-projects', String(s.projects_supported));
         setText('kpi-items', String(s.items_funded));
         setText('kpi-score', `${s.impact_score}%`);
-        setText('kpi-locked', `$${(s.escrow_locked / 100).toLocaleString()}`);
-        setText('kpi-released', `$${(s.escrow_released / 100).toLocaleString()}`);
+        setText('kpi-locked', formatCents(s.escrow_locked));
+        setText('kpi-released', formatCents(s.escrow_released));
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // PLT-FE-002: Silently degrade — KPIs retain default HTML values.
         // Error is already captured by the centralized error-reporter via window.onerror.
@@ -111,7 +112,7 @@ async function loadFundedProjects(): Promise<void> {
                         <div class="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
-                            <span class="text-emerald-600 font-bold">${esc(t('donor_my_contribution', 'My contribution'))}: $${(p.my_total_donated / 100).toLocaleString()}</span>
+                            <span class="text-emerald-600 font-bold">${esc(t('donor_my_contribution', 'My contribution'))}: ${formatCents(p.my_total_donated)}</span>
                             <span>${p.items_i_funded} ${esc(t('donor_items_label', 'items'))}</span>
                         </div>
                         <!-- Funding Progress Bar -->
@@ -163,7 +164,7 @@ async function loadMarketplace(): Promise<void> {
                             <span class="text-[10px] font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</span>
                         </div>
                         <div class="flex items-center justify-between mt-2">
-                            <span class="text-xs text-slate-500">$${(p.total_funded / 100).toLocaleString()} / $${(p.total_cost / 100).toLocaleString()}</span>
+                            <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
                             ${p.funded_percentage < 100 ? `
                                 <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
                             ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded">✓ Fully Funded</span>`}
@@ -197,7 +198,7 @@ async function loadDonations(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(d.material_name)}</td>
                 <td class="px-5 py-3 text-xs">${esc(d.project_title)}</td>
-                <td class="px-5 py-3 font-mono font-bold text-emerald-600">$${(d.amount_locked / 100).toLocaleString()}</td>
+                <td class="px-5 py-3 font-mono font-bold text-emerald-600">${formatCents(d.amount_locked)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
                 <td class="px-5 py-3 text-xs text-slate-400">${new Date(d.locked_at).toLocaleDateString()}</td>
             </tr>
@@ -235,7 +236,7 @@ async function loadImpact(): Promise<void> {
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
                         <div class="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
-                            <span>${esc(t('donor_donated_label', 'Donated'))}: <strong class="text-emerald-600">$${(p.my_total_donated / 100).toLocaleString()}</strong></span>
+                            <span>${esc(t('donor_donated_label', 'Donated'))}: <strong class="text-emerald-600">${formatCents(p.my_total_donated)}</strong></span>
                             <span>${p.items_i_funded} ${esc(t('donor_items_funded', 'items funded'))}</span>
                             <span>${esc(t('donor_progress_label', 'Progress'))}: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</strong></span>
                         </div>

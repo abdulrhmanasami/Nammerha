@@ -10,6 +10,11 @@
  * $99 Enterprise for international organizations.
  */
 import '../styles/main.css';
+import { subscriptions } from '../api';
+import { reportError } from '../error-reporter';
+import { getCurrentUser } from '../auth';
+import { t } from '../utils/i18n';
+import { formatCents } from '../utils/format';
 
 // ─── Price Constants (all in cents) ─────────────────────────────────────────
 
@@ -30,15 +35,8 @@ let isYearly = false;
 
 // ─── DOM Helpers ────────────────────────────────────────────────────────────
 
-function centsToUsd(cents: number): string {
-    return `$${(cents / 100).toFixed(0)}`;
-}
-
-/** Resolve an i18n key via the platform's NammerhaI18n engine, fallback to English */
-function t(key: string, fallback: string): string {
-    const w = window as unknown as { NammerhaI18n?: { t: (k: string) => string | undefined } };
-    return w.NammerhaI18n?.t(key) ?? fallback;
-}
+// P3-FMT-001 FIX: Removed local centsToDisplay() — uses shared formatCents()
+// from utils/format.ts for consistent locale-aware currency formatting.
 
 function updateAllPrices(): void {
     const priceEls = document.querySelectorAll<HTMLElement>('.tier-price');
@@ -57,7 +55,7 @@ function updateAllPrices(): void {
         el.style.transform = 'translateY(-4px)';
 
         setTimeout(() => {
-            el.textContent = centsToUsd(price);
+            el.textContent = formatCents(price);
             el.style.opacity = '1';
             el.style.transform = 'translateY(0)';
         }, 150);
@@ -95,8 +93,9 @@ function updateToggleVisual(): void {
 // ─── Event Handlers ─────────────────────────────────────────────────────────
 
 async function handleSubscribe(planSlug: string): Promise<void> {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
+    // BONUS-01: Use getCurrentUser() instead of broken localStorage.getItem('authToken')
+    const user = getCurrentUser();
+    if (!user) {
         window.location.href = '/auth.html?redirect=/pricing.html';
         return;
     }
@@ -108,16 +107,8 @@ async function handleSubscribe(planSlug: string): Promise<void> {
     }
 
     try {
-        const res = await fetch('/api/subscriptions/subscribe', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ plan_slug: planSlug }),
-        });
-
-        const body = await res.json() as { success: boolean; error?: string };
+        // BONUS-01: Uses centralized API client with httpOnly cookies, CSRF, 30s timeout
+        const body = await subscriptions.subscribe(planSlug);
 
         if (body.success) {
             const btn = document.getElementById(`btn-plan-${planSlug}`);
@@ -144,9 +135,8 @@ async function handleSubscribe(planSlug: string): Promise<void> {
                 btn.textContent = btn.dataset['originalText'] ?? t('pricing_try_again', 'Try Again');
             }, 3000);
         }
-        // Log error for debugging (stripped by production minifier)
-        // eslint-disable-next-line no-console
-        console.error('[pricing] Subscribe error:', errMsg);
+        // BONUS-01: Replaced console.error with centralized error reporting
+        reportError(new Error(`[pricing] Subscribe error: ${errMsg}`), { planSlug });
     }
 }
 

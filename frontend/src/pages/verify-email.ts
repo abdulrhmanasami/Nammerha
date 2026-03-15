@@ -67,8 +67,12 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
         }
     }
 
-    // Show sign-in action
+    // Show sign-in action + resend section for expired/error states
     if (actions) { actions.style.display = 'block'; }
+    const resendSection = document.getElementById('verify-resend');
+    if (resendSection && (type === 'expired' || type === 'error')) {
+        resendSection.style.display = 'block';
+    }
 }
 
 // ─── Verify Token via API ───────────────────────────────────────────────────
@@ -106,7 +110,7 @@ async function verifyEmail(): Promise<void> {
         } else if (message.includes('expired') || message.includes('410')) {
             showResult('expired',
                 t('verify_expired_title', 'Token Expired'),
-                t('verify_expired_body', 'Your verification link has expired. Please request a new one from the Sign In page.'));
+                t('verify_expired_body', 'Your verification link has expired. Please request a new one below.'));
         } else if (message.includes('not found') || message.includes('404')) {
             showResult('error',
                 t('verify_not_found_title', 'Token Not Found'),
@@ -117,6 +121,46 @@ async function verifyEmail(): Promise<void> {
                 message);
         }
     }
+}
+
+// ─── FIX-07: Resend Verification Email ──────────────────────────────────────
+const resendBtn = document.getElementById('verify-resend-btn');
+const resendEmail = document.getElementById('verify-resend-email') as HTMLInputElement | null;
+const resendFeedback = document.getElementById('verify-resend-feedback');
+
+resendBtn?.addEventListener('click', async () => {
+    const email = resendEmail?.value.trim();
+    if (!email) {
+        showResendFeedback('error', t('verify_resend_enter_email', 'Please enter your email address.'));
+        resendEmail?.focus();
+        return;
+    }
+
+    resendBtn.textContent = t('verify_resend_sending', 'Sending...');
+    (resendBtn as HTMLButtonElement).disabled = true;
+
+    try {
+        const data = await auth.resendVerification({ email });
+        if (data.success) {
+            showResendFeedback('success', data.message ?? t('verify_resend_success', 'If an account with that email exists, a new verification link has been sent.'));
+        } else {
+            showResendFeedback('error', data.error ?? t('verify_resend_failed', 'Could not send verification email. Please try again.'));
+        }
+    } catch (err) {
+        showResendFeedback('error', err instanceof Error ? err.message : t('verify_resend_network_error', 'Network error. Please try again.'));
+    } finally {
+        resendBtn.textContent = t('verify_resend_btn', 'Resend');
+        (resendBtn as HTMLButtonElement).disabled = false;
+    }
+});
+
+function showResendFeedback(type: 'success' | 'error', message: string): void {
+    if (!resendFeedback) { return; }
+    resendFeedback.style.display = 'block';
+    resendFeedback.className = `mt-2 rounded-lg p-2 text-xs font-medium ${type === 'success'
+        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+        : 'bg-red-50 text-red-700 border border-red-200'}`;
+    resendFeedback.textContent = message;
 }
 
 // Initialize on page load

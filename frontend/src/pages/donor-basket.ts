@@ -8,6 +8,7 @@
 import '../styles/main.css';
 import { CartStore, type CartItem } from '../components/cart';
 import { escapeHtml } from '../utils/xss';
+import { formatDollars } from '../utils/format';
 import { t } from '../utils/i18n';
 
 // ─── Tip State ──────────────────────────────────────────────────────────────
@@ -50,10 +51,10 @@ function initDonorBasket(): void {
         const grandTotal = cartTotal + tipAmount;
 
         if (tipAmountEl) {
-            tipAmountEl.textContent = `$${tipAmount.toFixed(2)}`;
+            tipAmountEl.textContent = formatDollars(tipAmount);
         }
         if (totalWithTipEl) {
-            totalWithTipEl.textContent = `$${grandTotal.toFixed(2)}`;
+            totalWithTipEl.textContent = formatDollars(grandTotal);
         }
     }
 
@@ -171,8 +172,8 @@ function initDonorBasket(): void {
           </button>
         </div>
         <div class="text-right min-w-[60px]">
-          <div class="font-bold text-slate-900">$${(item.unitPrice * item.quantity).toFixed(2)}</div>
-          <div class="text-[10px] text-slate-400">$${item.unitPrice.toFixed(2)}/${t('basket_per_unit', 'ea')}</div>
+          <div class="font-bold text-slate-900">${formatDollars(item.unitPrice * item.quantity)}</div>
+          <div class="text-[10px] text-slate-400">${formatDollars(item.unitPrice)}/${t('basket_per_unit', 'ea')}</div>
         </div>
       </div>
     `;
@@ -210,7 +211,7 @@ function initDonorBasket(): void {
         const count = CartStore.getCount();
 
         if (totalEl) {
-            totalEl.textContent = `$${total.toFixed(2)}`;
+            totalEl.textContent = formatDollars(total);
         }
         if (countEl) {
             countEl.textContent = String(count);
@@ -246,10 +247,10 @@ function initDonorBasket(): void {
         banner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 mt-3 animate-fade-in-up';
 
         const tipText = tipAmount > 0
-            ? ` + $${tipAmount.toFixed(2)} ${t('tip_label', 'tip')}`
+            ? ` + ${formatDollars(tipAmount)} ${t('tip_label', 'tip')}`
             : '';
 
-        banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${t('basket_checkout_msg', 'Proceeding to secure checkout')}: ${count} ${t('basket_items', 'items')} — $${total.toFixed(2)}${tipText} = $${grandTotal.toFixed(2)}. ${t('basket_gateway_soon', 'Payment gateway coming soon.')}`;
+        banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${t('basket_checkout_msg', 'Proceeding to secure checkout')}: ${count} ${t('basket_items', 'items')} — ${formatDollars(total)}${tipText} = ${formatDollars(grandTotal)}. ${t('basket_gateway_soon', 'Payment gateway coming soon.')}`;
         checkoutSheet?.appendChild(banner);
         setTimeout(() => banner.remove(), 5000);
     });

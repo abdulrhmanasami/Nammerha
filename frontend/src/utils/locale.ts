@@ -36,6 +36,24 @@ export function formatDate(iso: string | null | undefined): string {
 }
 
 /**
+ * Formats an ISO date string with date AND time using the current page locale.
+ * P1-001 FIX: Deduplication — replaces local formatDate copies in
+ * donor-proof.ts and wallet.ts that included hour/minute formatting.
+ * Returns '—' for empty, null, or invalid dates.
+ */
+export function formatDateTime(iso: string | null | undefined): string {
+    if (!iso) { return '—'; }
+    try {
+        return new Date(iso).toLocaleString(getLocale(), {
+            month: 'short', day: 'numeric', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+        });
+    } catch {
+        return '—';
+    }
+}
+
+/**
  * MED-003 FIX: formatCents re-exported from format.ts (single source of truth).
  * Previously had a local copy here with slightly different signature.
  * Backward-compatible: existing `import { formatCents } from '../utils/locale'` still works.

@@ -3,6 +3,7 @@ import { reportError, reportWarning } from '../error-reporter';
 import { donations, spatialProof } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
+import { formatDateTime } from '../utils/locale';
 import { t } from '../utils/i18n';
 
 // ============================================================================
@@ -50,24 +51,7 @@ function getParams(): { proofId: string | null; projectId: string | null } {
     };
 }
 
-// ─── Format Date ────────────────────────────────────────────────────────────
-function formatDate(dateStr: string): string {
-    try {
-        const d = new Date(dateStr);
-        const lang = document.documentElement.lang || 'en';
-        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-        return d.toLocaleString(locale, {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    } catch (err) {
-        reportWarning('[DonorProof] Date format failed', { component: 'donor_proof', action: 'format_date', error: err instanceof Error ? err.message : String(err) });
-        return dateStr;
-    }
-}
+// P1-001 FIX: formatDate() deduplicated — imported as formatDateTime from utils/locale.ts.
 
 // HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
@@ -139,7 +123,7 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
     if (timestampBadge) {
         timestampBadge.innerHTML = `
             <i class="ph ph-clock" style="font-size:12px" aria-hidden="true"></i>
-            ${formatDate(proof.captured_at)}
+            ${formatDateTime(proof.captured_at)}
         `;
     }
 

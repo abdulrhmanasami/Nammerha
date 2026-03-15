@@ -621,7 +621,12 @@ export async function getProjectBids(
     const safeLim = Math.min(Math.max(1, limit), 50);
     const safeOff = Math.max(0, offset);
     const { rows } = await pool.query(
-        `SELECT b.*, u.full_name AS engineer_name, u.dynamic_score AS current_score,
+        // P2-017 FIX: Explicit column list — eliminates last SELECT * in the backend.
+        `SELECT b.bid_id, b.engineer_id, b.contractor_id, b.project_id,
+                b.proposed_cost, b.currency, b.estimated_days,
+                b.cover_letter, b.methodology, b.status,
+                b.engineer_score_snapshot, b.submitted_at, b.responded_at, b.expires_at,
+                u.full_name AS engineer_name, u.dynamic_score AS current_score,
                 u.completed_projects_count, u.engineering_license_number
          FROM contractor_bids b
          JOIN users u ON u.user_id = COALESCE(b.contractor_id, b.engineer_id)

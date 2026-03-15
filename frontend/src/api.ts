@@ -236,12 +236,20 @@ export const notifications = {
 };
 
 // ─── Health Check ───────────────────────────────────────────────────────────
-// P3-PLT-001 FIX: Uses centralized request() with 30s timeout and error reporting
-// instead of raw fetch() which bypassed all safeguards.
+// P0-002 FIX: Uses raw fetch('/health') — NOT request() — because request()
+// prepends API_BASE ('/api'), making it call /api/health which doesn't exist.
+// The backend health endpoint is registered at '/health' on server.ts.
 export const health = {
     check: async () => {
         try {
-            return await request('/health');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10_000);
+            const res = await fetch('/health', {
+                credentials: 'same-origin',
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+            return await res.json() as { status: string; database?: string };
         } catch (err) {
             return { status: 'unreachable', error: err instanceof Error ? err.message : 'Health check failed' };
         }
@@ -260,7 +268,8 @@ export const auth = {
     }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
     login: (data: { email: string; password: string }) =>
-        request<{ token: string; user: unknown }>('/auth/login', {
+        // FIX-02: JWT is in httpOnly cookie — not in response body (NMR-AUD-H001).
+        request<{ user: unknown }>('/auth/login', {
             method: 'POST',
             body: JSON.stringify(data),
         }),
@@ -1175,3 +1184,125 @@ export const homeowner = {
             body: JSON.stringify({ decision }),
         }),
 };
+
+// ─── Revenue Admin (Monetization Dashboard) ────────────────────────────────
+// FIX-01: Typed wrappers for /api/revenue/admin/* endpoints.
+// Replaces the broken raw fetch() + localStorage.getItem('authToken')
+// pattern in admin-revenue.ts with the centralized secure API client.
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface RevenueAdminSummary {
+    total_commission_cents: number;
+    total_tip_cents: number;
+    commission_count: number;
+    tip_count: number;
+    avg_tip_cents: number;
+    avg_tip_percentage: number;
+}
+
+export interface CommissionTier {
+    tier_id: string;
+    tier_name: string;
+    min_revenue_cents: number;
+    max_revenue_cents: number | null;
+    commission_rate_bps: number;
+    is_active: boolean;
+}
+
+export interface CommissionEntry {
+    commission_id: string;
+    supplier_id: string;
+    po_id: string;
+    po_amount_cents: number;
+    commission_amount_cents: number;
+    rate_bps: number;
+    created_at: string;
+}
+
+export interface TipEntry {
+    tip_id: string;
+    donor_id: string;
+    donation_reference: string;
+    tip_amount_cents: number;
+    tip_percentage: number | null;
+    created_at: string;
+}
+
+export const revenueAdmin = {
+    /** GET /api/revenue/admin/summary — KPI summary */
+    getSummary: () =>
+        request<RevenueAdminSummary>('/revenue/admin/summary'),
+
+    /** GET /api/revenue/admin/config — Commission tiers */
+    getTiers: () =>
+        request<CommissionTier[]>('/revenue/admin/config'),
+
+    /** GET /api/revenue/admin/commissions — Recent commissions */
+    getCommissions: (limit = 8) =>
+        request<{ rows: CommissionEntry[]; total: number }>(`/revenue/admin/commissions?limit=${limit}`),
+
+    /** GET /api/revenue/admin/tips — Recent tips */
+    getTips: (limit = 8) =>
+        request<TipEntry[]>(`/revenue/admin/tips?limit=${limit}`),
+};
+
+// ─── Subscriptions (SaaS Pricing) ──────────────────────────────────────────
+// BONUS-01: Typed wrapper for /api/subscriptions/subscribe.
+// Replaces broken raw fetch() + localStorage pattern in pricing.ts.
+// ────────────────────────────────────────────────────────────────────────────
+
+export const subscriptions = {
+    /** POST /api/subscriptions/subscribe — Subscribe to a plan */
+    subscribe: (planSlug: string) =>
+        request<{ subscription_id?: string }>('/subscriptions/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({ plan_slug: planSlug }),
+        }),
+};
+
+// ─── Enterprise Admin (FinTech Dashboard) ──────────────────────────────────
+// BONUS-02: Typed wrappers for /api/enterprise/admin/* endpoints.
+// Replaces broken raw fetch() + localStorage pattern in admin-fintech.ts.
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface EscrowFeeSummary {
+    total_fees_count: number;
+    total_fee_revenue: number;
+    mtd_fee_revenue: number;
+    average_fee_cents: number;
+    average_fee_rate_bps: number;
+}
+
+export interface FeeConfig {
+    config_id: string;
+    fee_name: string;
+    fee_rate_bps: number;
+    min_fee_cents: number;
+    max_fee_cents: number | null;
+    applies_to: string;
+    is_active: boolean;
+}
+
+export interface EnterpriseOrg {
+    org_id: string;
+    org_name: string;
+    org_type: string;
+    contact_email: string;
+    tier: string;
+    is_active: boolean;
+}
+
+export const enterpriseAdmin = {
+    /** GET /api/enterprise/admin/fees/summary — Escrow fee KPIs */
+    getFeeSummary: () =>
+        request<EscrowFeeSummary>('/enterprise/admin/fees/summary'),
+
+    /** GET /api/enterprise/admin/fees/config — Fee configuration tiers */
+    getFeeConfigs: () =>
+        request<FeeConfig[]>('/enterprise/admin/fees/config'),
+
+    /** GET /api/enterprise/admin/organizations — Enterprise organizations */
+    getOrganizations: () =>
+        request<EnterpriseOrg[]>('/enterprise/admin/organizations'),
+};
+

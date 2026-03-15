@@ -40,6 +40,20 @@
         <i class="ph ph-sign-in" aria-hidden="true"></i>
         <span data-i18n="sign_in_btn">Sign In</span>
       </a>
+
+      <!-- FIX-07: Resend verification email — shown when token expires -->
+      <div id="verify-resend" class="mt-4" style="display:none">
+        <p class="text-xs text-slate-500 mb-2 text-center" data-i18n="verify_resend_label">Need a new verification link?</p>
+        <div class="flex gap-2">
+          <input type="email" id="verify-resend-email" placeholder="your@email.com"
+                 class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-trust-blue/40" dir="ltr" />
+          <button id="verify-resend-btn" class="btn-outline px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-1 whitespace-nowrap">
+            <i class="ph ph-envelope" aria-hidden="true"></i>
+            <span data-i18n="verify_resend_btn">Resend</span>
+          </button>
+        </div>
+        <div id="verify-resend-feedback" class="mt-2" style="display:none"></div>
+      </div>
     </div>
 
     <!-- Trust Footer -->

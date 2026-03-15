@@ -3,6 +3,7 @@ import { reportError, reportWarning } from '../error-reporter';
 import { donations, payments } from '../api';
 import { escapeHtml } from '../utils/xss';
 import { formatCents } from '../utils/format';
+import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
 
 // ============================================================================
@@ -28,21 +29,7 @@ interface Transaction {
 
 // HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
-// ─── Format Date ────────────────────────────────────────────────────────────
-function formatDate(dateStr: string): string {
-    try {
-        const lang = document.documentElement.lang || 'en';
-        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-        return new Date(dateStr).toLocaleDateString(locale, {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-        });
-    } catch (err) {
-        reportWarning('[Wallet] Date format failed', { component: 'wallet', action: 'format_date', error: err instanceof Error ? err.message : String(err) });
-        return dateStr;
-    }
-}
+// P1-001 FIX: formatDate() deduplicated — imported from utils/locale.ts.
 
 // ─── Load Escrow Summary ────────────────────────────────────────────────────
 async function loadEscrowSummary(): Promise<void> {

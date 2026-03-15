@@ -131,8 +131,10 @@ export async function updateCommissionRate(
     }
 
     const result = await query<CommissionTier>(
+        // FIX-03: Set updated_at on rate change — was missing, breaking audit freshness.
         `UPDATE commission_config
-         SET commission_rate_bps = $1
+         SET commission_rate_bps = $1,
+             updated_at = NOW()
          WHERE tier_id = $2
          RETURNING tier_id, tier_name, min_revenue_cents, max_revenue_cents,
                    commission_rate_bps, is_active, created_at, updated_at`,

@@ -85,7 +85,22 @@ export async function getPendingVerifications(
         b.unit_price AS boq_unit_price,
         b.required_quantity AS boq_required_quantity,
         u.full_name AS engineer_name,
-        (SELECT row_to_json(po.*) FROM purchase_orders po
+        -- P2-016 FIX: Explicit column list — no row_to_json(po.*) schema drift.
+        (SELECT json_build_object(
+            'po_id', po.po_id,
+            'po_number', po.po_number,
+            'item_id', po.item_id,
+            'status', po.status,
+            'amount', po.amount,
+            'currency', po.currency,
+            'supplier_id', po.supplier_id,
+            'supplier_name', po.supplier_name,
+            'material_name', po.material_name,
+            'quantity', po.quantity,
+            'unit', po.unit,
+            'unit_price', po.unit_price,
+            'generated_at', po.generated_at
+        ) FROM purchase_orders po
        WHERE po.item_id = sp.item_id AND po.project_id = sp.project_id LIMIT 1) AS po_data,
     (SELECT json_agg(json_build_object(
         'transaction_id', el.transaction_id,

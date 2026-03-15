@@ -276,18 +276,18 @@ function openBidModal(projectId: string): void {
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
     modal.innerHTML = `
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <h3 class="font-bold text-lg" data-i18n="submit_bid">Submit Bid</h3>
+            <h3 class="font-bold text-lg" data-i18n="submit_bid">${t('ct_submit_bid', 'Submit Bid')}</h3>
             <div>
-                <label class="text-xs font-bold text-slate-500 uppercase">Proposed Cost (USD)</label>
+                <label class="text-xs font-bold text-slate-500 uppercase">${t('ct_label_cost', 'Proposed Cost (USD)')}</label>
                 <input id="bid-cost" type="number" min="1" placeholder="25000" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
-                <label class="text-xs font-bold text-slate-500 uppercase">Estimated Days</label>
+                <label class="text-xs font-bold text-slate-500 uppercase">${t('ct_label_days', 'Estimated Days')}</label>
                 <input id="bid-days" type="number" min="1" placeholder="90" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
-                <label class="text-xs font-bold text-slate-500 uppercase">Cover Letter</label>
-                <textarea id="bid-letter" rows="3" placeholder="Why you're the best fit..." class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none"></textarea>
+                <label class="text-xs font-bold text-slate-500 uppercase">${t('ct_label_letter', 'Cover Letter')}</label>
+                <textarea id="bid-letter" rows="3" placeholder="${t('ct_placeholder_letter', 'Why you\'re the best fit...')}" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none"></textarea>
             </div>
             <div class="flex gap-3">
                 <button id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200" data-i18n="btn_cancel">Cancel</button>
@@ -313,7 +313,7 @@ function openBidModal(projectId: string): void {
 
         const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
         submitBtn.disabled = true;
-        submitBtn.textContent = (typeof window.NammerhaI18n?.t === 'function' ? window.NammerhaI18n.t('btn_submitting', 'Submitting...') : null) ?? 'Submitting...';
+        submitBtn.textContent = t('btn_submitting', 'Submitting...');
 
         try {
             const res = await contractor.submitBid({
@@ -332,11 +332,11 @@ function openBidModal(projectId: string): void {
             loadMarketplace();
         } catch (err) {
             if (errorEl) {
-                errorEl.textContent = err instanceof Error ? err.message : 'Submission failed';
+                errorEl.textContent = err instanceof Error ? err.message : t('ct_submission_failed', 'Submission failed');
                 errorEl.classList.remove('hidden');
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = (typeof window.NammerhaI18n?.t === 'function' ? window.NammerhaI18n.t('btn_submit', 'Submit') : null) ?? 'Submit';
+            submitBtn.textContent = t('btn_submit', 'Submit');
         }
     });
 }
@@ -349,9 +349,11 @@ function setText(id: string, text: string): void {
 
 
 
-// ─── Expose for global access ───────────────────────────────────────────────
-(window as unknown as Record<string, unknown>)['contractorPortal'] = {
-    switchTab,
-    loadStats,
-    loadMarketplace,
-};
+// ─── Dev-Only Expose (stripped in production builds) ────────────────────────
+if (import.meta.env.DEV) {
+    (window as unknown as Record<string, unknown>)['contractorPortal'] = {
+        switchTab,
+        loadStats,
+        loadMarketplace,
+    };
+}

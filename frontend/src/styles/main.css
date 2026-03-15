@@ -365,33 +365,184 @@ body[dir='rtl'] {
   }
 }
 
-/* ─── Dark Mode (Engineer) ─────────────────────────────────────────────────── */
-.dark body,
-body.dark-mode {
+/* ─── Dark Mode ────────────────────────────────────────────────────────── */
+/* P0-001 FIX: Selectors now use html[data-theme="dark"] to match
+   theme-boot.js which sets data-theme attribute on <html>.
+   Previous .dark class selectors NEVER triggered. */
+
+/* ── Base ── */
+html[data-theme="dark"] body {
   background-color: var(--dark-tech);
-  color: #f1f5f9;
+  color: #e2e8f0;
 }
-.dark .glass-card {
+
+/* ── Glass Components ── */
+html[data-theme="dark"] .glass-card {
   background: rgba(42, 42, 42, 0.7);
   border-color: rgba(255, 255, 255, 0.08);
 }
-.dark .glass-nav {
-  background: rgba(36, 36, 36, 0.9);
+html[data-theme="dark"] .glass-nav {
+  background: rgba(36, 36, 36, 0.92);
   border-color: rgba(255, 255, 255, 0.06);
 }
-.dark .bottom-nav {
+html[data-theme="dark"] .bottom-nav {
   background: rgba(36, 36, 36, 0.95);
   border-color: rgba(255, 255, 255, 0.06);
 }
-.dark .progress-track {
+html[data-theme="dark"] .glass-sheet {
+  background: rgba(42, 42, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Progress ── */
+html[data-theme="dark"] .progress-track {
   background: #334155;
 }
+
+/* ── P1-001 FIX: Comprehensive dark mode coverage ── */
+
+/* Backgrounds: bg-white, bg-cloud-white, bg-slate-50 */
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-cloud-white {
+  background-color: #1e1e1e !important;
+}
+html[data-theme="dark"] .bg-slate-50 {
+  background-color: #2a2a2a !important;
+}
+
+/* Text colors: slate scale → light equivalents */
+html[data-theme="dark"] .text-slate-900 { color: #f1f5f9 !important; }
+html[data-theme="dark"] .text-slate-800 { color: #e2e8f0 !important; }
+html[data-theme="dark"] .text-slate-700 { color: #cbd5e1 !important; }
+html[data-theme="dark"] .text-slate-600 { color: #94a3b8 !important; }
+html[data-theme="dark"] .text-slate-500 { color: #94a3b8 !important; }
+html[data-theme="dark"] .text-slate-400 { color: #64748b !important; }
+
+/* Borders */
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Form inputs */
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="email"],
+html[data-theme="dark"] input[type="password"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] input[type="tel"],
+html[data-theme="dark"] input[type="url"],
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background-color: #2a2a2a;
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html[data-theme="dark"] input::placeholder {
+  color: #64748b;
+}
+
+/* Badges */
+html[data-theme="dark"] .badge-verified {
+  background: rgba(16, 145, 115, 0.15);
+}
+html[data-theme="dark"] .badge-primary {
+  background: rgba(26, 115, 232, 0.15);
+}
+html[data-theme="dark"] .badge-warning {
+  background: rgba(252, 201, 52, 0.12);
+  color: #fcc934;
+}
+
+/* Tip buttons */
+html[data-theme="dark"] .tip-btn {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+html[data-theme="dark"] .tip-btn:hover {
+  background: rgba(26, 115, 232, 0.12);
+  border-color: var(--trust-blue);
+}
+
+/* Sidebar (dashboard) */
+html[data-theme="dark"] .dashboard-sidebar {
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Tables */
+html[data-theme="dark"] table thead {
+  background: #2a2a2a;
+}
+html[data-theme="dark"] table th {
+  color: #94a3b8;
+}
+html[data-theme="dark"] table td {
+  color: #cbd5e1;
+}
+html[data-theme="dark"] table tbody tr {
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Trust badge cards (privacy, terms, refund pages) */
+html[data-theme="dark"] .bg-smoky-jade\/5 {
+  background: rgba(16, 145, 115, 0.08) !important;
+}
+html[data-theme="dark"] .bg-trust-blue\/5 {
+  background: rgba(26, 115, 232, 0.08) !important;
+}
+html[data-theme="dark"] .border-smoky-jade\/10 {
+  border-color: rgba(16, 145, 115, 0.15) !important;
+}
+html[data-theme="dark"] .border-trust-blue\/10 {
+  border-color: rgba(26, 115, 232, 0.15) !important;
+}
+
+/* Auth tab active state — P1-002 FIX */
+html[data-theme="dark"] .auth-tab-active {
+  background: #2a2a2a !important;
+  color: var(--trust-blue) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Cart badge — already blue, works. Card hover lift shadow fix */
+html[data-theme="dark"] .card-hover-lift:hover {
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(26, 115, 232, 0.12);
+}
+
+/* Escrow badge & secondary button — fine as-is (blue on transparent) */
+
+/* Gradient orbs — reduce opacity in dark */
+html[data-theme="dark"] .gradient-orb-primary {
+  background: rgba(26, 115, 232, 0.04);
+}
+html[data-theme="dark"] .gradient-orb-jade {
+  background: rgba(16, 145, 115, 0.03);
+}
+
+/* Banner colors (error/success) — bg-red-50, bg-emerald-50, etc. */
+html[data-theme="dark"] .bg-red-50 { background-color: rgba(239, 68, 68, 0.1) !important; }
+html[data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; }
+html[data-theme="dark"] .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1) !important; }
+html[data-theme="dark"] .border-red-200 { border-color: rgba(239, 68, 68, 0.2) !important; }
+html[data-theme="dark"] .border-emerald-200 { border-color: rgba(16, 185, 129, 0.2) !important; }
+html[data-theme="dark"] .border-amber-200 { border-color: rgba(245, 158, 11, 0.2) !important; }
+
+/* P2-001 FIX: Blue info banners (donor-basket checkout, homeowner-portal info panels) */
+html[data-theme="dark"] .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; }
+html[data-theme="dark"] .text-blue-700 { color: #93c5fd !important; }
+html[data-theme="dark"] .border-blue-200 { border-color: rgba(59, 130, 246, 0.2) !important; }
+html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15) !important; }
 
 /* ─── Animations ───────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;

@@ -191,7 +191,11 @@ export async function getPlatformRevenueSummary(): Promise<{
         total_commissions_count: string;
         total_tips_count: string;
     }>(
-        `SELECT * FROM vw_platform_revenue_summary`,
+        // FIX-04: Explicit column list — no SELECT * (prevents VIEW schema drift).
+        `SELECT total_commission_revenue, total_tip_revenue, total_platform_revenue,
+                mtd_commission_revenue, mtd_tip_revenue,
+                total_commissions_count, total_tips_count
+         FROM vw_platform_revenue_summary`,
     );
 
     const row = result.rows[0];

@@ -75,7 +75,7 @@ describe('Compliance Service (Unit)', () => {
             });
 
             const result = await mockQuery(
-                'INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+                'INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values) VALUES ($1,$2,$3,$4,$5) RETURNING audit_id, action, entity_type, entity_id, actor_id, new_values',
                 ['escrow_release', 'escrow_ledger', 'esc-001', 'admin-001', '{"status":"released"}'],
             );
             expect(result.rows[0].action).toBe('escrow_release');
@@ -137,7 +137,7 @@ describe('Notification Service (Unit)', () => {
             });
 
             const result = await mockQuery(
-                'INSERT INTO notifications (user_id, channel, title, body) VALUES ($1,$2,$3,$4) RETURNING *',
+                'INSERT INTO notifications (user_id, channel, title, body) VALUES ($1,$2,$3,$4) RETURNING notification_id, user_id, channel, title, body, is_read, created_at',
                 ['user-001', 'in_app', 'Escrow Released', 'Your escrow for project XYZ has been released.'],
             );
             expect(result.rows[0].channel).toBe('in_app');
@@ -366,7 +366,7 @@ describe('Escrow Service (Unit)', () => {
             });
 
             const result = await mockClient.query(
-                'INSERT INTO escrow_ledger (payment_status, amount_locked) VALUES ($1, $2) RETURNING *',
+                'INSERT INTO escrow_ledger (payment_status, amount_locked) VALUES ($1, $2) RETURNING escrow_id, payment_status, amount_locked, currency',
                 ['locked', 5000],
             );
             expect(result.rows[0].payment_status).toBe('locked');

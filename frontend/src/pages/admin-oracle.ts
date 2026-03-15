@@ -17,30 +17,43 @@ function initApproveButton(): void {
         return;
     }
 
-    btn.addEventListener('click', () => {
-        /* Confirmation dialog */
-        const confirmed = confirm(
-            'Approve FIDIC 13.8 Price Adjustment?\n\n' +
-            'This will:\n' +
-            '• Update contract CT-8892 with +4.2% adjustment\n' +
-            '• Generate a formal amendment document\n' +
-            '• Notify all stakeholders (engineer, homeowner, donors)\n' +
-            '• Log to immutable audit trail\n\n' +
-            'Total adjusted cost: $130,250.00'
-        );
+    // FIX-04: Click-twice-to-confirm replaces blocking confirm() dialog.
+    let pendingConfirm = false;
 
-        if (!confirmed) {
+    btn.addEventListener('click', () => {
+        if (!pendingConfirm) {
+            // First click: show confirmation state
+            pendingConfirm = true;
+            btn.classList.remove('bg-trust-blue', 'hover:bg-trust-blue/90');
+            btn.classList.add('bg-amber-500', 'hover:bg-amber-600');
+            btn.innerHTML = `
+                <i class="ph ph-warning" aria-hidden="true"></i>
+                ${esc(t('oracle_confirm_prompt', 'Click again to confirm approval'))}
+            `;
+            // Auto-reset after 5s if not confirmed
+            setTimeout(() => {
+                if (pendingConfirm) {
+                    pendingConfirm = false;
+                    btn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+                    btn.classList.add('bg-trust-blue', 'hover:bg-trust-blue/90');
+                    btn.innerHTML = `
+                        <i class="ph ph-seal-check" aria-hidden="true"></i>
+                        ${esc(t('oracle_approve_btn', 'Approve Adjustment'))}
+                    `;
+                }
+            }, 5000);
             return;
         }
 
-        /* Success state transition */
+        // Second click: execute approval
+        pendingConfirm = false;
         btn.disabled = true;
-        btn.classList.remove('bg-trust-blue', 'hover:bg-trust-blue/90');
+        btn.classList.remove('bg-amber-500', 'hover:bg-amber-600', 'bg-trust-blue', 'hover:bg-trust-blue/90');
         btn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
         btn.innerHTML = `
-      <i class="ph ph-check-circle" aria-hidden="true"></i>
-      Adjustment Approved — Contract Updated
-    `;
+            <i class="ph ph-check-circle" aria-hidden="true"></i>
+            ${esc(t('oracle_approved_btn', 'Adjustment Approved — Contract Updated'))}
+        `;
 
         /* Update badge */
         const badge = document.querySelector('.badge-primary');
@@ -51,7 +64,7 @@ function initApproveButton(): void {
         }
 
         /* Show notification */
-        showNotification('EPA adjustment approved. Audit log updated. All stakeholders notified.');
+        showNotification(t('oracle_approval_toast', 'EPA adjustment approved. Audit log updated. All stakeholders notified.'));
     });
 }
 

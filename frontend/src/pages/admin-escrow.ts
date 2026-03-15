@@ -171,33 +171,37 @@ function initActionButtons(): void {
     const releaseBtn = document.getElementById('release-btn') as HTMLButtonElement | null;
     const flagBtn = document.getElementById('flag-btn') as HTMLButtonElement | null;
 
+    // FIX-03: Click-twice-to-confirm replaces blocking confirm() for release.
+    let releasePending = false;
+
     if (releaseBtn) {
         releaseBtn.addEventListener('click', () => {
             const c = CASES[currentCaseIndex];
-            if (!c) {
+            if (!c) { return; }
+
+            if (!releasePending) {
+                // First click: confirmation state
+                releasePending = true;
+                releaseBtn.classList.remove('bg-trust-blue');
+                releaseBtn.classList.add('bg-amber-500');
+                releaseBtn.innerHTML = `<i class="ph ph-warning" style="font-size:18px" aria-hidden="true"></i> ${t('esc_confirm_release', 'Click again to release')} ${esc(c.amount)}`;
+                // Auto-reset after 5s
+                setTimeout(() => {
+                    if (releasePending) {
+                        releasePending = false;
+                        releaseBtn.classList.remove('bg-amber-500');
+                        releaseBtn.classList.add('bg-trust-blue');
+                        releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_release_funds', 'Match Verified: Release Funds to Vendor')}`;
+                    }
+                }, 5000);
                 return;
             }
 
-            const confirmed = confirm(
-                `Match Verified: Release Funds?\n\n` +
-                `PO: ${c.poNumber}\n` +
-                `Amount: ${c.amount}\n` +
-                `Vendor: ${c.vendorName} (${c.vendorId})\n` +
-                `Engineer: ${c.engineerName}\n\n` +
-                `This will:\n` +
-                `• Release ${c.amount} from escrow to vendor\n` +
-                `• Notify all contributing donors\n` +
-                `• Create immutable audit trail entry\n\n` +
-                `This action is irreversible.`
-            );
-
-            if (!confirmed) {
-                return;
-            }
-
+            // Second click: execute release
+            releasePending = false;
             resolvedCases.add(currentCaseIndex);
             releaseBtn.disabled = true;
-            releaseBtn.classList.remove('bg-trust-blue');
+            releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
             releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
             releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_funds_released', '✓ Funds Released — Audit Trail Updated')}`;
 
@@ -206,30 +210,43 @@ function initActionButtons(): void {
                 flagBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
             }
 
-            showToast(`Escrow released: ${c.amount} to ${c.vendorName}`);
+            showToast(t('esc_released_toast', 'Escrow released') + `: ${esc(c.amount)} → ${esc(c.vendorName)}`);
         });
     }
 
+    // FIX-03: Inline reason input replaces blocking prompt() for flagging.
     if (flagBtn) {
+        let flagInputVisible = false;
+        let flagInput: HTMLInputElement | null = null;
+
         flagBtn.addEventListener('click', () => {
             const c = CASES[currentCaseIndex];
-            if (!c) {
+            if (!c) { return; }
+
+            if (!flagInputVisible) {
+                // First click: show inline reason input
+                flagInputVisible = true;
+                flagInput = document.createElement('input');
+                flagInput.type = 'text';
+                flagInput.placeholder = t('esc_flag_placeholder', 'Reason: GPS mismatch, photo quality, quantity...');
+                flagInput.className = 'w-full mt-2 px-3 py-2 text-sm rounded-lg border border-rose-200 bg-rose-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300';
+                flagBtn.parentElement?.insertBefore(flagInput, flagBtn.nextSibling);
+                flagInput.focus();
+                flagBtn.innerHTML = `<i class="ph ph-flag" style="font-size:18px" aria-hidden="true"></i> ${t('esc_submit_flag', 'Submit Flag')}`;
+                flagBtn.classList.add('border-rose-300', 'text-rose-600');
                 return;
             }
 
-            const reason = prompt(
-                `Flag Discrepancy — ${c.poNumber}\n\n` +
-                `Enter reason (GPS mismatch, photo quality, quantity discrepancy, etc.):`
-            );
-
-            if (reason === null) {
-                return;
-            }
-            if (reason.trim() === '') {
-                showToast('A reason is required to flag a discrepancy.');
+            // Second click: submit flag
+            const reason = flagInput?.value.trim() ?? '';
+            if (reason === '') {
+                showToast(t('esc_reason_required', 'A reason is required to flag a discrepancy.'));
+                flagInput?.focus();
                 return;
             }
 
+            flagInputVisible = false;
+            flagInput?.remove();
             resolvedCases.add(currentCaseIndex);
             flagBtn.disabled = true;
             flagBtn.classList.remove('border-slate-200', 'text-slate-700');
@@ -241,7 +258,7 @@ function initActionButtons(): void {
                 releaseBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
             }
 
-            showToast(`Flagged: "${reason}" — Under investigation`);
+            showToast(`${t('esc_flagged_toast', 'Flagged')}: "${esc(reason)}" — ${t('esc_under_investigation', 'Under investigation')}`);
         });
     }
 }

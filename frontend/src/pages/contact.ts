@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { contact } from '../api';
+import { escapeHtml } from '../utils/xss';
 import { t } from '../utils/i18n';
 
 // ============================================================================
@@ -9,6 +10,7 @@ import { t } from '../utils/i18n';
 //              AbortController timeout, and unified error reporting.
 // I18N-002 FIX: All user-facing strings wrapped with i18n t().
 // FIX-004: i18n interface now from shared utils/i18n.ts
+// P1-002 FIX: escapeHtml on showResult message (XSS prevention)
 // ============================================================================
 
 // ─── DOM ────────────────────────────────────────────────────────────────────
@@ -65,10 +67,11 @@ function showResult(type: 'success' | 'error', message: string): void {
     resultBox.className = type === 'success'
         ? 'mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700'
         : 'mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700';
+    // P1-002 FIX: escapeHtml() prevents XSS from API error messages
     resultBox.innerHTML = `
         <div class="flex items-start gap-3">
             <i class="ph ${type === 'success' ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-red-600'} shrink-0" style="font-size:20px" aria-hidden="true"></i>
-            <p>${message}</p>
+            <p>${escapeHtml(message)}</p>
         </div>`;
     resultBox.style.display = '';
 }
