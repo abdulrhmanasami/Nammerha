@@ -368,6 +368,48 @@
         });
     }
 
+    // ─── Global Theme CSS Injection ─────────────────────────────────────
+    function injectGlobalThemeCSS() {
+        if (document.getElementById('nm-global-theme-css')) return;
+        var style = document.createElement('style');
+        style.id = 'nm-global-theme-css';
+        style.textContent = [
+            'html.nm-theme-transition, html.nm-theme-transition *, html.nm-theme-transition *::before, html.nm-theme-transition *::after {',
+            '  transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;',
+            '}',
+            'html[data-theme="light"] {',
+            '  --bg-primary: #f5f7fa;',
+            '  --bg-secondary: #edf0f5;',
+            '  --bg-card: rgba(0,0,0,0.02);',
+            '  --text-primary: #1a202c;',
+            '  --text-secondary: rgba(26,32,44,0.65);',
+            '  --text-tertiary: rgba(26,32,44,0.4);',
+            '}',
+            'html[data-theme="light"] body {',
+            '  background-color: #f5f7fa;',
+            '  color: #1a202c;',
+            '}',
+            'html[data-theme="light"] .glass, html[data-theme="light"] [class*="card"] {',
+            '  background: rgba(255,255,255,0.7);',
+            '  border-color: rgba(0,0,0,0.08);',
+            '}',
+            'html[data-theme="light"] main {',
+            '  background-color: #f5f7fa;',
+            '  color: #1a202c;',
+            '}',
+            'html[data-theme="light"] .top-nav, html[data-theme="light"] header {',
+            '  background: rgba(245,247,250,0.9) !important;',
+            '  border-color: rgba(0,0,0,0.06) !important;',
+            '}',
+            'html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea {',
+            '  background: rgba(255,255,255,0.9);',
+            '  border-color: rgba(0,0,0,0.12);',
+            '  color: #1a202c;',
+            '}',
+        ].join('\n');
+        document.head.appendChild(style);
+    }
+
     // ─── Init ────────────────────────────────────────────────────────────
     function init() {
         removeOldNavs();
