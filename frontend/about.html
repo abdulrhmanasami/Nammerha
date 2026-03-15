@@ -4,536 +4,1357 @@
   <meta charset="utf-8" />
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nammerha — About Us | من نحن</title>
-  <meta name="description" content="Nammerha is a non-profit technology platform for transparent reconstruction crowdfunding in Syria. Built on radical transparency, OCDS compliance, and sustainable impact." />
-  <link rel="canonical" href="https://nammerha.com/about" />
+  <title>نعمّرها — من نحن | About Us</title>
+  <meta name="description" content="نعمّرها — منصة تقنية غير ربحية لإعادة إعمار سوريا بشفافية جذرية. اكتشف قصتنا ومنهجيتنا وفريقنا." />
 
-  <!-- OpenGraph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Nammerha" />
-  <meta property="og:title" content="Nammerha — About Us | من نحن" />
-  <meta property="og:description" content="Discover the story, mission, and methodology behind Nammerha — Syria's transparent reconstruction platform." />
-  <meta property="og:url" content="https://nammerha.com/about" />
-  <meta property="og:locale" content="en_US" />
-  <meta property="og:locale:alternate" content="ar_SY" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Nammerha — About Us" />
-  <meta name="twitter:description" content="Radical transparency meets sustainable reconstruction. Learn about Nammerha." />
-
-  <!-- Schema.org JSON-LD: AboutPage + NonprofitType -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    "name": "About Nammerha",
-    "url": "https://nammerha.com/about",
-    "mainEntity": {
-      "@type": "NGO",
-      "name": "Nammerha",
-      "url": "https://nammerha.com",
-      "foundingDate": "2025",
-      "description": "Non-profit technology platform for transparent reconstruction crowdfunding in Syria, operating under OCDS compliance with radical transparency and GPS-verified delivery proofs.",
-      "areaServed": {
-        "@type": "Country",
-        "name": "Syria"
-      },
-      "knowsAbout": [
-        "Syria Reconstruction",
-        "OCDS",
-        "Crowdfunding",
-        "Transparent Donations",
-        "Escrow-Protected Giving",
-        "GPS Spatial Verification"
-      ],
-      "founder": [
-        {
-          "@type": "Person",
-          "name": "Founder & CEO",
-          "jobTitle": "Chief Executive Officer"
-        },
-        {
-          "@type": "Person",
-          "name": "Co-Founder & CTO",
-          "jobTitle": "Chief Technology Officer"
-        }
-      ]
-    }
-  }
-  </script>
-
+  <!-- Fonts: IBM Plex Sans Arabic (local) + Inter (Latin) -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Phosphor Icons -->
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <link href="/i18n.css?v=5" rel="stylesheet" />
-  <script type="module" src="/src/pages/about.ts"></script>
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 
-  <!-- About Page Premium Styles -->
   <style>
-    /* ─── Hero Section ─────────────────────────────────── */
-    .about-hero-gradient {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #1a4d6e 100%);
+    /* ═══════════════════════════════════════════════════════════════════════
+       DESIGN SYSTEM — Dark Mode, Liquid Glass, Premium 2026
+       ═══════════════════════════════════════════════════════════════════════ */
+    :root {
+      /* Core palette */
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #111827;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-glass: rgba(255,255,255,0.06);
+      --bg-glass-hover: rgba(255,255,255,0.10);
+      --border-glass: rgba(255,255,255,0.08);
+      --border-glass-hover: rgba(255,255,255,0.15);
+
+      /* Brand colors */
+      --trust-blue: #1a73e8;
+      --trust-blue-glow: rgba(26,115,232,0.25);
+      --smoky-jade: #109173;
+      --smoky-jade-glow: rgba(16,145,115,0.25);
+      --warm-earth: #c2956b;
+      --warm-earth-glow: rgba(194,149,107,0.25);
+
+      /* Text */
+      --text-primary: #f1f5f9;
+      --text-secondary: rgba(241,245,249,0.6);
+      --text-tertiary: rgba(241,245,249,0.35);
+
+      /* Typography */
+      --font-ar: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+      --font-en: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
+
+      /* Spacing */
+      --section-gap: clamp(80px, 12vw, 160px);
+      --container-max: 1200px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    /* ─── Reset & Base ─────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ─── Light Mode Overrides ────────────────────────── */
+    html[data-theme="light"] {
+      --bg-primary: #f5f7fa;
+      --bg-secondary: #edf0f5;
+      --bg-card: rgba(0,0,0,0.02);
+      --bg-glass: rgba(255,255,255,0.7);
+      --bg-glass-hover: rgba(255,255,255,0.85);
+      --border-glass: rgba(0,0,0,0.08);
+      --border-glass-hover: rgba(0,0,0,0.14);
+      --text-primary: #1a202c;
+      --text-secondary: rgba(26,32,44,0.65);
+      --text-tertiary: rgba(26,32,44,0.4);
+    }
+    html[data-theme="light"] .top-nav {
+      background: rgba(245,247,250,0.85);
+      border-bottom-color: rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] .top-nav.scrolled {
+      background: rgba(245,247,250,0.95);
+    }
+    html[data-theme="light"] .hero::before {
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(26,115,232,0.08), transparent),
+        radial-gradient(ellipse 60% 50% at 25% 75%, rgba(16,145,115,0.06), transparent),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(194,149,107,0.04), transparent);
+    }
+    html[data-theme="light"] .hero::after {
+      background-image:
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    }
+    html[data-theme="light"] .hero-title {
+      background: linear-gradient(135deg, #1a202c 0%, rgba(26,32,44,0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    html[data-theme="light"] .hero-logo img {
+      filter: drop-shadow(0 0 30px rgba(26,115,232,0.15));
+    }
+    html[data-theme="light"] .badge {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.08);
+      color: var(--text-secondary);
+    }
+    html[data-theme="light"] .scroll-hint .mouse {
+      border-color: rgba(0,0,0,0.15);
+    }
+    html[data-theme="light"] .scroll-hint .mouse::after {
+      background: rgba(0,0,0,0.25);
+    }
+    html[data-theme="light"] .glass {
+      background: var(--bg-glass);
+      border-color: var(--border-glass);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    html[data-theme="light"] .glass:hover {
+      background: var(--bg-glass-hover);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] .bento-large {
+      background: linear-gradient(135deg, rgba(26,115,232,0.05), rgba(16,145,115,0.03)) !important;
+      border-color: rgba(26,115,232,0.1) !important;
+    }
+    html[data-theme="light"] .timeline-track-bg {
+      background: rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] .stats-section {
+      background: linear-gradient(135deg, rgba(26,115,232,0.04), rgba(16,145,115,0.03));
+      border-color: rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] .stat-item {
+      background: rgba(0,0,0,0.03);
+      border-color: rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] .divider {
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.08), transparent);
+    }
+    html[data-theme="light"] .site-footer {
+      border-top-color: rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] .footer-logo img {
+      filter: none;
+      opacity: 0.5;
+    }
+    html[data-theme="light"] .nav-back,
+    html[data-theme="light"] .nav-lang {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.08);
+      color: var(--text-secondary);
+    }
+    html[data-theme="light"] .nav-back:hover,
+    html[data-theme="light"] .nav-lang:hover {
+      background: rgba(0,0,0,0.08);
+      color: var(--text-primary);
+    }
+    /* Theme transition */
+    html.theme-transition,
+    html.theme-transition *,
+    html.theme-transition *::before,
+    html.theme-transition *::after {
+      transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-ar);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    [dir="rtl"] body { font-family: var(--font-ar); }
+
+    img { max-width: 100%; height: auto; }
+    a { text-decoration: none; color: inherit; }
+
+    .container {
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 48px);
+    }
+
+    /* ─── Liquid Glass Card ────────────────────────────── */
+    .glass {
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .glass:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-glass-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    /* Animations are purely progressive enhancement via GSAP.
+       All content is visible by default. */
+
+    /* ─── Floating Ambient Orbs ────────────────────────── */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       TOP NAV — Minimal Glassmorphism
+       ═══════════════════════════════════════════════════════════════════════ */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10,14,26,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.3s;
+    }
+    .top-nav.scrolled {
+      background: rgba(10,14,26,0.92);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+    .nav-logo img { height: 32px; width: auto; }
+    .nav-back {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .nav-back:hover {
+      background: rgba(255,255,255,0.12);
+      color: var(--text-primary);
+    }
+    .nav-lang {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .nav-lang:hover {
+      background: rgba(255,255,255,0.12);
+      color: var(--text-primary);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       HERO SECTION — Full Viewport Immersive
+       ═══════════════════════════════════════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       position: relative;
       overflow: hidden;
+      padding: 120px 24px 80px;
     }
-    .about-hero-gradient::before {
+
+    /* Animated gradient mesh background */
+    .hero::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse at 70% 20%, rgba(26,115,232,0.15), transparent 60%),
-                  radial-gradient(ellipse at 30% 80%, rgba(16,145,115,0.1), transparent 50%);
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(26,115,232,0.12), transparent),
+        radial-gradient(ellipse 60% 50% at 25% 75%, rgba(16,145,115,0.08), transparent),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(194,149,107,0.06), transparent);
+      animation: meshShift 12s ease-in-out infinite alternate;
+    }
+    @keyframes meshShift {
+      0% { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Grid pattern overlay */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
       pointer-events: none;
     }
 
-    /* ─── Section Transition Dividers ─────────────────── */
-    .about-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(100,116,139,0.3), transparent);
-      margin: 0 auto;
-      max-width: 80%;
+    .hero-logo {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 40px;
+    }
+    .hero-logo img {
+      height: clamp(100px, 18vw, 180px);
+      width: auto;
+      filter: drop-shadow(0 0 40px rgba(26,115,232,0.2));
+      animation: logoFloat 6s ease-in-out infinite;
+    }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
     }
 
-    /* ─── Timeline ─────────────────────────────────────── */
-    .timeline-line {
+    .hero-title {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(2.2rem, 5.5vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto 48px;
+      line-height: 2;
+    }
+
+    /* Trust Badges Row */
+    .hero-badges {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+    .badge:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+    .badge i { font-size: 16px; }
+    .badge-blue i { color: var(--trust-blue); }
+    .badge-jade i { color: var(--smoky-jade); }
+    .badge-earth i { color: var(--warm-earth); }
+
+    /* Scroll Indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      animation: scrollBounce 2s ease-in-out infinite;
+    }
+    .scroll-hint .mouse {
+      width: 24px; height: 38px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.2);
+      position: relative;
+    }
+    .scroll-hint .mouse::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px; height: 8px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.4);
+      animation: scrollDot 2s ease-in-out infinite;
+    }
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+    @keyframes scrollDot {
+      0%, 100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 0.3; transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       SECTION COMMON
+       ═══════════════════════════════════════════════════════════════════════ */
+    .section {
+      padding: var(--section-gap) 0;
+      position: relative;
+    }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .section-label-blue { background: rgba(26,115,232,0.1); color: var(--trust-blue); }
+    .section-label-jade { background: rgba(16,145,115,0.1); color: var(--smoky-jade); }
+    .section-label-earth { background: rgba(194,149,107,0.1); color: var(--warm-earth); }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+    .section-desc {
+      font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+      color: var(--text-secondary);
+      max-width: 600px;
+      line-height: 1.9;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       STORY TIMELINE — Scrollytelling
+       ═══════════════════════════════════════════════════════════════════════ */
+    .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+
+    .timeline-track {
       position: absolute;
       top: 0;
       bottom: 0;
       width: 3px;
-      background: linear-gradient(to bottom, #1a73e8, #109173, #c2956b);
       border-radius: 2px;
+      right: 20px;
     }
-    [dir="rtl"] .timeline-line { right: 15px; }
-    [dir="ltr"] .timeline-line { left: 15px; }
+    .timeline-track-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.06);
+      border-radius: inherit;
+    }
+    .timeline-track-fill {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 0%;
+      background: linear-gradient(to bottom, var(--trust-blue), var(--smoky-jade), var(--warm-earth));
+      border-radius: inherit;
+      transition: height 0.1s linear;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 0 60px 80px 0;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
 
     .timeline-dot {
       position: absolute;
-      top: 4px;
-      width: 32px;
-      height: 32px;
+      right: 8px;
+      top: 8px;
+      width: 28px; height: 28px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
       color: white;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       z-index: 2;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-    [dir="rtl"] .timeline-dot { right: 0; }
-    [dir="ltr"] .timeline-dot { left: 0; }
+    .dot-blue { background: var(--trust-blue); box-shadow: 0 0 20px var(--trust-blue-glow); }
+    .dot-jade { background: var(--smoky-jade); box-shadow: 0 0 20px var(--smoky-jade-glow); }
+    .dot-earth { background: var(--warm-earth); box-shadow: 0 0 20px var(--warm-earth-glow); }
 
-    .timeline-content {
-      padding-inline-start: 3rem;
+    .timeline-card {
+      padding: 32px;
+    }
+    .timeline-phase {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+    .phase-blue { color: var(--trust-blue); }
+    .phase-jade { color: var(--smoky-jade); }
+    .phase-earth { color: var(--warm-earth); }
+
+    .timeline-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .timeline-card p {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 2;
     }
 
-    /* ─── Methodology Pillar Card ────────────────────── */
-    .pillar-card {
-      background: white;
-      border: 1px solid rgba(226,232,240,0.8);
-      border-radius: 16px;
-      padding: 1.5rem;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
+    /* ═══════════════════════════════════════════════════════════════════════
+       BENTO GRID — Approach / Pillars
+       ═══════════════════════════════════════════════════════════════════════ */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: auto auto;
+      gap: 16px;
     }
-    .pillar-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+    .bento-large {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+    .bento-card {
+      padding: clamp(24px, 3vw, 40px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .bento-icon {
+      width: 52px; height: 52px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .bento-icon-blue { background: rgba(26,115,232,0.12); color: var(--trust-blue); }
+    .bento-icon-jade { background: rgba(16,145,115,0.12); color: var(--smoky-jade); }
+    .bento-icon-earth { background: rgba(194,149,107,0.12); color: var(--warm-earth); }
+
+    .bento-card h3 {
+      font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+      font-weight: 700;
+    }
+    .bento-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 2;
     }
 
-    /* ─── Leadership Card ────────────────────────────── */
+    /* Large card special styling */
+    .bento-large {
+      background: linear-gradient(135deg, rgba(26,115,232,0.08), rgba(16,145,115,0.05)) !important;
+      border-color: rgba(26,115,232,0.12) !important;
+    }
+    .bento-large h3 {
+      font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+    }
+    .bento-large p {
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .bento {
+        grid-template-columns: 1fr;
+      }
+      .bento-large {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       LEADERSHIP — Humanized Cards
+       ═══════════════════════════════════════════════════════════════════════ */
+    .leaders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
     .leader-card {
-      background: white;
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      height: 100%;
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
     }
-    .leader-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    .leader-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 4px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
-    .leader-accent-blue { border-top: 4px solid #1a73e8; }
-    .leader-accent-jade { border-top: 4px solid #109173; }
+    .leader-blue::before { background: linear-gradient(90deg, var(--trust-blue), transparent); }
+    .leader-jade::before { background: linear-gradient(90deg, var(--smoky-jade), transparent); }
 
-    /* ─── Stats Grid ─────────────────────────────────── */
-    .stat-card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 1.5rem;
-      text-align: center;
-      transition: transform 0.3s ease;
+    .leader-avatar {
+      width: 72px; height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin-bottom: 20px;
     }
-    .stat-card:hover {
+    .leader-avatar-blue { background: rgba(26,115,232,0.12); color: var(--trust-blue); }
+    .leader-avatar-jade { background: rgba(16,145,115,0.12); color: var(--smoky-jade); }
+
+    .leader-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .leader-role {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+    .leader-role-blue { color: var(--trust-blue); }
+    .leader-role-jade { color: var(--smoky-jade); }
+
+    .leader-card .bio {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 2;
+      margin-bottom: 20px;
+    }
+    .leader-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .leader-tag {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-blue { background: rgba(26,115,232,0.1); color: var(--trust-blue); }
+    .tag-jade { background: rgba(16,145,115,0.1); color: var(--smoky-jade); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       TRUST STATS — Data Storytelling
+       ═══════════════════════════════════════════════════════════════════════ */
+    .stats-section {
+      background: linear-gradient(135deg, rgba(26,115,232,0.06), rgba(16,145,115,0.04));
+      border-radius: 32px;
+      padding: clamp(48px, 6vw, 80px);
+      border: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .stats-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(26,115,232,0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 24px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: all 0.3s;
+    }
+    .stat-item:hover {
+      background: rgba(255,255,255,0.08);
       transform: scale(1.03);
     }
+    .stat-number {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      font-family: var(--font-en);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-blue { color: var(--trust-blue); }
+    .stat-jade { color: var(--smoky-jade); }
+    .stat-earth { color: var(--warm-earth); }
+    .stat-white { color: var(--text-primary); }
 
-    /* ─── Responsive Layout ──────────────────────────── */
-    @media (min-width: 768px) {
-      .about-grid-2 { grid-template-columns: repeat(2, 1fr); }
-      .about-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    /* ─── Scroll Reveal Base ─────────────────────────── */
-    [data-reveal] {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    .stats-body {
+      text-align: center;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 2;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CTA SECTION
+       ═══════════════════════════════════════════════════════════════════════ */
+    .cta-section {
+      text-align: center;
+      padding: var(--section-gap) 0;
+    }
+    .cta-box {
+      background: linear-gradient(135deg, var(--trust-blue), rgba(16,145,115,0.8));
+      border-radius: 32px;
+      padding: clamp(48px, 6vw, 80px);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 50%);
+    }
+    .cta-box h2 {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .cta-box p {
+      position: relative;
+      z-index: 2;
+      color: rgba(255,255,255,0.8);
+      font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+      max-width: 600px;
+      margin: 0 auto 36px;
+      line-height: 2;
+    }
+    .cta-btn {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 36px;
+      border-radius: var(--radius-md);
+      background: white;
+      color: var(--trust-blue);
+      font-weight: 700;
+      font-size: 15px;
+      font-family: var(--font-ar);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+    }
+    .cta-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+    .cta-btn i { font-size: 20px; }
+
+    .cta-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 24px;
+      position: relative;
+      z-index: 2;
+    }
+    .cta-links a {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      transition: color 0.2s;
+    }
+    .cta-links a:hover { color: rgba(255,255,255,0.9); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       FOOTER — Minimal
+       ═══════════════════════════════════════════════════════════════════════ */
+    .site-footer {
+      padding: 48px 0 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-logo {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .footer-logo img {
+      height: 24px;
+      width: auto;
+      opacity: 0.3;
+      filter: brightness(10);
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       DIVIDER
+       ═══════════════════════════════════════════════════════════════════════ */
+    .divider {
+      height: 1px;
+      max-width: 300px;
+      margin: 0 auto;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .hero { padding: 100px 16px 60px; }
+      .timeline-track { right: 14px; }
+      .timeline-item { padding-right: 48px; }
+      .timeline-dot { right: 2px; width: 24px; height: 24px; font-size: 10px; }
+      .leaders-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body>
 
-  <!-- ═══ HERO SECTION ═══════════════════════════════════════════════════════ -->
-  <section class="about-hero-gradient text-white" data-reveal>
-    <!-- Navigation Bar -->
-    <div class="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
-      <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
-        <i class="ph ph-arrow-right text-white text-xl" aria-hidden="true"></i>
+  <!-- ═══ TOP NAV ═══════════════════════════════════════════════════════════ -->
+  <nav class="top-nav" id="topNav">
+    <div class="nav-logo">
+      <img src="/brand/Nammerha_logo_icon.svg?v=2" alt="نعمّرها" />
+      <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="Nammerha" style="height:20px" />
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="nav-back" id="themeToggle" title="تبديل السمة">
+        <i class="ph ph-sun" id="themeIcon"></i>
+      </button>
+      <div class="nav-lang" id="langSwitcher">
+        <i class="ph ph-globe"></i>
+        <span id="langLabel">العربية</span>
+        <i class="ph ph-caret-down" style="font-size:11px"></i>
+      </div>
+      <a href="index.html" class="nav-back" title="الرئيسية">
+        <i class="ph ph-house"></i>
       </a>
-      <div id="about-lang-switcher" class="flex items-center gap-2 text-sm font-medium text-white/70 cursor-pointer hover:text-white transition-colors">
-        <i class="ph ph-globe" style="font-size:18px" aria-hidden="true"></i>
-        <span data-i18n="language_name">العربية</span>
-        <i class="ph ph-caret-down" style="font-size:12px" aria-hidden="true"></i>
-      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
+  <section class="hero" id="hero">
+    <!-- Ambient orbs -->
+    <div class="orb" style="width:400px;height:400px;top:-100px;right:-100px;background:rgba(26,115,232,0.06);"></div>
+    <div class="orb" style="width:350px;height:350px;bottom:-50px;left:-80px;background:rgba(16,145,115,0.05);"></div>
+    <div class="orb" style="width:250px;height:250px;top:40%;right:20%;background:rgba(194,149,107,0.04);"></div>
+
+    <div class="hero-logo">
+      <img src="/brand/Nammerha_logo_Full.svg?v=2" alt="نعمّرها" id="heroLogo" />
     </div>
 
-    <!-- Hero Content -->
-    <div class="max-w-5xl mx-auto px-6 pt-8 pb-16 text-center relative z-10">
-      <!-- Logo -->
-      <div class="flex justify-center mb-8">
-        <img src="/brand/Nammerha_logo_Full.svg" alt="Nammerha" class="h-32 md:h-44 w-auto drop-shadow-2xl" />
-      </div>
+    <h1 class="hero-title" id="heroTitle">نُعيد بناء سوريا، بيتاً بيتاً</h1>
 
-      <h1 class="text-3xl md:text-5xl font-bold mb-4 leading-tight" data-i18n="about_hero_title">
-        Rebuilding Syria, One Home at a Time
-      </h1>
-      <p class="text-base md:text-lg text-white/70 leading-relaxed max-w-3xl mx-auto mb-8" data-i18n="about_hero_subtitle">
-        A non-profit technology platform built on radical transparency, where every dollar is tracked, every delivery is GPS-verified, and every impact is measured.
-      </p>
+    <p class="hero-subtitle" id="heroSub">
+      منصة تقنية غير ربحية مبنية على الشفافية الجذرية، حيث يُتتبع كل دولار،
+      ويُتحقق من كل تسليم عبر GPS، ويُقاس كل أثر بدقة متناهية.
+    </p>
 
-      <!-- Trust Badges -->
-      <div class="flex flex-wrap justify-center gap-3">
-        <span class="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold uppercase tracking-wider border border-white/15 flex items-center gap-2">
-          <i class="ph ph-shield-check text-smoky-jade" style="font-size:16px" aria-hidden="true"></i>
-          <span data-i18n="about_badge_ocds">OCDS Compliant</span>
-        </span>
-        <span class="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold uppercase tracking-wider border border-white/15 flex items-center gap-2">
-          <i class="ph ph-map-pin text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
-          <span data-i18n="about_badge_gps">GPS Verified</span>
-        </span>
-        <span class="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold uppercase tracking-wider border border-white/15 flex items-center gap-2">
-          <i class="ph ph-lock text-warm-earth" style="font-size:16px" aria-hidden="true"></i>
-          <span data-i18n="about_badge_escrow">Escrow Protected</span>
-        </span>
-      </div>
+    <div class="hero-badges">
+      <span class="badge badge-jade">
+        <i class="ph ph-shield-check"></i>
+        متوافق مع OCDS
+      </span>
+      <span class="badge badge-blue">
+        <i class="ph ph-map-pin"></i>
+        تحقق GPS
+      </span>
+      <span class="badge badge-earth">
+        <i class="ph ph-lock"></i>
+        ضمان محمي
+      </span>
     </div>
 
-    <!-- Decorative bottom wave -->
-    <div class="h-8 bg-cloud-white" style="clip-path: ellipse(55% 100% at 50% 100%); margin-bottom: -1px;"></div>
+    <div class="scroll-hint">
+      <div class="mouse"></div>
+      <span>استكشف</span>
+    </div>
   </section>
 
 
-  <!-- ═══ MAIN CONTENT ═══════════════════════════════════════════════════════ -->
-  <main class="max-w-5xl mx-auto px-6 pb-24">
-
-    <!-- ─── OUR STORY : Timeline ───────────────────────────────────────────── -->
-    <section id="about-origin" class="py-16" data-reveal>
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-trust-blue/5 rounded-full mb-4">
-          <i class="ph ph-book-open text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
-          <span class="text-xs font-bold uppercase tracking-wider text-trust-blue" data-i18n="about_origin_subtitle">The Journey That Led Us Here</span>
-        </div>
-        <h2 class="text-2xl md:text-3xl font-bold" data-i18n="about_origin_title">Our Story</h2>
+  <!-- ═══ STORY SECTION — Timeline ══════════════════════════════════════════ -->
+  <section class="section" id="storySection">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:64px">
+        <span class="section-label section-label-blue" data-anim>
+          <i class="ph ph-book-open"></i>
+          الرحلة التي أوصلتنا إلى هنا
+        </span>
+        <h2 class="section-title" data-anim>قصتنا</h2>
+        <p class="section-desc" data-anim style="margin:0 auto">
+          من مراقبة الفجوة الإنسانية إلى بناء نظام بيئي متكامل لإعادة الإعمار
+        </p>
       </div>
 
-      <!-- Timeline Container -->
-      <div class="relative max-w-3xl mx-auto">
-        <div class="timeline-line"></div>
+      <div class="timeline">
+        <div class="timeline-track">
+          <div class="timeline-track-bg"></div>
+          <div class="timeline-track-fill" id="timelineFill"></div>
+        </div>
 
         <!-- Phase 1 -->
-        <div class="relative pb-12 about-timeline-item" data-reveal>
-          <div class="timeline-dot bg-trust-blue">1</div>
-          <div class="timeline-content">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-              <span class="text-[11px] text-trust-blue font-bold uppercase tracking-wider" data-i18n="about_origin_phase1_label">The Call</span>
-              <h3 class="font-bold text-lg mt-1 mb-3" data-i18n="about_origin_phase1_title">Beyond Temporary Relief</h3>
-              <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_origin_phase1_body">
-                Nammerha was not born in a conference hall or from a theoretical study. It was born from the deep, personal observation that the humanitarian situation in Syria demanded far more than temporary aid and consumable handouts. While attending international development conferences in the United States, our founders recognized a systemic gap: billions were being spent on emergency relief, yet communities remained unable to rebuild their own homes. The call was clear — what Syria needed was not just compassion, but structural transformation, transparent governance, and methodical reconstruction.
-              </p>
-            </div>
+        <div class="timeline-item" data-anim>
+          <div class="timeline-dot dot-blue">1</div>
+          <div class="timeline-card glass">
+            <div class="timeline-phase phase-blue">النداء</div>
+            <h3>أبعد من الإغاثة المؤقتة</h3>
+            <p>لم تولد نعمّرها في قاعة مؤتمرات أو من دراسة نظرية بحتة. ولدت من المعاينة الشخصية العميقة لواقع يقول إن الحالة الإنسانية في سوريا كانت تتطلب ما هو أبعد بكثير من الإغاثة المؤقتة. خلال حضور مؤتمرات التنمية الدولية في الولايات المتحدة، أدرك المؤسسون فجوة هيكلية: مليارات تُنفق على الطوارئ، لكن المجتمعات تبقى عاجزة عن إعادة بناء بيوتها.</p>
           </div>
         </div>
 
         <!-- Phase 2 -->
-        <div class="relative pb-12 about-timeline-item" data-reveal>
-          <div class="timeline-dot bg-smoky-jade">2</div>
-          <div class="timeline-content">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-              <span class="text-[11px] text-smoky-jade font-bold uppercase tracking-wider" data-i18n="about_origin_phase2_label">The Team</span>
-              <h3 class="font-bold text-lg mt-1 mb-3" data-i18n="about_origin_phase2_title">Where Strategy Meets Engineering</h3>
-              <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_origin_phase2_body">
-                Turning this ambitious vision into reality required more than good intentions. From the post-conflict zones of the Middle East to the engineering environments of Germany, a diverse team converged — bringing together expertise in crisis management, financial governance, product design, and software engineering. This unique blend of macro-strategic thinking and micro-level technical execution gave Nammerha the capacity to translate abstract humanitarian goals into live, auditable digital platforms and operational workflows.
-              </p>
-            </div>
+        <div class="timeline-item" data-anim>
+          <div class="timeline-dot dot-jade">2</div>
+          <div class="timeline-card glass">
+            <div class="timeline-phase phase-jade">الفريق</div>
+            <h3>حيث تلتقي الاستراتيجية بالهندسة</h3>
+            <p>من مناطق ما بعد النزاع في الشرق الأوسط إلى البيئات الهندسية المتقدمة في ألمانيا، تلاقى فريق متنوع يجمع بين خبرات إدارة الأزمات والحوكمة المالية وتصميم المنتجات والهندسة البرمجية. هذا المزيج الفريد من التفكير الاستراتيجي والتنفيذ التقني الدقيق منح نعمّرها القدرة على ترجمة الأهداف الإنسانية إلى منصات رقمية حية وقابلة للتدقيق.</p>
           </div>
         </div>
 
         <!-- Phase 3 -->
-        <div class="relative pb-0 about-timeline-item" data-reveal>
-          <div class="timeline-dot bg-warm-earth">3</div>
-          <div class="timeline-content">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-              <span class="text-[11px] text-warm-earth font-bold uppercase tracking-wider" data-i18n="about_origin_phase3_label">The Ecosystem</span>
-              <h3 class="font-bold text-lg mt-1 mb-3" data-i18n="about_origin_phase3_title">Building a Complete Ecosystem</h3>
-              <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_origin_phase3_body">
-                Today, Nammerha is not just rebuilding cracked walls or providing temporary shelter. We are engineering a complete, integrated ecosystem — through an innovative platform that combines advanced business management with engineering design, creating a trusted tool that generates measurable, sustainable developmental impact. Every resource is utilized with precision, every outcome is documented with evidence. Your contribution is not charity that gets consumed and forgotten — it is an investment in a community's future, with returns measured in restored dignity and rebuilt lives.
-              </p>
-            </div>
+        <div class="timeline-item" data-anim>
+          <div class="timeline-dot dot-earth">3</div>
+          <div class="timeline-card glass">
+            <div class="timeline-phase phase-earth">النظام المتكامل</div>
+            <h3>بناء نظام بيئي متكامل</h3>
+            <p>اليوم، نعمّرها لا تُعيد بناء الجدران فحسب. بل نهندس نظاماً بيئياً متكاملاً — منصة تجمع بين الإدارة المتقدمة للأعمال والتصميم الهندسي، لتصنع أداة موثوقة تولّد أثراً تنموياً مستداماً. كل مورد يُستثمر بعناية، كل نتيجة تُوثّق بالأدلة. مساهمتك ليست صدقة تُنسى — بل استثمار في مستقبل مجتمع.</p>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="about-divider"></div>
+  <div class="divider"></div>
 
-    <!-- ─── LEADERSHIP ─────────────────────────────────────────────────────── -->
-    <section id="about-leadership" class="py-16" data-reveal>
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-smoky-jade/5 rounded-full mb-4">
-          <i class="ph ph-users-three text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-          <span class="text-xs font-bold uppercase tracking-wider text-smoky-jade" data-i18n="about_leadership_subtitle">Institutional Governance, Not Personal Authority</span>
-        </div>
-        <h2 class="text-2xl md:text-3xl font-bold" data-i18n="about_leadership_title">Leadership</h2>
+  <!-- ═══ LEADERSHIP ════════════════════════════════════════════════════════ -->
+  <section class="section" id="leadershipSection">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:64px">
+        <span class="section-label section-label-jade" data-anim>
+          <i class="ph ph-users-three"></i>
+          حوكمة مؤسسية، لا سلطة شخصية
+        </span>
+        <h2 class="section-title" data-anim>القيادة</h2>
       </div>
 
-      <div class="grid gap-6 about-grid-2 max-w-4xl mx-auto">
-        <!-- Leader 1: Founder & CEO -->
-        <div class="leader-card leader-accent-blue" data-reveal>
-          <div class="flex items-center gap-4 mb-4">
-            <div class="size-16 rounded-2xl bg-trust-blue/10 flex items-center justify-center shrink-0">
-              <i class="ph ph-user-circle text-trust-blue" style="font-size:36px" aria-hidden="true"></i>
-            </div>
-            <div>
-              <h3 class="font-bold text-lg" data-i18n="about_leader1_name">Founder & CEO</h3>
-              <p class="text-xs text-trust-blue font-semibold uppercase tracking-wider" data-i18n="about_leader1_role">Strategic Direction & Governance</p>
-            </div>
+      <div class="leaders-grid">
+        <div class="leader-card glass leader-blue" data-anim>
+          <div class="leader-avatar leader-avatar-blue">
+            <i class="ph ph-user-circle"></i>
           </div>
-          <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n="about_leader1_bio">
-            Driven by the deep conviction that real change requires crisis management, robust financial governance, and long-term strategic planning — not just good intentions. Through years of studying and analyzing humanitarian operations, field observations, and understanding the needs of affected homeowners up close, our founder has contributed to crafting practical, technology-centered solutions. With a background that bridges international development and donor behavior analysis, they lead Nammerha with a focus on building sustainable funding models, forging institutional partnerships, and designing organizational policies that can withstand economic and operational challenges.
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <span class="text-xs px-3 py-1 rounded-full bg-trust-blue/10 text-trust-blue font-semibold" data-i18n="about_leader1_tag1">Crisis Management</span>
-            <span class="text-xs px-3 py-1 rounded-full bg-trust-blue/10 text-trust-blue font-semibold" data-i18n="about_leader1_tag2">Financial Governance</span>
-            <span class="text-xs px-3 py-1 rounded-full bg-trust-blue/10 text-trust-blue font-semibold" data-i18n="about_leader1_tag3">Institutional Partnerships</span>
+          <h3>المؤسس والرئيس التنفيذي</h3>
+          <div class="leader-role leader-role-blue">التوجيه الاستراتيجي والحوكمة</div>
+          <p class="bio">ينطلق من قناعة عميقة بأن التغيير الفعلي يتطلب إدارة أزمات، وحوكمة مالية صلبة، وتخطيطاً استراتيجياً بعيد المدى — وليس مجرد نوايا حسنة. من خلال سنوات من دراسة وتحليل العمليات الإنسانية والملاحظات الميدانية، ساهم في صياغة حلول عملية محورها التكنولوجيا. يقود نعمّرها بتركيز على بناء نماذج تمويل مستدامة وتأسيس شراكات مؤسسية.</p>
+          <div class="leader-tags">
+            <span class="leader-tag tag-blue">إدارة الأزمات</span>
+            <span class="leader-tag tag-blue">الحوكمة المالية</span>
+            <span class="leader-tag tag-blue">الشراكات المؤسسية</span>
           </div>
         </div>
 
-        <!-- Leader 2: Co-Founder & CTO -->
-        <div class="leader-card leader-accent-jade" data-reveal>
-          <div class="flex items-center gap-4 mb-4">
-            <div class="size-16 rounded-2xl bg-smoky-jade/10 flex items-center justify-center shrink-0">
-              <i class="ph ph-user-circle text-smoky-jade" style="font-size:36px" aria-hidden="true"></i>
-            </div>
-            <div>
-              <h3 class="font-bold text-lg" data-i18n="about_leader2_name">Co-Founder & CTO</h3>
-              <p class="text-xs text-smoky-jade font-semibold uppercase tracking-wider" data-i18n="about_leader2_role">Technical Execution & Product Engineering</p>
-            </div>
+        <div class="leader-card glass leader-jade" data-anim>
+          <div class="leader-avatar leader-avatar-jade">
+            <i class="ph ph-user-circle"></i>
           </div>
-          <p class="text-sm text-slate-500 leading-relaxed mb-4" data-i18n="about_leader2_bio">
-            Representing the operational engine and the innovative technical bridge of the organization. With a professional engineering background forged in Germany, specializing in product design and development, they manage the complete project lifecycle — from initial research and concept, through platform engineering and tool development, to field delivery and impact evaluation. Their role ensures that every strategic vision is translated into precise, auditable, scalable technical operations.
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <span class="text-xs px-3 py-1 rounded-full bg-smoky-jade/10 text-smoky-jade font-semibold" data-i18n="about_leader2_tag1">Product Engineering</span>
-            <span class="text-xs px-3 py-1 rounded-full bg-smoky-jade/10 text-smoky-jade font-semibold" data-i18n="about_leader2_tag2">Platform Architecture</span>
-            <span class="text-xs px-3 py-1 rounded-full bg-smoky-jade/10 text-smoky-jade font-semibold" data-i18n="about_leader2_tag3">Impact Measurement</span>
+          <h3>الشريك المؤسس والمدير التقني</h3>
+          <div class="leader-role leader-role-jade">التنفيذ التقني وهندسة المنتجات</div>
+          <p class="bio">يمثل المحرك التشغيلي والجسر التقني الابتكاري للمنظمة. بخلفية هندسية مهنية صُقلت في ألمانيا، متخصص في تصميم وتطوير المنتجات، يتولى قيادة دورة حياة المشاريع كاملةً — من البحث الأولي والتصور، مروراً بهندسة المنصة، وصولاً إلى التسليم الميداني وتقييم الأثر.</p>
+          <div class="leader-tags">
+            <span class="leader-tag tag-jade">هندسة المنتجات</span>
+            <span class="leader-tag tag-jade">معمارية المنصة</span>
+            <span class="leader-tag tag-jade">قياس الأثر</span>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="about-divider"></div>
+  <div class="divider"></div>
 
-    <!-- ─── OUR APPROACH : 4 Pillars ───────────────────────────────────────── -->
-    <section id="about-approach" class="py-16" data-reveal>
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-warm-earth/5 rounded-full mb-4">
-          <i class="ph ph-strategy text-warm-earth" style="font-size:18px" aria-hidden="true"></i>
-          <span class="text-xs font-bold uppercase tracking-wider text-warm-earth" data-i18n="about_approach_subtitle">Radical Transparency & Engineered Impact</span>
-        </div>
-        <h2 class="text-2xl md:text-3xl font-bold" data-i18n="about_approach_title">Our Approach</h2>
+  <!-- ═══ APPROACH — Bento Grid ═════════════════════════════════════════════ -->
+  <section class="section" id="approachSection">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:64px">
+        <span class="section-label section-label-earth" data-anim>
+          <i class="ph ph-strategy"></i>
+          الشفافية الجذرية وهندسة الأثر
+        </span>
+        <h2 class="section-title" data-anim>منهجيتنا</h2>
       </div>
 
-      <div class="grid gap-5 about-grid-2">
-        <!-- Pillar 1 -->
-        <div class="pillar-card" data-reveal>
-          <div class="size-12 rounded-xl bg-trust-blue/10 flex items-center justify-center mb-4">
-            <i class="ph ph-graph text-trust-blue" style="font-size:24px" aria-hidden="true"></i>
+      <div class="bento">
+        <!-- Large Card: Theory of Change -->
+        <div class="bento-card glass bento-large" data-anim>
+          <div class="bento-icon bento-icon-blue">
+            <i class="ph ph-graph"></i>
           </div>
-          <h3 class="font-bold text-base mb-2" data-i18n="about_pillar1_title">Theory of Change</h3>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_pillar1_body">
-            We do not adopt simplistic linear logic models. Our strategic planning is guided by a comprehensive Theory of Change framework that deeply understands the interconnected social, economic, and environmental contexts of post-conflict environments — ensuring every activity maps to a clear path toward sustainable, systemic transformation.
-          </p>
+          <h3>نظرية التغيير</h3>
+          <p>لا نعتمد نماذج المنطق الخطي المبسطة. تخطيطنا الاستراتيجي يسترشد بإطار عمل شامل لنظرية التغيير يتعمق في فهم السياقات الاجتماعية والاقتصادية والبيئية المتشابكة في بيئات ما بعد النزاع — لضمان أن كل نشاط يُسهم في مسار واضح نحو تحوّل جذري ومستدام.</p>
         </div>
 
-        <!-- Pillar 2 -->
-        <div class="pillar-card" data-reveal>
-          <div class="size-12 rounded-xl bg-smoky-jade/10 flex items-center justify-center mb-4">
-            <i class="ph ph-shield-check text-smoky-jade" style="font-size:24px" aria-hidden="true"></i>
+        <!-- TaaS -->
+        <div class="bento-card glass" data-anim>
+          <div class="bento-icon bento-icon-jade">
+            <i class="ph ph-shield-check"></i>
           </div>
-          <h3 class="font-bold text-base mb-2" data-i18n="about_pillar2_title">Transparency as a Service (TaaS)</h3>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_pillar2_body">
-            Responding to the highest global standards in the charitable sector, we have engineered our technical infrastructure to be natively transparent — aligned with the Open Contracting Data Standard (OCDS). This enables our partners and donors to conduct real-time auditing of every contract, procurement, and financial flow from day one. We go beyond periodic reporting: transparency is embedded as a service.
-          </p>
+          <h3>الشفافية كخدمة</h3>
+          <p>بنيتنا التقنية شفافة بالتصميم، متوافقة مع معيار OCDS. تدقيق فوري لكل عقد وتدفق مالي منذ اليوم الأول.</p>
         </div>
 
-        <!-- Pillar 3 -->
-        <div class="pillar-card" data-reveal>
-          <div class="size-12 rounded-xl bg-warm-earth/10 flex items-center justify-center mb-4">
-            <i class="ph ph-scales text-warm-earth" style="font-size:24px" aria-hidden="true"></i>
+        <!-- Hybrid Model -->
+        <div class="bento-card glass" data-anim>
+          <div class="bento-icon bento-icon-earth">
+            <i class="ph ph-scales"></i>
           </div>
-          <h3 class="font-bold text-base mb-2" data-i18n="about_pillar3_title">Hybrid Sustainability Model</h3>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_pillar3_body">
-            We believe the humanitarian mission must not depend on a single funding source. Our hybrid model integrates SaaS marketplace subscriptions, conflict-sensitive commercial commissions, and voluntary donor tips — all operating as independent financial arms that sustain the platform while keeping charitable donations 100% sacred and untouched.
-          </p>
+          <h3>الاستدامة الهجينة</h3>
+          <p>نموذج هجين يدمج اشتراكات السوق الرقمي وعمولات تجارية — بينما تبقى أموال التبرعات مقدسة 100%.</p>
         </div>
 
-        <!-- Pillar 4 -->
-        <div class="pillar-card" data-reveal>
-          <div class="size-12 rounded-xl bg-trust-blue/10 flex items-center justify-center mb-4">
-            <i class="ph ph-chart-bar text-trust-blue" style="font-size:24px" aria-hidden="true"></i>
+        <!-- MEAL -->
+        <div class="bento-card glass" data-anim style="grid-column: span 2">
+          <div class="bento-icon bento-icon-blue">
+            <i class="ph ph-chart-bar"></i>
           </div>
-          <h3 class="font-bold text-base mb-2" data-i18n="about_pillar4_title">MEAL Framework</h3>
-          <p class="text-sm text-slate-500 leading-relaxed" data-i18n="about_pillar4_body">
-            We deploy a rigorous Monitoring, Evaluation, Accountability, and Learning (MEAL) system that goes beyond counting outputs. Using advanced scoring algorithms and logic rules, our MEAL framework evaluates the quality of humanitarian impact — measuring community-level change, not just delivery statistics. Our operational path is also designed for full post-sanctions dynamic compliance.
-          </p>
+          <h3>إطار المساءلة MEAL</h3>
+          <p>نظام مراقبة وتقييم ومساءلة وتعلّم صارم يتجاوز إحصاء المخرجات. باستخدام خوارزميات تسجيل متقدمة وقواعد منطقية، يُقيّم إطارنا جودة الأثر الإنساني — قياس التغيير على مستوى المجتمع، وليس مجرد إحصاءات التسليم.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <div class="about-divider"></div>
+  <div class="divider"></div>
 
-    <!-- ─── TRUST & COMPLIANCE ─────────────────────────────────────────────── -->
-    <section id="about-trust" class="py-16" data-reveal>
-      <div class="bg-slate-900 text-white rounded-3xl p-8 md:p-12 relative overflow-hidden">
-        <!-- Decorative blurs -->
-        <div class="absolute -right-12 -bottom-12 size-64 bg-trust-blue/10 rounded-full blur-3xl"></div>
-        <div class="absolute -left-12 -top-12 size-48 bg-smoky-jade/10 rounded-full blur-3xl"></div>
-
-        <div class="relative z-10">
-          <div class="text-center mb-10">
-            <h2 class="font-bold text-2xl md:text-3xl mb-2 flex items-center justify-center gap-3">
-              <i class="ph ph-shield-check text-smoky-jade" style="font-size:28px" aria-hidden="true"></i>
-              <span data-i18n="about_trust_title">Trust & Compliance</span>
-            </h2>
-          </div>
-
-          <div class="grid gap-4 about-grid-4 mb-8">
-            <div class="stat-card">
-              <div class="text-3xl font-bold text-smoky-jade mb-1">100%</div>
-              <div class="text-xs text-slate-400 uppercase font-semibold tracking-wider" data-i18n="about_stat_transparency">Financial Transparency</div>
-            </div>
-            <div class="stat-card">
-              <div class="text-3xl font-bold text-trust-blue mb-1">GPS</div>
-              <div class="text-xs text-slate-400 uppercase font-semibold tracking-wider" data-i18n="about_stat_gps">Verified Deliveries</div>
-            </div>
-            <div class="stat-card">
-              <div class="text-3xl font-bold text-warm-earth mb-1">OCDS</div>
-              <div class="text-xs text-slate-400 uppercase font-semibold tracking-wider" data-i18n="about_stat_ocds">Data Standard</div>
-            </div>
-            <div class="stat-card">
-              <div class="text-3xl font-bold text-smoky-jade mb-1">0%</div>
-              <div class="text-xs text-slate-400 uppercase font-semibold tracking-wider" data-i18n="about_stat_fees">Donation Fees</div>
-            </div>
-          </div>
-
-          <p class="text-sm text-slate-400 leading-relaxed text-center max-w-3xl mx-auto" data-i18n="about_trust_body">
-            Our operational path is designed technically and legally for full compliance with Dynamic Post-Sanctions Compliance and international financial regulations — ensuring business continuity and protecting partners and donors from any legal or reputational risks.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── CALL TO ACTION ─────────────────────────────────────────────────── -->
-    <section id="about-cta" class="pb-16" data-reveal>
-      <div class="bg-gradient-to-br from-trust-blue via-trust-blue/90 to-smoky-jade/80 text-white rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_50%)]"></div>
-        <div class="relative z-10">
-          <i class="ph ph-hand-heart text-white/20 mb-4" style="font-size:64px" aria-hidden="true"></i>
-          <h2 class="text-2xl md:text-3xl font-bold mb-4" data-i18n="about_cta_title">
-            Your Vision of a Safer World Starts Here
+  <!-- ═══ TRUST & COMPLIANCE — Stats ════════════════════════════════════════ -->
+  <section class="section" id="trustSection">
+    <div class="container">
+      <div class="stats-section" data-anim>
+        <div style="text-align:center;margin-bottom:48px;position:relative;z-index:2">
+          <h2 class="section-title" style="display:flex;align-items:center;justify-content:center;gap:12px">
+            <i class="ph ph-shield-check" style="color:var(--smoky-jade);font-size:32px"></i>
+            الثقة والامتثال
           </h2>
-          <p class="text-sm md:text-base text-white/80 leading-relaxed mb-8 max-w-2xl mx-auto" data-i18n="about_cta_body">
-            Because communities that have endured destruction deserve more than sympathy — they deserve a partner who transforms your generosity into measurable, permanent change. We provide the tools. You create the impact.
-          </p>
-          <a href="donor-basket.html" class="inline-flex items-center gap-2 bg-white text-trust-blue font-bold text-sm px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.03]">
-            <i class="ph ph-heart" style="font-size:20px" aria-hidden="true"></i>
-            <span data-i18n="about_cta_btn">Fund a Project Now</span>
-          </a>
-          <div class="flex justify-center gap-6 mt-6">
-            <a href="contact.html" class="text-sm text-white/60 hover:text-white/90 transition-colors underline underline-offset-4" data-i18n="about_cta_contact">Contact Us</a>
-            <a href="pricing.html" class="text-sm text-white/60 hover:text-white/90 transition-colors underline underline-offset-4" data-i18n="about_cta_pricing">Partnership Plans</a>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number stat-jade" data-count="100" data-suffix="%">0%</div>
+            <div class="stat-label">شفافية مالية</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number stat-blue">GPS</div>
+            <div class="stat-label">تسليمات موثقة</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number stat-earth">OCDS</div>
+            <div class="stat-label">معيار البيانات</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number stat-white" data-count="0" data-suffix="%">0%</div>
+            <div class="stat-label">رسوم تبرع</div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ─── Institutional Footer ───────────────────────────────────────────── -->
-    <footer class="pb-8 pt-4">
-      <div class="border-t border-slate-200 pt-8">
-        <div class="flex items-center justify-center mb-4">
-          <img src="/brand/nammerha_text_logo_vector.svg" alt="Nammerha" class="h-6 w-auto opacity-40" />
+        <p class="stats-body">
+          مسارنا التشغيلي مصمم تقنياً وتشريعياً للامتثال التام مع متطلبات ما بعد العقوبات الديناميكية والقوانين الدولية المنظمة للعمليات المالية — لضمان استمرارية الأعمال وحماية الشركاء والمانحين من أي مخاطر قانونية أو سمعية.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══════════════════════════════════════════════════════════════ -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box" data-anim>
+        <i class="ph ph-hand-heart" style="font-size:56px;opacity:0.15;position:relative;z-index:2;display:block;margin-bottom:16px"></i>
+        <h2>رؤيتك في بناء عالم أكثر أماناً تبدأ من هنا</h2>
+        <p>
+          لأن مجتمعات تحمّلت الدمار تستحق أكثر من التعاطف — تستحق شريكاً يحوّل سخاءك إلى تغيير دائم وقابل للقياس. نحن نوفر الأدوات. أنت تصنع الأثر.
+        </p>
+        <a href="donor-basket.html" class="cta-btn">
+          <i class="ph ph-heart"></i>
+          موّل مشروعاً الآن
+        </a>
+        <div class="cta-links">
+          <a href="contact.html">تواصل معنا</a>
+          <a href="pricing.html">خطط الشراكة</a>
         </div>
-        <nav class="flex justify-center flex-wrap gap-x-6 gap-y-2 mb-4">
-          <a href="terms.html" class="text-xs text-slate-400 hover:text-trust-blue transition-colors" data-i18n="contact_link_tos">Terms</a>
-          <a href="privacy.html" class="text-xs text-slate-400 hover:text-trust-blue transition-colors" data-i18n="contact_link_privacy">Privacy</a>
-          <a href="contact.html" class="text-xs text-slate-400 hover:text-trust-blue transition-colors" data-i18n="contact_title">Contact</a>
-          <a href="refund-policy.html" class="text-xs text-slate-400 hover:text-trust-blue transition-colors" data-i18n="contact_link_refund">Refunds</a>
-        </nav>
-        <p class="text-xs text-slate-300 text-center" data-i18n="about_footer_copy">© 2025 Nammerha. OCDS-Compliant Reconstruction Platform.</p>
       </div>
-    </footer>
+    </div>
+  </section>
 
-  </main>
+  <!-- ═══ FOOTER ═══════════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-logo">
+        <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" />
+      </div>
+      <nav class="footer-links">
+        <a href="terms.html">شروط الخدمة</a>
+        <a href="privacy.html">سياسة الخصوصية</a>
+        <a href="contact.html">تواصل معنا</a>
+        <a href="refund-policy.html">سياسة الاسترداد</a>
+      </nav>
+      <p class="footer-copy">© ٢٠٢٥ نعمّرها. منصة إعادة إعمار متوافقة مع OCDS.</p>
+    </div>
+  </footer>
 
-<script src="/i18n.js?v=7" defer></script>
-<script src="/nav.js?v=6" defer></script>
-<script>
-// Wire #about-lang-switcher to the i18n engine and suppress duplicate floating widget
-document.addEventListener('DOMContentLoaded', function() {
-  // 1. Remove the floating language widget injected by i18n.js (about.html has its own)
-  var poll = setInterval(function() {
-    var floatingWidget = document.getElementById('nm-lang-widget');
-    if (floatingWidget) {
-      floatingWidget.remove();
-      clearInterval(poll);
-    }
-  }, 50);
-  // Safety: stop polling after 3s
-  setTimeout(function() { clearInterval(poll); }, 3000);
+  <!-- ═══ ANIMATIONS — GSAP ScrollTrigger ══════════════════════════════════ -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
 
-  // 2. Make the integrated #about-lang-switcher functional
-  var switcher = document.getElementById('about-lang-switcher');
-  if (switcher) {
-    switcher.addEventListener('click', function() {
-      if (!window.NammerhaI18n) return;
-      var langs = window.NammerhaI18n.getSupportedLangs();
-      var current = window.NammerhaI18n.getCurrentLang();
-      // Cycle to next language
-      var idx = 0;
-      for (var i = 0; i < langs.length; i++) {
-        if (langs[i].code === current) { idx = i; break; }
-      }
-      var next = langs[(idx + 1) % langs.length];
-      window.NammerhaI18n.switchLanguage(next.code);
-      // Update the label
-      var label = switcher.querySelector('[data-i18n="language_name"]');
-      if (label) label.textContent = next.name;
+    // ─── Nav scroll effect ───────────────────────────────────────────────
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 60) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
     });
-  }
-});
-</script>
+
+    // ─── Theme Toggle (Dark/Light) ──────────────────────────────────────
+    var themeBtn = document.getElementById('themeToggle');
+    var themeIcon = document.getElementById('themeIcon');
+    var savedTheme = localStorage.getItem('nm-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'light') {
+      themeIcon.className = 'ph ph-moon';
+    }
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function() {
+        document.documentElement.classList.add('theme-transition');
+        var current = document.documentElement.getAttribute('data-theme') || 'dark';
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('nm-theme', next);
+        themeIcon.className = next === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+        setTimeout(function() {
+          document.documentElement.classList.remove('theme-transition');
+        }, 500);
+      });
+    }
+
+    // ─── Language Switcher (cycle) ───────────────────────────────────────
+    var langs = ['ar','en','de','fr','tr'];
+    var langNames = { ar:'العربية', en:'English', de:'Deutsch', fr:'Français', tr:'Türkçe' };
+    var currentIdx = 0;
+    var switcher = document.getElementById('langSwitcher');
+    var label = document.getElementById('langLabel');
+    if (switcher) {
+      switcher.addEventListener('click', function() {
+        currentIdx = (currentIdx + 1) % langs.length;
+        var code = langs[currentIdx];
+        label.textContent = langNames[code];
+        // If global i18n exists, use it
+        if (window.NammerhaI18n) {
+          window.NammerhaI18n.switchLanguage(code);
+        }
+      });
+    }
+
+    // ─── GSAP: Pure progressive enhancement (content is ALWAYS visible) ─
+    var gsapRetries = 0;
+    function initGSAP() {
+      if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+        gsapRetries++;
+        if (gsapRetries < 30) { setTimeout(initGSAP, 100); }
+        return; // Content is visible regardless
+      }
+
+      try {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero entrance animation
+        var heroTl = gsap.timeline();
+        heroTl
+          .from('#heroLogo', { opacity: 0, scale: 0.8, duration: 1.2, ease: 'power3.out' })
+          .from('#heroTitle', { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' }, '-=0.6')
+          .from('#heroSub', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' }, '-=0.4')
+          .from('.hero-badges .badge', { opacity: 0, y: 15, duration: 0.5, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
+          .from('.scroll-hint', { opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2');
+
+        // Scroll-driven reveal for [data-anim] elements
+        gsap.utils.toArray('[data-anim]').forEach(function(el) {
+          gsap.from(el, {
+            opacity: 0,
+            y: 30,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 90%',
+              toggleActions: 'play none none none',
+            }
+          });
+        });
+
+        // Timeline fill on scroll
+        var timelineFill = document.getElementById('timelineFill');
+        if (timelineFill) {
+          ScrollTrigger.create({
+            trigger: '.timeline',
+            start: 'top 70%',
+            end: 'bottom 40%',
+            scrub: 1,
+            onUpdate: function(self) {
+              timelineFill.style.height = (self.progress * 100) + '%';
+            }
+          });
+        }
+
+        // Counter animation
+        document.querySelectorAll('[data-count]').forEach(function(counter) {
+          var target = parseInt(counter.dataset.count, 10);
+          var suffix = counter.dataset.suffix || '';
+          ScrollTrigger.create({
+            trigger: counter,
+            start: 'top 90%',
+            once: true,
+            onEnter: function() {
+              gsap.to({ val: 0 }, {
+                val: target,
+                duration: 2,
+                ease: 'power2.out',
+                onUpdate: function() {
+                  counter.textContent = Math.round(this.targets()[0].val) + suffix;
+                }
+              });
+            }
+          });
+        });
+
+        // Parallax orbs
+        gsap.utils.toArray('.orb').forEach(function(orb) {
+          gsap.to(orb, {
+            y: -60,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: orb.parentElement,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 2,
+            }
+          });
+        });
+
+        // Leader cards 3D hover
+        document.querySelectorAll('.leader-card').forEach(function(card) {
+          card.addEventListener('mousemove', function(e) {
+            var rect = card.getBoundingClientRect();
+            var x = (e.clientX - rect.left) / rect.width - 0.5;
+            var y = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.transform = 'translateY(-4px) perspective(600px) rotateY(' + (x * 4) + 'deg) rotateX(' + (-y * 4) + 'deg)';
+          });
+          card.addEventListener('mouseleave', function() {
+            card.style.transform = '';
+          });
+        });
+
+      } catch(e) {
+        // GSAP failed — content is already visible, no action needed
+        console.warn('GSAP enhancement skipped:', e);
+      }
+    }
+
+    initGSAP();
+  });
+  </script>
+
+  <!-- i18n & nav (existing) -->
+  <script src="/i18n.js?v=7" defer></script>
+  <script src="/nav.js?v=6" defer></script>
+  <script>
+    // Remove floating i18n widget (this page has its own)
+    document.addEventListener('DOMContentLoaded', function() {
+      var poll = setInterval(function() {
+        var w = document.getElementById('nm-lang-widget');
+        if (w) { w.remove(); clearInterval(poll); }
+      }, 50);
+      setTimeout(function() { clearInterval(poll); }, 3000);
+    });
+  </script>
+
 </body>
 </html>
