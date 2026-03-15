@@ -244,36 +244,7 @@ async function activateRole(role: UserRole): Promise<void> {
     }
 }
 
-// ─── Language Toggle ────────────────────────────────────────────────────────
-const langToggle = document.getElementById('lang-toggle');
-const currentLangEl = document.getElementById('current-lang');
 
-const langCycle = ['en', 'ar', 'tr'] as const;
-const langLabels: Record<string, string> = {
-    en: 'English',
-    ar: 'العربية',
-    tr: 'Türkçe',
-};
-
-langToggle?.addEventListener('click', () => {
-    const currentLang = document.documentElement.lang || 'en';
-    const idx = langCycle.indexOf(currentLang as typeof langCycle[number]);
-    const nextIdx = (idx + 1) % langCycle.length;
-    const next: string = langCycle[nextIdx] ?? 'en';
-
-    document.documentElement.lang = next;
-    document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr';
-    localStorage.setItem('nammerha_lang', next);
-
-    if (currentLangEl) { currentLangEl.textContent = langLabels[next] ?? next; }
-    window.dispatchEvent(new CustomEvent('i18n:lang-changed', { detail: { lang: next } }));
-});
-
-// ─── Initialize Language Display ────────────────────────────────────────────
-function initLangDisplay(): void {
-    const lang = document.documentElement.lang || 'en';
-    if (currentLangEl) { currentLangEl.textContent = langLabels[lang] ?? lang; }
-}
 
 // ─── Logout ─────────────────────────────────────────────────────────────────
 // LOGOUT-001 FIX: Now calls /api/auth/logout to invalidate server-side JWT
@@ -311,7 +282,6 @@ document.getElementById('cancel-role-activation')?.addEventListener('click', () 
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     loadUserInfo();
-    initLangDisplay();
     loadUserRoles();
 
     // Handle ?tab=roles URL param (from role-switcher "Add a new role")

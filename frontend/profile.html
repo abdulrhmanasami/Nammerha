@@ -85,17 +85,6 @@
   <section class="px-4 pt-6">
     <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="settings">Settings</h3>
     <div class="flex flex-col gap-2">
-      <!-- Language -->
-      <button class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 w-full text-left" id="lang-toggle">
-        <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-translate text-trust-blue" aria-hidden="true"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold" data-i18n="language_setting">Language</p>
-          <p id="current-lang" class="text-[10px] text-slate-400">English</p>
-        </div>
-        <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
-      </button>
       <!-- Notifications -->
       <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100">
         <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
@@ -121,8 +110,7 @@
         </div>
         <i id="kyc-status-icon" class="ph ph-clock text-slate-400" aria-hidden="true"></i>
       </div>
-      <!-- About -->
-      <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100">
+      <a href="about.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors">
         <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-info text-slate-500" aria-hidden="true"></i>
         </div>
@@ -131,7 +119,7 @@
           <p class="text-[10px] text-slate-400">v1.0.0 — <span data-i18n="ocds_certified">OCDS Certified</span></p>
         </div>
         <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
-      </div>
+      </a>
     </div>
   </section>
 
