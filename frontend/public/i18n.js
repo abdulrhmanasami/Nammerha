@@ -250,9 +250,8 @@
         'kyc_verification': { ar: 'التحقق من الهوية', de: 'Identitätsverifizierung', fr: 'Vérification d\'identité', tr: 'Kimlik Doğrulaması' },
         'kyc_detail': { ar: 'تحقق من هويتك', de: 'Identität verifizieren', fr: 'Vérifier votre identité', tr: 'Kimliğinizi doğrulayın' },
         'kyc_pending': { ar: 'بانتظار التحقق', de: 'Ausstehende Verifizierung', fr: 'Vérification en attente', tr: 'Doğrulama Bekliyor' },
-        'about_nammerha': { ar: 'حول نعمِّرها', de: 'Über Nammerha', fr: 'À propos de Nammerha', tr: 'Nammerha Hakkında' },
+        'about_nammerha': { ar: 'حول نعمّرها', de: 'Über Nammerha', fr: 'À propos de Nammerha', tr: 'Nammerha Hakkında' },
         'about_learn_more': { ar: 'تعرّف علينا أكثر', de: 'Erfahren Sie mehr über uns', fr: 'En savoir plus sur nous', tr: 'Hakkımızda daha fazla bilgi' },
-        'about_cta_subtitle': { ar: 'اكتشف مهمتنا لإعادة إعمار سوريا بشفافية جذرية', de: 'Entdecken Sie unsere Mission, Syrien mit radikaler Transparenz wiederaufzubauen', fr: 'Découvrez notre mission de reconstruire la Syrie avec une transparence radicale', tr: 'Suriye\'yi radikal şeffaflıkla yeniden inşa etme misyonumuzu keşfedin' },
         'ocds_certified': { ar: 'معتمد OCDS', de: 'OCDS-zertifiziert', fr: 'Certifié OCDS', tr: 'OCDS Sertifikalı' },
         'sign_out': { ar: 'تسجيل خروج', de: 'Abmelden', fr: 'Déconnexion', tr: 'Çıkış Yap' },
 

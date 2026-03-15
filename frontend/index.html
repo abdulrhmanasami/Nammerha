@@ -253,29 +253,51 @@
         </div>
       </section>
 
-      <!-- Institutional Transparency -->
+      <!-- About & Institutional Trust CTA -->
       <section class="px-4">
-        <div
-          class="border border-slate-200 rounded-2xl p-4 flex items-start gap-4"
-        >
+        <a href="about.html" class="block group">
           <div
-            class="size-12 rounded-xl bg-smoky-jade/10 flex items-center justify-center shrink-0"
+            class="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-trust-blue/80 p-6 text-white shadow-xl"
           >
-            <i class="ph ph-shield-check text-smoky-jade" style="font-size:28px" aria-hidden="true"></i>
+            <!-- Background decorative elements -->
+            <div class="absolute -top-6 -right-6 size-32 bg-trust-blue/20 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-8 -left-8 size-40 bg-smoky-jade/15 rounded-full blur-3xl"></div>
+
+            <div class="relative z-10 flex items-start gap-4">
+              <div
+                class="size-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10"
+              >
+                <i class="ph ph-buildings text-white" style="font-size:28px" aria-hidden="true"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-bold text-base mb-1" data-i18n="about_nammerha">About Nammerha</h3>
+                <p class="text-xs text-white/70 leading-relaxed" data-i18n="transparency_body">
+                  Nammerha uses the Open Contracting Data Standard (OCDS) for all
+                  financial reporting. Every dollar invested is tracked and audited
+                  in real-time.
+                </p>
+                <div class="flex flex-wrap items-center gap-2 mt-3">
+                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                    <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+                    OCDS
+                  </span>
+                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                    <i class="ph ph-map-pin" style="font-size:12px" aria-hidden="true"></i>
+                    GPS
+                  </span>
+                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                    <i class="ph ph-lock-key" style="font-size:12px" aria-hidden="true"></i>
+                    Escrow
+                  </span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-4 text-xs font-bold text-smoky-jade group-hover:text-white transition-colors">
+                  <span data-i18n="about_learn_more">Learn more about us</span>
+                  <i class="ph ph-arrow-right transition-transform group-hover:translate-x-1" style="font-size:14px" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 class="font-bold text-sm mb-1" data-i18n="transparency">Institutional Transparency</h3>
-            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="transparency_body">
-              Nammerha uses the Open Contracting Data Standard (OCDS) for all
-              financial reporting. Every dollar invested is tracked and audited
-              in real-time.
-            </p>
-            <a href="about.html" class="inline-flex items-center gap-1 mt-2 text-xs font-bold text-trust-blue hover:underline">
-              <span data-i18n="about_learn_more">Learn more about us</span>
-              <i class="ph ph-arrow-right" style="font-size:14px" aria-hidden="true"></i>
-            </a>
-          </div>
-        </div>
+        </a>
       </section>
 
       <!-- Role-Based Quick Actions -->
@@ -327,31 +349,6 @@
             <span class="text-xs font-bold text-slate-700" data-i18n="price_oracle">Price Oracle</span>
           </a>
         </div>
-      </section>
-
-      <!-- About Nammerha — Premium CTA Banner -->
-      <section class="px-4 mt-8">
-        <a href="about.html" class="block relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-trust-blue/80 p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 group">
-          <!-- Decorative background elements -->
-          <div class="absolute -top-8 -right-8 size-32 bg-trust-blue/20 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
-          <div class="absolute -bottom-6 -left-6 size-24 bg-smoky-jade/20 rounded-full blur-2xl"></div>
-          
-          <div class="relative z-10 flex items-center gap-5">
-            <!-- Logo -->
-            <div class="size-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-              <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-10 w-auto" />
-            </div>
-            <!-- Text -->
-            <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-base" data-i18n="about_nammerha">About Nammerha</h3>
-              <p class="text-xs text-white/70 mt-1 leading-relaxed" data-i18n="about_cta_subtitle">Discover our mission to rebuild Syria with radical transparency</p>
-            </div>
-            <!-- Arrow -->
-            <div class="size-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform duration-300">
-              <i class="ph ph-arrow-right text-white" style="font-size:18px" aria-hidden="true"></i>
-            </div>
-          </div>
-        </a>
       </section>
     </main>
 
