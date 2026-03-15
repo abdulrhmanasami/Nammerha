@@ -116,10 +116,12 @@
         var nav = document.createElement('nav');
         nav.id = 'nammerha-unified-nav';
         nav.setAttribute('aria-label', 'Main navigation');
+        var isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
         nav.style.cssText =
             'position:fixed;bottom:0;left:0;right:0;z-index:9999;' +
-            'background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);' +
-            '-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(226,232,240,0.6);';
+            'background:' + (isDark ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)') + ';backdrop-filter:blur(16px);' +
+            '-webkit-backdrop-filter:blur(16px);border-top:1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(226,232,240,0.6)') + ';';
+        nav.setAttribute('data-nav-theme', isDark ? 'dark' : 'light');
 
         var wrap = document.createElement('div');
         wrap.style.cssText =
@@ -136,7 +138,7 @@
             a.style.cssText =
                 'display:flex;flex-direction:column;align-items:center;gap:2px;' +
                 'text-decoration:none;padding:4px 8px;min-width:54px;' +
-                'color:' + (active ? '#1A73E8' : '#94a3b8') + ';' +
+                'color:' + (active ? '#1A73E8' : (isDark ? '#94a3b8' : '#94a3b8')) + ';' +
                 'transition:color 0.2s;';
 
             // MOB-001 FIX: Use regular "ph" for ALL icons.
@@ -160,6 +162,46 @@
         }
 
         nav.appendChild(wrap);
+
+        // ─── Theme Toggle Button (sun/moon) ─────────────────────────────
+        var themeBtn = document.createElement('button');
+        themeBtn.id = 'nm-global-theme-toggle';
+        themeBtn.title = isDark ? 'وضع النهار' : 'وضع الليل';
+        themeBtn.style.cssText =
+            'position:absolute;top:-18px;right:16px;width:36px;height:36px;' +
+            'border-radius:50%;border:1px solid ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)') + ';' +
+            'background:' + (isDark ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)') + ';' +
+            'color:' + (isDark ? '#fbbf24' : '#6366f1') + ';font-size:16px;' +
+            'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+            'box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:all 0.3s;' +
+            '-webkit-appearance:none;appearance:none;outline:none;padding:0;';
+        var themeBtnIcon = document.createElement('i');
+        themeBtnIcon.className = isDark ? 'ph ph-sun' : 'ph ph-moon';
+        themeBtn.appendChild(themeBtnIcon);
+        nav.appendChild(themeBtn);
+
+        themeBtn.addEventListener('click', function() {
+            document.documentElement.classList.add('nm-theme-transition');
+            var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('nm-theme', next); } catch(e) {}
+            themeBtnIcon.className = next === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+            themeBtn.title = next === 'dark' ? 'وضع النهار' : 'وضع الليل';
+            // Rebuild nav styling for new theme
+            var nd = next === 'dark';
+            nav.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)';
+            nav.style.borderTopColor = nd ? 'rgba(255,255,255,0.08)' : 'rgba(226,232,240,0.6)';
+            themeBtn.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)';
+            themeBtn.style.borderColor = nd ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
+            themeBtn.style.color = nd ? '#fbbf24' : '#6366f1';
+            // Also sync about page's toggle if present
+            var aboutIcon = document.getElementById('themeIcon');
+            if (aboutIcon) aboutIcon.className = nd ? 'ph ph-sun' : 'ph ph-moon';
+            setTimeout(function() {
+                document.documentElement.classList.remove('nm-theme-transition');
+            }, 500);
+        });
 
         // Safe area for modern phones
         var safe = document.createElement('div');
@@ -329,6 +371,7 @@
     // ─── Init ────────────────────────────────────────────────────────────
     function init() {
         removeOldNavs();
+        injectGlobalThemeCSS();
         document.body.appendChild(buildNavBar());
 
         var main = document.querySelector('main');
