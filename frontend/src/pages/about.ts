@@ -18,20 +18,18 @@ import '../styles/main.css';
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
-        // Make all sections visible immediately
+        // Make all sections visible immediately — P3-AUD-006 FIX: class-based
         document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
-            el.style.opacity = '1';
-            el.style.transform = 'none';
+            el.classList.add('reveal-visible');
         });
         return;
     }
 
     // ─── Initial State: hide elements for reveal ────────────────────────
+    // P3-AUD-006 FIX: CSS classes replace inline styles
     const revealTargets = document.querySelectorAll<HTMLElement>('[data-reveal]');
     revealTargets.forEach((el) => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(24px)';
-        el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+        el.classList.add('reveal-hidden');
     });
 
     // ─── Intersection Observer: Scroll-Reveal ───────────────────────────
@@ -40,8 +38,8 @@ import '../styles/main.css';
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     const target = entry.target as HTMLElement;
-                    target.style.opacity = '1';
-                    target.style.transform = 'translateY(0)';
+                    target.classList.remove('reveal-hidden');
+                    target.classList.add('reveal-visible');
                     revealObserver.unobserve(target);
                 }
             });
@@ -62,3 +60,4 @@ import '../styles/main.css';
         item.style.transitionDelay = `${index * 150}ms`;
     });
 })();
+

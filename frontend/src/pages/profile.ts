@@ -6,7 +6,7 @@ import { auth, roles as rolesApi } from '../api';
 // DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
 // instead of maintaining a duplicate copy.
 import { ROLE_META, getRoleLabel } from '../components/role-switcher';
-import { t } from '../utils/i18n';
+import { t, isRTL } from '../utils/i18n';
 
 // ============================================================================
 // Nammerha — Profile Page Engine
@@ -21,9 +21,7 @@ import { t } from '../utils/i18n';
 // FIX-004: i18n interface now from shared utils/i18n.ts
 // ============================================================================
 
-function isRTL(): boolean {
-    return document.documentElement.dir === 'rtl' || document.documentElement.lang === 'ar';
-}
+// P4-AUD-001 FIX: isRTL() now imported from utils/i18n.ts (was local duplicate)
 
 // ─── LOW-003 FIX: Profile Completion Calculator (de-duplicated) ─────────────
 function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
@@ -101,7 +99,7 @@ async function loadUserRoles(): Promise<void> {
     const user = getCurrentUser();
     if (!user) {
         rolesListEl.innerHTML = `
-            <div class="bg-white rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
+            <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
                 <i class="ph ph-sign-in" style="font-size:24px" aria-hidden="true"></i>
                 <p class="mt-2">${t('profile_sign_in_roles', 'Sign in to manage your roles')}</p>
             </div>`;
@@ -123,7 +121,7 @@ async function loadUserRoles(): Promise<void> {
 
     if (roles.length === 0) {
         rolesListEl.innerHTML = `
-            <div class="bg-white rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
+            <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
                 <p>${t('profile_no_roles', 'No active roles yet')}</p>
             </div>`;
         return;
@@ -139,7 +137,7 @@ async function loadUserRoles(): Promise<void> {
         const verLabel = escapeHtml(meta.verificationLabel);
 
         return `
-            <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2' : 'border'} border-slate-100 transition-all" ${isActive ? `style="border-color: ${color}30"` : ''}>
+            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2' : 'border'} border-slate-100 transition-all" ${isActive ? `style="border-color: ${color}30"` : ''}>
                 <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background: ${color}15">
                     <i class="ph ${escapeHtml(meta.icon)}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
                 </div>

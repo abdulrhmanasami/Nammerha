@@ -102,7 +102,7 @@
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────
     var TABS = [
         { id: 'home', label: 'Home', i18n: 'nav_home', icon: 'ph-house', href: '/index.html' },
-        { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/project-details.html' },
+        { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/index.html' },
         { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-bar', href: '/donor-basket.html' },
         { id: 'wallet', label: 'Wallet', i18n: 'nav_wallet', icon: 'ph-wallet', href: '/wallet.html' },
         { id: 'profile', label: 'Profile', i18n: 'nav_profile', icon: 'ph-user', href: '/profile.html' },
@@ -183,7 +183,10 @@
         // ─── Theme Toggle Button (sun/moon) ─────────────────────────────
         var themeBtn = document.createElement('button');
         themeBtn.id = 'nm-global-theme-toggle';
-        themeBtn.title = isDark ? 'وضع النهار' : 'وضع الليل';
+        // P2-AUD-003 FIX: i18n-aware theme toggle title (was hardcoded Arabic)
+        themeBtn.title = isDark
+            ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
+            : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
         themeBtn.style.cssText =
             'position:absolute;top:-18px;right:16px;width:36px;height:36px;' +
             'border-radius:50%;border:1px solid ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)') + ';' +
@@ -204,7 +207,10 @@
             document.documentElement.setAttribute('data-theme', next);
             try { localStorage.setItem('nm-theme', next); } catch(e) {}
             themeBtnIcon.className = next === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-            themeBtn.title = next === 'dark' ? 'وضع النهار' : 'وضع الليل';
+            // P2-AUD-003 FIX: i18n-aware theme toggle title
+            themeBtn.title = next === 'dark'
+                ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
+                : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
             // Rebuild nav styling for new theme
             var nd = next === 'dark';
             nav.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)';
@@ -221,6 +227,29 @@
                 document.documentElement.classList.remove('nm-theme-transition');
             }, 500);
         });
+
+        // P3-AUD-003 FIX: Auto-sync theme when OS preference changes.
+        // Respects manual override: if user explicitly toggled theme (stored in
+        // localStorage), OS changes are ignored. Otherwise, follows system preference.
+        try {
+            var mql = window.matchMedia('(prefers-color-scheme: dark)');
+            if (mql && mql.addEventListener) {
+                mql.addEventListener('change', function(e) {
+                    // Only auto-sync if user hasn't manually set a preference
+                    try { if (localStorage.getItem('nm-theme')) return; } catch(ex) {}
+                    var next = e.matches ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', next);
+                    var nd = next === 'dark';
+                    themeBtnIcon.className = nd ? 'ph ph-sun' : 'ph ph-moon';
+                    nav.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)';
+                    nav.style.borderTopColor = nd ? 'rgba(255,255,255,0.08)' : 'rgba(226,232,240,0.6)';
+                    themeBtn.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)';
+                    themeBtn.style.borderColor = nd ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
+                    themeBtn.style.color = nd ? '#fbbf24' : '#6366f1';
+                    nav.setAttribute('data-nav-theme', next);
+                });
+            }
+        } catch(e) { /* matchMedia not supported — graceful degradation */ }
 
         // Safe area for modern phones
         var safe = document.createElement('div');

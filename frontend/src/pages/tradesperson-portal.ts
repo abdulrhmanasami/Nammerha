@@ -6,6 +6,7 @@ import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
 import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
+import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -49,15 +50,17 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
-    for (const t of ALL_TABS) {
-        const el = document.getElementById(`tab-${t}`);
+    // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
+    // shadowing the imported i18n `t()` function (line 9).
+    for (const tabId of ALL_TABS) {
+        const el = document.getElementById(`tab-${tabId}`);
         if (!el) {continue;}
-        el.className = t === tab
+        el.className = tabId === tab
             ? 'flex items-center gap-3 px-3 py-2 bg-teal-600/10 text-teal-700 rounded-lg cursor-pointer'
             : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
 
-        const section = document.getElementById(`section-${t}`);
-        if (section) {section.style.display = t === tab ? '' : 'none';}
+        const section = document.getElementById(`section-${tabId}`);
+        if (section) {section.style.display = tabId === tab ? '' : 'none';}
     }
 
     if (tab === 'requests') {loadRequests();}
@@ -288,8 +291,8 @@ async function loadAssignments(): Promise<void> {
                 <td class="px-5 py-3">
                     ${a.status === 'pending' ? `
                         <div class="flex gap-1.5">
-                            <button class="respond-btn px-2.5 py-1 bg-green-600 text-white text-[10px] font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="Accept">Accept</button>
-                            <button class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-[10px] font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="Decline">Decline</button>
+                            <button class="respond-btn px-2.5 py-1 bg-green-600 text-white text-[10px] font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
+                            <button class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-[10px] font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
                         </div>
                     ` : '—'}
                 </td>
@@ -340,7 +343,7 @@ async function loadEarnings(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(e.title)}</td>
                 <td class="px-5 py-3 text-xs"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${e.source_type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-teal-100 text-teal-600'}" data-i18n="${e.source_type === 'assignment' ? 'tp_contractor_type' : 'tp_direct_type'}">${e.source_type === 'assignment' ? 'Contractor' : 'Direct'}</span></td>
                 <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(e.amount)}</td>
-                <td class="px-5 py-3 text-xs text-slate-400">${e.completed_at ? new Date(e.completed_at).toLocaleDateString() : '—'}</td>
+                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(e.completed_at)}</td>
             </tr>
         `).join('');
     } catch (err) {
@@ -371,15 +374,15 @@ async function loadProfile(): Promise<void> {
 
         container.innerHTML = `
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Primary Trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Experience">Experience</p><p class="font-medium mt-0.5">${p.years_experience ?? '—'} years</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Hourly Rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}/hr` : '—'}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Daily Rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}/day` : '—'}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Dynamic Score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Jobs Completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} ★` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="Availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${p.years_experience ?? '—'} ${t('tp_years', 'years')}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${t('tp_per_hour', '/hr')}` : '—'}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${t('tp_per_day', '/day')}` : '—'}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} ★` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
             </div>
         `;
     } catch (err) {
@@ -410,8 +413,11 @@ function tradeLabel(trade: string): string {
 
 // NMR-AUD-305: timeAgo() removed — replaced by relativeTimeAgo() from '../utils/format'
 
-// ─── Expose for global ─────────────────────────────────────────────────────
-(window as unknown as Record<string, unknown>)['tradespersonPortal'] = {
-    switchTab,
-    loadStats,
-};
+// ─── Dev-Only Expose (stripped in production builds) ────────────────────────
+// P2-FIX-1: Added DEV guard — matches contractor-portal.ts pattern.
+if (import.meta.env.DEV) {
+    (window as unknown as Record<string, unknown>)['tradespersonPortal'] = {
+        switchTab,
+        loadStats,
+    };
+}

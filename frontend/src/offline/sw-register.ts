@@ -5,6 +5,8 @@
 // Must be imported from main.ts AFTER DOMContentLoaded.
 // ============================================================================
 
+import { reportWarning } from '../error-reporter';
+
 /**
  * Registers the Service Worker and sets up update detection.
  * Call once from the main entry point.
@@ -45,7 +47,8 @@ export async function registerServiceWorker(): Promise<void> {
         // MED-002 FIX: Demoted from console.log to dev-only debug.
         if (import.meta.env.DEV) { console.debug('[SW] Registered, scope:', registration.scope); }
     } catch (error) {
-        console.error('[SW] Registration failed:', error);
+        // P2-FIX-2: Replaced console.error with centralized error reporter.
+        reportWarning('[SW] Registration failed', { error: error instanceof Error ? error.message : String(error) });
     }
 }
 

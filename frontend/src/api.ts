@@ -362,7 +362,14 @@ export const payments = {
         gateway: 'visa' | 'fatora';
         currency?: string;
         return_url?: string;
-    }) => request('/payments/initiate', { method: 'POST', body: JSON.stringify(data) }),
+    // P2-AUD-001 FIX: Idempotency-Key prevents duplicate payment creation on
+    // mobile double-tap or network retry (header was in CORS allowedHeaders but
+    // never sent by the frontend).
+    }) => request('/payments/initiate', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+    }),
 
     getStatus: (reference: string) =>
         request(`/payments/status/${reference}`),

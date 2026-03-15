@@ -903,3 +903,29 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
     padding: 12px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P3-AUD-006 FIX: Scroll-reveal animation classes for about.ts
+   Replaces inline style manipulation with proper CSS class toggles.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P3-AUD-007 FIX: Theme-safe surface background for profile.ts
+   Replaces hardcoded `bg-white` in innerHTML with a class that responds
+   to the dark mode theme context automatically.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bg-surface {
+    background-color: #ffffff;
+}
+html[data-theme="dark"] .bg-surface {
+    background-color: rgba(30, 30, 46, 0.95);
+}

@@ -347,7 +347,7 @@ async function initiateFatoraPayment(
                 client: {
                     name: donorName ?? 'Nammerha Donor',
                     email: (() => {
-                        if (donorEmail) return donorEmail;
+                        if (donorEmail) { return donorEmail; }
                         logger.warn('P2-NEW-003: Fatora payment initiated without donor email — receipts will not be delivered', {
                             reference,
                         });
@@ -425,9 +425,11 @@ export const paymentService = {
                 amount, currency, gateway, status,
                 metadata, created_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, NOW())
-            RETURNING transaction_id, donor_id, item_id, project_id,
-                      amount, currency, gateway, gateway_ref, status,
-                      return_url, created_at, updated_at`,
+            -- P3-AUD-001 FIX: Column names now match PaymentRecord interface
+            -- (was: transaction_id/gateway_ref → now: payment_id/reference/gateway_tx_id)
+            RETURNING payment_id, reference, donor_id, item_id, project_id,
+                      amount, currency, gateway, status,
+                      gateway_tx_id, created_at`,
             [
                 reference,
                 data.donor_id,

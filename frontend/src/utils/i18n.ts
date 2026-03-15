@@ -34,3 +34,12 @@ export function t(key: string, fallback: string): string {
     }
     return fallback;
 }
+
+/**
+ * P4-AUD-001 FIX: Shared RTL check — previously duplicated in profile.ts
+ * and role-switcher.ts. Checks both `dir` attribute and `lang` attribute
+ * to cover all i18n engine configurations.
+ */
+export function isRTL(): boolean {
+    return document.documentElement.dir === 'rtl' || document.documentElement.lang === 'ar';
+}

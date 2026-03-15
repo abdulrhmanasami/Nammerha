@@ -1,5 +1,4 @@
 // ============================================================================
-import { getAuthUser } from '../utils/auth-guard';
 // Nammerha Backend — Auth Routes
 // POST /api/auth/register  — Create a new user account
 // POST /api/auth/login     — Authenticate and receive JWT token
@@ -8,6 +7,7 @@ import { getAuthUser } from '../utils/auth-guard';
 // SEC-003: Password max length (128 chars) to prevent bcrypt DoS
 // SEC-009: Generic registration errors to prevent email enumeration
 // ============================================================================
+import { getAuthUser } from '../utils/auth-guard';
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

@@ -64,7 +64,7 @@ function renderTransaction(tx: Transaction): string {
     const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: t('wallet_status_pending', 'Pending') };
 
     return `
-    <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up">
+    <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 dark:border-slate-700 animate-fade-in-up">
       <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
         <i class="ph ph-${config.icon} ${config.color}" aria-hidden="true"></i>
       </div>

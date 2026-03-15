@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { auth } from '../api';
 import { t } from '../utils/i18n';
+import { showStructuredBanner, hideStructuredBanner, type StructuredBannerElements } from '../utils/banner';
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
@@ -60,22 +61,17 @@ tabLogin?.addEventListener('click', () => switchTab('login'));
 tabRegister?.addEventListener('click', () => switchTab('register'));
 
 // ─── Banner / Feedback ──────────────────────────────────────────────────────
-function showBanner(type: 'error' | 'success', message: string): void {
-    if (!banner || !bannerInner || !bannerIcon || !bannerText) { return; }
-    banner.style.display = 'block';
-    bannerText.textContent = message;
+// P2-AUD-002 FIX: Shared banner utility replaces local duplicate
+const bannerElements: StructuredBannerElements = {
+    banner, inner: bannerInner, icon: bannerIcon, text: bannerText,
+};
 
-    if (type === 'error') {
-        bannerInner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200';
-        bannerIcon.className = 'ph ph-warning-circle';
-    } else {
-        bannerInner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
-        bannerIcon.className = 'ph ph-check-circle';
-    }
+function showBanner(type: 'error' | 'success', message: string): void {
+    showStructuredBanner(bannerElements, type, message);
 }
 
 function hideBanner(): void {
-    if (banner) { banner.style.display = 'none'; }
+    hideStructuredBanner(banner);
 }
 
 // ─── Password Toggle ────────────────────────────────────────────────────────

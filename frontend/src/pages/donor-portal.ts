@@ -7,6 +7,7 @@ import { statusColor, escrowColor } from '../utils/status-colors';
 import { donor } from '../api';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
+import { formatDate } from '../utils/locale';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
@@ -47,15 +48,17 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
-    for (const t of ALL_TABS) {
-        const el = document.getElementById(`tab-${t}`);
+    // P2-AUD-002 FIX: Renamed loop variable from `t` to `tabId` to prevent
+    // shadowing the imported i18n `t()` function (line 8).
+    for (const tabId of ALL_TABS) {
+        const el = document.getElementById(`tab-${tabId}`);
         if (!el) { continue; }
-        el.className = t === tab
+        el.className = tabId === tab
             ? 'flex items-center gap-3 px-3 py-2 bg-emerald-600/10 text-emerald-700 rounded-lg cursor-pointer'
             : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
 
-        const section = document.getElementById(`section-${t}`);
-        if (section) { section.style.display = t === tab ? '' : 'none'; }
+        const section = document.getElementById(`section-${tabId}`);
+        if (section) { section.style.display = tabId === tab ? '' : 'none'; }
     }
 
     if (tab === 'marketplace') { loadMarketplace(); }
@@ -200,7 +203,7 @@ async function loadDonations(): Promise<void> {
                 <td class="px-5 py-3 text-xs">${esc(d.project_title)}</td>
                 <td class="px-5 py-3 font-mono font-bold text-emerald-600">${formatCents(d.amount_locked)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${new Date(d.locked_at).toLocaleDateString()}</td>
+                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(d.locked_at)}</td>
             </tr>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -282,9 +285,9 @@ async function loadProofs(): Promise<void> {
                 </div>
                 <div class="p-3">
                     <p class="font-medium text-sm">${esc(proof.project_title)}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">${esc(proof.material_name ?? 'N/A')}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">${esc(proof.material_name ?? t('not_available', 'N/A'))}</p>
                     ${proof.verified_by ? `<p class="text-[10px] text-emerald-600 mt-1"><i class="ph ph-shield-check" aria-hidden="true"></i> ${esc(proof.verified_by)}</p>` : ''}
-                    ${proof.verified_at ? `<p class="text-[10px] text-slate-400">${new Date(proof.verified_at).toLocaleDateString()}</p>` : ''}
+                    ${proof.verified_at ? `<p class="text-[10px] text-slate-400">${formatDate(proof.verified_at)}</p>` : ''}
                 </div>
             </div>
         `).join('');

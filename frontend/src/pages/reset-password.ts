@@ -2,6 +2,7 @@ import '../styles/main.css';
 import { auth } from '../api';
 import { updatePasswordStrength } from '../utils/password-strength';
 import { t } from '../utils/i18n';
+import { showStructuredBanner, type StructuredBannerElements } from '../utils/banner';
 
 // ============================================================================
 // Nammerha — Reset Password Page
@@ -72,18 +73,13 @@ if (toggle && newPasswordInput) {
 }
 
 // ─── Banner ─────────────────────────────────────────────────────────────────
-function showBanner(type: 'error' | 'success', message: string): void {
-    if (!banner || !bannerInner || !bannerIcon || !bannerText) { return; }
-    banner.style.display = 'block';
-    bannerText.textContent = message;
+// P2-AUD-002 FIX: Shared banner utility replaces local duplicate
+const bannerElements: StructuredBannerElements = {
+    banner, inner: bannerInner, icon: bannerIcon, text: bannerText,
+};
 
-    if (type === 'error') {
-        bannerInner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200';
-        bannerIcon.className = 'ph ph-warning-circle';
-    } else {
-        bannerInner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
-        bannerIcon.className = 'ph ph-check-circle';
-    }
+function showBanner(type: 'error' | 'success', message: string): void {
+    showStructuredBanner(bannerElements, type, message);
 }
 
 // ─── Form Submission ────────────────────────────────────────────────────────

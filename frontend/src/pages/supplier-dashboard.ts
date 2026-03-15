@@ -4,6 +4,7 @@ import { escapeHtml as esc } from '../utils/xss';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { supplier } from '../api';
 import { t } from '../utils/i18n';
+import { showSimpleBanner } from '../utils/banner';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine
@@ -343,14 +344,9 @@ function renderActions(item: SupplierOrder): string {
     }
 }
 
+// P2-AUD-002 FIX: Shared banner utility replaces local duplicate
 function showBanner(type: 'error' | 'success', message: string): void {
-    const banner = document.getElementById('dashboard-banner');
-    if (!banner) { return; }
-    banner.className = `px-4 py-3 rounded-lg text-sm font-medium mb-4 ${type === 'error' ? 'bg-red-50 text-red-700' : 'bg-smoky-jade/10 text-smoky-jade'
-        }`;
-    banner.textContent = message;
-    banner.style.display = '';
-    setTimeout(() => { banner.style.display = 'none'; }, 5000);
+    showSimpleBanner('dashboard-banner', type, message);
 }
 
 function applyI18n(): void {

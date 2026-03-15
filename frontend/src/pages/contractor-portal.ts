@@ -6,6 +6,8 @@ import { auth as authApi } from '../api';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { t } from '../utils/i18n';
+import { formatCents } from '../utils/format';
+import { formatDate } from '../utils/locale';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -77,11 +79,13 @@ function setupTabs(): void {
 
 function switchTab(tab: TabName): void {
     // Update sidebar
-    for (const t of ALL_TABS) {
-        const el = document.getElementById(`tab-${t}`);
+    // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
+    // shadowing the imported i18n `t()` function (line 8).
+    for (const tabId of ALL_TABS) {
+        const el = document.getElementById(`tab-${tabId}`);
         if (!el) { continue; }
 
-        if (t === tab) {
+        if (tabId === tab) {
             el.className = 'flex items-center gap-3 px-3 py-2 bg-amber-600/10 text-amber-700 rounded-lg cursor-pointer';
         } else {
             el.className = 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
@@ -89,10 +93,10 @@ function switchTab(tab: TabName): void {
     }
 
     // Show/hide sections
-    for (const t of ALL_TABS) {
-        const section = document.getElementById(`section-${t}`);
+    for (const tabId of ALL_TABS) {
+        const section = document.getElementById(`section-${tabId}`);
         if (section) {
-            section.style.display = t === tab ? '' : 'none';
+            section.style.display = tabId === tab ? '' : 'none';
         }
     }
 
@@ -112,7 +116,7 @@ async function loadStats(): Promise<void> {
         setText('kpi-active', String(s.assigned_projects));
         setText('kpi-pending', String(s.active_bids));
         setText('kpi-won', String(s.completed_projects));
-        setText('kpi-escrow', `$${(s.total_earnings / 100).toLocaleString()}`);
+        setText('kpi-escrow', formatCents(s.total_earnings));
         setText('pending-bids-count', String(s.active_bids));
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults
@@ -181,7 +185,7 @@ async function loadMarketplace(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.damage_type)}</td>
-                <td class="px-5 py-3 font-mono text-sm">$${(p.total_estimated_cost / 100).toLocaleString()}</td>
+                <td class="px-5 py-3 font-mono text-sm">${formatCents(p.total_estimated_cost)}</td>
                 <td class="px-5 py-3 text-center">${p.boq_count}</td>
                 <td class="px-5 py-3 text-center">${p.bid_count}</td>
                 <td class="px-5 py-3">
@@ -225,10 +229,10 @@ async function loadBids(): Promise<void> {
         tbody.innerHTML = bids.map((b) => `
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(b.project_title)}</td>
-                <td class="px-5 py-3 font-mono text-sm">$${(b.proposed_cost / 100).toLocaleString()}</td>
+                <td class="px-5 py-3 font-mono text-sm">${formatCents(b.proposed_cost)}</td>
                 <td class="px-5 py-3">${b.estimated_days}d</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${new Date(b.created_at).toLocaleDateString()}</td>
+                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(b.created_at)}</td>
             </tr>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -256,9 +260,9 @@ async function loadPayments(): Promise<void> {
         tbody.innerHTML = payments.map((p) => `
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.project_title)}</td>
-                <td class="px-5 py-3 font-mono text-sm text-smoky-jade">$${(p.amount / 100).toLocaleString()}</td>
+                <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(p.amount)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${p.transaction_type === 'release' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${esc(p.transaction_type)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${new Date(p.created_at).toLocaleDateString()}</td>
+                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(p.created_at)}</td>
             </tr>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });

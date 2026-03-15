@@ -78,6 +78,9 @@
         'nav_wallet': { ar: 'المحفظة', de: 'Geldbörse', fr: 'Portefeuille', tr: 'Cüzdan' },
         'nav_profile': { ar: 'الحساب', de: 'Profil', fr: 'Profil', tr: 'Profil' },
         'nav_explore': { ar: 'استكشاف', de: 'Entdecken', fr: 'Explorer', tr: 'Keşfet' },
+        // P2-AUD-003 FIX: nav.js theme toggle titles (was hardcoded Arabic)
+        'nav_theme_light': { ar: 'وضع النهار', de: 'Heller Modus', fr: 'Mode clair', tr: 'Açık Mod' },
+        'nav_theme_dark': { ar: 'وضع الليل', de: 'Dunkler Modus', fr: 'Mode sombre', tr: 'Karanlık Mod' },
 
         // ═══ INDEX / DASHBOARD PAGE ═══
         'active_region': { ar: 'المنطقة النشطة', de: 'Aktive Region', fr: 'Région active', tr: 'Aktif Bölge' },
@@ -1134,6 +1137,21 @@
         // ═══ AUDIT REMEDIATION — TRADESPERSON PORTAL ═══
         'tp_accepting': { ar: 'جاري القبول...', de: 'Wird angenommen...', fr: 'Acceptation...', tr: 'Kabul ediliyor...' },
         'tp_accepted': { ar: '✓ تم القبول', de: '✓ Angenommen', fr: '✓ Accepté', tr: '✓ Kabul Edildi' },
+        // P2-AUD-004 FIX: Namespaced tradesperson portal profile labels
+        'tp_name': { ar: 'الاسم', de: 'Name', fr: 'Nom', tr: 'İsim' },
+        'tp_primary_trade': { ar: 'المهنة الرئيسية', de: 'Hauptgewerk', fr: 'Métier principal', tr: 'Ana Meslek' },
+        'tp_experience': { ar: 'الخبرة', de: 'Erfahrung', fr: 'Expérience', tr: 'Deneyim' },
+        'tp_hourly_rate': { ar: 'سعر الساعة', de: 'Stundensatz', fr: 'Taux horaire', tr: 'Saatlik Ücret' },
+        'tp_daily_rate': { ar: 'سعر اليوم', de: 'Tagessatz', fr: 'Taux journalier', tr: 'Günlük Ücret' },
+        'tp_dynamic_score': { ar: 'النتيجة الديناميكية', de: 'Dynamische Bewertung', fr: 'Score dynamique', tr: 'Dinamik Puan' },
+        'tp_jobs_completed': { ar: 'الأعمال المنجزة', de: 'Abgeschlossene Aufträge', fr: 'Travaux terminés', tr: 'Tamamlanan İşler' },
+        'tp_rating': { ar: 'التقييم', de: 'Bewertung', fr: 'Évaluation', tr: 'Değerlendirme' },
+        'tp_availability': { ar: 'التوفر', de: 'Verfügbarkeit', fr: 'Disponibilité', tr: 'Uygunluk' },
+        'tp_accept': { ar: 'قبول', de: 'Annehmen', fr: 'Accepter', tr: 'Kabul Et' },
+        'tp_decline': { ar: 'رفض', de: 'Ablehnen', fr: 'Refuser', tr: 'Reddet' },
+        'tp_years': { ar: 'سنة', de: 'Jahre', fr: 'ans', tr: 'yıl' },
+        'tp_per_hour': { ar: '/ساعة', de: '/Std.', fr: '/h', tr: '/saat' },
+        'tp_per_day': { ar: '/يوم', de: '/Tag', fr: '/jour', tr: '/gün' },
 
         // ═══ AUDIT REMEDIATION — CONTRACTOR PORTAL ═══
         'ct_no_assigned_projects': { ar: 'لا توجد مشاريع مسندة بعد', de: 'Noch keine zugewiesenen Projekte', fr: 'Aucun projet assigné', tr: 'Henüz atanmış proje yok' },
