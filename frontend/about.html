@@ -240,6 +240,7 @@
     }
     .nav-logo { display: flex; align-items: center; gap: 10px; }
     .nav-logo img { height: 32px; width: auto; }
+    /* Theme toggle button reset */
     .nav-back {
       width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
@@ -250,6 +251,12 @@
       font-size: 18px;
       cursor: pointer;
       transition: all 0.3s;
+      /* Explicit button reset */
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
     }
     .nav-back:hover {
       background: rgba(255,255,255,0.12);
@@ -891,6 +898,9 @@
       .timeline-dot { right: 2px; width: 24px; height: 24px; font-size: 10px; }
       .leaders-grid { grid-template-columns: 1fr; }
     }
+
+    /* Force-hide floating i18n widget injected by i18n.js */
+    #nm-lang-widget { display: none !important; }
   </style>
 </head>
 <body>
@@ -910,9 +920,6 @@
         <span id="langLabel">العربية</span>
         <i class="ph ph-caret-down" style="font-size:11px"></i>
       </div>
-      <a href="index.html" class="nav-back" title="الرئيسية">
-        <i class="ph ph-house"></i>
-      </a>
     </div>
   </nav>
 
@@ -1346,14 +1353,27 @@
   <script src="/i18n.js?v=7" defer></script>
   <script src="/nav.js?v=6" defer></script>
   <script>
-    // Remove floating i18n widget (this page has its own)
-    document.addEventListener('DOMContentLoaded', function() {
-      var poll = setInterval(function() {
+    // Aggressively remove floating i18n widget
+    (function() {
+      function kill() {
         var w = document.getElementById('nm-lang-widget');
-        if (w) { w.remove(); clearInterval(poll); }
-      }, 50);
-      setTimeout(function() { clearInterval(poll); }, 3000);
-    });
+        if (w) w.remove();
+      }
+      kill();
+      // MutationObserver for when i18n.js injects it after load
+      var obs = new MutationObserver(function(mutations) {
+        kill();
+      });
+      if (document.body) {
+        obs.observe(document.body, { childList: true, subtree: true });
+      } else {
+        document.addEventListener('DOMContentLoaded', function() {
+          obs.observe(document.body, { childList: true, subtree: true });
+        });
+      }
+      // Stop observing after 5s (widget injection is done by then)
+      setTimeout(function() { obs.disconnect(); }, 5000);
+    })();
   </script>
 
 </body>
