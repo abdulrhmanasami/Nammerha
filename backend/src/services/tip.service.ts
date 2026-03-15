@@ -54,7 +54,9 @@ export async function recordTip(
             (donor_id, donation_reference, tip_amount_cents, tip_percentage,
              currency, payment_gateway, payment_gateway_ref, status)
          VALUES ($1, $2, $3, $4, 'USD', $5, $6, 'completed')
-         RETURNING *`,
+         RETURNING tip_id, donor_id, donation_reference, tip_amount_cents,
+                   tip_percentage, currency, payment_gateway, payment_gateway_ref,
+                   status, created_at`,
         [
             donorId,
             donationReference,

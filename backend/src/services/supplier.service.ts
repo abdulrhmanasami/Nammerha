@@ -27,7 +27,9 @@ export async function addCatalogItem(
             (supplier_id, material_name, material_category, description,
              image_url, unit, unit_price_guide, min_order_qty, lead_time_days)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         RETURNING *`,
+         RETURNING catalog_id, supplier_id, material_name, material_category,
+                   description, image_url, unit, unit_price_guide,
+                   min_order_qty, lead_time_days, is_active, created_at, updated_at`,
         [
             supplierId,
             dto.material_name.trim(),
@@ -92,7 +94,9 @@ export async function updateCatalogItem(
         `UPDATE supplier_catalog
          SET ${updates.join(', ')}
          WHERE catalog_id = $${paramIdx} AND supplier_id = $${paramIdx + 1}
-         RETURNING *`,
+         RETURNING catalog_id, supplier_id, material_name, material_category,
+                   description, image_url, unit, unit_price_guide,
+                   min_order_qty, lead_time_days, is_active, created_at, updated_at`,
         params,
     );
 
@@ -234,7 +238,9 @@ export async function acknowledgeOrder(
             `UPDATE purchase_orders
              SET status = 'acknowledged', acknowledged_at = NOW()
              WHERE po_id = $1
-             RETURNING *`,
+             RETURNING po_id, project_id, item_id, supplier_id, quantity,
+                       unit_price, total_price, status, generated_at,
+                       acknowledged_at, shipped_at, delivered_at, created_at, updated_at`,
             [poId],
         );
 
@@ -304,7 +310,9 @@ export async function updateOrderStatus(
             `UPDATE purchase_orders
              SET status = $1, ${timestampField} = NOW()
              WHERE po_id = $2
-             RETURNING *`,
+             RETURNING po_id, project_id, item_id, supplier_id, quantity,
+                       unit_price, total_price, status, generated_at,
+                       acknowledged_at, shipped_at, delivered_at, created_at, updated_at`,
             [newStatus, poId],
         );
 

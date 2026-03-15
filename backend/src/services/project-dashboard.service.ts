@@ -230,7 +230,9 @@ export async function createDailyLog(
                 (project_id, engineer_id, description, work_completed,
                  issues_encountered, weather_conditions, workers_on_site, images)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *`,
+            RETURNING log_id, project_id, engineer_id, description,
+                      work_completed, issues_encountered, weather_conditions,
+                      workers_on_site, images, created_at`,
             [
                 projectId,
                 engineerId,
@@ -259,7 +261,9 @@ export async function requestApproval(
             (project_id, item_id, requester_id, title,
              description, material_sample_url, material_options)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *`,
+        RETURNING approval_id, project_id, item_id, requester_id,
+                  title, description, material_sample_url, material_options,
+                  status, approver_id, decision_note, decided_at, created_at`,
         [
             projectId,
             dto.item_id || null,
@@ -284,7 +288,9 @@ export async function respondToApproval(
         `UPDATE digital_approvals
          SET status = $1, approver_id = $2, decision_note = $3, decided_at = NOW()
          WHERE approval_id = $4 AND status = 'pending'
-         RETURNING *`,
+         RETURNING approval_id, project_id, item_id, requester_id,
+                   title, description, material_sample_url, material_options,
+                   status, approver_id, decision_note, decided_at, created_at`,
         [decision, approverId, note || null, approvalId]
     );
 

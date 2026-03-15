@@ -151,7 +151,9 @@ export async function createZone(
         ) VALUES (
             $1, ST_GeogFromText($2), $3, $4, $5,
             COALESCE($6::TIMESTAMPTZ, NOW()), $7::TIMESTAMPTZ, $8, $9, $10
-        ) RETURNING *`,
+        ) RETURNING zone_id, zone_name, zone_polygon, restriction_type, severity,
+                   authority, effective_from, effective_until, is_active,
+                   metadata, description, created_by, created_at, updated_at`,
         [
             dto.zone_name,
             dto.zone_polygon_wkt,

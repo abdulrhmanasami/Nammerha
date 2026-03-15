@@ -116,7 +116,8 @@ export async function recordEscrowFeeInTransaction(
             (project_id, item_id, escrow_amount_cents, fee_rate_bps,
              fee_amount_cents, fee_config_name, status)
          VALUES ($1, $2, $3, $4, $5, $6, 'charged')
-         RETURNING *`,
+         RETURNING fee_id, project_id, item_id, escrow_amount_cents, fee_rate_bps,
+                   fee_amount_cents, fee_config_name, status, charged_at`,
         [projectId, itemId, escrowAmountCents, feeRateBps, feeAmountCents, feeConfigName],
     );
 

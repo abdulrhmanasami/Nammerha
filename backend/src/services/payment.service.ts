@@ -425,7 +425,9 @@ export const paymentService = {
                 amount, currency, gateway, status,
                 metadata, created_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, NOW())
-            RETURNING *`,
+            RETURNING transaction_id, donor_id, item_id, project_id,
+                      amount, currency, gateway, gateway_ref, status,
+                      return_url, created_at, updated_at`,
             [
                 reference,
                 data.donor_id,

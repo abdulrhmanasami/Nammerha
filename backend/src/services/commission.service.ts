@@ -134,7 +134,8 @@ export async function updateCommissionRate(
         `UPDATE commission_config
          SET commission_rate_bps = $1
          WHERE tier_id = $2
-         RETURNING *`,
+         RETURNING tier_id, tier_name, min_revenue_cents, max_revenue_cents,
+                   commission_rate_bps, is_active, created_at, updated_at`,
         [newRateBps, tierId],
     );
 
@@ -201,7 +202,9 @@ export async function recordCommissionInTransaction(
                 (po_id, supplier_id, project_id, po_amount_cents,
                  commission_rate_bps, commission_amount_cents, tier_name, status)
              VALUES ($1, $2, $3, $4, 0, 0, 'humanitarian_exempt', 'waived')
-             RETURNING *`,
+             RETURNING commission_id, po_id, supplier_id, project_id,
+                       po_amount_cents, commission_rate_bps, commission_amount_cents,
+                       tier_name, status, created_at, updated_at`,
             [poId, supplierId, projectId, poAmountCents],
         );
 
@@ -270,7 +273,9 @@ export async function recordCommissionInTransaction(
             (po_id, supplier_id, project_id, po_amount_cents,
              commission_rate_bps, commission_amount_cents, tier_name)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING *`,
+         RETURNING commission_id, po_id, supplier_id, project_id,
+                   po_amount_cents, commission_rate_bps, commission_amount_cents,
+                   tier_name, status, created_at, updated_at`,
         [
             poId,
             supplierId,

@@ -121,7 +121,9 @@ export async function generateImpactMessage(
     const result = await query<ImpactMessage>(
         `INSERT INTO impact_messages (donor_id, project_id, event_type, title_en, title_ar, body_en, body_ar, metadata)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING *`,
+         RETURNING message_id, donor_id, project_id, event_type,
+                   title_en, title_ar, body_en, body_ar, metadata,
+                   read_at, created_at`,
         [donorId, projectId, eventType, title_en, title_ar, body_en, body_ar, JSON.stringify(data)],
     );
 
@@ -142,7 +144,7 @@ export async function notifyAllProjectDonors(
     const donors = await query<{ donor_id: string; total_donated: string }>(
         `SELECT donor_id, SUM(amount_locked) AS total_donated
          FROM escrow_ledger
-         WHERE project_id = $1 AND status IN ('locked', 'released')
+         WHERE project_id = $1 AND payment_status IN ('locked', 'released')
          GROUP BY donor_id`,
         [projectId],
     );
@@ -179,7 +181,10 @@ export async function getDonorMessages(
     const unreadFilter = options.unreadOnly ? 'AND read_at IS NULL' : '';
 
     const result = await query<ImpactMessage>(
-        `SELECT * FROM impact_messages
+        `SELECT message_id, donor_id, project_id, event_type,
+                title_en, title_ar, body_en, body_ar, metadata,
+                read_at, created_at
+         FROM impact_messages
          WHERE donor_id = $1 ${unreadFilter}
          ORDER BY created_at DESC
          LIMIT $2 OFFSET $3`,

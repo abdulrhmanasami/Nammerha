@@ -186,7 +186,10 @@ export async function submitSpatialProof(
         $1, $2, $3,
         ST_SetSRID(ST_MakePoint($4, $5), 4326)::GEOGRAPHY,
         $6, NOW(), $7, $8, $9, $10, 'submitted'
-      ) RETURNING *`,
+      ) RETURNING proof_id, item_id, project_id, engineer_id,
+                 gps_coordinates, gps_accuracy_meters, captured_at,
+                 image_url, image_hash, description, device_info,
+                 verification_status, verified_by, verified_at, created_at`,
             [
                 dto.item_id,
                 dto.project_id,

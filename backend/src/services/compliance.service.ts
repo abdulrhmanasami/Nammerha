@@ -163,7 +163,9 @@ export async function screenUserAgainstSDN(userId: string): Promise<ScreeningRes
                 (screened_user_id, matched_sdn_id, match_score, matched_name,
                  screened_name, status, auto_blocked)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *`,
+            RETURNING result_id, screened_user_id, matched_sdn_id, match_score,
+                      matched_name, screened_name, status, reviewed_by, reviewed_at,
+                      review_notes, auto_blocked, screened_at`,
             [userId, matchedSdnId, matchScore, matchedName, userName, status, autoBlocked]
         );
     });
@@ -210,7 +212,9 @@ export async function reviewScreeningResult(
             `UPDATE sanctions_screening_results
              SET status = $1, reviewed_by = $2, reviewed_at = NOW(), review_notes = $3
              WHERE result_id = $4
-             RETURNING *`,
+             RETURNING result_id, screened_user_id, matched_sdn_id, match_score,
+                       matched_name, screened_name, status, reviewed_by, reviewed_at,
+                       review_notes, auto_blocked, screened_at`,
             [decision, reviewerId, notes || null, resultId]
         );
         if (rows.length === 0) {
@@ -385,7 +389,8 @@ export async function addControlledMaterial(
         `INSERT INTO controlled_materials
             (material_name, material_category, hs_code, regulation, description, risk_level, added_by)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *`,
+        RETURNING material_id, material_name, material_category, hs_code,
+                  regulation, description, risk_level, is_active, created_at`,
         [
             dto.material_name,
             dto.material_category,

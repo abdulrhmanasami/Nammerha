@@ -90,7 +90,10 @@ export async function registerImagery(
             $6, $7, $8, $9,
             $10, $11, $12,
             $13, $14, $15, $16
-        ) RETURNING *`,
+        ) RETURNING image_id, project_id, bbox, center_point, captured_at,
+                   provider, resolution_cm, sensor_name, band_count,
+                   image_url, thumbnail_url, stac_metadata,
+                   cloud_cover_pct, quality_score, uploaded_by, notes, created_at`,
         [
             dto.project_id,
             dto.bbox_wkt,

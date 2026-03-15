@@ -244,7 +244,12 @@ export async function submitCapture(
              gps_coordinates, gps_accuracy_meters, altitude_meters)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
                 $13, $14, $15, $16, ${gpsExpr}, $17, $18)
-        RETURNING *`,
+        RETURNING capture_id, project_id, engineer_id, floor_plan_id,
+                  capture_type, construction_phase, title, description,
+                  file_url, thumbnail_url, file_size_bytes, camera_model,
+                  horizontal_fov, heading, pitch, gps_coordinates,
+                  gps_accuracy_meters, altitude_meters, is_verified,
+                  verified_by, verified_at, created_at`,
         [
             projectId,                              // $1
             engineerId,                             // $2
@@ -345,7 +350,12 @@ export async function verifyCapture(
         `UPDATE reality_captures
          SET is_verified = true, verified_by = $1, verified_at = NOW()
          WHERE capture_id = $2
-         RETURNING *`,
+         RETURNING capture_id, project_id, engineer_id, floor_plan_id,
+                   capture_type, construction_phase, title, description,
+                   file_url, thumbnail_url, file_size_bytes, camera_model,
+                   horizontal_fov, heading, pitch, gps_coordinates,
+                   gps_accuracy_meters, altitude_meters, is_verified,
+                   verified_by, verified_at, created_at`,
         [verifierId, captureId]
     );
     if (rows.length === 0) {
@@ -377,7 +387,8 @@ export async function addAnnotation(
         `INSERT INTO capture_annotations
             (capture_id, author_id, pos_x, pos_y, note, severity)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *`,
+        RETURNING annotation_id, capture_id, author_id, pos_x, pos_y,
+                  note, severity, created_at`,
         [
             captureId,
             authorId,
@@ -429,7 +440,8 @@ export async function uploadFloorPlan(
         `INSERT INTO floor_plans
             (project_id, uploaded_by, title, description, file_url, file_type, version)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *`,
+        RETURNING plan_id, project_id, uploaded_by, title, description,
+                  file_url, file_type, version, created_at`,
         [
             projectId,
             engineerId,

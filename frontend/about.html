@@ -483,9 +483,8 @@
     <!-- ─── Institutional Footer ───────────────────────────────────────────── -->
     <footer class="pb-8 pt-4">
       <div class="border-t border-slate-200 pt-8">
-        <div class="flex items-center justify-center gap-3 mb-4">
-          <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto opacity-40" />
-          <span class="text-sm text-slate-400 font-semibold">Nammerha</span>
+        <div class="flex items-center justify-center mb-4">
+          <img src="/brand/nammerha_text_logo_vector.svg" alt="Nammerha" class="h-6 w-auto opacity-40" />
         </div>
         <nav class="flex justify-center flex-wrap gap-x-6 gap-y-2 mb-4">
           <a href="terms.html" class="text-xs text-slate-400 hover:text-trust-blue transition-colors" data-i18n="contact_link_tos">Terms</a>
@@ -501,5 +500,40 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/nav.js?v=6" defer></script>
+<script>
+// Wire #about-lang-switcher to the i18n engine and suppress duplicate floating widget
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. Remove the floating language widget injected by i18n.js (about.html has its own)
+  var poll = setInterval(function() {
+    var floatingWidget = document.getElementById('nm-lang-widget');
+    if (floatingWidget) {
+      floatingWidget.remove();
+      clearInterval(poll);
+    }
+  }, 50);
+  // Safety: stop polling after 3s
+  setTimeout(function() { clearInterval(poll); }, 3000);
+
+  // 2. Make the integrated #about-lang-switcher functional
+  var switcher = document.getElementById('about-lang-switcher');
+  if (switcher) {
+    switcher.addEventListener('click', function() {
+      if (!window.NammerhaI18n) return;
+      var langs = window.NammerhaI18n.getSupportedLangs();
+      var current = window.NammerhaI18n.getCurrentLang();
+      // Cycle to next language
+      var idx = 0;
+      for (var i = 0; i < langs.length; i++) {
+        if (langs[i].code === current) { idx = i; break; }
+      }
+      var next = langs[(idx + 1) % langs.length];
+      window.NammerhaI18n.switchLanguage(next.code);
+      // Update the label
+      var label = switcher.querySelector('[data-i18n="language_name"]');
+      if (label) label.textContent = next.name;
+    });
+  }
+});
+</script>
 </body>
 </html>

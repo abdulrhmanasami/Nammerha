@@ -33,7 +33,8 @@ export async function createNotification(
     const result = await clientOrPool.query<Notification>(
         `INSERT INTO notifications (user_id, type, title, body, data, channel)
      VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING *`,
+     RETURNING notification_id, user_id, type, title, body, data,
+               channel, is_read, read_at, created_at`,
         [
             input.user_id,
             input.type,

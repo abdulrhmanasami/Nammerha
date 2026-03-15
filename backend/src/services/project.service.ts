@@ -33,7 +33,11 @@ export async function createProject(
     ) VALUES (
       generate_ocds_project_id(), $1, $2, $3, $4, $5,
       ST_SetSRID(ST_MakePoint($6, $7), 4326)::GEOGRAPHY, $8, $9, 'draft'
-    ) RETURNING *`,
+    ) RETURNING project_id, homeowner_id, assigned_engineer_id, title,
+               description, cover_image_url, gps_location, address_text,
+               damage_type, damage_severity, status, is_public,
+               total_estimated_cost, total_funded_amount,
+               published_at, completed_at, created_at, updated_at`,
         [
             homeownerId,
             dto.title,
@@ -201,7 +205,10 @@ export async function addBOQItem(
         unit_price, required_quantity, image_url, oracle_reference_price,
         oracle_price_date, preferred_supplier_id, status, created_by
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending_verification', $12)
-      RETURNING *`,
+      RETURNING item_id, project_id, material_name, material_category,
+               description, image_url, unit, unit_price, required_quantity,
+               funded_amount, oracle_reference_price, oracle_price_date,
+               preferred_supplier_id, status, created_by, created_at, updated_at`,
             [
                 projectId,
                 dto.material_name,
@@ -278,7 +285,11 @@ export async function publishProject(
             `UPDATE projects
        SET status = 'published', published_at = NOW(), is_public = TRUE
        WHERE project_id = $1
-       RETURNING *`,
+       RETURNING project_id, homeowner_id, assigned_engineer_id, title,
+                description, cover_image_url, gps_location, address_text,
+                damage_type, damage_severity, status, is_public,
+                total_estimated_cost, total_funded_amount,
+                published_at, completed_at, created_at, updated_at`,
             [projectId]
         );
 

@@ -231,7 +231,9 @@ export async function translateText(dto: TranslateDTO): Promise<TranslationResul
             qe_details = EXCLUDED.qe_details,
             status = EXCLUDED.status,
             created_at = NOW()
-        RETURNING *`,
+        RETURNING translation_id, source_text_hash, source_text, source_lang,
+                  target_lang, translated_text, provider, content_type,
+                  qe_score, qe_details, status, created_at`,
         [
             textHash, text, source_lang, target_lang,
             translatedText, provider, contentType,
@@ -499,7 +501,9 @@ export async function addGlossaryTerm(
         ON CONFLICT (source_term, source_lang, target_lang, context)
         DO UPDATE SET approved_translation = EXCLUDED.approved_translation,
                       updated_at = NOW()
-        RETURNING *`,
+        RETURNING term_id, source_term, source_lang, target_lang,
+                  approved_translation, context, added_by, is_active,
+                  created_at, updated_at`,
         [
             dto.source_term,
             dto.source_lang || 'en',
@@ -591,7 +595,9 @@ export async function reviewTranslation(
         `UPDATE translation_review_queue
          SET resolution = $1, reviewer_id = $2, corrected_text = $3, resolved_at = NOW()
          WHERE review_id = $4
-         RETURNING *`,
+         RETURNING review_id, translation_id, flag_reason, qe_score,
+                   resolution, reviewer_id, corrected_text, resolved_at,
+                   created_at`,
         [resolution, reviewerId, correctedText || null, reviewId]
     );
 

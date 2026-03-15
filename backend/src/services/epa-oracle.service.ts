@@ -163,7 +163,10 @@ export async function calculateAndStoreEPA(
              adjustment_delta, adjustment_percentage, original_cost, adjusted_cost,
              status, calculated_by)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_approval', $11)
-        RETURNING *`,
+        RETURNING adjustment_id, project_id, milestone_id, fidic_formula_params,
+                  adjustment_multiplier, original_amount, adjusted_amount,
+                  adjustment_delta, adjustment_percentage, original_cost, adjusted_cost,
+                  status, calculated_by, approved_by, approved_at, created_at, updated_at`,
         [
             dto.project_id,
             dto.milestone_id || null,
@@ -197,7 +200,10 @@ export async function respondToEPA(
         `UPDATE epa_adjustments
          SET status = $1, approved_by = $2, approved_at = NOW(), updated_at = NOW()
          WHERE adjustment_id = $3 AND status = 'pending_approval'
-         RETURNING *`,
+         RETURNING adjustment_id, project_id, milestone_id, fidic_formula_params,
+                   adjustment_multiplier, original_amount, adjusted_amount,
+                   adjustment_delta, adjustment_percentage, original_cost, adjusted_cost,
+                   status, calculated_by, approved_by, approved_at, created_at, updated_at`,
         [decision, approverId, adjustmentId]
     );
 
@@ -288,7 +294,9 @@ export async function upsertOracleEntry(
             source = EXCLUDED.source,
             recorded_by = EXCLUDED.recorded_by,
             effective_date = EXCLUDED.effective_date
-        RETURNING *`,
+        RETURNING oracle_id, material_code, material_name, unit, base_price,
+                  current_price, price_change_pct, source, recorded_by,
+                  effective_date, created_at`,
         [
             dto.material_code,
             dto.material_name,

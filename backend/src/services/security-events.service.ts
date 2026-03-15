@@ -80,7 +80,9 @@ export async function logSecurityEvent(dto: LogSecurityEventDTO): Promise<Securi
              target_entity_type, target_entity_id,
              ip_address, user_agent, payload)
         VALUES ($1, $2, $3, $4, $5, $6, $7::INET, $8, $9)
-        RETURNING *`,
+        RETURNING event_id, event_type, severity, actor_id, actor_role,
+                  target_entity_type, target_entity_id, ip_address,
+                  user_agent, payload, created_at`,
         [
             dto.event_type,
             severity,

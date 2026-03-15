@@ -575,7 +575,9 @@ export async function submitBid(
                 (engineer_id, contractor_id, project_id, proposed_cost, estimated_days,
                  cover_letter, methodology, engineer_score_snapshot)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *`,
+            RETURNING bid_id, engineer_id, contractor_id, project_id,
+                      proposed_cost, estimated_days, cover_letter, methodology,
+                      engineer_score_snapshot, status, submitted_at, responded_at`,
             [
                 userRole === 'engineer' ? engineerId : null,
                 userRole === 'contractor' ? engineerId : null,
