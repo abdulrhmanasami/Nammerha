@@ -101,14 +101,20 @@
     }
 
     /* ─── Scroll Reveal Base ───────────────────────────── */
-    .reveal {
+    /* Only hide when GSAP is confirmed loaded OR fallback IO is active */
+    .io-ready .reveal {
       opacity: 0;
       transform: translateY(40px);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
     }
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    .io-ready .reveal.active,
+    .force-visible .reveal {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+    /* GSAP-managed: GSAP overrides these with inline styles */
+    .gsap-ready .reveal {
+      transition: none; /* GSAP handles everything */
     }
 
     /* ─── Floating Ambient Orbs ────────────────────────── */
@@ -1113,12 +1119,50 @@
       });
     }
 
+    // ─── Fallback: IntersectionObserver (if GSAP blocked) ─────────────────
+    var ioFallbackTimer = null;
+    function initIOFallback() {
+      document.body.classList.add('io-ready');
+      var reveals = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(e) {
+            if (e.isIntersecting) {
+              e.target.classList.add('active');
+              observer.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(function(el) { observer.observe(el); });
+      } else {
+        // No IO support: show everything
+        document.body.classList.add('force-visible');
+      }
+    }
+
+    // Start IO fallback immediately (works without GSAP)
+    initIOFallback();
+
+    // Safety net: if GSAP doesn't load in 4s, force everything visible
+    var gsapTimeout = setTimeout(function() {
+      document.body.classList.add('force-visible');
+    }, 4000);
+
     // ─── Wait for GSAP ───────────────────────────────────────────────────
+    var gsapRetries = 0;
     function initGSAP() {
       if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-        setTimeout(initGSAP, 100);
+        gsapRetries++;
+        if (gsapRetries < 30) { setTimeout(initGSAP, 100); }
         return;
       }
+      clearTimeout(gsapTimeout);
+      document.body.classList.remove('io-ready');
+      document.body.classList.add('gsap-ready');
+      // Remove IO-added .active classes so GSAP takes over
+      document.querySelectorAll('.reveal.active').forEach(function(el) {
+        el.classList.remove('active');
+      });
       gsap.registerPlugin(ScrollTrigger);
 
       // ─── Reveal animations ─────────────────────────────────────────────
