@@ -1,6 +1,8 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { clearAuth } from '../auth';
+import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
@@ -73,6 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setupServiceRequestForm();
     loadStats();
     loadDashboardProjects();
+
+    // ─── Secure Logout ──────────────────────────────────────────────────
+    document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
+        try { await authApi.logout(); } catch { /* best-effort */ }
+        clearAuth();
+        window.location.href = '/auth.html';
+    });
 });
 
 // ─── Tab Navigation ─────────────────────────────────────────────────────────

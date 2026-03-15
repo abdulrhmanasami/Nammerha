@@ -1,6 +1,8 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { clearAuth } from '../auth';
+import { auth as authApi } from '../api';
 import { statusColor, escrowColor } from '../utils/status-colors';
 import { donor } from '../api';
 import { t } from '../utils/i18n';
@@ -22,6 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     loadStats();
     loadFundedProjects();
+
+    // ─── Secure Logout ──────────────────────────────────────────────────
+    document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
+        try { await authApi.logout(); } catch { /* best-effort */ }
+        clearAuth();
+        window.location.href = '/auth.html';
+    });
 });
 
 // ─── Tab Navigation ─────────────────────────────────────────────────────────
