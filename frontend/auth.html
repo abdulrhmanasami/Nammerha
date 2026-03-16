@@ -45,12 +45,11 @@
         <button id="tab-login" class="auth-tab auth-tab-active flex-1 py-2.5 rounded-full text-sm font-bold transition-all" data-i18n="sign_in">Sign In</button>
         <button id="tab-register" class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500" data-i18n="create_account">Create Account</button>
       </div>
-      <!-- I-001 FIX: Shared theme toggle (Single Source of Truth).
-           P1-DS-001 FIX: Matches nav.js FAB visual DNA for consistency. -->
-      <button id="nm-theme-toggle" class="nm-theme-fab absolute top-4 end-4 touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-        <i id="nm-theme-toggle-icon" class="ph ph-sun-dim text-amber-500" aria-hidden="true" style="font-size:18px"></i>
-      </button>
     </div>
+    <!-- PLT-AUD-C005 FIX: Theme toggle moved OUTSIDE tab container to prevent landscape overlap -->
+    <button id="nm-theme-toggle" class="nm-theme-fab absolute top-4 end-4 touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+      <i id="nm-theme-toggle-icon" class="ph ph-sun-dim text-amber-500" aria-hidden="true" style="font-size:18px"></i>
+    </button>
 
     <!-- Error/Success Banner -->
     <!-- P0-A2 FIX: aria-live region for screen reader announcement of status changes (WCAG 4.1.3) -->

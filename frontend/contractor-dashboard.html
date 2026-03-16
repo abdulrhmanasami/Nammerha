@@ -75,7 +75,8 @@
 
   <!-- Main Content -->
   <div id="main-content" class="dashboard-main">
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0">
+    <!-- PLT-AUD-C004 FIX: Sticky header — hamburger toggle must stay reachable on mobile scroll -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
@@ -103,33 +104,36 @@
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_assigned_projects">Assigned Projects</p>
           <p class="text-2xl font-black mt-1" data-kpi="assigned-projects">0</p>
         </div>
+        <!-- PLT-AUD-G001 FIX: Realigned to contractor API data contract (was proofs-pending → engineer data) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-camera text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
+              <i class="ph ph-flag-banner text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_pending">Pending</span>
+            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_active">Active</span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_proofs_pending">Proofs Pending Review</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="proofs-pending">0</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_active_bids">Active Bids</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="active-bids">0</p>
         </div>
+        <!-- PLT-AUD-G001 FIX: Realigned to contractor API data contract (was proofs-verified → engineer data) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
               <i class="ph ph-check-circle text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_proofs_verified">Proofs Verified</p>
-          <p class="text-2xl font-black mt-1" data-kpi="proofs-verified">0</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_completed_projects">Completed Projects</p>
+          <p class="text-2xl font-black mt-1" data-kpi="completed-projects">0</p>
         </div>
+        <!-- PLT-AUD-G001 FIX: Realigned to contractor API data contract (was escrow-released → stale key) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
               <i class="ph ph-currency-dollar text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_escrow_released">Escrow Released</p>
-          <p class="text-2xl font-black mt-1" data-kpi="escrow-released" data-prefix="$">$0</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_total_earnings">Total Earnings</p>
+          <p class="text-2xl font-black mt-1" data-kpi="total-earnings">$0</p>
         </div>
       </div>
 

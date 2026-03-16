@@ -262,35 +262,79 @@ function filterQuickActionsByRole(): void {
     }
 }
 
-// ─── G-001 FIX: Homepage Search Input ────────────────────────────────────────
-// Previous: search input was a COMPLETE dead end — no handler, no feedback.
-// Now: Enter key navigates to project-details.html?q={query} for project discovery.
+// ─── PLT-AUD-G003 FIX: Homepage Search Input ────────────────────────────────
+// Previous: search redirected to project-details.html?q= which is a single-project
+// detail page that ignores the ?q= parameter — a COMPLETE dead end.
+// Now: performs client-side filtering of the featured projects carousel inline,
+// keeping users on the homepage with immediate visual feedback.
 function initSearchInput(): void {
     const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
     if (!searchInput) { return; }
 
-    let isNavigating = false;
-
     function performSearch(): void {
-        if (isNavigating) { return; } // debounce rapid submissions
-        const query = searchInput!.value.trim();
+        const query = searchInput!.value.trim().toLowerCase();
         if (!query) {
             // Empty search — flash the input border to signal "type something"
             searchInput!.classList.add('ring-2', 'ring-red-400/50');
             setTimeout(() => searchInput!.classList.remove('ring-2', 'ring-red-400/50'), 800);
             return;
         }
-        isNavigating = true;
-        searchInput!.disabled = true;
-        // Navigate to project discovery page with query
-        window.location.href = `project-details.html?q=${encodeURIComponent(query)}`;
+
+        // Filter featured project cards inline
+        const carousel = document.getElementById('projects-carousel');
+        if (!carousel) { return; }
+
+        const cards = Array.from(carousel.querySelectorAll<HTMLElement>('[data-project-title]'));
+        let matchCount = 0;
+
+        cards.forEach((card) => {
+            const title = (card.dataset.projectTitle ?? '').toLowerCase();
+            const region = (card.dataset.projectRegion ?? '').toLowerCase();
+            const matches = title.includes(query) || region.includes(query);
+            card.style.display = matches ? '' : 'none';
+            if (matches) { matchCount++; }
+        });
+
+        // Show/hide no-results message
+        let noResults = carousel.querySelector<HTMLElement>('.search-no-results');
+        if (matchCount === 0) {
+            if (!noResults) {
+                noResults = document.createElement('div');
+                noResults.className = 'search-no-results text-center py-8 text-slate-400 w-full';
+                noResults.innerHTML = `
+                    <i class="ph ph-magnifying-glass" style="font-size:32px" aria-hidden="true"></i>
+                    <p class="mt-2 text-sm font-medium" data-i18n="search_no_results">No projects match your search</p>`;
+                carousel.appendChild(noResults);
+            }
+            noResults.style.display = '';
+        } else if (noResults) {
+            noResults.style.display = 'none';
+        }
+
+        // Scroll to carousel section
+        const section = carousel.closest('section') ?? carousel.parentElement;
+        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Enter key → search
+    // Clear search filter when input is emptied
+    function resetFilter(): void {
+        const carousel = document.getElementById('projects-carousel');
+        if (!carousel) { return; }
+        carousel.querySelectorAll<HTMLElement>('[data-project-title]').forEach((c) => {
+            c.style.display = '';
+        });
+        const noResults = carousel.querySelector<HTMLElement>('.search-no-results');
+        if (noResults) { noResults.style.display = 'none'; }
+    }
+
     searchInput.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             performSearch();
         }
+    });
+
+    searchInput.addEventListener('input', () => {
+        if (!searchInput.value.trim()) { resetFilter(); }
     });
 }

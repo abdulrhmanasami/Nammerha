@@ -1062,6 +1062,17 @@ html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) 
   }
 }
 
+/* PLT-AUD-F004 FIX: Mobile landscape dashboard — prevent content pinhole */
+@media (orientation: landscape) and (max-height: 500px) {
+  .dashboard-layout {
+    height: auto;
+    min-height: 100dvh;
+  }
+  .dashboard-main {
+    overflow: auto;
+  }
+}
+
 /* ─── Responsive Homepage Navbar ───────────────────────────────────────────── */
 /* On small screens, hide the full search bar and show only a search icon.
    When .nav-search-expanded is toggled by JS, the search bar is revealed
@@ -1226,8 +1237,8 @@ html[data-theme="dark"] h4.text-slate-800 {
 .nm-bottom-nav {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
+    /* PLT-AUD-C006 FIX: Logical properties (was physical left/right) */
+    inset-inline: 0;
     z-index: 9999;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1358,7 +1369,8 @@ html[data-theme="dark"] h4.text-slate-800 {
     bottom: calc(80px + env(safe-area-inset-bottom, 16px));
     left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
+    /* PLT-AUD-C003 FIX: Must be ABOVE bottom nav (was same 9999, causing overlap) */
+    z-index: 10000;
     display: flex;
     flex-direction: column-reverse;
     gap: 8px;

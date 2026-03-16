@@ -11,6 +11,7 @@ let indicator: HTMLElement | null = null;
 let startY = 0;
 let currentY = 0;
 let pulling = false;
+let hapticFired = false; // PLT-AUD-C002 FIX: Single haptic per gesture
 
 function createIndicator(): HTMLElement {
     const el = document.createElement('div');
@@ -52,8 +53,9 @@ function handleTouchMove(e: TouchEvent): void {
     indicator.style.opacity    = String(Math.min(distance / THRESHOLD_PX, 1));
     indicator.classList.toggle('pull-refresh-ready', distance >= THRESHOLD_PX);
 
-    if (distance >= THRESHOLD_PX) {
-        // P1-MOB-002 FIX: Haptic pulse at threshold
+    if (distance >= THRESHOLD_PX && !hapticFired) {
+        // PLT-AUD-C002 FIX: Single haptic pulse at threshold (was firing every frame)
+        hapticFired = true;
         if (navigator.vibrate) {
             navigator.vibrate(10);
         }
@@ -78,6 +80,7 @@ function handleTouchEnd(): void {
     }
     startY = 0;
     currentY = 0;
+    hapticFired = false; // PLT-AUD-C002 FIX: Reset for next gesture
 }
 
 /**

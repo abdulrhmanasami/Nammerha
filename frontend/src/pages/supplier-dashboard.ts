@@ -7,6 +7,8 @@ import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
+import { getLocale, applyI18n } from '../utils/locale';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine
@@ -57,17 +59,17 @@ function initTimestamp(): void {
 
     const update = (): void => {
         const now = new Date();
-        const lang = document.documentElement.lang || 'en';
-        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-        el.textContent = now.toLocaleString(locale, {
+        // PLT-AUD-I001 FIX: Use centralized getLocale() (was inline duplication)
+        el.textContent = now.toLocaleString(getLocale(), {
             weekday: 'short', month: 'short', day: 'numeric',
             year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
         });
     };
     update();
-    setInterval(update, 1000);
+    // PLT-AUD-G004 FIX: Store interval ID and clear on unload (was leaking ghost intervals)
+    const intervalId = setInterval(update, 1000);
+    window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
-
 // P1-003 FIX: Hash-based tab routing
 const SUPPLIER_TABS = ['orders', 'catalog'] as const;
 type SupplierTab = typeof SUPPLIER_TABS[number];
@@ -247,7 +249,14 @@ async function loadCatalog(): Promise<void> {
 }
 
 // ─── Update PO Status ───────────────────────────────────────────────────────
+// PLT-AUD-F001 FIX: Added btn-loading state to prevent double-tap on slow 3G
 async function updatePOStatus(poId: string, status: 'acknowledged' | 'shipped' | 'delivered'): Promise<void> {
+    // F-001: Disable the triggering button during async operation
+    const btn = document.querySelector<HTMLButtonElement>(`[data-po-id="${poId}"]`);
+    if (btn) {
+        btn.classList.add('btn-loading');
+        btn.disabled = true;
+    }
     try {
         const res = await supplier.updateOrderStatus(poId, status);
 
@@ -261,27 +270,49 @@ async function updatePOStatus(poId: string, status: 'acknowledged' | 'shipped' |
         await loadKPIs();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
+    } finally {
+        if (btn) {
+            btn.classList.remove('btn-loading');
+            btn.disabled = false;
+        }
     }
 }
 
 // ─── Catalog Modal ──────────────────────────────────────────────────────────
+// PLT-AUD-G005 FIX: Added Escape key and overlay click dismissal (was keyboard-trapped)
 function setupCatalogModal(): void {
     const openBtn = document.getElementById('btn-add-material');
     const modal = document.getElementById('modal-add-material');
     const cancelBtn = document.getElementById('modal-cancel');
     const form = document.getElementById('form-add-material') as HTMLFormElement | null;
 
+    function closeModal(): void {
+        if (modal) { modal.style.display = 'none'; }
+    }
+
     openBtn?.addEventListener('click', () => {
         if (modal) { modal.style.display = 'flex'; }
     });
 
-    cancelBtn?.addEventListener('click', () => {
-        if (modal) { modal.style.display = 'none'; }
+    cancelBtn?.addEventListener('click', closeModal);
+
+    // G-005 FIX: Escape key dismissal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.style.display === 'flex') {
+            closeModal();
+        }
+    });
+
+    // G-005 FIX: Overlay/backdrop click dismissal
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) { closeModal(); }
     });
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fd = new FormData(form);
+        const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+        if (submitBtn) { submitBtn.classList.add('btn-loading'); submitBtn.disabled = true; }
 
         try {
             const res = await supplier.addCatalogItem({
@@ -298,19 +329,52 @@ function setupCatalogModal(): void {
                 return;
             }
 
-            if (modal) { modal.style.display = 'none'; }
+            closeModal();
             form.reset();
             showBanner('success', t('supplier_material_added', 'Material added to your catalog'));
             await loadCatalog();
             await loadKPIs();
         } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
             showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
+        } finally {
+            if (submitBtn) { submitBtn.classList.remove('btn-loading'); submitBtn.disabled = false; }
         }
     });
 }
 
 // ─── Deactivate Catalog Item ────────────────────────────────────────────────
+// PLT-AUD-F002 FIX: Added inline confirmation before destructive removal
 async function deactivateItem(catalogId: string): Promise<void> {
+    // F-002 FIX: Inline confirmation — swap button to "Confirm?" state
+    const btn = document.querySelector<HTMLButtonElement>(`[data-deactivate="${catalogId}"]`);
+    if (btn && !btn.dataset.confirmed) {
+        const originalHTML = btn.innerHTML;
+        btn.dataset.confirmed = 'pending';
+        btn.innerHTML = `<i class="ph ph-warning" aria-hidden="true"></i> ${t('supplier_confirm_remove', 'Confirm?')}`;
+        btn.classList.add('text-red-600', 'font-bold');
+
+        // Auto-revert after 3 seconds if user doesn't confirm
+        const revertTimer = setTimeout(() => {
+            delete btn.dataset.confirmed;
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('text-red-600', 'font-bold');
+        }, 3000);
+
+        // On second click (confirmation), proceed with deactivation
+        btn.addEventListener('click', async function confirmHandler() {
+            clearTimeout(revertTimer);
+            btn.removeEventListener('click', confirmHandler);
+            delete btn.dataset.confirmed;
+            await executeDeactivation(catalogId);
+        }, { once: true });
+
+        return;
+    }
+
+    await executeDeactivation(catalogId);
+}
+
+async function executeDeactivation(catalogId: string): Promise<void> {
     try {
         const res = await supplier.deactivateItem(catalogId);
 
@@ -327,21 +391,27 @@ async function deactivateItem(catalogId: string): Promise<void> {
 }
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
+// PLT-AUD-I002 FIX: Uses Intl.NumberFormat with getLocale() (was hardcoded '$' prefix)
 function setKPI(name: string, value: number, prefix = ''): void {
     const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
     if (!el) { return; }
 
     const duration = 1200;
     const start = performance.now();
+    const locale = getLocale();
+
     const tick = (now: number): void => {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        const current = prefix === '$'
-            ? Math.round((value / 100) * eased) // cents → dollars
-            : Math.round(value * eased);
-        el.textContent = prefix === '$'
-            ? `$${current.toLocaleString()}`
-            : current.toLocaleString();
+        if (prefix === '$') {
+            const current = Math.round((value / 100) * eased);
+            el.textContent = new Intl.NumberFormat(locale, {
+                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
+            }).format(current);
+        } else {
+            const current = Math.round(value * eased);
+            el.textContent = current.toLocaleString(locale);
+        }
         if (progress < 1) { requestAnimationFrame(tick); }
     };
     requestAnimationFrame(tick);
@@ -374,8 +444,4 @@ function showBanner(type: 'error' | 'success', message: string): void {
     showSimpleBanner('dashboard-banner', type, message);
 }
 
-function applyI18n(): void {
-    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
-    }
-}
+// PLT-AUD-I003 FIX: applyI18n is now imported from utils/locale (was manual window check)

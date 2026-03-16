@@ -2,6 +2,7 @@
   "name": "Nammerha — نعمّرها",
   "short_name": "Nammerha",
   "description": "OCDS-compliant reconstruction platform rebuilding Syria with transparency",
+  "id": "/",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
@@ -23,6 +24,35 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Report Damage",
+      "short_name": "Report",
+      "url": "/homeowner-portal.html",
+      "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "My Wallet",
+      "short_name": "Wallet",
+      "url": "/wallet.html",
+      "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Donate",
+      "short_name": "Donate",
+      "url": "/donor-basket.html",
+      "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/brand/Nammerha_logo_Full.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Nammerha — Rebuild Syria Together"
     }
   ]
 }

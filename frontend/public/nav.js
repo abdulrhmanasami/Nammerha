@@ -180,6 +180,8 @@
 
             a.appendChild(icon);
             a.appendChild(lbl);
+            // PLT-AUD-F005 FIX: Title for landscape mode where labels are hidden
+            a.title = tab.label;
             wrap.appendChild(a);
         }
 

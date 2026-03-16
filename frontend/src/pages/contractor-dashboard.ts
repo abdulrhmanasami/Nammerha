@@ -4,6 +4,10 @@ import { reportWarning } from '../error-reporter';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { getLocale, formatDate, applyI18n } from '../utils/locale';
+// PLT-AUD-I004 FIX: Import t() for i18n-safe unit labels
+import { t } from '../utils/i18n';
+// PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
+import { formatCents } from '../utils/format';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 
@@ -21,7 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
     loadKPIs();
     loadProjectTimeline();
     setupTabs();
+    initNotificationBell();
 });
+
+// ─── PLT-AUD-G002 FIX: Notification Bell ────────────────────────────────────
+// Previously: #notification-bell was a complete dead UI element — no handler.
+// Now: tapping bell navigates to bids tab (badge shows active_bids count).
+function initNotificationBell(): void {
+    const bell = document.getElementById('notification-bell');
+    if (!bell) { return; }
+    bell.addEventListener('click', () => {
+        const count = document.getElementById('notif-count')?.textContent?.trim();
+        if (count && count !== '0') {
+            switchDashTab('bids');
+        }
+    });
+}
 
 // ─── Live Timestamp ─────────────────────────────────────────────────────────
 function initTimestamp(): void {
@@ -202,14 +221,13 @@ async function loadBids(): Promise<void> {
         }
 
         container.innerHTML = bids.map((b) => {
-            const costFormatted = new Intl.NumberFormat(getLocale(), {
-                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
-            }).format((Number(b['proposed_cost']) || 0) / 100);
-            const lang = document.documentElement.lang || 'en';
-            const daysLabel = lang === 'ar' ? 'يوم' : lang === 'tr' ? 'gün' : 'days';
+            // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
+            const costFormatted = formatCents(Number(b['proposed_cost']) || 0);
+            // PLT-AUD-I004 FIX: Use i18n t() instead of hardcoded lang switch
+            const daysLabel = t('unit_days', 'days');
 
             return `
-            <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(String(b['project_title'] ?? ''))}</td>
                 <td class="px-5 py-3 font-mono">${costFormatted}</td>
                 <td class="px-5 py-3 text-slate-500">${b['estimated_days']} ${daysLabel}</td>
