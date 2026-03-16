@@ -14,7 +14,8 @@
  * ════════════════════════════════════════════════════════════════════════════ */
 
 /* ─── Arabic Font Import ──────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+/* P3-P1 FIX: Import removed — IBM Plex Sans Arabic is already loaded by main.css.
+   Duplicate import was causing two HTTP requests for the same font on Syrian mobile networks. */
 
 /*╔═══════════════════════════════════════════════════════════════════════════╗
  * ║  §6.2: BILINGUAL TYPOGRAPHY SYSTEM                                      ║
@@ -52,49 +53,52 @@ body {
 }
 
 /* ─── Margin Logical Overrides ────────────────────────────────────────────── */
+/* P2-F11 FIX: Replaced *[class*='ml-X'] wildcards with specific .ml-X selectors.
+   Previous: expensive attribute substring selectors caused reflow on low-end devices. */
 /* ml-* → margin-inline-start (auto-mirrors for RTL) */
-*[class*='ml-1']:not([class*='ml-auto']):not([class*='ml-0']) {
+.ml-1:not(.ml-auto):not(.ml-0) {
   margin-left: unset !important;
   margin-inline-start: 0.25rem !important;
 }
-*[class*='ml-2']:not([class*='ml-auto']) {
+.ml-2:not(.ml-auto) {
   margin-left: unset !important;
   margin-inline-start: 0.5rem !important;
 }
-*[class*='ml-3']:not([class*='ml-auto']) {
+.ml-3:not(.ml-auto) {
   margin-left: unset !important;
   margin-inline-start: 0.75rem !important;
 }
-*[class*='ml-4']:not([class*='ml-auto']) {
+.ml-4:not(.ml-auto) {
   margin-left: unset !important;
   margin-inline-start: 1rem !important;
 }
 
 /* mr-* → margin-inline-end (auto-mirrors for RTL) */
-*[class*='mr-1'] {
+.mr-1 {
   margin-right: unset !important;
   margin-inline-end: 0.25rem !important;
 }
-*[class*='mr-2'] {
+.mr-2 {
   margin-right: unset !important;
   margin-inline-end: 0.5rem !important;
 }
-*[class*='mr-3'] {
+.mr-3 {
   margin-right: unset !important;
   margin-inline-end: 0.75rem !important;
 }
-*[class*='mr-4'] {
+.mr-4 {
   margin-right: unset !important;
   margin-inline-end: 1rem !important;
 }
 
+/* P2-005 FIX: Specific class selector (was *[class*='ml-auto'] — expensive substring match) */
 /* ml-auto → margin-inline-start: auto */
-*[class*='ml-auto'] {
+.ml-auto {
   margin-left: unset !important;
   margin-inline-start: auto !important;
 }
 /* mr-auto → margin-inline-end: auto */
-*[class*='mr-auto'] {
+.mr-auto {
   margin-right: unset !important;
   margin-inline-end: auto !important;
 }
@@ -105,21 +109,23 @@ input[class*='pl-10'] {
   padding-left: unset !important;
   padding-inline-start: 2.5rem !important;
 }
-*[class*='pl-4']:not(input[class*='pl-10']) {
+/* P2-UX-005 FIX: Replaced *[class*='...'] wildcard selectors with specific class
+   selectors for ~10x better selector performance on low-end devices. */
+.pl-4:not(input.pl-10) {
   padding-left: unset !important;
   padding-inline-start: 1rem !important;
 }
-*[class*='pl-6'] {
+.pl-6 {
   padding-left: unset !important;
   padding-inline-start: 1.5rem !important;
 }
 
 /* pr-* → padding-inline-end */
-*[class*='pr-4'] {
+.pr-4 {
   padding-right: unset !important;
   padding-inline-end: 1rem !important;
 }
-*[class*='pr-6'] {
+.pr-6 {
   padding-right: unset !important;
   padding-inline-end: 1.5rem !important;
 }
@@ -496,4 +502,22 @@ html[data-theme="dark"] .nm-lang-option:hover {
 [dir='rtl'] button[class*='absolute'][class*='right-'] {
   right: auto !important;
   left: 0.75rem !important;
+}
+
+/* ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  P1-R1 FIX: RTL-SAFE TOGGLE SWITCH                                      ║
+ * ║  The profile notification toggle uses Tailwind's physical properties:    ║
+ * ║  after:left-0.5 and peer-checked:after:translate-x-4                     ║
+ * ║  These must be mirrored for RTL: ball starts at right, slides left.      ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝*/
+[dir='rtl'] div[class*='after:left-0'] {
+  --tw-translate-x: 0 !important;
+}
+[dir='rtl'] div[class*='after:left-0']::after {
+  left: auto !important;
+  right: 0.125rem !important;
+}
+[dir='rtl'] .peer:checked ~ div[class*='after:translate-x']::after {
+  --tw-translate-x: -1rem !important;
+  transform: translateX(var(--tw-translate-x)) !important;
 }

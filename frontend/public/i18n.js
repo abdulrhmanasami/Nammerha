@@ -15,7 +15,7 @@
  *   - RTL/LTR switching with dir="" on <html>
  *   - Dynamic bilingual font injection (IBM Plex Sans Arabic)
  *   - localStorage persistence (nm_preferred_locale)
- *   - Translates data-i18n elements, data-i18n-placeholder, and text nodes
+ *   - Translates data-i18n elements, data-i18n-placeholder, data-i18n-aria, and text nodes
  *   - Language selector widget (Phosphor Globe icon)
  */
 (function () {
@@ -259,8 +259,8 @@
         'sign_out': { ar: 'تسجيل خروج', de: 'Abmelden', fr: 'Déconnexion', tr: 'Çıkış Yap' },
 
         // ═══ AUTH PAGE ═══
-        'auth_welcome': { ar: 'أهلاً بك في نمّرها', de: 'Willkommen bei Nammerha', fr: 'Bienvenue sur Nammerha', tr: 'Nammerha\'ya Hoş Geldiniz' },
-        'auth_subtitle': { ar: 'منصة إعادة الإعمار الشفافة', de: 'Transparente Wiederaufbauplattform', fr: 'Plateforme de reconstruction transparente', tr: 'Şeffaf Yeniden Yapım Platformu' },
+        'auth_welcome': { ar: 'أهلاً بك في نعمِّرها', de: 'Willkommen bei Nammerha', fr: 'Bienvenue sur Nammerha', tr: 'Nammerha\'ya Hoş Geldiniz' },
+        'auth_subtitle': { ar: 'منصة إعادة الإعمار', de: 'Transparente Wiederaufbauplattform', fr: 'Plateforme de reconstruction transparente', tr: 'Şeffaf Yeniden Yapım Platformu' },
         'tab_login': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Connexion', tr: 'Giriş' },
         'tab_register': { ar: 'إنشاء حساب', de: 'Registrieren', fr: 'Inscription', tr: 'Kayıt Ol' },
         'email_label': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
@@ -294,7 +294,7 @@
         // ═══ LEGAL PAGES — Terms of Service Body Content ═══
         'tos_last_updated': { ar: 'آخر تحديث: مارس 2026', de: 'Letzte Aktualisierung: März 2026', fr: 'Dernière mise à jour : mars 2026', tr: 'Son güncelleme: Mart 2026' },
         'tos_acceptance_body': {
-            ar: 'بوصولك إلى منصة نمّرها ("المنصة") أو استخدامها، فإنك توافق على الالتزام بشروط الخدمة هذه. المنصة هي سوق إعادة إعمار متوافق مع معيار البيانات المفتوحة للتعاقد (OCDS) وتُشغَّل لتسهيل إعادة البناء المجتمعي الشفاف في سوريا.',
+            ar: 'بوصولك إلى منصة نعمِّرها ("المنصة") أو استخدامها، فإنك توافق على الالتزام بشروط الخدمة هذه. المنصة هي سوق إعادة إعمار متوافق مع معيار البيانات المفتوحة للتعاقد (OCDS) وتُشغَّل لتسهيل إعادة البناء المجتمعي الشفاف في سوريا.',
             de: 'Durch den Zugriff auf oder die Nutzung der Nammerha-Plattform („Plattform") erklären Sie sich mit diesen Nutzungsbedingungen einverstanden. Die Plattform ist ein OCDS-konformer Wiederaufbaumarktplatz, der den transparenten, gemeinschaftsorientierten Wiederaufbau in Syrien ermöglicht.',
             fr: 'En accédant ou en utilisant la plateforme Nammerha (« Plateforme »), vous acceptez d\'être lié par les présentes Conditions d\'utilisation. La Plateforme est un marché de reconstruction conforme à l\'OCDS, exploité pour faciliter la reconstruction communautaire transparente en Syrie.',
             tr: 'Nammerha platformuna ("Platform") erişerek veya kullanarak bu Kullanım Şartlarına bağlı olmayı kabul edersiniz. Platform, Suriye\'de şeffaf, toplum odaklı yeniden yapılanmayı kolaylaştırmak amacıyla işletilen OCDS uyumlu bir yeniden yapım pazaryeridir.'
@@ -343,7 +343,7 @@
             tr: 'Platform, paydaşları birbirine bağlamak için teknoloji altyapısı sağlar. Sağlanan emanet mekanizması dışındaki inşaat kalitesi, malzeme kusurları veya taraflar arasındaki anlaşmazlıklardan sorumlu değiliz.'
         },
         'tos_governing_body': {
-            ar: 'تخضع هذه الشروط وتُفسَّر وفقاً للقانون الإنساني الدولي المعمول به وقوانين الولاية القضائية التي تأسست فيها نمّرها.',
+            ar: 'تخضع هذه الشروط وتُفسَّر وفقاً للقانون الإنساني الدولي المعمول به وقوانين الولاية القضائية التي تأسست فيها نعمِّرها.',
             de: 'Diese Bedingungen unterliegen dem geltenden internationalen humanitären Recht und den Gesetzen der Gerichtsbarkeit, in der Nammerha eingetragen ist, und werden danach ausgelegt.',
             fr: 'Les présentes Conditions sont régies et interprétées conformément au droit international humanitaire applicable et aux lois de la juridiction dans laquelle Nammerha est constituée.',
             tr: 'Bu Şartlar, yürürlükteki uluslararası insancıl hukuk ve Nammerha\'nın kurulduğu yargı alanının yasalarına göre yönetilir ve yorumlanır.'
@@ -358,7 +358,7 @@
         // ═══ LEGAL PAGES — Privacy Policy Body Content ═══
         'pp_last_updated': { ar: 'آخر تحديث: مارس 2026', de: 'Letzte Aktualisierung: März 2026', fr: 'Dernière mise à jour : mars 2026', tr: 'Son güncelleme: Mart 2026' },
         'pp_intro_body': {
-            ar: 'تلتزم نمّرها ("نحن"، "لنا"، "المنصة") بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمعنا واستخدامنا والكشف عن معلوماتك وحمايتها عند استخدامك لسوق إعادة الإعمار المتوافق مع OCDS.',
+            ar: 'تلتزم نعمِّرها ("نحن"، "لنا"، "المنصة") بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيفية جمعنا واستخدامنا والكشف عن معلوماتك وحمايتها عند استخدامك لسوق إعادة الإعمار المتوافق مع OCDS.',
             de: 'Nammerha („wir", „unser", „Plattform") ist dem Schutz Ihrer Privatsphäre verpflichtet. Diese Datenschutzrichtlinie erläutert, wie wir Ihre Informationen erfassen, verwenden, offenlegen und schützen, wenn Sie unseren OCDS-konformen Wiederaufbaumarktplatz nutzen.',
             fr: 'Nammerha (« nous », « notre », « Plateforme ») s\'engage à protéger votre vie privée. Cette Politique de confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre marché de reconstruction conforme à l\'OCDS.',
             tr: 'Nammerha ("biz", "bizim", "Platform") gizliliğinizi korumaya kararlıdır. Bu Gizlilik Politikası, OCDS uyumlu yeniden yapım pazaryerimizi kullandığınızda bilgilerinizi nasıl topladığımızı, kullandığımızı, ifşa ettiğimizi ve koruduğumuzu açıklar.'
@@ -410,7 +410,7 @@
             tr: 'Malzeme teslimatını GPS damgalı fotoğrafik kanıtlarla doğrulamak için'
         },
         'pp_use_ocds': {
-            ar: 'لنشر بيانات الشراء الشفافة وفق معايير OCDS',
+            ar: 'لنشر بيانات الشراء وفق معايير OCDS',
             de: 'Um transparente Beschaffungsdaten nach OCDS-Standards zu veröffentlichen',
             fr: 'Pour publier des données d\'approvisionnement transparentes selon les standards OCDS',
             tr: 'OCDS standartları kapsamında şeffaf tedarik verilerini yayınlamak için'
@@ -543,6 +543,8 @@
         'pw_strength_strong': { ar: 'قوي', de: 'Stark', fr: 'Fort', tr: 'Güçlü' },
         'pw_strength_too_short': { ar: 'قصير جداً', de: 'Zu kurz', fr: 'Trop court', tr: 'Çok kısa' },
         'auth_footer': { ar: 'بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية.', de: 'Durch Fortfahren stimmen Sie unseren Nutzungsbedingungen und der Datenschutzrichtlinie zu.', fr: 'En continuant, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.', tr: 'Devam ederek Kullanım Şartlarımızı ve Gizlilik Politikamızı kabul edersiniz.' },
+        // P1-F3 FIX: Full-sentence HTML translation for auth footer legal text
+        'auth_footer_legal': { ar: 'بالمتابعة، أنت توافق على <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">شروط الخدمة</a> و<a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">سياسة الخصوصية</a>.', de: 'Durch Fortfahren stimmen Sie unseren <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">Nutzungsbedingungen</a> und der <a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">Datenschutzrichtlinie</a> zu.', fr: 'En continuant, vous acceptez nos <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">Conditions d\'utilisation</a> et notre <a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">Politique de confidentialité</a>.', tr: 'Devam ederek <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">Kullanım Şartlarımızı</a> ve <a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">Gizlilik Politikamızı</a> kabul edersiniz.' },
         'role_contractor': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
         'role_tradesperson': { ar: 'حرفي', de: 'Handwerker', fr: 'Artisan', tr: 'Esnaf' },
 
@@ -560,7 +562,7 @@
 
         // ═══ CONTACT PAGE ═══
         'contact_title': { ar: 'تواصل معنا', de: 'Kontakt', fr: 'Contactez-nous', tr: 'Bize Ulaşın' },
-        'contact_org_name': { ar: 'نمّرها', de: 'Nammerha', fr: 'Nammerha', tr: 'Nammerha' },
+        'contact_org_name': { ar: 'نعمِّرها', de: 'Nammerha', fr: 'Nammerha', tr: 'Nammerha' },
         'contact_org_tagline': { ar: 'المنصة الوطنية لإعادة الإعمار', de: 'Nationale Wiederaufbauplattform', fr: 'Plateforme nationale de reconstruction', tr: 'Ulusal Yeniden Yapım Platformu' },
         'contact_details': { ar: 'معلومات التواصل', de: 'Kontaktdaten', fr: 'Coordonnées', tr: 'İletişim Bilgileri' },
         'contact_email_label': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
@@ -590,6 +592,25 @@
         'common_qty': { ar: 'الكمية', de: 'Menge', fr: 'Quantité', tr: 'Miktar' },
         'common_verified': { ar: 'معتمد', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulandı' },
         'common_po_number': { ar: 'رقم أمر الشراء', de: 'Bestellnummer', fr: 'N° de commande', tr: 'Sipariş No' },
+        // P2-U1 FIX: Error retry and skip link i18n keys
+        'failed_to_load': { ar: 'فشل في التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' },
+        'retry': { ar: 'إعادة المحاولة', de: 'Erneut versuchen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'skip_to_content': { ar: 'تخطي إلى المحتوى', de: 'Zum Inhalt springen', fr: 'Aller au contenu', tr: 'İçeriğe atla' },
+
+        // ═══ ARIA-LABEL TRANSLATIONS (P1-I18N-002 FIX: WCAG accessible names) ═══
+        'aria_toggle_sidebar': { ar: 'تبديل الشريط الجانبي', de: 'Seitenleiste umschalten', fr: 'Basculer la barre latérale', tr: 'Kenar çubuğunu aç/kapat' },
+        'aria_toggle_password': { ar: 'إظهار/إخفاء كلمة المرور', de: 'Passwort-Sichtbarkeit umschalten', fr: 'Afficher/masquer le mot de passe', tr: 'Şifre görünürlüğünü değiştir' },
+        'aria_notifications': { ar: 'الإشعارات', de: 'Benachrichtigungen', fr: 'Notifications', tr: 'Bildirimler' },
+        'aria_construction_basket': { ar: 'سلة البناء', de: 'Baukorb', fr: 'Panier de construction', tr: 'İnşaat Sepeti' },
+        'aria_clear_cart': { ar: 'إفراغ السلة', de: 'Warenkorb leeren', fr: 'Vider le panier', tr: 'Sepeti temizle' },
+        'aria_custom_amount': { ar: 'مبلغ دعم مخصص', de: 'Benutzerdefinierter Unterstützungsbetrag', fr: 'Montant de soutien personnalisé', tr: 'Özel destek tutarı' },
+        'aria_back': { ar: 'رجوع', de: 'Zurück', fr: 'Retour', tr: 'Geri' },
+        'aria_go_back': { ar: 'الرجوع للخلف', de: 'Zurückgehen', fr: 'Revenir en arrière', tr: 'Geri dön' },
+        'aria_search': { ar: 'بحث', de: 'Suchen', fr: 'Rechercher', tr: 'Ara' },
+        'aria_profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'aria_toggle_billing': { ar: 'تبديل الفوترة السنوية', de: 'Jährliche Abrechnung umschalten', fr: 'Basculer la facturation annuelle', tr: 'Yıllık faturalamayı değiştir' },
+        'aria_refresh_data': { ar: 'تحديث البيانات', de: 'Daten aktualisieren', fr: 'Actualiser les données', tr: 'Verileri yenile' },
+        'aria_transaction_history': { ar: 'سجل المعاملات', de: 'Transaktionsverlauf', fr: 'Historique des transactions', tr: 'İşlem geçmişi' },
         'loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
         'settings': { ar: 'الإعدادات', de: 'Einstellungen', fr: 'Paramètres', tr: 'Ayarlar' },
         'profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
@@ -627,7 +648,7 @@
         'refund_elig_stalled_detail': { ar: 'استرداد كامل بعد ٩٠ يوماً من عدم النشاط.', de: 'Volle Rückerstattung nach 90 Tagen Inaktivität.', fr: 'Remboursement intégral après 90 jours d\'inactivité.', tr: '90 gün hareketsizlik sonrası tam iade.' },
         'refund_processing': { ar: 'خطوات المعالجة', de: 'Bearbeitungsschritte', fr: 'Étapes de traitement', tr: 'İşlem Adımları' },
         'refund_step_1': { ar: '١. تقديم طلب الاسترداد', de: '1. Rückerstattungsanfrage stellen', fr: '1. Soumettre une demande de remboursement', tr: '1. İade talebi gönderin' },
-        'refund_step_2': { ar: '٢. مراجعة فريق نمّرها', de: '2. Prüfung durch das Nammerha-Team', fr: '2. Examen par l\'équipe Nammerha', tr: '2. Nammerha ekibi tarafından inceleme' },
+        'refund_step_2': { ar: '٢. مراجعة فريق نعمِّرها', de: '2. Prüfung durch das Nammerha-Team', fr: '2. Examen par l\'équipe Nammerha', tr: '2. Nammerha ekibi tarafından inceleme' },
         'refund_step_3': { ar: '٣. التحقق من حالة الضمان', de: '3. Treuhandstatus prüfen', fr: '3. Vérification du statut de l\'entiercement', tr: '3. Emanet durumu doğrulama' },
         'refund_step_4': { ar: '٤. إصدار الاسترداد', de: '4. Rückerstattung ausstellen', fr: '4. Émission du remboursement', tr: '4. İade düzenleme' },
         'refund_col_type': { ar: 'النوع', de: 'Typ', fr: 'Type', tr: 'Tür' },
@@ -1003,20 +1024,20 @@
         'about_origin_subtitle': { ar: 'الرحلة التي أوصلتنا إلى هنا', de: 'Die Reise, die uns hierher geführt hat', fr: 'Le voyage qui nous a menés ici', tr: 'Bizi buraya getiren yolculuk' },
         'about_origin_phase1_label': { ar: 'النداء', de: 'Der Ruf', fr: 'L\'appel', tr: 'Çağrı' },
         'about_origin_phase1_title': { ar: 'أبعد من الإغاثة المؤقتة', de: 'Jenseits vorübergehender Hilfe', fr: 'Au-delà de l\'aide temporaire', tr: 'Geçici yardımın ötesinde' },
-        'about_origin_phase1_body': { ar: 'لم تولد نمّرها في قاعة مؤتمرات أو من دراسة نظرية بحتة. ولدت من المعاينة الشخصية العميقة لواقع يقول إن الحالة الإنسانية في سوريا كانت تتطلب ما هو أبعد بكثير من الإغاثة المؤقتة وتوزيع المساعدات الاستهلاكية. خلال حضور مؤتمرات التنمية الدولية في الولايات المتحدة الأمريكية، أدرك المؤسسون فجوة هيكلية: مليارات تُنفق على الإغاثة الطارئة، لكن المجتمعات تبقى عاجزة عن إعادة بناء بيوتها. كان النداء واضحاً — ما تحتاجه سوريا ليس التعاطف فحسب، بل التحول الهيكلي والحوكمة الشفافة وإعادة الإعمار الممنهجة.', de: 'Nammerha wurde nicht in einer Konferenzhalle oder durch eine theoretische Studie geboren. Sie entstand aus der tiefen, persönlichen Beobachtung, dass die humanitäre Lage in Syrien weit mehr als vorübergehende Hilfe und Konsumgüterverteilung erfordert. Bei internationalen Entwicklungskonferenzen in den USA erkannten unsere Gründer eine systemische Lücke: Milliarden wurden für Nothilfe ausgegeben, doch Gemeinden konnten ihre eigenen Häuser nicht wieder aufbauen.', fr: 'Nammerha n\'est pas née dans une salle de conférence ni d\'une étude théorique. Elle est née de l\'observation personnelle profonde que la situation humanitaire en Syrie exigeait bien plus que l\'aide temporaire et la distribution de biens de consommation. Lors de conférences internationales de développement aux États-Unis, nos fondateurs ont identifié un fossé systémique.', tr: 'Nammerha bir konferans salonunda ya da teorik bir çalışmayla doğmadı. Suriye\'deki insani durumun geçici yardım ve tüketim malzemesi dağıtımından çok daha fazlasını gerektirdiğinin derin, kişisel gözleminden doğdu.' },
+        'about_origin_phase1_body': { ar: 'لم تولد نعمِّرها في قاعة مؤتمرات أو من دراسة نظرية بحتة. ولدت من المعاينة الشخصية العميقة لواقع يقول إن الحالة الإنسانية في سوريا كانت تتطلب ما هو أبعد بكثير من الإغاثة المؤقتة وتوزيع المساعدات الاستهلاكية. خلال حضور مؤتمرات التنمية الدولية في الولايات المتحدة الأمريكية، أدرك المؤسسون فجوة هيكلية: مليارات تُنفق على الإغاثة الطارئة، لكن المجتمعات تبقى عاجزة عن إعادة بناء بيوتها. كان النداء واضحاً — ما تحتاجه سوريا ليس التعاطف فحسب، بل التحول الهيكلي والحوكمة وإعادة الإعمار الممنهجة.', de: 'Nammerha wurde nicht in einer Konferenzhalle oder durch eine theoretische Studie geboren. Sie entstand aus der tiefen, persönlichen Beobachtung, dass die humanitäre Lage in Syrien weit mehr als vorübergehende Hilfe und Konsumgüterverteilung erfordert. Bei internationalen Entwicklungskonferenzen in den USA erkannten unsere Gründer eine systemische Lücke: Milliarden wurden für Nothilfe ausgegeben, doch Gemeinden konnten ihre eigenen Häuser nicht wieder aufbauen.', fr: 'Nammerha n\'est pas née dans une salle de conférence ni d\'une étude théorique. Elle est née de l\'observation personnelle profonde que la situation humanitaire en Syrie exigeait bien plus que l\'aide temporaire et la distribution de biens de consommation. Lors de conférences internationales de développement aux États-Unis, nos fondateurs ont identifié un fossé systémique.', tr: 'Nammerha bir konferans salonunda ya da teorik bir çalışmayla doğmadı. Suriye\'deki insani durumun geçici yardım ve tüketim malzemesi dağıtımından çok daha fazlasını gerektirdiğinin derin, kişisel gözleminden doğdu.' },
         'about_origin_phase2_label': { ar: 'الفريق', de: 'Das Team', fr: 'L\'équipe', tr: 'Ekip' },
         'about_origin_phase2_title': { ar: 'حيث تلتقي الاستراتيجية بالهندسة', de: 'Wo Strategie auf Ingenieurwesen trifft', fr: 'Là où la stratégie rencontre l\'ingénierie', tr: 'Stratejinin mühendislikle buluştuğu yer' },
-        'about_origin_phase2_body': { ar: 'تحويل هذه الرؤية الطموحة إلى واقع تطلب أكثر من النوايا الحسنة. من مناطق ما بعد النزاع في الشرق الأوسط إلى البيئات الهندسية المتقدمة في ألمانيا، تلاقى فريق متنوع يجمع بين خبرات إدارة الأزمات والحوكمة المالية وتصميم المنتجات والهندسة البرمجية. هذا المزيج الفريد من التفكير الاستراتيجي الكلي والتنفيذ التقني الدقيق منح نمّرها القدرة على ترجمة الأهداف الإنسانية المجردة إلى منصات رقمية حية وقابلة للتدقيق.', de: 'Die Umsetzung dieser ehrgeizigen Vision erforderte mehr als gute Absichten. Von Nachkonfliktgebieten im Nahen Osten bis hin zu Ingenieurumgebungen in Deutschland kam ein vielfältiges Team zusammen — mit Expertise in Krisenmanagement, finanzieller Governance, Produktdesign und Software-Engineering.', fr: 'Transformer cette vision ambitieuse en réalité a nécessité plus que de bonnes intentions. Des zones post-conflit du Moyen-Orient aux environnements d\'ingénierie en Allemagne, une équipe diverse s\'est rassemblée.', tr: 'Bu iddialı vizyonu gerçeğe dönüştürmek iyi niyetten fazlasını gerektiriyordu. Orta Doğu\'nun çatışma sonrası bölgelerinden Almanya\'nın mühendislik ortamlarına kadar çeşitli bir ekip bir araya geldi.' },
+        'about_origin_phase2_body': { ar: 'تحويل هذه الرؤية الطموحة إلى واقع تطلب أكثر من النوايا الحسنة. من مناطق ما بعد النزاع في الشرق الأوسط إلى البيئات الهندسية المتقدمة في ألمانيا، تلاقى فريق متنوع يجمع بين خبرات إدارة الأزمات والحوكمة المالية وتصميم المنتجات والهندسة البرمجية. هذا المزيج الفريد من التفكير الاستراتيجي الكلي والتنفيذ التقني الدقيق منح نعمِّرها القدرة على ترجمة الأهداف الإنسانية المجردة إلى منصات رقمية حية وقابلة للتدقيق.', de: 'Die Umsetzung dieser ehrgeizigen Vision erforderte mehr als gute Absichten. Von Nachkonfliktgebieten im Nahen Osten bis hin zu Ingenieurumgebungen in Deutschland kam ein vielfältiges Team zusammen — mit Expertise in Krisenmanagement, finanzieller Governance, Produktdesign und Software-Engineering.', fr: 'Transformer cette vision ambitieuse en réalité a nécessité plus que de bonnes intentions. Des zones post-conflit du Moyen-Orient aux environnements d\'ingénierie en Allemagne, une équipe diverse s\'est rassemblée.', tr: 'Bu iddialı vizyonu gerçeğe dönüştürmek iyi niyetten fazlasını gerektiriyordu. Orta Doğu\'nun çatışma sonrası bölgelerinden Almanya\'nın mühendislik ortamlarına kadar çeşitli bir ekip bir araya geldi.' },
         'about_origin_phase3_label': { ar: 'النظام المتكامل', de: 'Das Ökosystem', fr: 'L\'écosystème', tr: 'Ekosistem' },
         'about_origin_phase3_title': { ar: 'بناء نظام متكامل', de: 'Ein komplettes Ökosystem aufbauen', fr: 'Construire un écosystème complet', tr: 'Tam bir ekosistem inşa etmek' },
-        'about_origin_phase3_body': { ar: 'اليوم، نمّرها لا تُعيد بناء الجدران المتصدعة فحسب ولا توفّر المأوى المؤقت. بل نهندس نظاماً بيئياً متكاملاً — من خلال ابتكار منصة تجمع بين الإدارة المتقدمة للأعمال والتصميم الهندسي، لتصنع أداة موثوقة تولّد أثراً تنموياً مستداماً ومحسوباً بدقة. كل مورد يُستثمر بعناية، كل نتيجة تُوثّق بالأدلة. مساهمتك ليست صدقة تُستهلك وتُنسى — بل هي استثمار في مستقبل مجتمع، عوائده تُقاس بالكرامة المستعادة والحياة المُعاد بناؤها.', de: 'Heute baut Nammerha nicht nur rissige Wände wieder auf oder bietet vorübergehenden Schutz. Wir entwickeln ein vollständiges, integriertes Ökosystem — durch eine innovative Plattform, die fortschrittliches Geschäftsmanagement mit ingenieurtechnischem Design verbindet.', fr: 'Aujourd\'hui, Nammerha ne se contente pas de reconstruire des murs fissurés ou de fournir un abri temporaire. Nous concevons un écosystème complet et intégré — à travers une plateforme innovante.', tr: 'Bugün Nammerha sadece çatlak duvarları onarmıyor ya da geçici barınak sağlamıyor. Yenilikçi bir platform aracılığıyla eksiksiz, entegre bir ekosistem inşa ediyoruz.' },
+        'about_origin_phase3_body': { ar: 'اليوم، نعمِّرها لا تُعيد بناء الجدران المتصدعة فحسب ولا توفّر المأوى المؤقت. بل نهندس نظاماً بيئياً متكاملاً — من خلال ابتكار منصة تجمع بين الإدارة المتقدمة للأعمال والتصميم الهندسي، لتصنع أداة موثوقة تولّد أثراً تنموياً مستداماً ومحسوباً بدقة. كل مورد يُستثمر بعناية، كل نتيجة تُوثّق بالأدلة. مساهمتك ليست صدقة تُستهلك وتُنسى — بل هي استثمار في مستقبل مجتمع، عوائده تُقاس بالكرامة المستعادة والحياة المُعاد بناؤها.', de: 'Heute baut Nammerha nicht nur rissige Wände wieder auf oder bietet vorübergehenden Schutz. Wir entwickeln ein vollständiges, integriertes Ökosystem — durch eine innovative Plattform, die fortschrittliches Geschäftsmanagement mit ingenieurtechnischem Design verbindet.', fr: 'Aujourd\'hui, Nammerha ne se contente pas de reconstruire des murs fissurés ou de fournir un abri temporaire. Nous concevons un écosystème complet et intégré — à travers une plateforme innovante.', tr: 'Bugün Nammerha sadece çatlak duvarları onarmıyor ya da geçici barınak sağlamıyor. Yenilikçi bir platform aracılığıyla eksiksiz, entegre bir ekosistem inşa ediyoruz.' },
 
         // ═══ ABOUT: LEADERSHIP ═══
         'about_leadership_title': { ar: 'القيادة', de: 'Führung', fr: 'Direction', tr: 'Liderlik' },
         'about_leadership_subtitle': { ar: 'حوكمة مؤسسية، لا سلطة شخصية', de: 'Institutionelle Governance, nicht persönliche Autorität', fr: 'Gouvernance institutionnelle, pas autorité personnelle', tr: 'Kurumsal yönetişim, kişisel otorite değil' },
         'about_leader1_name': { ar: 'المؤسس والرئيس التنفيذي', de: 'Gründer & CEO', fr: 'Fondateur & PDG', tr: 'Kurucu & CEO' },
         'about_leader1_role': { ar: 'التوجيه الاستراتيجي والحوكمة', de: 'Strategische Ausrichtung & Governance', fr: 'Direction stratégique & Gouvernance', tr: 'Stratejik Yön & Yönetişim' },
-        'about_leader1_bio': { ar: 'ينطلق من قناعة عميقة بأن التغيير الفعلي يتطلب إدارة أزمات، وحوكمة مالية صلبة، وتخطيطاً استراتيجياً بعيد المدى — وليس مجرد نوايا حسنة. من خلال سنوات من دراسة وتحليل العمليات الإنسانية والملاحظات الميدانية وفهم احتياجات أصحاب البيوت المتضررة عن قرب، ساهم في صياغة حلول عملية محورها التكنولوجيا. بخلفية تجمع بين التنمية الدولية وتحليل سلوك المانحين، يقود نمّرها بتركيز على بناء نماذج تمويل مستدامة، وتأسيس شراكات مؤسسية، وتصميم سياسات قادرة على الصمود أمام التحديات الاقتصادية والتشغيلية.', de: 'Angetrieben von der tiefen Überzeugung, dass echter Wandel Krisenmanagement, robuste Finanz-Governance und langfristige strategische Planung erfordert. Durch Jahre der Analyse humanitärer Operationen und Feldbeobachtungen hat er praktische, technologiezentrierte Lösungen mitgestaltet.', fr: 'Porté par la conviction profonde que le vrai changement nécessite une gestion de crise, une gouvernance financière robuste et une planification stratégique à long terme. À travers des années d\'analyse des opérations humanitaires, il a contribué à élaborer des solutions pratiques centrées sur la technologie.', tr: 'Gerçek değişimin kriz yönetimi, sağlam finansal yönetişim ve uzun vadeli stratejik planlama gerektirdiğine dair derin inançla hareket eder. Yıllarca insani operasyonları analiz ederek teknoloji odaklı pratik çözümler geliştirmiştir.' },
+        'about_leader1_bio': { ar: 'ينطلق من قناعة عميقة بأن التغيير الفعلي يتطلب إدارة أزمات، وحوكمة مالية صلبة، وتخطيطاً استراتيجياً بعيد المدى — وليس مجرد نوايا حسنة. من خلال سنوات من دراسة وتحليل العمليات الإنسانية والملاحظات الميدانية وفهم احتياجات أصحاب البيوت المتضررة عن قرب، ساهم في صياغة حلول عملية محورها التكنولوجيا. بخلفية تجمع بين التنمية الدولية وتحليل سلوك المانحين، يقود نعمِّرها بتركيز على بناء نماذج تمويل مستدامة، وتأسيس شراكات مؤسسية، وتصميم سياسات قادرة على الصمود أمام التحديات الاقتصادية والتشغيلية.', de: 'Angetrieben von der tiefen Überzeugung, dass echter Wandel Krisenmanagement, robuste Finanz-Governance und langfristige strategische Planung erfordert. Durch Jahre der Analyse humanitärer Operationen und Feldbeobachtungen hat er praktische, technologiezentrierte Lösungen mitgestaltet.', fr: 'Porté par la conviction profonde que le vrai changement nécessite une gestion de crise, une gouvernance financière robuste et une planification stratégique à long terme. À travers des années d\'analyse des opérations humanitaires, il a contribué à élaborer des solutions pratiques centrées sur la technologie.', tr: 'Gerçek değişimin kriz yönetimi, sağlam finansal yönetişim ve uzun vadeli stratejik planlama gerektirdiğine dair derin inançla hareket eder. Yıllarca insani operasyonları analiz ederek teknoloji odaklı pratik çözümler geliştirmiştir.' },
         'about_leader1_tag1': { ar: 'إدارة الأزمات', de: 'Krisenmanagement', fr: 'Gestion de crise', tr: 'Kriz Yönetimi' },
         'about_leader1_tag2': { ar: 'الحوكمة المالية', de: 'Finanz-Governance', fr: 'Gouvernance financière', tr: 'Finansal Yönetişim' },
         'about_leader1_tag3': { ar: 'الشراكات المؤسسية', de: 'Institutionelle Partnerschaften', fr: 'Partenariats institutionnels', tr: 'Kurumsal Ortaklıklar' },
@@ -1033,7 +1054,7 @@
         'about_pillar1_title': { ar: 'نظرية التغيير', de: 'Theorie des Wandels', fr: 'Théorie du changement', tr: 'Değişim Teorisi' },
         'about_pillar1_body': { ar: 'لا نعتمد نماذج المنطق الخطي المبسطة. تخطيطنا الاستراتيجي يسترشد بإطار عمل شامل لـ«نظرية التغيير» يتعمق في فهم السياقات الاجتماعية والاقتصادية والبيئية المتشابكة في بيئات ما بعد النزاع — لضمان أن كل نشاط يُسهم في مسار واضح نحو تحوّل جذري ومستدام.', de: 'Wir verwenden keine vereinfachten linearen Logikmodelle. Unsere strategische Planung wird von einem umfassenden Theory-of-Change-Rahmenwerk geleitet, das die verflochtenen sozialen, wirtschaftlichen und ökologischen Kontexte von Nachkonfliktsituationen tiefgehend versteht.', fr: 'Nous n\'adoptons pas de modèles logiques linéaires simplistes. Notre planification stratégique est guidée par un cadre complet de Théorie du changement qui comprend en profondeur les contextes sociaux, économiques et environnementaux interconnectés des environnements post-conflit.', tr: 'Basitleştirilmiş doğrusal mantık modelleri kullanmıyoruz. Stratejik planımız, çatışma sonrası ortamların iç içe geçmiş sosyal, ekonomik ve çevresel bağlamlarını derinlemesine anlayan kapsamlı bir Değişim Teorisi çerçevesiyle yönlendirilir.' },
         'about_pillar2_title': { ar: 'الشفافية كخدمة (TaaS)', de: 'Transparenz als Service (TaaS)', fr: 'Transparence en tant que Service (TaaS)', tr: 'Hizmet Olarak Şeffaflık (TaaS)' },
-        'about_pillar2_body': { ar: 'استجابةً لأعلى المعايير العالمية في القطاع الخيري، هندسنا بنيتنا التقنية لتكون شفافة بالتصميم — متوافقة مع معيار بيانات التعاقد المفتوح (OCDS). هذا يتيح لشركائنا والمانحين إجراء تدقيق فوري في كل عقد ومشتريات وتدفق مالي منذ اليوم الأول. نتجاوز مفهوم التقارير الدورية — الشفافية مدمجة كخدمة مؤسسية.', de: 'Als Antwort auf die höchsten globalen Standards im Wohltätigkeitssektor haben wir unsere technische Infrastruktur nativ transparent gestaltet — konform mit dem Open Contracting Data Standard (OCDS). Dies ermöglicht unseren Partnern und Spendern eine Echtzeitprüfung.', fr: 'Répondant aux normes mondiales les plus élevées du secteur caritatif, nous avons conçu notre infrastructure technique pour être nativement transparente — conforme au Standard de Données Ouvertes (OCDS). Cela permet un audit en temps réel.', tr: 'Hayır sektöründeki en yüksek küresel standartlara cevaben, teknik altyapımızı doğal olarak şeffaf olacak şekilde tasarladık — Açık İhale Veri Standardı (OCDS) ile uyumlu.' },
+        'about_pillar2_body': { ar: 'استجابةً لأعلى المعايير العالمية في القطاع الخيري، هندسنا بنيتنا التقنية لتكون بالتصميم — متوافقة مع معيار بيانات التعاقد المفتوح (OCDS). هذا يتيح لشركائنا والمانحين إجراء تدقيق فوري في كل عقد ومشتريات وتدفق مالي منذ اليوم الأول. نتجاوز مفهوم التقارير الدورية — الشفافية مدمجة كخدمة مؤسسية.', de: 'Als Antwort auf die höchsten globalen Standards im Wohltätigkeitssektor haben wir unsere technische Infrastruktur nativ transparent gestaltet — konform mit dem Open Contracting Data Standard (OCDS). Dies ermöglicht unseren Partnern und Spendern eine Echtzeitprüfung.', fr: 'Répondant aux normes mondiales les plus élevées du secteur caritatif, nous avons conçu notre infrastructure technique pour être nativement transparente — conforme au Standard de Données Ouvertes (OCDS). Cela permet un audit en temps réel.', tr: 'Hayır sektöründeki en yüksek küresel standartlara cevaben, teknik altyapımızı doğal olarak şeffaf olacak şekilde tasarladık — Açık İhale Veri Standardı (OCDS) ile uyumlu.' },
         'about_pillar3_title': { ar: 'نموذج الاستدامة الهجين', de: 'Hybrides Nachhaltigkeitsmodell', fr: 'Modèle de durabilité hybride', tr: 'Hibrit Sürdürülebilirlik Modeli' },
         'about_pillar3_body': { ar: 'نؤمن أن المهمة الإنسانية يجب ألا تعتمد على مصدر تمويل واحد. نموذجنا الهجين يدمج اشتراكات السوق الرقمي، وعمولات تجارية مراعية للنزاعات، وإكراميات المتبرعين الطوعية — وجميعها تعمل كأذرع مالية مستقلة تُديم المنصة بينما تبقى أموال التبرعات الخيرية مقدسة وغير ممسوسة بنسبة 100%.', de: 'Wir glauben, dass die humanitäre Mission nicht von einer einzigen Finanzierungsquelle abhängen sollte. Unser hybrides Modell integriert SaaS-Marktplatzabonnements, konfliktsensible kommerzielle Provisionen und freiwillige Spendertipps.', fr: 'Nous croyons que la mission humanitaire ne doit pas dépendre d\'une seule source de financement. Notre modèle hybride intègre des abonnements SaaS, des commissions commerciales sensibles aux conflits et des pourboires volontaires des donateurs.', tr: 'İnsani misyonun tek bir finansman kaynağına bağlı olmaması gerektiğine inanıyoruz. Hibrit modelimiz SaaS pazar abonelikleri, çatışma duyarlı ticari komisyonlar ve gönüllü bağışçı bahşişlerini entegre eder.' },
         'about_pillar4_title': { ar: 'إطار المساءلة (MEAL)', de: 'MEAL-Rahmenwerk', fr: 'Cadre MEAL', tr: 'MEAL Çerçevesi' },
@@ -1053,7 +1074,7 @@
         'about_cta_btn': { ar: 'موّل مشروعاً الآن', de: 'Jetzt ein Projekt finanzieren', fr: 'Financer un projet maintenant', tr: 'Şimdi bir proje finanse edin' },
         'about_cta_contact': { ar: 'تواصل معنا', de: 'Kontakt', fr: 'Contactez-nous', tr: 'Bize Ulaşın' },
         'about_cta_pricing': { ar: 'خطط الشراكة', de: 'Partnerschaftspläne', fr: 'Plans de partenariat', tr: 'Ortaklık Planları' },
-        'about_footer_copy': { ar: '© ٢٠٢٥ نمّرها. منصة إعادة إعمار متوافقة مع OCDS.', de: '© 2025 Nammerha. OCDS-konforme Wiederaufbauplattform.', fr: '© 2025 Nammerha. Plateforme de reconstruction conforme OCDS.', tr: '© 2025 Nammerha. OCDS uyumlu yeniden yapım platformu.' },
+        'about_footer_copy': { ar: '© ٢٠٢٥ نعمِّرها. منصة إعادة إعمار متوافقة مع OCDS.', de: '© 2025 Nammerha. OCDS-konforme Wiederaufbauplattform.', fr: '© 2025 Nammerha. Plateforme de reconstruction conforme OCDS.', tr: '© 2025 Nammerha. OCDS uyumlu yeniden yapım platformu.' },
 
         // ═══ MATERIAL CATEGORIES (Supplier Catalog) ═══
         'cat_cement': { ar: 'أسمنت', de: 'Zement', fr: 'Ciment', tr: 'Çimento' },
@@ -1387,6 +1408,37 @@
                 inp.placeholder = inp.dataset.i18nPlaceholderOriginal;
             } else if (DICT[phKey] && DICT[phKey][langCode]) {
                 inp.placeholder = DICT[phKey][langCode];
+            }
+        }
+
+        // 2.5 Translate data-i18n-aria elements (P1-I18N-002 FIX: WCAG accessible names)
+        var ariaEls = document.querySelectorAll('[data-i18n-aria]');
+        for (var a = 0; a < ariaEls.length; a++) {
+            var ariaEl = ariaEls[a];
+            var ariaKey = ariaEl.getAttribute('data-i18n-aria');
+            if (!ariaEl.dataset.i18nAriaOriginal) {
+                ariaEl.dataset.i18nAriaOriginal = ariaEl.getAttribute('aria-label') || '';
+            }
+            if (langCode === 'en') {
+                ariaEl.setAttribute('aria-label', ariaEl.dataset.i18nAriaOriginal);
+            } else if (DICT[ariaKey] && DICT[ariaKey][langCode]) {
+                ariaEl.setAttribute('aria-label', DICT[ariaKey][langCode]);
+            }
+        }
+
+        // 2.7 Translate data-i18n-html elements (P1-F3 FIX: full-sentence HTML translation)
+        // For elements that contain inline HTML like links, where textContent would strip tags.
+        var htmlEls = document.querySelectorAll('[data-i18n-html]');
+        for (var h = 0; h < htmlEls.length; h++) {
+            var htmlEl = htmlEls[h];
+            var htmlKey = htmlEl.getAttribute('data-i18n-html');
+            if (!htmlEl.dataset.i18nHtmlOriginal) {
+                htmlEl.dataset.i18nHtmlOriginal = htmlEl.innerHTML;
+            }
+            if (langCode === 'en') {
+                htmlEl.innerHTML = htmlEl.dataset.i18nHtmlOriginal;
+            } else if (DICT[htmlKey] && DICT[htmlKey][langCode]) {
+                htmlEl.innerHTML = DICT[htmlKey][langCode];
             }
         }
 

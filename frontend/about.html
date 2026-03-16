@@ -5,18 +5,27 @@
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>نعمّرها — من نحن | About Us</title>
   <meta name="description" content="نعمّرها — منصة تقنية غير ربحية لإعادة إعمار سوريا بشفافية جذرية. اكتشف قصتنا ومنهجيتنا وفريقنا." />
 
-  <!-- Fonts: IBM Plex Sans Arabic (local) + Inter (Latin) -->
+  <!-- Fonts: IBM Plex Sans Arabic + Plus Jakarta Sans (self-hosted, zero-CDN) -->
+  <!-- P0-002 FIX: Replaced Google Fonts CDN (fonts.googleapis.com) with self-hosted -->
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/fonts/plus-jakarta-sans.css" />
   <!-- Phosphor Icons -->
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <!-- GSAP + ScrollTrigger -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <!-- GSAP + ScrollTrigger (self-hosted, zero-CDN) -->
+  <!-- P0-002 FIX: Replaced cdnjs.cloudflare.com CDN with self-hosted copies -->
+  <script src="/vendor/gsap/gsap.min.js" defer></script>
+  <script src="/vendor/gsap/ScrollTrigger.min.js" defer></script>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 
   <style>
     /* ═══════════════════════════════════════════════════════════════════════
@@ -473,7 +482,7 @@
     .scroll-hint {
       position: absolute;
       bottom: 32px;
-      left: 50%;
+      inset-inline-start: 50%;
       transform: translateX(-50%);
       z-index: 2;
       display: flex;
@@ -558,7 +567,7 @@
       bottom: 0;
       width: 3px;
       border-radius: 2px;
-      right: 20px;
+      inset-inline-end: 20px;
     }
     .timeline-track-bg {
       position: absolute;
@@ -578,12 +587,14 @@
     .timeline-item {
       position: relative;
       padding: 0 60px 80px 0;
+      padding-inline-end: 60px;
+      padding-inline-start: 0;
     }
     .timeline-item:last-child { padding-bottom: 0; }
 
     .timeline-dot {
       position: absolute;
-      right: 8px;
+      inset-inline-end: 8px;
       top: 8px;
       width: 28px; height: 28px;
       border-radius: 50%;
@@ -966,9 +977,9 @@
        ═══════════════════════════════════════════════════════════════════════ */
     @media (max-width: 640px) {
       .hero { padding: 100px 16px 60px; }
-      .timeline-track { right: 14px; }
-      .timeline-item { padding-right: 48px; }
-      .timeline-dot { right: 2px; width: 24px; height: 24px; font-size: 10px; }
+      .timeline-track { inset-inline-end: 14px; }
+      .timeline-item { padding-inline-end: 48px; }
+      .timeline-dot { inset-inline-end: 2px; width: 24px; height: 24px; font-size: 10px; }
       .leaders-grid { grid-template-columns: 1fr; }
     }
 
@@ -983,6 +994,8 @@
   </style>
 </head>
 <body>
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 
   <!-- ═══ TOP NAV ═══════════════════════════════════════════════════════════ -->
   <nav class="top-nav" id="topNav">
@@ -1004,7 +1017,7 @@
   </nav>
 
   <!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
-  <section class="hero" id="hero">
+  <section class="hero" id="hero" tabindex="-1"><a id="main-content"></a>
     <!-- Ambient orbs -->
     <div class="orb" style="width:400px;height:400px;top:-100px;right:-100px;background:rgba(26,115,232,0.06);"></div>
     <div class="orb" style="width:350px;height:350px;bottom:-50px;left:-80px;background:rgba(16,145,115,0.05);"></div>
@@ -1171,7 +1184,7 @@
             <i class="ph ph-shield-check"></i>
           </div>
           <h3>الشفافية كخدمة</h3>
-          <p>بنيتنا التقنية شفافة بالتصميم، متوافقة مع معيار OCDS. تدقيق فوري لكل عقد وتدفق مالي منذ اليوم الأول.</p>
+          <p>بنيتنا التقنية بالتصميم، متوافقة مع معيار OCDS. تدقيق فوري لكل عقد وتدفق مالي منذ اليوم الأول.</p>
         </div>
 
         <!-- Hybrid Model -->

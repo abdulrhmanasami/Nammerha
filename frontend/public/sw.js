@@ -8,7 +8,7 @@
 //   4. Never Cache                — /api/auth/*, /api/csrf-token
 // ============================================================================
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const SHELL_CACHE  = `nammerha-shell-${CACHE_VERSION}`;
 const API_CACHE    = `nammerha-api-${CACHE_VERSION}`;
 const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;
@@ -17,13 +17,48 @@ const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;
 const API_NETWORK_TIMEOUT_MS = 3000;
 
 // ─── App Shell: Pre-cached on install ───────────────────────────────────────
+// P0-002 FIX (v2): Reconciled with actual filesystem. Previous version listed
+// ghost pages (supplier-portal, engineer-portal, compliance-portal, refund.html)
+// that don't exist — cache.addAll() Promise.all rejected, killing the entire SW.
+// RULE: Every entry MUST correspond to an actual file in the build output.
 const SHELL_ASSETS = [
     '/',
     '/index.html',
     '/auth.html',
+    '/about.html',
+    '/profile.html',
+    '/wallet.html',
+    '/project-details.html',
+    '/contact.html',
+    '/pricing.html',
+    '/reset-password.html',
+    '/verify-email.html',
+    '/donor-basket.html',
+    '/donor-portal.html',
+    '/donor-proof.html',
+    '/homeowner-portal.html',
+    '/homeowner-report.html',
+    '/contractor-portal.html',
+    '/contractor-dashboard.html',
+    '/tradesperson-portal.html',
+    '/supplier-dashboard.html',
+    '/engineer-boq.html',
+    '/engineer-camera.html',
+    '/compliance-dashboard.html',
+    '/admin-dashboard.html',
+    '/admin-escrow.html',
+    '/admin-oracle.html',
+    '/admin-kyc.html',
+    '/admin-revenue.html',
+    '/admin-fintech.html',
+    '/privacy.html',
+    '/terms.html',
+    '/refund-policy.html',
     '/nav.js',
     '/i18n.js',
     '/i18n.css',
+    '/fonts/phosphor/phosphor.css',
+    '/theme-boot.js',
 ];
 
 // Paths that must NEVER be cached (authentication, security tokens)

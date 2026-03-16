@@ -5,13 +5,21 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Report Damage</title>
   <meta name="description" content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-report.ts"></script>
-<link href="/i18n.css?v=5" rel="stylesheet"/>
+<link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 <div class="mobile-container flex flex-col min-h-screen">
 
   <!-- ═══════════════════════════════════════════════════════════════════════
@@ -19,7 +27,7 @@
        ═══════════════════════════════════════════════════════════════════════ -->
   <header class="p-6 pb-2">
     <div class="flex items-center justify-between mb-4">
-      <button id="back-btn" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back">
+      <button id="back-btn" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </button>
       <div class="flex-1 flex flex-col items-center">
@@ -35,14 +43,14 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 1 — What kind of damage? (One question per screen)
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
+  <main id="main-content" id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
     <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="what_kind_of_damage">What kind of damage<br>needs repair?
     </h1>
     <p class="text-slate-500 text-sm text-center mb-8" data-i18n="select_the_type_that_best_describes_your">Select the type that best describes your situation</p>
 
     <div class="space-y-3" id="damage-type-list">
       <!-- Structural -->
-      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="structural">
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="structural">
         <div class="size-14 rounded-xl bg-trust-blue/10 flex items-center justify-center text-trust-blue shrink-0">
           <i class="ph ph-house-line" style="font-size:32px" aria-hidden="true"></i>
         </div>
@@ -56,7 +64,7 @@
       </button>
 
       <!-- Plumbing -->
-      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="plumbing">
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="plumbing">
         <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
           <i class="ph ph-drop" style="font-size:32px" aria-hidden="true"></i>
         </div>
@@ -70,7 +78,7 @@
       </button>
 
       <!-- Electrical -->
-      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="electrical">
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="electrical">
         <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
           <i class="ph ph-plug" style="font-size:32px" aria-hidden="true"></i>
         </div>
@@ -84,7 +92,7 @@
       </button>
 
       <!-- General / Other -->
-      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-left transition-all active:scale-[0.97]" data-type="general">
+      <button class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="general">
         <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
           <i class="ph ph-wrench" style="font-size:32px" aria-hidden="true"></i>
         </div>
@@ -102,7 +110,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 2 — Where is your property? (Location)
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
+  <main id="main-content" id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
     <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="where_is_your">Where is your<br>property located?
     </h1>
     <p class="text-slate-500 text-sm text-center mb-8" data-i18n="we_need_this_to_connect_you_with_nearby">We need this to connect you with nearby engineers</p>
@@ -127,7 +135,7 @@
         <option value="suwayda">السويداء</option>
         <option value="quneitra">القنيطرة</option>
       </select>
-      <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+      <div class="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
         <i class="ph ph-caret-down" aria-hidden="true"></i>
       </div>
     </div>
@@ -157,7 +165,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 3 — Describe the damage + Upload photos
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
+  <main id="main-content" id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
     <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="describe_the_damage">Describe the damage</h1>
     <p class="text-slate-500 text-sm text-center mb-6" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
 
@@ -192,7 +200,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 4 — Confirmation / Success
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
+  <main id="main-content" id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
     <div class="text-center">
       <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
         <i class="ph ph-check-circle text-smoky-jade" style="font-size:56px" aria-hidden="true"></i>
@@ -200,7 +208,7 @@
       <h1 class="text-[28px] font-bold leading-tight text-slate-900 mb-3" data-i18n="request_submitted">Request Submitted!</h1>
       <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6" data-i18n="your_damage_report_has_been_registered">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-left">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-start">
         <p class="text-[10px] font-bold uppercase tracking-widest text-trust-blue mb-2" data-i18n="request_summary">Request Summary</p>
         <div class="space-y-2 text-sm">
           <div class="flex justify-between"><span class="text-slate-500" data-i18n="type">Type:</span><span class="font-bold" id="summary-type">—</span></div>

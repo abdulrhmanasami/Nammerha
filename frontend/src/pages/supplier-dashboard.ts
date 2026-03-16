@@ -5,6 +5,8 @@ import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { supplier } from '../api';
 import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
+import { createHashRouter } from '../utils/hash-router';
+import { initSwipeTabs } from '../utils/swipe-tabs';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine
@@ -66,33 +68,56 @@ function initTimestamp(): void {
     setInterval(update, 1000);
 }
 
+// P1-003 FIX: Hash-based tab routing
+const SUPPLIER_TABS = ['orders', 'catalog'] as const;
+type SupplierTab = typeof SUPPLIER_TABS[number];
+const supplierHashRouter = createHashRouter(SUPPLIER_TABS, 'orders');
+
 // ─── Tab Switching ──────────────────────────────────────────────────────────
 function setupTabs(): void {
+    const tabOrders = document.getElementById('tab-orders');
+    const tabCatalog = document.getElementById('tab-catalog');
+
+    tabOrders?.addEventListener('click', () => switchSupplierTab('orders'));
+    tabCatalog?.addEventListener('click', () => switchSupplierTab('catalog'));
+
+    // P1-003 FIX: Activate from URL hash
+    const initial = supplierHashRouter.getInitialTab();
+    switchSupplierTab(initial);
+    supplierHashRouter.onHashChange(switchSupplierTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+        containerSelector: '.dashboard-main',
+        tabs: SUPPLIER_TABS as unknown as readonly string[],
+        onSwitch: switchSupplierTab as (tab: string) => void,
+        getCurrentTab: () => supplierHashRouter.getInitialTab(),
+    });
+}
+
+function switchSupplierTab(tab: SupplierTab): void {
+    supplierHashRouter.setActiveTab(tab);
     const tabOrders = document.getElementById('tab-orders');
     const tabCatalog = document.getElementById('tab-catalog');
     const sectionOrders = document.getElementById('section-orders');
     const sectionCatalog = document.getElementById('section-catalog');
 
-    tabOrders?.addEventListener('click', () => {
-
-        tabOrders.classList.add('bg-trust-blue/10', 'text-trust-blue');
-        tabOrders.classList.remove('text-slate-600');
+    if (tab === 'orders') {
+        tabOrders?.classList.add('bg-trust-blue/10', 'text-trust-blue');
+        tabOrders?.classList.remove('text-slate-600');
         tabCatalog?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog?.classList.add('text-slate-600');
         if (sectionOrders) { sectionOrders.style.display = ''; }
         if (sectionCatalog) { sectionCatalog.style.display = 'none'; }
-    });
-
-    tabCatalog?.addEventListener('click', () => {
-
-        tabCatalog.classList.add('bg-trust-blue/10', 'text-trust-blue');
-        tabCatalog.classList.remove('text-slate-600');
+    } else {
+        tabCatalog?.classList.add('bg-trust-blue/10', 'text-trust-blue');
+        tabCatalog?.classList.remove('text-slate-600');
         tabOrders?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabOrders?.classList.add('text-slate-600');
         if (sectionCatalog) { sectionCatalog.style.display = ''; }
         if (sectionOrders) { sectionOrders.style.display = 'none'; }
         loadCatalog();
-    });
+    }
 }
 
 // ─── Load KPIs ──────────────────────────────────────────────────────────────

@@ -5,13 +5,21 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Project Details</title>
   <meta name="description" content="Itemized project BOQ with funding progress and donation buttons." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/project-details.ts"></script>
-<link href="/i18n.css?v=5" rel="stylesheet"/>
+<link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 
   <!-- Header -->
   <header class="glass-nav sticky top-0 z-50 border-b border-slate-200">
@@ -21,7 +29,7 @@
       </a>
       <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center" data-i18n="project_details">Project Details</h2>
       <div class="flex items-center gap-1">
-        <a href="donor-basket.html" id="header-cart-btn" class="relative flex size-10 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Construction basket">
+        <a href="donor-basket.html" id="header-cart-btn" class="relative flex size-10 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart" aria-hidden="true"></i>
           <span class="cart-badge" id="header-cart-badge" style="display:none">0</span>
         </a>
@@ -32,7 +40,7 @@
     </div>
   </header>
 
-  <main class="max-w-md mx-auto pb-32">
+  <main id="main-content" class="max-w-md mx-auto pb-32">
     <!-- Hero -->
     <div class="p-4">
       <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-warm-earth/30 to-slate-300">
@@ -40,7 +48,7 @@
           <i class="ph ph-hard-hat text-warm-earth/40" style="font-size:72px" aria-hidden="true"></i>
         </div>
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        <div class="absolute bottom-4 left-4 right-4">
+        <div class="absolute bottom-4 start-4 end-4">
           <span class="bg-trust-blue text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider mb-2 inline-block" data-i18n="in_progress">In Progress</span>
           <h1 class="text-white text-xl font-bold" data-i18n="harbor_view_reconstruction">Harbor View Reconstruction</h1>
           <p class="text-white/80 text-sm flex items-center gap-1">
@@ -235,7 +243,7 @@
   </main>
 
   <!-- Sticky Trust Banner (Escrow) -->
-  <div class="fixed bottom-20 left-4 right-4 z-40 max-w-md mx-auto">
+  <div class="fixed bottom-20 start-4 end-4 z-40 max-w-md mx-auto">
     <div class="bg-slate-900 text-white p-3 rounded-xl shadow-2xl flex items-center gap-3 border border-white/10">
       <div class="bg-trust-blue p-2 rounded-lg shrink-0">
         <i class="ph ph-shield-check text-white" aria-hidden="true"></i>

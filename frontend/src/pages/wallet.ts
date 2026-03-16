@@ -5,6 +5,8 @@ import { escapeHtml } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
+import { initOfflineIndicator } from '../utils/offline-indicator';
+import { guardSkeleton } from '../utils/skeleton-guard';
 
 // ============================================================================
 // Nammerha — Wallet Page Engine
@@ -126,8 +128,40 @@ async function loadTransactions(): Promise<void> {
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
+    // P2-MOB-002 FIX: Show offline indicator when device loses connectivity
+    initOfflineIndicator();
+
+    // P3-UX-004 FIX: Guard skeleton loaders with timeout fallback
+    const cancelSkeletonGuard = guardSkeleton({
+        container: 'transaction-list',
+        timeoutMs: 15000,
+        onRetry: () => {
+            cancelSkeletonGuard(); // Reset the guard
+            loadTransactions();
+        },
+    });
+
     loadEscrowSummary();
     loadTransactions();
+
+    // P1-F4 FIX: Wire wallet history button to scroll to transaction section.
+    // Previous: dead button with no handler, no id.
+    document.getElementById('scroll-to-history')?.addEventListener('click', () => {
+        const section = document.getElementById('transaction-list');
+        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // P1-MOB-001 FIX: Back button handler (replaced inline onclick for CSP safety)
+    const backBtn = document.querySelector<HTMLAnchorElement>('[data-back-btn]');
+    if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+            if (history.length > 1) {
+                e.preventDefault();
+                history.back();
+            }
+            // else: falls through to <a href="index.html"> naturally
+        });
+    }
 }
 
 if (document.readyState === 'loading') {

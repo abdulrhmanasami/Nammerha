@@ -5,22 +5,31 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Construction Basket</title>
   <meta name="description" content="Your itemized construction basket — fund specific materials for verified reconstruction projects." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/donor-basket.ts"></script>
-<link href="/i18n.css?v=5" rel="stylesheet"/>
+<link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
-  <div class="mobile-container flex flex-col relative pb-48">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
+  <div id="main-content" class="mobile-container flex flex-col relative pb-48">
 
     <!-- Header -->
     <header class="glass-nav sticky top-0 z-50 px-6 py-5 flex items-center justify-between border-b border-slate-200">
-      <a href="project-details.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50">
+      <!-- P2-003 FIX: history.back() with fallback -->
+      <a href="project-details.html" onclick="if(history.length>1){history.back();return false;}" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h1 class="text-xl font-bold" data-i18n="construction_basket">Construction Basket</h1>
-      <button id="clear-cart-btn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 text-slate-400" aria-label="Clear cart">
+      <button id="clear-cart-btn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 text-slate-400" aria-label="Clear cart" data-i18n-aria="aria_clear_cart">
         <i class="ph ph-trash" aria-hidden="true"></i>
       </button>
     </header>
@@ -32,10 +41,10 @@
           <i class="ph ph-hard-hat text-warm-earth/60" style="font-size:28px" aria-hidden="true"></i>
         </div>
         <div>
-          <h2 class="font-bold text-slate-800">Harbor View Reconstruction</h2>
-          <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+          <h2 id="basket-project-name" class="font-bold text-slate-800" data-i18n="loading">Loading...</h2>
+          <p id="basket-project-location" class="text-xs text-slate-500 mt-1 flex items-center gap-1">
             <i class="ph ph-map-pin ph-sm" aria-hidden="true"></i>
-            Aleppo, Syria
+            <span data-i18n="loading">Loading...</span>
           </p>
         </div>
       </div>
@@ -51,7 +60,7 @@
 
     <!-- Cart Items Container (dynamically rendered) -->
     <div class="px-6 flex flex-col gap-4" id="cart-items-container">
-      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest ml-1" data-i18n="materials_to_fund">Materials to Fund</h3>
+      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest ms-1" data-i18n="materials_to_fund">Materials to Fund</h3>
       <!-- Items rendered by JS -->
     </div>
 
@@ -81,7 +90,8 @@
     </div>
 
     <!-- Bottom Checkout Sheet -->
-    <div class="glass-sheet fixed bottom-0 left-0 right-0 max-w-[448px] mx-auto p-6 pb-8 z-50" id="checkout-sheet">
+    <!-- P2-002 FIX: z-[10000] ensures checkout sheet sits ABOVE nav.js bottom nav (z-9999) -->
+    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-[10000]" id="checkout-sheet">
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-slate-400 text-sm" data-i18n="total_funding_amount">Total Funding Amount</span>
@@ -114,7 +124,7 @@
             <span class="text-slate-400 text-sm font-bold">$</span>
             <input type="number" id="tip-custom-input" min="0" step="0.01" placeholder="0.00"
               class="bg-transparent text-slate-900 text-sm font-semibold w-full outline-none"
-              aria-label="Custom support amount" />
+              aria-label="Custom support amount" data-i18n-aria="aria_custom_amount" />
           </div>
         </div>
         <div class="flex items-center justify-between text-xs">

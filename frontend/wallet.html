@@ -5,23 +5,32 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Wallet</title>
   <meta name="description" content="View your escrow balances, donation history, and payment transactions." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/wallet.ts"></script>
-  <link href="/i18n.css?v=5" rel="stylesheet"/>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
-<div class="mobile-container min-h-screen flex flex-col pb-28">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
+<main id="main-content" class="mobile-container min-h-screen flex flex-col pb-28">
 
   <!-- Header -->
   <header class="glass-nav sticky top-0 z-50">
     <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
-      <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
+      <!-- P1-MOB-001 FIX: Removed inline onclick — wired in wallet.ts via data-back-btn -->
+      <a href="index.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left text-slate-700" aria-hidden="true"></i>
       </a>
       <h1 class="text-lg font-bold tracking-tight" data-i18n="wallet_title">Wallet</h1>
-      <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
+      <button id="scroll-to-history" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Transaction history" data-i18n-aria="aria_transaction_history">
         <i class="ph ph-clock-counter-clockwise text-slate-700" aria-hidden="true"></i>
       </button>
     </div>
@@ -44,7 +53,7 @@
           <span id="released-count" data-i18n="released_items">0 released</span>
         </div>
       </div>
-      <div class="absolute -right-6 -bottom-6 size-24 bg-white/10 rounded-full blur-2xl"></div>
+      <div class="absolute -end-6 -bottom-6 size-24 bg-white/10 rounded-full blur-2xl"></div>
     </div>
   </section>
 
@@ -63,7 +72,7 @@
         </div>
         <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider" data-i18n="receipts">Receipts</span>
       </a>
-      <a href="index.html" class="glass-card flex flex-col items-center gap-2 p-4 rounded-xl text-center hover:shadow-md transition-shadow">
+      <a href="donor-portal.html" class="glass-card flex flex-col items-center gap-2 p-4 rounded-xl text-center hover:shadow-md transition-shadow">
         <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center">
           <i class="ph ph-chart-pie text-warm-earth" aria-hidden="true"></i>
         </div>
@@ -96,7 +105,11 @@
     </div>
   </section>
 
-</div>
+  <!-- P2-UX-001 FIX: Decorative Gradient Orbs — visual consistency with homepage -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+</main>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/nav.js?v=7" defer></script>

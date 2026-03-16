@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { renderTableErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { auth as authApi } from '../api';
 import { phaseColor, bidColor } from '../utils/status-colors';
@@ -9,6 +10,8 @@ import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
+import { createHashRouter } from '../utils/hash-router';
+import { initSwipeTabs } from '../utils/swipe-tabs';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -51,11 +54,24 @@ type TabName = 'dashboard' | 'marketplace' | 'bids' | 'payments';
 // PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
 const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
 
+// P1-003 FIX: Hash-based tab routing
+const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
+
 // ─── DOM Init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
-    loadStats();
-    loadProjects();
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+        containerSelector: '.dashboard-main',
+        tabs: ALL_TABS as unknown as readonly string[],
+        onSwitch: switchTab as (tab: string) => void,
+        getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+
 
     // ─── Secure Logout ──────────────────────────────────────────────────
     document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
@@ -79,6 +95,8 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P1-003 FIX: Sync tab to URL hash
+    hashRouter.setActiveTab(tab);
     // Update sidebar
     // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
     // shadowing the imported i18n `t()` function (line 8).
@@ -102,6 +120,7 @@ function switchTab(tab: TabName): void {
     }
 
     // Load data for tab
+    if (tab === 'dashboard') { loadStats(); loadProjects(); }
     if (tab === 'marketplace') { loadMarketplace(); }
     if (tab === 'bids') { loadBids(); }
     if (tab === 'payments') { loadPayments(); }
@@ -143,7 +162,7 @@ async function loadProjects(): Promise<void> {
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span></td>
@@ -159,7 +178,7 @@ async function loadProjects(): Promise<void> {
             </tr>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadProjects, 5);
     }
 }
 
@@ -182,7 +201,7 @@ async function loadMarketplace(): Promise<void> {
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.damage_type)}</td>
@@ -206,7 +225,7 @@ async function loadMarketplace(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadMarketplace, 7);
     }
 }
 
@@ -228,7 +247,7 @@ async function loadBids(): Promise<void> {
         }
 
         tbody.innerHTML = bids.map((b) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(b.project_title)}</td>
                 <td class="px-5 py-3 font-mono text-sm">${formatCents(b.proposed_cost)}</td>
                 <td class="px-5 py-3">${esc(String(b.estimated_days))}d</td>
@@ -237,7 +256,7 @@ async function loadBids(): Promise<void> {
             </tr>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadBids, 5);
     }
 }
 
@@ -259,7 +278,7 @@ async function loadPayments(): Promise<void> {
         }
 
         tbody.innerHTML = payments.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.project_title)}</td>
                 <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(p.amount)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${p.transaction_type === 'release' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${esc(p.transaction_type)}</span></td>
@@ -267,7 +286,7 @@ async function loadPayments(): Promise<void> {
             </tr>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadPayments, 4);
     }
 }
 
@@ -303,18 +322,48 @@ function openBidModal(projectId: string): void {
     `;
     document.body.appendChild(modal);
 
+    // P0-A11Y-001 FIX: Focus trap (WCAG 2.4.3) — trap Tab within modal
+    const triggerEl = document.activeElement as HTMLElement | null;
+    const focusableSelector = 'input, textarea, button, [tabindex]:not([tabindex="-1"])';
+    function getFocusableEls(): HTMLElement[] {
+        return Array.from(modal.querySelectorAll<HTMLElement>(focusableSelector));
+    }
+    // Auto-focus first input
+    const firstInput = modal.querySelector<HTMLElement>('input, textarea');
+    firstInput?.focus();
+
+    function trapFocus(e: KeyboardEvent): void {
+        if (e.key !== 'Tab') { return; }
+        const focusable = getFocusableEls();
+        if (focusable.length === 0) { return; }
+        const first = focusable[0]!;
+        const last = focusable[focusable.length - 1]!;
+        if (e.shiftKey) {
+            if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+        } else {
+            if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+    }
+    modal.addEventListener('keydown', trapFocus);
+
+    function closeModal(): void {
+        modal.remove();
+        document.removeEventListener('keydown', onEscape);
+        triggerEl?.focus(); // Restore focus to trigger element
+    }
+
     // P2-AUD-NEW-001: Escape key closes modal
     const onEscape = (e: KeyboardEvent): void => {
-        if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', onEscape); }
+        if (e.key === 'Escape') { closeModal(); }
     };
     document.addEventListener('keydown', onEscape);
 
     // P2-AUD-NEW-002: Backdrop click closes modal
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) { modal.remove(); document.removeEventListener('keydown', onEscape); }
+        if (e.target === modal) { closeModal(); }
     });
 
-    document.getElementById('bid-cancel')?.addEventListener('click', () => { modal.remove(); document.removeEventListener('keydown', onEscape); });
+    document.getElementById('bid-cancel')?.addEventListener('click', () => { closeModal(); });
 
     document.getElementById('bid-submit')?.addEventListener('click', async () => {
         const cost = parseInt((document.getElementById('bid-cost') as HTMLInputElement).value, 10);

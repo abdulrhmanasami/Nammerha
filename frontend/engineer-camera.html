@@ -5,6 +5,12 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Field Engineer | Site Verification</title>
   <meta name="description" content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
@@ -12,10 +18,12 @@
   <style>
     html.dark body { background-color: #242424 !important; color: #f1f5f9; }
   </style>
-<link href="/i18n.css?v=5" rel="stylesheet"/>
+<link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="font-display min-h-screen flex flex-col antialiased select-none">
-<div class="mobile-container min-h-screen flex flex-col">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
+<div id="main-content" class="mobile-container min-h-screen flex flex-col">
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        TELEMETRY HEADER — GPS Coordinates + Project ID + Live Status
@@ -23,7 +31,7 @@
   <header class="sticky top-0 z-20 bg-[#1a1a1a]/95 backdrop-blur-md border-b border-white/5">
     <!-- Top Row: Navigation + Title + Menu -->
     <div class="flex items-center justify-between px-4 py-3">
-      <a href="engineer-boq.html" class="size-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition-colors" aria-label="Back">
+      <a href="engineer-boq.html" class="size-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition-colors" aria-label="Back" data-i18n-aria="aria_back">
         <i class="ph ph-arrow-left text-slate-300" aria-hidden="true"></i>
       </a>
       <div class="flex items-center gap-2">
@@ -46,7 +54,7 @@
         <p class="text-slate-500 text-[9px] mt-0.5" id="gps-accuracy">Accuracy: ±3.2m</p>
       </div>
       <!-- Project ID -->
-      <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-right">
+      <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-end">
         <p class="text-[9px] text-warning-yellow font-bold uppercase tracking-widest mb-0.5 flex items-center justify-end gap-1">
           <i class="ph ph-hash ph-xs" aria-hidden="true"></i> Project
         </p>

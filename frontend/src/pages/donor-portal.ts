@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { auth as authApi } from '../api';
 import { statusColor, escrowColor } from '../utils/status-colors';
@@ -9,6 +10,8 @@ import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
+import { createHashRouter } from '../utils/hash-router';
+import { initSwipeTabs } from '../utils/swipe-tabs';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
@@ -22,11 +25,24 @@ type TabName = 'dashboard' | 'marketplace' | 'donations' | 'impact' | 'proofs';
 // PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
 const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'donations', 'impact', 'proofs'];
 
+// P1-003 FIX: Hash-based tab routing
+const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
+
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
-    loadStats();
-    loadFundedProjects();
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+        containerSelector: '.dashboard-main',
+        tabs: ALL_TABS as unknown as readonly string[],
+        onSwitch: switchTab as (tab: string) => void,
+        getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+
 
     // ─── Secure Logout ──────────────────────────────────────────────────
     document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
@@ -49,6 +65,8 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P1-003 FIX: Sync tab to URL hash
+    hashRouter.setActiveTab(tab);
     // P2-AUD-002 FIX: Renamed loop variable from `t` to `tabId` to prevent
     // shadowing the imported i18n `t()` function (line 8).
     for (const tabId of ALL_TABS) {
@@ -62,6 +80,7 @@ function switchTab(tab: TabName): void {
         if (section) { section.style.display = tabId === tab ? '' : 'none'; }
     }
 
+    if (tab === 'dashboard') { loadStats(); loadFundedProjects(); }
     if (tab === 'marketplace') { loadMarketplace(); }
     if (tab === 'donations') { loadDonations(); }
     if (tab === 'impact') { loadImpact(); }
@@ -106,7 +125,7 @@ async function loadFundedProjects(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -131,7 +150,7 @@ async function loadFundedProjects(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
+        renderErrorWithRetry(container, loadFundedProjects);
     }
 }
 
@@ -152,7 +171,7 @@ async function loadMarketplace(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <h4 class="font-medium">${esc(p.title)}</h4>
@@ -178,7 +197,7 @@ async function loadMarketplace(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
+        renderErrorWithRetry(container, loadMarketplace);
     }
 }
 
@@ -199,7 +218,7 @@ async function loadDonations(): Promise<void> {
         }
 
         tbody.innerHTML = donations.map((d) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(d.material_name)}</td>
                 <td class="px-5 py-3 text-xs">${esc(d.project_title)}</td>
                 <td class="px-5 py-3 font-mono font-bold text-emerald-600">${formatCents(d.amount_locked)}</td>
@@ -208,7 +227,7 @@ async function loadDonations(): Promise<void> {
             </tr>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadDonations, 5);
     }
 }
 
@@ -229,7 +248,7 @@ async function loadImpact(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-center gap-4">
                     <div class="size-12 rounded-lg flex items-center justify-center ${p.status === 'completed' ? 'bg-green-100' : 'bg-emerald-100'}">
                         <i class="ph ${p.status === 'completed' ? 'ph-check-circle text-green-600' : 'ph-buildings text-emerald-600'}" style="font-size:20px" aria-hidden="true"></i>
@@ -249,7 +268,7 @@ async function loadImpact(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
+        renderErrorWithRetry(container, loadImpact);
     }
 }
 
@@ -293,7 +312,7 @@ async function loadProofs(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<div class="col-span-full p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
+        renderErrorWithRetry(container, loadProofs);
     }
 }
 

@@ -96,13 +96,25 @@
         'supplier-dashboard.html': 'projects',
     };
 
-    // Pages where the bottom nav should be hidden entirely (auth flows)
-    var HIDE_NAV_PAGES = ['auth.html', 'reset-password.html', 'verify-email.html'];
+    // Pages where the bottom nav should be hidden entirely:
+    // - Auth flows (no nav needed)
+    // - Dashboard/portal pages (have their own sidebar navigation — C-002 FIX)
+    var HIDE_NAV_PAGES = [
+        // Auth flows
+        'auth.html', 'reset-password.html', 'verify-email.html',
+        // Dashboard pages with sidebar nav (C-002: suppress dual-navigation)
+        'admin-dashboard.html', 'admin-escrow.html', 'admin-kyc.html',
+        'admin-oracle.html', 'admin-revenue.html', 'admin-fintech.html',
+        'compliance-dashboard.html', 'contractor-dashboard.html',
+        'supplier-dashboard.html', 'homeowner-portal.html',
+        'donor-portal.html', 'contractor-portal.html',
+        'tradesperson-portal.html',
+    ];
 
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────
     var TABS = [
         { id: 'home', label: 'Home', i18n: 'nav_home', icon: 'ph-house', href: '/index.html' },
-        { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/index.html' },
+        { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/project-details.html' },
         { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-bar', href: '/donor-basket.html' },
         { id: 'wallet', label: 'Wallet', i18n: 'nav_wallet', icon: 'ph-wallet', href: '/wallet.html' },
         { id: 'profile', label: 'Profile', i18n: 'nav_profile', icon: 'ph-user', href: '/profile.html' },
@@ -114,6 +126,9 @@
         for (var i = 0; i < HIDE_NAV_PAGES.length; i++) {
             if (path.indexOf(HIDE_NAV_PAGES[i]) !== -1) return true;
         }
+        // C-002 FALLBACK: Dynamic detection for any future dashboard pages.
+        // If a page has a .dashboard-sidebar, it has its own nav — don't inject bottom nav.
+        if (document.querySelector('.dashboard-sidebar')) return true;
         return false;
     }
 
@@ -134,16 +149,12 @@
         nav.id = 'nammerha-unified-nav';
         nav.setAttribute('aria-label', 'Main navigation');
         var isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
-        nav.style.cssText =
-            'position:fixed;bottom:0;left:0;right:0;z-index:9999;' +
-            'background:' + (isDark ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)') + ';backdrop-filter:blur(16px);' +
-            '-webkit-backdrop-filter:blur(16px);border-top:1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(226,232,240,0.6)') + ';';
+        // P1-001 FIX: CSS classes replace inline style.cssText
+        nav.className = 'nm-bottom-nav';
         nav.setAttribute('data-nav-theme', isDark ? 'dark' : 'light');
 
         var wrap = document.createElement('div');
-        wrap.style.cssText =
-            'display:flex;align-items:center;justify-content:space-around;' +
-            'padding:8px 16px;max-width:480px;margin:0 auto;';
+        wrap.className = 'nm-nav-wrap';
 
         for (var i = 0; i < TABS.length; i++) {
             var tab = TABS[i];
@@ -152,26 +163,20 @@
             var a = document.createElement('a');
             a.href = tab.href;
             a.setAttribute('aria-current', active ? 'page' : 'false');
-            a.style.cssText =
-                'display:flex;flex-direction:column;align-items:center;gap:2px;' +
-                'text-decoration:none;padding:4px 8px;min-width:54px;' +
-                'color:' + (active ? '#1A73E8' : (isDark ? '#94a3b8' : '#94a3b8')) + ';' +
-                'transition:color 0.2s;';
+            // P1-001 FIX: CSS class replaces inline style.cssText
+            a.className = 'nm-nav-item';
 
             // MOB-001 FIX: Use regular "ph" for ALL icons.
             // The "ph-fill" weight requires Phosphor-Fill.woff2 which is NOT shipped.
             // Active differentiation is via color (L72-73), not font weight.
             var icon = document.createElement('i');
-            icon.className = 'ph ' + tab.icon;
+            icon.className = 'ph ' + tab.icon + ' nm-nav-icon';
             icon.setAttribute('aria-hidden', 'true');
-            icon.style.fontSize = '22px';
 
             var lbl = document.createElement('span');
             lbl.textContent = tab.label;
             lbl.setAttribute('data-i18n', tab.i18n);
-            lbl.style.cssText =
-                'font-size:10px;letter-spacing:0.02em;' +
-                'font-weight:' + (active ? '700' : '500') + ';';
+            lbl.className = 'nm-nav-label';
 
             a.appendChild(icon);
             a.appendChild(lbl);
@@ -184,17 +189,14 @@
         var themeBtn = document.createElement('button');
         themeBtn.id = 'nm-global-theme-toggle';
         // P2-AUD-003 FIX: i18n-aware theme toggle title (was hardcoded Arabic)
-        themeBtn.title = isDark
+        var themeLabel = isDark
             ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
             : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-        themeBtn.style.cssText =
-            'position:absolute;top:-18px;inset-inline-end:16px;width:36px;height:36px;' +
-            'border-radius:50%;border:1px solid ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)') + ';' +
-            'background:' + (isDark ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)') + ';' +
-            'color:' + (isDark ? '#fbbf24' : '#6366f1') + ';font-size:16px;' +
-            'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
-            'box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:all 0.3s;' +
-            '-webkit-appearance:none;appearance:none;outline:none;padding:0;';
+        themeBtn.title = themeLabel;
+        // P1-I18N-003 FIX: aria-label for screen reader accessibility
+        themeBtn.setAttribute('aria-label', themeLabel);
+        // P1-001 FIX: CSS class replaces inline style.cssText
+        themeBtn.className = 'nm-theme-fab';
         var themeBtnIcon = document.createElement('i');
         themeBtnIcon.className = isDark ? 'ph ph-sun' : 'ph ph-moon';
         themeBtn.appendChild(themeBtnIcon);
@@ -202,27 +204,27 @@
 
         themeBtn.addEventListener('click', function() {
             document.documentElement.classList.add('nm-theme-transition');
-            var cur = document.documentElement.getAttribute('data-theme') || 'dark';
-            var next = cur === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            try { localStorage.setItem('nm-theme', next); } catch(e) {}
+            // P0-ARCH-004 FIX: Delegate to shared NammerhaTheme module (Single Source of Truth).
+            // Falls back to inline logic if theme-toggle.js hasn't loaded (graceful degradation).
+            var next;
+            if (window.NammerhaTheme && window.NammerhaTheme.toggle) {
+                next = window.NammerhaTheme.toggle();
+            } else {
+                var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+                next = cur === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                try { localStorage.setItem('nm-theme', next); } catch(e) {}
+            }
             themeBtnIcon.className = next === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
             // P2-AUD-003 FIX: i18n-aware theme toggle title
             themeBtn.title = next === 'dark'
                 ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
                 : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-            // Rebuild nav styling for new theme
-            var nd = next === 'dark';
-            nav.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)';
-            nav.style.borderTopColor = nd ? 'rgba(255,255,255,0.08)' : 'rgba(226,232,240,0.6)';
-            themeBtn.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)';
-            themeBtn.style.borderColor = nd ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
-            themeBtn.style.color = nd ? '#fbbf24' : '#6366f1';
-            // P3-NAV-002 FIX: Sync data-nav-theme attribute on toggle
+            // P1-001 FIX: Theme switching now only flips data-nav-theme — CSS handles the rest
             nav.setAttribute('data-nav-theme', next);
             // Also sync about page's toggle if present
             var aboutIcon = document.getElementById('themeIcon');
-            if (aboutIcon) aboutIcon.className = nd ? 'ph ph-sun' : 'ph ph-moon';
+            if (aboutIcon) aboutIcon.className = (next === 'dark') ? 'ph ph-sun' : 'ph ph-moon';
             setTimeout(function() {
                 document.documentElement.classList.remove('nm-theme-transition');
             }, 500);
@@ -241,11 +243,7 @@
                     document.documentElement.setAttribute('data-theme', next);
                     var nd = next === 'dark';
                     themeBtnIcon.className = nd ? 'ph ph-sun' : 'ph ph-moon';
-                    nav.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.92)';
-                    nav.style.borderTopColor = nd ? 'rgba(255,255,255,0.08)' : 'rgba(226,232,240,0.6)';
-                    themeBtn.style.background = nd ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)';
-                    themeBtn.style.borderColor = nd ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
-                    themeBtn.style.color = nd ? '#fbbf24' : '#6366f1';
+                    // P1-001 FIX: Only flip attribute — CSS handles theme colors
                     nav.setAttribute('data-nav-theme', next);
                 });
             }
@@ -253,7 +251,7 @@
 
         // Safe area for modern phones
         var safe = document.createElement('div');
-        safe.style.height = 'env(safe-area-inset-bottom, 16px)';
+        safe.className = 'nm-nav-safe-area';
         nav.appendChild(safe);
 
         return nav;
@@ -272,80 +270,6 @@
                 (cls.indexOf('sticky') !== -1 && cls.indexOf('bottom') !== -1);
             if (isBottomNav) n.remove();
         }
-    }
-
-    // ─── Responsive Sidebar Toggle (Dashboard Pages) ────────────────────
-    // RADICAL FIX: Uses Tailwind 'hidden' class toggle instead of CSS transform.
-    // Sidebar starts hidden on mobile (class="hidden md:flex" in HTML).
-    // Toggle button removes 'hidden' and adds 'flex' to show it as a fixed overlay.
-    function initSidebarToggle() {
-        var sidebar = document.querySelector('.dashboard-sidebar');
-        if (!sidebar) return;
-
-        var toggleBtn = document.querySelector('.sidebar-toggle');
-        var overlay = document.querySelector('.sidebar-overlay');
-        if (!toggleBtn && !overlay) return;
-
-        function openSidebar() {
-            sidebar.classList.remove('hidden');
-            sidebar.classList.add('flex');
-            // On mobile: position fixed, full height, above content
-            sidebar.style.position = 'fixed';
-            sidebar.style.top = '0';
-            sidebar.style.bottom = '0';
-            sidebar.style.insetInlineStart = '0'; // RTL-aware: left in LTR, right in RTL
-            sidebar.style.zIndex = '9998';
-            sidebar.style.width = '280px';
-            sidebar.style.transform = 'translateX(0)'; // Override CSS translateX(-100%/100%)
-            sidebar.style.boxShadow = '4px 0 24px rgba(0,0,0,0.15)';
-            if (overlay) overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeSidebar() {
-            // Only hide on mobile (< md breakpoint)
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('flex');
-                sidebar.style.position = '';
-                sidebar.style.top = '';
-                sidebar.style.bottom = '';
-                sidebar.style.insetInlineStart = '';
-                sidebar.style.zIndex = '';
-                sidebar.style.width = '';
-                sidebar.style.transform = '';
-                sidebar.style.boxShadow = '';
-            }
-            if (overlay) overlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function () {
-                var isHidden = sidebar.classList.contains('hidden');
-                if (isHidden) openSidebar();
-                else closeSidebar();
-            });
-        }
-
-        if (overlay) {
-            overlay.addEventListener('click', closeSidebar);
-        }
-
-        // Close sidebar on navigation link click (mobile)
-        var sidebarLinks = sidebar.querySelectorAll('a[href]');
-        for (var i = 0; i < sidebarLinks.length; i++) {
-            sidebarLinks[i].addEventListener('click', function () {
-                if (window.innerWidth < 768) closeSidebar();
-            });
-        }
-
-        // Close on escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !sidebar.classList.contains('hidden')) {
-                closeSidebar();
-            }
-        });
     }
 
     // ─── Mobile Search Toggle ─────────────────────────────────────────────
@@ -416,167 +340,12 @@
         });
     }
 
-    // ─── Global Theme CSS Injection ─────────────────────────────────────
-    // P1-DM-001 FIX: Comprehensive dark+light mode CSS that covers ALL
-    // dynamically-generated HTML elements (bg-white cards, banners, modals,
-    // tables, form inputs, text colors). This is the ROOT FIX for the
-    // systemic dark mode failure across 12+ pages.
-    function injectGlobalThemeCSS() {
-        if (document.getElementById('nm-global-theme-css')) return;
-        var style = document.createElement('style');
-        style.id = 'nm-global-theme-css';
-        style.textContent = [
-            /* ── Smooth Theme Transition ── */
-            'html.nm-theme-transition, html.nm-theme-transition *, html.nm-theme-transition *::before, html.nm-theme-transition *::after {',
-            '  transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;',
-            '}',
-
-            /* ══════════════════════════════════════════════════════════════ */
-            /* ── LIGHT MODE CSS VARIABLES & OVERRIDES ──────────────────── */
-            /* ══════════════════════════════════════════════════════════════ */
-            'html[data-theme="light"] {',
-            '  --bg-primary: #f5f7fa;',
-            '  --bg-secondary: #edf0f5;',
-            '  --bg-card: rgba(0,0,0,0.02);',
-            '  --surface-card: rgba(255,255,255,0.7);',
-            '  --text-primary: #1a202c;',
-            '  --text-secondary: rgba(26,32,44,0.65);',
-            '  --text-tertiary: rgba(26,32,44,0.4);',
-            '}',
-            'html[data-theme="light"] body {',
-            '  background-color: #f5f7fa;',
-            '  color: #1a202c;',
-            '}',
-            'html[data-theme="light"] .glass, html[data-theme="light"] [class*="card"] {',
-            '  background: rgba(255,255,255,0.7);',
-            '  border-color: rgba(0,0,0,0.08);',
-            '}',
-            'html[data-theme="light"] main {',
-            '  background-color: #f5f7fa;',
-            '  color: #1a202c;',
-            '}',
-            'html[data-theme="light"] .top-nav, html[data-theme="light"] header {',
-            '  background: rgba(245,247,250,0.9) !important;',
-            '  border-color: rgba(0,0,0,0.06) !important;',
-            '}',
-            'html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea {',
-            '  background: rgba(255,255,255,0.9);',
-            '  border-color: rgba(0,0,0,0.12);',
-            '  color: #1a202c;',
-            '}',
-
-            /* ══════════════════════════════════════════════════════════════ */
-            /* ── DARK MODE CSS VARIABLES & OVERRIDES ───────────────────── */
-            /* P1-DM-001: Covers ALL dynamically-generated bg-white cards, */
-            /* banners, modals, tables, and text colors across 12+ pages.  */
-            /* ══════════════════════════════════════════════════════════════ */
-            'html[data-theme="dark"] {',
-            '  --bg-primary: #0f1117;',
-            '  --bg-secondary: #1a1d27;',
-            '  --bg-card: rgba(255,255,255,0.04);',
-            '  --surface-card: rgba(30,34,46,0.85);',
-            '  --text-primary: #e2e8f0;',
-            '  --text-secondary: rgba(226,232,240,0.65);',
-            '  --text-tertiary: rgba(226,232,240,0.4);',
-            '}',
-
-            /* ── bg-white → Dark card surface ── */
-            'html[data-theme="dark"] .bg-white {',
-            '  background-color: rgba(30,34,46,0.85) !important;',
-            '  color: #e2e8f0;',
-            '}',
-
-            /* ── Hover states ── */
-            'html[data-theme="dark"] .hover\\:bg-slate-50:hover,',
-            'html[data-theme="dark"] .hover\\:bg-slate-50\\/50:hover {',
-            '  background-color: rgba(255,255,255,0.06) !important;',
-            '}',
-
-            /* ── Slate text → Lighter for dark backgrounds ── */
-            'html[data-theme="dark"] .text-slate-400 { color: rgba(226,232,240,0.5) !important; }',
-            'html[data-theme="dark"] .text-slate-500 { color: rgba(226,232,240,0.6) !important; }',
-            'html[data-theme="dark"] .text-slate-600 { color: rgba(226,232,240,0.7) !important; }',
-            'html[data-theme="dark"] .text-slate-700 { color: rgba(226,232,240,0.8) !important; }',
-            'html[data-theme="dark"] .text-slate-900 { color: #e2e8f0 !important; }',
-
-            /* ── Slate backgrounds → Dark equivalents ── */
-            'html[data-theme="dark"] .bg-slate-50 { background-color: rgba(255,255,255,0.05) !important; }',
-            'html[data-theme="dark"] .bg-slate-100 { background-color: rgba(255,255,255,0.06) !important; }',
-            'html[data-theme="dark"] .bg-slate-200 { background-color: rgba(255,255,255,0.08) !important; }',
-
-            /* ── Borders → Dark equivalents ── */
-            'html[data-theme="dark"] .border-slate-100 { border-color: rgba(255,255,255,0.08) !important; }',
-            'html[data-theme="dark"] .border-slate-200 { border-color: rgba(255,255,255,0.1) !important; }',
-            'html[data-theme="dark"] .border-slate-300 { border-color: rgba(255,255,255,0.12) !important; }',
-
-            /* ── P1-DM-003: Banner/Feedback dark mode ── */
-            /* Success banners */
-            'html[data-theme="dark"] .bg-emerald-50 { background-color: rgba(16,185,129,0.12) !important; }',
-            'html[data-theme="dark"] .bg-emerald-100 { background-color: rgba(16,185,129,0.15) !important; }',
-            'html[data-theme="dark"] .border-emerald-200 { border-color: rgba(16,185,129,0.25) !important; }',
-            'html[data-theme="dark"] .text-emerald-700 { color: #6ee7b7 !important; }',
-            /* Error banners */
-            'html[data-theme="dark"] .bg-red-50 { background-color: rgba(239,68,68,0.12) !important; }',
-            'html[data-theme="dark"] .border-red-200 { border-color: rgba(239,68,68,0.25) !important; }',
-            'html[data-theme="dark"] .text-red-700 { color: #fca5a5 !important; }',
-            'html[data-theme="dark"] .bg-red-500 { background-color: rgba(239,68,68,0.8) !important; }',
-            /* Warning banners */
-            'html[data-theme="dark"] .bg-amber-50 { background-color: rgba(245,158,11,0.12) !important; }',
-            'html[data-theme="dark"] .border-amber-200 { border-color: rgba(245,158,11,0.25) !important; }',
-            'html[data-theme="dark"] .text-amber-700 { color: #fcd34d !important; }',
-            /* Green (completed states) */
-            'html[data-theme="dark"] .bg-green-100 { background-color: rgba(34,197,94,0.15) !important; }',
-
-            /* ── Forms (inputs, selects, textareas) in dark mode ── */
-            'html[data-theme="dark"] input, html[data-theme="dark"] select, html[data-theme="dark"] textarea {',
-            '  background-color: rgba(255,255,255,0.06);',
-            '  border-color: rgba(255,255,255,0.12);',
-            '  color: #e2e8f0;',
-            '}',
-            'html[data-theme="dark"] input::placeholder, html[data-theme="dark"] textarea::placeholder {',
-            '  color: rgba(226,232,240,0.35);',
-            '}',
-
-            /* ── Tables ── */
-            'html[data-theme="dark"] th { color: rgba(226,232,240,0.7); }',
-            'html[data-theme="dark"] td { color: #e2e8f0; }',
-            'html[data-theme="dark"] tr.border-t { border-color: rgba(255,255,255,0.06); }',
-
-            /* ── Glass/Cards in dark mode ── */
-            'html[data-theme="dark"] .glass, html[data-theme="dark"] [class*="card"] {',
-            '  background: rgba(30,34,46,0.85);',
-            '  border-color: rgba(255,255,255,0.08);',
-            '}',
-
-            /* ── Main/Header/Nav in dark mode ── */
-            'html[data-theme="dark"] main {',
-            '  background-color: #0f1117;',
-            '  color: #e2e8f0;',
-            '}',
-            'html[data-theme="dark"] .top-nav, html[data-theme="dark"] header {',
-            '  background: rgba(15,17,23,0.9) !important;',
-            '  border-color: rgba(255,255,255,0.06) !important;',
-            '}',
-
-            /* ── Font weight for heading contrast ── */
-            'html[data-theme="dark"] .font-medium { color: #f1f5f9; }',
-            'html[data-theme="dark"] .font-bold { color: #f8fafc; }',
-
-            /* ══════════════════════════════════════════════════════════════ */
-            /* ── LOGO SWAP ─────────────────────────────────────────────── */
-            /* ══════════════════════════════════════════════════════════════ */
-            '.logo-dark { display: none; }',
-            '.logo-light { display: inline; }',
-            'html[data-theme="light"] .logo-dark { display: inline; }',
-            'html[data-theme="light"] .logo-light { display: none; }',
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-
     // ─── Init ────────────────────────────────────────────────────────────
+    // P2-PERF-001 FIX: Sidebar toggle extracted to sidebar.js (loaded only
+    // on dashboard pages). Theme CSS moved to main.css in P1-PERF-001.
+    // nav.js is now focused: bottom nav bar + mobile search toggle.
     function init() {
         removeOldNavs();
-        injectGlobalThemeCSS();
 
         // P2-NAV-001 FIX: Hide nav on auth flow pages (login, register,
         // verify-email, reset-password) — these are full-page layouts.
@@ -590,7 +359,6 @@
             if (currentPadding < 80) main.style.paddingBottom = '96px';
         }
 
-        initSidebarToggle();
         initMobileSearchToggle();
     }
 
@@ -600,3 +368,4 @@
         init();
     }
 })();
+

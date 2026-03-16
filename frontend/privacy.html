@@ -5,13 +5,21 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Privacy Policy</title>
   <meta name="description" content="Privacy Policy for the Nammerha reconstruction platform — how we collect, use, and protect your data." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <link href="/i18n.css?v=5" rel="stylesheet"/>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
   <script type="module">import './src/styles/main.css';</script>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 <div class="mobile-container min-h-screen flex flex-col">
 
   <!-- Header -->
@@ -25,7 +33,7 @@
     </div>
   </header>
 
-  <main class="flex-1 px-6 py-8 max-w-md mx-auto">
+  <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto">
     <p class="text-xs text-slate-400 mb-6" data-i18n="pp_last_updated">Last updated: March 2026</p>
 
     <section class="mb-8">

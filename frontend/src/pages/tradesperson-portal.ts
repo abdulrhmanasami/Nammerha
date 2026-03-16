@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
@@ -8,6 +9,8 @@ import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
+import { createHashRouter } from '../utils/hash-router';
+import { initSwipeTabs } from '../utils/swipe-tabs';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Tradesperson Portal — Dashboard, Requests, Assignments, Earnings, Profile
@@ -21,13 +24,25 @@ type TabName = 'dashboard' | 'requests' | 'assignments' | 'earnings' | 'profile'
 // LOW-AUD-001 FIX: Module-level constant instead of duplicating in setupTabs() and switchTab()
 const ALL_TABS: TabName[] = ['dashboard', 'requests', 'assignments', 'earnings', 'profile'];
 
+// P1-003 FIX: Hash-based tab routing
+const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
+
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     setupAvailability();
-    loadStats();
-    loadActiveJobs();
-    loadProfile();
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+        containerSelector: '.dashboard-main',
+        tabs: ALL_TABS as unknown as readonly string[],
+        onSwitch: switchTab as (tab: string) => void,
+        getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+
 
     // ─── Secure Logout ──────────────────────────────────────────────────
     document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
@@ -50,6 +65,8 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P1-003 FIX: Sync tab to URL hash
+    hashRouter.setActiveTab(tab);
     // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
     // shadowing the imported i18n `t()` function (line 9).
     for (const tabId of ALL_TABS) {
@@ -63,6 +80,7 @@ function switchTab(tab: TabName): void {
         if (section) {section.style.display = tabId === tab ? '' : 'none';}
     }
 
+    if (tab === 'dashboard') { loadStats(); loadActiveJobs(); }
     if (tab === 'requests') {loadRequests();}
     if (tab === 'assignments') {loadAssignments();}
     if (tab === 'earnings') {loadEarnings();}
@@ -183,7 +201,7 @@ async function loadActiveJobs(): Promise<void> {
         tbody.innerHTML = html || `<tr><td colspan="4" class="px-5 py-4 text-center text-slate-400 text-sm" data-i18n="tp_no_active_work">No active work</td></tr>`;
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Active jobs load failed'), { component: 'tradesperson', action: 'load_active_jobs' });
-        tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadActiveJobs, 4, 'failed_to_load');
     }
 }
 
@@ -257,7 +275,7 @@ async function loadRequests(): Promise<void> {
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Requests load failed'), { component: 'tradesperson', action: 'load_requests' });
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load requests</div>`;
+        renderErrorWithRetry(container, loadRequests);
     }
 }
 
@@ -317,7 +335,7 @@ async function loadAssignments(): Promise<void> {
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignments load failed'), { component: 'tradesperson', action: 'load_assignments' });
-        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadAssignments, 6);
     }
 }
 
@@ -348,7 +366,7 @@ async function loadEarnings(): Promise<void> {
         `).join('');
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Earnings load failed'), { component: 'tradesperson', action: 'load_earnings' });
-        tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="tp_failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadEarnings, 4);
     }
 }
 
@@ -387,7 +405,7 @@ async function loadProfile(): Promise<void> {
         `;
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Profile load failed'), { component: 'tradesperson', action: 'load_profile' });
-        container.innerHTML = `<p class="text-red-400 text-sm text-center" data-i18n="tp_failed_profile">Failed to load profile</p>`;
+        renderErrorWithRetry(container, loadProfile, 'failed_to_load', 'Failed to load profile');
     }
 }
 

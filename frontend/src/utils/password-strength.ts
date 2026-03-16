@@ -49,9 +49,9 @@ export function updatePasswordStrength(
         for (let i = 0; i < strengthBars.length; i++) {
             const bar = strengthBars[i] as HTMLElement;
             if (i < score) {
-                bar.className = `h-1 flex-1 rounded-full ${colors[score - 1]}`;
+                bar.className = `h-2 flex-1 rounded-full ${colors[score - 1]}`;
             } else {
-                bar.className = 'h-1 flex-1 rounded-full bg-slate-200';
+                bar.className = 'h-2 flex-1 rounded-full bg-slate-200';
             }
         }
     }

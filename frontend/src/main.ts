@@ -6,6 +6,7 @@ import './styles/main.css';
 import './styles/offline.css';
 import './styles/tour.css';
 import { initErrorReporter, reportWarning } from './error-reporter';
+import { getCurrentUser } from './auth';
 import { renderCartBadge } from './components/cart';
 import './components/role-switcher';  // Self-injecting: attaches to #role-switcher-mount
 import { marketplace, openData } from './api';
@@ -31,7 +32,32 @@ autoTriggerTour();
 // The map module self-initializes on DOMContentLoaded.
 async function initMapIfNeeded(): Promise<void> {
     if (document.getElementById('main-map') || document.getElementById('map') || document.getElementById('nammerha-map')) {
-        await import('./pages/homepage-map');
+        // P1-F5 FIX: 15s timeout fallback if MapLibre fails to load.
+        // Previous: map container showed "Loading..." forever on network failure.
+        const mapContainer = document.getElementById('main-map') ?? document.getElementById('map') ?? document.getElementById('nammerha-map');
+        const fallbackTimer = setTimeout(() => {
+            if (mapContainer && !mapContainer.querySelector('canvas')) {
+                // Map didn't render within 15s — show fallback
+                const overlay = mapContainer.closest('.relative')?.querySelector('.glass-card');
+                if (overlay) {
+                    overlay.innerHTML = `
+                        <div class="flex flex-col items-center gap-3 text-center p-4">
+                            <i class="ph ph-map-trifold text-slate-400" style="font-size:40px" aria-hidden="true"></i>
+                            <p class="text-sm font-bold text-slate-600">Map unavailable</p>
+                            <p class="text-xs text-slate-400">Network issues prevented the map from loading</p>
+                            <button onclick="location.reload()" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">Retry</button>
+                        </div>`;
+                }
+            }
+        }, 15_000);
+
+        try {
+            await import('./pages/homepage-map');
+            clearTimeout(fallbackTimer);
+        } catch {
+            clearTimeout(fallbackTimer);
+            reportWarning('[Dashboard] Map module failed to load', { component: 'main', action: 'init_map' });
+        }
     }
 }
 
@@ -68,7 +94,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
             : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60" style="font-size:48px" aria-hidden="true"></i></div>`}
-        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+        <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm" style="inset-inline-end:0.75rem">
           <i class="ph ph-seal-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
           <span class="text-[10px] font-bold text-smoky-jade" data-i18n="verified_ocds">VERIFIED OCDS</span>
         </div>
@@ -163,8 +189,18 @@ function initDashboard(): void {
     loadFeaturedProjects();
     loadStats();
 
+    // P2-UX-001 FIX: Hide role-restricted Quick Actions for non-matching users
+    filterQuickActionsByRole();
+
+    // G-001 FIX: Wire search input to navigate to project discovery page.
+    // Previous: search input was a complete dead end — no handler, no feedback.
+    initSearchInput();
+
     // PLT-OPT-001: Lazy-load map module only when map container exists
     initMapIfNeeded();
+
+    // F-001 FIX: Progressive disclosure — sections reveal as they scroll into view
+    initScrollReveal();
 }
 
 // Initialize when DOM is ready
@@ -174,3 +210,87 @@ if (document.readyState === 'loading') {
     initDashboard();
 }
 
+// ─── F-001 FIX: Progressive Disclosure via Scroll Reveal ─────────────────────
+// Previous: all homepage content rendered at once (3-4 scrolls of content).
+// Now: sections start invisible and smoothly reveal as they enter the viewport.
+function initScrollReveal(): void {
+    const sections = document.querySelectorAll<HTMLElement>('.scroll-reveal');
+    if (sections.length === 0 || !('IntersectionObserver' in window)) {
+        // Graceful degradation: show everything if IntersectionObserver not supported
+        sections.forEach(el => { el.classList.add('scroll-revealed'); });
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('scroll-revealed');
+                observer.unobserve(entry.target); // Only reveal once
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    sections.forEach(section => observer.observe(section));
+}
+
+// ─── P2-UX-001: Role-Aware Quick Actions ─────────────────────────────────────
+// Quick Action cards with `data-roles` are hidden when the authenticated user
+// doesn't hold any of the specified roles. Unauthenticated users see all cards.
+function filterQuickActionsByRole(): void {
+    const user = getCurrentUser();
+    // If not authenticated, show everything — user hasn't identified their role
+    if (!user) { return; }
+
+    const roleCards = document.querySelectorAll<HTMLElement>('[data-roles]');
+    roleCards.forEach(card => {
+        const allowedRoles = (card.dataset.roles ?? '').split(',').map(r => r.trim());
+        const userHasRole = user.roles.some(r => allowedRoles.includes(r));
+        if (!userHasRole) {
+            card.style.display = 'none';
+        }
+    });
+
+    // P2-UX-001 FIX: Rebalance grid — if odd number visible, last item spans full width
+    const grid = document.getElementById('quick-actions-grid');
+    if (grid) {
+        const visible = Array.from(grid.children).filter(
+            (el) => (el as HTMLElement).style.display !== 'none'
+        );
+        if (visible.length % 2 === 1 && visible.length > 0) {
+            (visible[visible.length - 1] as HTMLElement).classList.add('col-span-2');
+        }
+    }
+}
+
+// ─── G-001 FIX: Homepage Search Input ────────────────────────────────────────
+// Previous: search input was a COMPLETE dead end — no handler, no feedback.
+// Now: Enter key navigates to project-details.html?q={query} for project discovery.
+function initSearchInput(): void {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+    if (!searchInput) { return; }
+
+    let isNavigating = false;
+
+    function performSearch(): void {
+        if (isNavigating) { return; } // debounce rapid submissions
+        const query = searchInput!.value.trim();
+        if (!query) {
+            // Empty search — flash the input border to signal "type something"
+            searchInput!.classList.add('ring-2', 'ring-red-400/50');
+            setTimeout(() => searchInput!.classList.remove('ring-2', 'ring-red-400/50'), 800);
+            return;
+        }
+        isNavigating = true;
+        searchInput!.disabled = true;
+        // Navigate to project discovery page with query
+        window.location.href = `project-details.html?q=${encodeURIComponent(query)}`;
+    }
+
+    // Enter key → search
+    searchInput.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+}

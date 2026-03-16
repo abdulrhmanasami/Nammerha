@@ -36,6 +36,28 @@ function initDonorBasket(): void {
         return;
     }
 
+    // P0-F2 FIX: Populate project context card dynamically from CartStore.
+    // Previous: hardcoded "Harbor View Reconstruction" / "Aleppo, Syria" in HTML.
+    function updateProjectContext(): void {
+        const nameEl = document.getElementById('basket-project-name');
+        const locEl = document.getElementById('basket-project-location');
+        const items = CartStore.getItems();
+        if (nameEl && items.length > 0) {
+            // CartItem may carry project metadata; fall back to generic text
+            const first = items[0] as CartItem & { projectName?: string; projectLocation?: string };
+            nameEl.textContent = first.projectName ?? t('basket_project_items', 'Construction Materials');
+            nameEl.removeAttribute('data-i18n');
+        }
+        if (locEl && items.length > 0) {
+            const first = items[0] as CartItem & { projectLocation?: string };
+            const span = locEl.querySelector('span');
+            if (span) {
+                span.textContent = first.projectLocation ?? t('basket_various_projects', 'Various Projects');
+                span.removeAttribute('data-i18n');
+            }
+        }
+    }
+
     // ─── Tip Logic ──────────────────────────────────────────────────────────
     function getTipAmount(): number {
         if (isCustomTip && customTipAmount !== null) {
@@ -144,6 +166,9 @@ function initDonorBasket(): void {
 
         // Update totals
         updateTotals();
+
+        // P0-F2 FIX: Populate project context each time items change
+        updateProjectContext();
     }
 
     function createItemCard(item: CartItem): HTMLElement {
@@ -157,7 +182,7 @@ function initDonorBasket(): void {
           <i class="ph ${item.iconClass} text-trust-blue" aria-hidden="true"></i>
         </div>
         <div class="min-w-0 flex-1">
-          <h4 class="font-semibold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.name)}</h4>
+          <h4 class="font-semibold text-slate-800 truncate">${escapeHtml(item.name)}</h4>
           <p class="text-xs text-slate-500">${escapeHtml(item.category)}</p>
         </div>
       </div>
@@ -184,10 +209,11 @@ function initDonorBasket(): void {
 
         minusBtn?.addEventListener('click', () => {
             if (item.quantity <= 1) {
-                // Animate removal
+                // P2-007 FIX: RTL-aware removal animation direction
+                const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
                 card.style.transition = 'opacity 0.3s, transform 0.3s';
                 card.style.opacity = '0';
-                card.style.transform = 'translateX(-20px)';
+                card.style.transform = isRtl ? 'translateX(20px)' : 'translateX(-20px)';
                 setTimeout(() => {
                     CartStore.removeItem(item.id);
                     render();
@@ -223,21 +249,48 @@ function initDonorBasket(): void {
 
     // HGH-001 FIX: Local escapeHtml removed — using centralized import from utils/xss.ts
 
-    // Clear cart button
+    // P2-001 FIX: Clear cart with inline confirmation dialog
+    let clearPending = false;
     clearBtn?.addEventListener('click', () => {
         if (CartStore.getItems().length === 0) {
             return;
         }
-        CartStore.clear();
-        render();
+        if (!clearPending) {
+            // Show confirmation banner
+            clearPending = true;
+            const confirm = document.createElement('div');
+            confirm.id = 'clear-confirm-banner';
+            confirm.className = 'rounded-xl p-3 text-sm font-medium flex items-center justify-between gap-2 bg-amber-50 text-amber-700 border border-amber-200 mt-3 animate-fade-in-up';
+            confirm.innerHTML = `
+                <span><i class="ph ph-warning" aria-hidden="true"></i> ${t('basket_clear_confirm', 'Clear all items?')}</span>
+                <div class="flex gap-2">
+                    <button id="clear-yes" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">${t('common_yes', 'Yes')}</button>
+                    <button id="clear-no" class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">${t('common_no', 'No')}</button>
+                </div>`;
+            container!.prepend(confirm);
+            confirm.querySelector('#clear-yes')?.addEventListener('click', () => {
+                CartStore.clear();
+                confirm.remove();
+                clearPending = false;
+                render();
+            });
+            confirm.querySelector('#clear-no')?.addEventListener('click', () => {
+                confirm.remove();
+                clearPending = false;
+            });
+            // Auto-dismiss after 5s
+            setTimeout(() => { if (clearPending) { confirm.remove(); clearPending = false; } }, 5000);
+        }
     });
 
-    // Confirm funding button
+    // P0-003 FIX: Confirm funding button with double-click guard and disabled state
     confirmBtn?.addEventListener('click', () => {
-        if (CartStore.getItems().length === 0) {
+        if (CartStore.getItems().length === 0 || (confirmBtn as HTMLButtonElement).disabled) {
             return;
         }
-        // HIGH-002 FIX: Replace alert() with inline checkout banner
+        // Guard: disable button during processing
+        (confirmBtn as HTMLButtonElement).disabled = true;
+
         const total = CartStore.getTotal();
         const count = CartStore.getCount();
         const tipAmount = getTipAmount();
@@ -252,7 +305,10 @@ function initDonorBasket(): void {
 
         banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${t('basket_checkout_msg', 'Proceeding to secure checkout')}: ${count} ${t('basket_items', 'items')} — ${formatDollars(total)}${tipText} = ${formatDollars(grandTotal)}. ${t('basket_gateway_soon', 'Payment gateway coming soon.')}`;
         checkoutSheet?.appendChild(banner);
-        setTimeout(() => banner.remove(), 5000);
+        setTimeout(() => {
+            banner.remove();
+            (confirmBtn as HTMLButtonElement).disabled = false;
+        }, 5000);
     });
 
     // Listen for external cart updates

@@ -4,6 +4,8 @@ import { reportWarning } from '../error-reporter';
 import { phaseColor, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { getLocale, formatDate, applyI18n } from '../utils/locale';
+import { createHashRouter } from '../utils/hash-router';
+import { initSwipeTabs } from '../utils/swipe-tabs';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Dashboard — Project Execution & Bidding Engine
@@ -41,31 +43,56 @@ function initTimestamp(): void {
     window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
+// P1-003 FIX: Hash-based tab routing
+const CONTRACTOR_TABS = ['projects', 'bids'] as const;
+type ContractorDashTab = typeof CONTRACTOR_TABS[number];
+const ctrHashRouter = createHashRouter(CONTRACTOR_TABS, 'projects');
+
 // ─── Tab Switching ──────────────────────────────────────────────────────────
 function setupTabs(): void {
+    const tabProjects = document.getElementById('tab-projects');
+    const tabBids = document.getElementById('tab-bids');
+
+    tabProjects?.addEventListener('click', () => switchDashTab('projects'));
+    tabBids?.addEventListener('click', () => switchDashTab('bids'));
+
+    // P1-003 FIX: Activate from URL hash
+    const initial = ctrHashRouter.getInitialTab();
+    switchDashTab(initial);
+    ctrHashRouter.onHashChange(switchDashTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+        containerSelector: '.dashboard-main',
+        tabs: CONTRACTOR_TABS as unknown as readonly string[],
+        onSwitch: switchDashTab as (tab: string) => void,
+        getCurrentTab: () => ctrHashRouter.getInitialTab(),
+    });
+}
+
+function switchDashTab(tab: ContractorDashTab): void {
+    ctrHashRouter.setActiveTab(tab);
     const tabProjects = document.getElementById('tab-projects');
     const tabBids = document.getElementById('tab-bids');
     const sectionProjects = document.getElementById('section-projects');
     const sectionBids = document.getElementById('section-bids');
 
-    tabProjects?.addEventListener('click', () => {
-        tabProjects.classList.add('bg-trust-blue/10', 'text-trust-blue');
-        tabProjects.classList.remove('text-slate-600');
+    if (tab === 'projects') {
+        tabProjects?.classList.add('bg-trust-blue/10', 'text-trust-blue');
+        tabProjects?.classList.remove('text-slate-600');
         tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabBids?.classList.add('text-slate-600');
         if (sectionProjects) { sectionProjects.style.display = ''; }
         if (sectionBids) { sectionBids.style.display = 'none'; }
-    });
-
-    tabBids?.addEventListener('click', () => {
-        tabBids.classList.add('bg-trust-blue/10', 'text-trust-blue');
-        tabBids.classList.remove('text-slate-600');
+    } else {
+        tabBids?.classList.add('bg-trust-blue/10', 'text-trust-blue');
+        tabBids?.classList.remove('text-slate-600');
         tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabProjects?.classList.add('text-slate-600');
         if (sectionBids) { sectionBids.style.display = ''; }
         if (sectionProjects) { sectionProjects.style.display = 'none'; }
         loadBids();
-    });
+    }
 }
 
 // ─── Load KPIs from contractor.getStats() ───────────────────────────────────

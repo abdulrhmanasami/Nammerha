@@ -2,6 +2,7 @@ import '../styles/main.css';
 import { getCurrentUser, clearAuth, setCurrentUser, type UserRole } from '../auth';
 import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml } from '../utils/xss';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { auth, roles as rolesApi } from '../api';
 // DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
 // instead of maintaining a duplicate copy.
@@ -48,6 +49,21 @@ function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
     return Math.round((completed / steps) * 100);
 }
 
+// ─── P2-UX-002 FIX: Avatar Initials (personalized, not generic icon) ────────
+function renderAvatarInitials(fullName?: string | null): void {
+    const avatarEl = document.querySelector('.size-20.bg-trust-blue');
+    if (!avatarEl) { return; }
+    if (!fullName || fullName.trim().length === 0) { return; } // keep icon for guests
+
+    const parts = fullName.trim().split(/\s+/);
+    const first = parts[0]?.[0] ?? '';
+    const last = parts.length > 1 ? parts[parts.length - 1]![0] ?? '' : '';
+    const initials = (first + last).toUpperCase();
+    if (initials.length === 0) { return; }
+
+    avatarEl.innerHTML = `<span class="text-white text-2xl font-black select-none">${escapeHtml(initials)}</span>`;
+}
+
 // ─── Load User Info ─────────────────────────────────────────────────────────
 async function loadUserInfo(): Promise<void> {
     const nameEl = document.getElementById('user-name');
@@ -60,6 +76,8 @@ async function loadUserInfo(): Promise<void> {
         if (emailEl) { emailEl.textContent = cached.email ?? '—'; }
         if (roleEl) { roleEl.textContent = getRoleLabel(cached.activeRole ?? cached.role); }
         updateProfileCompletion(cached);
+        // P2-UX-002 FIX: Render personalized initials in avatar
+        renderAvatarInitials(cached.full_name);
     }
 
     try {
@@ -208,7 +226,7 @@ async function loadAvailableRoles(): Promise<void> {
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error(String(err)), { context: 'load_available_roles' });
-        gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-red-400 py-4">${t('profile_load_roles_failed', 'Failed to load roles')}</p>`;
+        renderErrorWithRetry(gridEl, loadAvailableRoles, 'failed_to_load', 'Failed to load roles');
     }
 }
 
@@ -239,6 +257,16 @@ async function activateRole(role: UserRole): Promise<void> {
             context: 'activate_role',
             targetRole: role,
         });
+        // P1-F6 FIX: Show user-visible error banner in the modal.
+        // Previous: error was only sent to telemetry — user saw nothing.
+        const gridEl = document.getElementById('available-roles-grid');
+        if (gridEl) {
+            const errorBanner = document.createElement('div');
+            errorBanner.className = 'col-span-2 rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 animate-fade-in-up';
+            errorBanner.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${t('role_activation_failed', 'Role activation failed. Please try again.')}`;
+            gridEl.prepend(errorBanner);
+            setTimeout(() => errorBanner.remove(), 5000);
+        }
     }
 }
 
@@ -291,6 +319,18 @@ function init(): void {
             loadAvailableRoles();
             modal.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+    }
+
+    // P1-MOB-001 FIX: Back button handler (replaced inline onclick for CSP safety)
+    const backBtn = document.querySelector<HTMLAnchorElement>('[data-back-btn]');
+    if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+            if (history.length > 1) {
+                e.preventDefault();
+                history.back();
+            }
+            // else: falls through to <a href="index.html"> naturally
+        });
     }
 }
 

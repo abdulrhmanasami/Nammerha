@@ -3,10 +3,22 @@
    Source of Truth: تصميم هوية وتجربة تطبيق Nammerha.pdf
    ============================================================================ */
 
-/* ─── Google Fonts — Text Only (NO external icon fonts) ────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Kufam:wght@400;500;600;700&display=swap');
+/* ─── Fonts — Self-Hosted (P0-F1 FIX: Zero-CDN) ───────────────────────────── */
+/* REMOVED: 3x render-blocking @import url('https://fonts.googleapis.com/...')
+   CSS @import is synchronous — the browser halted ALL rendering until Google
+   CDN responded. On Syrian mobile networks this added seconds to first paint.
+   Plus Jakarta Sans and IBM Plex Sans Arabic are now self-hosted in /fonts/.
+   Kufam remains as a system-level fallback in font-family stacks (not loaded). */
+
+/* Plus Jakarta Sans — Latin (Display Font) */
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 300; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-300-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-400-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-500-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-600-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-700-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-800-latin.woff2') format('woff2'); }
+
+/* IBM Plex Sans Arabic — loaded via ibm-plex-sans-arabic.css in HTML <head> preload */
 
 /* ─── Phosphor Icons — LOCAL Font (Hard Rule: no external icon libs) ───────── */
 @font-face {
@@ -17,7 +29,7 @@
     url('/fonts/phosphor/Phosphor.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 
 @tailwind base;
@@ -69,6 +81,69 @@
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.1);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   P1-PERF-001 FIX: Theme variables & overrides (moved from nav.js runtime
+   injection to eliminate FOUC on slow connections).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Smooth Theme Transition (toggled via JS class) ── */
+html.nm-theme-transition,
+html.nm-theme-transition *,
+html.nm-theme-transition *::before,
+html.nm-theme-transition *::after {
+    transition: background-color 0.4s ease, color 0.3s ease,
+                border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* ── Light Mode Variables ── */
+html[data-theme="light"] {
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #edf0f5;
+    --bg-card: rgba(0,0,0,0.02);
+    --surface-card: rgba(255,255,255,0.7);
+    --text-primary: #1a202c;
+    --text-secondary: rgba(26,32,44,0.65);
+    --text-tertiary: rgba(26,32,44,0.4);
+}
+html[data-theme="light"] body { background-color: #f5f7fa; color: #1a202c; }
+html[data-theme="light"] .glass,
+html[data-theme="light"] [class*="card"] { background: rgba(255,255,255,0.7); border-color: rgba(0,0,0,0.08); }
+html[data-theme="light"] main { background-color: #f5f7fa; color: #1a202c; }
+html[data-theme="light"] .top-nav,
+html[data-theme="light"] header { background: rgba(245,247,250,0.9) !important; border-color: rgba(0,0,0,0.06) !important; }
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.12); color: #1a202c; }
+
+/* ── Dark Mode Variables (extends existing dark mode rules below) ── */
+html[data-theme="dark"] {
+    --bg-primary: #0f1117;
+    --bg-secondary: #1a1d27;
+    --bg-card: rgba(255,255,255,0.04);
+    --surface-card: rgba(30,34,46,0.85);
+    --text-primary: #e2e8f0;
+    --text-secondary: rgba(226,232,240,0.65);
+    --text-tertiary: rgba(226,232,240,0.4);
+}
+html[data-theme="dark"] main { background-color: #0f1117; color: #e2e8f0; }
+html[data-theme="dark"] .top-nav,
+html[data-theme="dark"] header { background: rgba(15,17,23,0.9) !important; border-color: rgba(255,255,255,0.06) !important; }
+html[data-theme="dark"] .font-medium { color: #f1f5f9; }
+html[data-theme="dark"] .font-bold { color: #f8fafc; }
+
+/* ── Logo Swap ── */
+.logo-dark { display: none; }
+.logo-light { display: inline; }
+html[data-theme="light"] .logo-dark { display: inline; }
+html[data-theme="light"] .logo-light { display: none; }
+
+/* ── Landscape Nav Compaction ── */
+@media (orientation: landscape) and (max-height: 500px) {
+    .nm-bottom-nav { padding: 4px 16px 4px; }
+    .nm-nav-label { display: none; }
+    .nm-nav-safe-area { height: 0; }
+}
+
 /* ─── Base Styles ──────────────────────────────────────────────────────────── */
 * {
   margin: 0;
@@ -80,6 +155,9 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* P2-MOB-003 FIX: Prevent iOS Safari rubber-band overscroll.
+     Keeps the app feeling native — no page-background exposure on pull. */
+  overscroll-behavior: contain;
 }
 
 body {
@@ -88,11 +166,32 @@ body {
   color: #1e293b;
   min-height: 100dvh;
   line-height: 1.5;
+  overscroll-behavior: contain;
 }
 
 /* Arabic body variant */
 body[dir='rtl'] {
   font-family: var(--font-arabic);
+}
+
+/* ─── F-004 FIX: RTL Table Header Fallback ────────────────────────────────── */
+/* Defensive: ensures text-align works in RTL even if i18n.css fails to load.
+   Uses CSS logical value 'start' which auto-mirrors in both LTR and RTL. */
+th, td {
+  text-align: start;
+}
+
+/* ─── F-001 FIX: Progressive Disclosure (Scroll Reveal) ────────────────────── */
+/* Homepage sections start invisible and reveal as they scroll into view.
+   IntersectionObserver in main.ts adds .scroll-revealed to trigger the reveal. */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.scroll-reveal.scroll-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ─── Focus-Visible System (WCAG 2.1 SC 2.4.7) ────────────────────────────── */
@@ -107,6 +206,31 @@ html[data-theme="dark"] :focus-visible {
 }
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* ─── Skip-to-Content Link (WCAG 2.1 SC 2.4.1) ────────────────────────────── */
+/* P0-A1 FIX: Provides keyboard users a bypass to skip navigation blocks.
+   Visually hidden until focused, then displayed prominently. */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  padding: 12px 24px;
+  background: var(--trust-blue);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.4);
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--trust-blue);
+  outline-offset: 2px;
 }
 
 /* P2-UX-002 FIX: Flip directional arrows in RTL context */
@@ -398,6 +522,8 @@ html[data-theme="dark"] :focus-visible {
 }
 
 /* ─── Mobile Container ─────────────────────────────────────────────────────── */
+/* P0-004 FIX: Progressive width scaling — preserves native-app feel on mobile  */
+/* while utilising available space on tablets and desktops.                      */
 @layer components {
   .mobile-container {
     max-width: 448px;
@@ -405,6 +531,22 @@ html[data-theme="dark"] :focus-visible {
     min-height: 100dvh;
     position: relative;
     overflow-x: hidden;
+  }
+}
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 640px;
+  }
+}
+@media (min-width: 1024px) {
+  .mobile-container {
+    max-width: 768px;
+  }
+}
+/* P3-UX-003 FIX: Wider container for tablets in landscape */
+@media (min-width: 1280px) {
+  .mobile-container {
+    max-width: 960px;
   }
 }
 
@@ -572,15 +714,31 @@ html[data-theme="dark"] .gradient-orb-jade {
 html[data-theme="dark"] .bg-red-50 { background-color: rgba(239, 68, 68, 0.1) !important; }
 html[data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; }
 html[data-theme="dark"] .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1) !important; }
+html[data-theme="dark"] .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.15) !important; }
+html[data-theme="dark"] .bg-red-500 { background-color: rgba(239, 68, 68, 0.8) !important; }
+html[data-theme="dark"] .bg-green-100 { background-color: rgba(34, 197, 94, 0.15) !important; }
 html[data-theme="dark"] .border-red-200 { border-color: rgba(239, 68, 68, 0.2) !important; }
 html[data-theme="dark"] .border-emerald-200 { border-color: rgba(16, 185, 129, 0.2) !important; }
 html[data-theme="dark"] .border-amber-200 { border-color: rgba(245, 158, 11, 0.2) !important; }
+html[data-theme="dark"] .text-emerald-700 { color: #6ee7b7 !important; }
+html[data-theme="dark"] .text-red-700 { color: #fca5a5 !important; }
+html[data-theme="dark"] .text-amber-700 { color: #fcd34d !important; }
+/* P1-DM-001 FIX: Amber-600 used on homeowner KPI cards needs contrast boost in dark mode */
+html[data-theme="dark"] .text-amber-600 { color: #fbbf24 !important; }
 
 /* P2-001 FIX: Blue info banners (donor-basket checkout, homeowner-portal info panels) */
 html[data-theme="dark"] .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; }
 html[data-theme="dark"] .text-blue-700 { color: #93c5fd !important; }
 html[data-theme="dark"] .border-blue-200 { border-color: rgba(59, 130, 246, 0.2) !important; }
 html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15) !important; }
+
+/* P1-D1 FIX: Sidebar active tab text visibility in dark mode */
+html[data-theme="dark"] .text-blue-600 { color: #60a5fa !important; }
+html[data-theme="dark"] .bg-blue-600\/10 { background-color: rgba(59, 130, 246, 0.12) !important; }
+html[data-theme="dark"] .bg-emerald-600\/10 { background-color: rgba(16, 185, 129, 0.12) !important; }
+/* P1-D2 FIX: Missing green border dark mode override for donor portal escrow */
+html[data-theme="dark"] .border-green-100 { border-color: rgba(34, 197, 94, 0.15) !important; }
+html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) !important; }
 
 /* ─── Animations ───────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
@@ -630,6 +788,19 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
 }
 .gradient-orb-jade {
   background: rgba(16, 145, 115, 0.06);
+}
+/* P3-UX-005 FIX: RTL-safe positioning — replaces inline styles */
+.gradient-orb-pos-end {
+  width: 200px;
+  height: 200px;
+  top: -60px;
+  inset-inline-end: -60px;
+}
+.gradient-orb-pos-start {
+  width: 250px;
+  height: 250px;
+  top: 50%;
+  inset-inline-start: -80px;
 }
 
 /* ─── Cart Badge ───────────────────────────────────────────────────────────── */
@@ -817,11 +988,15 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
   [dir='rtl'] .dashboard-sidebar {
     transform: translateX(100%);
   }
+  /* P0-ARCH-002 FIX: sidebar-open now handles all visual properties via CSS
+     — no inline JS styles needed. Includes box-shadow for depth cue. */
   .dashboard-sidebar.sidebar-open {
     transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   }
   [dir='rtl'] .dashboard-sidebar.sidebar-open {
     transform: translateX(0);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
   /* Dark overlay behind sidebar on mobile */
@@ -903,8 +1078,9 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
     display: block !important;
     position: absolute;
     top: 50%;
-    left: 0;
-    right: 0;
+    /* P1-RTL-001 FIX: Logical properties for RTL safety (was left: 0; right: 0) */
+    inset-inline-start: 0;
+    inset-inline-end: 0;
     transform: translateY(-50%);
     z-index: 60;
     max-width: 100%;
@@ -962,14 +1138,378 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
     transform: translateY(0);
 }
 
+/* P0-ARCH-003 FIX: Removed duplicate .bg-surface definition (was P3-AUD-007).
+   Canonical .bg-surface is at the end of this file (P2-DS-001) using var(--bg-card). */
+
+
 /* ═══════════════════════════════════════════════════════════════════════════
-   P3-AUD-007 FIX: Theme-safe surface background for profile.ts
-   Replaces hardcoded `bg-white` in innerHTML with a class that responds
-   to the dark mode theme context automatically.
+   P0-DM-001 FIX: Dark mode hover for dynamically rendered table rows/cards
+   These elements are injected via innerHTML in TS modules and cannot use
+   Tailwind's dark: prefix (requires .dark class, not data-theme attribute).
    ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] tr.border-t:hover,
+html[data-theme="dark"] div.p-5:hover {
+    background-color: rgba(30, 41, 59, 0.5);
+}
+/* Cart item names in dark mode (replaces removed dark:text-slate-100) */
+html[data-theme="dark"] h4.text-slate-800 {
+    color: #f1f5f9 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P0-A3 FIX: Accessible touch target minimum (WCAG 2.5.5)
+   Ensures all interactive elements meet 44×44px minimum.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.touch-safe {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P2-U3 FIX: Respect prefers-reduced-motion (WCAG 2.3.3)
+   Disables all non-essential animations for users who request it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* ─── F-003 FIX: Smooth Dashboard Section Transitions ────────────────────── */
+/* Dashboard pages use display:none/block toggling via JS. When a section becomes
+   visible, this animation provides a smooth fade-in instead of jarring instant swap. */
+[id^="section-"] {
+    animation: sectionReveal 0.25s ease-out;
+}
+@keyframes sectionReveal {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── C-003 FIX: Touch Target Minimum Size ───────────────────────────────── */
+/* Ensure all core interactive elements meet WCAG 2.5.5 (44×44px minimum) on touch. */
+@media (pointer: coarse) {
+    button, [role="button"], a[href] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    /* Exempt inline text links from minimum sizing */
+    p a[href], span a[href], li a[href], td a[href] {
+        min-height: unset;
+        min-width: unset;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .animate-fade-in-up,
+    .animate-pulse-dot,
+    .animate-pulse,
+    .voice-recording {
+        animation: none !important;
+    }
+    .card-hover-lift:hover {
+        transform: none;
+    }
+    /* F-003: Respect reduced motion for section reveals too */
+    [id^="section-"] {
+        animation: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P1-001 FIX: Unified Bottom Navigation Bar — CSS Classes
+   Replaces inline style.cssText in nav.js with proper CSS selectors.
+   Theme switching uses [data-nav-theme] attribute set by JS.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Nav Container ──────────────────────────────────────────────────── */
+.nm-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(17,24,39,0.95);
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+.nm-bottom-nav[data-nav-theme="light"] {
+    background: rgba(255,255,255,0.92);
+    border-top-color: rgba(226,232,240,0.6);
+}
+
+/* ─── Inner Flex Wrapper ─────────────────────────────────────────────── */
+.nm-nav-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ─── Tab Links ──────────────────────────────────────────────────────── */
+.nm-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    padding: 4px 8px;
+    min-width: 54px;
+    color: #64748b;
+    transition: color 0.2s;
+}
+.nm-bottom-nav[data-nav-theme="light"] .nm-nav-item {
+    color: #94a3b8;
+}
+.nm-nav-item[aria-current="page"] {
+    color: #1A73E8;
+}
+.nm-nav-icon {
+    font-size: 22px;
+}
+.nm-nav-label {
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+}
+.nm-nav-item[aria-current="page"] .nm-nav-label {
+    font-weight: 700;
+}
+
+/* ─── Theme Toggle FAB ───────────────────────────────────────────────── */
+.nm-theme-fab {
+    position: absolute;
+    top: -18px;
+    inset-inline-end: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(17,24,39,0.95);
+    color: #fbbf24;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    padding: 0;
+}
+.nm-bottom-nav[data-nav-theme="light"] .nm-theme-fab {
+    border-color: rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.95);
+    color: #6366f1;
+}
+
+/* P2-DUP-001 FIX: Removed duplicate .nm-nav-safe-area (canonical version with max() is below) */
+
+/* ============================================================================
+   P1-MOB-001 FIX: Pull-to-Refresh Indicator
+   ============================================================================ */
+#pull-refresh-indicator {
+    position: fixed;
+    top: -48px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    z-index: 10000;
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+    opacity: 0;
+    pointer-events: none;
+}
+.pull-refresh-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface-elevated);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-elevation);
+    color: var(--trust-blue);
+    transition: transform 0.2s;
+}
+.pull-refresh-ready .pull-refresh-spinner {
+    transform: rotate(180deg);
+    color: var(--smoky-jade);
+}
+.pull-refresh-loading .pull-refresh-spinner {
+    animation: ptr-spin 0.6s linear infinite;
+}
+@keyframes ptr-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   P2-DS-003 FIX: Global Toast Notification System
+   ============================================================================ */
+#nm-toast-container {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom, 16px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    width: 90%;
+    max-width: 420px;
+    pointer-events: none;
+}
+
+.nm-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-lg, 12px);
+    background: var(--surface-elevated);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-glass);
+    border: 1px solid var(--border-light);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--dark-tech);
+    pointer-events: auto;
+    transform: translateY(16px);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+}
+.nm-toast-enter {
+    transform: translateY(0);
+    opacity: 1;
+}
+.nm-toast-exit {
+    transform: translateY(16px);
+    opacity: 0;
+}
+/* Type variants */
+.nm-toast-success i { color: var(--smoky-jade); }
+.nm-toast-error   i { color: #ef4444; }
+.nm-toast-warning i { color: var(--warning-yellow); }
+.nm-toast-info    i { color: var(--trust-blue); }
+
+.nm-toast-msg { flex: 1; }
+.nm-toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.5;
+    padding: 2px;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+.nm-toast-close:hover { opacity: 1; }
+
+/* Dark mode */
+html[data-theme="dark"] .nm-toast {
+    background: rgba(30, 30, 30, 0.9);
+    border-color: rgba(255,255,255,0.08);
+    color: #e2e8f0;
+}
+
+/* ============================================================================
+   P2-DS-002 FIX: Button Loading State
+   ============================================================================ */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+    color: transparent !important;
+}
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 18px;
+    height: 18px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: btn-spin 0.6s linear infinite;
+    color: white;
+}
+/* Ensure spinner color matches button context */
+.btn-secondary.btn-loading::after { color: var(--trust-blue); }
+@keyframes btn-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   P2-MOB-002 FIX: Offline Indicator Banner
+   ============================================================================ */
+#nm-offline-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center;
+    transform: translateY(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#nm-offline-banner.nm-offline-visible {
+    transform: translateY(0);
+}
+
+/* ============================================================================
+   P2-UX-002 FIX: Smart Bottom Padding
+   On notch devices, env() returns the actual inset, on non-notch devices 0.
+   We use max() to ensure at least 8px, preventing excessive padding.
+   ============================================================================ */
+.nm-nav-safe-area {
+    height: max(env(safe-area-inset-bottom, 0px), 8px);
+}
+
+/* ============================================================================
+   P2-UX-003 FIX: Standardized Portal Header Pattern
+   All portal headers should be sticky, blurred, z-50.
+   ============================================================================ */
+.nm-portal-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--surface-elevated);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-light);
+}
+html[data-theme="dark"] .nm-portal-header {
+    background: rgba(15, 17, 23, 0.85);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================================================
+   P2-DS-001 FIX: bg-surface Token for Dark Mode Consistency
+   Replaces bg-white in dynamic content with this dark-mode-aware class.
+   ============================================================================ */
 .bg-surface {
-    background-color: #ffffff;
+    background-color: white;
 }
 html[data-theme="dark"] .bg-surface {
-    background-color: rgba(30, 30, 46, 0.95);
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04));
 }
+

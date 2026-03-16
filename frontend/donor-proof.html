@@ -5,13 +5,21 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Proof of Delivery</title>
   <meta name="description" content="Your contribution has been verified on-site with GPS-stamped photographic proof." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/donor-proof.ts"></script>
-<link href="/i18n.css?v=5" rel="stylesheet"/>
+<link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 
   <!-- Header -->
   <header class="glass-nav sticky top-0 z-50 border-b border-trust-blue/10">
@@ -26,7 +34,7 @@
     </div>
   </header>
 
-  <main class="flex-1 w-full max-w-md mx-auto px-4 py-6">
+  <main id="main-content" class="flex-1 w-full max-w-md mx-auto px-4 py-6">
     <!-- Success Icon -->
     <div class="flex flex-col items-center text-center mb-8 animate-fade-in-up">
       <div class="w-20 h-20 bg-trust-blue/10 rounded-full flex items-center justify-center mb-4">
@@ -45,11 +53,11 @@
           <i class="ph ph-images text-warm-earth/40" style="font-size:60px" aria-hidden="true"></i>
         </div>
         <!-- Map Overlay -->
-        <div class="absolute bottom-3 right-3 w-24 h-24 rounded-lg border-2 border-white shadow-lg overflow-hidden bg-gradient-to-br from-trust-blue/20 to-smoky-jade/20 flex items-center justify-center">
+        <div class="absolute bottom-3 end-3 w-24 h-24 rounded-lg border-2 border-white shadow-lg overflow-hidden bg-gradient-to-br from-trust-blue/20 to-smoky-jade/20 flex items-center justify-center">
           <i class="ph ph-map-pin text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
         </div>
         <!-- Timestamp Badge -->
-        <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+        <div class="absolute top-3 start-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
           <i class="ph ph-clock" style="font-size:12px" aria-hidden="true"></i>
           Mar 7, 2026 • 10:45 AM
         </div>

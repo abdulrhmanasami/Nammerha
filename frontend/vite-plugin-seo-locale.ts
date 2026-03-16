@@ -43,14 +43,14 @@ interface LocalizedMeta {
 const PAGE_SEO: Record<string, LocalizedMeta> = {
     'index': {
         title: {
-            ar: 'نَمِّرها — منصة إعادة الإعمار الشفافة',
+            ar: 'نعمِّرها — منصة إعادة الإعمار',
             en: 'Nammerha — Transparent Reconstruction Platform',
             de: 'Nammerha — Transparente Wiederaufbauplattform',
             fr: 'Nammerha — Plateforme de reconstruction transparente',
             tr: 'Nammerha — Şeffaf Yeniden Yapım Platformu',
         },
         description: {
-            ar: 'منصة تمويل جماعي شفافة لإعادة إعمار سوريا مع ضمان الأمانات والتحقق المكاني.',
+            ar: 'منصة تمويل جماعي لإعادة إعمار سوريا مع ضمان الأمانات والتحقق المكاني.',
             en: 'Transparent crowdfunding platform for Syria\'s reconstruction with escrow protection and spatial verification.',
             de: 'Transparente Crowdfunding-Plattform für den Wiederaufbau Syriens mit Treuhandschutz und räumlicher Verifizierung.',
             fr: 'Plateforme de financement participatif transparent pour la reconstruction de la Syrie avec protection d\'entiercement.',
@@ -59,14 +59,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'auth': {
         title: {
-            ar: 'نَمِّرها — تسجيل الدخول',
+            ar: 'نعمِّرها — تسجيل الدخول',
             en: 'Nammerha — Sign In',
             de: 'Nammerha — Anmelden',
             fr: 'Nammerha — Connexion',
             tr: 'Nammerha — Giriş Yap',
         },
         description: {
-            ar: 'تسجيل الدخول إلى منصة نَمِّرها لإدارة مشاريع إعادة الإعمار.',
+            ar: 'تسجيل الدخول إلى منصة نعمِّرها لإدارة مشاريع إعادة الإعمار.',
             en: 'Sign in to the Nammerha platform to manage reconstruction projects.',
             de: 'Melden Sie sich bei der Nammerha-Plattform an.',
             fr: 'Connectez-vous à la plateforme Nammerha.',
@@ -75,14 +75,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'reset-password': {
         title: {
-            ar: 'نَمِّرها — إعادة تعيين كلمة المرور',
+            ar: 'نعمِّرها — إعادة تعيين كلمة المرور',
             en: 'Nammerha — Reset Password',
             de: 'Nammerha — Passwort zurücksetzen',
             fr: 'Nammerha — Réinitialiser le mot de passe',
             tr: 'Nammerha — Şifre Sıfırla',
         },
         description: {
-            ar: 'إعادة تعيين كلمة المرور لحساب نَمِّرها.',
+            ar: 'إعادة تعيين كلمة المرور لحساب نعمِّرها.',
             en: 'Reset your Nammerha account password.',
             de: 'Setzen Sie Ihr Nammerha-Passwort zurück.',
             fr: 'Réinitialisez votre mot de passe Nammerha.',
@@ -91,14 +91,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'verify-email': {
         title: {
-            ar: 'نَمِّرها — تأكيد البريد الإلكتروني',
+            ar: 'نعمِّرها — تأكيد البريد الإلكتروني',
             en: 'Nammerha — Verify Email',
             de: 'Nammerha — E-Mail bestätigen',
             fr: 'Nammerha — Vérifier l\'email',
             tr: 'Nammerha — E-posta Doğrula',
         },
         description: {
-            ar: 'تأكيد عنوان البريد الإلكتروني لتفعيل حساب نَمِّرها.',
+            ar: 'تأكيد عنوان البريد الإلكتروني لتفعيل حساب نعمِّرها.',
             en: 'Verify your email address to activate your Nammerha account.',
             de: 'Bestätigen Sie Ihre E-Mail-Adresse.',
             fr: 'Vérifiez votre adresse e-mail.',
@@ -107,14 +107,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'wallet': {
         title: {
-            ar: 'نَمِّرها — المحفظة المالية',
+            ar: 'نعمِّرها — المحفظة المالية',
             en: 'Nammerha — Financial Wallet',
             de: 'Nammerha — Finanz-Wallet',
             fr: 'Nammerha — Portefeuille financier',
             tr: 'Nammerha — Finansal Cüzdan',
         },
         description: {
-            ar: 'إدارة أموالك والتبرعات في محفظة نَمِّرها.',
+            ar: 'إدارة أموالك والتبرعات في محفظة نعمِّرها.',
             en: 'Manage your funds and donations in the Nammerha wallet.',
             de: 'Verwalten Sie Ihre Gelder im Nammerha-Wallet.',
             fr: 'Gérez vos fonds dans le portefeuille Nammerha.',
@@ -123,7 +123,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'profile': {
         title: {
-            ar: 'نَمِّرها — الملف الشخصي',
+            ar: 'نعمِّرها — الملف الشخصي',
             en: 'Nammerha — Profile',
             de: 'Nammerha — Profil',
             fr: 'Nammerha — Profil',
@@ -139,7 +139,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'homeowner-portal': {
         title: {
-            ar: 'نَمِّرها — بوابة صاحب المنزل',
+            ar: 'نعمِّرها — بوابة صاحب المنزل',
             en: 'Nammerha — Homeowner Portal',
             de: 'Nammerha — Hausbesitzer-Portal',
             fr: 'Nammerha — Portail propriétaire',
@@ -155,7 +155,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'homeowner-report': {
         title: {
-            ar: 'نَمِّرها — تقرير الأضرار',
+            ar: 'نعمِّرها — تقرير الأضرار',
             en: 'Nammerha — Damage Report',
             de: 'Nammerha — Schadensbericht',
             fr: 'Nammerha — Rapport de dommages',
@@ -171,7 +171,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'donor-portal': {
         title: {
-            ar: 'نَمِّرها — بوابة المتبرع',
+            ar: 'نعمِّرها — بوابة المتبرع',
             en: 'Nammerha — Donor Portal',
             de: 'Nammerha — Spender-Portal',
             fr: 'Nammerha — Portail donateur',
@@ -187,7 +187,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'donor-basket': {
         title: {
-            ar: 'نَمِّرها — سلة التبرع',
+            ar: 'نعمِّرها — سلة التبرع',
             en: 'Nammerha — Donation Basket',
             de: 'Nammerha — Spendenkorb',
             fr: 'Nammerha — Panier de dons',
@@ -203,7 +203,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'donor-proof': {
         title: {
-            ar: 'نَمِّرها — إثبات التسليم',
+            ar: 'نعمِّرها — إثبات التسليم',
             en: 'Nammerha — Delivery Proof',
             de: 'Nammerha — Liefernachweis',
             fr: 'Nammerha — Preuve de livraison',
@@ -219,7 +219,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'supplier-dashboard': {
         title: {
-            ar: 'نَمِّرها — لوحة المورد',
+            ar: 'نعمِّرها — لوحة المورد',
             en: 'Nammerha — Supplier Dashboard',
             de: 'Nammerha — Lieferanten-Dashboard',
             fr: 'Nammerha — Tableau de bord fournisseur',
@@ -235,7 +235,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'contractor-portal': {
         title: {
-            ar: 'نَمِّرها — بوابة المقاول',
+            ar: 'نعمِّرها — بوابة المقاول',
             en: 'Nammerha — Contractor Portal',
             de: 'Nammerha — Auftragnehmer-Portal',
             fr: 'Nammerha — Portail entrepreneur',
@@ -251,7 +251,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'contractor-dashboard': {
         title: {
-            ar: 'نَمِّرها — لوحة المقاول',
+            ar: 'نعمِّرها — لوحة المقاول',
             en: 'Nammerha — Contractor Dashboard',
             de: 'Nammerha — Auftragnehmer-Dashboard',
             fr: 'Nammerha — Tableau de bord entrepreneur',
@@ -267,7 +267,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'tradesperson-portal': {
         title: {
-            ar: 'نَمِّرها — بوابة الحرفي',
+            ar: 'نعمِّرها — بوابة الحرفي',
             en: 'Nammerha — Tradesperson Portal',
             de: 'Nammerha — Handwerker-Portal',
             fr: 'Nammerha — Portail artisan',
@@ -283,7 +283,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'compliance-dashboard': {
         title: {
-            ar: 'نَمِّرها — لوحة الامتثال',
+            ar: 'نعمِّرها — لوحة الامتثال',
             en: 'Nammerha — Compliance Dashboard',
             de: 'Nammerha — Compliance-Dashboard',
             fr: 'Nammerha — Tableau de bord conformité',
@@ -299,14 +299,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'terms': {
         title: {
-            ar: 'نَمِّرها — شروط الاستخدام',
+            ar: 'نعمِّرها — شروط الاستخدام',
             en: 'Nammerha — Terms of Service',
             de: 'Nammerha — Nutzungsbedingungen',
             fr: 'Nammerha — Conditions d\'utilisation',
             tr: 'Nammerha — Kullanım Şartları',
         },
         description: {
-            ar: 'شروط الاستخدام لمنصة نَمِّرها لإعادة الإعمار.',
+            ar: 'شروط الاستخدام لمنصة نعمِّرها لإعادة الإعمار.',
             en: 'Terms of service for the Nammerha reconstruction platform.',
             de: 'Nutzungsbedingungen der Nammerha-Plattform.',
             fr: 'Conditions d\'utilisation de la plateforme Nammerha.',
@@ -315,14 +315,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'privacy': {
         title: {
-            ar: 'نَمِّرها — سياسة الخصوصية',
+            ar: 'نعمِّرها — سياسة الخصوصية',
             en: 'Nammerha — Privacy Policy',
             de: 'Nammerha — Datenschutzrichtlinie',
             fr: 'Nammerha — Politique de confidentialité',
             tr: 'Nammerha — Gizlilik Politikası',
         },
         description: {
-            ar: 'سياسة الخصوصية وحماية البيانات لمنصة نَمِّرها.',
+            ar: 'سياسة الخصوصية وحماية البيانات لمنصة نعمِّرها.',
             en: 'Privacy policy and data protection for the Nammerha platform.',
             de: 'Datenschutzrichtlinie der Nammerha-Plattform.',
             fr: 'Politique de confidentialité de la plateforme Nammerha.',
@@ -331,14 +331,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'refund-policy': {
         title: {
-            ar: 'نَمِّرها — سياسة الاسترداد',
+            ar: 'نعمِّرها — سياسة الاسترداد',
             en: 'Nammerha — Refund Policy',
             de: 'Nammerha — Rückerstattungsrichtlinie',
             fr: 'Nammerha — Politique de remboursement',
             tr: 'Nammerha — İade Politikası',
         },
         description: {
-            ar: 'سياسة الاسترداد والضمان لمنصة نَمِّرها.',
+            ar: 'سياسة الاسترداد والضمان لمنصة نعمِّرها.',
             en: 'Refund and escrow policy for the Nammerha platform.',
             de: 'Rückerstattungs- und Treuhandrichtlinie der Nammerha-Plattform.',
             fr: 'Politique de remboursement de la plateforme Nammerha.',
@@ -347,14 +347,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
     },
     'contact': {
         title: {
-            ar: 'نَمِّرها — تواصل معنا',
+            ar: 'نعمِّرها — تواصل معنا',
             en: 'Nammerha — Contact Us',
             de: 'Nammerha — Kontakt',
             fr: 'Nammerha — Contactez-nous',
             tr: 'Nammerha — İletişim',
         },
         description: {
-            ar: 'تواصل مع فريق نَمِّرها لأي استفسارات.',
+            ar: 'تواصل مع فريق نعمِّرها لأي استفسارات.',
             en: 'Get in touch with the Nammerha team.',
             de: 'Kontaktieren Sie das Nammerha-Team.',
             fr: 'Contactez l\'équipe Nammerha.',
@@ -366,14 +366,14 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
 // ─── Default Metadata (fallback for pages not in PAGE_SEO) ──────────────
 const DEFAULT_META: LocalizedMeta = {
     title: {
-        ar: 'نَمِّرها — إعادة الإعمار',
+        ar: 'نعمِّرها — إعادة الإعمار',
         en: 'Nammerha — Reconstruction',
         de: 'Nammerha — Wiederaufbau',
         fr: 'Nammerha — Reconstruction',
         tr: 'Nammerha — Yeniden Yapım',
     },
     description: {
-        ar: 'منصة شفافة لإعادة إعمار سوريا.',
+        ar: 'منصة لإعادة إعمار سوريا.',
         en: 'Transparent platform for Syria\'s reconstruction.',
         de: 'Transparente Plattform für den Wiederaufbau Syriens.',
         fr: 'Plateforme transparente pour la reconstruction de la Syrie.',

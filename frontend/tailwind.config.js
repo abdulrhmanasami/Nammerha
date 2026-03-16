@@ -4,7 +4,7 @@ export default {
         './*.html',
         './src/**/*.{ts,js}',
     ],
-    darkMode: 'class',
+    darkMode: ['selector', '[data-theme="dark"]'],
     theme: {
         extend: {
             colors: {

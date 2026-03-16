@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
@@ -8,6 +9,8 @@ import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
 import { setText } from '../utils/dom';
+import { createHashRouter } from '../utils/hash-router';
+import { initSwipeTabs } from '../utils/swipe-tabs';
 
 // ─── HIGH-002 FIX: Inline banner replaces native alert() ────────────────────
 let srBannerTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -70,12 +73,26 @@ type TabName = 'dashboard' | 'projects' | 'requests' | 'approvals' | 'payments';
 // PLT-FE-003 FIX: Module-level constant
 const ALL_TABS: TabName[] = ['dashboard', 'projects', 'requests', 'approvals', 'payments'];
 
+// P1-003 FIX: Hash-based tab routing — bookmarkable, deep-linkable
+const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
+
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     setupServiceRequestForm();
-    loadStats();
-    loadDashboardProjects();
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+        containerSelector: '.dashboard-main',
+        tabs: ALL_TABS as unknown as readonly string[],
+        onSwitch: switchTab as (tab: string) => void,
+        getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+    setupServiceRequestForm();
+
 
     // ─── Secure Logout ──────────────────────────────────────────────────
     document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
@@ -98,6 +115,8 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P1-003 FIX: Sync tab to URL hash
+    hashRouter.setActiveTab(tab);
     // P2-001 FIX: Renamed loop variable from `t` to `tabId` to prevent
     // shadowing the imported i18n `t()` function (line 9).
     for (const tabId of ALL_TABS) {
@@ -111,6 +130,7 @@ function switchTab(tab: TabName): void {
         if (section) { section.style.display = tabId === tab ? '' : 'none'; }
     }
 
+    if (tab === 'dashboard') { loadStats(); loadDashboardProjects(); }
     if (tab === 'projects') { loadProjects(); }
     if (tab === 'requests') { loadServiceRequests(); }
     if (tab === 'approvals') { loadApprovals(); }
@@ -157,7 +177,7 @@ async function loadDashboardProjects(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -177,7 +197,7 @@ async function loadDashboardProjects(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
+        renderErrorWithRetry(container, loadDashboardProjects);
     }
 }
 
@@ -198,7 +218,7 @@ async function loadProjects(): Promise<void> {
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3">
                     <p class="font-medium">${esc(p.title)}</p>
                     <p class="text-[10px] text-slate-400">${esc(p.project_id)}</p>
@@ -211,7 +231,7 @@ async function loadProjects(): Promise<void> {
             </tr>
         `).join('');
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadProjects, 6);
     }
 }
 
@@ -298,7 +318,7 @@ async function loadServiceRequests(): Promise<void> {
         }
 
         tbody.innerHTML = requests.map((r) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(r.title)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${tradeColor(r.trade_needed)}">${esc(r.trade_needed)}</span></td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span></td>
@@ -327,7 +347,7 @@ async function loadServiceRequests(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</td></tr>`;
+        renderTableErrorWithRetry(tbody, loadServiceRequests, 6);
     }
 }
 
@@ -349,7 +369,7 @@ async function loadApprovals(): Promise<void> {
         }
 
         container.innerHTML = approvals.map((a) => `
-            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -391,7 +411,7 @@ async function loadApprovals(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<div class="p-5 text-center text-red-400 text-sm" data-i18n="failed_to_load">Failed to load</div>`;
+        renderErrorWithRetry(container, loadApprovals);
     }
 }
 
@@ -433,7 +453,7 @@ async function loadEscrow(): Promise<void> {
             ` : ''}
         `;
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        container.innerHTML = `<p class="text-red-400 text-sm text-center" data-i18n="failed_to_load">Failed to load</p>`;
+        renderErrorWithRetry(container, loadEscrow);
     }
 }
 

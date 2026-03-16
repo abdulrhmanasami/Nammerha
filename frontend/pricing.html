@@ -5,14 +5,22 @@
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Pricing</title>
   <meta name="description" content="Choose the right plan for your construction business. From free tools to enterprise-grade features." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/pricing.ts"></script>
-  <link href="/i18n.css?v=5" rel="stylesheet"/>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
-  <div class="max-w-7xl mx-auto px-6 py-16">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
+  <div id="main-content" class="max-w-7xl mx-auto px-6 py-16">
 
     <!-- Header -->
     <header class="text-center mb-16">
@@ -29,7 +37,7 @@
         <span class="text-sm font-semibold text-slate-600" data-i18n="pricing_monthly">Monthly</span>
         <button type="button" id="billing-switch"
           class="relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-trust-blue"
-          role="switch" aria-checked="false" aria-label="Toggle yearly billing">
+          role="switch" aria-checked="false" aria-label="Toggle yearly billing" data-i18n-aria="aria_toggle_billing">
           <span class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
         </button>
         <span class="text-sm font-semibold text-slate-600" data-i18n="pricing_yearly">Yearly</span>
@@ -141,7 +149,7 @@
       <!-- ═══ BUSINESS — $49/mo (RECOMMENDED) ═══ -->
       <div class="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-7 flex flex-col shadow-xl text-white ring-2 ring-trust-blue/30">
         <!-- Badge -->
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <div class="absolute -top-3 start-1/2 -translate-x-1/2">
           <span class="inline-flex items-center gap-1 bg-trust-blue text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg" data-i18n="pricing_recommended">
             <i class="ph ph-star" aria-hidden="true"></i> Recommended
           </span>

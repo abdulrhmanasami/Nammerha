@@ -5,13 +5,21 @@
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Admin Dashboard</title>
   <meta name="description" content="Command center for managing reconstruction projects, escrow verification, and pricing oracle." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/admin-dashboard.ts"></script>
-<link href="/i18n.css?v=5" rel="stylesheet"/>
+<link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
+<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 <div class="dashboard-layout">
 
   <!-- Sidebar Overlay (mobile) -->
@@ -43,12 +51,12 @@
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+        <span id="sidebar-escrow-count" class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">5</span>
+        <span id="sidebar-kyc-count" class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
@@ -56,10 +64,12 @@
       </a>
     </nav>
     <div class="p-4 border-t border-slate-200">
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+      <!-- P1-UX-002 FIX: Settings is a future feature — disabled with 'Coming Soon' indicator -->
+      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true" title="Coming Soon">
         <i class="ph ph-gear" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_settings">Settings</span>
-      </a>
+        <span class="ml-auto text-[8px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+      </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
           <i class="ph ph-user-circle text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
@@ -77,24 +87,23 @@
     <!-- Top Bar -->
     <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
         <h2 class="font-bold text-lg page-header-title" data-i18n="admin_command_center">Command Center</h2>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
-        <button class="text-slate-500 hover:text-trust-blue transition-colors">
-          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-        </button>
-        <button class="text-slate-500 hover:text-trust-blue transition-colors relative">
+        <!-- P1-UX-003 FIX: Removed non-functional search button (use table filter instead) -->
+        <!-- P1-UX-003 FIX: Notification bell disabled — future feature -->
+        <span class="text-slate-300 cursor-not-allowed" title="Notifications — Coming Soon" aria-disabled="true">
           <i class="ph ph-bell" aria-hidden="true"></i>
-          <span class="absolute top-0 right-0 h-1.5 w-1.5 bg-rose-500 rounded-full"></span>
-        </button>
+        </span>
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+    <!-- P1-005 FIX: Skip-link target on correct landmark (was dashboard-content) -->
+    <main id="main-content" class="flex-1 overflow-y-auto p-6 space-y-6">
       <!-- KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -107,17 +116,17 @@
             </span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="total_impact_funded">Total Impact Funded</p>
-          <p class="text-2xl font-black mt-1" data-kpi="12450200" data-prefix="$">$0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-total-funded" data-kpi="0" data-prefix="$">$0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
               <i class="ph ph-buildings text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full">Active</span>
+            <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full" data-i18n="badge_active">Active</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_active_projects">Active Projects</p>
-          <p class="text-2xl font-black mt-1" data-kpi="8">0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-active-projects" data-kpi="0">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -126,17 +135,17 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_registered_eng">Registered Engineers</p>
-          <p class="text-2xl font-black mt-1" data-kpi="24">0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-engineers" data-kpi="0">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
               <i class="ph ph-clock-countdown text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">Urgent</span>
+            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_pending_verify">Pending Verifications</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="3">0</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-pending" data-kpi="0">0</p>
         </div>
       </div>
 
@@ -151,7 +160,7 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_escrow_queue_desc">Spatial proofs awaiting admin review and fund release</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="badge-warning">3 Pending</span>
+            <span class="badge-warning" id="escrow-pending-count">— Pending</span>
             <i class="ph ph-arrow-right text-slate-400 group-hover:text-trust-blue transition-colors" aria-hidden="true"></i>
           </div>
         </a>
@@ -164,7 +173,7 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_pricing_desc">FIDIC 13.8 price adjustment pending approval</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">1 Action</span>
+            <span id="oracle-action-count" class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full" data-i18n="admin_actions_count">1 Action</span>
             <i class="ph ph-arrow-right text-slate-400 group-hover:text-smoky-jade transition-colors" aria-hidden="true"></i>
           </div>
         </a>
@@ -177,94 +186,31 @@
             <h3 class="font-bold" data-i18n="admin_active_projects">Active Projects</h3>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_projects_desc">All reconstruction projects with OCDS-compliant tracking</p>
           </div>
-          <button class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50 transition-colors">
-            <i class="ph ph-funnel" style="font-size:12px" aria-hidden="true"></i> Filter
+          <button id="projects-filter-btn" class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50 transition-colors">
+            <i class="ph ph-funnel" style="font-size:12px" aria-hidden="true"></i> <span data-i18n="common_filter">Filter</span>
           </button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-slate-100 text-left">
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project ID</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Title</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Governorate</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Engineer</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Funded</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Progress</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+              <tr class="border-b border-slate-100 text-start">
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_project_id">Project ID</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_title">Title</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_governorate">Governorate</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_engineer">Engineer</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_funded">Funded</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_progress">Progress</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_status">Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr class="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">OCDS-SYR-001</td>
-                <td class="px-5 py-3 font-medium">Al-Majidiya Residential Block A</td>
-                <td class="px-5 py-3 text-slate-500">Aleppo (حلب)</td>
-                <td class="px-5 py-3 text-slate-600">Khalid Al-Ahmad</td>
-                <td class="px-5 py-3 font-bold">$45,200</td>
-                <td class="px-5 py-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-smoky-jade h-full w-[75%]"></div></div>
-                    <span class="text-xs text-smoky-jade font-bold">75%</span>
-                  </div>
-                </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">In Progress</span></td>
-              </tr>
-              <tr class="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">OCDS-SYR-002</td>
-                <td class="px-5 py-3 font-medium">Harbor View Restoration</td>
-                <td class="px-5 py-3 text-slate-500">Latakia (اللاذقية)</td>
-                <td class="px-5 py-3 text-slate-600">Fatima Nouri</td>
-                <td class="px-5 py-3 font-bold">$128,500</td>
-                <td class="px-5 py-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-trust-blue h-full w-[100%]"></div></div>
-                    <span class="text-xs text-trust-blue font-bold">100%</span>
-                  </div>
-                </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full">Fully Funded</span></td>
-              </tr>
-              <tr class="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">OCDS-SYR-003</td>
-                <td class="px-5 py-3 font-medium">Old City Wall Reinforcement</td>
-                <td class="px-5 py-3 text-slate-500">Homs (حمص)</td>
-                <td class="px-5 py-3 text-slate-600">Omar Darwish</td>
-                <td class="px-5 py-3 font-bold">$67,300</td>
-                <td class="px-5 py-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-smoky-jade h-full w-[42%]"></div></div>
-                    <span class="text-xs text-smoky-jade font-bold">42%</span>
-                  </div>
-                </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">In Progress</span></td>
-              </tr>
-              <tr class="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">OCDS-SYR-004</td>
-                <td class="px-5 py-3 font-medium">Daraa School Complex</td>
-                <td class="px-5 py-3 text-slate-500">Daraa (درعا)</td>
-                <td class="px-5 py-3 text-slate-500 italic">— Pending Assignment</td>
-                <td class="px-5 py-3 font-bold">$12,800</td>
-                <td class="px-5 py-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-warning-yellow h-full w-[15%]"></div></div>
-                    <span class="text-xs text-warning-yellow font-bold">15%</span>
-                  </div>
-                </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">Under Review</span></td>
-              </tr>
-              <tr class="hover:bg-slate-50/50 cursor-pointer transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">OCDS-SYR-005</td>
-                <td class="px-5 py-3 font-medium">Idlib Water Infrastructure</td>
-                <td class="px-5 py-3 text-slate-500">Idlib (إدلب)</td>
-                <td class="px-5 py-3 text-slate-600">Hana Khatib</td>
-                <td class="px-5 py-3 font-bold">$89,700</td>
-                <td class="px-5 py-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-smoky-jade h-full w-[58%]"></div></div>
-                    <span class="text-xs text-smoky-jade font-bold">58%</span>
-                  </div>
-                </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">In Progress</span></td>
-              </tr>
+            <tbody id="projects-body">
+              <!-- P0-003 FIX: Populated dynamically by admin-dashboard.ts -->
+              <tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
+                <div class="animate-pulse flex flex-col items-center gap-2">
+                  <div class="h-4 w-32 bg-slate-200 rounded"></div>
+                  <div class="h-3 w-24 bg-slate-100 rounded"></div>
+                </div>
+              </td></tr>
             </tbody>
           </table>
         </div>
@@ -274,61 +220,19 @@
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
-            <h3 class="font-bold">Recent Audit Trail</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Immutable record of all administrative actions</p>
+            <h3 class="font-bold" data-i18n="admin_audit_trail">Recent Audit Trail</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_audit_desc">Immutable record of all administrative actions</p>
           </div>
-          <button class="text-xs font-semibold text-trust-blue hover:underline">View Full Log</button>
+          <!-- P1-UX-004 FIX: Full log page is a future feature -->
+          <button class="text-xs font-semibold text-slate-300 cursor-not-allowed" disabled title="Coming Soon" data-i18n="admin_view_full_log">View Full Log</button>
         </div>
-        <div class="divide-y divide-slate-50">
-          <div class="px-5 py-3 flex items-center gap-4">
-            <div class="size-8 rounded-full bg-smoky-jade/10 flex items-center justify-center shrink-0">
-              <i class="ph ph-check-circle text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+        <div id="audit-trail" class="divide-y divide-slate-50">
+          <!-- P0-003 FIX: Populated dynamically by admin-dashboard.ts -->
+          <div class="px-5 py-8 text-center text-slate-400">
+            <div class="animate-pulse flex flex-col items-center gap-2">
+              <div class="h-4 w-40 bg-slate-200 rounded"></div>
+              <div class="h-3 w-28 bg-slate-100 rounded"></div>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">Escrow Released — <span class="text-trust-blue">OCDS-SYR-002</span> — $3,200 to Al-Sham Building Materials</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Admin: System • GPS Verified: 33.8938°N, 35.5018°E</p>
-            </div>
-            <span class="text-[10px] text-slate-400 shrink-0">2 hours ago</span>
-          </div>
-          <div class="px-5 py-3 flex items-center gap-4">
-            <div class="size-8 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
-              <i class="ph ph-gavel text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">EPA Adjustment Approved — <span class="text-trust-blue">EPA-2026-0041</span> — +3.8% (Steel Index)</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Admin: System • FIDIC 13.8 Compliant</p>
-            </div>
-            <span class="text-[10px] text-slate-400 shrink-0">5 hours ago</span>
-          </div>
-          <div class="px-5 py-3 flex items-center gap-4">
-            <div class="size-8 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
-              <i class="ph ph-user-plus text-warm-earth" style="font-size:14px" aria-hidden="true"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">Engineer Assigned — <span class="text-trust-blue">OCDS-SYR-005</span> — Hana Khatib (License: SYR-ENG-44201)</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Admin: System • KYC Verified ✓</p>
-            </div>
-            <span class="text-[10px] text-slate-400 shrink-0">Yesterday</span>
-          </div>
-          <div class="px-5 py-3 flex items-center gap-4">
-            <div class="size-8 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
-              <i class="ph ph-flag text-rose-500" style="font-size:14px" aria-hidden="true"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">Discrepancy Flagged — <span class="text-trust-blue">OCDS-SYR-003</span> — GPS mismatch on delivery proof #DP-0087</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Admin: System • Distance: 142m (> 100m threshold)</p>
-            </div>
-            <span class="text-[10px] text-slate-400 shrink-0">2 days ago</span>
-          </div>
-          <div class="px-5 py-3 flex items-center gap-4">
-            <div class="size-8 rounded-full bg-smoky-jade/10 flex items-center justify-center shrink-0">
-              <i class="ph ph-check-circle text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium truncate">Escrow Released — <span class="text-trust-blue">OCDS-SYR-001</span> — $920 to Damascus Steel Co.</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Admin: System • GPS Verified: 36.2021°N, 37.1343°E</p>
-            </div>
-            <span class="text-[10px] text-slate-400 shrink-0">3 days ago</span>
           </div>
         </div>
       </div>
@@ -349,5 +253,6 @@
 </div>
 <script src="/i18n.js?v=7" defer></script>
 <script src="/nav.js?v=7" defer></script>
+<script src="/sidebar.js?v=1" defer></script>
 </body>
 </html>
