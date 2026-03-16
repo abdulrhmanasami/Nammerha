@@ -450,6 +450,36 @@
             tr: 'Verileriniz endüstri standardı şifreleme ile korunur ve asla üçüncü taraflara satılmaz.'
         },
 
+        // P2-COMPLIANCE-001 FIX: Cookie & Tracking disclosure (GDPR ePrivacy)
+        'pp_cookies': { ar: '7. الكوكيز وتقنيات التتبع', de: '7. Cookies & Tracking-Technologien', fr: '7. Cookies & Technologies de suivi', tr: '7. Çerezler & İzleme Teknolojileri' },
+        'pp_cookies_body': {
+            ar: 'نستخدم كوكيز وظيفية فقط لتشغيل المنصة. لا نستخدم أي كوكيز تحليلات أو إعلانات أو تتبع من أطراف ثالثة.',
+            de: 'Wir verwenden ausschließlich funktionale Cookies zum Betrieb der Plattform. Wir verwenden keine Analyse-, Werbe- oder Tracking-Cookies von Drittanbietern.',
+            fr: 'Nous utilisons uniquement des cookies fonctionnels pour faire fonctionner la Plateforme. Nous n\'utilisons aucun cookie d\'analyse, de publicité ou de suivi tiers.',
+            tr: 'Platformu çalıştırmak için yalnızca işlevsel çerezler kullanıyoruz. Herhangi bir üçüncü taraf analiz, reklam veya izleme çerezi kullanmıyoruz.'
+        },
+        'pp_cookie_auth': { ar: 'كوكي المصادقة', de: 'Authentifizierungs-Cookie', fr: 'Cookie d\'authentification', tr: 'Kimlik Doğrulama Çerezi' },
+        'pp_cookie_auth_detail': {
+            ar: 'كوكي جلسة آمن من نوع httpOnly يحافظ على تسجيل دخولك. لا يمكن قراءته بواسطة JavaScript ويُنقل فقط عبر HTTPS.',
+            de: 'Ein sicheres httpOnly-Sitzungscookie, das Sie angemeldet hält. Es kann nicht von JavaScript gelesen werden und wird nur über HTTPS übertragen.',
+            fr: 'Un cookie de session sécurisé httpOnly qui maintient votre connexion. Il ne peut pas être lu par JavaScript et est transmis uniquement via HTTPS.',
+            tr: 'Sizi oturumda tutan güvenli bir httpOnly oturum çerezi. JavaScript tarafından okunamaz ve yalnızca HTTPS üzerinden iletilir.'
+        },
+        'pp_cookie_csrf': { ar: 'كوكي حماية CSRF', de: 'CSRF-Schutz-Cookie', fr: 'Cookie de protection CSRF', tr: 'CSRF Koruma Çerezi' },
+        'pp_cookie_csrf_detail': {
+            ar: 'رمز أمان يمنع هجمات تزوير الطلبات عبر المواقع على حسابك.',
+            de: 'Ein Sicherheitstoken, das Cross-Site-Request-Forgery-Angriffe auf Ihr Konto verhindert.',
+            fr: 'Un jeton de sécurité qui prévient les attaques de type cross-site request forgery sur votre compte.',
+            tr: 'Hesabınıza yönelik siteler arası istek sahteciliği saldırılarını önleyen bir güvenlik belirteci.'
+        },
+        'pp_cookie_no_tracking': { ar: 'لا تتبع من أطراف ثالثة', de: 'Kein Drittanbieter-Tracking', fr: 'Aucun suivi tiers', tr: 'Üçüncü Taraf İzleme Yok' },
+        'pp_cookie_no_tracking_detail': {
+            ar: 'لا نستخدم Google Analytics أو Facebook Pixel أو أي خدمات تتبع من أطراف ثالثة. لن يتم مشاركة نشاط تصفحك مع المعلنين أبداً.',
+            de: 'Wir verwenden weder Google Analytics noch Facebook Pixel oder andere Tracking-Dienste von Drittanbietern. Ihre Browsing-Aktivität wird niemals mit Werbetreibenden geteilt.',
+            fr: 'Nous n\'utilisons pas Google Analytics, Facebook Pixel ou tout autre service de suivi tiers. Votre activité de navigation n\'est jamais partagée avec des annonceurs.',
+            tr: 'Google Analytics, Facebook Pixel veya herhangi bir üçüncü taraf izleme hizmeti kullanmıyoruz. Tarama etkinliğiniz asla reklamcılarla paylaşılmaz.'
+        },
+
         // ═══ FUND NOW BUTTON ═══
         'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
 
@@ -496,6 +526,22 @@
         'forgot_password': { ar: 'نسيت كلمة المرور؟', de: 'Passwort vergessen?', fr: 'Mot de passe oublié ?', tr: 'Şifrenizi mi unuttunuz?' },
         'auth_trust_1': { ar: 'معتمد OCDS', de: 'OCDS-verifiziert', fr: 'Vérifié OCDS', tr: 'OCDS Doğrulanmış' },
         'auth_trust_2': { ar: 'تشفير 256-بت', de: '256-Bit verschlüsselt', fr: 'Chiffrement 256 bits', tr: '256-bit Şifreli' },
+        // P2-UX-001 FIX: Auth placeholder translations for Arabic/multilingual mode
+        'auth_name_placeholder': { ar: 'الاسم الكامل', de: 'Vor- und Nachname', fr: 'Nom complet', tr: 'Ad Soyad' },
+        'auth_pw_placeholder': { ar: 'حد أدنى ٨ أحرف، حرف كبير، رقم', de: 'Mind. 8 Zeichen, 1 Großbuchstabe, 1 Zahl', fr: 'Min 8 car., 1 majuscule, 1 chiffre', tr: 'Min 8 karakter, 1 büyük harf, 1 rakam' },
+        'auth_confirm_pw_placeholder': { ar: '••••••••', de: '••••••••', fr: '••••••••', tr: '••••••••' },
+        'auth_email_placeholder': { ar: 'you@example.com', de: 'name@beispiel.de', fr: 'vous@exemple.com', tr: 'siz@ornek.com' },
+        'auth_pw_dots': { ar: '••••••••', de: '••••••••', fr: '••••••••', tr: '••••••••' },
+        'ho_sr_title_placeholder': { ar: 'مثال: إصلاح تسريب أنبوب المطبخ', de: 'z.B. Küchrohr-Leck reparieren', fr: 'ex. Réparer la fuite du tuyau', tr: 'Ör. Mutfak borusu sızıntısını tamir et' },
+        'ho_sr_desc_placeholder': { ar: 'صف المشكلة...', de: 'Beschreiben Sie das Problem...', fr: 'Décrivez le problème...', tr: 'Sorunu açıklayın...' },
+        'ho_sr_address_placeholder': { ar: 'العنوان أو الحي', de: 'Adresse oder Viertel', fr: 'Adresse ou quartier', tr: 'Adres veya mahalle' },
+        'common_optional': { ar: 'اختياري', de: 'Optional', fr: 'Optionnel', tr: 'İsteğe bağlı' },
+        // PLT-UX-AUD-P2: Password strength meter labels
+        'pw_strength_weak': { ar: 'ضعيف', de: 'Schwach', fr: 'Faible', tr: 'Zayıf' },
+        'pw_strength_fair': { ar: 'مقبول', de: 'Ausreichend', fr: 'Passable', tr: 'Orta' },
+        'pw_strength_good': { ar: 'جيد', de: 'Gut', fr: 'Bon', tr: 'İyi' },
+        'pw_strength_strong': { ar: 'قوي', de: 'Stark', fr: 'Fort', tr: 'Güçlü' },
+        'pw_strength_too_short': { ar: 'قصير جداً', de: 'Zu kurz', fr: 'Trop court', tr: 'Çok kısa' },
         'auth_footer': { ar: 'بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية.', de: 'Durch Fortfahren stimmen Sie unseren Nutzungsbedingungen und der Datenschutzrichtlinie zu.', fr: 'En continuant, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.', tr: 'Devam ederek Kullanım Şartlarımızı ve Gizlilik Politikamızı kabul edersiniz.' },
         'role_contractor': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Müteahhit' },
         'role_tradesperson': { ar: 'حرفي', de: 'Handwerker', fr: 'Artisan', tr: 'Esnaf' },
@@ -1036,6 +1082,57 @@
         'contractor_th_status': { ar: 'الحالة', de: 'Status', fr: 'Statut', tr: 'Durum' },
         'contractor_th_submitted': { ar: 'تاريخ التقديم', de: 'Eingereicht am', fr: 'Soumis le', tr: 'Gönderim Tarihi' },
         'contractor_th_timeline': { ar: 'الجدول الزمني', de: 'Zeitplan', fr: 'Calendrier', tr: 'Zaman Çizelgesi' },
+
+        // ═══ SHARED TABLE HEADERS (P1-001 Audit Fix) ═══
+        'th_project': { ar: 'المشروع', de: 'Projekt', fr: 'Projet', tr: 'Proje' },
+        'th_type': { ar: 'النوع', de: 'Typ', fr: 'Type', tr: 'Tür' },
+        'th_status': { ar: 'الحالة', de: 'Status', fr: 'Statut', tr: 'Durum' },
+        'th_action': { ar: 'الإجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+        'th_amount': { ar: 'المبلغ', de: 'Betrag', fr: 'Montant', tr: 'Tutar' },
+        'th_date': { ar: 'التاريخ', de: 'Datum', fr: 'Date', tr: 'Tarih' },
+        'th_engineer': { ar: 'المهندس', de: 'Ingenieur', fr: 'Ingénieur', tr: 'Mühendis' },
+        'th_contractor': { ar: 'المقاول', de: 'Auftragnehmer', fr: 'Entrepreneur', tr: 'Yüklenici' },
+        'th_bids': { ar: 'العروض', de: 'Angebote', fr: 'Offres', tr: 'Teklifler' },
+        'th_region': { ar: 'المنطقة', de: 'Region', fr: 'Région', tr: 'Bölge' },
+        'th_phase': { ar: 'المرحلة', de: 'Phase', fr: 'Phase', tr: 'Aşama' },
+        'th_progress': { ar: 'التقدم', de: 'Fortschritt', fr: 'Progression', tr: 'İlerleme' },
+        'th_est_cost': { ar: 'التكلفة التقديرية', de: 'Geschätzte Kosten', fr: 'Coût estimé', tr: 'Tahmini Maliyet' },
+        'th_boq_items': { ar: 'بنود الكميات', de: 'LV-Posten', fr: 'Articles DQE', tr: 'BOQ Kalemleri' },
+        'th_material': { ar: 'المادة', de: 'Material', fr: 'Matériau', tr: 'Malzeme' },
+        'th_title': { ar: 'العنوان', de: 'Titel', fr: 'Titre', tr: 'Başlık' },
+        'th_trade': { ar: 'المهنة', de: 'Gewerk', fr: 'Métier', tr: 'Meslek' },
+        'th_urgency': { ar: 'الأولوية', de: 'Dringlichkeit', fr: 'Urgence', tr: 'Aciliyet' },
+        'th_matched_to': { ar: 'مطابق مع', de: 'Zugeordnet an', fr: 'Associé à', tr: 'Eşleşen' },
+        'th_job': { ar: 'العمل', de: 'Auftrag', fr: 'Travail', tr: 'İş' },
+        'th_source': { ar: 'المصدر', de: 'Quelle', fr: 'Source', tr: 'Kaynak' },
+        'th_scope': { ar: 'النطاق', de: 'Umfang', fr: 'Portée', tr: 'Kapsam' },
+        'th_rate': { ar: 'السعر', de: 'Satz', fr: 'Tarif', tr: 'Ücret' },
+        'th_completed': { ar: 'مكتمل', de: 'Abgeschlossen', fr: 'Terminé', tr: 'Tamamlandı' },
+
+        // ═══ HOMEOWNER FORM LABELS (P1-001 Audit Fix) ═══
+        'ho_lbl_trade': { ar: 'المهنة المطلوبة', de: 'Benötigtes Gewerk', fr: 'Métier nécessaire', tr: 'Gereken Meslek' },
+        'ho_lbl_urgency': { ar: 'الأولوية', de: 'Dringlichkeit', fr: 'Urgence', tr: 'Aciliyet' },
+        'ho_lbl_title': { ar: 'العنوان', de: 'Titel', fr: 'Titre', tr: 'Başlık' },
+        'ho_lbl_description': { ar: 'الوصف (اختياري)', de: 'Beschreibung (optional)', fr: 'Description (optionnel)', tr: 'Açıklama (isteğe bağlı)' },
+        'ho_lbl_location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        'ho_lbl_max_budget': { ar: 'الميزانية القصوى ($)', de: 'Max. Budget ($)', fr: 'Budget max. ($)', tr: 'Maks. Bütçe ($)' },
+
+        // ═══ TRADE NAMES (P1-002 Audit Fix) ═══
+        'trade_tiling': { ar: 'بلاط', de: 'Fliesen', fr: 'Carrelage', tr: 'Fayans' },
+        'trade_painting': { ar: 'دهان', de: 'Malerei', fr: 'Peinture', tr: 'Boyama' },
+        'trade_plumbing': { ar: 'سباكة', de: 'Sanitär', fr: 'Plomberie', tr: 'Tesisat' },
+        'trade_electrical': { ar: 'كهرباء', de: 'Elektrik', fr: 'Électricité', tr: 'Elektrik' },
+        'trade_carpentry': { ar: 'نجارة', de: 'Schreinerei', fr: 'Menuiserie', tr: 'Marangozluk' },
+        'trade_welding': { ar: 'لحام', de: 'Schweißen', fr: 'Soudure', tr: 'Kaynak' },
+        'trade_masonry': { ar: 'بناء حجر', de: 'Mauerwerk', fr: 'Maçonnerie', tr: 'Taş işçiliği' },
+        'trade_plastering': { ar: 'قصارة', de: 'Verputzen', fr: 'Plâtrage', tr: 'Sıvacılık' },
+        'trade_hvac': { ar: 'تكييف', de: 'Klimatechnik', fr: 'CVC', tr: 'İklimlendirme' },
+        'trade_general': { ar: 'أعمال عامة', de: 'Allgemein', fr: 'Général', tr: 'Genel' },
+
+        // ═══ URGENCY LEVELS (P1-002 Audit Fix) ═══
+        'urgency_routine': { ar: 'عادي', de: 'Routine', fr: 'Routine', tr: 'Rutin' },
+        'urgency_urgent': { ar: 'مستعجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
+        'urgency_emergency': { ar: 'طارئ', de: 'Notfall', fr: 'Urgence', tr: 'Acil Durum' },
 
         // ═══ SUPPLIER MODAL FIELDS ═══
         'supplier_add_to_catalog': { ar: 'إضافة إلى الكتالوج', de: 'Zum Katalog hinzufügen', fr: 'Ajouter au catalogue', tr: 'Kataloğa Ekle' },

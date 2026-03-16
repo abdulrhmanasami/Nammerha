@@ -25,6 +25,24 @@ import { logger } from './logger';
 function inferStatusFromMessage(message: string): number | null {
     const lower = message.toLowerCase();
 
+    // F5-2 FIX: PostgreSQL / internal error guard — MUST be checked FIRST.
+    // Raw DB errors contain schema details (table names, constraint names,
+    // column names) that must NEVER reach the client. If the error smells
+    // like a database error, force 500 immediately — do not pattern-match.
+    // NOTE: Patterns use DB-specific syntax (quoted identifiers, pg_ prefix)
+    // to avoid false positives on business-logic messages like "FIDIC constraint".
+    const DB_LEAK_PATTERNS = [
+        'relation "', 'constraint "', 'violates unique', 'violates check',
+        'violates foreign key', 'violates not-null', 'pg_',
+        'syntax error at', 'column "', 'table "', 'index "', 'sequence "',
+        'operator does not exist', 'permission denied for', 'deadlock detected',
+        'could not serialize', 'connection refused', 'connection terminated',
+        'too many clients', 'remaining connection slots',
+    ];
+    if (DB_LEAK_PATTERNS.some(p => lower.includes(p))) {
+        return null; // → falls through to 500 in safeRouteError
+    }
+
     // 404 — Resource not found
     if (lower.includes('not found') || lower.includes('not exist')) {
         return 404;

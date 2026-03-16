@@ -178,7 +178,19 @@ export const donations = {
         payment_method?: 'visa' | 'fatora';
         /** NMR-AUD-M003: Payment gateway redirect URL (falls back to server default) */
         return_url?: string;
-    }) => request('/donations', { method: 'POST', body: JSON.stringify(data) }),
+        // F4-3 FIX: ENH-4 gift donation metadata (was missing → features unreachable)
+        gift_recipient_name?: string;
+        gift_message?: string;
+        // F4-3 FIX: ENH-5 Islamic charitable intent (was missing → feature unreachable)
+        donation_intent?: 'zakat' | 'sadaqah' | 'general';
+    // N-2 FIX: Idempotency-Key is now MANDATORY — prevents duplicate escrow
+    // entries on mobile double-tap or degraded-network retry. Matches the
+    // pattern already used by payments.initiate().
+    }) => request('/donations', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+    }),
 
     getMyEscrow: () => request('/donations/my/summary'),
 
@@ -842,6 +854,38 @@ export const donor = {
     /** GET /api/donor/proofs — GPS proof gallery */
     getProofs: () =>
         request<DonorProof[]>('/donor/proofs'),
+
+    /** GET /api/donor/timeline — Impact timeline (ENH-1) */
+    getTimeline: (limit?: number) => {
+        const qs = limit ? `?limit=${limit}` : '';
+        return request<{
+            event_type: 'donated' | 'delivered' | 'verified' | 'released' | 'refunded';
+            event_date: string;
+            project_id: string;
+            project_title: string;
+            item_id: string;
+            material_name: string;
+            amount: number;
+            proof_image_url: string | null;
+            proof_gps_lat: number | null;
+            proof_gps_lng: number | null;
+            verified_by_name: string | null;
+            verified_at: string | null;
+            gift_recipient_name: string | null;
+            donation_intent: string | null;
+        }[]>(`/donor/timeline${qs}`);
+    },
+
+    /** POST /api/donor/refunds — Request a refund (ENH-2) */
+    requestRefund: (data: { escrow_id: string; reason: string }) =>
+        request('/donor/refunds', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    /** GET /api/donor/receipts/:escrowId — Download donation receipt PDF (ENH-3) */
+    getReceiptUrl: (escrowId: string) =>
+        `/api/donor/receipts/${escrowId}`,
 };
 
 // ─── Supplier Portal (الموردين) ─────────────────────────────────────────────
@@ -1107,11 +1151,16 @@ interface HomeownerProject {
     created_at: string;
 }
 
+// P2-AUD-KPI-001 FIX: Aligned with backend HomeownerStats contract
+// (was stale: missing total_bids_received, active_service_requests, total_invested;
+//  had non-existent total_funded and total_projects)
 interface HomeownerStats {
-    total_projects: number;
     active_projects: number;
-    total_funded: number;
+    completed_projects: number;
     pending_approvals: number;
+    active_service_requests: number;
+    total_invested: number;         // cents — escrow deposits
+    total_bids_received: number;
 }
 
 interface HomeownerServiceRequest {
@@ -1265,6 +1314,28 @@ export const subscriptions = {
             method: 'POST',
             body: JSON.stringify({ plan_slug: planSlug }),
         }),
+};
+
+// ─── Storage Service (Pre-signed Upload URLs) ──────────────────────────────
+// P2-AUD-FETCH-003 FIX: Centralized wrapper for /api/storage/presign.
+// Replaces raw fetch() in engineer-camera.ts with timeout + CSRF + error reporting.
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface PresignResponse {
+    upload_url: string;
+    public_url: string;
+}
+
+export const storage = {
+    /** POST /api/storage/presign — Get a pre-signed upload URL */
+    presign: (data: {
+        filename: string;
+        content_type: string;
+        purpose?: string;
+    }) => request<PresignResponse>('/storage/presign', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
 };
 
 // ─── Enterprise Admin (FinTech Dashboard) ──────────────────────────────────

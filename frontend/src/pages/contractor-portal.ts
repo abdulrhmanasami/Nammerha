@@ -8,6 +8,7 @@ import { contractor } from '../api';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 import { formatDate } from '../utils/locale';
+import { setText } from '../utils/dom';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -142,7 +143,7 @@ async function loadProjects(): Promise<void> {
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span></td>
@@ -150,7 +151,7 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
                         <div class="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-amber-500 rounded-full" style="width:${p.progress}%"></div>
+                            <div class="h-full bg-amber-500 rounded-full" style="width:${Math.min(100, Math.max(0, Number(p.progress) || 0))}%"></div>
                         </div>
                         <span class="text-xs text-slate-400">${p.progress}%</span>
                     </div>
@@ -181,7 +182,7 @@ async function loadMarketplace(): Promise<void> {
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.damage_type)}</td>
@@ -227,10 +228,10 @@ async function loadBids(): Promise<void> {
         }
 
         tbody.innerHTML = bids.map((b) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(b.project_title)}</td>
                 <td class="px-5 py-3 font-mono text-sm">${formatCents(b.proposed_cost)}</td>
-                <td class="px-5 py-3">${b.estimated_days}d</td>
+                <td class="px-5 py-3">${esc(String(b.estimated_days))}d</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span></td>
                 <td class="px-5 py-3 text-xs text-slate-400">${formatDate(b.created_at)}</td>
             </tr>
@@ -258,7 +259,7 @@ async function loadPayments(): Promise<void> {
         }
 
         tbody.innerHTML = payments.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.project_title)}</td>
                 <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(p.amount)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${p.transaction_type === 'release' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${esc(p.transaction_type)}</span></td>
@@ -279,7 +280,7 @@ function openBidModal(projectId: string): void {
     modal.id = 'bid-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
+        <div class="bg-surface rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <h3 class="font-bold text-lg" data-i18n="submit_bid">${t('ct_submit_bid', 'Submit Bid')}</h3>
             <div>
                 <label class="text-xs font-bold text-slate-500 uppercase">${t('ct_label_cost', 'Proposed Cost (USD)')}</label>
@@ -302,7 +303,18 @@ function openBidModal(projectId: string): void {
     `;
     document.body.appendChild(modal);
 
-    document.getElementById('bid-cancel')?.addEventListener('click', () => { modal.remove(); });
+    // P2-AUD-NEW-001: Escape key closes modal
+    const onEscape = (e: KeyboardEvent): void => {
+        if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', onEscape); }
+    };
+    document.addEventListener('keydown', onEscape);
+
+    // P2-AUD-NEW-002: Backdrop click closes modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) { modal.remove(); document.removeEventListener('keydown', onEscape); }
+    });
+
+    document.getElementById('bid-cancel')?.addEventListener('click', () => { modal.remove(); document.removeEventListener('keydown', onEscape); });
 
     document.getElementById('bid-submit')?.addEventListener('click', async () => {
         const cost = parseInt((document.getElementById('bid-cost') as HTMLInputElement).value, 10);
@@ -345,11 +357,7 @@ function openBidModal(projectId: string): void {
     });
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function setText(id: string, text: string): void {
-    const el = document.getElementById(id);
-    if (el) { el.textContent = text; }
-}
+// P4-001 FIX: setText() moved to shared utils/dom.ts
 
 
 

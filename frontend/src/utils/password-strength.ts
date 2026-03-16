@@ -4,6 +4,8 @@
 // Single source of truth for password strength evaluation + UI rendering.
 // ============================================================================
 
+import { t } from './i18n';
+
 interface StrengthLabel {
     text: string;
     i18nKey: string;
@@ -37,10 +39,10 @@ export function updatePasswordStrength(
     const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400'];
 
     const labels: StrengthLabel[] = [
-        { text: 'Weak', i18nKey: 'pw_strength_weak' },
-        { text: 'Fair', i18nKey: 'pw_strength_fair' },
-        { text: 'Good', i18nKey: 'pw_strength_good' },
-        { text: 'Strong', i18nKey: 'pw_strength_strong' },
+        { text: t('pw_strength_weak', 'Weak'), i18nKey: 'pw_strength_weak' },
+        { text: t('pw_strength_fair', 'Fair'), i18nKey: 'pw_strength_fair' },
+        { text: t('pw_strength_good', 'Good'), i18nKey: 'pw_strength_good' },
+        { text: t('pw_strength_strong', 'Strong'), i18nKey: 'pw_strength_strong' },
     ];
 
     if (strengthBars) {
@@ -60,11 +62,11 @@ export function updatePasswordStrength(
             strengthLabel.textContent = label.text;
             strengthLabel.setAttribute('data-i18n', label.i18nKey);
         } else {
-            strengthLabel.textContent = 'Too short';
+            strengthLabel.textContent = t('pw_strength_too_short', 'Too short');
             strengthLabel.setAttribute('data-i18n', 'pw_strength_too_short');
         }
     } else if (strengthLabel) {
-        strengthLabel.textContent = '8+ chars, 1 uppercase, 1 number, 1 special';
+        strengthLabel.textContent = t('pw_requirements', '8+ chars, 1 uppercase, 1 number, 1 special');
         strengthLabel.setAttribute('data-i18n', 'pw_requirements');
     }
 

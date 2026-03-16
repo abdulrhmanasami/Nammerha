@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { safeRouteError } from '../utils/safe-error';
 import {
     validateApiKey,
     getOrgDashboard,
@@ -21,6 +22,7 @@ import {
     getAllFeeConfigs,
     updateFeeRate,
 } from '../services/escrow-fee.service';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -64,11 +66,9 @@ async function enterpriseApiAuth(req: Request, res: Response, next: () => void):
 
         next();
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            error: 'API authentication failed',
-            detail: err instanceof Error ? err.message : String(err),
-        });
+        // P1-ERR-001 FIX: Never expose internal errors to API callers.
+        logger.error('Enterprise API auth failed', { error: err instanceof Error ? err.message : String(err) });
+        res.status(500).json({ success: false, error: 'API authentication failed' });
     }
 }
 
@@ -86,11 +86,7 @@ router.get('/dashboard', enterpriseApiAuth, async (req: Request, res: Response):
         const dashboard = await getOrgDashboard(org.org_id);
         res.json({ success: true, data: dashboard });
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            error: 'Failed to load dashboard',
-            detail: err instanceof Error ? err.message : String(err),
-        });
+        safeRouteError(res, err, 'Enterprise.Dashboard');
     }
 });
 
@@ -111,9 +107,7 @@ router.get(
             const audit = await getProjectAuditTrail(projectId);
             res.json({ success: true, data: audit });
         } catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
-            const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({ success: false, error: message });
+            safeRouteError(res, err, 'Enterprise.ProjectAudit');
         }
     },
 );
@@ -127,11 +121,7 @@ router.get('/impact-report', enterpriseApiAuth, async (_req: Request, res: Respo
         const report = await getImpactReport();
         res.json({ success: true, data: report });
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            error: 'Failed to generate impact report',
-            detail: err instanceof Error ? err.message : String(err),
-        });
+        safeRouteError(res, err, 'Enterprise.ImpactReport');
     }
 });
 
@@ -154,11 +144,7 @@ router.get(
             const summary = await getEscrowFeeSummary();
             res.json({ success: true, data: summary });
         } catch (err) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to load fee summary',
-                detail: err instanceof Error ? err.message : String(err),
-            });
+            safeRouteError(res, err, 'Enterprise.FeeSummary');
         }
     },
 );
@@ -176,11 +162,7 @@ router.get(
             const configs = await getAllFeeConfigs();
             res.json({ success: true, data: configs });
         } catch (err) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to load fee configs',
-                detail: err instanceof Error ? err.message : String(err),
-            });
+            safeRouteError(res, err, 'Enterprise.FeeConfig');
         }
     },
 );
@@ -199,10 +181,12 @@ router.put(
             const configId = req.params['configId'] as string;
             const { fee_rate_bps } = req.body as { fee_rate_bps?: number };
 
-            if (typeof fee_rate_bps !== 'number' || fee_rate_bps < 0) {
+            // P2-FEE-001 FIX: Upper bound prevents accidental 100% fee.
+            // 2000 bps = 20% — sane maximum for platform fees.
+            if (typeof fee_rate_bps !== 'number' || fee_rate_bps < 0 || fee_rate_bps > 2000) {
                 res.status(400).json({
                     success: false,
-                    error: 'fee_rate_bps must be a non-negative number',
+                    error: 'fee_rate_bps must be between 0 and 2000 (max 20%)',
                 });
                 return;
             }
@@ -210,9 +194,7 @@ router.put(
             const updated = await updateFeeRate(configId, fee_rate_bps);
             res.json({ success: true, data: updated });
         } catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
-            const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({ success: false, error: message });
+            safeRouteError(res, err, 'Enterprise.UpdateFee');
         }
     },
 );
@@ -232,11 +214,7 @@ router.get(
             const orgs = await listOrganizations();
             res.json({ success: true, data: orgs });
         } catch (err) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to list organizations',
-                detail: err instanceof Error ? err.message : String(err),
-            });
+            safeRouteError(res, err, 'Enterprise.ListOrgs');
         }
     },
 );
@@ -283,11 +261,7 @@ router.post(
                 warning: 'The API key is shown only once. Store it securely.',
             });
         } catch (err) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to create organization',
-                detail: err instanceof Error ? err.message : String(err),
-            });
+            safeRouteError(res, err, 'Enterprise.CreateOrg');
         }
     },
 );

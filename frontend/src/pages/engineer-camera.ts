@@ -1,6 +1,9 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { t } from '../utils/i18n';
+// P2-AUD-FETCH-003 FIX: Use centralized API client instead of raw fetch().
+// Gains: 30s AbortController timeout, automatic CSRF token, centralized error reporting.
+import { engineer, storage } from '../api';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -11,24 +14,8 @@ import { t } from '../utils/i18n';
 // Force dark mode for camera UI
 document.documentElement.classList.add('dark');
 
-const API_BASE = '/api';
-
-// ─── INF-SEC-002: CSRF Token for cookie-based auth ──────────────────────────
-// After V1 JWT httpOnly migration, POST requests use cookie auth which
-// triggers CSRF middleware. We must obtain and send the X-CSRF-Token header.
-async function getCsrfToken(): Promise<string | null> {
-    const existing = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
-    if (existing) { return existing; }
-
-    try {
-        const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
-        if (!res.ok) { return null; }
-        const data = await res.json() as { csrfToken?: string };
-        return data.csrfToken ?? null;
-    } catch {
-        return null;
-    }
-}
+// P2-AUD-FETCH-003 FIX: Removed duplicated getCsrfToken() function and API_BASE constant.
+// CSRF is now handled automatically by the centralized api.ts request() function.
 
 // ─── State ──────────────────────────────────────────────────────────────────
 let projectId: string | null = null;
@@ -248,59 +235,39 @@ function setupSync(): void {
         try {
             let uploaded = 0;
 
-            // INF-SEC-002: Obtain CSRF token once before upload loop
-            const csrfToken = await getCsrfToken();
+            // P2-AUD-FETCH-003 FIX: CSRF token is now handled automatically
+            // by the centralized api.ts request() function.
 
             for (const dataUrl of capturedDataUrls) {
                 const blob = dataURLtoBlob(dataUrl);
                 const filename = `proof_${projectId}_${Date.now()}_${uploaded}.jpg`;
 
-                // 1. Get presigned URL
-                // V1-AUDIT FIX: Use httpOnly cookie (credentials: 'same-origin')
-                // instead of Bearer token from localStorage
-                const presignRes = await fetch(`${API_BASE}/storage/presign`, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-                    },
-                    body: JSON.stringify({ filename, content_type: 'image/jpeg', purpose: 'spatial_proof' }),
+                // 1. Get presigned URL — via centralized api.ts wrapper
+                const presignData = await storage.presign({
+                    filename,
+                    content_type: 'image/jpeg',
+                    purpose: 'spatial_proof',
                 });
 
-                if (!presignRes.ok) { throw new Error('Failed to get upload URL'); }
-                const presignData = await presignRes.json() as { data: { upload_url: string; public_url: string } };
-
-                // 2. Upload to storage (no auth needed — presigned URL is self-authenticating)
-                await fetch(presignData.data.upload_url, {
+                // 2. Upload to storage (raw fetch is correct here —
+                //    presigned URL is self-authenticating and external to our API)
+                await fetch(presignData.data!.upload_url, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'image/jpeg' },
                     body: blob,
                 });
 
-                // 3. Submit spatial proof
-                // V1-AUDIT FIX: Use httpOnly cookie instead of Bearer token
-                const proofRes = await fetch(`${API_BASE}/engineer/camera/spatial-proof`, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-                    },
-                    body: JSON.stringify({
-                        project_id: projectId,
-                        item_id: projectId,
-                        image_url: presignData.data.public_url,
-                        gps_lat: gpsLat,
-                        gps_lng: gpsLng,
-                        gps_accuracy: gpsAccuracy,
-                    }),
+                // 3. Submit spatial proof — via centralized api.ts wrapper
+                // P1-AUD-GPS-002 FIX: Uses correct field name 'gps_accuracy_meters'
+                // (was 'gps_accuracy' — silently dropped by backend).
+                await engineer.submitSpatialProof({
+                    project_id: projectId!,
+                    item_id: projectId!,
+                    image_url: presignData.data!.public_url,
+                    gps_lat: gpsLat!,
+                    gps_lng: gpsLng!,
+                    gps_accuracy_meters: gpsAccuracy ?? undefined,
                 });
-
-                if (!proofRes.ok) {
-                    const err = await proofRes.json() as { error: string };
-                    throw new Error(err.error ?? 'Proof submission failed');
-                }
 
                 uploaded++;
             }

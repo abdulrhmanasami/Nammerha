@@ -95,6 +95,30 @@ body[dir='rtl'] {
   font-family: var(--font-arabic);
 }
 
+/* ─── Focus-Visible System (WCAG 2.1 SC 2.4.7) ────────────────────────────── */
+/* PLT-UX-AUD-P0: Keyboard navigation focus ring for all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--trust-blue);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+html[data-theme="dark"] :focus-visible {
+  outline-color: #60a5fa;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* P2-UX-002 FIX: Flip directional arrows in RTL context */
+[dir='rtl'] .ph-arrow-right,
+[dir='rtl'] .ph-arrow-left {
+  transform: scaleX(-1);
+}
+/* Preserve hover animation direction in RTL */
+[dir='rtl'] .group:hover .ph-arrow-right {
+  transform: scaleX(-1) translateX(-0.25rem);
+}
+
 /* ─── Phosphor Icons Base Configuration ────────────────────────────────────── */
 .ph {
   font-family: 'Phosphor' !important;
@@ -227,6 +251,25 @@ body[dir='rtl'] {
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
+  }
+
+  /* PLT-UX-AUD-P2: Disabled visual states for all button classes */
+  .btn-primary:disabled,
+  .btn-primary[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  .btn-secondary:disabled,
+  .btn-secondary[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-jade:disabled,
+  .btn-jade[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -543,6 +586,7 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
 @keyframes fadeInUp {
   from {
     opacity: 0;
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -593,7 +637,7 @@ html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15
   .cart-badge {
     position: absolute;
     top: -4px;
-    right: -4px;
+    inset-inline-end: -4px;
     min-width: 18px;
     height: 18px;
     padding: 0 5px;

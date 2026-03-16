@@ -193,9 +193,11 @@ router.get('/files/:projectId', verifyProjectAccessParam, async (req: Request, r
         const projectId = req.params['projectId'] as string;
         const category = typeof req.query['category'] === 'string' ? req.query['category'] : undefined;
         const limitRaw = typeof req.query['limit'] === 'string' ? req.query['limit'] : '100';
-        const limit = parseInt(limitRaw, 10);
+        // P3-STG-001 FIX: NaN-safe + clamp — prevents NaN reaching AWS SDK MaxKeys
+        const parsedLimit = parseInt(limitRaw, 10);
+        const limit = Number.isNaN(parsedLimit) ? 100 : Math.min(Math.max(parsedLimit, 1), 500);
 
-        const files = await listProjectFiles(projectId, category, Math.min(limit, 500));
+        const files = await listProjectFiles(projectId, category, limit);
         res.status(200).json({ success: true, data: files });
     } catch (error: unknown) {
         safeRouteError(res, error, 'Storage.ListFiles');

@@ -157,7 +157,7 @@ function initDonorBasket(): void {
           <i class="ph ${item.iconClass} text-trust-blue" aria-hidden="true"></i>
         </div>
         <div class="min-w-0 flex-1">
-          <h4 class="font-semibold text-slate-800 truncate">${escapeHtml(item.name)}</h4>
+          <h4 class="font-semibold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.name)}</h4>
           <p class="text-xs text-slate-500">${escapeHtml(item.category)}</p>
         </div>
       </div>

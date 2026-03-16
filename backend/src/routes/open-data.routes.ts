@@ -20,8 +20,9 @@ const router = Router();
 // ─── GET /api/open-data/projects — List Published Projects ──────────────────
 router.get('/projects', async (req: Request, res: Response) => {
     try {
-        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
-        const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+        // P2-PAG-002 FIX: Clamp public pagination to prevent DoS via massive DB queries.
+        const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 20, 100);
+        const offset = Math.max(req.query.offset ? parseInt(req.query.offset as string, 10) : 0, 0);
         const status = req.query.status as string | undefined;
 
         const result = await openData.listPublicProjects(limit, offset, status);

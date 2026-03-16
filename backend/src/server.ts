@@ -67,7 +67,14 @@ import monetizationRoutes from './routes/monetization.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import enterpriseRoutes from './routes/enterprise.routes';
 import * as path from 'path';
+import { readFileSync } from 'fs';
 import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
+
+// P3-AUD-NEW-002 FIX: Dynamic version from package.json instead of hardcoded '1.0.0'
+const PKG_VERSION = (() => {
+    try { return JSON.parse(readFileSync(path.join(__dirname, '../package.json'), 'utf-8')).version; }
+    catch { return '0.0.0'; }
+})();
 
 // ─── Create Express App ─────────────────────────────────────────────────────
 const app = express();
@@ -92,7 +99,9 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'"],  // SEC-005: Removed 'unsafe-inline' — use nonce-based CSP for inline scripts
+            // P1-AUD-CSP-001 FIX: Added cdnjs.cloudflare.com for GSAP (about.html scroll animations).
+            // SEC-005: 'unsafe-inline' remains removed — use nonce-based CSP for inline scripts.
+            scriptSrc: ["'self'", "https://cdnjs.cloudflare.com"],
             // PLT-AUDIT-008: styleSrc 'unsafe-inline' is an ACCEPTED RISK.
             // ───────────────────────────────────────────────────────────────
             // Required by: MapLibre GL (map library) which injects inline styles
@@ -335,7 +344,7 @@ app.get('/health', async (_req, res) => {
         res.json({
             status: 'healthy',
             service: 'nammerha-backend',
-            version: '1.0.0',
+            version: PKG_VERSION,
             timestamp: new Date().toISOString(),
         });
     } catch (err) {
@@ -345,7 +354,7 @@ app.get('/health', async (_req, res) => {
         res.status(503).json({
             status: 'unhealthy',
             service: 'nammerha-backend',
-            version: '1.0.0',
+            version: PKG_VERSION,
             timestamp: new Date().toISOString(),
             error: 'Database connection failed',
         });

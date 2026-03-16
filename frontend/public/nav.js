@@ -188,7 +188,7 @@
             ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
             : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
         themeBtn.style.cssText =
-            'position:absolute;top:-18px;right:16px;width:36px;height:36px;' +
+            'position:absolute;top:-18px;inset-inline-end:16px;width:36px;height:36px;' +
             'border-radius:50%;border:1px solid ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)') + ';' +
             'background:' + (isDark ? 'rgba(17,24,39,0.95)' : 'rgba(255,255,255,0.95)') + ';' +
             'color:' + (isDark ? '#fbbf24' : '#6366f1') + ';font-size:16px;' +

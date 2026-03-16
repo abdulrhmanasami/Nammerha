@@ -71,7 +71,9 @@ router.get('/profile', async (req: Request, res: Response) => {
 // ─── GET /api/engineer/captures — My Recent Captures ────────────────────────
 router.get('/captures', async (req: Request, res: Response) => {
     try {
-        const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 20;
+        // P3-CAP-001 FIX: NaN-safe + max clamp — prevents 500 on ?limit=abc and DoS on ?limit=999999999
+        const rawLimit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 20;
+        const limit = Number.isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 100);
         const captures = await engineerService.getMyCaptures(
             getAuthUser(req).user_id,
             limit,

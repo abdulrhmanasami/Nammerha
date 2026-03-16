@@ -370,11 +370,12 @@ body:has(.nm-suggestion-banner.visible) main {
   background: rgba(26, 115, 232, 0.08);
 }
 
-.dark .nm-lang-btn {
+/* PLT-UX-AUD-P1: Fixed .dark → html[data-theme="dark"] to match theme-boot.js */
+html[data-theme="dark"] .nm-lang-btn {
   background: rgba(30, 20, 50, 0.5);
   border-color: rgba(255, 255, 255, 0.1);
 }
-.dark .nm-lang-btn:hover {
+html[data-theme="dark"] .nm-lang-btn:hover {
   border-color: #1a73e8;
   background: rgba(26, 115, 232, 0.15);
 }
@@ -409,7 +410,7 @@ body:has(.nm-suggestion-banner.visible) main {
   pointer-events: auto;
 }
 
-.dark .nm-lang-dropdown {
+html[data-theme="dark"] .nm-lang-dropdown {
   background: rgba(24, 17, 33, 0.95);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -430,7 +431,7 @@ body:has(.nm-suggestion-banner.visible) main {
 .nm-lang-option:hover {
   background: rgba(26, 115, 232, 0.08);
 }
-.dark .nm-lang-option:hover {
+html[data-theme="dark"] .nm-lang-option:hover {
   background: rgba(26, 115, 232, 0.15);
 }
 
@@ -483,4 +484,16 @@ body:has(.nm-suggestion-banner.visible) main {
 [dir='rtl'] div[class*='-right-24'] {
   right: auto !important;
   left: -6rem !important;
+}
+
+/* PLT-UX-AUD-P1: RTL overrides for <i> icons and <button> toggles */
+/* Auth form input icons use <i class="absolute left-4"> */
+[dir='rtl'] i[class*='absolute'][class*='left-'] {
+  left: auto !important;
+  right: 1rem !important;
+}
+/* Auth password toggle buttons use <button class="absolute right-3"> */
+[dir='rtl'] button[class*='absolute'][class*='right-'] {
+  right: auto !important;
+  left: 0.75rem !important;
 }

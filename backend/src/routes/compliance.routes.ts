@@ -93,9 +93,9 @@ router.get(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            // P2-PLT-002: Accept pagination parameters
-            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
-            const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+            // P2-PAG-001 FIX: Clamp pagination to prevent massive DB queries.
+            const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 200);
+            const offset = Math.max(parseInt(req.query.offset as string, 10) || 0, 0);
             const { results, total } = await compliance.getPendingScreenings(limit, offset);
 
             const response: ApiResponse = {
@@ -272,8 +272,9 @@ router.get(
                 from_date: req.query.from as string | undefined,
                 to_date: req.query.to as string | undefined,
             };
-            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
-            const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+            // P2-PAG-001 FIX: Clamp pagination to prevent massive DB queries.
+            const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 100, 500);
+            const offset = Math.max(req.query.offset ? parseInt(req.query.offset as string, 10) : 0, 0);
 
             const result = await securityEvents.getSecurityEvents(filters, limit, offset);
 
@@ -302,7 +303,8 @@ router.get(
         try {
             const from_date = req.query.from as string | undefined;
             const to_date = req.query.to as string | undefined;
-            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 1000;
+            // P2-PAG-001 FIX: Clamp export limit.
+            const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 1000, 5000);
 
             const cef = await securityEvents.exportCEF(from_date, to_date, limit);
 
@@ -323,7 +325,8 @@ router.get(
         try {
             const from_date = req.query.from as string | undefined;
             const to_date = req.query.to as string | undefined;
-            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 1000;
+            // P2-PAG-001 FIX: Clamp export limit.
+            const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 1000, 5000);
 
             const events = await securityEvents.exportJSON(from_date, to_date, limit);
 

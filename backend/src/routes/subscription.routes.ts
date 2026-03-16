@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { safeRouteError } from '../utils/safe-error';
 import {
     getPlans,
     getUserSubscription,
@@ -32,11 +33,8 @@ router.get('/plans', async (_req: Request, res: Response): Promise<void> => {
         const plans = await getPlans();
         res.json({ success: true, data: plans });
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            error: 'Failed to load subscription plans',
-            detail: err instanceof Error ? err.message : String(err),
-        });
+        // P1-ERR-001 FIX: This is a PUBLIC endpoint — never expose internal errors.
+        safeRouteError(res, err, 'Subscription.GetPlans');
     }
 });
 
@@ -63,11 +61,7 @@ router.get('/me', authMiddleware, async (req: Request, res: Response): Promise<v
             is_free_tier: subscription === null,
         });
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            error: 'Failed to load subscription',
-            detail: err instanceof Error ? err.message : String(err),
-        });
+        safeRouteError(res, err, 'Subscription.GetMe');
     }
 });
 
@@ -95,12 +89,7 @@ router.post('/subscribe', authMiddleware, async (req: Request, res: Response): P
         const subscription = await subscribe(req.authUser.user_id, plan_slug);
         res.status(201).json({ success: true, data: subscription });
     } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        const status = message.includes('not found') ? 404 : 500;
-        res.status(status).json({
-            success: false,
-            error: message,
-        });
+        safeRouteError(res, err, 'Subscription.Subscribe');
     }
 });
 
@@ -121,12 +110,7 @@ router.post('/cancel', authMiddleware, async (req: Request, res: Response): Prom
             message: 'Subscription cancelled. Access remains until current billing period ends.',
         });
     } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        const status = message.includes('No active') ? 404 : 500;
-        res.status(status).json({
-            success: false,
-            error: message,
-        });
+        safeRouteError(res, err, 'Subscription.Cancel');
     }
 });
 
@@ -145,17 +129,14 @@ router.get(
     requireRole('admin'),
     async (req: Request, res: Response): Promise<void> => {
         try {
-            const limit = parseInt(req.query['limit'] as string, 10) || 50;
-            const offset = parseInt(req.query['offset'] as string, 10) || 0;
+            // P2-PAG-001 FIX: Clamp pagination to prevent massive DB queries.
+            const limit = Math.min(parseInt(req.query['limit'] as string, 10) || 50, 200);
+            const offset = Math.max(parseInt(req.query['offset'] as string, 10) || 0, 0);
 
             const result = await listSubscribers(limit, offset);
             res.json({ success: true, data: result });
         } catch (err) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to list subscribers',
-                detail: err instanceof Error ? err.message : String(err),
-            });
+            safeRouteError(res, err, 'Subscription.ListSubscribers');
         }
     },
 );
@@ -190,12 +171,7 @@ router.put(
             const updated = await updatePlanPricing(planId, price_cents);
             res.json({ success: true, data: updated });
         } catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
-            const status = message.includes('not found') ? 404 : 500;
-            res.status(status).json({
-                success: false,
-                error: message,
-            });
+            safeRouteError(res, err, 'Subscription.UpdatePlan');
         }
     },
 );

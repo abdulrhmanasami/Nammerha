@@ -175,13 +175,24 @@ export async function createDonation(
             }
 
             // 4. Create escrow entry as 'pending' (no gateway ref yet)
+            // F-1 FIX: Include ENH-4 gift metadata + ENH-5 donation intent
             const escrowResult = await client.query<{ transaction_id: string }>(
                 `INSERT INTO escrow_ledger (
                     donor_id, item_id, project_id, amount_locked, currency,
-                    payment_status, payment_method, locked_at
-                 ) VALUES ($1, $2, $3, $4, 'USD', 'pending', $5, NOW())
+                    payment_status, payment_method, locked_at,
+                    gift_recipient_name, gift_message, donation_intent
+                 ) VALUES ($1, $2, $3, $4, 'USD', 'pending', $5, NOW(), $6, $7, $8)
                  RETURNING transaction_id`,
-                [donorId, fundItem.item_id, boqItem.project_id, actualAmount, dto.payment_method]
+                [
+                    donorId,
+                    fundItem.item_id,
+                    boqItem.project_id,
+                    actualAmount,
+                    dto.payment_method,
+                    dto.gift_recipient_name ?? null,
+                    dto.gift_message ?? null,
+                    dto.donation_intent ?? 'general',
+                ]
             );
 
             const escrowId = escrowResult.rows[0]?.transaction_id;

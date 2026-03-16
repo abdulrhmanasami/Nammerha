@@ -19,7 +19,9 @@ router.use(requireActive);
 router.get('/', async (req: Request, res: Response) => {
     try {
         const unreadOnly = req.query['unread_only'] === 'true';
-        const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : undefined;
+        // F4-2 FIX: NaN-safe clamping (same pattern as D-1/D-6)
+        const rawLimit = parseInt(req.query['limit'] as string, 10);
+        const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(rawLimit, 200)) : 50;
 
         const notifications = await notificationService.getUserNotifications(
             getAuthUser(req).user_id,

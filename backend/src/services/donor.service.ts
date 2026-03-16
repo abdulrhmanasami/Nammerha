@@ -87,8 +87,8 @@ export async function getMyStats(
             COALESCE(SUM(el.amount_locked), 0) AS total_donated,
             COUNT(DISTINCT el.item_id) AS items_funded,
             COUNT(DISTINCT el.project_id) AS projects_supported,
-            COALESCE(SUM(el.amount_locked) FILTER (WHERE el.status = 'locked'), 0) AS escrow_locked,
-            COALESCE(SUM(el.amount_locked) FILTER (WHERE el.status = 'released'), 0) AS escrow_released,
+            COALESCE(SUM(el.amount_locked) FILTER (WHERE el.payment_status = 'locked'), 0) AS escrow_locked,
+            COALESCE(SUM(el.amount_locked) FILTER (WHERE el.payment_status = 'released'), 0) AS escrow_released,
             COUNT(DISTINCT el.project_id) FILTER (
                 WHERE EXISTS (
                     SELECT 1 FROM projects p
@@ -134,7 +134,7 @@ export async function getMyDonations(
             el.item_id,
             b.material_name,
             el.amount_locked,
-            el.status,
+            el.payment_status AS status,
             el.locked_at,
             el.released_at
          FROM escrow_ledger el
@@ -161,7 +161,7 @@ export async function getMyImpact(
             p.project_id,
             p.title,
             p.damage_type,
-            p.region,
+            p.address_text AS region,
             p.status,
             COALESCE(my.my_total, 0)::INT AS my_total_donated,
             COALESCE(boq.total_cost, 0)::INT AS total_project_cost,
@@ -218,7 +218,7 @@ export async function getMarketplace(): Promise<MarketplaceProject[]> {
             p.project_id,
             p.title,
             p.damage_type,
-            p.region,
+            p.address_text AS region,
             p.status,
             COALESCE(boq.total_cost, 0)::INT AS total_cost,
             COALESCE(funded.total_funded, 0)::INT AS total_funded,
@@ -323,3 +323,188 @@ export async function getMyProofGallery(
     );
     return result.rows;
 }
+
+// ─── 7. Impact Timeline (ENH-1) ────────────────────────────────────────────
+
+/**
+ * Chronological timeline of a donor's impact: donation → delivery → verification → release.
+ * Each event shows what happened, when, and proof evidence where available.
+ *
+ * ENH-1: This is the "where did my money go?" feature — the core trust mechanism.
+ * Links escrow_ledger → spatial_proof → itemized_boq → projects in a single query.
+ */
+
+export interface TimelineEvent {
+    event_type: 'donated' | 'delivered' | 'verified' | 'released' | 'refunded';
+    event_date: Date;
+    project_id: string;
+    project_title: string;
+    item_id: string;
+    material_name: string;
+    amount: number;                 // cents
+    // Proof evidence (null if not yet delivered/verified)
+    proof_image_url: string | null;
+    proof_gps_lat: number | null;
+    proof_gps_lng: number | null;
+    verified_by_name: string | null;
+    verified_at: Date | null;
+    // Gift metadata (ENH-4)
+    gift_recipient_name: string | null;
+    // Intent (ENH-5)
+    donation_intent: string | null;
+}
+
+export async function getMyImpactTimeline(
+    donorId: string,
+    limit = 100,
+): Promise<TimelineEvent[]> {
+    // Single efficient query producing a UNION of 4 event types:
+    //   1. 'donated'  — when escrow entry was created (locked_at)
+    //   2. 'delivered' — when spatial proof was submitted (captured_at)
+    //   3. 'verified' — when auditor verified the proof (verified_at)
+    //   4. 'released' — when escrow was released (released_at)
+    //   5. 'refunded' — when escrow was refunded (refunded_at)
+    const result = await query<TimelineEvent>(
+        `WITH donor_escrow AS (
+            SELECT el.transaction_id, el.item_id, el.project_id,
+                   el.amount_locked, el.payment_status,
+                   el.locked_at, el.released_at, el.released_by,
+                   el.refunded_at, el.release_proof_id,
+                   el.gift_recipient_name, el.donation_intent
+            FROM escrow_ledger el
+            WHERE el.donor_id = $1
+        ),
+        -- F-4 FIX: Pick exactly ONE proof per (item_id, project_id)
+        -- to prevent N×M cartesian with multiple proofs or escrow entries.
+        latest_proof AS (
+            SELECT DISTINCT ON (sp.item_id, sp.project_id)
+                   sp.proof_id, sp.item_id, sp.project_id,
+                   sp.image_url, sp.gps_coordinates,
+                   sp.captured_at, sp.verified_at, sp.verified_by,
+                   sp.verification_status
+            FROM spatial_proof sp
+            ORDER BY sp.item_id, sp.project_id, sp.captured_at DESC
+        )
+        -- Event 1: Donation created
+        SELECT
+            'donated'::TEXT AS event_type,
+            de.locked_at AS event_date,
+            de.project_id,
+            p.title AS project_title,
+            de.item_id,
+            b.material_name,
+            de.amount_locked AS amount,
+            NULL::TEXT AS proof_image_url,
+            NULL::NUMERIC AS proof_gps_lat,
+            NULL::NUMERIC AS proof_gps_lng,
+            NULL::TEXT AS verified_by_name,
+            NULL::TIMESTAMPTZ AS verified_at,
+            de.gift_recipient_name,
+            de.donation_intent
+        FROM donor_escrow de
+        JOIN projects p ON p.project_id = de.project_id
+        JOIN itemized_boq b ON b.item_id = de.item_id
+
+        UNION ALL
+
+        -- Event 2: Material delivered (spatial proof submitted)
+        SELECT
+            'delivered'::TEXT,
+            lp.captured_at,
+            de.project_id,
+            p.title,
+            de.item_id,
+            b.material_name,
+            de.amount_locked,
+            lp.image_url,
+            ST_Y(lp.gps_coordinates::GEOMETRY)::NUMERIC,
+            ST_X(lp.gps_coordinates::GEOMETRY)::NUMERIC,
+            NULL::TEXT,
+            NULL::TIMESTAMPTZ,
+            de.gift_recipient_name,
+            de.donation_intent
+        FROM donor_escrow de
+        JOIN latest_proof lp ON lp.item_id = de.item_id AND lp.project_id = de.project_id
+        JOIN projects p ON p.project_id = de.project_id
+        JOIN itemized_boq b ON b.item_id = de.item_id
+
+        UNION ALL
+
+        -- Event 3: Proof verified by auditor
+        SELECT
+            'verified'::TEXT,
+            lp.verified_at,
+            de.project_id,
+            p.title,
+            de.item_id,
+            b.material_name,
+            de.amount_locked,
+            lp.image_url,
+            ST_Y(lp.gps_coordinates::GEOMETRY)::NUMERIC,
+            ST_X(lp.gps_coordinates::GEOMETRY)::NUMERIC,
+            auditor.full_name,
+            lp.verified_at,
+            de.gift_recipient_name,
+            de.donation_intent
+        FROM donor_escrow de
+        JOIN latest_proof lp ON lp.item_id = de.item_id
+            AND lp.project_id = de.project_id
+            AND lp.verification_status = 'verified'
+        JOIN projects p ON p.project_id = de.project_id
+        JOIN itemized_boq b ON b.item_id = de.item_id
+        LEFT JOIN users auditor ON auditor.user_id = lp.verified_by
+
+        UNION ALL
+
+        -- Event 4: Funds released
+        SELECT
+            'released'::TEXT,
+            de.released_at,
+            de.project_id,
+            p.title,
+            de.item_id,
+            b.material_name,
+            de.amount_locked,
+            NULL::TEXT,
+            NULL::NUMERIC,
+            NULL::NUMERIC,
+            releaser.full_name,
+            de.released_at,
+            de.gift_recipient_name,
+            de.donation_intent
+        FROM donor_escrow de
+        JOIN projects p ON p.project_id = de.project_id
+        JOIN itemized_boq b ON b.item_id = de.item_id
+        LEFT JOIN users releaser ON releaser.user_id = de.released_by
+        WHERE de.payment_status = 'released' AND de.released_at IS NOT NULL
+
+        UNION ALL
+
+        -- Event 5: Funds refunded
+        SELECT
+            'refunded'::TEXT,
+            de.refunded_at,
+            de.project_id,
+            p.title,
+            de.item_id,
+            b.material_name,
+            de.amount_locked,
+            NULL::TEXT,
+            NULL::NUMERIC,
+            NULL::NUMERIC,
+            NULL::TEXT,
+            NULL::TIMESTAMPTZ,
+            de.gift_recipient_name,
+            de.donation_intent
+        FROM donor_escrow de
+        JOIN projects p ON p.project_id = de.project_id
+        JOIN itemized_boq b ON b.item_id = de.item_id
+        WHERE de.payment_status = 'refunded' AND de.refunded_at IS NOT NULL
+
+        ORDER BY event_date DESC NULLS LAST
+        LIMIT $2`,
+        [donorId, limit],
+    );
+    return result.rows;
+}
+

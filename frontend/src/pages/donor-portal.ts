@@ -8,6 +8,7 @@ import { donor } from '../api';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 import { formatDate } from '../utils/locale';
+import { setText } from '../utils/dom';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
@@ -105,7 +106,7 @@ async function loadFundedProjects(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -151,7 +152,7 @@ async function loadMarketplace(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <h4 class="font-medium">${esc(p.title)}</h4>
@@ -170,7 +171,7 @@ async function loadMarketplace(): Promise<void> {
                             <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
                             ${p.funded_percentage < 100 ? `
                                 <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
-                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded">✓ Fully Funded</span>`}
+                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded">${esc(t('fully_funded', '✓ Fully Funded'))}</span>`}
                         </div>
                     </div>
                 </div>
@@ -198,7 +199,7 @@ async function loadDonations(): Promise<void> {
         }
 
         tbody.innerHTML = donations.map((d) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(d.material_name)}</td>
                 <td class="px-5 py-3 text-xs">${esc(d.project_title)}</td>
                 <td class="px-5 py-3 font-mono font-bold text-emerald-600">${formatCents(d.amount_locked)}</td>
@@ -228,7 +229,7 @@ async function loadImpact(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <div class="flex items-center gap-4">
                     <div class="size-12 rounded-lg flex items-center justify-center ${p.status === 'completed' ? 'bg-green-100' : 'bg-emerald-100'}">
                         <i class="ph ${p.status === 'completed' ? 'ph-check-circle text-green-600' : 'ph-buildings text-emerald-600'}" style="font-size:20px" aria-hidden="true"></i>
@@ -296,10 +297,6 @@ async function loadProofs(): Promise<void> {
     }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function setText(id: string, text: string): void {
-    const el = document.getElementById(id);
-    if (el) { el.textContent = text; }
-}
+// P4-001 FIX: setText() moved to shared utils/dom.ts
 
 

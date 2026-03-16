@@ -10,16 +10,15 @@
 // ============================================================================
 import { Request } from 'express';
 
-/**
- * Represents the authenticated user attached by authMiddleware.
- * This type mirrors the shape set in auth.middleware.ts.
- */
-export interface AuthUser {
-    user_id: string;
-    role: string;
-    email?: string;
-    is_active?: boolean;
-}
+// F6-1 FIX: Import canonical AuthUser from types/index.ts instead of
+// maintaining a stale local copy. The previous local interface was missing
+// `roles` and `activeRole` fields, had a phantom `email` field that didn't
+// exist on req.authUser, and used loose `string` instead of `UserRole`.
+import type { AuthUser } from '../types';
+
+// Re-export so existing `import { AuthUser } from '../utils/auth-guard'`
+// statements continue to work without modification.
+export type { AuthUser };
 
 /**
  * Extract the authenticated user from the request, or throw 401.
@@ -27,7 +26,7 @@ export interface AuthUser {
  * Usage:
  * ```ts
  * const user = getAuthUser(req);
- * // user.user_id and user.role are now safely typed
+ * // user.user_id, user.role, user.roles, user.activeRole are now safely typed
  * ```
  *
  * @throws {Error} If authUser is not present (should never happen after authMiddleware)
@@ -37,5 +36,6 @@ export function getAuthUser(req: Request): AuthUser {
     if (!user) {
         throw new Error('Authentication required');
     }
-    return user as AuthUser;
+    return user;
 }
+

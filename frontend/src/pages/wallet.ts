@@ -40,10 +40,12 @@ async function loadEscrowSummary(): Promise<void> {
     try {
         const response = await donations.getMyEscrow();
         if (response.success && response.data) {
-            const summary = response.data as EscrowSummary;
+            // P3-AUD-NEW-003 FIX: Runtime guard — gracefully handle API shape drift
+            const summary = response.data as Partial<EscrowSummary>;
+            if (typeof summary.total_locked !== 'number') { return; }
             if (balanceEl) { balanceEl.textContent = formatCents(summary.total_locked); }
-            if (lockedEl) { lockedEl.textContent = `${summary.locked_count} ${t('wallet_locked', 'locked')}`; }
-            if (releasedEl) { releasedEl.textContent = `${summary.released_count} ${t('wallet_released', 'released')}`; }
+            if (lockedEl) { lockedEl.textContent = `${summary.locked_count ?? 0} ${t('wallet_locked', 'locked')}`; }
+            if (releasedEl) { releasedEl.textContent = `${summary.released_count ?? 0} ${t('wallet_released', 'released')}`; }
         }
     } catch (err) {
         reportWarning('[Wallet] Escrow summary load failed', { component: 'wallet', action: 'load_escrow', error: err instanceof Error ? err.message : String(err) });
@@ -64,7 +66,7 @@ function renderTransaction(tx: Transaction): string {
     const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: t('wallet_status_pending', 'Pending') };
 
     return `
-    <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 dark:border-slate-700 animate-fade-in-up">
+    <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up">
       <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
         <i class="ph ph-${config.icon} ${config.color}" aria-hidden="true"></i>
       </div>

@@ -45,7 +45,7 @@
           <i class="ph ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
           <input id="login-email" name="email" type="email" required autocomplete="email"
             class="w-full bg-white border border-slate-200 rounded-xl py-3.5 pl-12 pr-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="you@example.com" />
+            placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
         </div>
       </div>
       <!-- Password -->
@@ -55,7 +55,7 @@
           <i class="ph ph-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
           <input id="login-password" name="password" type="password" required autocomplete="current-password" minlength="8"
             class="w-full bg-white border border-slate-200 rounded-xl py-3.5 pl-12 pr-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="••••••••" />
+            placeholder="••••••••" data-i18n-placeholder="auth_pw_dots" />
           <button type="button" id="login-toggle-pw" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility">
             <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
           </button>
@@ -81,7 +81,7 @@
           <i class="ph ph-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
           <input id="reg-name" name="full_name" type="text" required autocomplete="name"
             class="w-full bg-white border border-slate-200 rounded-xl py-3.5 pl-12 pr-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="Full Name" />
+            placeholder="Full Name" data-i18n-placeholder="auth_name_placeholder" />
         </div>
       </div>
       <!-- Email -->
@@ -101,17 +101,17 @@
           <i class="ph ph-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
           <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8"
             class="w-full bg-white border border-slate-200 rounded-xl py-3.5 pl-12 pr-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="Min 8 chars, 1 uppercase, 1 number" />
+            placeholder="Min 8 chars, 1 uppercase, 1 number" data-i18n-placeholder="auth_pw_placeholder" />
           <button type="button" id="reg-toggle-pw" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility">
             <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
           </button>
         </div>
         <!-- Password Strength -->
         <div class="mt-2 flex gap-1" id="pw-strength-bars">
-          <div class="h-1 flex-1 rounded-full bg-slate-200"></div>
-          <div class="h-1 flex-1 rounded-full bg-slate-200"></div>
-          <div class="h-1 flex-1 rounded-full bg-slate-200"></div>
-          <div class="h-1 flex-1 rounded-full bg-slate-200"></div>
+          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
         </div>
         <p class="text-[10px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 number</p>
       </div>

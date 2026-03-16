@@ -50,6 +50,19 @@ interface GatewayResponse {
 // ─── Webhook Signature Verification ─────────────────────────────────────────
 const WEBHOOK_SECRET = process.env['PAYMENT_WEBHOOK_SECRET'] ?? '';
 
+// N-1 FIX: Fail-fast startup guard for production environments.
+// An empty WEBHOOK_SECRET in production would silently reject ALL webhooks —
+// payment completions from Visa/Fatora would never get processed, causing
+// donors to see payments stuck in 'pending' forever. This is a non-recoverable
+// operational failure that must be caught at deploy time, not at runtime.
+if (!WEBHOOK_SECRET && process.env['NODE_ENV'] === 'production') {
+    throw new Error(
+        'FATAL: PAYMENT_WEBHOOK_SECRET is not configured. '
+        + 'Webhooks from Visa/Fatora will be rejected, causing all payment completions to fail. '
+        + 'Set this environment variable before starting the server.',
+    );
+}
+
 /**
  * HMAC-SHA256 hex signature regex: exactly 64 lowercase hex characters.
  * Pre-compiled for performance — avoids regex recompilation on every webhook.
@@ -355,7 +368,9 @@ async function initiateFatoraPayment(
                     })(),
                 },
                 success_url: validateReturnUrl(returnUrl),
-                failure_url: `${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/failed`,
+                // P3-PAY-001 FIX: Apply same validateReturnUrl() guard as success_url.
+                // Defense-in-depth — ensures failure redirect stays on our hostname.
+                failure_url: validateReturnUrl(`${process.env['PLATFORM_BASE_URL'] ?? ''}/payment/failed`),
                 webhook_url: FATORA_CONFIG.webhookUrl,
                 note: `Nammerha Platform Donation: ${reference}`,
             }),
@@ -416,6 +431,16 @@ export const paymentService = {
      * and can be retried or expired by a background cleanup job.
      */
     async initiate(data: PaymentInitiation): Promise<PaymentRecord & { payment_url?: string }> {
+        // ─── N-3: SDN/Sanctions Screening Gap (DOCUMENTED) ────────────────
+        // The DB schema supports `compliance_records.document_type = 'sanctions_screening'`
+        // with JSONB `sanctions_check_result`, and the frontend has `compliance.screenSDN()`.
+        // However, no production OFAC/SDN API integration exists yet.
+        // This is an intentional Phase 2+ feature. When implemented:
+        //   1. Screen donor name/country against OFAC SDN list before accepting payment
+        //   2. Store screening result in compliance_records
+        //   3. Block payment if match confidence > threshold
+        // Reference: compliance.routes.ts → POST /compliance/sdn/screen
+        // ──────────────────────────────────────────────────────────────────
         const reference = generatePaymentRef();
 
         // ── Step 1: Create payment record (fast DB operation, no transaction) ──
@@ -705,6 +730,24 @@ export const paymentService = {
                     } catch (auditErr) {
                         // Last-resort: if even the audit trail fails, log to stderr
                         logger.error('FATAL: Audit trail write also failed', { reference: data.reference, error: auditErr instanceof Error ? auditErr.message : String(auditErr) });
+                    }
+
+                    // F-2 FIX (ENH-6): Queue for dead-letter retry
+                    try {
+                        const { queueFailedWebhook } = await import('./webhook-retry.service');
+                        await queueFailedWebhook({
+                            gateway: data.gateway,
+                            payload: data as unknown as Record<string, unknown>,
+                            rawBody: JSON.stringify(data),
+                            signature: null,
+                            errorMessage,
+                            errorStack: escrowErr instanceof Error ? escrowErr.stack : undefined,
+                        });
+                    } catch (retryQueueErr) {
+                        logger.error('ENH-6: Failed to queue webhook for retry', {
+                            reference: data.reference,
+                            error: retryQueueErr instanceof Error ? retryQueueErr.message : String(retryQueueErr),
+                        });
                     }
                 }
             }

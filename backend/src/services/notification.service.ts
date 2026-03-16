@@ -10,6 +10,18 @@ import { logger } from '../utils/logger';
 
 // ─── Create Notification ────────────────────────────────────────────────────
 
+// F5-3 FIX: HTML entity escaping for email templates.
+// Prevents HTML injection (img tags, phishing links) via user-contributed
+// data that flows into notification body text (e.g., material_name from BOQ).
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 interface CreateNotificationInput {
     user_id: string;
     type: NotificationType;
@@ -122,8 +134,8 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
                 subject: input.title,
                 text: input.body,
                 html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-                    <h2 style="color:#1a365d;">${input.title}</h2>
-                    <p>${input.body}</p>
+                    <h2 style="color:#1a365d;">${escapeHtml(input.title)}</h2>
+                    <p>${escapeHtml(input.body)}</p>
                     <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
                     <p style="color:#94a3b8;font-size:12px;">Nammerha — National Reconstruction Platform</p>
                 </div>`,

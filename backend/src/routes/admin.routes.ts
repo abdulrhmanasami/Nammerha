@@ -97,5 +97,68 @@ router.post(
         }
     }
 );
+// ─── GET /api/admin/refund-requests — Pending Refund Requests (ENH-2) ──────
+router.get(
+    '/refund-requests',
+    requireRole('admin'),
+    async (_req: Request, res: Response) => {
+        try {
+            const requests = await escrowService.getPendingRefunds();
+            res.json({ success: true, data: requests } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Admin.GetRefundRequests');
+        }
+    }
+);
+
+// ─── POST /api/admin/escrow/refund — Process Refund Request (ENH-2) ────────
+router.post(
+    '/escrow/refund',
+    requireRole('admin'),
+    async (req: Request, res: Response) => {
+        try {
+            const { refund_id, decision, notes } = req.body as {
+                refund_id: string;
+                decision: 'approved' | 'rejected';
+                notes?: string;
+            };
+
+            if (!refund_id || !decision) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Missing required fields: refund_id, decision',
+                } as ApiResponse);
+                return;
+            }
+
+            if (decision !== 'approved' && decision !== 'rejected') {
+                res.status(400).json({
+                    success: false,
+                    error: 'decision must be "approved" or "rejected"',
+                } as ApiResponse);
+                return;
+            }
+
+            // D-8 FIX: Clamp admin notes length (prevent storage bloat)
+            if (notes && notes.length > 2000) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Notes must be 2000 characters or less',
+                } as ApiResponse);
+                return;
+            }
+
+            const result = await escrowService.processRefund(
+                getAuthUser(req).user_id,
+                refund_id,
+                decision,
+                notes,
+            );
+            res.json({ success: true, data: result } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Admin.ProcessRefund');
+        }
+    }
+);
 
 export default router;

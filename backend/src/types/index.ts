@@ -31,7 +31,7 @@ export type BoqItemStatus =
     | 'delivered'
     | 'installed';
 
-export type PaymentStatus = 'locked' | 'released' | 'refunded' | 'disputed';
+export type PaymentStatus = 'pending' | 'locked' | 'released' | 'refunded' | 'disputed' | 'cancelled';
 
 export type VerificationStatus = 'submitted' | 'verified' | 'rejected';
 
@@ -53,7 +53,9 @@ export type NotificationType =
     | 'project_published'
     | 'kyc_approved'
     | 'kyc_rejected'
-    | 'discrepancy_flagged';
+    | 'discrepancy_flagged'
+    | 'refund_approved'
+    | 'refund_rejected';
 
 export type NotificationChannel = 'push' | 'email' | 'sms' | 'in_app';
 
@@ -149,6 +151,11 @@ export interface EscrowLedger {
     release_proof_id: string | null;
     refunded_at: Date | null;
     blockchain_tx_hash: string | null;
+    // ENH-4: Gift donation metadata
+    gift_recipient_name: string | null;
+    gift_message: string | null;
+    // ENH-5: Zakat/Sadaqah classification
+    donation_intent: 'zakat' | 'sadaqah' | 'general' | null;
     created_at: Date;
     updated_at: Date;
 }
@@ -289,6 +296,11 @@ export interface CreateDonationDTO {
     // a contract mismatch between API documentation and actual behavior.
     payment_method: 'visa' | 'fatora';
     return_url?: string;            // Gateway redirect after checkout
+    // ENH-4: Gift donation metadata (optional)
+    gift_recipient_name?: string;   // e.g., "In honor of Ahmad"
+    gift_message?: string;          // Personal message to recipient
+    // ENH-5: Islamic charitable intent (optional, defaults to 'general')
+    donation_intent?: 'zakat' | 'sadaqah' | 'general';
 }
 
 export interface SubmitSpatialProofDTO {

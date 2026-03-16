@@ -7,6 +7,7 @@ import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
+import { setText } from '../utils/dom';
 
 // ─── HIGH-002 FIX: Inline banner replaces native alert() ────────────────────
 let srBannerTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -97,15 +98,17 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
-    for (const t of ALL_TABS) {
-        const el = document.getElementById(`tab-${t}`);
+    // P2-001 FIX: Renamed loop variable from `t` to `tabId` to prevent
+    // shadowing the imported i18n `t()` function (line 9).
+    for (const tabId of ALL_TABS) {
+        const el = document.getElementById(`tab-${tabId}`);
         if (!el) { continue; }
-        el.className = t === tab
+        el.className = tabId === tab
             ? 'flex items-center gap-3 px-3 py-2 bg-blue-600/10 text-blue-700 rounded-lg cursor-pointer'
             : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
 
-        const section = document.getElementById(`section-${t}`);
-        if (section) { section.style.display = t === tab ? '' : 'none'; }
+        const section = document.getElementById(`section-${tabId}`);
+        if (section) { section.style.display = tabId === tab ? '' : 'none'; }
     }
 
     if (tab === 'projects') { loadProjects(); }
@@ -122,9 +125,11 @@ async function loadStats(): Promise<void> {
         const s = res.data;
 
         setText('kpi-active', String(s.active_projects));
-        setText('kpi-bids', String(s.pending_approvals));
+        // P2-AUD-KPI-001 FIX: Use total_bids_received (was duplicating pending_approvals)
+        setText('kpi-bids', String(s.total_bids_received));
         setText('kpi-approvals', String(s.pending_approvals));
-        setText('kpi-escrow', formatCents(s.total_funded));
+        // P2-AUD-KPI-001 FIX: Backend field is total_invested, not total_funded
+        setText('kpi-escrow', formatCents(s.total_invested));
         setText('approval-count', String(s.pending_approvals));
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults
@@ -152,7 +157,7 @@ async function loadDashboardProjects(): Promise<void> {
         }
 
         container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -193,7 +198,7 @@ async function loadProjects(): Promise<void> {
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3">
                     <p class="font-medium">${esc(p.title)}</p>
                     <p class="text-[10px] text-slate-400">${esc(p.project_id)}</p>
@@ -293,7 +298,7 @@ async function loadServiceRequests(): Promise<void> {
         }
 
         tbody.innerHTML = requests.map((r) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(r.title)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${tradeColor(r.trade_needed)}">${esc(r.trade_needed)}</span></td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span></td>
@@ -344,7 +349,7 @@ async function loadApprovals(): Promise<void> {
         }
 
         container.innerHTML = approvals.map((a) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+            <div class="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -432,10 +437,6 @@ async function loadEscrow(): Promise<void> {
     }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function setText(id: string, text: string): void {
-    const el = document.getElementById(id);
-    if (el) { el.textContent = text; }
-}
+// P4-001 FIX: setText() moved to shared utils/dom.ts
 // MED-004 FIX: timeAgo() removed — replaced by relativeTimeAgo() from '../utils/format'
 // which uses Intl.RelativeTimeFormat for proper Arabic/RTL rendering.

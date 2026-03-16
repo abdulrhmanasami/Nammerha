@@ -7,6 +7,9 @@
 import '../styles/main.css';
 import { CartStore, renderCartBadge, flyToCart } from '../components/cart';
 import { t } from '../utils/i18n';
+// P2-XSS-001 FIX: Import escapeHtml per P0-NEW-001 policy — every file that uses
+// innerHTML must have the escape function available, even if current usage is static.
+import { escapeHtml as esc } from '../utils/xss';
 
 function initProjectDetails(): void {
     const cartBadge = document.getElementById('header-cart-badge');
@@ -73,7 +76,7 @@ function markAsAdded(btn: HTMLButtonElement): void {
     btn.classList.add('btn-added');
     btn.innerHTML = `
     <i class="ph ph-check-circle" style="font-size:20px" aria-hidden="true"></i>
-    ${t('project_added_to_cart', 'Added to Cart')}
+    ${esc(t('project_added_to_cart', 'Added to Cart'))}
   `;
     btn.disabled = true;
 }

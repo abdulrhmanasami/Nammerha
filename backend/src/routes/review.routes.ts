@@ -309,8 +309,14 @@ router.post('/', authMiddleware, requireActive, async (req: Request, res: Respon
             return;
         }
 
-        if (dto.body.length < 10) {
-            res.status(400).json({ success: false, error: 'Review body must be at least 10 characters' } as ApiResponse);
+        if (dto.body.length < 10 || dto.body.length > 5000) {
+            res.status(400).json({ success: false, error: 'Review body must be between 10 and 5000 characters' } as ApiResponse);
+            return;
+        }
+
+        // P3-REV-001 FIX: Title length check (prevent storage bloat)
+        if (dto.title && dto.title.length > 200) {
+            res.status(400).json({ success: false, error: 'Review title must be 200 characters or less' } as ApiResponse);
             return;
         }
 
@@ -595,8 +601,8 @@ router.post('/:reviewId/response', authMiddleware, requireActive, async (req: Re
         const { reviewId } = req.params;
         const dto = req.body as CreateResponseDTO;
 
-        if (!dto.body || dto.body.length < 5) {
-            res.status(400).json({ success: false, error: 'Response body must be at least 5 characters' } as ApiResponse);
+        if (!dto.body || dto.body.length < 5 || dto.body.length > 2000) {
+            res.status(400).json({ success: false, error: 'Response body must be between 5 and 2000 characters' } as ApiResponse);
             return;
         }
 
@@ -688,7 +694,7 @@ router.post('/:reviewId/flag', authMiddleware, requireActive, async (req: Reques
         await query(
             `INSERT INTO review_flags (review_id, reporter_id, reason, description)
              VALUES ($1, $2, $3, $4)`,
-            [reviewId, req.authUser.user_id, dto.reason, dto.description ?? null]
+            [reviewId, req.authUser.user_id, dto.reason, dto.description?.slice(0, 1000) ?? null]
         );
 
         // Auto-flag review if 3+ distinct reports

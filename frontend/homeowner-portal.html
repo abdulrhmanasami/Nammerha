@@ -10,12 +10,16 @@
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-portal.ts"></script>
   <script type="module" src="/src/components/role-switcher.ts"></script><link href="/i18n.css?v=5" rel="stylesheet"/>
-<script src="/i18n-boot.js"></script>
+
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased">
-<div class="flex min-h-screen">
+<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<div class="dashboard-layout">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" aria-hidden="true"></div>
+
   <!-- ═══════ Sidebar ═══════ -->
-  <aside class="w-60 bg-white border-r border-slate-200 flex flex-col">
+  <aside class="dashboard-sidebar hidden md:flex">
     <div class="p-4 border-b border-slate-200 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="homeowner_portal">Homeowner Portal</span>
@@ -61,8 +65,20 @@
   </aside>
 
   <!-- ═══════ Main Content ═══════ -->
-  <main class="flex-1 overflow-auto">
-    <div class="max-w-6xl mx-auto p-6 space-y-6">
+  <div class="dashboard-main">
+    <!-- Top Bar -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+          <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
+        </button>
+        <h2 class="font-bold text-lg page-header-title" data-i18n="homeowner_welcome">My Home Dashboard</h2>
+      </div>
+      <div id="role-switcher-mount-header"></div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
       <!-- Header -->
       <div>
         <h1 class="text-xl font-bold" data-i18n="homeowner_welcome">My Home Dashboard</h1>
@@ -119,12 +135,12 @@
             <table class="w-full text-sm">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th class="px-5 py-3 text-left">Project</th>
-                  <th class="px-5 py-3 text-left">Type</th>
-                  <th class="px-5 py-3 text-left">Engineer</th>
-                  <th class="px-5 py-3 text-left">Contractor</th>
-                  <th class="px-5 py-3 text-left">Bids</th>
-                  <th class="px-5 py-3 text-left">Status</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_project">Project</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_type">Type</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_engineer">Engineer</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_contractor">Contractor</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_bids">Bids</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_status">Status</th>
                 </tr>
               </thead>
               <tbody id="projects-body">
@@ -147,42 +163,42 @@
           </div>
           <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase">Trade Needed</label>
+              <label class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_trade">Trade Needed</label>
               <select id="sr-trade" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
-                <option value="tiling">بلاط — Tiling</option>
-                <option value="painting">دهان — Painting</option>
-                <option value="plumbing">سباكة — Plumbing</option>
-                <option value="electrical">كهرباء — Electrical</option>
-                <option value="carpentry">نجارة — Carpentry</option>
-                <option value="welding">لحام — Welding</option>
-                <option value="masonry">بناء حجر — Masonry</option>
-                <option value="plastering">قصارة — Plastering</option>
-                <option value="hvac">تكييف — HVAC</option>
-                <option value="general">أعمال عامة — General</option>
+                <option value="tiling" data-i18n="trade_tiling">Tiling</option>
+                <option value="painting" data-i18n="trade_painting">Painting</option>
+                <option value="plumbing" data-i18n="trade_plumbing">Plumbing</option>
+                <option value="electrical" data-i18n="trade_electrical">Electrical</option>
+                <option value="carpentry" data-i18n="trade_carpentry">Carpentry</option>
+                <option value="welding" data-i18n="trade_welding">Welding</option>
+                <option value="masonry" data-i18n="trade_masonry">Masonry</option>
+                <option value="plastering" data-i18n="trade_plastering">Plastering</option>
+                <option value="hvac" data-i18n="trade_hvac">HVAC</option>
+                <option value="general" data-i18n="trade_general">General</option>
               </select>
             </div>
             <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase">Urgency</label>
+              <label class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_urgency">Urgency</label>
               <select id="sr-urgency" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
-                <option value="routine">عادي — Routine</option>
-                <option value="urgent">مستعجل — Urgent</option>
-                <option value="emergency">طارئ — Emergency</option>
+                <option value="routine" data-i18n="urgency_routine">Routine</option>
+                <option value="urgent" data-i18n="urgency_urgent">Urgent</option>
+                <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
               </select>
             </div>
             <div class="md:col-span-2">
-              <label class="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+              <label class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_title">Title</label>
               <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div class="md:col-span-2">
-              <label class="text-[10px] font-bold text-slate-400 uppercase">Description (optional)</label>
+              <label class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_description">Description (optional)</label>
               <textarea id="sr-description" rows="2" placeholder="Describe the issue..." data-i18n-placeholder="ho_sr_desc_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm resize-none"></textarea>
             </div>
             <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase">Location</label>
+              <label class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_location">Location</label>
               <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase">Max Budget ($)</label>
+              <label class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_max_budget">Max Budget ($)</label>
               <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div class="md:col-span-2">
@@ -201,12 +217,12 @@
             <table class="w-full text-sm">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th class="px-5 py-3 text-left">Title</th>
-                  <th class="px-5 py-3 text-left">Trade</th>
-                  <th class="px-5 py-3 text-left">Urgency</th>
-                  <th class="px-5 py-3 text-left">Matched To</th>
-                  <th class="px-5 py-3 text-left">Status</th>
-                  <th class="px-5 py-3 text-left">Action</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_title">Title</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_trade">Trade</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_urgency">Urgency</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_matched_to">Matched To</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_status">Status</th>
+                  <th class="px-5 py-3 text-left" data-i18n="th_action">Action</th>
                 </tr>
               </thead>
               <tbody id="requests-body">
@@ -244,7 +260,8 @@
       </div>
 
     </div>
-  </main>
+    </main>
+  </div>
 </div>
 <script src="/i18n.js?v=7" defer></script>
 <script src="/nav.js?v=7" defer></script>

@@ -34,11 +34,15 @@ export async function cleanupStalePayments(): Promise<{ expired: number; cancell
     try {
         // 1. Expire stale payment records
         const paymentResult = await pool.query<{ reference: string; donor_id: string; item_id: string }>(
+            // N-5 FIX: Parameterized INTERVAL — eliminates string interpolation.
+            // Even though STALE_THRESHOLD_MINUTES is a compile-time constant,
+            // defense-in-depth demands zero SQL interpolation anywhere.
             `UPDATE payment_transactions
              SET status = 'failed', updated_at = NOW()
              WHERE status = 'pending'
-               AND created_at < NOW() - INTERVAL '${STALE_THRESHOLD_MINUTES} minutes'
+               AND created_at < NOW() - make_interval(mins => $1)
              RETURNING reference, donor_id, item_id`,
+            [STALE_THRESHOLD_MINUTES],
         );
 
         const expiredCount = paymentResult.rowCount ?? 0;
