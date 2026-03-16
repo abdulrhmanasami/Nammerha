@@ -227,7 +227,7 @@ async function loadBids(): Promise<void> {
             const daysLabel = t('unit_days', 'days');
 
             return `
-            <tr class="border-t border-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(String(b['project_title'] ?? ''))}</td>
                 <td class="px-5 py-3 font-mono">${costFormatted}</td>
                 <td class="px-5 py-3 text-slate-500">${b['estimated_days']} ${daysLabel}</td>

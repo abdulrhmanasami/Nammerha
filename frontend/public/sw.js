@@ -54,9 +54,9 @@ const SHELL_ASSETS = [
     '/privacy.html',
     '/terms.html',
     '/refund-policy.html',
-    '/nav.js',
-    '/i18n.js',
-    '/i18n.css',
+    '/nav.js?v=7',
+    '/i18n.js?v=7',
+    '/i18n.css?v=7',
     '/fonts/phosphor/phosphor.css',
     '/theme-boot.js',
 ];

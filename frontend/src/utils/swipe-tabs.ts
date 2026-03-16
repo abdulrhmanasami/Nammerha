@@ -92,15 +92,25 @@ export function initSwipeTabs<T extends string>(config: SwipeTabsConfig<T>): (()
             return;
         }
 
-        if (deltaX < 0 && idx < tabs.length - 1) {
-            // Swipe left → next tab
+        // P0-SWIPE-RTL FIX: Respect document direction (RTL/LTR).
+        // In RTL, the logical "next" tab is to the LEFT visually, so swiping
+        // left (negative deltaX) should go to PREVIOUS tab, and swiping right
+        // should go to NEXT. We normalize by inverting deltaX for RTL so the
+        // rest of the logic stays clean.
+        // Standard: Apple HIG §RTL Layout, Jakob's Law (match user mental model).
+        const isRTL = document.dir === 'rtl' ||
+            document.documentElement.getAttribute('dir') === 'rtl';
+        const logicalDelta = isRTL ? -deltaX : deltaX;
+
+        if (logicalDelta < 0 && idx < tabs.length - 1) {
+            // Logical swipe forward → next tab
             // P1-MOB-002 FIX: Haptic feedback on tab switch
             if (navigator.vibrate) {
                 navigator.vibrate(8);
             }
             onSwitch(tabs[idx + 1]!);
-        } else if (deltaX > 0 && idx > 0) {
-            // Swipe right → previous tab
+        } else if (logicalDelta > 0 && idx > 0) {
+            // Logical swipe backward → previous tab
             if (navigator.vibrate) {
                 navigator.vibrate(8);
             }

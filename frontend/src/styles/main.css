@@ -214,7 +214,8 @@ html[data-theme="dark"] :focus-visible {
 .skip-link {
   position: absolute;
   top: -100%;
-  left: 50%;
+  /* P0-SKIP-LTR FIX: Logical property replaces physical `left` for RTL safety */
+  inset-inline-start: 50%;
   transform: translateX(-50%);
   z-index: 99999;
   padding: 12px 24px;
@@ -233,9 +234,12 @@ html[data-theme="dark"] :focus-visible {
   outline-offset: 2px;
 }
 
-/* P2-UX-002 FIX: Flip directional arrows in RTL context */
+/* P2-UX-002 FIX: Flip directional arrows/carets in RTL context */
 [dir='rtl'] .ph-arrow-right,
-[dir='rtl'] .ph-arrow-left {
+[dir='rtl'] .ph-arrow-left,
+/* P2-RTL-CARET FIX: Carets used in settings links (profile.html) */
+[dir='rtl'] .ph-caret-right,
+[dir='rtl'] .ph-caret-left {
   transform: scaleX(-1);
 }
 /* Preserve hover animation direction in RTL */
@@ -1166,6 +1170,10 @@ html[data-theme="dark"] div.p-5:hover {
 html[data-theme="dark"] h4.text-slate-800 {
     color: #f1f5f9 !important;
 }
+/* P1-DARK-INLINE FIX: Error text in dark mode (replaces dead dark:text-red-300) */
+html[data-theme="dark"] .text-red-400 {
+    color: #fca5a5 !important;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    P0-A3 FIX: Accessible touch target minimum (WCAG 2.5.5)
@@ -1239,7 +1247,7 @@ html[data-theme="dark"] h4.text-slate-800 {
     bottom: 0;
     /* PLT-AUD-C006 FIX: Logical properties (was physical left/right) */
     inset-inline: 0;
-    z-index: 9999;
+    z-index: var(--z-bottom-nav);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid rgba(255,255,255,0.08);
@@ -1323,14 +1331,29 @@ html[data-theme="dark"] h4.text-slate-800 {
 /* P2-DUP-001 FIX: Removed duplicate .nm-nav-safe-area (canonical version with max() is below) */
 
 /* ============================================================================
+   P2-ZINDEX FIX: Z-Index Token System
+   Eliminates fragile hardcoded z-index escalation (9999 → 10000 → 10001).
+   All z-index values now reference semantic tokens.
+   ============================================================================ */
+:root {
+    --z-nav: 9000;
+    --z-modal: 9500;
+    --z-bottom-nav: 9900;
+    --z-toast: 9950;
+    --z-offline: 9960;
+    --z-skip: 99999;
+}
+
+/* ============================================================================
    P1-MOB-001 FIX: Pull-to-Refresh Indicator
    ============================================================================ */
 #pull-refresh-indicator {
     position: fixed;
     top: -48px;
-    left: 50%;
+    /* P3-CSS-PTR FIX: Logical property replaces physical `left` for RTL safety */
+    inset-inline-start: 50%;
     transform: translateX(-50%) translateY(0);
-    z-index: 10000;
+    z-index: var(--z-offline);
     transition: transform 0.2s ease-out, opacity 0.2s ease-out;
     opacity: 0;
     pointer-events: none;
@@ -1369,8 +1392,7 @@ html[data-theme="dark"] h4.text-slate-800 {
     bottom: calc(80px + env(safe-area-inset-bottom, 16px));
     left: 50%;
     transform: translateX(-50%);
-    /* PLT-AUD-C003 FIX: Must be ABOVE bottom nav (was same 9999, causing overlap) */
-    z-index: 10000;
+    z-index: var(--z-toast);
     display: flex;
     flex-direction: column-reverse;
     gap: 8px;
@@ -1469,7 +1491,7 @@ html[data-theme="dark"] .nm-toast {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10001;
+    z-index: var(--z-offline);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1525,3 +1547,65 @@ html[data-theme="dark"] .bg-surface {
     background-color: var(--bg-card, rgba(255, 255, 255, 0.04));
 }
 
+/* ============================================================================
+   P1-PROFILE-TOGGLE FIX: Dark mode for toggle switches and settings cards
+   Profile page settings cards use bg-white and inline Tailwind toggle classes
+   that don't respond to data-theme. These CSS overrides ensure contrast.
+   Standard: WCAG 1.4.3 (Contrast Minimum: 4.5:1)
+   ============================================================================ */
+html[data-theme="dark"] .bg-white.rounded-xl {
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+/* Toggle track: needs darker background in dark mode for the knob to be visible */
+html[data-theme="dark"] .peer ~ div[class*="bg-slate-300"] {
+    background-color: rgba(51, 65, 85, 0.8);
+}
+
+/* ============================================================================
+   P2-A11Y-CAROUSEL FIX: Keyboard-Accessible Horizontal Scroll
+   Carousels with overflow-x must be navigable via keyboard.
+   Standard: WCAG 2.1.1 (Keyboard), WCAG 2.4.7 (Focus Visible)
+   ============================================================================ */
+[id="projects-carousel"] {
+    /* Focusable via tabindex="0" on the HTML element — see index.html */
+    /* Visual hint for keyboard users that this region is scrollable */
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline-start: 16px;
+}
+[id="projects-carousel"]:focus-visible {
+    outline: 2px solid var(--trust-blue);
+    outline-offset: 4px;
+    border-radius: var(--radius-lg, 12px);
+}
+[id="projects-carousel"] > * {
+    scroll-snap-align: start;
+}
+
+/* ============================================================================
+   P2-FORM-NOVALIDATE FIX: CSS-Only Validation Fallback
+   Auth forms use novalidate. If auth.ts fails to load, native browser
+   validation is disabled AND custom validation doesn't exist.
+   These CSS rules provide a visual fallback: invalid required fields
+   show a red border AFTER user interacts (not-placeholder-shown).
+   ============================================================================ */
+form[novalidate] input:not(:placeholder-shown):invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 1px #ef4444;
+}
+form[novalidate] input:not(:placeholder-shown):valid {
+    border-color: var(--smoky-jade) !important;
+}
+
+/* ============================================================================
+   P2-DM-WALLET FIX: Wallet skeleton loader in dark mode
+   bg-white/20 inside the blue gradient card is acceptable, but
+   standalone bg-white skeleton bars become invisible in dark mode.
+   ============================================================================ */
+html[data-theme="dark"] .animate-pulse > div[class*="bg-slate-200"],
+html[data-theme="dark"] .animate-pulse > div[class*="bg-slate-100"] {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .animate-pulse.bg-white {
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
+}

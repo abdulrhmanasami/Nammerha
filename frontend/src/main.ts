@@ -8,13 +8,15 @@ import './styles/tour.css';
 import { initErrorReporter, reportWarning } from './error-reporter';
 import { getCurrentUser } from './auth';
 import { renderCartBadge } from './components/cart';
-import './components/role-switcher';  // Self-injecting: attaches to #role-switcher-mount
+// P2-PERF-ROLE FIX: Role-switcher is now lazy-imported below, only when needed
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
 import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
 import './offline/network-status';  // Self-injecting: bilingual offline status bar
 import { autoTriggerTour } from './components/tour-engine';
+// P2-I18N-TIMING FIX: Explicit applyI18n call after dynamic card injection
+import { applyI18n } from './utils/locale';
 
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
@@ -89,7 +91,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
     const delay = `animation-delay:${index * 0.1}s`;
 
     return `
-    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up" style="${delay}">
+    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml((project as unknown as Record<string, string>).region ?? '')}">
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
@@ -136,6 +138,9 @@ async function loadFeaturedProjects(): Promise<void> {
             carousel.innerHTML = (response.data as ProjectCard[])
                 .map((p, i) => buildProjectCard(p, i))
                 .join('');
+            // P2-I18N-TIMING FIX: Explicitly translate dynamic card content now,
+            // don't rely solely on MutationObserver which may have timing gaps.
+            applyI18n();
         } else {
             // NMR-AUD-H002 FIX: Show empty state instead of infinite skeleton.
             // Previous code kept the skeleton visible when API returned empty data.
@@ -198,6 +203,11 @@ function initDashboard(): void {
 
     // PLT-OPT-001: Lazy-load map module only when map container exists
     initMapIfNeeded();
+
+    // P2-PERF-ROLE FIX: Lazy-load role-switcher only for authenticated users with mount point
+    if (document.getElementById('role-switcher-mount') && getCurrentUser()) {
+        import('./components/role-switcher').catch(() => { /* Non-critical — silent degrade */ });
+    }
 
     // F-001 FIX: Progressive disclosure — sections reveal as they scroll into view
     initScrollReveal();

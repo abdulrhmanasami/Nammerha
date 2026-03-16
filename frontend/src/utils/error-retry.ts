@@ -11,7 +11,7 @@
  * Features:
  *   - i18n-aware (uses data-i18n attributes)
  *   - Accessible (aria-live, role="alert")
- *   - Dark-mode safe (uses Tailwind dark: utilities)
+ *   - Dark-mode safe (uses html[data-theme="dark"] CSS overrides in main.css)
  *   - Retry button with loading state
  * ══════════════════════════════════════════════════════════════════════════
  */
@@ -32,8 +32,8 @@ export function renderErrorWithRetry(
 ): void {
     container.innerHTML = `
         <div class="p-8 text-center" role="alert" aria-live="polite">
-            <i class="ph ph-warning-circle text-red-400 dark:text-red-300" style="font-size:2rem" aria-hidden="true"></i>
-            <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${i18nKey}">${fallbackText}</p>
+            <i class="ph ph-warning-circle text-red-400" style="font-size:2rem" aria-hidden="true"></i>
+            <p class="mt-2 text-sm text-red-400" data-i18n="${i18nKey}">${fallbackText}</p>
             <button class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
                 Retry
             </button>
@@ -74,8 +74,8 @@ export function renderTableErrorWithRetry(
     tbody.innerHTML = `
         <tr>
             <td colspan="${colspan}" class="px-5 py-8 text-center" role="alert" aria-live="polite">
-                <i class="ph ph-warning-circle text-red-400 dark:text-red-300" style="font-size:1.5rem" aria-hidden="true"></i>
-                <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${i18nKey}">${fallbackText}</p>
+                <i class="ph ph-warning-circle text-red-400" style="font-size:1.5rem" aria-hidden="true"></i>
+                <p class="mt-2 text-sm text-red-400" data-i18n="${i18nKey}">${fallbackText}</p>
                 <button class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
                     Retry
                 </button>
