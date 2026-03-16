@@ -98,6 +98,11 @@ export function autoTriggerTour(): void {
         tourId = 'tradesperson';
     } else if (path.includes('admin-dashboard') || path.includes('admin-kyc')) {
         tourId = 'admin';
+    } else if (path.includes('project-details')) {
+        // GAP-05 FIX: Project details tour for first-time visitors
+        tourId = 'project';
+    } else if (path === '/' || path.endsWith('/index.html') || path.endsWith('/index')) {
+        tourId = 'homepage';
     }
 
     if (tourId) {
@@ -162,7 +167,7 @@ function showStep(index: number): void {
     tooltip.innerHTML = `
         <div class="nmr-tour-header">
             <span class="nmr-tour-step-count">${index + 1} / ${steps.length}</span>
-            <button class="nmr-tour-close" aria-label="Close" data-action="skip">✕</button>
+            <button class="nmr-tour-close" aria-label="Close" data-action="skip"><i class="ph ph-x"></i></button>
         </div>
         <div class="nmr-tour-progress">
             <div class="nmr-tour-progress-bar" style="width:${((index + 1) / steps.length) * 100}%"></div>

@@ -220,6 +220,10 @@ div.gradient-orb[style*='left:'] {
 [dir='rtl'] .ph-arrow-left {
   transform: scaleX(-1);
 }
+/* PERF-02 FIX: Consolidated from main.css — hover animation direction in RTL */
+[dir='rtl'] .group:hover .ph-arrow-right {
+  transform: scaleX(-1) translateX(-0.25rem);
+}
 
 /* ╔═══════════════════════════════════════════════════════════════════════════╗
  * ║  §6.3: TEXT EXPANSION BUFFERS                                            ║
@@ -328,10 +332,7 @@ button:has(> [data-i18n]) {
   transform: scale(1.1);
 }
 
-/* Push page content down when banner is visible */
-.nm-suggestion-banner.visible ~ * {
-  /* All sibling content shifts down */
-}
+/* Banner visibility handled via sibling selectors and :has() below */
 
 /* Push fixed nav and main content */
 body:has(.nm-suggestion-banner.visible) .glass-nav,
@@ -341,6 +342,18 @@ body:has(.nm-suggestion-banner.visible) nav[class*='fixed'][class*='top'] {
 
 body:has(.nm-suggestion-banner.visible) main {
   padding-top: calc(3rem + 38px);
+}
+
+/* C-005 FIX: Fallback for browsers without :has() support (older iOS/Safari).
+   The banner JS adds .nm-banner-active to <body> as a redundant class toggle. */
+@supports not (selector(:has(*))) {
+  body.nm-banner-active .glass-nav,
+  body.nm-banner-active nav[class*='fixed'][class*='top'] {
+    top: 38px;
+  }
+  body.nm-banner-active main {
+    padding-top: calc(3rem + 38px);
+  }
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════════════╗

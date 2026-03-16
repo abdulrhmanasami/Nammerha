@@ -16,12 +16,14 @@ type UserRole = 'homeowner' | 'donor' | 'engineer' | 'supplier' | 'contractor' |
 interface AuthState {
     mode: 'login' | 'register';
     selectedRole: UserRole | null;
+    selectedIntent: string | null;
     isSubmitting: boolean;
 }
 
 const state: AuthState = {
     mode: 'login',
     selectedRole: null,
+    selectedIntent: null,
     isSubmitting: false,
 };
 
@@ -106,8 +108,41 @@ regPassword?.addEventListener('input', () => {
     updateRegisterButton();
 });
 
-// Multi-Role Architecture: Role selection removed from registration.
-// Users start as 'donor' by default and activate additional roles from their dashboard.
+// ─── GAP-01 FIX: Intent Selection Cards ─────────────────────────────────────
+const intentCards = document.querySelectorAll<HTMLButtonElement>('.intent-card');
+const regIntentInput = document.getElementById('reg-intent') as HTMLInputElement | null;
+
+function selectIntent(intentValue: string): void {
+    state.selectedIntent = intentValue;
+    if (regIntentInput) { regIntentInput.value = intentValue; }
+
+    // Highlight selected card
+    intentCards.forEach((card) => {
+        const isSelected = card.dataset.intent === intentValue;
+        const checkIcon = card.querySelector('.intent-check .ph') as HTMLElement | null;
+        if (isSelected) {
+            card.classList.add('!border-trust-blue', 'shadow-md', 'bg-trust-blue/5');
+            card.classList.remove('border-transparent');
+            if (checkIcon) {
+                checkIcon.className = 'ph ph-check-circle text-trust-blue';
+            }
+        } else {
+            card.classList.remove('!border-trust-blue', 'shadow-md', 'bg-trust-blue/5');
+            card.classList.add('border-transparent');
+            if (checkIcon) {
+                checkIcon.className = 'ph ph-circle';
+            }
+        }
+    });
+    updateRegisterButton();
+}
+
+intentCards.forEach((card) => {
+    card.addEventListener('click', () => {
+        const intent = card.dataset.intent;
+        if (intent) { selectIntent(intent); }
+    });
+});
 
 // ─── Register Button State ──────────────────────────────────────────────────
 const regSubmit = document.getElementById('reg-submit') as HTMLButtonElement | null;
@@ -118,8 +153,8 @@ function updateRegisterButton(): void {
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     const password = regPassword?.value ?? '';
 
-    // Multi-Role Architecture: role no longer required for registration
-    const valid = Boolean(name) && Boolean(email) && password.length >= 8;
+    // GAP-01: intent selection required for registration
+    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && Boolean(state.selectedIntent);
     // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
     // The button is ALWAYS clickable so the submit handler can show validation feedback.
     regSubmit.style.opacity = valid ? '1' : '0.6';
@@ -172,8 +207,11 @@ function validateRegisterForm(): boolean {
         return false;
     }
 
-    // Multi-Role Architecture: role selection removed from registration.
-    // Users default to 'donor' and can activate additional roles later.
+    // GAP-01: Validate intent selection
+    if (!state.selectedIntent) {
+        showBanner('error', t('auth_select_intent', 'Please select your primary goal.'));
+        return false;
+    }
 
     return true;
 }
@@ -276,7 +314,8 @@ formRegister?.addEventListener('submit', async (e) => {
         // The root cause was an indefinite hang without AbortController timeout.
         // api.ts request() now has a 30s AbortController (MED-AUD-009), resolving the hang.
         // Using centralized auth.register() gains: CSRF, timeout, and error reporting.
-        const response = await auth.register({ email, password, full_name });
+        // GAP-01: Include selected intent in registration payload
+        const response = await auth.register({ email, password, full_name, intent: state.selectedIntent ?? undefined });
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.

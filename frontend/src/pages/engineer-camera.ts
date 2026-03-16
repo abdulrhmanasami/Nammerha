@@ -181,7 +181,7 @@ function setupCapture(): void {
                 iconEl.classList.add('ph-check-circle');
             }
             const textEl = captureBtn.querySelector('span');
-            if (textEl) { textEl.textContent = `${t('cam_captured', 'Captured')} #${captureCount} ✓`; }
+            if (textEl) { textEl.innerHTML = `${t('cam_captured', 'Captured')} #${captureCount} <i class="ph ph-check" style="margin-inline-start:4px"></i>`; }
 
             setTimeout(() => {
                 cameraReady.classList.remove('hidden');
@@ -279,7 +279,7 @@ function setupSync(): void {
                 (icon as HTMLElement).style.color = '#109173';
             }
             if (label) {
-                label.textContent = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} ✓`;
+                label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check" style="margin-inline-start:4px"></i>`;
                 label.style.color = '#109173';
             }
 

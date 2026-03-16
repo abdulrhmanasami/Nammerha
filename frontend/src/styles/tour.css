@@ -1,17 +1,46 @@
 /* ============================================================================
-   Nammerha — Interactive Product Tour Styles
+   Nammerha — Interactive Product Tour Styles (Platinum Standard)
+   ============================================================================
+   GAP-05 FIX: Premium glassmorphism tour UI with micro-animations.
+   Designed for mobile-first Syrian low-bandwidth environments.
+
+   Design Principles:
+     - Warm Earth (#b45309) accents — matches Nammerha brand palette
+     - Glassmorphism tooltip with backdrop-blur
+     - Smooth cubic-bezier transitions (60fps)
+     - Safe-area padding for notched devices
+     - Full RTL support
    ============================================================================ */
+
+/* ─── Variables ────────────────────────────────────────────────────────── */
+
+:root {
+    --tour-z-overlay:   99990;
+    --tour-z-spotlight: 99991;
+    --tour-z-tooltip:   99995;
+    --tour-accent:      #b45309;     /* warm-earth */
+    --tour-accent-glow: rgba(180, 83, 9, 0.35);
+    --tour-glass-bg:    rgba(255, 255, 255, 0.88);
+    --tour-glass-border: rgba(255, 255, 255, 0.45);
+    --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.18),
+                   0 8px 20px rgba(0, 0, 0, 0.08),
+                   0 0 0 1px rgba(255, 255, 255, 0.1);
+    --tour-radius:      20px;
+    --tour-ease:        cubic-bezier(0.4, 0, 0.2, 1);
+    --tour-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
 /* ─── Overlay ──────────────────────────────────────────────────────────── */
 
 .nmr-tour-overlay {
     position: fixed;
     inset: 0;
-    z-index: 99990;
-    background: rgba(0, 0, 0, 0.55);
+    z-index: var(--tour-z-overlay);
+    background: rgba(15, 23, 42, 0.6);
     opacity: 0;
-    transition: opacity 0.35s ease;
+    transition: opacity 0.4s var(--tour-ease);
     pointer-events: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .nmr-tour-overlay--visible {
@@ -23,81 +52,97 @@
 
 .nmr-tour-spotlight {
     position: absolute;
-    border-radius: 8px;
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.6);
+    transition: all 0.5s var(--tour-ease);
     opacity: 0;
-    z-index: 99991;
+    z-index: var(--tour-z-spotlight);
     pointer-events: none;
+    /* Breathing glow ring around spotlit element */
+    outline: 2px solid var(--tour-accent);
+    outline-offset: 4px;
+    animation: tour-spotlight-breathe 2s ease-in-out infinite;
 }
 
-/* ─── Tooltip ──────────────────────────────────────────────────────────── */
+@keyframes tour-spotlight-breathe {
+    0%, 100% { outline-color: var(--tour-accent); outline-offset: 4px; }
+    50%      { outline-color: var(--tour-accent-glow); outline-offset: 6px; }
+}
+
+/* ─── Tooltip (Glassmorphism) ──────────────────────────────────────────── */
 
 .nmr-tour-tooltip {
     position: absolute;
-    z-index: 99995;
+    z-index: var(--tour-z-tooltip);
     width: 340px;
-    max-width: calc(100vw - 32px);
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2),
-                0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: calc(100vw - 24px);
+    background: var(--tour-glass-bg);
+    backdrop-filter: blur(24px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    border: 1px solid var(--tour-glass-border);
+    border-radius: var(--tour-radius);
+    box-shadow: var(--tour-shadow);
     padding: 0;
     opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(12px) scale(0.96);
+    transition: opacity 0.35s var(--tour-ease),
+                transform 0.4s var(--tour-spring);
     pointer-events: none;
     overflow: hidden;
 }
 
 .nmr-tour-tooltip--visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     pointer-events: auto;
 }
 
-/* ─── Header ───────────────────────────────────────────────────────────── */
+/* ─── Tooltip Header ───────────────────────────────────────────────────── */
 
 .nmr-tour-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px 0;
+    padding: 14px 16px 0;
 }
 
 .nmr-tour-step-count {
     font-size: 0.6875rem;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.05em;
+    font-weight: 800;
+    color: var(--tour-accent);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    background: rgba(180, 83, 9, 0.08);
+    padding: 3px 8px;
+    border-radius: 6px;
 }
 
 .nmr-tour-close {
     width: 28px;
     height: 28px;
     border: none;
-    background: #f1f5f9;
-    color: #64748b;
+    background: rgba(148, 163, 184, 0.12);
+    color: #94a3b8;
     border-radius: 8px;
     font-size: 0.75rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .nmr-tour-close:hover {
-    background: #e2e8f0;
-    color: #334155;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    transform: scale(1.05);
 }
 
 /* ─── Progress Bar ─────────────────────────────────────────────────────── */
 
 .nmr-tour-progress {
     height: 3px;
-    background: #f1f5f9;
+    background: rgba(148, 163, 184, 0.15);
     margin: 10px 16px 0;
     border-radius: 999px;
     overflow: hidden;
@@ -105,37 +150,41 @@
 
 .nmr-tour-progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    background: linear-gradient(90deg, var(--tour-accent), #d97706);
     border-radius: 999px;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.5s var(--tour-ease);
+    box-shadow: 0 0 8px var(--tour-accent-glow);
 }
 
 /* ─── Content ──────────────────────────────────────────────────────────── */
 
 .nmr-tour-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1e293b;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: #0f172a;
     margin: 14px 16px 6px;
-    line-height: 1.3;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
 }
 
 .nmr-tour-content {
     font-size: 0.8125rem;
     color: #64748b;
-    line-height: 1.6;
+    line-height: 1.65;
     margin: 0 16px 16px;
 }
 
-/* ─── Actions ──────────────────────────────────────────────────────────── */
+/* ─── Actions Footer ──────────────────────────────────────────────────── */
 
 .nmr-tour-actions {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    background: #f8fafc;
-    border-top: 1px solid #f1f5f9;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(248, 250, 252, 0.65);
+    border-top: 1px solid rgba(241, 245, 249, 0.6);
+    backdrop-filter: blur(8px);
 }
 
 .nmr-tour-nav {
@@ -144,43 +193,60 @@
 }
 
 .nmr-tour-btn {
-    padding: 6px 14px;
+    padding: 8px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s var(--tour-ease);
+    -webkit-tap-highlight-color: transparent;
 }
 
 .nmr-tour-btn--skip {
     background: transparent;
     color: #94a3b8;
+    padding: 8px 12px;
 }
 
 .nmr-tour-btn--skip:hover {
     color: #64748b;
-    background: #f1f5f9;
+    background: rgba(241, 245, 249, 0.8);
 }
 
 .nmr-tour-btn--prev {
-    background: #f1f5f9;
+    background: rgba(241, 245, 249, 0.8);
     color: #475569;
 }
 
 .nmr-tour-btn--prev:hover {
-    background: #e2e8f0;
+    background: rgba(226, 232, 240, 0.9);
 }
 
 .nmr-tour-btn--next {
-    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    background: linear-gradient(135deg, var(--tour-accent), #d97706);
     color: #fff;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 2px 12px var(--tour-accent-glow);
+    position: relative;
+    overflow: hidden;
+}
+
+.nmr-tour-btn--next::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.2) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
 }
 
 .nmr-tour-btn--next:hover {
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 6px 20px var(--tour-accent-glow);
     transform: translateY(-1px);
+}
+
+.nmr-tour-btn--next:hover::after {
+    transform: translateX(100%);
 }
 
 .nmr-tour-btn--next:active {
@@ -197,11 +263,76 @@
     flex-direction: row-reverse;
 }
 
-/* ─── Mobile ───────────────────────────────────────────────────────────── */
+/* ─── Dark Mode (optional) ─────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --tour-glass-bg: rgba(30, 41, 59, 0.92);
+        --tour-glass-border: rgba(71, 85, 105, 0.3);
+        --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.35),
+                       0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .nmr-tour-overlay {
+        background: rgba(0, 0, 0, 0.75);
+    }
+
+    .nmr-tour-spotlight {
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+    }
+
+    .nmr-tour-title {
+        color: #f1f5f9;
+    }
+
+    .nmr-tour-content {
+        color: #94a3b8;
+    }
+
+    .nmr-tour-step-count {
+        background: rgba(180, 83, 9, 0.15);
+    }
+
+    .nmr-tour-close {
+        background: rgba(71, 85, 105, 0.3);
+        color: #94a3b8;
+    }
+
+    .nmr-tour-actions {
+        background: rgba(15, 23, 42, 0.5);
+        border-top-color: rgba(71, 85, 105, 0.3);
+    }
+
+    .nmr-tour-btn--prev {
+        background: rgba(71, 85, 105, 0.3);
+        color: #cbd5e1;
+    }
+}
+
+/* ─── Mobile Optimizations ─────────────────────────────────────────────── */
 
 @media (max-width: 480px) {
     .nmr-tour-tooltip {
-        width: calc(100vw - 24px);
-        border-radius: 12px;
+        width: calc(100vw - 16px);
+        border-radius: 16px;
+    }
+
+    .nmr-tour-title {
+        font-size: 1rem;
+    }
+}
+
+/* ─── Reduced Motion ───────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .nmr-tour-overlay,
+    .nmr-tour-spotlight,
+    .nmr-tour-tooltip,
+    .nmr-tour-progress-bar {
+        transition-duration: 0.01ms !important;
+    }
+
+    .nmr-tour-spotlight {
+        animation: none;
     }
 }

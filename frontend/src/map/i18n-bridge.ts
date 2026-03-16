@@ -24,7 +24,7 @@ const MAP_DICT: Record<string, Record<string, string>> = {
 
     // Popup Labels
     map_funded: { ar: 'ممول', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi', en: 'Funded' },
-    map_view_project: { ar: 'عرض المشروع ←', de: 'Projekt ansehen →', fr: 'Voir le projet →', tr: 'Projeyi Görüntüle →', en: 'View Project →' },
+    map_view_project: { ar: 'عرض المشروع', de: 'Projekt ansehen', fr: 'Voir le projet', tr: 'Projeyi Görüntüle', en: 'View Project' },
 
     // Status Badges
     map_status_needs_funding: { ar: '🟡 بحاجة لتمويل', de: '🟡 Finanzierung benötigt', fr: '🟡 Besoin de financement', tr: '🟡 Finansman Gerekli', en: '🟡 Needs Funding' },

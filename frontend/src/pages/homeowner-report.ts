@@ -326,16 +326,49 @@ if (voiceDescribeBtn) { voiceDescribeBtn.addEventListener('click', startVoice); 
 if (voiceStopBtn) { voiceStopBtn.addEventListener('click', stopVoice); }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// STEP 3 — PHOTO UPLOAD
+// STEP 3 — PHOTO UPLOAD + GAP-08 FIX: CLIENT-SIDE IMAGE COMPRESSION
 // ═══════════════════════════════════════════════════════════════════════════
 const photoUploadZone = document.getElementById('photo-upload-zone');
 const photoInput = document.getElementById('photo-input') as HTMLInputElement | null;
 const photoThumbnails = document.getElementById('photo-thumbnails');
 
+/**
+ * GAP-08 FIX: Compress image via Canvas before upload.
+ * Max dimension: 1200px, JPEG quality: 0.75, target < 300KB.
+ * Critical for Syrian 3G field operations where 5MB+ photos exhaust bandwidth.
+ */
+function compressImage(file: File, maxDimension = 1200, quality = 0.75): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            let { width, height } = img;
+            // Scale down if exceeds max dimension
+            if (width > maxDimension || height > maxDimension) {
+                const ratio = Math.min(maxDimension / width, maxDimension / height);
+                width = Math.round(width * ratio);
+                height = Math.round(height * ratio);
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { reject(new Error('Canvas not supported')); return; }
+
+            ctx.drawImage(img, 0, 0, width, height);
+            // Output as JPEG for maximum compression on photos
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
+        };
+        img.onerror = () => reject(new Error('Image load failed'));
+        img.src = URL.createObjectURL(file);
+    });
+}
+
 if (photoUploadZone && photoInput) {
     photoUploadZone.addEventListener('click', () => photoInput.click());
 
-    photoInput.addEventListener('change', () => {
+    photoInput.addEventListener('change', async () => {
         const files = photoInput.files;
         if (!files || !photoThumbnails) { return; }
 
@@ -345,20 +378,38 @@ if (photoUploadZone && photoInput) {
         for (let i = 0; i < count; i++) {
             const file = files[i];
             if (!file) { continue; }
-            const reader = new FileReader();
-            reader.onload = (e) => {
+
+            try {
+                // GAP-08: Compress before display — saves bandwidth on upload
+                const compressedUrl = await compressImage(file);
+
                 const thumb = document.createElement('div');
                 thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
                 thumb.innerHTML = `
-          <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="Damage photo" />
+          <img src="${esc(compressedUrl)}" class="w-full h-full object-cover" alt="Damage photo" />
           <div class="absolute top-0.5 right-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
             <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
           </div>
         `;
                 photoThumbnails.appendChild(thumb);
                 state.photoCount++;
-            };
-            reader.readAsDataURL(file);
+            } catch {
+                // Fallback: use raw FileReader if compression fails
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
+                    thumb.innerHTML = `
+            <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="Damage photo" />
+            <div class="absolute top-0.5 right-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
+              <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
+            </div>
+          `;
+                    photoThumbnails.appendChild(thumb);
+                    state.photoCount++;
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         if (state.photoCount >= maxPhotos) {

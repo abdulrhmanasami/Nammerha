@@ -249,7 +249,7 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
             <a href="project-details.html?id=${escapeHtml(String(props['project_id'] ?? ''))}" 
                class="block mt-2 text-center text-[11px] font-bold text-trust-blue bg-trust-blue/10 
                       rounded-lg py-1.5 hover:bg-trust-blue/20 transition-colors">
-                ${t('map_view_project', 'View Project →')}
+                ${t('map_view_project', 'View Project')} <i class="ph ph-arrow-right" style="vertical-align:-1px"></i>
             </a>
         </div>
     `;

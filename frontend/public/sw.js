@@ -17,10 +17,9 @@ const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;
 const API_NETWORK_TIMEOUT_MS = 3000;
 
 // ─── App Shell: Pre-cached on install ───────────────────────────────────────
-// P0-002 FIX (v2): Reconciled with actual filesystem. Previous version listed
-// ghost pages (supplier-portal, engineer-portal, compliance-portal, refund.html)
-// that don't exist — cache.addAll() Promise.all rejected, killing the entire SW.
-// RULE: Every entry MUST correspond to an actual file in the build output.
+// I-005 FIX: Only cache UNIVERSAL pages on install. Role-specific pages are cached
+// on-demand via cacheFirstWithNetwork when the user actually visits them.
+// Previous: cached all 28 pages upfront — wasting ~200KB+ of Syrian mobile data.
 const SHELL_ASSETS = [
     '/',
     '/index.html',
@@ -33,24 +32,6 @@ const SHELL_ASSETS = [
     '/pricing.html',
     '/reset-password.html',
     '/verify-email.html',
-    '/donor-basket.html',
-    '/donor-portal.html',
-    '/donor-proof.html',
-    '/homeowner-portal.html',
-    '/homeowner-report.html',
-    '/contractor-portal.html',
-    '/contractor-dashboard.html',
-    '/tradesperson-portal.html',
-    '/supplier-dashboard.html',
-    '/engineer-boq.html',
-    '/engineer-camera.html',
-    '/compliance-dashboard.html',
-    '/admin-dashboard.html',
-    '/admin-escrow.html',
-    '/admin-oracle.html',
-    '/admin-kyc.html',
-    '/admin-revenue.html',
-    '/admin-fintech.html',
     '/privacy.html',
     '/terms.html',
     '/refund-policy.html',
@@ -60,6 +41,14 @@ const SHELL_ASSETS = [
     '/fonts/phosphor/phosphor.css',
     '/theme-boot.js',
 ];
+
+// Role-specific pages: cached on-demand when visited (NOT pre-cached)
+// Donors: donor-basket, donor-portal, donor-proof
+// Homeowners: homeowner-portal, homeowner-report
+// Professionals: contractor-portal, contractor-dashboard, tradesperson-portal,
+//   supplier-dashboard, engineer-boq, engineer-camera
+// Admin: admin-dashboard, admin-escrow, admin-oracle, admin-kyc, admin-revenue,
+//   admin-fintech, compliance-dashboard
 
 // Paths that must NEVER be cached (authentication, security tokens)
 const NEVER_CACHE_PATHS = [

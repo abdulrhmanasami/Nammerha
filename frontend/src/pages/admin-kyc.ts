@@ -157,7 +157,7 @@ function renderDocumentViewer(index: number): void {
                 if (verifyBtn) {
                     verifyBtn.disabled = true;
                     verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verified_granted', '✓ Verified Badge Granted')}`;
+                    verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`;
                 }
                 if (rejectBtn) {
                     rejectBtn.disabled = true;
@@ -167,7 +167,7 @@ function renderDocumentViewer(index: number): void {
                 if (rejectBtn) {
                     rejectBtn.disabled = true;
                     rejectBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_rejected_state', '✗ Rejected — Resubmission Requested')}`;
+                    rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_rejected_state', 'Rejected — Resubmission Requested')}`;
                 }
                 if (verifyBtn) {
                     verifyBtn.disabled = true;
@@ -315,10 +315,10 @@ function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
 
     if (status === 'verified') {
         badge.className = 'bg-smoky-jade/10 text-smoky-jade text-[10px] font-bold px-2 py-0.5 rounded-full';
-        badge.textContent = t('kyc_verified', '✓ Verified');
+        badge.innerHTML = `<i class="ph ph-check" style="margin-inline-end:3px"></i>${t('kyc_verified', 'Verified')}`;
     } else {
         badge.className = 'bg-rose-50 text-rose-500 text-[10px] font-bold px-2 py-0.5 rounded-full';
-        badge.textContent = t('kyc_rejected', '✗ Rejected');
+        badge.innerHTML = `<i class="ph ph-x" style="margin-inline-end:3px"></i>${t('kyc_rejected', 'Rejected')}`;
     }
 }
 

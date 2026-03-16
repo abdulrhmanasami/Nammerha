@@ -2,8 +2,8 @@ import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { admin, openData } from '../api';
-import { getLocale, formatDate, applyI18n } from '../utils/locale';
-import { formatCents, relativeTimeAgo } from '../utils/format';
+import { getLocale, applyI18n } from '../utils/locale';
+import { relativeTimeAgo } from '../utils/format';
 import { renderTableErrorWithRetry, renderErrorWithRetry } from '../utils/error-retry';
 
 /* ═══════════════════════════════════════════════════════════════════════════

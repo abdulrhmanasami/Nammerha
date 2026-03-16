@@ -203,14 +203,14 @@ function initActionButtons(): void {
             releaseBtn.disabled = true;
             releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
             releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
-            releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_funds_released', '✓ Funds Released — Audit Trail Updated')}`;
+            releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_funds_released', 'Funds Released — Audit Trail Updated')}`;
 
             if (flagBtn) {
                 flagBtn.disabled = true;
                 flagBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
             }
 
-            showToast(t('esc_released_toast', 'Escrow released') + `: ${esc(c.amount)} → ${esc(c.vendorName)}`);
+            showToast(t('esc_released_toast', 'Escrow released') + `: ${esc(c.amount)} <i class="ph ph-arrow-right" style="vertical-align:-1px"></i> ${esc(c.vendorName)}`);
         });
     }
 

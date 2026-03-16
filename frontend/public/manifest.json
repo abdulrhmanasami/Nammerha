@@ -40,31 +40,34 @@
   ],
   "shortcuts": [
     {
-      "name": "Report Damage",
-      "short_name": "Report",
-      "url": "/homeowner-portal.html",
+      "name": "الإبلاغ عن أضرار",
+      "short_name": "إبلاغ",
+      "description": "الإبلاغ عن أضرار منزلك",
+      "url": "/homeowner-report.html",
       "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
     },
     {
-      "name": "My Wallet",
-      "short_name": "Wallet",
+      "name": "محفظتي",
+      "short_name": "المحفظة",
+      "description": "عرض رصيدك ومعاملاتك",
       "url": "/wallet.html",
       "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
     },
     {
-      "name": "Donate",
-      "short_name": "Donate",
+      "name": "تبرّع",
+      "short_name": "تبرّع",
+      "description": "تصفح المشاريع وتبرع",
       "url": "/donor-basket.html",
       "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
     }
   ],
   "screenshots": [
     {
-      "src": "/brand/Nammerha_logo_Full.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "form_factor": "narrow",
-      "label": "Nammerha — Rebuild Syria Together"
+      "label": "نعمّرها — منصة إعادة إعمار سوريا"
     }
   ]
 }

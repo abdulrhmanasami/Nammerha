@@ -271,7 +271,7 @@ function setupServiceRequestForm(): void {
                 throw new Error(res.error ?? t('ho_failed', 'Failed'));
             }
 
-            b.textContent = t('ho_submitted', '✓ Submitted');
+            b.innerHTML = `<i class="ph ph-check" style="margin-inline-end:4px"></i>${t('ho_submitted', 'Submitted')}`;
             b.className = 'px-5 py-2.5 bg-green-100 text-green-700 text-sm font-bold rounded-lg';
 
             // Reset form

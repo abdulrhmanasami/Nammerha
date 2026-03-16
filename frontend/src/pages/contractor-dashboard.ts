@@ -1,7 +1,7 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { reportWarning } from '../error-reporter';
-import { phaseColor, bidColor } from '../utils/status-colors';
+import { phaseColor, phaseIcon, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { getLocale, formatDate, applyI18n } from '../utils/locale';
 // PLT-AUD-I004 FIX: Import t() for i18n-safe unit labels
@@ -152,14 +152,17 @@ async function loadProjectTimeline(): Promise<void> {
         const projects = (res.data ?? []) as unknown as Array<Record<string, string | number>>;
 
         if (projects.length === 0) {
-            tbody.innerHTML = `<tr class="border-t border-slate-100">
-                <td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-buildings" style="font-size:24px" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs" data-i18n="no_assigned_projects">No assigned projects yet</p>
-                </td>
-            </tr>`;
+            // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
+            const loadingRow = document.getElementById('projects-loading-row');
+            const emptyRow = document.getElementById('projects-empty-row');
+            if (loadingRow) { loadingRow.style.display = 'none'; }
+            if (emptyRow) { emptyRow.style.display = ''; }
             return;
         }
+
+        // Remove loading and empty state rows before rendering data
+        document.getElementById('projects-loading-row')?.remove();
+        document.getElementById('projects-empty-row')?.remove();
 
         tbody.innerHTML = projects.map((p) => {
             const progress = Number(p['progress'] ?? 0);
@@ -169,7 +172,8 @@ async function loadProjectTimeline(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(String(p['title'] ?? ''))}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(String(p['region'] ?? ''))}</td>
                 <td class="px-5 py-3">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))}">
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1">
+                        <i class="ph ${phaseIcon(String(p['phase'] ?? ''))}" aria-hidden="true"></i>
                         ${esc(String(p['phase'] ?? ''))}
                     </span>
                 </td>
@@ -211,14 +215,17 @@ async function loadBids(): Promise<void> {
         const bids = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
 
         if (bids.length === 0) {
-            container.innerHTML = `<tr class="border-t border-slate-100">
-                <td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-flag-banner" style="font-size:24px" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs" data-i18n="no_bids_submitted">No bids submitted yet</p>
-                </td>
-            </tr>`;
+            // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
+            const loadingRow = document.getElementById('bids-loading-row');
+            const emptyRow = document.getElementById('bids-empty-row');
+            if (loadingRow) { loadingRow.style.display = 'none'; }
+            if (emptyRow) { emptyRow.style.display = ''; }
             return;
         }
+
+        // Remove loading and empty state rows before rendering data
+        document.getElementById('bids-loading-row')?.remove();
+        document.getElementById('bids-empty-row')?.remove();
 
         container.innerHTML = bids.map((b) => {
             // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)

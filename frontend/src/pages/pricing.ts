@@ -113,7 +113,7 @@ async function handleSubscribe(planSlug: string): Promise<void> {
         if (body.success) {
             const btn = document.getElementById(`btn-plan-${planSlug}`);
             if (btn) {
-                btn.textContent = `✓ ${t('pricing_subscribed', 'Subscribed!')}`;
+                btn.innerHTML = `<i class="ph ph-check" style="margin-inline-end:4px"></i>${t('pricing_subscribed', 'Subscribed!')}`;
                 btn.classList.add('bg-smoky-jade');
                 btn.classList.remove('bg-trust-blue');
             }

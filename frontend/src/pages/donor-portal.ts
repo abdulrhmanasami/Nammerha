@@ -190,7 +190,7 @@ async function loadMarketplace(): Promise<void> {
                             <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
                             ${p.funded_percentage < 100 ? `
                                 <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
-                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded">${esc(t('fully_funded', '✓ Fully Funded'))}</span>`}
+                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded"><i class="ph ph-check-circle" style="margin-inline-end:3px"></i>${esc(t('fully_funded', 'Fully Funded'))}</span>`}
                         </div>
                     </div>
                 </div>

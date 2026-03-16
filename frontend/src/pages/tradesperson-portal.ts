@@ -147,7 +147,8 @@ async function loadStats(): Promise<void> {
         setText('kpi-active', String(s.active_jobs));
         setText('kpi-completed', String(s.completed_jobs));
         setText('kpi-earnings', formatCents(s.total_earnings));
-        setText('kpi-rating', s.average_rating ? `${s.average_rating.toFixed(1)} ★` : '—');
+        const ratingEl = document.getElementById('kpi-rating');
+        if (ratingEl) { ratingEl.innerHTML = s.average_rating ? `${s.average_rating.toFixed(1)} <i class="ph ph-star" style="color:#d97706;margin-inline-start:2px"></i>` : '—'; }
         setText('pending-count', String(s.pending_requests));
     } catch (err) {
         reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
@@ -262,7 +263,7 @@ async function loadRequests(): Promise<void> {
                     if (!res2.success) {
                         throw new Error(res2.error ?? 'Failed');
                     }
-                    b.textContent = t('tp_accepted', '✓ Accepted');
+                    b.innerHTML = `<i class="ph ph-check" style="margin-inline-end:4px"></i>${t('tp_accepted', 'Accepted')}`;
                     b.setAttribute('data-i18n', 'tp_accepted');
                     b.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
                     loadStats();
@@ -399,7 +400,7 @@ async function loadProfile(): Promise<void> {
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${t('tp_per_day', '/day')}` : '—'}</p></div>
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} ★` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
+                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} <i class="ph ph-star" style="color:#d97706;margin-inline-start:2px"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
             </div>
         `;

@@ -234,18 +234,9 @@ html[data-theme="dark"] :focus-visible {
   outline-offset: 2px;
 }
 
-/* P2-UX-002 FIX: Flip directional arrows/carets in RTL context */
-[dir='rtl'] .ph-arrow-right,
-[dir='rtl'] .ph-arrow-left,
-/* P2-RTL-CARET FIX: Carets used in settings links (profile.html) */
-[dir='rtl'] .ph-caret-right,
-[dir='rtl'] .ph-caret-left {
-  transform: scaleX(-1);
-}
-/* Preserve hover animation direction in RTL */
-[dir='rtl'] .group:hover .ph-arrow-right {
-  transform: scaleX(-1) translateX(-0.25rem);
-}
+/* PERF-02 FIX: Removed duplicate RTL icon-flipping rules.
+   Canonical source: i18n.css §6.1 (lines 214-222).
+   Duplicate rules caused double-specificity and wasted CSS parse time. */
 
 /* ─── Phosphor Icons Base Configuration ────────────────────────────────────── */
 .ph {
@@ -384,19 +375,22 @@ html[data-theme="dark"] :focus-visible {
   /* PLT-UX-AUD-P2: Disabled visual states for all button classes */
   .btn-primary:disabled,
   .btn-primary[disabled] {
-    opacity: 0.5;
+    /* A11Y-04 FIX: Raised from 0.5 to 0.65 for WCAG 1.4.3 contrast compliance (4.5:1 minimum) */
+    opacity: 0.65;
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
   }
   .btn-secondary:disabled,
   .btn-secondary[disabled] {
-    opacity: 0.5;
+    /* A11Y-04 FIX: Raised from 0.5 to 0.65 for WCAG 1.4.3 contrast compliance (4.5:1 minimum) */
+    opacity: 0.65;
     cursor: not-allowed;
   }
   .btn-jade:disabled,
   .btn-jade[disabled] {
-    opacity: 0.5;
+    /* A11Y-04 FIX: Raised from 0.5 to 0.65 for WCAG 1.4.3 contrast compliance (4.5:1 minimum) */
+    opacity: 0.65;
     cursor: not-allowed;
   }
 }
@@ -1331,6 +1325,19 @@ html[data-theme="dark"] .text-red-400 {
 /* P2-DUP-001 FIX: Removed duplicate .nm-nav-safe-area (canonical version with max() is below) */
 
 /* ============================================================================
+   CON-01 FIX: Dual Navigation Mutual Exclusion
+   On sm+ (≥640px), the desktop top navbar (`hidden sm:flex` in index.html)
+   becomes visible. The bottom nav MUST hide to prevent duplicate navigation.
+   Standard: Nielsen Heuristic #4 — Consistency & Standards.
+   Apple HIG — "Avoid redundant navigation controls."
+   ============================================================================ */
+@media (min-width: 640px) {
+    .nm-bottom-nav {
+        display: none !important;
+    }
+}
+
+/* ============================================================================
    P2-ZINDEX FIX: Z-Index Token System
    Eliminates fragile hardcoded z-index escalation (9999 → 10000 → 10001).
    All z-index values now reference semantic tokens.
@@ -1341,6 +1348,9 @@ html[data-theme="dark"] .text-red-400 {
     --z-bottom-nav: 9900;
     --z-toast: 9950;
     --z-offline: 9960;
+    /* CON-04 FIX: Added overlay + i18n tokens — eliminates z-[10000] arms race */
+    --z-overlay: 9970;
+    --z-i18n-banner: 9980;
     --z-skip: 99999;
 }
 
@@ -1390,7 +1400,8 @@ html[data-theme="dark"] .text-red-400 {
 #nm-toast-container {
     position: fixed;
     bottom: calc(80px + env(safe-area-inset-bottom, 16px));
-    left: 50%;
+    /* C-004 FIX: Logical property for RTL centering */
+    inset-inline-start: 50%;
     transform: translateX(-50%);
     z-index: var(--z-toast);
     display: flex;
@@ -1537,6 +1548,21 @@ html[data-theme="dark"] .nm-portal-header {
 }
 
 /* ============================================================================
+   CON-03 FIX: Safe-Area Inset for Sticky Headers (PWA Standalone)
+   In PWA standalone mode, the system status bar overlaps sticky headers.
+   This adds env(safe-area-inset-top) padding so header content clears the
+   notch/status bar on modern iPhones (14/15/16 Pro series).
+   Standard: Apple HIG — "Respect the safe area insets"
+   ============================================================================ */
+@supports (padding-top: env(safe-area-inset-top)) {
+    @media (display-mode: standalone) {
+        .glass-nav.sticky {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+    }
+}
+
+/* ============================================================================
    P2-DS-001 FIX: bg-surface Token for Dark Mode Consistency
    Replaces bg-white in dynamic content with this dark-mode-aware class.
    ============================================================================ */
@@ -1545,6 +1571,22 @@ html[data-theme="dark"] .nm-portal-header {
 }
 html[data-theme="dark"] .bg-surface {
     background-color: var(--bg-card, rgba(255, 255, 255, 0.04));
+}
+
+/* ============================================================================
+   I-006 FIX: Dark mode for donor-basket checkout sheet inner elements
+   The glass-sheet parent has dark mode styling, but inner Tailwind text utilities
+   (text-slate-900, text-slate-400) don't respond to data-theme. These overrides
+   ensure readability inside the fixed checkout sheet.
+   ============================================================================ */
+html[data-theme="dark"] .glass-sheet .text-slate-900 {
+    color: #f1f5f9 !important;
+}
+html[data-theme="dark"] .glass-sheet .text-slate-600 {
+    color: #cbd5e1 !important;
+}
+html[data-theme="dark"] .glass-sheet .text-slate-400 {
+    color: #94a3b8 !important;
 }
 
 /* ============================================================================
@@ -1608,4 +1650,35 @@ html[data-theme="dark"] .animate-pulse > div[class*="bg-slate-100"] {
 }
 html[data-theme="dark"] .animate-pulse.bg-white {
     background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
+}
+
+/* ============================================================================
+   INC-06 FIX: Dark Mode Edge-Case Coverage (Final 5%)
+   Covers trust feature cards, empty cart state, badge pills, custom tip $
+   symbol, and glass-card containers not caught by .bg-white.rounded-xl.
+   Standard: WCAG 1.4.3 · Apple HIG Dark Mode Guidelines
+   ============================================================================ */
+/* Trust feature cards (donor-basket grid) */
+html[data-theme="dark"] .glass-card .text-slate-500 {
+    color: #94a3b8 !important;
+}
+/* Empty cart state text */
+html[data-theme="dark"] .empty-cart .text-slate-500 {
+    color: #94a3b8 !important;
+}
+html[data-theme="dark"] .empty-cart .text-slate-300 {
+    color: #475569 !important;
+}
+/* Badge pills (e.g., "80% Funded") */
+html[data-theme="dark"] .badge-verified {
+    background-color: rgba(22, 163, 74, 0.15) !important;
+    color: #4ade80 !important;
+}
+/* Cart total $ symbol and currency amounts */
+html[data-theme="dark"] #cart-total {
+    color: #f1f5f9 !important;
+}
+/* BOQ card gradient placeholders */
+html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
+    background-image: linear-gradient(to bottom right, var(--tw-gradient-from, rgba(255,255,255,0.04)), rgba(255,255,255,0.06)) !important;
 }

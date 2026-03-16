@@ -277,6 +277,8 @@ export const auth = {
         password: string;
         full_name: string;
         role?: 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson';
+        /** GAP-01: User's self-declared intent from registration cards */
+        intent?: string;
     }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
     login: (data: { email: string; password: string }) =>
