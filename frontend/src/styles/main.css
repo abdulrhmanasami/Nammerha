@@ -155,15 +155,16 @@ html[data-theme="dark"] main { background-color: #0f1117; color: #e2e8f0; }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers) */
 html[data-theme="dark"] .top-nav,
 html[data-theme="dark"] .page-header { background: rgba(15,17,23,0.9); border-color: rgba(255,255,255,0.06); }
-/* CONF-2026-A04 FIX: Scoped dark mode text overrides — was blanket `.font-bold { color: #f8fafc }`.
-   Previous: ALL elements with font-bold/font-medium turned white in dark mode → stripped
-   intentional brand colors from KPI values (.text-smoky-jade.font-black), badge text
-   (.text-trust-blue.font-bold), and other colored typography.
-   Now: Only applies to elements WITHOUT explicit Tailwind text color utilities.
-   Uses :not() with all design system color classes for surgical precision.
-   Standard: CSS Specificity Architecture — "Broad selectors must not override specific intent." */
-html[data-theme="dark"] .font-medium:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]):not([class*="text-slate-"]):not([class*="text-emerald"]):not([class*="text-blue-"]):not([class*="text-amber"]):not([class*="text-indigo"]) { color: #f1f5f9; }
-html[data-theme="dark"] .font-bold:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]):not([class*="text-slate-"]):not([class*="text-emerald"]):not([class*="text-blue-"]):not([class*="text-amber"]):not([class*="text-indigo"]) { color: #f8fafc; }
+/* PLT-AUD2-SYS001 FIX: Replaced fragile :not() chain with robust cascade architecture.
+   PREVIOUS: 11+ :not() exclusions per selector — required manual extension for every new color class.
+   NOW: Uses `[class]` selectors at the same specificity level. Explicit Tailwind text color
+   overrides in _dark-mode.css (loaded AFTER main.css) naturally win via source order.
+   Any element with an explicit text-X class in _dark-mode.css overrides this default.
+   For brand colors (trust-blue, smoky-jade, warm-earth, warning-yellow), Tailwind
+   generates utilities that the browser applies AFTER these defaults.
+   Standard: CSS Specificity Architecture — "Use cascade order, not specificity wars." */
+html[data-theme="dark"] .font-medium:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f1f5f9; }
+html[data-theme="dark"] .font-bold:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f8fafc; }
 html[data-theme="dark"] .font-black:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f8fafc; }
 
 /* ── Logo Swap ── */

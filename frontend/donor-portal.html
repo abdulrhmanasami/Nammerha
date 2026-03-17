@@ -96,9 +96,22 @@
     </nav>
     <!-- Quick Actions -->
     <div class="p-4 border-t border-slate-200 space-y-2">
-      <a href="/donor-basket.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-smoky-jade text-white text-xs font-bold rounded-lg hover:bg-smoky-jade/90 transition-colors">
+      <!-- PLT-AUD2-I003 FIX: Was bg-smoky-jade — homeowner portal uses bg-trust-blue.
+           Standardized all primary sidebar CTAs to trust-blue for brand consistency.
+           Standard: Nielsen #4 (Consistency), Design System Token Governance. -->
+      <a href="/donor-basket.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">
         <i class="ph ph-shopping-cart" aria-hidden="true"></i>
         <span data-i18n="donor_go_basket">My Basket</span>
+      </a>
+    </div>
+    <!-- PLT-AUD2-I002 FIX: Profile link was missing from donor portal sidebar.
+         contractor-portal, contractor-dashboard, and supplier-dashboard all have this link.
+         Donor users had no direct path to profile from the portal.
+         Standard: Nielsen #4 (Consistency), Information Architecture. -->
+    <div class="p-4 border-t border-slate-200 space-y-1">
+      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+        <i class="ph ph-user-circle" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_profile">Profile</span>
       </a>
     </div>
     <div class="p-4 border-t border-slate-200">

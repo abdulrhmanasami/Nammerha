@@ -129,36 +129,24 @@
 
   <!-- CONF-P03 FIX: Was <div> — skip-link targets #main-content, must be a <main> landmark (WCAG 1.3.1) -->
   <main id="main-content" class="dashboard-main">
-    <!-- PLT-AUD-C004 FIX: Sticky header — hamburger toggle must stay reachable on mobile scroll -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
+    <!-- PLT-AUD2-C001 FIX: Wrapped header content in max-w-6xl centered container.
+         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-40">
+      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <!-- RES-I03 FIX: Demoted sticky bar title to <h2> (navigation label).
-             Content <h1> added below for proper heading hierarchy.
-             Matches homeowner-portal/donor-portal TYPE A pattern.
-             Standard: WCAG 1.3.1 (Heading Hierarchy), Apple HIG. -->
-        <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
-             echoing page context, NOT a structural heading. The real <h1> is in content below.
-             h2-before-h1 is invalid heading hierarchy for screen readers (WCAG 1.3.1). -->
         <span class="font-bold text-lg page-header-title" data-i18n="contractor_dashboard_title">Contractor Dashboard</span>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
-        <!-- INC-HDR-01 FIX: role-switcher-mount-header was missing.
-             All other dashboards (homeowner, donor, tradesperson) include it.
-             Standard: Nielsen #4 (Consistency). -->
         <div id="role-switcher-mount-header"></div>
-        <!-- INC-AUD-03 FIX: Notification bell identity crisis resolved.
-             Previous: id="notification-bell" used ph-flag-banner icon and
-             aria-label="Active bids" — three conflicting semantic signals.
-             Now: Unified to bell icon with "Notifications" aria-label.
-             Standard: WCAG 1.1.1 (Non-text Content), Nielsen #4 (Consistency). -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-bids" title="Jump to bids">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
+      </div>
       </div>
     </header>
     <!-- CRIT-006 FIX: Added max-w-6xl wrapper — was missing (content stretched full-width on >1920px).
@@ -181,7 +169,11 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_assigned_projects">Assigned Projects</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="assigned-projects">0</p>
+          <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
+               Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
+          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="assigned-projects">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <!-- PLT-AUD-G001 FIX: Realigned to contractor API data contract (was proofs-pending → engineer data) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -192,7 +184,9 @@
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_active">Active</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_active_bids">Active Bids</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" data-kpi="active-bids">0</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" data-kpi="active-bids">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <!-- PLT-AUD-G001 FIX: Realigned to contractor API data contract (was proofs-verified → engineer data) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -202,7 +196,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_completed_projects">Completed Projects</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="completed-projects">0</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="completed-projects">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <!-- PLT-AUD-G001 FIX: Realigned to contractor API data contract (was escrow-released → stale key) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -212,7 +208,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_total_earnings">Total Earnings</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="total-earnings">$0</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="total-earnings">
+            <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
       </div>
 
@@ -225,7 +223,7 @@
           </div>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
+          <table class="w-full text-sm nm-donation-table">
             <thead>
               <!-- FRIC-AUD-03 FIX: Added temporal columns.
                    Previous: No date context — financial platform requires temporal accountability.
@@ -259,7 +257,7 @@
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="contractor_bids_desc">Competitive bids you've submitted on published projects</p>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
+          <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <th class="px-5 py-3 text-start" data-i18n="contractor_th_project">Project</th>
