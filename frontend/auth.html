@@ -31,9 +31,18 @@
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
+<!-- GAP-010 FIX: Noscript fallback -->
+<noscript>
+  <style>html:not([data-theme]){visibility:visible!important}</style>
+  <div style="padding:2rem;text-align:center;font-family:system-ui;direction:rtl;">
+    <p style="font-size:1.25rem;font-weight:700;">نعمّرها تحتاج JavaScript</p>
+    <p style="margin-top:0.5rem;color:#64748b;">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
+  </div>
+</noscript>
   <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
   <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <div id="main-content" class="mobile-container flex flex-col relative min-h-screen">
+  <!-- CONF-006 FIX: <main> landmark replaces <div> for WCAG 1.3.1 screen reader navigation -->
+  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
 
     <!-- Brand Header -->
     <header class="px-6 pt-12 pb-6 text-center relative z-10">
@@ -60,6 +69,9 @@
         #nm-theme-toggle { top: auto !important; bottom: 0.75rem !important; }
       }
     </style>
+    <!-- CONF-003 FIX: Auth theme toggle delegates to NammerhaTheme (nav.js shared module).
+         This ensures theme state is consistent across all pages.
+         Position: fixed top-right matches auth layout (no bottom-nav on auth). -->
     <button id="nm-theme-toggle" class="fixed top-3 z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-inline-end: 0.75rem; margin-top: env(safe-area-inset-top, 0px);" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
       <i id="nm-theme-toggle-icon" class="ph ph-sun-dim text-amber-500" aria-hidden="true" style="font-size:18px"></i>
     </button>
@@ -74,7 +86,8 @@
     </div>
 
     <!-- LOGIN FORM -->
-    <form id="form-login" class="px-6 flex flex-col gap-4 relative z-10" novalidate>
+    <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
+    <form id="form-login" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate>
       <!-- Email -->
       <div>
         <label for="login-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
@@ -105,8 +118,11 @@
         <span id="login-submit-text" data-i18n="sign_in_btn">Sign In</span>
       </button>
       <!-- PLT-AUD-002: Forgot Password Link -->
+      <!-- GAP-004 FIX: <a> with mailto fallback replaces dead <button> for progressive enhancement.
+           If auth.ts loads, JS intercepts and shows inline reset flow.
+           If JS fails, user still reaches support. Standard: Progressive Enhancement. -->
       <div class="text-center mt-3">
-        <button type="button" id="forgot-password-btn" class="text-sm text-trust-blue font-medium hover:underline" data-i18n="forgot_password">Forgot your password?</button>
+        <a href="mailto:support@nammerha.com?subject=Password%20Reset%20Request" id="forgot-password-btn" class="text-sm text-trust-blue font-medium hover:underline" data-i18n="forgot_password">Forgot your password?</a>
       </div>
 
       <!-- FRC-003 FIX: Social Login — reduces friction for mobile users.
@@ -140,7 +156,8 @@
     </form>
 
     <!-- REGISTER FORM (hidden by default) -->
-    <form id="form-register" class="px-6 flex flex-col gap-4 relative z-10" novalidate style="display:none">
+    <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
+    <form id="form-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate style="display:none">
       <!-- Full Name -->
       <div>
         <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="full_name_label">Full Name</label>
@@ -232,7 +249,7 @@
       <p class="text-[10px] text-slate-400" data-i18n-html="auth_footer_legal">By continuing, you agree to our <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">Terms of Service</a> and <a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">Privacy Policy</a>.</p>
     </div>
 
-  </div>
+  </main>
 
   <!-- P0-ARCH-001 FIX: RTL-safe logical properties via CSS classes (was hardcoded right/left) -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>

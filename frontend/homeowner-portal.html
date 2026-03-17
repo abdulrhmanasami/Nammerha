@@ -201,6 +201,9 @@
                 <option value="high" data-i18n="urgency_urgent">Urgent</option>
                 <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
               </select>
+              <!-- FRC-007 FIX: Urgency level descriptions reduce cognitive load.
+                   Standard: Nielsen Heuristic #10 — "Help and documentation." -->
+              <p class="text-[9px] text-slate-400 mt-1" data-i18n="ho_urgency_hint">Routine: 5-7 days · Urgent: 24-48 hrs · Emergency: Same day</p>
             </div>
             <div class="md:col-span-2">
               <label for="sr-title" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_title">Title</label>
