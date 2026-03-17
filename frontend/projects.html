@@ -56,8 +56,15 @@
       <div class="w-11 h-11 shrink-0"></div>
   </header>
 
+  <!-- INC-NEW-03 FIX: Filter bar moved inside <main> so keyboard skip-link doesn't bypass it.
+       Previous: Skip-link targeted #main-content (L90) but filter bar (search, pills, sort)
+       was outside <main> — keyboard users skipped past ALL filtering controls.
+       Standard: WCAG 2.4.1 (Bypass Blocks), Apple HIG (Keyboard Navigation). -->
+  <!-- Projects Grid + Filters -->
+  <main id="main-content" class="flex-1 px-4 pb-24">
+
   <!-- Filter Bar -->
-  <div class="px-4 pt-4 pb-2 flex flex-col gap-3">
+  <div class="pt-4 pb-2 flex flex-col gap-3">
     <!-- Search -->
     <div class="relative">
       <i class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
@@ -87,7 +94,6 @@
   </div>
 
   <!-- Projects Grid -->
-  <main id="main-content" class="flex-1 px-4 pb-24">
     <!-- Loading skeleton -->
     <div id="projects-skeleton" class="flex flex-col gap-4">
       <div class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100"></div>

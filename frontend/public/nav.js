@@ -97,9 +97,13 @@
         'supplier-dashboard.html': 'projects',
     };
 
-    // Pages where the bottom nav should be hidden entirely:
-    // - Auth flows (no nav needed)
-    // - Dashboard/portal pages (have their own sidebar navigation — C-002 FIX)
+    // CON-AUD-03 FIX: Pages where the bottom nav must be hidden entirely.
+    // Three categories:
+    //   1. Auth flows (no nav) — full-screen immersive login/register.
+    //   2. Dashboard pages (sidebar nav) — C-002: suppress dual-navigation.
+    //   3. Full-screen wizards/capture (own fixed footer) — bottom nav would
+    //      physically overlap their CTA buttons, blocking user interaction.
+    // Standard: Nielsen #4 (Consistency), Apple HIG (No redundant navigation).
     var HIDE_NAV_PAGES = [
         // Auth flows
         'auth.html', 'reset-password.html', 'verify-email.html',
@@ -110,6 +114,8 @@
         'supplier-dashboard.html', 'homeowner-portal.html',
         'donor-portal.html', 'contractor-portal.html',
         'tradesperson-portal.html',
+        // Full-screen wizards/capture (CON-AUD-03: own fixed footer CTA)
+        'homeowner-report.html', 'engineer-camera.html',
     ];
 
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────

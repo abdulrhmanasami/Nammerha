@@ -54,10 +54,12 @@
        ═══════════════════════════════════════════════════════════════════════ -->
   <header class="p-6 pb-2">
     <div class="flex items-center justify-between mb-4">
-      <!-- CONF-NEW-04 FIX: Back button standardized from size-12 (48px) to w-11 h-11 (44px).
-           44px meets Apple HIG 44pt minimum while matching all other pages.
-           Standard: Design System Consistency, Apple HIG. -->
-      <button id="back-btn" class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <!-- INC-AUD-02 FIX: Unified back button architecture.
+           Previous: <button id="back-btn"> — inconsistent with other pages which
+           use <a data-back-btn> or <button data-back-btn>. The data-back-btn
+           attribute is the platform-wide convention for CSS :active feedback.
+           Standard: Single data attribute convention per UI pattern. -->
+      <button id="back-btn" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </button>
       <div class="flex-1 flex flex-col items-center">
@@ -145,12 +147,20 @@
        STEP 2 — Where is your property? (Location)
        ═══════════════════════════════════════════════════════════════════════ -->
   <section id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
-    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="where_is_your">Where is your<br>property located?
-    </h1>
+    <!-- INC-AUD-01 FIX: Changed from <h1> to <h2>. Only one <h1> per page (step-1).
+         Screen readers enumerate ALL headings regardless of CSS visibility.
+         Standard: WCAG 1.3.1 — single <h1> per page. -->
+    <h2 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="where_is_your">Where is your<br>property located?
+    </h2>
     <p class="text-slate-500 text-sm text-center mb-8" data-i18n="we_need_this_to_connect_you_with_nearby">We need this to connect you with nearby engineers</p>
 
     <!-- Governorate Selection -->
-    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="governorate">Governorate</label>
+    <!-- GAP-AUD-01 FIX: Programmatic label association (WCAG 1.3.1).
+         Previous: <label> had no `for` attribute — screen readers could not
+         associate the label text with the <select> control.
+         Standard: WCAG 1.3.1 (Info and Relationships) — labels MUST be
+         programmatically associated with their form controls. -->
+    <label for="governorate" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="governorate">Governorate</label>
     <div class="relative mb-5">
       <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm">
         <!-- GAP-003 FIX: All governorate options have data-i18n for full i18n coverage.
@@ -178,7 +188,8 @@
     </div>
 
     <!-- Neighborhood / Area -->
-    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="neighborhood_or_area_name">Neighborhood or area name</label>
+    <!-- GAP-AUD-01 FIX: Programmatic label association (WCAG 1.3.1). -->
+    <label for="neighborhood" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="neighborhood_or_area_name">Neighborhood or area name</label>
     <input id="neighborhood" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm mb-5" placeholder="e.g. Al-Majidiya, Old City..." data-i18n-placeholder="ho_neighborhood_placeholder" />
 
     <!-- Detect Location Button -->
@@ -197,18 +208,39 @@
         <p class="text-slate-700 text-sm font-mono" id="gps-display">—</p>
       </div>
     </div>
+
+    <!-- GAP-AUD-04 FIX: GPS Error State UI.
+         Previous: No visible error feedback when geolocation fails (permission denied,
+         timeout, unavailable). User tapped the button and saw nothing.
+         Standard: Nielsen #1 (System Status Visibility), Apple HIG (Error Feedback). -->
+    <div id="gps-error" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3" role="alert">
+      <div class="size-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+        <i class="ph ph-map-pin-slash text-red-500 ph-md" aria-hidden="true"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-xs font-bold text-red-600 uppercase tracking-wider" data-i18n="gps_error_title">Location Unavailable</p>
+        <p class="text-red-500/80 text-xs mt-0.5" id="gps-error-msg" data-i18n="gps_error_msg">Please check your location permissions or enter your address manually.</p>
+      </div>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 3 — Describe the damage + Upload photos
        ═══════════════════════════════════════════════════════════════════════ -->
   <section id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
-    <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="describe_the_damage">Describe the damage</h1>
+    <!-- INC-AUD-01 FIX: h2 — single h1 is on step-1 (WCAG 1.3.1). -->
+    <h2 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="describe_the_damage">Describe the damage</h2>
     <p class="text-slate-500 text-sm text-center mb-6" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
 
     <!-- Description Textarea -->
     <div class="relative mb-4">
-      <textarea id="damage-description" class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none" placeholder="Describe the damage in your own words..." data-i18n-placeholder="ho_damage_desc_placeholder"></textarea>
+      <!-- FRIC-AUD-02 FIX: Added maxlength and character counter.
+           Previous: No character limit or guidance — users had no sense of expected length.
+           Standard: Material Design 3 — "Text fields with character counts." -->
+      <textarea id="damage-description" class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none" placeholder="Describe the damage in your own words..." data-i18n-placeholder="ho_damage_desc_placeholder" maxlength="1000"></textarea>
+      <div class="flex justify-end mt-1">
+        <span class="text-[11px] text-slate-400" id="desc-char-count">0 / 1000</span>
+      </div>
     </div>
 
     <!-- Voice Input Button (Large for accessibility) -->
@@ -220,13 +252,17 @@
     </button>
 
     <!-- Photo Upload Area -->
-    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="upload_photos_of_damage_optional">Upload photos of damage (optional)</label>
+    <!-- GAP-AUD-01 FIX: Added for attribute (WCAG 1.3.1). -->
+    <label for="photo-input" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="upload_photos_of_damage_optional">Upload photos of damage (optional)</label>
     <div id="photo-upload-zone" class="w-full min-h-[120px] bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer active:border-trust-blue/40 transition-colors mb-3">
       <div class="size-12 rounded-full bg-slate-100 flex items-center justify-center">
         <i class="ph ph-camera-plus text-slate-400" style="font-size:28px" aria-hidden="true"></i>
       </div>
       <p class="text-slate-500 text-sm font-medium" data-i18n="tap_to_upload_photos">Tap to upload photos</p>
-      <p class="text-slate-400 text-[11px]" data-i18n="maximum_5_photos_jpg_or_png">Maximum 5 photos • JPG or PNG</p>
+      <!-- GAP-AUD-06 FIX: Dynamic photo upload counter.
+           Previous: Static text "Maximum 5 photos" — no feedback as photos are added.
+           Standard: Nielsen #1 (System Status Visibility). -->
+      <p class="text-slate-400 text-[11px]"><span id="photo-count">0</span>/5 • <span data-i18n="photos_jpg_or_png">JPG or PNG</span></p>
       <input id="photo-input" type="file" accept="image/*" multiple class="hidden" />
     </div>
 
@@ -242,7 +278,8 @@
       <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
         <i class="ph ph-check-circle text-smoky-jade" style="font-size:56px" aria-hidden="true"></i>
       </div>
-      <h1 class="text-[28px] font-bold leading-tight text-slate-900 mb-3" data-i18n="request_submitted">Request Submitted!</h1>
+      <!-- INC-AUD-01 FIX: h2 — single h1 is on step-1 (WCAG 1.3.1). -->
+      <h2 class="text-[28px] font-bold leading-tight text-slate-900 mb-3" data-i18n="request_submitted">Request Submitted!</h2>
       <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6" data-i18n="your_damage_report_has_been_registered">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
 
       <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-start">

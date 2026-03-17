@@ -37,6 +37,9 @@
         'contractor_th_progress': { ar: 'التقدم', de: 'Fortschritt', fr: 'Progrès', tr: 'İlerleme' },
         'contractor_th_next_proof': { ar: 'الإثبات التالي', de: 'Nächster Nachweis', fr: 'Prochaine preuve', tr: 'Sonraki Kanıt' },
         'contractor_th_action': { ar: 'إجراء', de: 'Aktion', fr: 'Action', tr: 'İşlem' },
+        /* FRIC-AUD-03 FIX: Temporal columns for financial accountability */
+        'contractor_th_assigned': { ar: 'تاريخ الإسناد', de: 'Zugewiesen', fr: 'Assigné', tr: 'Atanma' },
+        'contractor_th_deadline': { ar: 'الموعد النهائي', de: 'Frist', fr: 'Échéance', tr: 'Son Tarih' },
         'no_assigned_projects': { ar: 'لا توجد مشاريع مسندة بعد', de: 'Noch keine zugewiesenen Projekte', fr: 'Aucun projet assigné pour le moment', tr: 'Henüz atanmış proje yok' },
         'browse_marketplace': { ar: 'تصفح السوق', de: 'Marktplatz durchsuchen', fr: 'Parcourir le marché', tr: 'Pazaryerini Gözat' },
         'no_bids_submitted': { ar: 'لم يتم تقديم عروض بعد', de: 'Noch keine Angebote eingereicht', fr: 'Aucune offre soumise', tr: 'Henüz teklif verilmedi' },

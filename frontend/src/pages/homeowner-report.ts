@@ -304,6 +304,9 @@ if (neighborhoodInput) { neighborhoodInput.addEventListener('input', updateNextB
 const detectLocationBtn = document.getElementById('detect-location-btn');
 const gpsResult = document.getElementById('gps-result');
 const gpsDisplay = document.getElementById('gps-display');
+// GAP-AUD-04 FIX: GPS error state DOM references
+const gpsError = document.getElementById('gps-error');
+const gpsErrorMsg = document.getElementById('gps-error-msg');
 
 if (detectLocationBtn) {
     detectLocationBtn.addEventListener('click', () => {
@@ -332,6 +335,8 @@ if (detectLocationBtn) {
 
                 if (gpsDisplay) { gpsDisplay.textContent = state.gpsCoords; }
                 if (gpsResult) { gpsResult.classList.remove('hidden'); }
+                // GAP-AUD-04: Hide error state on success
+                if (gpsError) { gpsError.classList.add('hidden'); }
                 if (btnIcon) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-check-circle');
@@ -339,13 +344,29 @@ if (detectLocationBtn) {
                 if (btnLabel) { btnLabel.textContent = t('hr_location_detected', 'Location detected'); }
                 (detectLocationBtn as HTMLButtonElement).disabled = true;
                 detectLocationBtn.classList.add('opacity-60');
+
+                // GAP-NEW-06: Persist GPS coords to sessionStorage
+                saveWizardState();
             },
-            () => {
+            (err) => {
                 if (btnIcon) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-crosshair');
                 }
                 if (btnLabel) { btnLabel.textContent = t('hr_location_fallback', 'Could not detect — enter manually'); }
+
+                // GAP-AUD-04 FIX: Show visible GPS error state with contextual message.
+                // Previous: Only changed button text — easy to miss on mobile.
+                // Standard: Nielsen #1 (System Status Visibility), Apple HIG (Error Feedback).
+                if (gpsError) { gpsError.classList.remove('hidden'); }
+                if (gpsErrorMsg && err) {
+                    const errorMessages: Record<number, string> = {
+                        1: t('gps_error_permission', 'Location permission denied. Please enable it in your browser settings.'),
+                        2: t('gps_error_unavailable', 'Location not available. Please enter your address manually.'),
+                        3: t('gps_error_timeout', 'Location request timed out. Please try again or enter manually.'),
+                    };
+                    gpsErrorMsg.textContent = errorMessages[err.code] || t('gps_error_msg', 'Please check your location permissions or enter your address manually.');
+                }
             },
             { enableHighAccuracy: true, timeout: 8000 }
         );
@@ -360,6 +381,34 @@ const voiceOverlay = document.getElementById('voice-overlay');
 const voiceStopBtn = document.getElementById('voice-stop-btn');
 const voiceTimerEl = document.getElementById('voice-timer');
 const descriptionTextarea = document.getElementById('damage-description') as HTMLTextAreaElement | null;
+// FRIC-AUD-02 FIX: Character counter DOM reference
+const descCharCount = document.getElementById('desc-char-count');
+
+// FRIC-AUD-02 FIX: Live character counter for damage description.
+// Standard: Material Design 3 — "Text fields with character counts."
+if (descriptionTextarea && descCharCount) {
+    descriptionTextarea.addEventListener('input', () => {
+        const len = descriptionTextarea.value.length;
+        const max = descriptionTextarea.maxLength || 1000;
+        descCharCount.textContent = `${len} / ${max}`;
+
+        // Visual warning when approaching limit (>90%)
+        if (len > max * 0.9) {
+            descCharCount.classList.add('text-amber-500');
+            descCharCount.classList.remove('text-slate-400', 'text-red-500');
+        } else if (len >= max) {
+            descCharCount.classList.add('text-red-500');
+            descCharCount.classList.remove('text-slate-400', 'text-amber-500');
+        } else {
+            descCharCount.classList.add('text-slate-400');
+            descCharCount.classList.remove('text-amber-500', 'text-red-500');
+        }
+
+        // GAP-NEW-06: Persist description to sessionStorage on input
+        state.description = descriptionTextarea.value;
+        saveWizardState();
+    });
+}
 
 let voiceInterval: ReturnType<typeof setInterval> | null = null;
 let voiceStart = 0;
@@ -460,6 +509,9 @@ if (photoUploadZone && photoInput) {
         `;
                 photoThumbnails.appendChild(thumb);
                 state.photoCount++;
+                // GAP-AUD-06 FIX: Update dynamic photo counter
+                const photoCountEl = document.getElementById('photo-count');
+                if (photoCountEl) { photoCountEl.textContent = String(state.photoCount); }
             } catch {
                 // Fallback: use raw FileReader if compression fails
                 const reader = new FileReader();
@@ -474,6 +526,9 @@ if (photoUploadZone && photoInput) {
           `;
                     photoThumbnails.appendChild(thumb);
                     state.photoCount++;
+                    // GAP-AUD-06 FIX: Update dynamic photo counter
+                    const photoCountEl = document.getElementById('photo-count');
+                    if (photoCountEl) { photoCountEl.textContent = String(state.photoCount); }
                 };
                 reader.readAsDataURL(file);
             }

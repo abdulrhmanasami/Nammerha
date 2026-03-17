@@ -26,7 +26,9 @@
         'wallet_no_transactions': { ar: 'لا توجد معاملات بعد', de: 'Noch keine Transaktionen', fr: 'Aucune transaction pour le moment', tr: 'Henüz işlem yok' },
         'wallet_history_description': { ar: 'سيظهر سجل تبرعاتك ومدفوعاتك هنا', de: 'Ihr Spenden- und Zahlungsverlauf erscheint hier', fr: 'Votre historique de dons et paiements apparaîtra ici', tr: 'Bağış ve ödeme geçmişiniz burada görünecek' },
         'wallet_load_failed': { ar: 'تعذّر تحميل المعاملات. يرجى تسجيل الدخول.', de: 'Transaktionen konnten nicht geladen werden. Bitte melden Sie sich an.', fr: 'Impossible de charger les transactions. Veuillez vous connecter.', tr: 'İşlemler yüklenemedi. Lütfen giriş yapın.' },
-        'wallet_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' }
+        'wallet_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
+        /* FRIC-AUD-01 FIX: Coming Soon badge on Add Funds button */
+        'common_coming_soon': { ar: 'قريباً', de: 'Bald', fr: 'Bientôt', tr: 'Yakında' }
         });
     }
 })();

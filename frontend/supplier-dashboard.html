@@ -5,7 +5,7 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <!-- INC-A03 FIX: Was missing apple-touch-icon — iOS PWA icon fallback -->
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -109,7 +109,9 @@
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <h1 class="text-sm font-bold page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</h1>
+        <!-- INC-NEW-01 FIX: Was text-sm (14px) while contractor-dashboard h1 uses text-lg (18px).
+             Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
+        <h1 class="text-lg font-bold page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</h1>
         <span class="text-[10px] text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-3">
