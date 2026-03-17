@@ -5,8 +5,12 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <!-- GAP-P08 FIX: Was missing apple-touch-icon — iOS PWA icon fallback -->
+  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- CONF-P01 FIX: Enforceable CSP directives -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,9 +19,19 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Donor Portal | بوابة المتبرع</title>
   <meta name="description" content="Track your impact, browse reconstruction projects, and see GPS-verified proof of your contributions." />
+  <!-- INC-P01 FIX: Was missing font preload for Arabic text rendering -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/donor-portal.ts"></script>
-  <script type="module" src="/src/components/role-switcher.ts"></script><link href="/i18n.css?v=7" rel="stylesheet"/>
+  <!-- ARCH-P03 FIX: Separated script+link that were crammed on single line -->
+  <script type="module" src="/src/components/role-switcher.ts"></script>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
+  <!-- INC-P01 FIX: Was missing OG/Twitter meta for social sharing -->
+  <meta property="og:title" content="Donor Portal — Nammerha" />
+  <meta property="og:description" content="Track your impact, browse reconstruction projects, and see GPS-verified proof of your contributions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
 
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
@@ -34,24 +48,25 @@
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="donor_portal">Donor Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>    </div>
-    <nav class="flex-1 px-4 space-y-1 pt-3">
-      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-smoky-jade/10 text-smoky-jade rounded-lg cursor-pointer" href="#">
+    <!-- INC-P05 FIX: WAI-ARIA Tabs pattern for screen reader parity with homeowner-portal (WCAG 4.1.2) -->
+    <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Donor portal sections">
+      <a id="tab-dashboard" role="tab" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-smoky-jade/10 text-smoky-jade rounded-lg cursor-pointer" href="#">
         <i class="ph ph-chart-pie" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_impact">Impact Dashboard</span>
       </a>
-      <a id="tab-marketplace" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-marketplace" role="tab" aria-selected="false" aria-controls="section-marketplace" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-storefront" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_browse">Browse Projects</span>
       </a>
-      <a id="tab-donations" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-donations" role="tab" aria-selected="false" aria-controls="section-donations" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-receipt" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_history">Donations</span>
       </a>
-      <a id="tab-impact" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-impact" role="tab" aria-selected="false" aria-controls="section-impact" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-trend-up" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_my_impact">My Impact</span>
       </a>
-      <a id="tab-proofs" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-proofs" role="tab" aria-selected="false" aria-controls="section-proofs" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-camera" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_proofs">Proof Gallery</span>
       </a>

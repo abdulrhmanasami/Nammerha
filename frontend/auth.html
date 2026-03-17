@@ -8,7 +8,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; object-src 'none'; base-uri 'self';" />
+  <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,11 +45,11 @@
       </a>
     </header>
 
-    <!-- Tab Switcher -->
+    <!-- INC-P04 FIX: WAI-ARIA Tabs pattern for screen reader accessibility (WCAG 4.1.2) -->
     <div class="px-6 mb-6 relative z-10">
-      <div class="flex bg-slate-200/60 rounded-full p-1">
-        <button id="tab-login" class="auth-tab auth-tab-active flex-1 py-2.5 rounded-full text-sm font-bold transition-all" data-i18n="sign_in">Sign In</button>
-        <button id="tab-register" class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500" data-i18n="create_account">Create Account</button>
+      <div class="flex bg-slate-200/60 rounded-full p-1" role="tablist" aria-label="Authentication method">
+        <button id="tab-login" role="tab" aria-selected="true" aria-controls="form-login" class="auth-tab auth-tab-active flex-1 py-2.5 rounded-full text-sm font-bold transition-all" data-i18n="sign_in">Sign In</button>
+        <button id="tab-register" role="tab" aria-selected="false" aria-controls="form-register" class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500" data-i18n="create_account">Create Account</button>
       </div>
     </div>
     <!-- PLT-AUD-C005 FIX: Theme toggle — fixed position to avoid landscape overlap with tab container -->
@@ -79,7 +80,8 @@
         <label for="login-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
         <div class="relative">
           <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-          <input id="login-email" name="email" type="email" required autocomplete="email"
+          <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard context -->
+          <input id="login-email" name="email" type="email" required autocomplete="email" enterkeyhint="next"
             class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
             placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
         </div>
@@ -89,7 +91,7 @@
         <label for="login-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
         <div class="relative">
           <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-          <input id="login-password" name="password" type="password" required autocomplete="current-password" minlength="8"
+          <input id="login-password" name="password" type="password" required autocomplete="current-password" minlength="8" enterkeyhint="go"
             class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
             placeholder="••••••••" data-i18n-placeholder="auth_pw_dots" />
           <button type="button" id="login-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
@@ -116,9 +118,9 @@
         <span class="text-xs font-bold text-slate-400 uppercase" data-i18n="auth_or_divider">or</span>
         <div class="flex-1 h-px bg-slate-200"></div>
       </div>
-      <div class="flex flex-col gap-2.5">
+        <!-- FRC-P07 FIX: SSO marked 'Coming Soon' — prevents dead-end trust violations (Nielsen Heuristic #2) -->
         <!-- Google SSO -->
-        <button type="button" id="google-sso-btn" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 transition-colors">
+        <button type="button" id="google-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 transition-colors" data-coming-soon="Soon">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -128,7 +130,7 @@
           <span data-i18n="auth_google_sso">Sign in with Google</span>
         </button>
         <!-- Apple SSO -->
-        <button type="button" id="apple-sso-btn" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-sm font-bold text-white transition-colors">
+        <button type="button" id="apple-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-sm font-bold text-white transition-colors" data-coming-soon="Soon">
           <svg width="17" height="20" viewBox="0 0 17 20" fill="currentColor" aria-hidden="true">
             <path d="M13.545 10.58c-.015-1.65.614-3.173 1.74-4.275-.948-1.2-2.397-1.935-3.95-2.01-1.663-.17-3.27 1-4.11 1s-2.17-.98-3.57-.95c-1.84.06-3.54 1.08-4.48 2.73-1.93 3.34-.49 8.27 1.36 10.97.93 1.33 2.02 2.82 3.44 2.77 1.39-.06 1.91-.88 3.58-.88 1.66 0 2.15.88 3.61.85 1.49-.03 2.44-1.34 3.33-2.68.66-.95 1.17-2 1.51-3.11-1.81-.72-3.03-2.49-3.5-4.26zM11.04 2.68c.72-.9 1.12-2.04 1.1-3.19-1.13.06-2.18.56-2.96 1.4-.77.84-1.18 1.97-1.13 3.13 1.14.04 2.22-.44 2.99-1.34z"/>
           </svg>

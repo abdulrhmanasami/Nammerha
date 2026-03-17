@@ -2265,3 +2265,250 @@ html[data-theme="dark"] .search-result-item:hover {
 html[data-theme="dark"] .search-footer {
     border-color: rgba(255, 255, 255, 0.06);
 }
+
+/* ============================================================================
+   CONF-P02 FIX: Hamburger Discovery Affordance
+   On first visit (mobile dashboard), sidebar toggle has no visual hint.
+   This one-time pulse draws attention to the hamburger button.
+   Standard: Apple HIG — "Navigation must be immediately discoverable."
+   ============================================================================ */
+@keyframes hamburger-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.35); }
+    50% { box-shadow: 0 0 0 8px rgba(26, 115, 232, 0); }
+}
+.sidebar-toggle[data-hint="true"] {
+    animation: hamburger-pulse 1.5s ease-in-out 3;
+}
+
+/* ============================================================================
+   GAP-P01 FIX: Global Error & Empty State Components
+   Standard: Nielsen Heuristic #1 — "Visibility of system status."
+   Material Design 3 — "Empty states should be helpful and branded."
+   ============================================================================ */
+.nm-error-state,
+.nm-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    gap: 12px;
+}
+.nm-error-state .nm-state-icon,
+.nm-empty-state .nm-state-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.nm-error-state .nm-state-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+.nm-empty-state .nm-state-icon {
+    background: var(--trust-blue-light);
+    color: var(--trust-blue);
+}
+.nm-state-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.nm-state-desc {
+    font-size: 0.8125rem;
+    color: #64748b;
+    max-width: 280px;
+}
+.nm-state-action {
+    margin-top: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+.nm-error-state .nm-state-action {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+.nm-empty-state .nm-state-action {
+    background: var(--trust-blue-light);
+    color: var(--trust-blue);
+}
+html[data-theme="dark"] .nm-state-title { color: #f1f5f9; }
+html[data-theme="dark"] .nm-state-desc { color: #94a3b8; }
+html[data-theme="dark"] .nm-error-state .nm-state-icon { background: rgba(239, 68, 68, 0.15); }
+html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 115, 232, 0.15); }
+
+/* ============================================================================
+   GAP-P04 FIX: Confirmation Dialog Styling
+   Standard: Nielsen Heuristic #5 — "Error prevention."
+   Apple HIG — "Use alerts for destructive actions."
+   ============================================================================ */
+.nm-confirm-dialog {
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+    background: white;
+    overflow: hidden;
+}
+.nm-confirm-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.nm-confirm-body {
+    padding: 24px;
+    text-align: center;
+}
+.nm-confirm-body h3 {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.nm-confirm-body p {
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+.nm-confirm-actions {
+    display: flex;
+    border-top: 1px solid var(--border-subtle);
+}
+.nm-confirm-actions button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.nm-confirm-cancel {
+    background: transparent;
+    color: #64748b;
+}
+.nm-confirm-cancel:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+.nm-confirm-destructive {
+    background: transparent;
+    color: #ef4444;
+}
+.nm-confirm-destructive:hover {
+    background: rgba(239, 68, 68, 0.05);
+}
+html[data-theme="dark"] .nm-confirm-dialog {
+    background: #1e1e1e;
+}
+html[data-theme="dark"] .nm-confirm-body h3 { color: #f1f5f9; }
+html[data-theme="dark"] .nm-confirm-body p { color: #94a3b8; }
+html[data-theme="dark"] .nm-confirm-actions { border-color: rgba(255,255,255,0.08); }
+html[data-theme="dark"] .nm-confirm-cancel { color: #94a3b8; }
+html[data-theme="dark"] .nm-confirm-cancel:hover { background: rgba(255,255,255,0.04); }
+html[data-theme="dark"] .nm-confirm-destructive:hover { background: rgba(239,68,68,0.1); }
+
+/* ============================================================================
+   FRC-P02 FIX: Add-to-Cart Visual Feedback Animation
+   Standard: Apple HIG — "Use haptics to provide feedback."
+   Material Design 3 — "Confirm actions with visual feedback."
+   ============================================================================ */
+@keyframes cart-add-bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.2); }
+    50% { transform: scale(0.9); }
+    70% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.cart-badge-animate {
+    animation: cart-add-bounce 0.4s ease-out;
+}
+@keyframes btn-added-checkmark {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.btn-added {
+    animation: btn-added-checkmark 0.3s ease-out;
+}
+
+/* ============================================================================
+   FRC-P04 FIX: Wizard Step Slide Transitions
+   Standard: Material Design 3 — "Use transitions to reinforce spatial model."
+   ============================================================================ */
+.wizard-step {
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.wizard-step.wizard-exit-left {
+    opacity: 0;
+    transform: translateX(-24px);
+    position: absolute;
+    pointer-events: none;
+}
+.wizard-step.wizard-enter-right {
+    opacity: 0;
+    transform: translateX(24px);
+}
+[dir="rtl"] .wizard-step.wizard-exit-left {
+    transform: translateX(24px);
+}
+[dir="rtl"] .wizard-step.wizard-enter-right {
+    transform: translateX(-24px);
+}
+
+/* ============================================================================
+   FRC-P07 FIX: Social SSO "Coming Soon" Badge
+   Standard: Nielsen Heuristic #2 — "Match between system and real world."
+   ============================================================================ */
+.sso-coming-soon {
+    position: relative;
+    opacity: 0.6;
+    cursor: default;
+    pointer-events: none;
+}
+.sso-coming-soon::after {
+    content: attr(data-coming-soon);
+    position: absolute;
+    top: -6px;
+    inset-inline-end: -6px;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--warning-yellow);
+    color: #1e293b;
+    padding: 1px 5px;
+    border-radius: var(--radius-full);
+    line-height: 1.4;
+}
+
+/* ============================================================================
+   FRC-P09 FIX: Pull-to-Refresh Hint (First Visit)
+   Standard: Apple HIG — "Discoverable gestures."
+   ============================================================================ */
+@keyframes pull-hint-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+}
+.nm-pull-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: pull-hint-bounce 1.5s ease-in-out 3;
+}

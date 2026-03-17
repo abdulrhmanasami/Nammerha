@@ -8,6 +8,8 @@
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- CONF-P01 FIX: Enforceable CSP directives -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,6 +24,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://nammerha.com/images/og-cover.png" />
   <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/projects.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
@@ -48,7 +51,8 @@
     <!-- Search -->
     <div class="relative">
       <i class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-      <input type="search" id="project-search" class="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white border border-slate-200 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-trust-blue/30" placeholder="Search projects..." data-i18n-placeholder="projects_search_placeholder" />
+      <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard -->
+      <input type="search" id="project-search" enterkeyhint="search" class="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white border border-slate-200 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-trust-blue/30" placeholder="Search projects..." data-i18n-placeholder="projects_search_placeholder" />
     </div>
     <!-- Filter pills -->
     <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden" id="filter-pills">

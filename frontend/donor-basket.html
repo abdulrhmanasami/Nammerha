@@ -8,7 +8,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; object-src 'none'; base-uri 'self';" />
+  <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -41,9 +42,9 @@
          other consumer pages (wallet h-16, profile h-16, dashboards h-14).
          Standard: Apple HIG — "Navigation bars are 44pt plus safe area." -->
     <header class="page-header border-b border-slate-200">
-      <!-- CON-002 FIX: Unified back-navigation via data-back-btn (same pattern as wallet/profile).
-           Previous: inline onclick with history.back() mixed with href fallback — unpredictable behavior. -->
-      <a href="project-details.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <!-- GAP-P02 FIX: Was href='project-details.html' — dead-end without query context.
+           Fallback to index.html; data-back-btn JS will use history.back() first. -->
+      <a href="index.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h1 class="text-lg font-bold flex-1 text-center" data-i18n="construction_basket">Construction Basket</h1>
@@ -51,6 +52,18 @@
         <i class="ph ph-trash" aria-hidden="true"></i>
       </button>
     </header>
+
+    <!-- GAP-P04 FIX: Confirmation dialog for destructive 'Clear Cart' action (Nielsen Heuristic #5) -->
+    <dialog id="confirm-clear-cart" class="nm-confirm-dialog">
+      <div class="nm-confirm-body">
+        <h3 data-i18n="confirm_clear_title">Clear Cart?</h3>
+        <p data-i18n="confirm_clear_desc">All items will be removed. This action cannot be undone.</p>
+      </div>
+      <div class="nm-confirm-actions">
+        <button type="button" class="nm-confirm-cancel" data-action="cancel" data-i18n="cancel">Cancel</button>
+        <button type="button" class="nm-confirm-destructive" data-action="confirm" data-i18n="clear_all">Clear All</button>
+      </div>
+    </dialog>
 
     <!-- Project Context Card -->
     <div class="px-6 mt-6 mb-4">
@@ -123,12 +136,16 @@
 
       </div>
 
-      <!-- Platform Support Section -->
-      <div id="tip-section" class="mb-4">
-        <div class="flex items-center justify-between mb-2">
+      <!-- FRC-P01 FIX: Progressive disclosure — tip section collapsed by default.
+           Reduces visible decision points from 5 to 3 (Hick's Law). -->
+      <details id="tip-section" class="mb-4 group">
+        <summary class="flex items-center justify-between mb-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
           <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="tip_label">Support the Platform</span>
-          <span class="text-[10px] text-slate-400 italic" data-i18n="tip_optional">100% voluntary</span>
-        </div>
+          <span class="flex items-center gap-1">
+            <span class="text-[10px] text-slate-400 italic" data-i18n="tip_optional">100% voluntary</span>
+            <i class="ph ph-caret-down text-slate-400 transition-transform group-open:rotate-180" style="font-size:12px" aria-hidden="true"></i>
+          </span>
+        </summary>
         <div class="flex gap-2 mb-3" id="tip-buttons">
           <!-- FRC-003 FIX: Default tip set to 0% (was 3%). On a humanitarian platform,
                voluntary tipping must be a conscious opt-in, not a pre-selected default.
@@ -157,7 +174,7 @@
           <span class="font-semibold text-slate-600" data-i18n="tip_total_label">Total with support</span>
           <span class="font-bold text-slate-900" id="total-with-tip">$0.00</span>
         </div>
-      </div>
+      </details>
 
       <!-- GAP-003 FIX: Payment method selection — completes the donation flow.
            Previous: "Confirm Funding" was a dead-end with no payment method.
@@ -205,7 +222,8 @@
         </div>
       </div>
 
-      <button class="btn-primary" id="confirm-funding-btn">
+      <!-- FRC-P06 FIX: data-loading-text for immediate feedback; btn-loading wired via JS disabled state -->
+      <button class="btn-primary" id="confirm-funding-btn" data-loading-text="Processing...">
         <i class="ph ph-lock" aria-hidden="true"></i>
         <span data-i18n="confirm_funding">Confirm Funding</span>
       </button>

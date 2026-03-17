@@ -11,10 +11,8 @@
   <!-- PWA-003 FIX: iOS requires PNG apple-touch-icon (ignores SVG). 192px downscaled to 180×180. -->
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- ARCH-003 FIX: Content Security Policy — critical for a financial platform.
-       frame-ancestors 'none' prevents clickjacking. script-src prevents eval() XSS.
-       Standard: OWASP CSP Implementation. -->
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; object-src 'none'; base-uri 'self';" />
+  <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -152,11 +150,9 @@
       </a>
     </nav>
 
-    <!-- CONF-N03 FIX: Mobile search trigger (hidden on sm+ where full nav has inline search).
-         Previous: mobile users had ZERO way to discover search — the desktop search input
-         was hidden, and the SearchOverlay (Cmd/Ctrl+K) had no visible mobile trigger.
-         Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
-    <div class="sm:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14">
+    <!-- CONF-N03 FIX: Mobile search trigger (hidden on sm+ where full nav has inline search). -->
+    <!-- CONF-P04 FIX: Was <div> — mobile header must be <header> element (HTML5 §4.4.1) -->
+    <header class="sm:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14">
       <a href="/" class="flex items-center gap-2">
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       </a>
@@ -169,7 +165,7 @@
           <span class="cart-badge" id="mobile-cart-badge" style="display:none">0</span>
         </a>
       </div>
-    </div>
+    </header>
 
     <!-- ─── Main Content ────────────────────────────────────────────────────── -->
     <!-- C-001: pt-16 on mobile (below new fixed mobile nav h-14), pt-20 on sm+ (below desktop fixed nav) -->
