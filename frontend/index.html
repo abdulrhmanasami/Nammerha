@@ -213,7 +213,10 @@
               </p>
               <!-- FRC-008 FIX: Contextual loading text sets user expectations (Nielsen #1).
                    Previous: generic "Loading..." — no indication of what's loading. -->
-              <h3 id="map-active-region" class="font-bold text-sm text-slate-900" data-i18n="detecting_region">
+              <!-- GAP-X04 FIX: aria-live='polite' announces dynamic region changes to screen readers.
+                   Previous: text updated via JS but assistive tech never notified.
+                   Standard: WCAG 4.1.3 (Status Messages), iOS VoiceOver. -->
+              <h3 id="map-active-region" class="font-bold text-sm text-slate-900" data-i18n="detecting_region" aria-live="polite">
                 Detecting active region…
               </h3>
               <div class="flex items-center gap-1 mt-1">
@@ -407,6 +410,18 @@
           </a>
         </div>
       </section>
+
+    <!-- GAP-X01 FIX: Legal footer — accessible from every consumer page.
+         Standard: GDPR Art. 13, FinTech UX (legal links on all payment surfaces). -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+    </footer>
+
     </main>
 
     <!-- Bottom Navigation: injected by nav.js (canonical source) -->

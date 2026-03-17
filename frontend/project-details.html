@@ -46,7 +46,10 @@
     <!-- CON-003 FIX: Container uses mobile-container for progressive width scaling (was max-w-md fixed 448px) -->
     <div class="flex items-center p-4 justify-between mobile-container">
       <!-- CON-002 FIX: Unified back-nav via data-back-btn pattern -->
-      <a href="index.html" data-back-btn class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <!-- INC-X01 FIX: Touch target corrected from size-10 (40×40px) to w-11 h-11 (44×44px).
+           Previous: violated WCAG 2.5.5 & Apple HIG 44pt minimum on the most critical donation page.
+           Standard: WCAG 2.5.5 (Target Size: Minimum), Apple HIG §44pt Touch Targets. -->
+      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center" data-i18n="project_details">Project Details</h2>
@@ -67,7 +70,13 @@
     <!-- Hero -->
     <div class="p-4">
       <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-warm-earth/30 to-slate-300">
-        <div class="absolute inset-0 flex items-center justify-center">
+        <!-- GAP-X06 FIX: Image container ready for dynamic project photos.
+             The gradient+icon serve as fallback until API injects image src.
+             Standard: Crowdfunding UX (image-first design), Emotional Design. -->
+        <img id="project-hero-img" data-project-image
+          class="absolute inset-0 w-full h-full object-cover hidden"
+          alt="" loading="lazy" />
+        <div class="absolute inset-0 flex items-center justify-center" id="project-hero-placeholder">
           <i class="ph ph-hard-hat text-warm-earth/40" style="font-size:72px" aria-hidden="true"></i>
         </div>
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -101,6 +110,20 @@
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-bold tracking-tight" data-i18n="itemized_needs_boq">Itemized Needs (BOQ)</h3>
         <span class="text-xs font-medium text-slate-500 uppercase tracking-widest" data-i18n="verified_list">Verified List</span>
+      </div>
+
+      <!-- FRC-X01 FIX: Visual category grouping headers.
+           Previous: 5 BOQ items in a flat, undifferentiated list — no mental model.
+           Now: Grouped by category with styled labels and icons (Gestalt Proximity).
+           Standard: Gestalt principle of Proximity, Miller's Law, Material Design 3. -->
+
+      <!-- ═══ Category: Structural Foundation ═══ -->
+      <div class="flex items-center gap-2 mb-3 mt-2">
+        <div class="w-7 h-7 rounded-lg bg-warm-earth/10 flex items-center justify-center">
+          <i class="ph ph-wall text-warm-earth" style="font-size:14px" aria-hidden="true"></i>
+        </div>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="boq_cat_structural">Structural Foundation</h4>
+        <div class="flex-1 h-px bg-slate-200"></div>
       </div>
 
       <!-- BOQ Item 1 -->
@@ -137,6 +160,15 @@
         </div>
       </div>
 
+      <!-- ═══ Category: Electrical Grid ═══ -->
+      <div class="flex items-center gap-2 mb-3 mt-6">
+        <div class="w-7 h-7 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+          <i class="ph ph-lightning text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
+        </div>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="boq_cat_electrical">Electrical Grid</h4>
+        <div class="flex-1 h-px bg-slate-200"></div>
+      </div>
+
       <!-- BOQ Item 2 -->
       <div class="mb-4" id="boq-item-2">
         <div class="glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50">
@@ -171,6 +203,7 @@
         </div>
       </div>
 
+      <!-- Item 3 is Structural Foundation — no new header needed (same category as item 1) -->
       <!-- BOQ Item 3 (Fully Funded — Disabled) -->
       <div class="mb-4 opacity-75" id="boq-item-3">
         <div class="glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50 grayscale-[0.3]">
@@ -194,6 +227,15 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- ═══ Category: Finishing ═══ -->
+      <div class="flex items-center gap-2 mb-3 mt-6">
+        <div class="w-7 h-7 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
+          <i class="ph ph-paint-roller text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+        </div>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="boq_cat_finishing">Finishing</h4>
+        <div class="flex-1 h-px bg-slate-200"></div>
       </div>
 
       <!-- BOQ Item 4: Glass Panels -->
@@ -228,6 +270,15 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- ═══ Category: Plumbing ═══ -->
+      <div class="flex items-center gap-2 mb-3 mt-6">
+        <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+          <i class="ph ph-drop text-blue-500" style="font-size:14px" aria-hidden="true"></i>
+        </div>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="boq_cat_plumbing">Plumbing</h4>
+        <div class="flex-1 h-px bg-slate-200"></div>
       </div>
 
       <!-- BOQ Item 5: Plumbing Pipes -->
@@ -282,6 +333,17 @@
         </div>
       </div>
     </div>
+
+    <!-- GAP-X01 FIX: Legal footer — critical on donation decision surface. -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+    </footer>
+
   </main>
 
 

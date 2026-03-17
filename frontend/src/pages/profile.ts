@@ -412,10 +412,89 @@ document.getElementById('profile-edit-form')?.addEventListener('submit', (e) => 
     saveProfile();
 });
 
+// ─── GAP-X02 FIX: Profile Photo Preview Engine ─────────────────────────────
+// Uses FileReader API for instant client-side preview after file selection.
+// Validates size (5MB) and type before showing circular preview.
+// Standard: Material Design 3 (Immediate Feedback), Trust UX (visual verification).
+function initPhotoPreview(): void {
+    const fileInput = document.getElementById('edit-photo') as HTMLInputElement | null;
+    const filenameEl = document.getElementById('photo-filename');
+    const previewWrap = document.getElementById('photo-preview-wrap');
+    const previewImg = document.getElementById('photo-preview-img') as HTMLImageElement | null;
+    const removeBtn = document.getElementById('photo-preview-remove');
+
+    if (!fileInput || !previewWrap || !previewImg) { return; }
+
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (!file) { return; }
+
+        // Validate type
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            showEditBanner('error', t('photo_invalid_type', 'Please select a JPEG, PNG, or WebP image.'));
+            fileInput.value = '';
+            return;
+        }
+
+        // Validate size
+        if (file.size > MAX_SIZE) {
+            showEditBanner('error', t('photo_too_large', 'Photo must be under 5 MB.'));
+            fileInput.value = '';
+            return;
+        }
+
+        // Update filename display
+        if (filenameEl) {
+            filenameEl.textContent = file.name;
+            filenameEl.classList.remove('text-slate-400');
+            filenameEl.classList.add('text-slate-700');
+        }
+
+        // Read and show preview via FileReader
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e.target?.result;
+            if (typeof result === 'string') {
+                previewImg.src = result;
+                previewWrap.classList.remove('hidden');
+
+                // Also update the main avatar circle for immediate in-page feedback
+                const avatarEl = document.querySelector('.size-20.bg-trust-blue');
+                if (avatarEl) {
+                    avatarEl.innerHTML = `<img src="${result}" alt="Profile photo preview" class="w-full h-full rounded-full object-cover" />`;
+                }
+            }
+        };
+        reader.onerror = () => {
+            reportWarning('[Profile] FileReader error during photo preview');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Remove photo handler
+    removeBtn?.addEventListener('click', () => {
+        fileInput.value = '';
+        previewWrap.classList.add('hidden');
+        previewImg.src = '';
+        if (filenameEl) {
+            filenameEl.textContent = t('choose_photo', 'Choose a photo...');
+            filenameEl.classList.add('text-slate-400');
+            filenameEl.classList.remove('text-slate-700');
+        }
+        // Restore avatar initials
+        const user = getCurrentUser();
+        renderAvatarInitials(user?.full_name);
+    });
+}
+
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     loadUserInfo();
     loadUserRoles();
+    initPhotoPreview(); // GAP-X02 FIX: Wire photo preview engine
 
     // Handle ?tab=roles URL param (from role-switcher "Add a new role")
     const params = new URLSearchParams(window.location.search);

@@ -109,6 +109,19 @@
             <span id="photo-filename" class="text-slate-400 font-medium truncate" data-i18n="choose_photo">Choose a photo...</span>
           </label>
           <input id="edit-photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
+          <!-- GAP-X02 FIX: Live photo preview after file selection.
+               Previous: user selects file → sees only filename text → no visual feedback.
+               Now: circular preview + remove button shown immediately via FileReader.
+               Standard: Material Design 3 (Immediate Feedback), Trust UX (visual verification). -->
+          <div id="photo-preview-wrap" class="hidden mt-2 flex items-center gap-3">
+            <div class="relative">
+              <img id="photo-preview-img" class="w-16 h-16 rounded-full object-cover border-2 border-trust-blue shadow-sm" alt="Selected photo preview" />
+              <button type="button" id="photo-preview-remove" class="absolute -top-1 -end-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 transition-colors" aria-label="Remove selected photo">
+                <i class="ph ph-x" style="font-size:10px" aria-hidden="true"></i>
+              </button>
+            </div>
+            <span class="text-[11px] text-smoky-jade font-semibold" data-i18n="photo_selected">Photo selected ✓</span>
+          </div>
           <p class="text-[10px] text-slate-400 mt-1" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
         </div>
         <div id="profile-edit-banner" class="hidden text-xs font-bold p-3 rounded-xl"></div>
@@ -159,7 +172,10 @@
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="profile_completion">Profile Completion</span>
           <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">0%</span>
         </div>
-        <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+        <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar.
+             Previous: div with width% — invisible to screen readers.
+             Standard: WCAG 4.1.2 (Name, Role, Value), WCAG 1.3.1 (Info and Relationships). -->
+        <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Profile completion" aria-describedby="profile-completion-pct">
           <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700" style="width:0%"></div>
         </div>
         <!-- FRC-004 FIX: Actionable completion checklist — shows what's left to complete.

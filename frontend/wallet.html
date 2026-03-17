@@ -66,9 +66,9 @@
   <section class="px-4 pt-6 animate-fade-in-up">
     <div class="bg-gradient-to-br from-trust-blue to-blue-700 text-white rounded-2xl p-6 relative overflow-hidden">
       <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1" data-i18n="total_escrow">Total Escrow Balance</p>
-      <h2 id="escrow-balance" class="text-3xl font-extrabold tracking-tight">
-        <span class="inline-block h-9 w-28 bg-white/20 rounded animate-pulse"></span>
-      </h2>
+        <!-- FRC-X04 FIX: Explicit USD label — Syrian users may confuse $ with SYP.
+             Standard: ISO 4217 (always show currency code), FinTech UX. -->
+        <p id="wallet-balance" class="text-3xl font-black text-white mt-1">$0.00 <span class="text-sm font-bold text-white/60 align-middle">USD</span></p>
       <div class="flex items-center gap-3 mt-4">
         <div class="flex items-center gap-1 text-white/80 text-xs">
           <i class="ph ph-lock-simple" style="font-size:14px" aria-hidden="true"></i>
@@ -148,6 +148,16 @@
   <!-- P2-UX-001 FIX: Decorative Gradient Orbs — visual consistency with homepage -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
   <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+  <!-- GAP-X01 FIX: Legal footer — especially critical on financial surfaces. -->
+  <footer class="nm-legal-footer">
+    <nav aria-label="Legal navigation">
+      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+    </nav>
+    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+  </footer>
 
 </main>
 

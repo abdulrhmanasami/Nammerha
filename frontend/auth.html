@@ -215,6 +215,17 @@
       <!-- Multi-Role Architecture: Role selection removed from registration.
            Users start as 'donor' by default and activate additional roles from dashboard. -->
 
+      <!-- GAP-X05 FIX: Active consent checkbox — GDPR Art. 7 requires demonstrable consent.
+           Previous: passive footer text "By continuing, you agree..." — legally insufficient.
+           Standard: GDPR Art. 7, ePrivacy Directive, Industry registration standards. -->
+      <div class="flex items-start gap-3 mt-1">
+        <input id="reg-terms" name="terms" type="checkbox" required
+          class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
+        <label for="reg-terms" class="text-[11px] text-slate-500 leading-relaxed cursor-pointer">
+          <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Privacy Policy</a></span>
+        </label>
+      </div>
+
       <!-- Submit -->
       <button type="submit" id="reg-submit" class="btn-primary mt-2">
         <i class="ph ph-user-plus" aria-hidden="true"></i>

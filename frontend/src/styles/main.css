@@ -80,10 +80,29 @@
   --shadow-cta: 0 4px 16px rgba(26, 115, 232, 0.25);
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.1);
 
-  /* CONF-N05 FIX: Z-Index tokens moved to single canonical :root block at L1373+.
-     Previous: duplicated here (0-90) AND there (9000-9980). The 9000+ scale wins
-     via cascade but the dual declaration caused confusion during development.
-     Tokens removed: --z-base through --z-skip-link (now in unified block). */
+  /* INC-X06 FIX: Z-Index tokens merged into single :root (was split across 1300+ lines).
+     Standard: Single Source of Definition for all design tokens. */
+  /* Foundational layers */
+  --z-base: 0;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-sidebar-overlay: 40;
+  --z-sidebar: 50;
+  --z-checkout: 80;
+  /* Elevated system layers (9000+ range) */
+  --z-nav: 9000;
+  --z-modal: 9500;
+  --z-bottom-nav: 9900;
+  --z-toast: 9950;
+  --z-offline: 9960;
+  --z-overlay: 9970;
+  --z-i18n-banner: 9980;
+  --z-skip-link: 9990;
+  --z-skip: var(--z-skip-link);
+
+  /* Checkout sheet height token (CONF-X03) */
+  --checkout-sheet-height: 320px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -722,6 +741,10 @@ html[data-theme="dark"] .text-red-700 { color: #fca5a5 !important; }
 html[data-theme="dark"] .text-amber-700 { color: #fcd34d !important; }
 /* P1-DM-001 FIX: Amber-600 used on homeowner KPI cards needs contrast boost in dark mode */
 html[data-theme="dark"] .text-amber-600 { color: #fbbf24 !important; }
+/* INC-X05 FIX: Smoky jade text (#109173) on dark bg (#1e1e1e) = 3.8:1 contrast — below WCAG AA 4.5:1.
+   Override to #34d399 (emerald-400) = ~8.5:1 contrast ratio on dark surfaces.
+   Standard: WCAG 1.4.3 (Contrast Minimum: 4.5:1). */
+html[data-theme="dark"] .text-smoky-jade { color: #34d399 !important; }
 
 /* P2-001 FIX: Blue info banners (donor-basket checkout, homeowner-portal info panels) */
 html[data-theme="dark"] .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; }
@@ -1379,31 +1402,10 @@ html[data-theme="dark"] .text-red-400 {
 }
 
 /* ============================================================================
-   CONF-N05 FIX: Unified Z-Index Token System (SINGLE SOURCE OF TRUTH)
-   Previous: dual :root blocks — first (0-90) and second (9000-9980) created
-   stacking context ambiguity. Now merged into one canonical scale.
-   Standard: Apple HIG — "Use clearly ordered z-index for predictable layering."
+   INC-X06 FIX: Z-Index tokens consolidated into FIRST :root block (~L77).
+   Previous: This was a second :root block — violated Single Source of Definition.
+   Now: All design tokens (colors, spacing, radii, shadows, z-index) live together.
    ============================================================================ */
-:root {
-    /* Foundational layers */
-    --z-base: 0;
-    --z-dropdown: 10;
-    --z-sticky: 20;
-    --z-header: 30;
-    --z-sidebar-overlay: 40;
-    --z-sidebar: 50;
-    --z-checkout: 80;
-    /* Elevated system layers (9000+ range) */
-    --z-nav: 9000;
-    --z-modal: 9500;
-    --z-bottom-nav: 9900;
-    --z-toast: 9950;
-    --z-offline: 9960;
-    --z-overlay: 9970;
-    --z-i18n-banner: 9980;
-    --z-skip-link: 9990;
-    --z-skip: var(--z-skip-link);
-}
 
 /* CONF-005 FIX: Checkout sheet keyboard viewport accommodation.
    On iOS Safari and Android when virtual keyboard is visible, the fixed
@@ -2663,4 +2665,54 @@ html[data-theme="dark"] .map-container-loading {
 [data-back-btn]:active {
     transform: scale(0.92);
     transition: transform 0.1s ease;
+}
+
+/* ============================================================================
+   GAP-X01 FIX: Global Legal Footer Component
+   Previous: NO footer on ANY consumer page. Legal links (Terms, Privacy,
+   Refund Policy) only accessible from auth footer and profile→about.html.
+   For a financial platform handling escrow, legal links must be on every page.
+   Standard: GDPR Art. 13, FinTech UX, ISO 27001 compliance surfaces.
+   ============================================================================ */
+.nm-legal-footer {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    margin-top: auto;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+.nm-legal-footer nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+}
+.nm-legal-footer a {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color 0.15s ease;
+}
+.nm-legal-footer a:hover {
+    color: var(--trust-blue);
+}
+.nm-legal-footer .nm-copyright {
+    font-size: 0.5625rem;
+    color: #cbd5e1;
+    margin-top: 0.5rem;
+}
+html[data-theme="dark"] .nm-legal-footer {
+    border-color: rgba(255, 255, 255, 0.04);
+}
+html[data-theme="dark"] .nm-legal-footer a {
+    color: #475569;
+}
+html[data-theme="dark"] .nm-legal-footer a:hover {
+    color: var(--trust-blue);
+}
+html[data-theme="dark"] .nm-legal-footer .nm-copyright {
+    color: #334155;
 }
