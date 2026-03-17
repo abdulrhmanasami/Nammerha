@@ -95,7 +95,11 @@
       </button>
     </nav>
     <!-- Profile link kept outside tablist — it navigates to a different page, not a tab panel -->
-    <div class="px-4 pb-2">
+    <!-- PLT-AUD3-A01 FIX: Standardized to canonical sidebar profile link wrapper.
+         Previous: bare `px-4 pb-2` (no section label, no i18n, no space-y-1).
+         Now matches contractor-dashboard + supplier-dashboard pattern.
+         Standard: Nielsen #4 (Consistency), i18n RTL parity (FRIC-2601). -->
+    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="profile.html">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_profile">Profile</span>

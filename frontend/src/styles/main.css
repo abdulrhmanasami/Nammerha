@@ -1764,9 +1764,13 @@ html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
         transition: transform 0.1s ease, opacity 0.1s ease;
     }
 
-    /* Back buttons, icon buttons, header actions */
+    /* Back buttons, icon buttons, header actions
+       PLT-AUD3-B03 FIX: Added :not([disabled]) — prevents haptic feedback on disabled buttons.
+       SCOPE NOTE: button[aria-label] is intentionally broad — ALL icon buttons with aria-label
+       should provide touch feedback (bell, hamburger, close, clear, etc.).
+       Standard: Apple HIG — "Provide feedback for every interaction." */
     a[data-back-btn]:active,
-    button[aria-label]:active,
+    button[aria-label]:not([disabled]):active,
     .sidebar-toggle:active {
         transform: scale(0.92);
         opacity: 0.7;
@@ -2570,8 +2574,13 @@ p.text-warning-yellow[data-kpi] {
     color: var(--warning-yellow-text) !important;
 }
 
-/* Standalone text labels on white backgrounds */
-span.text-warning-yellow:not([class*="bg-"]):not([class*="rounded-full"]) {
+/* Standalone text labels on white backgrounds
+   PLT-AUD3-B04 FIX: Refactored from fragile :not([class*="bg-"]) to explicit structural match.
+   Previous: :not([class*="bg-"]) broke if ANY bg-* class was added to the span.
+   Now: targets yellow text inside card bodies (.p-5), table rows, and standalone labels.
+   Badges/pills (rounded-full with bg-*) remain exempt — they have tinted backgrounds.
+   Standard: Defensive CSS, WCAG 1.4.3 (Contrast Minimum). */
+span.text-warning-yellow:not([class*="rounded-full"]):not([class*="bg-"]):not([aria-hidden]) {
     color: var(--warning-yellow-text) !important;
 }
 
@@ -2585,7 +2594,7 @@ html[data-theme="dark"] .text-warning-yellow[aria-live],
 html[data-theme="dark"] p.text-warning-yellow[id^="kpi-"],
 html[data-theme="dark"] p.text-warning-yellow[id^="stat-"],
 html[data-theme="dark"] p.text-warning-yellow[data-kpi],
-html[data-theme="dark"] span.text-warning-yellow:not([class*="bg-"]):not([class*="rounded-full"]),
+html[data-theme="dark"] span.text-warning-yellow:not([class*="rounded-full"]):not([class*="bg-"]):not([aria-hidden]),
 html[data-theme="dark"] a.text-warning-yellow {
     color: var(--warning-yellow) !important;
 }

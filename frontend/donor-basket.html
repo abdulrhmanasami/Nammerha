@@ -183,10 +183,13 @@
           <!-- FRC-003 FIX: Default tip set to 0% (was 3%). On a humanitarian platform,
                voluntary tipping must be a conscious opt-in, not a pre-selected default.
                Standard: Ethical design — no dark patterns. Nielsen #2 — Match real world. -->
-          <button class="tip-btn tip-btn-active" data-tip="0">0%</button>
-          <button class="tip-btn" data-tip="3">3%</button>
-          <button class="tip-btn" data-tip="5">5%</button>
-          <button class="tip-btn" data-tip="10">10%</button>
+          <!-- PLT-AUD3-D01 FIX: Added data-i18n for Arabic-Indic numeral rendering (٠٪, ٣٪, ٥٪, ١٠٪).
+               Previous: Hardcoded Western numerals — inconsistent with Arabic locale.
+               Standard: i18n completeness, Unicode CLDR numeral systems. -->
+          <button class="tip-btn tip-btn-active" data-tip="0" data-i18n="tip_0_pct">0%</button>
+          <button class="tip-btn" data-tip="3" data-i18n="tip_3_pct">3%</button>
+          <button class="tip-btn" data-tip="5" data-i18n="tip_5_pct">5%</button>
+          <button class="tip-btn" data-tip="10" data-i18n="tip_10_pct">10%</button>
           <button class="tip-btn tip-btn-custom" data-tip="custom" id="tip-custom-btn">
             <i class="ph ph-pencil-simple ph-xs" aria-hidden="true"></i>
           </button>
@@ -252,7 +255,7 @@
               <span class="text-sm font-bold text-slate-500 block" data-i18n="payment_card">Credit / Debit Card</span>
               <span class="text-[10px] text-slate-400" data-i18n="payment_card_desc">Stripe integration</span>
             </div>
-            <span class="text-[9px] font-bold text-warning-yellow bg-warning-yellow/10 px-1.5 py-0.5 rounded-full shrink-0" data-i18n="coming_soon">Soon</span>
+            <span class="text-[10px] font-bold text-warning-yellow bg-warning-yellow/10 px-1.5 py-0.5 rounded-full shrink-0" data-i18n="coming_soon">Soon</span>
           </label>
         </div>
       </div>

@@ -3,6 +3,19 @@
    FRIC-AUD-04: Extracted from main.css monolith for modularity.
    Source: main.css L573-L770 (198 lines)
    Standard: CSS Architecture — Single Responsibility Principle.
+
+   PLT-AUD3-B01: DARK MODE SPLIT STRATEGY
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │ _dark-mode.css │ CROSS-CUTTING overrides: body, cards, borders,       │
+   │                │ form controls, typography — applies to many elements. │
+   │────────────────┼──────────────────────────────────────────────────────  │
+   │ main.css       │ COMPONENT-SCOPED dark mode: specific components that │
+   │ (inline rules) │ need dark mode only where they're defined (dashboard  │
+   │                │ headers, glass-sheets, stepper, funded-card, etc.)    │
+   └─────────────────────────────────────────────────────────────────────────┘
+   When adding dark mode: if the override targets a GLOBAL element type,
+   add it here. If it targets a SPECIFIC component, keep it inline in main.css
+   next to that component's definition.
    ============================================================================ */
 
 /* P0-001 FIX: Selectors now use html[data-theme="dark"] to match

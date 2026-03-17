@@ -97,7 +97,11 @@
          Previous: Profile was a tab inside [role="tablist"] (the ONLY portal with this pattern).
          All 5 other portals use a navigation link to profile.html below the tablist.
          Standard: Nielsen #4 (Consistency), WAI-ARIA (tabs = in-page panels, not page navigation). -->
-    <div class="px-4 pb-2" data-section-label="Navigate">
+    <!-- PLT-AUD3-A02 FIX: Added space-y-1 and data-i18n-attr (was missing).
+         Previous: Had data-section-label but no i18n binding — "Navigate" was stuck in English.
+         Now matches contractor-dashboard + supplier-dashboard canonical pattern.
+         Standard: Nielsen #4 (Consistency), i18n RTL parity. -->
+    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a href="profile.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="common_profile">Profile</span>
