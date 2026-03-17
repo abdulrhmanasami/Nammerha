@@ -5,8 +5,8 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- CONF-P01 FIX: Enforceable CSP directives -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
@@ -86,7 +86,9 @@
     </nav>
     <!-- Quick Actions -->
     <div class="p-4 border-t border-slate-200 space-y-2">
-      <a href="/homeowner-report.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">
+      <!-- MED-006 FIX: Replaced bg-blue-600/700 with design system token bg-trust-blue.
+           Standard: Design System Token Governance — all primary CTAs use var(--trust-blue). -->
+      <a href="/homeowner-report.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">
         <i class="ph ph-plus-circle" aria-hidden="true"></i>
         <span data-i18n="homeowner_report_damage">Report Damage</span>
       </a>
@@ -101,11 +103,11 @@
   </aside>
 
   <!-- ═══════ Main Content ═══════ -->
-  <!-- CONF-NEW-03 FIX: Changed from <div> to <main> for correct landmark hierarchy.
-       Previous: <div class="dashboard-main"> wrapping an inner <main> — inconsistent
-       with contractor-dashboard and supplier-dashboard which use <main> directly.
-       Standard: HTML5 §4.4.1, WCAG 1.3.1 (Info and Relationships). -->
-  <main class="dashboard-main">
+  <!-- CRIT-001 FIX: id="main-content" moved from inner <div> to <main> element.
+       Previous: id was on a nested <div>, causing skip-link to bypass the
+       semantic landmark. All other 5 portals place it on <main>.
+       Standard: WCAG 2.4.1 (Bypass Blocks), HTML5 §4.4.1. -->
+  <main id="main-content" class="dashboard-main">
     <!-- Top Bar -->
     <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
       <div class="flex items-center gap-3">
@@ -113,12 +115,20 @@
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
         <h2 class="font-bold text-lg page-header-title" data-i18n="homeowner_portal">Homeowner Portal</h2>
+        <!-- MED-007 FIX: Live timestamp added for cross-portal parity. -->
+        <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
-      <div id="role-switcher-mount-header"></div>
+      <div class="flex items-center gap-4">
+        <div id="role-switcher-mount-header"></div>
+        <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
+        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard">
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+        </button>
+      </div>
     </header>
 
-    <!-- G-003 FIX: Skip-link target on landmark, not wrapper -->
-    <div id="main-content" class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
     <div class="max-w-6xl mx-auto space-y-6">
       <!-- Header -->
       <div>
@@ -193,7 +203,7 @@
               <h3 class="font-bold" data-i18n="homeowner_all_projects">All Projects</h3>
               <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_projects_desc">Damage reports and their lifecycle</p>
             </div>
-            <a href="/homeowner-report.html" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700" data-i18n="homeowner_new_report">+ New Report</a>
+            <a href="/homeowner-report.html" class="px-3 py-1.5 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90" data-i18n="homeowner_new_report">+ New Report</a>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -291,7 +301,7 @@
                 <span data-i18n="ho_add_details">Add Details</span>
               </button>
               <div class="flex-1"></div>
-              <button id="submit-sr-btn" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors">
+              <button id="submit-sr-btn" class="px-5 py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">
                 <i class="ph ph-megaphone" aria-hidden="true"></i> <span data-i18n="homeowner_submit_request">Submit Request</span>
               </button>
             </div>
@@ -370,6 +380,19 @@
        Standard: Design System Visual Cohesion. -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
   <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+<!-- MED-005 FIX: Reusable empty state template for data tables. -->
+<template id="tpl-table-empty">
+  <tr>
+    <td colspan="99" class="px-5 py-0">
+      <div class="nm-table-empty">
+        <div class="nm-empty-icon"><i class="ph ph-house-line" aria-hidden="true"></i></div>
+        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
+        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+      </div>
+    </td>
+  </tr>
+</template>
+
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/homeowner.js" defer></script>
 <script src="/nav.js?v=7" defer></script>

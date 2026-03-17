@@ -119,7 +119,8 @@
         <!-- RES-I03 FIX: Demoted sticky bar title to <h2> (navigation label).
              Standard: WCAG 1.3.1 (Heading Hierarchy). -->
         <h2 class="text-lg font-bold page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</h2>
-        <span class="text-[10px] text-slate-400" id="live-timestamp"></span>
+        <!-- MED-007 FIX: Standardized from text-[10px] to text-xs (12px) — matches all other portals. -->
+        <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-3">
         <!-- RES-G01 FIX: role-switcher-mount-header was missing — all other dashboards have it.
@@ -135,14 +136,20 @@
       </div>
     </header>
 
-    <div class="p-6 space-y-6">
+    <!-- CRIT-006 FIX: Added max-w-6xl wrapper — was missing (content stretched full-width on >1920px).
+         4 of 6 portals use this wrapper; contractor-dashboard and supplier-dashboard were the outliers.
+         Standard: Nielsen #4 (Consistency), Progressive width scaling. -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
       <!-- RES-I03 FIX: Content-level <h1> + subtitle — TYPE A heading pattern. -->
       <div>
         <h1 class="text-xl font-bold" data-i18n="supplier_dashboard_heading">Dashboard Overview</h1>
         <p class="text-sm text-slate-500 mt-0.5" data-i18n="supplier_dashboard_desc">Manage your material catalog and track purchase orders</p>
       </div>
-      <!-- Feedback Banner -->
-      <div id="dashboard-banner" class="hidden px-4 py-3 rounded-lg text-sm font-medium" style="display:none"></div>
+      <!-- FINE-006 FIX: Removed redundant style="display:none" — class="hidden" is sufficient.
+           Double-hide forces JS to remove BOTH .hidden AND inline style to show the banner.
+           Standard: Single Source of Truth for visibility state. -->
+      <div id="dashboard-banner" class="hidden px-4 py-3 rounded-lg text-sm font-medium"></div>
 
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -185,11 +192,17 @@
       </div>
 
       <!-- ═══════ Orders Section ═══════ -->
-      <div id="section-orders" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <!-- CRIT-004 FIX: Added role="tabpanel" and aria-labelledby — were completely missing.
+           All other 4 portals with tabs have proper ARIA panel semantics.
+           Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+      <div id="section-orders" class="bg-white rounded-xl border border-slate-200 shadow-sm" role="tabpanel" aria-labelledby="tab-orders">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
-            <h2 class="text-sm font-bold" data-i18n="supplier_material_requests">Purchase Orders</h2>
-            <p class="text-[10px] text-slate-400 mt-0.5" data-i18n="supplier_material_desc">Materials assigned to you by project engineers</p>
+            <!-- CRIT-005 FIX: Demoted from <h2> to <h3> — all other portals use h3
+                 for section headings inside tab panels (under h1 page heading).
+                 Standard: WCAG 1.3.1 (Info and Relationships), heading hierarchy consistency. -->
+            <h3 class="font-bold" data-i18n="supplier_material_requests">Purchase Orders</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="supplier_material_desc">Materials assigned to you by project engineers</p>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -218,10 +231,12 @@
       </div>
 
       <!-- ═══════ Catalog Section (hidden by default) ═══════ -->
-      <div id="section-catalog" class="space-y-4" style="display:none">
+      <!-- CRIT-004 FIX: Added role="tabpanel" and aria-labelledby for WCAG compliance. -->
+      <div id="section-catalog" class="space-y-4" style="display:none" role="tabpanel" aria-labelledby="tab-catalog">
         <div class="flex justify-between items-center">
           <div>
-            <h2 class="text-sm font-bold" data-i18n="supplier_my_catalog">My Material Catalog</h2>
+            <!-- CRIT-005 FIX: Demoted from <h2> to <h3> for heading hierarchy consistency. -->
+            <h3 class="font-bold" data-i18n="supplier_my_catalog">My Material Catalog</h3>
             <!-- GAP-007 FIX: English fallback text (was Arabic). i18n engine translates at runtime.
                  Standard: Platform convention — English fallback, Arabic via dictionary. -->
             <p class="text-[10px] text-slate-400 mt-0.5" data-i18n="supplier_catalog_desc">Engineers browse your catalog when selecting suppliers for BOQ items</p>
@@ -255,6 +270,7 @@
         </div>
       </div>
 
+    </div>
     </div>
   </main>
 </div>

@@ -1046,6 +1046,67 @@ html[data-theme="dark"] .text-red-400 {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   MED-005 FIX: Reusable Table Empty State Component
+   Provides a consistent empty state pattern for all portal data tables.
+   Icon + title + description + optional action CTA.
+   Based on supplier-dashboard's empty state, now available globally.
+   Standard: Material Design — Empty States, Nielsen #1 (Visibility).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.nm-table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+.nm-table-empty .nm-empty-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    background: rgba(var(--trust-blue-rgb, 26, 115, 232), 0.1);
+}
+.nm-table-empty .nm-empty-icon i {
+    font-size: 24px;
+    color: var(--trust-blue, #1A73E8);
+}
+.nm-table-empty .nm-empty-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.25rem;
+}
+.nm-table-empty .nm-empty-desc {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    max-width: 20rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MED-002 FIX: Unified Skeleton Loading Bar Utility
+   Replaces mixed patterns (some portals showed "0", others showed a pulse bar)
+   with a single canonical CSS class for skeleton loading indicators.
+   Standard: Material Design — Loading States, Nielsen #1 (Visibility).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.nm-skeleton-bar {
+    display: inline-block;
+    height: 1.75rem;
+    width: 5rem;
+    border-radius: 0.25rem;
+    background: #e2e8f0;
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+.nm-skeleton-bar--narrow { width: 3rem; }
+.nm-skeleton-bar--wide   { width: 6rem; }
+@keyframes skeletonPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    P2-U3 FIX: Respect prefers-reduced-motion (WCAG 2.3.3)
    Disables all non-essential animations for users who request it.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -1130,15 +1191,19 @@ html[data-theme="dark"] .text-red-400 {
     margin: 0 auto;
 }
 
-/* ─── Tab Links ──────────────────────────────────────────────────────── */
+/* FINE-002 FIX: Added min-height: 44px for WCAG 2.5.5/2.5.8 touch target compliance.
+   Previous: rendered height was ~42px (icon 22 + gap 2 + label 10 + padding 8).
+   Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size Minimum). */
 .nm-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 2px;
     text-decoration: none;
     padding: 4px 8px;
     min-width: 54px;
+    min-height: 44px;
     color: #64748b;
     transition: color 0.2s;
 }

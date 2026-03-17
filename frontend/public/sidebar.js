@@ -134,6 +134,117 @@
                 closeSidebar();
             }
         });
+
+        // ── MED-004 FIX: WAI-ARIA Tab Keyboard Navigation ──────────────
+        // WAI-ARIA Authoring Practices §3.26 mandates:
+        //   • Arrow Down/Up: Move focus between tabs (wraps at edges)
+        //   • Home: Focus first tab
+        //   • End: Focus last tab
+        //   • Enter/Space: Activate focused tab
+        // This handler works for ALL 6 dashboard portals via the shared
+        // role="tablist" nav in every sidebar.
+        // Standard: WAI-ARIA §3.26, WCAG 2.1.1 (Keyboard), WCAG 4.1.2.
+        var tablist = sidebar.querySelector('[role="tablist"]');
+        if (tablist) {
+            var tabs = tablist.querySelectorAll('[role="tab"]');
+            if (tabs.length > 0) {
+                // ── Activate a tab: update ARIA, show panel, dispatch event ──
+                function activateTab(tab) {
+                    // Deselect all tabs
+                    for (var t = 0; t < tabs.length; t++) {
+                        tabs[t].setAttribute('aria-selected', 'false');
+                        tabs[t].classList.remove('bg-trust-blue/10', 'text-trust-blue');
+                        tabs[t].classList.add('text-slate-600');
+                        var panelId = tabs[t].getAttribute('aria-controls');
+                        if (panelId) {
+                            var panel = document.getElementById(panelId);
+                            if (panel) { panel.style.display = 'none'; }
+                        }
+                    }
+                    // Select target tab
+                    tab.setAttribute('aria-selected', 'true');
+                    tab.classList.add('bg-trust-blue/10', 'text-trust-blue');
+                    tab.classList.remove('text-slate-600');
+                    var activePanel = tab.getAttribute('aria-controls');
+                    if (activePanel) {
+                        var ap = document.getElementById(activePanel);
+                        if (ap) { ap.style.display = ''; }
+                    }
+                    tab.focus();
+                    // Dispatch custom event for portal TS modules
+                    tab.dispatchEvent(new CustomEvent('nm:tab-activate', {
+                        bubbles: true,
+                        detail: { tabId: tab.id, panelId: activePanel }
+                    }));
+                }
+
+                // ── Click handler for all tabs ──
+                for (var ti = 0; ti < tabs.length; ti++) {
+                    tabs[ti].addEventListener('click', function () {
+                        activateTab(this);
+                    });
+                }
+
+                // ── Keyboard handler ──
+                tablist.addEventListener('keydown', function (e) {
+                    var current = document.activeElement;
+                    if (!current || current.getAttribute('role') !== 'tab') { return; }
+
+                    var index = -1;
+                    for (var ci = 0; ci < tabs.length; ci++) {
+                        if (tabs[ci] === current) { index = ci; break; }
+                    }
+                    if (index === -1) { return; }
+
+                    var handled = false;
+                    switch (e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                            index = (index + 1) % tabs.length;
+                            tabs[index].focus();
+                            handled = true;
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                            index = (index - 1 + tabs.length) % tabs.length;
+                            tabs[index].focus();
+                            handled = true;
+                            break;
+                        case 'Home':
+                            tabs[0].focus();
+                            handled = true;
+                            break;
+                        case 'End':
+                            tabs[tabs.length - 1].focus();
+                            handled = true;
+                            break;
+                        case 'Enter':
+                        case ' ':
+                            activateTab(current);
+                            handled = true;
+                            break;
+                    }
+                    if (handled) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+
+                // Set tabindex for roving tabindex pattern
+                for (var ri = 0; ri < tabs.length; ri++) {
+                    tabs[ri].setAttribute('tabindex',
+                        tabs[ri].getAttribute('aria-selected') === 'true' ? '0' : '-1'
+                    );
+                }
+                // Update tabindex on focus
+                tablist.addEventListener('focusin', function (e) {
+                    if (e.target.getAttribute('role') !== 'tab') { return; }
+                    for (var fi = 0; fi < tabs.length; fi++) {
+                        tabs[fi].setAttribute('tabindex', tabs[fi] === e.target ? '0' : '-1');
+                    }
+                });
+            }
+        }
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────

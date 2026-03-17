@@ -155,8 +155,11 @@
         </button>
       </div>
     </header>
-
-    <div class="p-6 space-y-6">
+    <!-- CRIT-006 FIX: Added max-w-6xl wrapper — was missing (content stretched full-width on >1920px).
+         4 of 6 portals use this wrapper; contractor-dashboard and supplier-dashboard were the outliers.
+         Standard: Nielsen #4 (Consistency), Progressive width scaling. -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
       <!-- RES-I03 FIX: Content-level <h1> + subtitle — TYPE A heading pattern.
            Provides richer semantic structure for screen readers. -->
       <div>
@@ -271,6 +274,7 @@
           </table>
         </div>
       </div>
+    </div>
     </div>
   </main>
 </div>

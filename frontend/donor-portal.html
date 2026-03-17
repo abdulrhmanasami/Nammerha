@@ -122,8 +122,17 @@
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
         <h2 class="font-bold text-lg page-header-title" data-i18n="donor_welcome">My Impact Dashboard</h2>
+        <!-- MED-007 FIX: Live timestamp added for cross-portal parity. -->
+        <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
-      <div id="role-switcher-mount-header"></div>
+      <div class="flex items-center gap-4">
+        <div id="role-switcher-mount-header"></div>
+        <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
+        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard">
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+        </button>
+      </div>
     </header>
 
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
@@ -134,23 +143,28 @@
         <p class="text-sm text-slate-500 mt-0.5" data-i18n="donor_subtitle">Track your contributions and see the change you're making</p>
       </div>
 
-      <!-- KPI Cards -->
+      <!-- CRIT-003 FIX: Enriched from COMPACT to RICH KPI card pattern.
+           Previous: p-4, size-9, rounded-lg, mb-2, font-size:18px — visually smaller
+           than ALL other 5 portals which use p-5, size-10, rounded-xl, mb-3, font-size:20px.
+           MED-001 FIX: Replaced raw Tailwind colors (emerald-*, blue-*, amber-*)
+           with design system tokens (smoky-jade, trust-blue, warning-yellow).
+           Standard: Design System Component Unity, Nielsen #4 (Consistency). -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-2">
-            <div class="size-9 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <i class="ph ph-hand-heart text-emerald-600" style="font-size:18px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-hand-heart text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_total">Total Donated</p>
-          <p class="text-2xl font-black mt-1 text-emerald-600" id="kpi-donated">
+          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-donated">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-2">
-            <div class="size-9 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-buildings text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_projects">Projects Supported</p>
@@ -158,25 +172,25 @@
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-2">
-            <div class="size-9 rounded-lg bg-blue-100 flex items-center justify-center">
-              <i class="ph ph-package text-blue-600" style="font-size:18px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-package text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_items">Items Funded</p>
-          <p class="text-2xl font-black mt-1 text-blue-600" id="kpi-items">
+          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-items">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between mb-2">
-            <div class="size-9 rounded-lg bg-amber-100 flex items-center justify-center">
-              <i class="ph ph-chart-line-up text-amber-600" style="font-size:18px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
+              <i class="ph ph-chart-line-up text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_score">Impact Score</p>
-          <p class="text-2xl font-black mt-1 text-amber-600" id="kpi-score">
+          <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-score">
             <span class="inline-block h-7 w-14 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -297,6 +311,19 @@
        Standard: Design System Visual Cohesion. -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
   <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+<!-- MED-005 FIX: Reusable empty state template for data tables. -->
+<template id="tpl-table-empty">
+  <tr>
+    <td colspan="99" class="px-5 py-0">
+      <div class="nm-table-empty">
+        <div class="nm-empty-icon"><i class="ph ph-hand-heart" aria-hidden="true"></i></div>
+        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
+        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+      </div>
+    </td>
+  </tr>
+</template>
+
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/donor.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
