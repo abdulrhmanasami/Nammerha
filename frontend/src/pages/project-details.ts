@@ -23,6 +23,7 @@ import { initBreadcrumb } from '../utils/breadcrumb';
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
+import { showToast } from '../utils/toast';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -425,9 +426,42 @@ function initWhatsAppCTA(): void {
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
+    initShareButton(); // GAP-005: Web Share API
     loadProjectData();
     initTransparencyToggle();
     initWhatsAppCTA();
+}
+
+// ─── GAP-005 FIX: Web Share API with Clipboard Fallback ─────────────────────
+function initShareButton(): void {
+    const btn = document.getElementById('share-project-btn');
+    if (!btn) { return; }
+
+    btn.addEventListener('click', async () => {
+        const title = document.title;
+        const url = window.location.href;
+        const text = t('share_project_text', 'Help rebuild Syria — support this project on Nammerha');
+
+        // Prefer native Web Share API (available on mobile browsers)
+        if (navigator.share) {
+            try {
+                await navigator.share({ title, text, url });
+            } catch (err: unknown) {
+                // User cancelled share — not an error
+                if (err instanceof DOMException && err.name === 'AbortError') { return; }
+            }
+            return;
+        }
+
+        // Desktop fallback: copy URL to clipboard
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast(t('link_copied', 'Link copied to clipboard'), 'success');
+        } catch {
+            // Final fallback: prompt with URL
+            window.prompt(t('copy_link_prompt', 'Copy this link:'), url);
+        }
+    });
 }
 
 if (document.readyState === 'loading') {

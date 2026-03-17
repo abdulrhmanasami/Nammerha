@@ -49,7 +49,13 @@
       </div>
     </div>
     <!-- PLT-AUD-C005 FIX: Theme toggle — fixed position to avoid landscape overlap with tab container -->
-    <!-- P1-AUTH-OVERLAP FIX: Uses fixed instead of absolute to prevent stacking issues on small landscape screens -->
+    <!-- CONF-005 FIX: On landscape phones (<500px height), repositioned to avoid tab switcher overlap.
+         Standard: Apple HIG — Controls must not obscure actionable content. -->
+    <style>
+      @media (max-height: 500px) and (orientation: landscape) {
+        #nm-theme-toggle { top: auto !important; bottom: 0.75rem !important; }
+      }
+    </style>
     <button id="nm-theme-toggle" class="fixed top-3 z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-inline-end: 0.75rem; margin-top: env(safe-area-inset-top, 0px);" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
       <i id="nm-theme-toggle-icon" class="ph ph-sun-dim text-amber-500" aria-hidden="true" style="font-size:18px"></i>
     </button>
@@ -142,6 +148,19 @@
         </div>
         <p class="text-[10px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 number</p>
       </div>
+      <!-- FRC-002 FIX: Confirm Password field — industry standard for registration.
+           Especially critical for Arabic-script users who may accidentally toggle keyboards.
+           Standard: Industry best practice for new account creation. -->
+      <div>
+        <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="confirm_password_label">Confirm Password</label>
+        <div class="relative">
+          <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+          <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8"
+            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+            placeholder="Re-enter your password" data-i18n-placeholder="auth_pw_confirm_placeholder" />
+        </div>
+        <p class="text-[10px] text-red-500 mt-1 hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>
+      </div>
       <!-- Multi-Role Architecture: Role selection removed from registration.
            Users start as 'donor' by default and activate additional roles from dashboard. -->
 
@@ -153,17 +172,27 @@
     </form>
 
     <!-- Trust Footer -->
+    <!-- FRC-N03 FIX: Progressive disclosure for trust signals.
+         Previous: OCDS/Encryption badges shown alongside login form — cognitive overload.
+         Now: collapsed into a "Security Details" drawer. Legal text always visible.
+         Standard: Nielsen #8 — "Aesthetic and minimalist design." -->
     <div class="mt-auto px-6 py-8 text-center relative z-10">
-      <div class="flex items-center justify-center gap-4 mb-3">
-        <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-          <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
-          <span data-i18n="auth_trust_1">OCDS Verified</span>
+      <details class="mb-3">
+        <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1">
+          <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+          <span data-i18n="auth_security_details">Security Details</span>
+        </summary>
+        <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
+          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+            <span data-i18n="auth_trust_1">OCDS Verified</span>
+          </div>
+          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <i class="ph ph-lock text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
+            <span data-i18n="auth_trust_2">256-bit Encrypted</span>
+          </div>
         </div>
-        <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-          <i class="ph ph-lock text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
-          <span data-i18n="auth_trust_2">256-bit Encrypted</span>
-        </div>
-      </div>
+      </details>
       <!-- P1-F3 FIX: Entire legal sentence translatable via single i18n key.
            Previous: "By continuing, you agree to our" and "and" were hardcoded English. -->
       <p class="text-[10px] text-slate-400" data-i18n-html="auth_footer_legal">By continuing, you agree to our <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">Terms of Service</a> and <a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">Privacy Policy</a>.</p>

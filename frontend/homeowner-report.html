@@ -17,7 +17,13 @@
   <meta name="description" content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-report.ts"></script>
-<link href="/i18n.css?v=7" rel="stylesheet"/>
+  <!-- GAP-010 FIX: OG/Twitter meta for damage report sharing -->
+  <meta property="og:title" content="Report Damage — Nammerha" />
+  <meta property="og:description" content="Report structural, plumbing, or electrical damage to your property using our voice-friendly wizard." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
@@ -125,21 +131,24 @@
     <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="governorate">Governorate</label>
     <div class="relative mb-5">
       <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm">
-        <option value="" disabled selected data-i18n="select_governorate">اختر المحافظة...</option>
-        <option value="aleppo">حلب</option>
-        <option value="damascus">دمشق</option>
-        <option value="rif-dimashq">ريف دمشق</option>
-        <option value="homs">حمص</option>
-        <option value="hama">حماة</option>
-        <option value="latakia">اللاذقية</option>
-        <option value="tartus">طرطوس</option>
-        <option value="idlib">إدلب</option>
-        <option value="deir-ez-zor">دير الزور</option>
-        <option value="raqqa">الرقة</option>
-        <option value="hasakah">الحسكة</option>
-        <option value="daraa">درعا</option>
-        <option value="suwayda">السويداء</option>
-        <option value="quneitra">القنيطرة</option>
+        <!-- GAP-003 FIX: All governorate options have data-i18n for full i18n coverage.
+             Previous: Arabic-only hardcoded text — English users saw untranslated dropdown.
+             Standard: Platform i18n mandate — 100% data-i18n coverage. -->
+        <option value="" disabled selected data-i18n="select_governorate">Select Governorate...</option>
+        <option value="aleppo" data-i18n="gov_aleppo">Aleppo</option>
+        <option value="damascus" data-i18n="gov_damascus">Damascus</option>
+        <option value="rif-dimashq" data-i18n="gov_rif_dimashq">Rif Dimashq</option>
+        <option value="homs" data-i18n="gov_homs">Homs</option>
+        <option value="hama" data-i18n="gov_hama">Hama</option>
+        <option value="latakia" data-i18n="gov_latakia">Latakia</option>
+        <option value="tartus" data-i18n="gov_tartus">Tartus</option>
+        <option value="idlib" data-i18n="gov_idlib">Idlib</option>
+        <option value="deir-ez-zor" data-i18n="gov_deir_ez_zor">Deir ez-Zor</option>
+        <option value="raqqa" data-i18n="gov_raqqa">Raqqa</option>
+        <option value="hasakah" data-i18n="gov_hasakah">Hasakah</option>
+        <option value="daraa" data-i18n="gov_daraa">Daraa</option>
+        <option value="suwayda" data-i18n="gov_suwayda">Suwayda</option>
+        <option value="quneitra" data-i18n="gov_quneitra">Quneitra</option>
       </select>
       <div class="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
         <i class="ph ph-caret-down" aria-hidden="true"></i>

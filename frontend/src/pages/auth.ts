@@ -152,16 +152,23 @@ function updateRegisterButton(): void {
     const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     const password = regPassword?.value ?? '';
+    const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
 
-    // GAP-01: intent selection required for registration
-    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && Boolean(state.selectedIntent);
+    // FRC-002 FIX: Include password confirmation match check
+    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && Boolean(state.selectedIntent) && password === confirmPw;
     // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
     // The button is ALWAYS clickable so the submit handler can show validation feedback.
     regSubmit.style.opacity = valid ? '1' : '0.6';
+
+    // FRC-002: Show/hide real-time mismatch error
+    const mismatchEl = document.getElementById('pw-mismatch-error');
+    if (mismatchEl && confirmPw.length > 0) {
+        mismatchEl.classList.toggle('hidden', password === confirmPw);
+    }
 }
 
 // Listen for all register form inputs
-['reg-name', 'reg-email'].forEach((id) => {
+['reg-name', 'reg-email', 'reg-password-confirm'].forEach((id) => {
     document.getElementById(id)?.addEventListener('input', updateRegisterButton);
 });
 
@@ -210,6 +217,15 @@ function validateRegisterForm(): boolean {
     // GAP-01: Validate intent selection
     if (!state.selectedIntent) {
         showBanner('error', t('auth_select_intent', 'Please select your primary goal.'));
+        return false;
+    }
+
+    // FRC-002 FIX: Validate password confirmation match
+    const confirmInput = document.getElementById('reg-password-confirm') as HTMLInputElement | null;
+    const confirmPw = confirmInput?.value ?? '';
+    if (password !== confirmPw) {
+        showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
+        confirmInput?.focus();
         return false;
     }
 
@@ -274,8 +290,19 @@ formLogin?.addEventListener('submit', async (e) => {
             };
             const activeRole = userData.activeRole ?? userData.role;
             const target = ROLE_DASHBOARD[activeRole] ?? '/';
+
+            // GAP-002 FIX: Detect first login after registration → append onboarding param.
+            // Each portal reads ?onboarding=1 to trigger its guided tour.
+            let finalTarget = target;
+            try {
+                if (localStorage.getItem('nmh_onboarding_pending') === '1') {
+                    localStorage.removeItem('nmh_onboarding_pending');
+                    finalTarget += (target.includes('?') ? '&' : '?') + 'onboarding=1';
+                }
+            } catch { /* Safari private mode */ }
+
             setTimeout(() => {
-                window.location.href = target;
+                window.location.href = finalTarget;
             }, 800);
         } else {
             showBanner('error', response.error ?? t('auth_login_failed', 'Invalid credentials. Please try again.'));
@@ -333,6 +360,8 @@ formRegister?.addEventListener('submit', async (e) => {
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.
         if (response.success) {
+            // GAP-002 FIX: Set onboarding flag for first-login guided tour
+            try { localStorage.setItem('nmh_onboarding_pending', '1'); } catch { /* Safari private mode */ }
             showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Please check your email to verify your account.'));
             // Switch to login tab after successful registration
             setTimeout(() => {

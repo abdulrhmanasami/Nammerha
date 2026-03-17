@@ -447,3 +447,30 @@ function populateSummary(): void {
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
 showStep(1);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GAP-008 FIX: Unsaved Changes Guard
+// Prevents data loss when navigating away from wizard with entered data.
+// Critical for Syrian homeowners on slow connections who may have waited
+// minutes for GPS lock and photo upload.
+// Standard: Nielsen #5 — Error Prevention.
+// ═══════════════════════════════════════════════════════════════════════════
+function hasUnsavedData(): boolean {
+    // No guard needed on confirmation step (step 4) — data already submitted
+    if (state.currentStep >= 4) { return false; }
+    // Check if user has entered meaningful data
+    return Boolean(state.damageType) ||
+           Boolean(state.governorate) ||
+           Boolean(state.neighborhood) ||
+           Boolean(state.description) ||
+           state.photoCount > 0 ||
+           Boolean(state.gpsCoords);
+}
+
+window.addEventListener('beforeunload', (e: BeforeUnloadEvent) => {
+    if (hasUnsavedData()) {
+        e.preventDefault();
+        // Modern browsers show standard text; this string is for legacy compat:
+        e.returnValue = '';
+    }
+});

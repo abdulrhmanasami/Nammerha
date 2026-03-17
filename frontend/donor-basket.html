@@ -17,25 +17,34 @@
   <meta name="description" content="Your itemized construction basket — fund specific materials for verified reconstruction projects." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/donor-basket.ts"></script>
-<link href="/i18n.css?v=7" rel="stylesheet"/>
+  <!-- GAP-010 FIX: OG/Twitter meta for social sharing — critical for crowdfunding virality -->
+  <meta property="og:title" content="Support Reconstruction — Nammerha" />
+  <meta property="og:description" content="Fund specific construction materials for verified reconstruction projects in Syria." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <!-- FRC-003 FIX: Increased pb from pb-48 to pb-64 — prevents checkout sheet from permanently
-       obscuring cart items on small screens (iPhone SE 375×667). Sheet is ~280px tall. -->
-  <main id="main-content" class="mobile-container flex flex-col relative pb-64">
+  <!-- FRC-N02 FIX: Dynamic bottom padding — calc(320px + safe-area-inset) ensures
+       last cart item is fully visible above the ~280px checkout sheet + tip expansion.
+       Previous: pb-64 (256px) was insufficient when tip section expanded. -->
+  <main id="main-content" class="mobile-container flex flex-col relative" style="padding-bottom: calc(320px + env(safe-area-inset-bottom, 0px))">
 
-    <!-- Header -->
-    <header class="glass-nav sticky top-0 z-50 px-6 py-5 flex items-center justify-between border-b border-slate-200">
-      <!-- P2-003 FIX: history.back() with fallback -->
+    <!-- INC-N01 FIX: Standardized to unified page-header pattern (h-14 = 56px).
+         Previous: custom px-6 py-5 padding (~68px height) — inconsistent with all
+         other consumer pages (wallet h-16, profile h-16, dashboards h-14).
+         Standard: Apple HIG — "Navigation bars are 44pt plus safe area." -->
+    <header class="page-header border-b border-slate-200">
       <!-- CON-002 FIX: Unified back-navigation via data-back-btn (same pattern as wallet/profile).
            Previous: inline onclick with history.back() mixed with href fallback — unpredictable behavior. -->
       <a href="project-details.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
-      <h1 class="text-xl font-bold" data-i18n="construction_basket">Construction Basket</h1>
-      <button id="clear-cart-btn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 text-slate-400" aria-label="Clear cart" data-i18n-aria="aria_clear_cart">
+      <h1 class="text-lg font-bold flex-1 text-center" data-i18n="construction_basket">Construction Basket</h1>
+      <button id="clear-cart-btn" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 text-slate-400" aria-label="Clear cart" data-i18n-aria="aria_clear_cart">
         <i class="ph ph-trash" aria-hidden="true"></i>
       </button>
     </header>
@@ -96,9 +105,9 @@
     </div>
 
     <!-- Bottom Checkout Sheet -->
-    <!-- GAP-009 FIX: Sheet starts hidden, JS reveals when cart has items -->
-    <!-- CONF-003 FIX: Uses z-index token instead of magic number z-[10000] -->
-    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-[var(--z-checkout)] hidden" id="checkout-sheet">
+    <!-- CONF-N04 FIX: Uses .z-checkout CSS class instead of z-[var(--z-checkout)] Tailwind arbitrary value.
+         Tailwind JIT may not reliably parse CSS custom properties in arbitrary brackets. -->
+    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-checkout hidden" id="checkout-sheet">
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-slate-400 text-sm" data-i18n="total_funding_amount">Total Funding Amount</span>
@@ -118,8 +127,11 @@
           <span class="text-[10px] text-slate-400 italic" data-i18n="tip_optional">100% voluntary</span>
         </div>
         <div class="flex gap-2 mb-3" id="tip-buttons">
-          <button class="tip-btn" data-tip="0">0%</button>
-          <button class="tip-btn tip-btn-active" data-tip="3">3%</button>
+          <!-- FRC-003 FIX: Default tip set to 0% (was 3%). On a humanitarian platform,
+               voluntary tipping must be a conscious opt-in, not a pre-selected default.
+               Standard: Ethical design — no dark patterns. Nielsen #2 — Match real world. -->
+          <button class="tip-btn tip-btn-active" data-tip="0">0%</button>
+          <button class="tip-btn" data-tip="3">3%</button>
           <button class="tip-btn" data-tip="5">5%</button>
           <button class="tip-btn" data-tip="10">10%</button>
           <button class="tip-btn tip-btn-custom" data-tip="custom" id="tip-custom-btn">

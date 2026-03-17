@@ -63,6 +63,13 @@
   ],
   "screenshots": [
     {
+      "src": "/images/og-cover.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Nammerha — Syria Reconstruction Platform"
+    },
+    {
       "src": "/brand/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",

@@ -146,9 +146,28 @@
       </a>
     </nav>
 
+    <!-- CONF-N03 FIX: Mobile search trigger (hidden on sm+ where full nav has inline search).
+         Previous: mobile users had ZERO way to discover search — the desktop search input
+         was hidden, and the SearchOverlay (Cmd/Ctrl+K) had no visible mobile trigger.
+         Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
+    <div class="sm:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14">
+      <a href="/" class="flex items-center gap-2">
+        <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
+      </a>
+      <div class="flex items-center gap-1">
+        <button data-search-trigger class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Search projects" data-i18n-aria="aria_search_projects">
+          <i class="ph ph-magnifying-glass text-slate-700" style="font-size:20px" aria-hidden="true"></i>
+        </button>
+        <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
+          <i class="ph ph-shopping-cart text-slate-700" aria-hidden="true"></i>
+          <span class="cart-badge" id="mobile-cart-badge" style="display:none">0</span>
+        </a>
+      </div>
+    </div>
+
     <!-- ─── Main Content ────────────────────────────────────────────────────── -->
-    <!-- C-001: pt-4 on mobile (no top nav), pt-20 on sm+ (below fixed nav) -->
-    <main id="main-content" class="pt-4 sm:pt-20 pb-24">
+    <!-- C-001: pt-16 on mobile (below new fixed mobile nav h-14), pt-20 on sm+ (below desktop fixed nav) -->
+    <main id="main-content" class="pt-16 sm:pt-20 pb-24">
       <!-- Hero: Interactive Reconstruction Map (MapLibre GL JS) -->
       <section class="px-4 mb-8">
         <div

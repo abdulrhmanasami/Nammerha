@@ -80,17 +80,10 @@
   --shadow-cta: 0 4px 16px rgba(26, 115, 232, 0.25);
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.1);
 
-  /* CONF-003 FIX: Z-Index Token Scale (ordered stacking context) */
-  --z-base: 0;
-  --z-dropdown: 10;
-  --z-sticky: 20;
-  --z-header: 30;
-  --z-sidebar-overlay: 40;
-  --z-sidebar: 50;
-  --z-modal: 60;
-  --z-bottom-nav: 70;
-  --z-checkout: 80;
-  --z-skip-link: 90;
+  /* CONF-N05 FIX: Z-Index tokens moved to single canonical :root block at L1373+.
+     Previous: duplicated here (0-90) AND there (9000-9980). The 9000+ scale wins
+     via cascade but the dual declaration caused confusion during development.
+     Tokens removed: --z-base through --z-skip-link (now in unified block). */
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -461,6 +454,22 @@ html[data-theme="dark"] :focus-visible {
     background: var(--smoky-jade-light);
     color: var(--smoky-jade);
   }
+  /* INC-N02 FIX: Semantic badge separation — .badge-progress for funding %,
+     .badge-verified exclusively for KYC/trust verification.
+     Previous: both used .badge-verified, misleading screen readers.
+     Standard: WCAG 1.3.1 — "Information conveyed through presentation
+     must also be available from structure or semantics." */
+  .badge-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--trust-blue);
+  }
   .badge-primary {
     display: inline-flex;
     align-items: center;
@@ -766,6 +775,15 @@ html[data-theme="dark"] .bg-emerald-600\/10 { background-color: rgba(16, 185, 12
 html[data-theme="dark"] .border-green-100 { border-color: rgba(34, 197, 94, 0.15) !important; }
 html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) !important; }
 
+/* INC-004 FIX: Missing dark mode overrides — these Tailwind utilities appeared
+   as bright white patches in dark mode, violating visual cohesion.
+   Standard: Design System completeness — 100% dark mode coverage. */
+html[data-theme="dark"] .bg-slate-200\/60 { background-color: rgba(255, 255, 255, 0.06) !important; }
+html[data-theme="dark"] .bg-slate-200\/50 { background-color: rgba(255, 255, 255, 0.05) !important; }
+html[data-theme="dark"] .bg-trust-blue\/8 { background-color: rgba(26, 115, 232, 0.12) !important; }
+html[data-theme="dark"] .bg-white\/98 { background-color: rgba(30, 30, 30, 0.98) !important; }
+html[data-theme="dark"] .bg-white\/90 { background-color: rgba(30, 30, 30, 0.90) !important; }
+
 /* ─── Animations ───────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
   from {
@@ -786,6 +804,27 @@ html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) 
     opacity: 0.5;
   }
 }
+/* INC-N06 FIX: Canonical Animation Pattern Reference
+   ════════════════════════════════════════════════════
+   The platform uses 4 animation strategies. New code MUST use one of these:
+
+   1. .animate-fade-in-up — Entry animation for static page sections (profile, wallet).
+      Accepts animation-delay via inline style for staggered reveals.
+      Usage: <section class="animate-fade-in-up" style="animation-delay:0.1s">
+
+   2. .scroll-reveal — IntersectionObserver-triggered reveal for long scrolling pages
+      (index.html). JS adds .revealed class when element enters viewport.
+      Usage: <div class="scroll-reveal"> (JS in main.ts handles observation)
+
+   3. [id^="section-"] sectionReveal — Dashboard sidebar tab switching.
+      JS in portal modules (homeowner-portal.ts, donor-portal.ts) toggles display
+      and adds a brief fade transition.
+
+   4. @keyframes fadeInUp — Raw keyframe used by .animate-fade-in-up.
+      Do NOT use directly on elements — always use the .animate-fade-in-up class.
+
+   Standard: Material Design 3 — "Use consistent motion to reinforce spatial model."
+*/
 .animate-fade-in-up {
   animation: fadeInUp 0.4s ease-out forwards;
 }
@@ -916,6 +955,14 @@ html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) 
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* GAP-001 FIX: Filter pill styles for project listing page */
+  .filter-pill-active,
+  .filter-pill-active:hover {
+    background: var(--trust-blue);
+    color: white;
+    border-color: var(--trust-blue);
   }
 }
 
@@ -1052,13 +1099,17 @@ html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) 
     min-width: 0;
   }
 
-  /* Hamburger toggle button — visible only on mobile */
+  /* CONF-004 FIX: Touch target increased to 44×44px minimum (was 40×40px).
+     Apple HIG mandates 44pt minimum. WCAG 2.5.8 Target Size (Minimum).
+     min-width/min-height ensures compliance even if parent overrides width/height. */
   .sidebar-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: var(--radius-sm);
     border: none;
     background: transparent;
@@ -1366,19 +1417,29 @@ html[data-theme="dark"] .text-red-400 {
 }
 
 /* ============================================================================
-   P2-ZINDEX FIX: Z-Index Token System
-   Eliminates fragile hardcoded z-index escalation (9999 → 10000 → 10001).
-   All z-index values now reference semantic tokens.
+   CONF-N05 FIX: Unified Z-Index Token System (SINGLE SOURCE OF TRUTH)
+   Previous: dual :root blocks — first (0-90) and second (9000-9980) created
+   stacking context ambiguity. Now merged into one canonical scale.
+   Standard: Apple HIG — "Use clearly ordered z-index for predictable layering."
    ============================================================================ */
 :root {
+    /* Foundational layers */
+    --z-base: 0;
+    --z-dropdown: 10;
+    --z-sticky: 20;
+    --z-header: 30;
+    --z-sidebar-overlay: 40;
+    --z-sidebar: 50;
+    --z-checkout: 80;
+    /* Elevated system layers (9000+ range) */
     --z-nav: 9000;
     --z-modal: 9500;
     --z-bottom-nav: 9900;
     --z-toast: 9950;
     --z-offline: 9960;
-    /* CON-04 FIX: Added overlay + i18n tokens — eliminates z-[10000] arms race */
     --z-overlay: 9970;
     --z-i18n-banner: 9980;
+    --z-skip-link: 9990;
     --z-skip: var(--z-skip-link);
 }
 
@@ -1665,6 +1726,60 @@ form[novalidate] input:not(:placeholder-shown):invalid {
 }
 form[novalidate] input:not(:placeholder-shown):valid {
     border-color: var(--smoky-jade) !important;
+}
+/* FRC-N05 FIX: First-submit validation — add .submitted class via JS on form submit.
+   Highlights ALL empty required fields on first submit attempt, not just interacted ones.
+   Standard: Nielsen Heuristic #9 — "Help users recognize, diagnose, and recover from errors." */
+form[novalidate].submitted input:required:invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 1px #ef4444;
+}
+
+/* ============================================================================
+   CONF-N04 FIX: Checkout z-index utility class
+   Previous: z-[var(--z-checkout)] in Tailwind JIT — fragile arbitrary value parsing.
+   Now: explicit CSS class avoiding JIT parsing ambiguity.
+   ============================================================================ */
+.z-checkout {
+    z-index: var(--z-checkout);
+}
+
+/* ============================================================================
+   GAP-N07 FIX: Empty State Component
+   Standardized empty/error states for dashboards and data lists.
+   ============================================================================ */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    gap: 0.75rem;
+}
+.empty-state i {
+    font-size: 3rem;
+    color: #cbd5e1;
+}
+.empty-state h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #64748b;
+}
+.empty-state p {
+    font-size: 0.8125rem;
+    color: #94a3b8;
+    max-width: 280px;
+    line-height: 1.5;
+}
+html[data-theme="dark"] .empty-state i {
+    color: #475569;
+}
+html[data-theme="dark"] .empty-state h3 {
+    color: #94a3b8;
+}
+html[data-theme="dark"] .empty-state p {
+    color: #64748b;
 }
 
 /* ============================================================================

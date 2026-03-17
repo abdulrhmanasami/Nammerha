@@ -14,6 +14,7 @@ import { escapeHtml } from './utils/xss';
 import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
 import './offline/network-status';  // Self-injecting: bilingual offline status bar
+import './utils/cart-sync';          // INC-N05 FIX: Cross-page cart badge sync via Storage API
 import { autoTriggerTour } from './components/tour-engine';
 // P2-I18N-TIMING FIX: Explicit applyI18n call after dynamic card injection
 import { applyI18n } from './utils/locale';

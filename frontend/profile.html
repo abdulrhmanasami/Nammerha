@@ -86,6 +86,37 @@
           </button>
         </div>
       </form>
+      <!-- GAP-N02 FIX: Password Change Section (collapsible progressive disclosure).
+           Previous: users had to log out → Forgot Password to change their password.
+           Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
+      <div class="mt-4 border-t border-slate-100 pt-4">
+        <button id="toggle-password-change" type="button" class="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-600 hover:text-trust-blue transition-colors">
+          <span class="flex items-center gap-2">
+            <i class="ph ph-lock-key" style="font-size:16px" aria-hidden="true"></i>
+            <span data-i18n="change_password">Change Password</span>
+          </span>
+          <i class="ph ph-caret-down text-slate-400 transition-transform" id="password-caret" aria-hidden="true"></i>
+        </button>
+        <div id="password-change-form" class="hidden mt-3 space-y-3">
+          <div>
+            <label for="current-password" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="current_password">Current Password</label>
+            <input id="current-password" type="password" autocomplete="current-password" class="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div>
+            <label for="new-password" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="new_password">New Password</label>
+            <input id="new-password" type="password" autocomplete="new-password" class="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div>
+            <label for="confirm-new-password" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="confirm_new_password">Confirm New Password</label>
+            <input id="confirm-new-password" type="password" autocomplete="new-password" class="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div id="password-change-banner" class="hidden text-xs font-bold p-3 rounded-xl"></div>
+          <button type="button" id="save-password-btn" class="w-full py-2.5 text-sm font-bold text-white bg-trust-blue rounded-xl hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span data-i18n="update_password">Update Password</span>
+          </button>
+        </div>
+      </div>
       <!-- Profile Completion Progress -->
       <div class="w-full mt-4" id="profile-completion-container">
         <div class="flex items-center justify-between mb-1">
@@ -95,6 +126,34 @@
         <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
           <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700" style="width:0%"></div>
         </div>
+        <!-- FRC-004 FIX: Actionable completion checklist — shows what's left to complete.
+             Without this, users see a progress metric but can't act on it.
+             Standard: Nielsen #10 — Help and documentation. Gamification — Actionable progress. -->
+        <details id="completion-checklist" class="mt-2">
+          <summary class="text-[10px] text-trust-blue font-semibold cursor-pointer hover:underline" data-i18n="profile_whats_missing">What's missing?</summary>
+          <ul id="completion-items" class="mt-1.5 space-y-1 text-[11px] text-slate-500">
+            <li class="flex items-center gap-1.5" data-completion="name">
+              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <span data-i18n="profile_add_name">Add your full name</span>
+            </li>
+            <li class="flex items-center gap-1.5" data-completion="email">
+              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <span data-i18n="profile_verify_email">Verify your email</span>
+            </li>
+            <li class="flex items-center gap-1.5" data-completion="phone">
+              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <span data-i18n="profile_add_phone">Add phone number</span>
+            </li>
+            <li class="flex items-center gap-1.5" data-completion="photo">
+              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <span data-i18n="profile_add_photo">Upload profile photo</span>
+            </li>
+            <li class="flex items-center gap-1.5" data-completion="kyc">
+              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <span data-i18n="profile_complete_kyc">Complete identity verification</span>
+            </li>
+          </ul>
+        </details>
       </div>
     </div>
   </section>

@@ -22,7 +22,8 @@
   <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
   <meta name="twitter:card" content="summary" />
   <script type="module" src="/src/pages/contractor-dashboard.ts"></script>
-  <script type="module" src="/src/components/role-switcher.ts"></script><link href="/i18n.css?v=7" rel="stylesheet"/>
+  <script type="module" src="/src/components/role-switcher.ts"></script>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
@@ -77,6 +78,12 @@
           <p class="text-[10px] text-slate-500" data-i18n="contractor_access">Contractor Access</p>
         </div>
       </div>
+      <!-- INC-N04 FIX: Logout button was missing from contractor-dashboard sidebar.
+           All other portal sidebars (homeowner, donor, tradesperson) have it. -->
+      <button id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </button>
     </div>
   </aside>
 

@@ -17,7 +17,8 @@
   <meta name="description" content="Manage your material catalog and track purchase orders on the Nammerha reconstruction platform." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/supplier-dashboard.ts"></script>
-  <script type="module" src="/src/components/role-switcher.ts"></script><link href="/i18n.css?v=7" rel="stylesheet"/>
+  <script type="module" src="/src/components/role-switcher.ts"></script>
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
@@ -62,6 +63,13 @@
           <p class="text-[10px] text-slate-500" data-i18n="supplier_access">Supplier Access</p>
         </div>
       </div>
+      <!-- GAP-004 FIX: Logout button was missing from supplier-dashboard sidebar.
+           All other portal sidebars (homeowner, contractor, tradesperson) have it.
+           Standard: Nielsen #3 — User control and freedom. -->
+      <button id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </button>
     </div>
   </aside>
 
@@ -167,7 +175,9 @@
         <div class="flex justify-between items-center">
           <div>
             <h2 class="text-sm font-bold" data-i18n="supplier_my_catalog">My Material Catalog</h2>
-            <p class="text-[10px] text-slate-400 mt-0.5" data-i18n="supplier_catalog_desc">يتصفح المهندسون كتالوجك عند اختيار الموردين لبنود جدول الكميات</p>
+            <!-- GAP-007 FIX: English fallback text (was Arabic). i18n engine translates at runtime.
+                 Standard: Platform convention — English fallback, Arabic via dictionary. -->
+            <p class="text-[10px] text-slate-400 mt-0.5" data-i18n="supplier_catalog_desc">Engineers browse your catalog when selecting suppliers for BOQ items</p>
           </div>
           <button id="btn-add-material" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center gap-2">
             <i class="ph ph-plus-circle" aria-hidden="true"></i>
@@ -175,9 +185,22 @@
           </button>
         </div>
         <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div class="col-span-full text-center py-12 text-slate-400">
+          <div id="catalog-loading" class="col-span-full text-center py-12 text-slate-400">
             <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-            <p class="mt-2 text-xs" data-i18n="loading">جاري التحميل...</p>
+            <p class="mt-2 text-xs" data-i18n="loading">Loading...</p>
+          </div>
+          <!-- FRC-007 FIX: Empty state component — educates and encourages first material addition.
+               Standard: Material Design — Empty states should guide action. -->
+          <div id="catalog-empty" class="col-span-full text-center py-12 hidden">
+            <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
+              <i class="ph ph-package text-warm-earth" style="font-size:32px" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-700 mb-1" data-i18n="supplier_empty_title">Your catalog is empty</h3>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4" data-i18n="supplier_empty_desc">Add your construction materials so engineers can find and order from you when building BOQs for reconstruction projects.</p>
+            <button class="text-xs font-semibold bg-trust-blue text-white px-4 py-2.5 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2" onclick="document.getElementById('btn-add-material')?.click()">
+              <i class="ph ph-plus-circle" aria-hidden="true"></i>
+              <span data-i18n="supplier_add_first_material">Add Your First Material</span>
+            </button>
           </div>
         </div>
       </div>

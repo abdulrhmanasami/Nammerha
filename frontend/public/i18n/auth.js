@@ -55,7 +55,10 @@
         'reset_password_subtitle': { ar: 'أنشئ كلمة مرور جديدة وآمنة لحسابك', de: 'Erstellen Sie ein neues sicheres Passwort für Ihr Konto', fr: 'Créez un nouveau mot de passe sécurisé pour votre compte', tr: 'Hesabınız için yeni güvenli bir şifre oluşturun' },
         'new_password_label': { ar: 'كلمة المرور الجديدة', de: 'Neues Passwort', fr: 'Nouveau mot de passe', tr: 'Yeni Şifre' },
         'confirm_password_label': { ar: 'تأكيد كلمة المرور', de: 'Passwort bestätigen', fr: 'Confirmer le mot de passe', tr: 'Şifreyi Onayla' },
-        'reset_password_btn': { ar: 'إعادة تعيين كلمة المرور', de: 'Passwort zurücksetzen', fr: 'Réinitialiser le mot de passe', tr: 'Şifreyi Sıfırla' }
+        'reset_password_btn': { ar: 'إعادة تعيين كلمة المرور', de: 'Passwort zurücksetzen', fr: 'Réinitialiser le mot de passe', tr: 'Şifreyi Sıfırla' },
+        /* FRC-002 FIX: Password confirmation i18n keys */
+        'auth_pw_confirm_placeholder': { ar: 'أعد إدخال كلمة المرور', de: 'Passwort erneut eingeben', fr: 'Ressaisissez le mot de passe', tr: 'Şifreyi tekrar girin' },
+        'pw_mismatch_error': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' }
         });
     }
 })();

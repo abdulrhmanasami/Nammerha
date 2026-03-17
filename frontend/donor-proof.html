@@ -17,26 +17,33 @@
   <meta name="description" content="Your contribution has been verified on-site with GPS-stamped photographic proof." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/donor-proof.ts"></script>
-<link href="/i18n.css?v=7" rel="stylesheet"/>
+  <!-- GAP-010 FIX: OG/Twitter meta for proof of delivery sharing -->
+  <meta property="og:title" content="Proof of Delivery — Nammerha" />
+  <meta property="og:description" content="Your contribution has been verified on-site with GPS-stamped photographic proof." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
+  <meta name="twitter:card" content="summary" />
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 
   <!-- Header -->
+  <!-- INC-001 FIX: Height standardized to h-14 (56px). INC-002: data-back-btn added. INC-003: mobile-container. -->
   <header class="glass-nav sticky top-0 z-50 border-b border-trust-blue/10">
-    <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
-      <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
+    <div class="flex items-center justify-between px-4 h-14 mobile-container">
+      <a href="index.html" data-back-btn class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left text-slate-700" aria-hidden="true"></i>
       </a>
       <h1 class="text-lg font-bold tracking-tight" data-i18n="proof_of_delivery">Proof of Delivery</h1>
-      <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
+      <button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Share" data-i18n-aria="aria_share_project">
         <i class="ph ph-share-network text-slate-700" aria-hidden="true"></i>
       </button>
     </div>
   </header>
 
-  <main id="main-content" class="flex-1 w-full max-w-md mx-auto px-4 py-6">
+  <main id="main-content" class="flex-1 w-full mobile-container px-4 py-6">
     <!-- Success Icon -->
     <div class="flex flex-col items-center text-center mb-8 animate-fade-in-up">
       <div class="w-20 h-20 bg-trust-blue/10 rounded-full flex items-center justify-center mb-4">

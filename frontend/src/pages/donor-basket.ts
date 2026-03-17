@@ -11,8 +11,8 @@ import { escapeHtml } from '../utils/xss';
 import { formatDollars } from '../utils/format';
 import { t } from '../utils/i18n';
 
-// ─── Tip State ──────────────────────────────────────────────────────────────
-let selectedTipPercentage = 3;  // Default: 3% (geo-appropriate for humanitarian context)
+// FRC-003 FIX: Default tip 0% (was 3%). Humanitarian platform — opt-in tipping only.
+let selectedTipPercentage = 0;
 let customTipAmount: number | null = null;
 let isCustomTip = false;
 
@@ -328,4 +328,41 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initDonorBasket);
 } else {
     initDonorBasket();
+}
+
+// ─── CONF-003 FIX: Virtual Keyboard Viewport Handler ────────────────────────
+// Problem: When the custom tip input gets focus on mobile, the virtual keyboard
+// pushes the checkout sheet off-screen, hiding the CTA.
+// Fix: Use visualViewport API to detect keyboard presence and shift the sheet up.
+// Standard: Google Material Design — Input fields must remain visible above keyboard.
+function initKeyboardHandler(): void {
+    const checkoutSheet = document.getElementById('checkout-sheet');
+    if (!checkoutSheet || !window.visualViewport) { return; }
+
+    const viewport = window.visualViewport;
+
+    function adjustForKeyboard(): void {
+        if (!checkoutSheet) { return; }
+        // The difference between window height and visual viewport height
+        // equals the keyboard height
+        const keyboardHeight = window.innerHeight - viewport.height;
+
+        if (keyboardHeight > 100) {
+            // Keyboard is visible — shift checkout sheet up
+            checkoutSheet.style.transform = `translateY(-${keyboardHeight}px)`;
+            checkoutSheet.style.transition = 'transform 0.2s ease-out';
+        } else {
+            // Keyboard hidden — reset
+            checkoutSheet.style.transform = '';
+        }
+    }
+
+    viewport.addEventListener('resize', adjustForKeyboard);
+}
+
+// Initialize keyboard handler
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initKeyboardHandler);
+} else {
+    initKeyboardHandler();
 }

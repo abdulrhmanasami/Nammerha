@@ -55,7 +55,22 @@
         'location_detected': { ar: 'تم رصد الموقع', de: 'Standort erkannt', fr: 'Emplacement détecté', tr: 'Konum tespit edildi' },
         'syncing_to_server': { ar: 'جاري المزامنة مع الخادم...', de: 'Synchronisierung mit Server...', fr: 'Synchronisation avec le serveur...', tr: 'Sunucuya senkronize ediliyor...' },
         'point_camera_at_delivery_site': { ar: 'وجّه الكاميرا نحو موقع التسليم', de: 'Kamera auf den Lieferort richten', fr: 'Dirigez la caméra vers le site de livraison', tr: 'Kamerayı teslimat alanına doğrultun' },
-        'of_delivery': { ar: 'من التسليم', de: 'der Lieferung', fr: 'de la livraison', tr: 'teslimatın' }
+        'of_delivery': { ar: 'من التسليم', de: 'der Lieferung', fr: 'de la livraison', tr: 'teslimatın' },
+        /* GAP-003 FIX: Governorate i18n keys — 100% coverage for damage report wizard */
+        'gov_aleppo': { ar: 'حلب', de: 'Aleppo', fr: 'Alep', tr: 'Halep' },
+        'gov_damascus': { ar: 'دمشق', de: 'Damaskus', fr: 'Damas', tr: 'Şam' },
+        'gov_rif_dimashq': { ar: 'ريف دمشق', de: 'Rif Dimashq', fr: 'Rif Dimachq', tr: 'Rif Dimaşk' },
+        'gov_homs': { ar: 'حمص', de: 'Homs', fr: 'Homs', tr: 'Humus' },
+        'gov_hama': { ar: 'حماة', de: 'Hama', fr: 'Hama', tr: 'Hama' },
+        'gov_latakia': { ar: 'اللاذقية', de: 'Latakia', fr: 'Lattaquié', tr: 'Lazkiye' },
+        'gov_tartus': { ar: 'طرطوس', de: 'Tartus', fr: 'Tartous', tr: 'Tartus' },
+        'gov_idlib': { ar: 'إدلب', de: 'Idlib', fr: 'Idleb', tr: 'İdlib' },
+        'gov_deir_ez_zor': { ar: 'دير الزور', de: 'Deir ez-Zor', fr: 'Deir ez-Zor', tr: 'Deir ez-Zor' },
+        'gov_raqqa': { ar: 'الرقة', de: 'ar-Raqqa', fr: 'Raqqa', tr: 'Rakka' },
+        'gov_hasakah': { ar: 'الحسكة', de: 'al-Hasaka', fr: 'Hassaké', tr: 'Haseke' },
+        'gov_daraa': { ar: 'درعا', de: 'Daraa', fr: 'Deraa', tr: 'Dera' },
+        'gov_suwayda': { ar: 'السويداء', de: 'as-Suwaida', fr: 'Soueïda', tr: 'Süveyda' },
+        'gov_quneitra': { ar: 'القنيطرة', de: 'al-Quneitra', fr: 'Qouneitra', tr: 'Kuneytra' }
         });
     }
 })();

@@ -33,7 +33,11 @@
         'supplier_modal_guide_price_info': { ar: 'سيقوم نظام EPA بضبط السعر حسب ظروف السوق', de: 'Das EPA-System passt den Preis an die Marktbedingungen an', fr: 'Le système EPA ajustera le prix selon les conditions du marché', tr: 'EPA sistemi fiyatı piyasa koşullarına göre ayarlayacaktır' },
         'select_damage_type': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dégât', tr: 'Hasar türünü seçin' },
         'select_governorate': { ar: 'اختر المحافظة', de: 'Gouvernement auswählen', fr: 'Sélectionner le gouvernorat', tr: 'İl seçin' },
-        'detect_location_auto': { ar: 'كشف الموقع تلقائياً', de: 'Standort automatisch erkennen', fr: 'Détecter l\'emplacement automatiquement', tr: 'Konumu otomatik algıla' }
+        'detect_location_auto': { ar: 'كشف الموقع تلقائياً', de: 'Standort automatisch erkennen', fr: 'Détecter l\'emplacement automatiquement', tr: 'Konumu otomatik algıla' },
+        /* FRC-007 FIX: Supplier catalog empty state i18n keys */
+        'supplier_empty_title': { ar: 'كتالوجك فارغ', de: 'Ihr Katalog ist leer', fr: 'Votre catalogue est vide', tr: 'Katalogunuz boş' },
+        'supplier_empty_desc': { ar: 'أضف مواد البناء الخاصة بك ليتمكن المهندسون من العثور عليها والطلب منك', de: 'Fügen Sie Ihre Baumaterialien hinzu, damit Ingenieure Sie finden und bestellen können', fr: 'Ajoutez vos matériaux pour que les ingénieurs puissent les trouver et commander', tr: 'İnşaat malzemelerinizi ekleyin, mühendisler sizi bulup sipariş verebilsin' },
+        'supplier_add_first_material': { ar: 'أضف أول مادة', de: 'Erstes Material hinzufügen', fr: 'Ajouter votre premier matériau', tr: 'İlk Malzemenizi Ekleyin' }
         });
     }
 })();
