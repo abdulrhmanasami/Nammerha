@@ -150,6 +150,14 @@
         <i class="ph ph-shopping-cart text-slate-700" aria-hidden="true"></i>
         <span class="cart-badge" id="nav-cart-badge" style="display:none">0</span>
       </a>
+      <!-- FRIC-2026-D05 FIX: Notification bell — parity with dashboard portals (MED-008).
+           Previous: Homepage navbar had no notification bell — users received notifications
+           but couldn't see them from the main consumer surface.
+           Standard: Nielsen #1 (Visibility of System Status), Apple HIG (Navigation Bar). -->
+      <button type="button" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-notification-btn" aria-label="Notifications" data-i18n-aria="aria_notifications">
+        <i class="ph ph-bell text-slate-700" style="font-size:20px" aria-hidden="true"></i>
+        <span class="cart-badge" id="nav-notif-badge" style="display:none">0</span>
+      </button>
       <!-- Multi-Role Architecture: Role Switcher Mount Point -->
       <div id="role-switcher-mount"></div>
       <a href="profile.html"
@@ -170,6 +178,14 @@
         <button data-search-trigger class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Search projects" data-i18n-aria="aria_search_projects">
           <i class="ph ph-magnifying-glass text-slate-700" style="font-size:20px" aria-hidden="true"></i>
         </button>
+        <!-- C-AUD-005 FIX: Notification bell added for mobile parity with desktop nav.
+             Previous: Desktop nav had bell (L157-160) but mobile header did not.
+             Syrian mobile-first users had no notification access from homepage.
+             Standard: Nielsen #4 (Consistency), Feature Parity, Apple HIG. -->
+        <button class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="mobile-notif-bell" aria-label="Notifications" data-i18n-aria="aria_notifications">
+          <i class="ph ph-bell text-slate-700" style="font-size:20px" aria-hidden="true"></i>
+          <span class="cart-badge" id="mobile-notif-badge" style="display:none">0</span>
+        </button>
         <!-- CONF-004 FIX: Role-switcher mount for mobile. Was only on desktop nav (sm:flex).
              Standard: Apple HIG — "Controls must be accessible at every breakpoint." -->
         <div id="role-switcher-mount-mobile" class="sm:hidden"></div>
@@ -186,8 +202,15 @@
     <main id="main-content" class="mobile-container pt-16 sm:pt-20 pb-24">
       <!-- Hero: Interactive Reconstruction Map (MapLibre GL JS) -->
       <section class="px-4 mb-8">
+        <!-- M-AUD-004 FIX: Reduced from aspect-[4/3] to aspect-[16/9] on mobile.
+             Previous: 4:3 aspect took 281px on 375px screen — combined with header (56px) and
+             status bar (~44px), only ~100px remained for content. Featured Projects carousel
+             was entirely below the fold.
+             Now: 16:9 takes ~211px, gaining ~70px for above-the-fold content.
+             Desktop retains 4:3 via sm:aspect-[4/3] for the full map experience.
+             Standard: Mobile-First Hierarchy, F-Pattern Scanning. -->
         <div
-          class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-white/20"
+          class="relative w-full aspect-[16/9] sm:aspect-[4/3] rounded-2xl overflow-hidden shadow-xl border border-white/20"
         >
           <!-- MapLibre GL JS Container -->
           <div id="main-map" class="absolute inset-0"></div>

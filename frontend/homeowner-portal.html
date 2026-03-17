@@ -109,8 +109,11 @@
        semantic landmark. All other 5 portals place it on <main>.
        Standard: WCAG 2.4.1 (Bypass Blocks), HTML5 §4.4.1. -->
   <main id="main-content" class="dashboard-main">
-    <!-- Top Bar -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
+    <!-- M-AUD-011 FIX: Added max-w-6xl mx-auto inner wrapper for header content.
+         Previous: Header stretched full .dashboard-main width on 1440px+ screens.
+         Standard: Responsive Design, Visual Hierarchy. -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-40">
+      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
@@ -126,6 +129,7 @@
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
+      </div>
       </div>
     </header>
 
@@ -149,7 +153,12 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-active">0</p>
+          <!-- INC-2026-C03 FIX: Skeleton loader replaces hardcoded "0".
+               Previous: Static "0" shown before API → false empty impression.
+               Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-active">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -158,7 +167,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
-          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-bids">0</p>
+          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-bids">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -167,7 +178,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-approvals">0</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-approvals">
+            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -179,7 +192,9 @@
           <!-- FRIC-2602 FIX: Plain-language escrow subtitle for homeowner KPI card.
                Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
           <p class="text-[9px] text-slate-400/70 -mt-0.5" data-i18n="homeowner_escrow_kpi_hint">Funds held until milestones verified</p>
-          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-escrow">$0</p>
+          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-escrow">
+            <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
       </div>
 
@@ -210,7 +225,11 @@
             <a href="/homeowner-report.html" class="px-3 py-1.5 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90" data-i18n="homeowner_new_report">+ New Report</a>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <!-- INC-2026-C05 FIX: Added nm-donation-table for mobile card-collapse CSS.
+                 Previous: bare table with overflow-x-auto forced horizontal scroll on mobile.
+                 Now: matches donor-portal responsive table pattern.
+                 Standard: Design System Component Unity, Nielsen #4 (Consistency). -->
+            <table class="w-full text-sm nm-donation-table">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   <th class="px-5 py-3 text-start" data-i18n="th_project">Project</th>
@@ -297,6 +316,20 @@
                 <label for="sr-budget" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_max_budget">Max Budget ($)</label>
                 <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
               </div>
+              <!-- M-AUD-008 FIX: Photo upload for damage evidence.
+                   Previous: Form collected trade, title, urgency, address, description, budget
+                   but NO photo. For a damage-reporting reconstruction platform, visual evidence
+                   is critical for matching tradespeople and assessing scope.
+                   accept="image/*" enables image selection; capture="environment" opens rear camera on mobile.
+                   Standard: Domain-Specific UX (Reconstruction Platform), Apple HIG (Camera Capture). -->
+              <div>
+                <label for="sr-photos" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_photos">Photos (optional)</label>
+                <div class="mt-1 relative">
+                  <input id="sr-photos" type="file" accept="image/*" capture="environment" multiple
+                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-trust-blue/10 file:text-trust-blue hover:file:bg-trust-blue/20 cursor-pointer transition-colors" />
+                </div>
+                <p class="text-[9px] text-slate-400 mt-1" data-i18n="ho_photos_hint">Upload up to 5 photos (max 5 MB each). Tap to use camera.</p>
+              </div>
             </div>
 
             <!-- Toggle + Submit -->
@@ -321,7 +354,8 @@
             <h3 class="font-bold" data-i18n="homeowner_my_requests">My Service Requests</h3>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <!-- INC-2026-C05 FIX: nm-donation-table for mobile card-collapse -->
+            <table class="w-full text-sm nm-donation-table">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   <th class="px-5 py-3 text-start" data-i18n="th_title">Title</th>

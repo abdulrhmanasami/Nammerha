@@ -374,6 +374,15 @@
             document.head.appendChild(hapticScript);
         }
 
+        // M-AUD-009 FIX: Load back-to-top FAB for long-scrolling pages.
+        // Uses same dynamic injection pattern as theme-toggle.js/haptic.js.
+        // Standard: Mobile UX (Long Page Navigation), Apple HIG.
+        if (!window._nmBackToTop) {
+            var bttScript = document.createElement('script');
+            bttScript.src = '/back-to-top.js?v=1';
+            document.head.appendChild(bttScript);
+        }
+
         // CONF-2026-001 FIX: Dynamic bottom padding based on actual nav height.
         // Previous: hardcoded 96px — failed on iPhone 14+ (34px safe area caused
         // content cutoff) and wasted space on non-notch devices.

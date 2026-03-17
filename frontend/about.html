@@ -1005,6 +1005,151 @@
     .logo-light { display: inline; }
     html[data-theme="light"] .logo-dark { display: inline; }
     html[data-theme="light"] .logo-light { display: none; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       GAP-2026-B05 FIX: Floating Table of Contents
+       Previously: No ToC or breadcrumb on a 60KB long-form page — users on
+       mobile lost track of position. Now: fixed floating nav with scroll-spy.
+       Standard: WCAG 2.4.8 (Location), Nielsen #1 (System Status Visibility).
+       ═══════════════════════════════════════════════════════════════════════ */
+    .nm-toc {
+      position: fixed;
+      top: 50%;
+      inset-inline-end: 16px;
+      transform: translateY(-50%);
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .nm-toc.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .nm-toc-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-decoration: none;
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-glass);
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .nm-toc-item:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-secondary);
+      border-color: var(--border-glass-hover);
+      transform: translateX(-4px);
+    }
+    [dir="rtl"] .nm-toc-item:hover {
+      transform: translateX(4px);
+    }
+    .nm-toc-item.active {
+      background: rgba(26,115,232,0.15);
+      color: var(--trust-blue);
+      border-color: rgba(26,115,232,0.3);
+      font-weight: 700;
+    }
+    .nm-toc-item i {
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    /* Desktop: full label text */
+    .nm-toc-label {
+      display: inline;
+    }
+    /* Progress dot — shows scroll position within section */
+    .nm-toc-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+      flex-shrink: 0;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .nm-toc-item.active .nm-toc-dot {
+      background: var(--trust-blue);
+      transform: scale(1.5);
+    }
+
+    /* ─── Mobile: Floating pill toggle ────────────────── */
+    .nm-toc-toggle {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .nm-toc {
+        inset-inline-end: 12px;
+        top: auto;
+        bottom: 90px; /* above bottom nav */
+        transform: none;
+        flex-direction: column-reverse;
+        align-items: flex-end;
+      }
+      .nm-toc-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--trust-blue);
+        color: white;
+        font-size: 18px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(26,115,232,0.4);
+        transition: transform 0.3s, box-shadow 0.3s;
+        -webkit-appearance: none;
+        appearance: none;
+        padding: 0;
+      }
+      .nm-toc-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 24px rgba(26,115,232,0.5);
+      }
+      .nm-toc-toggle i {
+        transition: transform 0.3s;
+      }
+      .nm-toc.expanded .nm-toc-toggle i {
+        transform: rotate(45deg);
+      }
+      .nm-toc-items {
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+      .nm-toc.expanded .nm-toc-items {
+        display: flex;
+        animation: tocSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      @keyframes tocSlideUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .nm-toc-label { display: inline; } /* Keep labels on mobile too */
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .nm-toc, .nm-toc-item, .nm-toc-toggle {
+        transition: none;
+      }
+      @keyframes tocSlideUp {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+    }
   </style>
 </head>
 <body>
@@ -1078,6 +1223,43 @@
       <span>استكشف</span>
     </div>
   </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       GAP-2026-B05 FIX: Floating Table of Contents
+       Provides in-page navigation for this 60KB long-form page.
+       Uses IntersectionObserver for scroll-spy (no scroll event overhead).
+       On mobile ≤768px: collapses into a floating pill toggle.
+       Standard: WCAG 2.4.8 (Location), Nielsen #1 (System Status Visibility),
+       Apple HIG (In-Page Navigation).
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <nav class="nm-toc" id="nmToc" aria-label="Table of Contents">
+    <!-- Mobile toggle button -->
+    <button type="button" class="nm-toc-toggle" id="nmTocToggle" aria-label="Toggle table of contents" aria-expanded="false">
+      <i class="ph ph-list-bullets" aria-hidden="true"></i>
+    </button>
+    <div class="nm-toc-items">
+      <a href="#storySection" class="nm-toc-item">
+        <span class="nm-toc-dot"></span>
+        <i class="ph ph-book-open" aria-hidden="true"></i>
+        <span class="nm-toc-label">قصتنا</span>
+      </a>
+      <a href="#leadershipSection" class="nm-toc-item">
+        <span class="nm-toc-dot"></span>
+        <i class="ph ph-users-three" aria-hidden="true"></i>
+        <span class="nm-toc-label">القيادة</span>
+      </a>
+      <a href="#approachSection" class="nm-toc-item">
+        <span class="nm-toc-dot"></span>
+        <i class="ph ph-strategy" aria-hidden="true"></i>
+        <span class="nm-toc-label">منهجيتنا</span>
+      </a>
+      <a href="#trustSection" class="nm-toc-item">
+        <span class="nm-toc-dot"></span>
+        <i class="ph ph-shield-check" aria-hidden="true"></i>
+        <span class="nm-toc-label">الثقة والامتثال</span>
+      </a>
+    </div>
+  </nav>
 
 
   <!-- ═══ STORY SECTION — Timeline ══════════════════════════════════════════ -->
@@ -1446,6 +1628,73 @@
     }
 
     initGSAP();
+
+    // ═══════════════════════════════════════════════════════════
+    // GAP-2026-B05 FIX: Table of Contents — Scroll-Spy Engine
+    // Uses IntersectionObserver for 60fps scroll tracking with
+    // zero scroll event overhead. Activates after hero section.
+    // ═══════════════════════════════════════════════════════════
+    (function initToc() {
+      var toc = document.getElementById('nmToc');
+      var toggle = document.getElementById('nmTocToggle');
+      if (!toc) return;
+
+      var tocItems = toc.querySelectorAll('.nm-toc-item');
+      var sectionIds = ['storySection', 'leadershipSection', 'approachSection', 'trustSection'];
+      var sections = sectionIds.map(function(id) { return document.getElementById(id); }).filter(Boolean);
+
+      // Show/hide ToC based on scroll position (visible after hero)
+      var heroObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            toc.classList.remove('visible');
+          } else {
+            toc.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      var hero = document.querySelector('.hero');
+      if (hero) heroObserver.observe(hero);
+
+      // Scroll-spy: highlight active section
+      var sectionObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            var activeId = entry.target.id;
+            tocItems.forEach(function(item) {
+              var href = item.getAttribute('href');
+              if (href === '#' + activeId) {
+                item.classList.add('active');
+              } else {
+                item.classList.remove('active');
+              }
+            });
+          }
+        });
+      }, {
+        rootMargin: '-20% 0px -60% 0px', // Center bias: section must be ~20-40% in viewport
+        threshold: 0
+      });
+
+      sections.forEach(function(s) { sectionObserver.observe(s); });
+
+      // Mobile toggle
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          var expanded = toc.classList.toggle('expanded');
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+
+        // Close ToC on link click (mobile)
+        tocItems.forEach(function(item) {
+          item.addEventListener('click', function() {
+            toc.classList.remove('expanded');
+            toggle.setAttribute('aria-expanded', 'false');
+          });
+        });
+      }
+    })();
   });
   </script>
 

@@ -281,7 +281,7 @@ export const auth = {
         intent?: string;
     }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
-    login: (data: { email: string; password: string }) =>
+    login: (data: { email: string; password: string; remember?: boolean }) =>
         // FIX-02: JWT is in httpOnly cookie — not in response body (NMR-AUD-H001).
         request<{ user: unknown }>('/auth/login', {
             method: 'POST',

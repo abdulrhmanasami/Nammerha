@@ -86,7 +86,11 @@
          Previous: just "Loading..." with no total count indicator.
          Standard: Nielsen #1 (Visibility), Infinite Scroll Best Practices. -->
     <div class="flex items-center justify-between">
-      <span class="text-xs text-slate-400" id="project-count" data-i18n="projects_loading">Loading...</span>
+      <!-- GAP-2026-B06 FIX: Added aria-live="polite" + role="status" for screen reader announcements.
+           Previous: #project-count updated dynamically but had no ARIA live region —
+           screen reader users received no announcement when filter/sort changed results.
+           Standard: WCAG 4.1.3 (Status Messages), WCAG 1.3.1 (Info and Relationships). -->
+      <span class="text-xs text-slate-400" id="project-count" role="status" aria-live="polite" data-i18n="projects_loading">Loading...</span>
       <select id="project-sort" class="text-xs bg-transparent text-slate-500 font-medium border-none focus:outline-none cursor-pointer">
         <option value="funded_percentage" data-i18n="projects_sort_funding">Most Funded</option>
         <option value="published_at" data-i18n="projects_sort_newest">Newest</option>
@@ -109,7 +113,7 @@
       <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
         <i class="ph ph-buildings text-warm-earth" style="font-size:32px" aria-hidden="true"></i>
       </div>
-      <h3 class="text-sm font-bold text-slate-700 mb-1" data-i18n="projects_empty_title">No projects found</h3>
+      <h2 class="text-sm font-bold text-slate-700 mb-1" data-i18n="projects_empty_title">No projects found</h2>
       <p class="text-xs text-slate-400 max-w-xs mx-auto" data-i18n="projects_empty_desc">Try adjusting your filters or check back later for new reconstruction projects.</p>
     </div>
     <!-- Error state -->
@@ -117,7 +121,7 @@
       <div class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
         <i class="ph ph-warning-circle text-red-400" style="font-size:32px" aria-hidden="true"></i>
       </div>
-      <h3 class="text-sm font-bold text-slate-700 mb-1" data-i18n="projects_error_title">Could not load projects</h3>
+      <h2 class="text-sm font-bold text-slate-700 mb-1" data-i18n="projects_error_title">Could not load projects</h2>
       <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4" data-i18n="projects_error_desc">Please check your connection and try again.</p>
       <button id="projects-retry" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
         <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>

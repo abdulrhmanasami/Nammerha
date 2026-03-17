@@ -925,9 +925,16 @@
                     document.body.appendChild(widget);
                 }
             } else {
-                // Final fallback: append to body with fixed positioning
-                widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
-                document.body.appendChild(widget);
+                // C-AUD-006 FIX: Check for a dedicated mount point (e.g., auth.html).
+                // This prevents collision with the fixed-position theme toggle.
+                var langMount = document.getElementById('nm-lang-mount');
+                if (langMount) {
+                    langMount.appendChild(widget);
+                } else {
+                    // Final fallback: append to body with fixed positioning
+                    widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+                    document.body.appendChild(widget);
+                }
             }
         }
 

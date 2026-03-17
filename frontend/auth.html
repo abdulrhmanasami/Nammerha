@@ -5,7 +5,7 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
@@ -45,17 +45,31 @@
        Auth page has full-viewport gradient orbs and centered brand header that need edge-to-edge presentation.
        Now uses max-w-lg (512px) for the content area via CSS, with full-width background.
        Standard: Apple HIG — Full-screen immersive experiences should not be artificially constrained. -->
-  <main id="main-content" class="flex flex-col relative min-h-screen" style="max-width: 32rem; margin-inline: auto;">
+    <!-- M-AUD-001 FIX: Replaced non-standard inline max-width:32rem with .mobile-container.
+       Previous: Auth was 512px fixed width. All other consumer pages use .mobile-container
+       (448px → 640px → 768px → 960px responsively). At every breakpoint, auth looked different.
+       Standard: Design System Layout Consistency, Single Source of Truth. -->
+  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
 
     <!-- Brand Header -->
     <header class="px-6 pt-12 pb-6 text-center relative z-10">
       <img src="/brand/Nammerha_logo_Full.svg" alt="Nammerha — نعمّرها" class="h-28 w-auto mx-auto mb-2" />
       <p class="text-sm text-slate-500 mt-1" data-i18n="auth_subtitle">Rebuild Syria Together</p>
+      <!-- C-AUD-006 FIX: Language switcher mount point for i18n.js.
+           Previous: No visible language toggle on auth page. Non-Arabic-speaking users
+           (international donors, NGO partners, diaspora) were locked out of the registration flow.
+           The i18n.js engine's final fallback (fixed position) collides with theme toggle.
+           This mount point is detected by i18n.js BEFORE the fallback.
+           Standard: WCAG 3.1.2 (Language of Parts), Internationalization. -->
+      <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
       <!-- CONF-NEW-05 FIX: Escape hatch visibility dramatically improved.
            Previous: 12px text-slate-400 — nearly invisible on the page.
            Now: 13px, text-slate-500, underline, icon enlarged — obvious exit path.
            Standard: Nielsen #3 (User Control), Apple HIG (Clear Escape Routes). -->
-      <a href="index.html" class="inline-flex items-center gap-2 text-[13px] font-medium text-slate-500 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3" data-i18n="auth_back_home">
+      <!-- P3-PLT-005 FIX: Improved contrast from text-slate-500 to text-slate-600.
+           Previous: nearly invisible on light backgrounds, especially under sunlight.
+           Standard: WCAG 1.4.3 (Minimum Contrast), Apple HIG. -->
+      <a href="index.html" class="inline-flex items-center gap-2 text-[13px] font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3" data-i18n="auth_back_home">
         <i class="ph ph-arrow-left" style="font-size:14px" aria-hidden="true"></i> Back to Home
       </a>
     </header>
@@ -70,11 +84,8 @@
     <!-- PLT-AUD-C005 FIX: Theme toggle — fixed position to avoid landscape overlap with tab container -->
     <!-- CONF-005 FIX: On landscape phones (<500px height), repositioned to avoid tab switcher overlap.
          Standard: Apple HIG — Controls must not obscure actionable content. -->
-    <style>
-      @media (max-height: 500px) and (orientation: landscape) {
-        #nm-theme-toggle { top: auto !important; bottom: 0.75rem !important; }
-      }
-    </style>
+    <!-- P3-PLT-002 FIX: Landscape media query moved to main.css (single source of truth).
+         Standard: CSS Architecture — no inline <style> blocks for reusable rules. -->
     <!-- CONF-2026-004 FIX: data-nm-theme-toggle + data-nm-theme-icon for canonical engine auto-wiring -->
     <button id="nm-theme-toggle" data-nm-theme-toggle class="fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-block-start: calc(0.75rem + env(safe-area-inset-top, 0px)); inset-inline-end: 0.75rem;" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
       <i id="nm-theme-toggle-icon" data-nm-theme-icon aria-hidden="true" style="font-size:18px"></i>
@@ -91,7 +102,11 @@
 
     <!-- LOGIN FORM -->
     <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-    <form id="form-login" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate>
+    <!-- C-AUD-007 FIX: Added role="tabpanel" + aria-labelledby to complete WAI-ARIA Tabs pattern.
+         Previous: Tabs declared aria-controls but forms lacked tabpanel role.
+         Now: Matches donor-portal.html and homeowner-portal.html tab patterns.
+         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+    <form id="form-login" role="tabpanel" aria-labelledby="tab-login" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate>
       <!-- Email -->
       <div>
         <label for="login-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
@@ -115,6 +130,15 @@
             <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
           </button>
         </div>
+      </div>
+      <!-- M-AUD-005 FIX: "Remember Me" checkbox for session persistence.
+           Previous: No remember-me option. Mobile users re-entered credentials every session.
+           Standard: FinTech UX (Session Persistence), WCAG 3.3.7 (Accessible Authentication). -->
+      <div class="flex items-center justify-between">
+        <label for="remember-me" class="flex items-center gap-2 cursor-pointer select-none">
+          <input id="remember-me" name="remember" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-trust-blue focus:ring-trust-blue/50 cursor-pointer" />
+          <span class="text-sm text-slate-500" data-i18n="remember_me">Remember me</span>
+        </label>
       </div>
       <!-- Submit -->
       <button type="submit" id="login-submit" class="btn-primary mt-2">
@@ -140,7 +164,10 @@
       </div>
         <!-- FRC-P07 FIX: SSO marked 'Coming Soon' — prevents dead-end trust violations (Nielsen Heuristic #2) -->
         <!-- Google SSO -->
-        <button type="button" id="google-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 transition-colors" data-coming-soon="Soon">
+        <!-- C-AUD-002 FIX: data-sso-provider enables JS click handler for "coming soon" feedback.
+             Previous: No click handler — silent dead end violating Nielsen #1.
+             Standard: Honest Affordances, Nielsen #1 (System Status Visibility). -->
+        <button type="button" id="google-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 transition-colors" data-coming-soon="Soon" data-sso-provider="google">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -150,7 +177,7 @@
           <span data-i18n="auth_google_sso">Sign in with Google</span>
         </button>
         <!-- Apple SSO -->
-        <button type="button" id="apple-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-sm font-bold text-white transition-colors" data-coming-soon="Soon">
+        <button type="button" id="apple-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-sm font-bold text-white transition-colors" data-coming-soon="Soon" data-sso-provider="apple">
           <svg width="17" height="20" viewBox="0 0 17 20" fill="currentColor" aria-hidden="true">
             <path d="M13.545 10.58c-.015-1.65.614-3.173 1.74-4.275-.948-1.2-2.397-1.935-3.95-2.01-1.663-.17-3.27 1-4.11 1s-2.17-.98-3.57-.95c-1.84.06-3.54 1.08-4.48 2.73-1.93 3.34-.49 8.27 1.36 10.97.93 1.33 2.02 2.82 3.44 2.77 1.39-.06 1.91-.88 3.58-.88 1.66 0 2.15.88 3.61.85 1.49-.03 2.44-1.34 3.33-2.68.66-.95 1.17-2 1.51-3.11-1.81-.72-3.03-2.49-3.5-4.26zM11.04 2.68c.72-.9 1.12-2.04 1.1-3.19-1.13.06-2.18.56-2.96 1.4-.77.84-1.18 1.97-1.13 3.13 1.14.04 2.22-.44 2.99-1.34z"/>
           </svg>
@@ -159,82 +186,166 @@
       </div>
     </form>
 
-    <!-- REGISTER FORM (hidden by default) -->
+    <!-- REGISTER FORM (hidden by default)
+         C-AUD-007 FIX: role="tabpanel" + aria-labelledby completes WAI-ARIA Tabs pattern. -->
+    <!-- FRIC-2026-D03 FIX: Multi-Step Registration Wizard
+         Previous: All 7 fields visible at once → cognitive overload on mobile,
+         scrolling past the fold, high abandonment risk.
+         Now: 3-step progressive disclosure wizard. Step validation before advancing.
+         All existing field IDs preserved — auth.ts works without modification.
+         Standard: Miller's Law (7±2), Progressive Disclosure, Material Design 3,
+         Nielsen #6 (Recognition over Recall), Apple HIG (Multi-Step Forms). -->
     <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-    <form id="form-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate style="display:none">
-      <!-- Full Name -->
-      <div>
-        <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="full_name_label">Full Name</label>
-        <div class="relative">
-          <i class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-          <input id="reg-name" name="full_name" type="text" required autocomplete="name"
-            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="Full Name" data-i18n-placeholder="auth_name_placeholder" />
+    <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate style="display:none">
+
+      <!-- ─── Stepper Indicator ─────────────────────────── -->
+      <div class="flex items-center justify-center gap-0 mb-2" role="navigation" aria-label="Registration steps">
+        <div class="nm-step-indicator active" data-step-dot="1">
+          <span class="nm-step-num">1</span>
+          <span class="nm-step-label" data-i18n="reg_step_identity">Identity</span>
+        </div>
+        <div class="nm-step-line"></div>
+        <div class="nm-step-indicator" data-step-dot="2">
+          <span class="nm-step-num">2</span>
+          <span class="nm-step-label" data-i18n="reg_step_security">Security</span>
+        </div>
+        <div class="nm-step-line"></div>
+        <div class="nm-step-indicator" data-step-dot="3">
+          <span class="nm-step-num">3</span>
+          <span class="nm-step-label" data-i18n="reg_step_consent">Confirm</span>
         </div>
       </div>
-      <!-- Email -->
-      <div>
-        <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
-        <div class="relative">
-          <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-          <input id="reg-email" name="email" type="email" required autocomplete="email"
-            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
+
+      <!-- ─── STEP 1: Identity ─────────────────────────── -->
+      <fieldset class="nm-step-panel" data-reg-step="1" style="border:none;padding:0;margin:0;">
+        <legend class="sr-only">Step 1: Your Identity</legend>
+        <!-- Full Name -->
+        <div class="mb-4">
+          <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="full_name_label">Full Name</label>
+          <div class="relative">
+            <i class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <input id="reg-name" name="full_name" type="text" required autocomplete="name"
+              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              placeholder="Full Name" data-i18n-placeholder="auth_name_placeholder" />
+          </div>
         </div>
-      </div>
-      <!-- Password -->
-      <div>
-        <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
-        <div class="relative">
-          <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-          <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8"
-            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="Min 8 chars, 1 uppercase, 1 number" data-i18n-placeholder="auth_pw_placeholder" />
-          <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-            <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
+        <!-- Email -->
+        <div class="mb-4">
+          <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
+          <div class="relative">
+            <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <input id="reg-email" name="email" type="email" required autocomplete="email"
+              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
+          </div>
+        </div>
+        <!-- Next button -->
+        <button type="button" class="nm-step-next btn-primary w-full" data-goto-step="2">
+          <span data-i18n="reg_next">Next</span>
+          <i class="ph ph-arrow-right" aria-hidden="true"></i>
+        </button>
+      </fieldset>
+
+      <!-- ─── STEP 2: Security ─────────────────────────── -->
+      <fieldset class="nm-step-panel" data-reg-step="2" style="display:none;border:none;padding:0;margin:0;">
+        <legend class="sr-only">Step 2: Create a Password</legend>
+        <!-- Password -->
+        <div class="mb-4">
+          <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
+          <div class="relative">
+            <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8"
+              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              placeholder="Min 8 chars: upper, lower, number & symbol" data-i18n-placeholder="auth_pw_placeholder" />
+            <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
+              <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
+            </button>
+          </div>
+          <!-- Password Strength -->
+          <div class="mt-2 flex gap-1" id="pw-strength-bars">
+            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+          </div>
+          <!-- P3-PLT-003 FIX: Increased from text-[10px] to text-[11px] — nearly illegible on mobile.
+               Standard: WCAG 1.4.4 (Resize Text), Mobile Typography Best Practices. -->
+          <!-- C-AUD-001 FIX: Corrected to match actual auth.ts validation requirements (L175-178).
+               Previous: "8+ chars, 1 uppercase, 1 number" — omitted lowercase and symbol requirements.
+               Users crafted compliant-looking passwords that were rejected, destroying trust.
+               Standard: Nielsen #2 (Match System ↔ Real World), WCAG 3.3.2. -->
+          <p class="text-[11px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
+        </div>
+        <!-- FRC-002 FIX: Confirm Password field -->
+        <div class="mb-4">
+          <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="confirm_password_label">Confirm Password</label>
+          <div class="relative">
+            <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8"
+              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              placeholder="Re-enter your password" data-i18n-placeholder="auth_pw_confirm_placeholder" />
+          </div>
+          <p class="text-[10px] text-red-500 mt-1 hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>
+        </div>
+        <!-- Navigation -->
+        <div class="flex gap-3">
+          <button type="button" class="nm-step-back flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2" data-goto-step="1">
+            <i class="ph ph-arrow-left" aria-hidden="true"></i>
+            <span data-i18n="reg_back">Back</span>
+          </button>
+          <button type="button" class="nm-step-next btn-primary flex-[2]" data-goto-step="3">
+            <span data-i18n="reg_next">Next</span>
+            <i class="ph ph-arrow-right" aria-hidden="true"></i>
           </button>
         </div>
-        <!-- Password Strength -->
-        <div class="mt-2 flex gap-1" id="pw-strength-bars">
-          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-          <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-        </div>
-        <p class="text-[10px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 number</p>
-      </div>
-      <!-- FRC-002 FIX: Confirm Password field — industry standard for registration.
-           Especially critical for Arabic-script users who may accidentally toggle keyboards.
-           Standard: Industry best practice for new account creation. -->
-      <div>
-        <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="confirm_password_label">Confirm Password</label>
-        <div class="relative">
-          <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-          <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8"
-            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
-            placeholder="Re-enter your password" data-i18n-placeholder="auth_pw_confirm_placeholder" />
-        </div>
-        <p class="text-[10px] text-red-500 mt-1 hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>
-      </div>
-      <!-- Multi-Role Architecture: Role selection removed from registration.
-           Users start as 'donor' by default and activate additional roles from dashboard. -->
+      </fieldset>
 
-      <!-- GAP-X05 FIX: Active consent checkbox — GDPR Art. 7 requires demonstrable consent.
-           Previous: passive footer text "By continuing, you agree..." — legally insufficient.
-           Standard: GDPR Art. 7, ePrivacy Directive, Industry registration standards. -->
-      <div class="flex items-start gap-3 mt-1">
-        <input id="reg-terms" name="terms" type="checkbox" required
-          class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
-        <label for="reg-terms" class="text-[11px] text-slate-500 leading-relaxed cursor-pointer">
-          <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Privacy Policy</a></span>
-        </label>
-      </div>
+      <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
+      <fieldset class="nm-step-panel" data-reg-step="3" style="display:none;border:none;padding:0;margin:0;">
+        <legend class="sr-only">Step 3: Review and Agree</legend>
+        <!-- Multi-Role Architecture note -->
+        <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
 
-      <!-- Submit -->
-      <button type="submit" id="reg-submit" class="btn-primary mt-2">
-        <i class="ph ph-user-plus" aria-hidden="true"></i>
-        <span id="reg-submit-text" data-i18n="create_account_btn">Create Account</span>
-      </button>
+        <!-- Summary card: show what user entered -->
+        <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-i18n="reg_review_info">Review Your Info</p>
+          <div class="flex items-center gap-3">
+            <div class="size-10 bg-trust-blue/10 rounded-full flex items-center justify-center shrink-0">
+              <i class="ph ph-user text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0">
+              <p id="reg-review-name" class="text-sm font-bold truncate">—</p>
+              <p id="reg-review-email" class="text-xs text-slate-500 truncate">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- GAP-X05 FIX: Active consent checkbox — GDPR Art. 7 -->
+        <div class="flex items-start gap-3 mt-1">
+          <!-- GAP-2026-B07 FIX: aria-describedby links checkbox to validation error. -->
+          <input id="reg-terms" name="terms" type="checkbox" required
+            aria-describedby="reg-terms-error"
+            class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
+          <label for="reg-terms" class="text-[11px] text-slate-500 leading-relaxed cursor-pointer">
+            <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Privacy Policy</a></span>
+          </label>
+        </div>
+        <!-- GAP-2026-B07 FIX: Custom validation error -->
+        <p id="reg-terms-error" class="text-[10px] text-red-500 font-semibold mt-1 hidden" role="alert" data-i18n="auth_terms_required">Please accept the Terms and Privacy Policy to continue.</p>
+
+        <!-- Navigation -->
+        <div class="flex gap-3 mt-4">
+          <button type="button" class="nm-step-back flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2" data-goto-step="2">
+            <i class="ph ph-arrow-left" aria-hidden="true"></i>
+            <span data-i18n="reg_back">Back</span>
+          </button>
+          <!-- Submit (existing ID preserved for auth.ts) -->
+          <button type="submit" id="reg-submit" class="btn-primary flex-[2]">
+            <i class="ph ph-user-plus" aria-hidden="true"></i>
+            <span id="reg-submit-text" data-i18n="create_account_btn">Create Account</span>
+          </button>
+        </div>
+      </fieldset>
     </form>
 
     <!-- Trust Footer -->
@@ -267,18 +378,22 @@
 
   </main>
 
+  <!-- M-AUD-007 FIX: Standardized DOM order to: </main> → <footer> → orbs → scripts.
+       Previous: orbs → footer (inconsistent with index.html/profile.html).
+       Standard: DOM Consistency, Semantic-First Layout. -->
+  <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+  <footer class="nm-legal-footer">
+    <nav aria-label="Legal navigation">
+      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+    </nav>
+    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+  </footer>
+
   <!-- P0-ARCH-001 FIX: RTL-safe logical properties via CSS classes (was hardcoded right/left) -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
   <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/auth.js" defer></script>

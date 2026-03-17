@@ -155,8 +155,16 @@ html[data-theme="dark"] main { background-color: #0f1117; color: #e2e8f0; }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers) */
 html[data-theme="dark"] .top-nav,
 html[data-theme="dark"] .page-header { background: rgba(15,17,23,0.9); border-color: rgba(255,255,255,0.06); }
-html[data-theme="dark"] .font-medium { color: #f1f5f9; }
-html[data-theme="dark"] .font-bold { color: #f8fafc; }
+/* CONF-2026-A04 FIX: Scoped dark mode text overrides — was blanket `.font-bold { color: #f8fafc }`.
+   Previous: ALL elements with font-bold/font-medium turned white in dark mode → stripped
+   intentional brand colors from KPI values (.text-smoky-jade.font-black), badge text
+   (.text-trust-blue.font-bold), and other colored typography.
+   Now: Only applies to elements WITHOUT explicit Tailwind text color utilities.
+   Uses :not() with all design system color classes for surgical precision.
+   Standard: CSS Specificity Architecture — "Broad selectors must not override specific intent." */
+html[data-theme="dark"] .font-medium:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]):not([class*="text-slate-"]):not([class*="text-emerald"]):not([class*="text-blue-"]):not([class*="text-amber"]):not([class*="text-indigo"]) { color: #f1f5f9; }
+html[data-theme="dark"] .font-bold:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]):not([class*="text-slate-"]):not([class*="text-emerald"]):not([class*="text-blue-"]):not([class*="text-amber"]):not([class*="text-indigo"]) { color: #f8fafc; }
+html[data-theme="dark"] .font-black:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f8fafc; }
 
 /* ── Logo Swap ── */
 .logo-dark { display: none; }
@@ -1164,15 +1172,46 @@ html[data-theme="dark"] .text-red-400 {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── C-003 FIX: Touch Target Minimum Size ───────────────────────────────── */
-/* Ensure all core interactive elements meet WCAG 2.5.5 (44×44px minimum) on touch. */
+/* ─── C-003 FIX: Touch Target Minimum Size (WCAG 2.5.5 / 2.5.8) ─────────── */
+/* CONF-2026-A01 FIX: Refined from blanket `button, a[href]` rule to targeted selectors.
+   Previous: ALL buttons and links got 44px minimum → inflated footer links, filter pills,
+   badges, breadcrumbs, and other purposefully compact elements, breaking visual layout.
+   Now: 44px minimum ONLY on standalone form-level buttons and primary action elements.
+   Compact interactive elements are explicitly exempt via their design system classes.
+   Standard: Apple HIG — "Provide ample touch targets for interactive elements" (not ALL)
+   WCAG 2.5.8 — Target Size (Minimum) allows exceptions for inline/equivalent targets. */
 @media (pointer: coarse) {
-    button, [role="button"], a[href] {
+    /* Standalone buttons (forms, CTAs, dialogs, actions) */
+    button:not(.filter-pill):not(.nm-confirm-cancel):not(.nm-confirm-destructive):not(.completion-action):not(.nm-toast-close):not(.nm-nav-item),
+    [role="button"] {
         min-height: 44px;
-        min-width: 44px;
     }
-    /* Exempt inline text links from minimum sizing */
-    p a[href], span a[href], li a[href], td a[href] {
+    /* Primary navigation links (standalone, not inline text) */
+    .btn-primary, .btn-secondary, .btn-jade, .btn-field-capture,
+    .glass-card > a[href], .quick-action-link {
+        min-height: 44px;
+    }
+    /* ─── Comprehensive Exemptions ─────────────────────────────── */
+    /* Inline text links in paragraphs, spans, lists, table cells */
+    p a[href], span a[href], li a[href], td a[href],
+    /* Legal footer links (compact by design — 12px text, tight spacing) */
+    .nm-legal-footer a,
+    /* Filter pills (compact rounded toggles — visual design communicates small size) */
+    .filter-pill,
+    /* Badge-level links (10px uppercase text, 2px×8px padding) */
+    .badge-verified, .badge-primary, .badge-warning, .badge-progress,
+    /* Toast close buttons (8px padding, intentionally minimal) */
+    .nm-toast-close,
+    /* Breadcrumb separator links */
+    .nm-breadcrumb a,
+    /* Completion action buttons (dotted underline text buttons in checklists) */
+    .completion-action,
+    /* SSO buttons already have sufficient height via py-3 (48px) */
+    .sso-coming-soon,
+    /* Tab labels in sidebar (already meet 44px via py-2 + gap-3 layout) */
+    [role="tab"],
+    /* Details/summary triggers (text-level interactive) */
+    summary, details summary {
         min-height: unset;
         min-width: unset;
     }
@@ -1917,31 +1956,56 @@ html[data-theme="dark"] .page-header {
 }
 
 /* ============================================================================
+   P2-MED-004 FIX: Auth Tab Active State
+   Previously dynamically injected in auth.ts — moved to CSS for single source
+   of truth. Dark mode override in _dark-mode.css.
+   Standard: DRY Principle, CSS Architecture Best Practices.
+   ============================================================================ */
+/* F-AUD-003 FIX: Material Design 3-style sliding indicator for auth tabs.
+   Previous: Static background toggle — no motion, felt lifeless.
+   Now: Smooth transition on background, color, and box-shadow for a premium feel.
+   The .auth-tabs container uses position:relative for the indicator context.
+   Standard: Material Design 3 (Animated Tabs), Apple HIG (Fluid Motion). */
+.auth-tab-active {
+    background: var(--surface);
+    color: var(--trust-blue);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Inactive tab transition — ensures smooth state changes in both directions */
+[role="tab"] {
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* P3-PLT-002 FIX: Landscape phone theme toggle repositioning.
+   Moved from inline <style> in auth.html to CSS single source of truth.
+   On landscape phones (<500px height), theme toggle shifts to bottom-right
+   to avoid overlapping the auth tab switcher.
+   Standard: Apple HIG — Controls must not obscure actionable content. */
+@media (max-height: 500px) and (orientation: landscape) {
+    #nm-theme-toggle { top: auto !important; bottom: 0.75rem !important; }
+}
+
+/* ============================================================================
    FRC-P07 FIX: Social SSO "Coming Soon" Badge
    Standard: Nielsen Heuristic #2 — "Match between system and real world."
    ============================================================================ */
+/* F-AUD-004 FIX: SSO "Coming Soon" — reduced affordance but clickable.
+   Previous: pointer-events:none blocked C-AUD-002 JS click handlers.
+   Now: Pointer events allowed (for "coming soon" banner feedback),
+   but visual affordance reduced via opacity + grayscale + no hover lift.
+   Standard: Honest Affordances, Nielsen #1 (System Status Visibility). */
 .sso-coming-soon {
     position: relative;
-    opacity: 0.6;
-    cursor: default;
-    pointer-events: none;
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: grayscale(40%);
+    transition: opacity 0.2s ease;
 }
-.sso-coming-soon::after {
-    content: attr(data-coming-soon);
-    position: absolute;
-    top: -6px;
-    inset-inline-end: -6px;
-    font-size: 8px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--warning-yellow);
-    color: #1e293b;
-    padding: 1px 5px;
-    border-radius: var(--radius-full);
-    line-height: 1.4;
+.sso-coming-soon:hover {
+    opacity: 0.65;
 }
-
 /* ============================================================================
    FRC-P09 FIX: Pull-to-Refresh Hint (First Visit)
    Standard: Apple HIG — "Discoverable gestures."
@@ -2369,4 +2433,161 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     .nm-donation-table tbody td[data-label]::before {
         min-width: 60px;
     }
+}
+
+/* ============================================================================
+   FRIC-2026-D04 FIX: Hide Zero-Count Sidebar Tab Badges
+   Tab count badges showing "0" provide no useful information and add noise.
+   This hides them when their text content is "0" using :empty-like logic.
+   JS modules set badge text — when "0", the badge becomes visually hidden.
+   Standard: Nielsen #8 (Aesthetic and Minimalist Design).
+   ============================================================================ */
+.dashboard-sidebar [role="tab"] span[id$="-count"]:empty,
+.dashboard-sidebar [role="tab"] span[id$="-count"][data-count="0"] {
+    display: none;
+}
+
+/* ============================================================================
+   FRIC-2026-D06 FIX: Fully Funded Project Card Celebration State
+   When a project reaches 100% funding, the card should visually celebrate.
+   JS adds [data-funded="100"] to the card container.
+   Standard: Emotional Design, Trust UX, Gamification.
+   ============================================================================ */
+[data-funded="100"] {
+    border-color: var(--smoky-jade) !important;
+    box-shadow: 0 0 0 2px rgba(16, 145, 115, 0.15), var(--shadow-glass);
+}
+[data-funded="100"]::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    inset-inline-end: 8px;
+    width: 24px;
+    height: 24px;
+    background: var(--smoky-jade);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Checkmark via CSS pseudo-element */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px;
+    animation: fundedPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fundedPop {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    [data-funded="100"]::after {
+        animation: none;
+    }
+}
+
+/* ============================================================================
+   FRIC-2026-D03 FIX: Multi-Step Registration Wizard
+   Stepper indicator, step panel transitions, and navigation layout.
+   Uses progressive disclosure: 7 fields → 3 steps × 2-3 fields each.
+   Standard: Miller's Law (7±2), Material Design 3, Apple HIG.
+   ============================================================================ */
+
+/* Stepper Indicator */
+.nm-step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+}
+.nm-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    background: #e2e8f0;
+    color: #94a3b8;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nm-step-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: color 0.3s;
+}
+.nm-step-line {
+    width: 32px;
+    height: 2px;
+    background: #e2e8f0;
+    border-radius: 1px;
+    margin-bottom: 20px; /* align with dot center */
+    transition: background 0.4s;
+}
+
+/* Active step */
+.nm-step-indicator.active .nm-step-num {
+    background: var(--trust-blue);
+    color: white;
+    box-shadow: 0 2px 12px rgba(26, 115, 232, 0.35);
+}
+.nm-step-indicator.active .nm-step-label {
+    color: var(--trust-blue);
+}
+
+/* Completed step */
+.nm-step-indicator.completed .nm-step-num {
+    background: var(--smoky-jade);
+    color: white;
+}
+.nm-step-indicator.completed .nm-step-label {
+    color: var(--smoky-jade);
+}
+.nm-step-indicator.completed + .nm-step-line {
+    background: var(--smoky-jade);
+}
+
+/* Step panels — slide transitions */
+.nm-step-panel {
+    animation: stepSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes stepSlideIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+[dir="rtl"] .nm-step-panel {
+    animation-name: stepSlideInRTL;
+}
+@keyframes stepSlideInRTL {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nm-step-panel {
+        animation: none;
+    }
+}
+
+/* Dark mode adaptation for stepper */
+html[data-theme="dark"] .nm-step-num {
+    background: #334155;
+    color: #64748b;
+}
+html[data-theme="dark"] .nm-step-line {
+    background: #334155;
+}
+html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
+    background: var(--trust-blue);
+    color: white;
+}
+html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
+    background: var(--smoky-jade);
+    color: white;
 }

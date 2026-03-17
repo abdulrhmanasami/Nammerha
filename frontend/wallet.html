@@ -141,7 +141,10 @@
 
   <!-- Transaction History -->
   <section class="px-4 pt-8">
-    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="recent_transactions">Recent Transactions</h3>
+    <!-- INC-2026-C01 FIX: h3→h2 — heading hierarchy must not skip levels.
+         Previous: h1 (Wallet) → h3 (Recent Transactions) — skipped h2.
+         Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.3.10. -->
+    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="recent_transactions">Recent Transactions</h2>
     <!-- FRC-NEW-04 FIX: Added temporal grouping infrastructure.
          Previous: flat list — no date context for financial transactions.
          Now: JS can insert date headers ("Today", "Yesterday", "March 15") between groups.
@@ -196,6 +199,11 @@
       </div>
     </div>
     <div class="nm-confirm-actions">
+      <!-- GAP-2026-B03 FIX: Added "Notify Me" action — dead CTA must offer alternative path.
+           Previous: only Close button → user hits a wall with no next step.
+           Now: Notification interest capture provides a meaningful user action.
+           Standard: Nielsen #10 (Help and Documentation), FinTech UX (Financial Action Feedback). -->
+      <button type="button" id="deposit-notify-btn" class="nm-confirm-cancel" style="background:var(--trust-blue);color:white;border-color:var(--trust-blue);" data-i18n="deposit_notify_me">Notify Me When Available</button>
       <button type="button" class="nm-confirm-cancel" data-action="cancel" data-i18n="close">Close</button>
     </div>
   </dialog>

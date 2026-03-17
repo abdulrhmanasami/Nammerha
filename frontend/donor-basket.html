@@ -44,11 +44,11 @@
   <!-- FRC-N02 FIX: Dynamic bottom padding — calc(320px + safe-area-inset) ensures
        last cart item is fully visible above the ~280px checkout sheet + tip expansion.
        Previous: pb-64 (256px) was insufficient when tip section expanded. -->
-  <!-- CONF-X03 FIX: Replaced magic number 320px with CSS custom property --checkout-sheet-height.
-       Previous: hardcoded 320px that must manually track checkout sheet height.
-       Now: Named token — CSS or JS can update when sheet content changes.
-       Standard: DRY Principle, Apple HIG (resilient layouts). -->
-  <main id="main-content" class="mobile-container flex flex-col relative" style="padding-bottom: calc(var(--checkout-sheet-height, 320px) + env(safe-area-inset-bottom, 0px))">
+  <!-- C-AUD-003 FIX: Added 60px for nav.js bottom navigation height to prevent collision.
+       Previous: padding-bottom only included checkout-sheet-height + safe-area — bottom nav
+       covered the 'Confirm Funding' button on mobile.
+       Standard: Apple HIG (Avoid Overlapping Controls), WCAG 2.5.8 (Target Size). -->
+  <main id="main-content" class="mobile-container flex flex-col relative" style="padding-bottom: calc(var(--checkout-sheet-height, 320px) + 60px + env(safe-area-inset-bottom, 0px))">
 
     <!-- INC-N01 FIX: Standardized to unified page-header pattern (h-14 = 56px).
          Previous: custom px-6 py-5 padding (~68px height) — inconsistent with all
@@ -107,7 +107,8 @@
 
     <!-- Cart Items Container (dynamically rendered) -->
     <div class="px-6 flex flex-col gap-4" id="cart-items-container">
-      <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest ms-1" data-i18n="materials_to_fund">Materials to Fund</h3>
+      <!-- M-AUD-002 FIX: Changed from h3 to h2 — h1→h3 skips a level (WCAG 1.3.1). -->
+      <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest ms-1" data-i18n="materials_to_fund">Materials to Fund</h2>
       <!-- Items rendered by JS -->
     </div>
 
@@ -115,7 +116,8 @@
     <div class="px-6" id="empty-cart-state" style="display:none">
       <div class="empty-cart">
         <i class="ph ph-shopping-cart text-slate-300" style="font-size:64px" aria-hidden="true"></i>
-        <h3 class="text-lg font-bold text-slate-500" data-i18n="basket_empty">Your basket is empty</h3>
+        <!-- M-AUD-002 FIX: Changed from h3 to h2 — sequential heading hierarchy (WCAG 1.3.1). -->
+        <h2 class="text-lg font-bold text-slate-500" data-i18n="basket_empty">Your basket is empty</h2>
         <p class="text-sm text-slate-400" data-i18n="browse_projects_hint">Browse projects to add construction materials</p>
         <a href="projects.html" class="btn-secondary !w-auto !px-6 mt-2">
           <i class="ph ph-compass" aria-hidden="true"></i>
@@ -142,7 +144,11 @@
     <!-- FRC-NEW-02 FIX: Checkout sheet collapsibility — was fixed at ~320px taking >50% of iPhone SE.
          Added drag handle and collapse toggle so users can minimize while browsing.
          Standard: Apple HIG (Content Visibility), Responsive Design. -->
-    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-checkout hidden" id="checkout-sheet" data-expanded="true">
+    <!-- P2-MED-006 FIX: Replaced hardcoded max-w-[448px] with mobile-container max-width.
+         Previous: checkout sheet was narrower than content on tablets (≥768px).
+         Now: uses same responsive token as .mobile-container.
+         Standard: Responsive Design, Layout Consistency. -->
+    <div class="glass-sheet fixed bottom-0 start-0 end-0 mobile-container mx-auto p-6 pb-8 z-checkout hidden" id="checkout-sheet" data-expanded="true">
       <!-- Drag handle for visual affordance -->
       <div class="flex justify-center mb-3 cursor-pointer" id="checkout-handle" role="button" aria-label="Toggle checkout panel" tabindex="0">
         <div class="w-10 h-1 bg-slate-300 rounded-full"></div>

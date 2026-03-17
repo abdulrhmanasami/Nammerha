@@ -16,14 +16,12 @@ type UserRole = 'homeowner' | 'donor' | 'engineer' | 'supplier' | 'contractor' |
 interface AuthState {
     mode: 'login' | 'register';
     selectedRole: UserRole | null;
-    selectedIntent: string | null;
     isSubmitting: boolean;
 }
 
 const state: AuthState = {
     mode: 'login',
     selectedRole: null,
-    selectedIntent: null,
     isSubmitting: false,
 };
 
@@ -59,8 +57,154 @@ function switchTab(mode: 'login' | 'register'): void {
     }
 }
 
-tabLogin?.addEventListener('click', () => switchTab('login'));
-tabRegister?.addEventListener('click', () => switchTab('register'));
+// P2-MED-001 FIX: Removed initial anonymous listeners.
+// The wizard-aware listeners below (L201+) are the single source of truth.
+
+// ─── FRIC-2026-D03 FIX: Multi-Step Registration Wizard Engine ───────────────
+// Progressive disclosure: 7 fields → 3 steps × 2-3 fields.
+// Step 1: Identity (name, email). Step 2: Security (password, confirm).
+// Step 3: Consent (review card, terms checkbox, submit).
+// Uses per-step validation before advancing. Stepper indicator shows progress.
+// Standard: Miller's Law (7±2), Material Design 3, Apple HIG.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let currentRegStep = 1;
+
+/**
+ * Navigate to a specific registration step.
+ * Validates current step fields before advancing forward.
+ */
+function goToRegStep(targetStep: number): void {
+    // ── Forward validation gate ──
+    if (targetStep > currentRegStep) {
+        if (!validateCurrentStep()) { return; }
+    }
+
+    // ── Update panels ──
+    const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
+    panels?.forEach(panel => {
+        const step = parseInt(panel.dataset.regStep ?? '0', 10);
+        if (step === targetStep) {
+            panel.style.display = '';
+            // Re-trigger animation
+            panel.style.animation = 'none';
+            // Force reflow
+            void panel.offsetHeight;
+            panel.style.animation = '';
+        } else {
+            panel.style.display = 'none';
+        }
+    });
+
+    // ── Update stepper dots ──
+    const dots = formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]');
+    dots?.forEach(dot => {
+        const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
+        dot.classList.remove('active', 'completed');
+        if (dotStep === targetStep) {
+            dot.classList.add('active');
+        } else if (dotStep < targetStep) {
+            dot.classList.add('completed');
+        }
+    });
+
+    // ── Update connecting lines ──
+    const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
+    lines?.forEach((line, i) => {
+        // Line i connects step (i+1) to step (i+2)
+        const afterStep = i + 1;
+        if (afterStep < targetStep) {
+            line.style.background = 'var(--smoky-jade)';
+        } else {
+            line.style.background = '';
+        }
+    });
+
+    // ── Populate Step 3 review card ──
+    if (targetStep === 3) {
+        const nameVal = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim() ?? '—';
+        const emailVal = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim() ?? '—';
+        const reviewName = document.getElementById('reg-review-name');
+        const reviewEmail = document.getElementById('reg-review-email');
+        if (reviewName) reviewName.textContent = nameVal;
+        if (reviewEmail) reviewEmail.textContent = emailVal;
+    }
+
+    currentRegStep = targetStep;
+
+    // ── Auto-focus first input in step ──
+    const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(`[data-reg-step="${targetStep}"]`);
+    const firstInput = activePanel?.querySelector<HTMLInputElement>('input:not([type="hidden"]):not([type="checkbox"])');
+    firstInput?.focus();
+}
+
+/**
+ * Validate fields in the current step before allowing forward navigation.
+ */
+function validateCurrentStep(): boolean {
+    if (currentRegStep === 1) {
+        const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
+        const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
+        if (!name) {
+            showBanner('error', t('auth_name_required', 'Please enter your full name.'));
+            document.getElementById('reg-name')?.focus();
+            return false;
+        }
+        if (!email) {
+            showBanner('error', t('auth_email_required', 'Please enter your email address.'));
+            document.getElementById('reg-email')?.focus();
+            return false;
+        }
+        // Basic email format check
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showBanner('error', t('auth_email_invalid', 'Please enter a valid email address.'));
+            document.getElementById('reg-email')?.focus();
+            return false;
+        }
+        hideBanner();
+        return true;
+    }
+    if (currentRegStep === 2) {
+        const pw = (document.getElementById('reg-password') as HTMLInputElement)?.value ?? '';
+        const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
+        if (pw.length < 8) {
+            showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
+            document.getElementById('reg-password')?.focus();
+            return false;
+        }
+        if (!/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
+            showBanner('error', t('auth_password_complexity', 'Password must contain uppercase, lowercase, number, and symbol.'));
+            document.getElementById('reg-password')?.focus();
+            return false;
+        }
+        if (pw !== confirmPw) {
+            showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
+            document.getElementById('reg-password-confirm')?.focus();
+            return false;
+        }
+        hideBanner();
+        return true;
+    }
+    return true; // Step 3 validation happens at form submit
+}
+
+// ─── Wire step navigation buttons ───────────────────────────────────────────
+formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const target = parseInt(btn.dataset.gotoStep ?? '1', 10);
+        goToRegStep(target);
+    });
+});
+
+// P2-MED-001 FIX: Single source of truth for tab click handlers.
+// Reset wizard to Step 1 when switching to Register tab.
+tabLogin?.addEventListener('click', () => {
+    switchTab('login');
+});
+tabRegister?.addEventListener('click', () => {
+    switchTab('register');
+    goToRegStep(1);
+});
 
 // ─── Banner / Feedback ──────────────────────────────────────────────────────
 // P2-AUD-002 FIX: Shared banner utility replaces local duplicate
@@ -108,41 +252,11 @@ regPassword?.addEventListener('input', () => {
     updateRegisterButton();
 });
 
-// ─── GAP-01 FIX: Intent Selection Cards ─────────────────────────────────────
-const intentCards = document.querySelectorAll<HTMLButtonElement>('.intent-card');
-const regIntentInput = document.getElementById('reg-intent') as HTMLInputElement | null;
-
-function selectIntent(intentValue: string): void {
-    state.selectedIntent = intentValue;
-    if (regIntentInput) { regIntentInput.value = intentValue; }
-
-    // Highlight selected card
-    intentCards.forEach((card) => {
-        const isSelected = card.dataset.intent === intentValue;
-        const checkIcon = card.querySelector('.intent-check .ph') as HTMLElement | null;
-        if (isSelected) {
-            card.classList.add('!border-trust-blue', 'shadow-md', 'bg-trust-blue/5');
-            card.classList.remove('border-transparent');
-            if (checkIcon) {
-                checkIcon.className = 'ph ph-check-circle text-trust-blue';
-            }
-        } else {
-            card.classList.remove('!border-trust-blue', 'shadow-md', 'bg-trust-blue/5');
-            card.classList.add('border-transparent');
-            if (checkIcon) {
-                checkIcon.className = 'ph ph-circle';
-            }
-        }
-    });
-    updateRegisterButton();
-}
-
-intentCards.forEach((card) => {
-    card.addEventListener('click', () => {
-        const intent = card.dataset.intent;
-        if (intent) { selectIntent(intent); }
-    });
-});
+// P0-CRIT-001 FIX: Intent Selection Cards REMOVED.
+// The multi-step wizard (FRIC-2026-D03) replaced intent cards with a 3-step
+// progressive disclosure flow. All 6 orphaned selectedIntent references have
+// been surgically excised. Registration now validates: name, email, password
+// complexity, password confirmation, and terms acceptance (P1-CRIT-006).
 
 // ─── Register Button State ──────────────────────────────────────────────────
 const regSubmit = document.getElementById('reg-submit') as HTMLButtonElement | null;
@@ -155,7 +269,8 @@ function updateRegisterButton(): void {
     const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
 
     // FRC-002 FIX: Include password confirmation match check
-    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && Boolean(state.selectedIntent) && password === confirmPw;
+    // P0-CRIT-001 FIX: Removed Boolean(state.selectedIntent) — intent cards no longer exist.
+    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && password === confirmPw;
     // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
     // The button is ALWAYS clickable so the submit handler can show validation feedback.
     regSubmit.style.opacity = valid ? '1' : '0.6';
@@ -214,9 +329,14 @@ function validateRegisterForm(): boolean {
         return false;
     }
 
-    // GAP-01: Validate intent selection
-    if (!state.selectedIntent) {
-        showBanner('error', t('auth_select_intent', 'Please select your primary goal.'));
+    // P1-CRIT-006 FIX: Validate terms & privacy checkbox acceptance.
+    // GDPR Art. 7 — consent must be demonstrably obtained before registration.
+    // HTML has `required` on #reg-terms, but `novalidate` on the form disables native checks.
+    const termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
+    if (!termsCheckbox?.checked) {
+        const termsError = document.getElementById('reg-terms-error');
+        if (termsError) { termsError.classList.remove('hidden'); }
+        showBanner('error', t('auth_terms_required', 'Please accept the Terms and Privacy Policy.'));
         return false;
     }
 
@@ -252,7 +372,7 @@ formLogin?.addEventListener('submit', async (e) => {
     if (submitText) { submitText.textContent = t('auth_signing_in', 'Signing in...'); }
 
     try {
-        const response = await auth.login({ email, password });
+        const response = await auth.login({ email, password, remember: (document.getElementById('remember-me') as HTMLInputElement)?.checked ?? false });
         if (response.success && response.data) {
             // V1-AUDIT FIX: JWT is now in httpOnly cookie set by backend.
             // Only store non-sensitive user profile data for UI rendering.
@@ -354,21 +474,28 @@ formRegister?.addEventListener('submit', async (e) => {
         // The root cause was an indefinite hang without AbortController timeout.
         // api.ts request() now has a 30s AbortController (MED-AUD-009), resolving the hang.
         // Using centralized auth.register() gains: CSRF, timeout, and error reporting.
-        // GAP-01: Include selected intent in registration payload
-        const response = await auth.register({ email, password, full_name, intent: state.selectedIntent ?? undefined });
+        // P0-CRIT-001 FIX: intent field removed — no longer collected in the wizard flow.
+        const response = await auth.register({ email, password, full_name });
 
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.
         if (response.success) {
             // GAP-002 FIX: Set onboarding flag for first-login guided tour
             try { localStorage.setItem('nmh_onboarding_pending', '1'); } catch { /* Safari private mode */ }
-            showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Please check your email to verify your account.'));
+            // M-AUD-010 FIX: Show transition feedback before switching tabs.
+            // Previous: 2-second blank stare at Step 3 consent form with no indication.
+            // Now: Banner includes countdown hint so user knows what's happening next.
+            // Standard: Material Design 3 (State Transitions), Nielsen #1.
+            showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Redirecting to login...'));
             // Switch to login tab after successful registration
             setTimeout(() => {
                 switchTab('login');
                 // Pre-fill email
                 const loginEmail = document.getElementById('login-email') as HTMLInputElement | null;
-                if (loginEmail) { loginEmail.value = email; }
+                if (loginEmail) {
+                    loginEmail.value = email;
+                    loginEmail.focus();
+                }
             }, 2000);
         } else {
             showBanner('error', response.error ?? t('auth_reg_failed', 'Registration failed. Please try again.'));
@@ -386,25 +513,25 @@ formRegister?.addEventListener('submit', async (e) => {
     }
 });
 
-// ─── Auth Tab CSS ───────────────────────────────────────────────────────────
-// P1-002 FIX: Uses var(--surface) instead of hardcoded 'white'.
-// Dark mode override in main.css handles html[data-theme="dark"] .auth-tab-active.
-const style = document.createElement('style');
-style.textContent = `
-  .auth-tab-active {
-    background: var(--surface);
-    color: var(--trust-blue);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-`;
-document.head.appendChild(style);
+// P2-MED-004 FIX: .auth-tab-active CSS moved to main.css (single source of truth).
+// Was dynamically injected via document.createElement('style') — violated DRY principle.
 
 // ─── PLT-AUD-002: Forgot Password Handler ───────────────────────────────────
 const forgotBtn = document.getElementById('forgot-password-btn');
 forgotBtn?.addEventListener('click', async () => {
     const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
     if (!email) {
-        showBanner('error', t('auth_forgot_enter_email', 'Please enter your email address first, then click "Forgot your password?"'));
+        // M-AUD-003 FIX: Instead of a blocking error banner, focus the email field
+        // and show a guiding instruction. Previous: user had to navigate away from
+        // forgot-password intent, fill login email, then retry.
+        // Standard: Nielsen #7 (Flexibility and Efficiency).
+        const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
+        if (loginEmailInput) {
+            loginEmailInput.focus();
+            loginEmailInput.classList.add('ring-2', 'ring-trust-blue/50', 'border-trust-blue');
+            setTimeout(() => loginEmailInput.classList.remove('ring-2', 'ring-trust-blue/50', 'border-trust-blue'), 3000);
+        }
+        showBanner('error', t('auth_forgot_enter_email', 'Enter your email above, then tap "Forgot your password?" again.'));
         return;
     }
 
@@ -426,4 +553,16 @@ forgotBtn?.addEventListener('click', async () => {
         forgotBtn.textContent = t('auth_forgot_link_text', 'Forgot your password?');
         (forgotBtn as HTMLButtonElement).disabled = false;
     }
+});
+
+// ─── C-AUD-002 FIX: SSO "Coming Soon" Click Handlers ──────────────────────────
+// SSO buttons were silent dead ends — no JS handler, no feedback on click.
+// Now: shows a clear banner explaining social login is coming soon.
+// Standard: Nielsen #1 (System Status Visibility), Honest Affordances.
+// ───────────────────────────────────────────────────────────────────────────────
+document.querySelectorAll<HTMLButtonElement>('[data-sso-provider]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const provider = btn.dataset.ssoProvider === 'apple' ? 'Apple' : 'Google';
+        showBanner('error', t('auth_sso_coming_soon', `Sign in with ${provider} is coming soon. Please register with email for now.`));
+    });
 });
