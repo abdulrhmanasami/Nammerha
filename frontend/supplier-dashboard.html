@@ -122,7 +122,9 @@
         <!-- MED-007 FIX: Standardized from text-[10px] to text-xs (12px) — matches all other portals. -->
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
-      <div class="flex items-center gap-3">
+      <!-- GAP-M01 FIX: Was gap-3 — all other 5 portals use gap-4.
+           Standard: Nielsen #4 (Consistency). -->
+      <div class="flex items-center gap-4">
         <!-- RES-G01 FIX: role-switcher-mount-header was missing — all other dashboards have it.
              Standard: Nielsen #4 (Consistency). -->
         <div id="role-switcher-mount-header"></div>
@@ -131,7 +133,9 @@
              Standard: Nielsen #2 (No dead controls). -->
         <button class="relative p-2 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-orders">
           <i class="ph ph-bell" style="font-size:18px" aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-warning-yellow text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <!-- CONF-C03 FIX: Was bg-warning-yellow — all other 5 portals use bg-trust-blue.
+               Standard: Nielsen #4 (Consistency), Apple HIG (system-level UI parity). -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
     </header>
@@ -155,7 +159,9 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
-            <div class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center">
+            <!-- CONF-C01 FIX: Was rounded-lg — all other 5 portals use rounded-xl.
+                 Standard: Design System Component Unity. -->
+            <div class="size-10 bg-warning-yellow/10 rounded-xl flex items-center justify-center">
               <i class="ph ph-clock-countdown text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
@@ -164,7 +170,7 @@
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
-            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
+            <div class="size-10 bg-smoky-jade/10 rounded-xl flex items-center justify-center">
               <i class="ph ph-handshake text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
@@ -173,8 +179,12 @@
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
-            <div class="size-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <i class="ph ph-truck text-purple-600" style="font-size:20px" aria-hidden="true"></i>
+            <!-- CONF-C02 FIX: Was bg-purple-100 / text-purple-600 — purple is NOT a design token.
+                 Replaced with warm-earth (logistics/shipping semantic).
+                 Platform palette: trust-blue, smoky-jade, warm-earth, warning-yellow.
+                 Standard: Design System Token Governance. -->
+            <div class="size-10 bg-warm-earth/10 rounded-xl flex items-center justify-center">
+              <i class="ph ph-truck text-warm-earth" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_in_transit">In Transit</p>
@@ -182,7 +192,7 @@
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
-            <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
+            <div class="size-10 bg-trust-blue/10 rounded-xl flex items-center justify-center">
               <i class="ph ph-currency-dollar text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
@@ -381,6 +391,22 @@
        Standard: Design System Visual Cohesion. -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
   <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+<!-- ARCH-C04 FIX: Empty-state template — was missing from supplier-dashboard.
+     All other 4 portals (donor, homeowner, tradesperson, contractor-portal) have it.
+     TS modules clone this template into empty tbody after data fetch.
+     Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
+<template id="tpl-table-empty">
+  <tr>
+    <td colspan="99" class="px-5 py-0">
+      <div class="nm-table-empty">
+        <div class="nm-empty-icon"><i class="ph ph-package" aria-hidden="true"></i></div>
+        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
+        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+      </div>
+    </td>
+  </tr>
+</template>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/supplier.js" defer></script>

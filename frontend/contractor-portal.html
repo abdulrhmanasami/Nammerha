@@ -77,7 +77,8 @@
     <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Contractor portal navigation">
       <button type="button" role="tab" id="tab-dashboard" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+        <!-- GAP-M02 FIX: Was data-i18n="admin_dashboard" — semantically wrong for non-admin portal. -->
+        <span class="font-medium" data-i18n="common_dashboard">Dashboard</span>
       </button>
       <button type="button" role="tab" id="tab-marketplace" aria-selected="false" aria-controls="section-marketplace" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-storefront" aria-hidden="true"></i>
@@ -132,14 +133,20 @@
         <!-- MED-008 FIX: Notification bell added — previously only on 2/6 portals.
              Scrolls to the relevant data section (bids for contractor).
              Standard: Nielsen #4 (Consistency), feature surface parity. -->
-        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-projects">
+        <!-- FINE-P02 FIX: Was data-scroll-target="section-projects" (old naming).
+             Dashboard section's id is section-dashboard. Corrected.
+             Standard: WCAG 4.1.2 — Name, Role, Value accuracy. -->
+        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
     </header>
 
-    <div class="p-6 space-y-6">
+    <!-- ARCH-C02 FIX: Was missing flex-1 overflow-y-auto — content overflowed on small screens.
+         All other 4 portals (donor, homeowner, supplier, contractor-dashboard) have it.
+         Standard: Apple HIG — Scrollable content areas must be explicitly bounded. -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
     <div class="max-w-6xl mx-auto space-y-6">
       <!-- Header -->
       <div class="flex flex-wrap items-center justify-between gap-4">

@@ -77,7 +77,8 @@
     <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Contractor portal navigation">
       <button type="button" role="tab" id="tab-projects" aria-selected="true" aria-controls="section-projects" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+        <!-- GAP-M02 FIX: Was data-i18n="admin_dashboard" — semantically wrong for non-admin portal. -->
+        <span class="font-medium" data-i18n="common_dashboard">Dashboard</span>
       </button>
       <button type="button" role="tab" id="tab-bids" aria-selected="false" aria-controls="section-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-flag-banner" aria-hidden="true"></i>
@@ -299,6 +300,22 @@
   <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <!-- i18n Engine -->
+<!-- ARCH-C04 FIX: Empty-state template — was missing from contractor-dashboard.
+     All other 4 portals (donor, homeowner, tradesperson, contractor-portal) have it.
+     TS modules clone this template into empty tbody after data fetch.
+     Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
+<template id="tpl-table-empty">
+  <tr>
+    <td colspan="99" class="px-5 py-0">
+      <div class="nm-table-empty">
+        <div class="nm-empty-icon"><i class="ph ph-clipboard-text" aria-hidden="true"></i></div>
+        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
+        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+      </div>
+    </td>
+  </tr>
+</template>
+
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/contractor.js" defer></script>
 <script src="/nav.js?v=7" defer></script>

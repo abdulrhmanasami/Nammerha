@@ -204,6 +204,9 @@
         'admin_portal': { ar: 'بوابة الإدارة', de: 'Admin-Portal', fr: 'Portail admin', tr: 'Yönetici Portalı' },
         'admin_command_center': { ar: 'مركز القيادة', de: 'Kommandozentrale', fr: 'Centre de commande', tr: 'Komuta Merkezi' },
         'admin_dashboard': { ar: 'لوحة المتابعة', de: 'Dashboard', fr: 'Tableau de bord', tr: 'Kontrol Paneli' },
+        /* GAP-M02 FIX: Non-admin portals were reusing admin_dashboard (semantically wrong).
+           common_dashboard is the correct key for generic "Dashboard" tabs. */
+        'common_dashboard': { ar: 'لوحة التحكم', de: 'Dashboard', fr: 'Tableau de bord', tr: 'Kontrol Paneli' },
         'admin_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
         'admin_projects_desc': { ar: 'إجمالي المشاريع النشطة حالياً', de: 'Gesamte derzeit aktive Projekte', fr: 'Total des projets actuellement actifs', tr: 'Toplam aktif proje sayısı' },
         'admin_registered_eng': { ar: 'المهندسون المسجلون', de: 'Registrierte Ingenieure', fr: 'Ingénieurs inscrits', tr: 'Kayıtlı Mühendisler' },
