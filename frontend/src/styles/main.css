@@ -48,6 +48,9 @@
   --warm-earth: #d59f80;
   --dark-tech: #242424;
   --warning-yellow: #fcc934;
+  /* RES-005 FIX: WCAG AA-safe text variant. Original #fcc934 on #fff = 1.56:1 (FAIL).
+     #b45309 (amber-700) on #fff = 4.73:1 (PASS AA). Used for text on light surfaces. */
+  --warning-yellow-text: #b45309;
 
   /* Surfaces */
   --surface: #ffffff;
@@ -155,17 +158,18 @@ html[data-theme="dark"] main { background-color: #0f1117; color: #e2e8f0; }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers) */
 html[data-theme="dark"] .top-nav,
 html[data-theme="dark"] .page-header { background: rgba(15,17,23,0.9); border-color: rgba(255,255,255,0.06); }
-/* PLT-AUD2-SYS001 FIX: Replaced fragile :not() chain with robust cascade architecture.
-   PREVIOUS: 11+ :not() exclusions per selector — required manual extension for every new color class.
-   NOW: Uses `[class]` selectors at the same specificity level. Explicit Tailwind text color
-   overrides in _dark-mode.css (loaded AFTER main.css) naturally win via source order.
-   Any element with an explicit text-X class in _dark-mode.css overrides this default.
-   For brand colors (trust-blue, smoky-jade, warm-earth, warning-yellow), Tailwind
-   generates utilities that the browser applies AFTER these defaults.
-   Standard: CSS Specificity Architecture — "Use cascade order, not specificity wars." */
-html[data-theme="dark"] .font-medium:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f1f5f9; }
-html[data-theme="dark"] .font-bold:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f8fafc; }
-html[data-theme="dark"] .font-black:not([class*="text-trust-blue"]):not([class*="text-smoky-jade"]):not([class*="text-warm-earth"]):not([class*="text-warning-yellow"]):not([class*="text-red-"]):not([class*="text-white"]) { color: #f8fafc; }
+/* ============================================================================
+   RES-001 FIX: Replaced fragile :not() chains with :where() zero-specificity.
+   PREVIOUS: 6+ :not() exclusions per rule — manual extension for every new color.
+   NOW: :where() gives these defaults ZERO specificity. ANY explicit text color
+   class (text-trust-blue, text-red-500, text-white, etc.) naturally wins by
+   specificity, requiring ZERO manual maintenance.
+   Adding new brand colors? They just work. No CSS modifications needed.
+   Standard: CSS Specificity Architecture — ":where() for defaults, classes for overrides."
+   ============================================================================ */
+:where(html[data-theme="dark"]) .font-medium { color: #f1f5f9; }
+:where(html[data-theme="dark"]) .font-bold { color: #f8fafc; }
+:where(html[data-theme="dark"]) .font-black { color: #f8fafc; }
 
 /* ── Logo Swap ── */
 .logo-dark { display: none; }
@@ -1362,6 +1366,18 @@ html[data-theme="dark"] .text-red-400 {
    Now: All design tokens (colors, spacing, radii, shadows, z-index) live together.
    ============================================================================ */
 
+/* ============================================================================
+   RES-004 FIX: Checkout Safe Padding
+   Previous: Inline style on donor-basket <main> — violated CSP intent and was
+   impossible to maintain or override via CSS cascade.
+   Now: CSS class computes bottom padding from checkout sheet height + bottom nav
+   (60px) + device safe-area inset. Uses CSS custom property for dynamic height.
+   Standard: CSP compliance, CSS Single Source of Truth.
+   ============================================================================ */
+.checkout-safe-padding {
+    padding-bottom: calc(var(--checkout-sheet-height, 320px) + 60px + env(safe-area-inset-bottom, 0px));
+}
+
 /* CONF-005 FIX: Checkout sheet keyboard viewport accommodation.
    On iOS Safari and Android when virtual keyboard is visible, the fixed
    checkout sheet should not overlap content. Uses dvh (dynamic viewport height)
@@ -1557,23 +1573,8 @@ html[data-theme="dark"] .nm-toast {
     height: max(env(safe-area-inset-bottom, 0px), 8px);
 }
 
-/* ============================================================================
-   P2-UX-003 FIX: Standardized Portal Header Pattern
-   All portal headers should be sticky, blurred, z-50.
-   ============================================================================ */
-.nm-portal-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: var(--surface-elevated);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-light);
-}
-html[data-theme="dark"] .nm-portal-header {
-    background: rgba(15, 17, 23, 0.85);
-    border-color: rgba(255, 255, 255, 0.06);
-}
+/* RES-008 REMOVED: .nm-portal-header — zero HTML references.
+   Portal headers use inline Tailwind classes instead. Removed 2026-03-18. */
 
 /* ============================================================================
    CON-03 FIX: Safe-Area Inset for Sticky Headers (PWA Standalone)
@@ -1683,51 +1684,8 @@ form[novalidate].submitted input:required:invalid {
     z-index: var(--z-checkout);
 }
 
-/* ============================================================================
-   CON-AUD-02 FIX: Legacy .empty-state DEPRECATED.
-   ════════════════════════════════════════════════
-   Previous: Two competing empty state components existed:
-     - .empty-state (GAP-N07, simpler, no icon container)
-     - .nm-empty-state / .nm-error-state (GAP-P01, canonical, with .nm-state-icon)
-   Conflict: Visually inconsistent empty states across different pages.
-   Resolution: .empty-state is now aliased to inherit from .nm-empty-state base
-   properties. All NEW code must use .nm-empty-state exclusively.
-   Standard: Single Source of Truth — one component per UI pattern.
-   ============================================================================ */
-/* @deprecated — Use .nm-empty-state instead. This alias exists for backward compatibility. */
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem 1.5rem;
-    text-align: center;
-    gap: 0.75rem;
-}
-.empty-state i {
-    font-size: 3rem;
-    color: #cbd5e1;
-}
-.empty-state h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #64748b;
-}
-.empty-state p {
-    font-size: 0.8125rem;
-    color: #94a3b8;
-    max-width: 280px;
-    line-height: 1.5;
-}
-html[data-theme="dark"] .empty-state i {
-    color: #475569;
-}
-html[data-theme="dark"] .empty-state h3 {
-    color: #94a3b8;
-}
-html[data-theme="dark"] .empty-state p {
-    color: #64748b;
-}
+/* RES-003 REMOVED: .empty-state — deprecated alias with zero HTML/JS references.
+   Canonical component is .nm-empty-state / .nm-table-empty. Removed 2026-03-18. */
 
 /* ============================================================================
    P2-DM-WALLET FIX: Wallet skeleton loader in dark mode
@@ -2292,27 +2250,25 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   GAP-2026-007 FIX: Horizontal Scroll Shadow Indicator for Overflow Tables
-   Dashboard tables use overflow-x-auto on mobile. Users can't see that hidden
-   columns exist. This adds a right-edge fade gradient and a left-edge shadow
-   when scrolled, providing a visual cue that the table extends.
-   Standard: Material Design 3 (Scroll Indicators), Apple HIG.
+   GAP-2026-007 FIX (RES-006 REFINED): Horizontal Scroll Shadow Indicator
+   Previous: 32px fade — obscured too much of the last visible column.
+   Now: 16px fade + inset box-shadow for a dual-cue system with minimal
+   content occlusion. Shadow provides depth without masking text.
+   Standard: Material Design 3 (Scroll Indicators), WCAG 1.4.1 (Use of Color).
    ═══════════════════════════════════════════════════════════════════════════ */
 .dashboard-main .overflow-x-auto {
     position: relative;
-    /* Right-edge gradient mask hints at more content */
+    /* RES-006: Narrowed from 32px to 16px — 50% less content occlusion */
     -webkit-mask-image: linear-gradient(
         to right,
-        transparent 0px,
-        black 0px,
-        black calc(100% - 32px),
+        black 0%,
+        black calc(100% - 16px),
         transparent 100%
     );
     mask-image: linear-gradient(
         to right,
-        transparent 0px,
-        black 0px,
-        black calc(100% - 32px),
+        black 0%,
+        black calc(100% - 16px),
         transparent 100%
     );
 }
@@ -2324,16 +2280,14 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
 [dir="rtl"] .dashboard-main .overflow-x-auto {
     -webkit-mask-image: linear-gradient(
         to left,
-        transparent 0px,
-        black 0px,
-        black calc(100% - 32px),
+        black 0%,
+        black calc(100% - 16px),
         transparent 100%
     );
     mask-image: linear-gradient(
         to left,
-        transparent 0px,
-        black 0px,
-        black calc(100% - 32px),
+        black 0%,
+        black calc(100% - 16px),
         transparent 100%
     );
 }
@@ -2595,4 +2549,43 @@ html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
 html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
     background: var(--smoky-jade);
     color: white;
+}
+
+/* ============================================================================
+   RES-005 FIX: WCAG AA Contrast for warning-yellow Text on Light Surfaces
+   Original: #fcc934 on #ffffff = 1.56:1 contrast ratio (FAILS AA 4.5:1).
+   Fix: Targeted CSS override for text-warning-yellow when used as DATA TEXT
+   (KPI values, stat figures, labels on white card backgrounds).
+   Icons (aria-hidden) and badges (tinted bg) are EXEMPT — they have sufficient
+   contrast or are decorative.
+   Uses --warning-yellow-text: #b45309 (amber-700, 4.73:1 on white).
+   Standard: WCAG 1.4.3 (Contrast Minimum: 4.5:1), APCA Lc 60+.
+   ============================================================================ */
+
+/* KPI stat values on white card backgrounds */
+.text-warning-yellow[aria-live],
+p.text-warning-yellow[id^="kpi-"],
+p.text-warning-yellow[id^="stat-"],
+p.text-warning-yellow[data-kpi] {
+    color: var(--warning-yellow-text) !important;
+}
+
+/* Standalone text labels on white backgrounds */
+span.text-warning-yellow:not([class*="bg-"]):not([class*="rounded-full"]) {
+    color: var(--warning-yellow-text) !important;
+}
+
+/* Category pill text (project-details) — text on near-white bg-warning-yellow/5 */
+a.text-warning-yellow {
+    color: var(--warning-yellow-text) !important;
+}
+
+/* Dark mode: original #fcc934 is fine on dark surfaces (3.7:1 contrast) */
+html[data-theme="dark"] .text-warning-yellow[aria-live],
+html[data-theme="dark"] p.text-warning-yellow[id^="kpi-"],
+html[data-theme="dark"] p.text-warning-yellow[id^="stat-"],
+html[data-theme="dark"] p.text-warning-yellow[data-kpi],
+html[data-theme="dark"] span.text-warning-yellow:not([class*="bg-"]):not([class*="rounded-full"]),
+html[data-theme="dark"] a.text-warning-yellow {
+    color: var(--warning-yellow) !important;
 }

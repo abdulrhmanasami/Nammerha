@@ -48,7 +48,9 @@
        Previous: padding-bottom only included checkout-sheet-height + safe-area — bottom nav
        covered the 'Confirm Funding' button on mobile.
        Standard: Apple HIG (Avoid Overlapping Controls), WCAG 2.5.8 (Target Size). -->
-  <main id="main-content" class="mobile-container flex flex-col relative" style="padding-bottom: calc(var(--checkout-sheet-height, 320px) + 60px + env(safe-area-inset-bottom, 0px))">
+  <!-- RES-004 FIX: Inline style extracted to .checkout-safe-padding CSS class (main.css).
+       Standard: CSP compliance, CSS Single Source of Truth. -->
+  <main id="main-content" class="mobile-container flex flex-col relative checkout-safe-padding">
 
     <!-- INC-N01 FIX: Standardized to unified page-header pattern (h-14 = 56px).
          Previous: custom px-6 py-5 padding (~68px height) — inconsistent with all
