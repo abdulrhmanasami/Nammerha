@@ -118,9 +118,10 @@
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <!-- RES-I03 FIX: Demoted sticky bar title to <h2> (navigation label).
-             Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-        <h2 class="text-lg font-bold page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</h2>
+        <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
+             echoing page context, NOT a structural heading. The real <h1> is in content below.
+             h2-before-h1 is invalid heading hierarchy for screen readers (WCAG 1.3.1). -->
+        <span class="font-bold text-lg page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</span>
         <!-- MED-007 FIX: Standardized from text-[10px] to text-xs (12px) — matches all other portals. -->
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
