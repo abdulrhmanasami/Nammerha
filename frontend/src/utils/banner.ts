@@ -12,7 +12,7 @@
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type BannerType = 'error' | 'success';
+export type BannerType = 'error' | 'success' | 'info';
 
 /** DOM element references for structured banners (auth pages). */
 export interface StructuredBannerElements {
@@ -33,11 +33,19 @@ const STRUCTURED_CLASSES = {
         inner: 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200',
         icon: 'ph ph-check-circle',
     },
+    /* PLAT-M01 FIX: 'info' type for non-error informational messages (e.g. SSO coming-soon).
+       Previous: only 'error' (red) and 'success' (green). SSO feedback used 'error' — alarming
+       language for a non-error state. Standard: Nielsen #9, Material Design 3 (Informational). */
+    info: {
+        inner: 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200',
+        icon: 'ph ph-info',
+    },
 } as const;
 
 const SIMPLE_CLASSES = {
     error: 'px-4 py-3 rounded-lg text-sm font-medium mb-4 bg-red-50 text-red-700',
     success: 'px-4 py-3 rounded-lg text-sm font-medium mb-4 bg-smoky-jade/10 text-smoky-jade',
+    info: 'px-4 py-3 rounded-lg text-sm font-medium mb-4 bg-blue-50 text-blue-700',
 } as const;
 
 // ─── Structured Banner (Auth Pages) ─────────────────────────────────────────

@@ -186,6 +186,14 @@
           <i class="ph ph-bell text-slate-700" style="font-size:20px" aria-hidden="true"></i>
           <span class="cart-badge" id="mobile-notif-badge" style="display:none">0</span>
         </button>
+        <!-- PLAT-M07 FIX: Theme toggle added to mobile header for feature parity.
+             Previous: Only auto-injected floating toggle existed — not discoverable in
+             the mobile header where all other controls (search, bell, cart) live.
+             Syrian mobile-first users need an explicit, visible toggle.
+             Standard: Apple HIG (System Appearance Toggle), Feature Parity. -->
+        <button id="nm-theme-toggle-mobile" data-nm-theme-toggle class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+          <i data-nm-theme-icon class="text-slate-700" style="font-size:20px" aria-hidden="true"></i>
+        </button>
         <!-- CONF-004 FIX: Role-switcher mount for mobile. Was only on desktop nav (sm:flex).
              Standard: Apple HIG — "Controls must be accessible at every breakpoint." -->
         <div id="role-switcher-mount-mobile" class="sm:hidden"></div>

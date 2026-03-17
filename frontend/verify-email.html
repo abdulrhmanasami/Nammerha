@@ -5,7 +5,7 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- CONF-P01 FIX: Enforceable CSP directives -->
@@ -40,7 +40,10 @@
 </noscript>
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <div id="main-content" class="mobile-container flex flex-col relative min-h-screen">
+  <!-- PLAT-M06 FIX: Changed <div> to <main> for WCAG landmark semantics.
+       Previous: <div id="main-content"> — screen readers didn't announce main region.
+       Standard: HTML5 §4.4.1, parity with reset-password.html and auth.html. -->
+  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
 
     <!-- Brand Header -->
     <header class="px-6 pt-12 pb-6 text-center relative z-10">
@@ -49,10 +52,17 @@
       </div>
       <h1 class="text-2xl font-bold tracking-tight" id="verify-title" data-i18n="verify_email_title">Verifying Email…</h1>
       <p class="text-sm text-slate-500 mt-1" id="verify-subtitle" data-i18n="verify_email_subtitle">Please wait while we verify your email address</p>
+      <!-- PLAT-M06 FIX: Language switcher mount — parity with reset-password.html -->
+      <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
     </header>
+    <!-- PLAT-M06 FIX: Theme toggle button — parity with auth.html and reset-password.html -->
+    <button id="nm-theme-toggle" data-nm-theme-toggle class="fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-block-start: calc(0.75rem + env(safe-area-inset-top, 0px)); inset-inline-end: 0.75rem;" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+      <i id="nm-theme-toggle-icon" data-nm-theme-icon aria-hidden="true" style="font-size:18px"></i>
+    </button>
 
-    <!-- Status Banner -->
-    <div class="px-6 mb-4 relative z-10" id="verify-banner" style="display:none">
+    <!-- PLAT-M06 FIX: Added role="alert" and aria-live for screen reader announcements.
+         Standard: WCAG 4.1.3 (Status Messages), parity with auth.html/reset-password.html. -->
+    <div class="px-6 mb-4 relative z-10" id="verify-banner" role="alert" aria-live="assertive" style="display:none">
       <div class="rounded-xl p-4 text-sm font-medium flex items-start gap-3" id="verify-banner-inner">
         <i class="ph mt-0.5" id="verify-banner-icon" style="font-size:20px" aria-hidden="true"></i>
         <div>
@@ -84,25 +94,35 @@
       </div>
     </div>
 
-    <!-- Trust Footer -->
+    <!-- PLAT-M06 FIX: Trust Footer — converted to progressive disclosure.
+         Previous: badges shown inline. Now matches auth.html/reset-password.html pattern.
+         Standard: Nielsen #8 (Aesthetic and minimalist design). -->
     <div class="mt-auto px-6 py-8 text-center relative z-10">
-      <div class="flex items-center justify-center gap-4 mb-3">
-        <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-          <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
-          <span data-i18n="auth_trust_1">OCDS Verified</span>
+      <details class="mb-3">
+        <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1">
+          <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+          <span data-i18n="auth_security_details">Security Details</span>
+        </summary>
+        <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
+          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+            <span data-i18n="auth_trust_1">OCDS Verified</span>
+          </div>
+          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <i class="ph ph-lock text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
+            <span data-i18n="auth_trust_2">256-bit Encrypted</span>
+          </div>
         </div>
-        <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-          <i class="ph ph-lock text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
-          <span data-i18n="auth_trust_2">256-bit Encrypted</span>
-        </div>
-      </div>
+      </details>
     </div>
 
-  </div>
+  </main>
 
-  <!-- Decorative Gradient Orbs -->
-  <div class="gradient-orb gradient-orb-primary" style="width:200px;height:200px;top:-60px;right:-60px"></div>
-  <div class="gradient-orb gradient-orb-jade" style="width:250px;height:250px;top:50%;left:-80px"></div>
+  <!-- PLAT-M06 FIX: Gradient orbs — replaced inline styles with standardized CSS classes.
+       Previous: style="width:200px;height:200px;top:-60px;right:-60px" — broke in RTL.
+       Standard: CSS Logical Properties, Design System Visual Cohesion. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
 <footer class="nm-legal-footer">
   <nav aria-label="Legal navigation">
@@ -115,5 +135,10 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/auth.js" defer></script>
+<!-- PLAT-M06 FIX: Added load-guard.js, theme-toggle.js, nav.js — were missing.
+     Standard: Progressive Enhancement, consistency with all other pages. -->
+<script src="/load-guard.js" defer></script>
+<script src="/theme-toggle.js?v=2" defer></script>
+<script src="/nav.js?v=7" defer></script>
 </body>
 </html>

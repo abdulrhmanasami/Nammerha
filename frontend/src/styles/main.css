@@ -641,8 +641,12 @@ html[data-theme="dark"] :focus-visible {
 }
 
 /* ─── Decorative Gradient Orbs ─────────────────────────────────────────────── */
+/* PLAT-P04 FIX: Changed from fixed → absolute. Fixed orbs cause GPU repaint
+   overhead during scrolling on long pages (about.html 70KB, homeowner-report 27KB).
+   On mobile Safari, this triggers micro-jank during momentum scrolling.
+   Standard: Web Performance, 60fps Scrolling (Google Vitals). */
 .gradient-orb {
-  position: fixed;
+  position: absolute;
   border-radius: 50%;
   pointer-events: none;
   filter: blur(48px);

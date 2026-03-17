@@ -176,8 +176,9 @@
           </svg>
           <span data-i18n="auth_google_sso">Sign in with Google</span>
         </button>
-        <!-- Apple SSO -->
-        <button type="button" id="apple-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-sm font-bold text-white transition-colors" data-coming-soon="Soon" data-sso-provider="apple">
+        <!-- PLAT-P02 FIX: Added mt-2 gap between SSO buttons — touch targets were visually merged.
+             Standard: Apple HIG (44pt Touch Targets), WCAG 2.5.8 (Target Size). -->
+        <button type="button" id="apple-sso-btn" class="sso-coming-soon mt-2 w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-sm font-bold text-white transition-colors" data-coming-soon="Soon" data-sso-provider="apple">
           <svg width="17" height="20" viewBox="0 0 17 20" fill="currentColor" aria-hidden="true">
             <path d="M13.545 10.58c-.015-1.65.614-3.173 1.74-4.275-.948-1.2-2.397-1.935-3.95-2.01-1.663-.17-3.27 1-4.11 1s-2.17-.98-3.57-.95c-1.84.06-3.54 1.08-4.48 2.73-1.93 3.34-.49 8.27 1.36 10.97.93 1.33 2.02 2.82 3.44 2.77 1.39-.06 1.91-.88 3.58-.88 1.66 0 2.15.88 3.61.85 1.49-.03 2.44-1.34 3.33-2.68.66-.95 1.17-2 1.51-3.11-1.81-.72-3.03-2.49-3.5-4.26zM11.04 2.68c.72-.9 1.12-2.04 1.1-3.19-1.13.06-2.18.56-2.96 1.4-.77.84-1.18 1.97-1.13 3.13 1.14.04 2.22-.44 2.99-1.34z"/>
           </svg>
@@ -224,7 +225,9 @@
           <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="full_name_label">Full Name</label>
           <div class="relative">
             <i class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-            <input id="reg-name" name="full_name" type="text" required autocomplete="name"
+            <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
+                 Standard: Apple HIG (Keyboard Management), Android Material Design. -->
+            <input id="reg-name" name="full_name" type="text" required autocomplete="name" enterkeyhint="next"
               class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
               placeholder="Full Name" data-i18n-placeholder="auth_name_placeholder" />
           </div>
@@ -234,7 +237,7 @@
           <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
           <div class="relative">
             <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-            <input id="reg-email" name="email" type="email" required autocomplete="email"
+            <input id="reg-email" name="email" type="email" required autocomplete="email" enterkeyhint="next"
               class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
               placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
           </div>
@@ -254,7 +257,7 @@
           <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
           <div class="relative">
             <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-            <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8"
+            <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="next"
               class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
               placeholder="Min 8 chars: upper, lower, number & symbol" data-i18n-placeholder="auth_pw_placeholder" />
             <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
@@ -281,7 +284,7 @@
           <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="confirm_password_label">Confirm Password</label>
           <div class="relative">
             <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-            <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8"
+            <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="done"
               class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
               placeholder="Re-enter your password" data-i18n-placeholder="auth_pw_confirm_placeholder" />
           </div>

@@ -212,7 +212,7 @@ const bannerElements: StructuredBannerElements = {
     banner, inner: bannerInner, icon: bannerIcon, text: bannerText,
 };
 
-function showBanner(type: 'error' | 'success', message: string): void {
+function showBanner(type: 'error' | 'success' | 'info', message: string): void {
     showStructuredBanner(bannerElements, type, message);
 }
 
@@ -292,16 +292,21 @@ updateRegisterButton();
 
 /**
  * FIX-REG-003: Validate all register fields and show clear feedback.
+ * PLAT-C01 FIX: Navigates the wizard back to the first failing step so the
+ * user sees the invalid field in context. Previous: validation ran but the
+ * wizard stayed on Step 3 — failing fields were hidden off-screen.
+ * Standard: WCAG 3.3.1 (Error Identification), Material Design 3 (Error Recovery).
  * Returns true if all fields are valid, false otherwise.
- * Scrolls to and highlights the first invalid field.
  */
 function validateRegisterForm(): boolean {
     const nameInput = document.getElementById('reg-name') as HTMLInputElement | null;
     const emailInput = document.getElementById('reg-email') as HTMLInputElement | null;
     const passwordInput = document.getElementById('reg-password') as HTMLInputElement | null;
 
+    // ── Step 1 fields (Identity) ──
     // Check name
     if (!nameInput?.value.trim()) {
+        goToRegStep(1); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_name_required', 'Please enter your full name.'));
         nameInput?.focus();
         return false;
@@ -309,14 +314,17 @@ function validateRegisterForm(): boolean {
 
     // Check email
     if (!emailInput?.value.trim()) {
+        goToRegStep(1); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_email_required', 'Please enter your email address.'));
         emailInput?.focus();
         return false;
     }
 
+    // ── Step 2 fields (Security) ──
     // Check password length
     const password = passwordInput?.value ?? '';
     if (password.length < 8) {
+        goToRegStep(2); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
         passwordInput?.focus();
         return false;
@@ -324,11 +332,23 @@ function validateRegisterForm(): boolean {
 
     // Check password complexity
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+        goToRegStep(2); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_password_complexity', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
         passwordInput?.focus();
         return false;
     }
 
+    // FRC-002 FIX: Validate password confirmation match
+    const confirmInput = document.getElementById('reg-password-confirm') as HTMLInputElement | null;
+    const confirmPw = confirmInput?.value ?? '';
+    if (password !== confirmPw) {
+        goToRegStep(2); // PLAT-C01: Navigate to failing step
+        showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
+        confirmInput?.focus();
+        return false;
+    }
+
+    // ── Step 3 fields (Consent) ──
     // P1-CRIT-006 FIX: Validate terms & privacy checkbox acceptance.
     // GDPR Art. 7 — consent must be demonstrably obtained before registration.
     // HTML has `required` on #reg-terms, but `novalidate` on the form disables native checks.
@@ -337,15 +357,6 @@ function validateRegisterForm(): boolean {
         const termsError = document.getElementById('reg-terms-error');
         if (termsError) { termsError.classList.remove('hidden'); }
         showBanner('error', t('auth_terms_required', 'Please accept the Terms and Privacy Policy.'));
-        return false;
-    }
-
-    // FRC-002 FIX: Validate password confirmation match
-    const confirmInput = document.getElementById('reg-password-confirm') as HTMLInputElement | null;
-    const confirmPw = confirmInput?.value ?? '';
-    if (password !== confirmPw) {
-        showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
-        confirmInput?.focus();
         return false;
     }
 
@@ -517,14 +528,16 @@ formRegister?.addEventListener('submit', async (e) => {
 // Was dynamically injected via document.createElement('style') — violated DRY principle.
 
 // ─── PLT-AUD-002: Forgot Password Handler ───────────────────────────────────
-const forgotBtn = document.getElementById('forgot-password-btn');
-forgotBtn?.addEventListener('click', async () => {
+// PLAT-M08 FIX: forgotBtn is an <a> element, not <button>. Previous code cast
+// it as HTMLButtonElement and used .disabled — which doesn't exist on <a>.
+// Now uses aria-disabled + pointer-events for proper anchor "disable" pattern.
+// Standard: TypeScript Type Safety, Nielsen #5 (Error Prevention).
+const forgotBtn = document.getElementById('forgot-password-btn') as HTMLAnchorElement | null;
+forgotBtn?.addEventListener('click', async (e) => {
+    e.preventDefault(); // Prevent mailto fallback when JS is available
     const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
     if (!email) {
-        // M-AUD-003 FIX: Instead of a blocking error banner, focus the email field
-        // and show a guiding instruction. Previous: user had to navigate away from
-        // forgot-password intent, fill login email, then retry.
-        // Standard: Nielsen #7 (Flexibility and Efficiency).
+        // M-AUD-003 FIX: Focus the email field with guiding instruction.
         const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
         if (loginEmailInput) {
             loginEmailInput.focus();
@@ -535,12 +548,14 @@ forgotBtn?.addEventListener('click', async () => {
         return;
     }
 
-    forgotBtn.textContent = t('auth_forgot_sending', 'Sending...');
-    (forgotBtn as HTMLButtonElement).disabled = true;
+    if (forgotBtn) {
+        forgotBtn.textContent = t('auth_forgot_sending', 'Sending...');
+        forgotBtn.setAttribute('aria-disabled', 'true');
+        forgotBtn.style.pointerEvents = 'none';
+        forgotBtn.style.opacity = '0.5';
+    }
 
     try {
-        // PLT-MAR11-004 FIX: Use centralized API client instead of raw fetch.
-        // Gains: 30s AbortController timeout, CSRF token, unified error handling.
         const data = await auth.forgotPassword({ email });
         if (data.success) {
             showBanner('success', data.message ?? t('auth_forgot_sent', 'If an account with that email exists, a password reset link has been sent.'));
@@ -550,19 +565,24 @@ forgotBtn?.addEventListener('click', async () => {
     } catch (err) {
         showBanner('error', err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.'));
     } finally {
-        forgotBtn.textContent = t('auth_forgot_link_text', 'Forgot your password?');
-        (forgotBtn as HTMLButtonElement).disabled = false;
+        if (forgotBtn) {
+            forgotBtn.textContent = t('auth_forgot_link_text', 'Forgot your password?');
+            forgotBtn.removeAttribute('aria-disabled');
+            forgotBtn.style.pointerEvents = '';
+            forgotBtn.style.opacity = '';
+        }
     }
 });
 
 // ─── C-AUD-002 FIX: SSO "Coming Soon" Click Handlers ──────────────────────────
 // SSO buttons were silent dead ends — no JS handler, no feedback on click.
-// Now: shows a clear banner explaining social login is coming soon.
-// Standard: Nielsen #1 (System Status Visibility), Honest Affordances.
+// PLAT-M01 FIX: Changed from 'error' (red) to 'info' (blue) — SSO coming-soon
+// is informational, not an error. Red banner was alarming for a non-error state.
+// Standard: Nielsen #9 (Help Users Recognize Errors), Material Design 3.
 // ───────────────────────────────────────────────────────────────────────────────
 document.querySelectorAll<HTMLButtonElement>('[data-sso-provider]').forEach(btn => {
     btn.addEventListener('click', () => {
         const provider = btn.dataset.ssoProvider === 'apple' ? 'Apple' : 'Google';
-        showBanner('error', t('auth_sso_coming_soon', `Sign in with ${provider} is coming soon. Please register with email for now.`));
+        showBanner('info', t('auth_sso_coming_soon', `Sign in with ${provider} is coming soon. Please register with email for now.`));
     });
 });

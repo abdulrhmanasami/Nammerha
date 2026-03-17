@@ -125,7 +125,10 @@
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <h2 class="font-bold text-lg page-header-title" data-i18n="donor_welcome">My Impact Dashboard</h2>
+        <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
+             echoing page context, NOT a structural heading. The real <h1> is in content below.
+             h2-before-h1 is invalid heading hierarchy for screen readers (WCAG 1.3.1). -->
+        <span class="font-bold text-lg page-header-title" data-i18n="donor_welcome">My Impact Dashboard</span>
         <!-- MED-007 FIX: Live timestamp added for cross-portal parity. -->
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
