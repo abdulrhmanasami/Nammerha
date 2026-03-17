@@ -69,7 +69,11 @@
          Now: Matches homeowner-portal CONF-X04 fix pattern.
          Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
     <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Donor portal sections">
-      <button type="button" id="tab-dashboard" role="tab" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-smoky-jade/10 text-smoky-jade rounded-lg cursor-pointer w-full text-start">
+      <!-- RES-C04 FIX: Standardized active tab from smoky-jade to trust-blue.
+           Was the ONLY portal using jade — all other 5 portals use trust-blue.
+           Portal identity is conveyed by title text, not tab color.
+           Standard: Nielsen #4 (Consistency), Design System Brand Color Unity. -->
+      <button type="button" id="tab-dashboard" role="tab" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-chart-pie" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_impact">Impact Dashboard</span>
       </button>
@@ -275,6 +279,18 @@
     </div>
   </main>
 </div>
+
+  <!-- RES-C01 FIX: Legal footer was missing — donor-portal was the only dashboard without it.
+       All other portals (homeowner, contractor, supplier, tradesperson) include it.
+       Standard: Legal compliance, Nielsen #4 (Consistency). -->
+  <footer class="nm-legal-footer">
+    <nav aria-label="Legal navigation">
+      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+    </nav>
+    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+  </footer>
 
   <!-- GAP-NEW-04 FIX: Gradient orbs — were missing from donor-portal.
        Every other consumer page has them (INC-N03 standard).

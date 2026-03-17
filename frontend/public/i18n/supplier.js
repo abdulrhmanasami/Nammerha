@@ -9,6 +9,9 @@
         window.__nmDictMerge({
         'supplier_portal': { ar: 'بوابة المورد', de: 'Lieferantenportal', fr: 'Portail fournisseur', tr: 'Tedarikçi Portalı' },
         'supplier_dashboard': { ar: 'لوحة المورد', de: 'Lieferanten-Dashboard', fr: 'Tableau de bord fournisseur', tr: 'Tedarikçi Paneli' },
+        /* RES-I03 FIX: Content-level heading keys for TYPE A heading pattern */
+        'supplier_dashboard_heading': { ar: 'نظرة عامة على اللوحة', de: 'Dashboard-Übersicht', fr: 'Aperçu du tableau de bord', tr: 'Panel Genel Bakış' },
+        'supplier_dashboard_desc': { ar: 'إدارة كتالوج المواد وتتبع طلبات الشراء', de: 'Materialkatalog verwalten und Bestellungen verfolgen', fr: 'Gérer votre catalogue de matériaux et suivre les commandes', tr: 'Malzeme kataloğunuzu yönetin ve siparişleri takip edin' },
         'supplier_access': { ar: 'وصول المورد', de: 'Lieferantenzugang', fr: 'Accès fournisseur', tr: 'Tedarikçi Erişimi' },
         'supplier_my_catalog': { ar: 'كتالوجي', de: 'Mein Katalog', fr: 'Mon catalogue', tr: 'Katalogum' },
         'supplier_catalog': { ar: 'الكتالوج', de: 'Katalog', fr: 'Catalogue', tr: 'Katalog' },

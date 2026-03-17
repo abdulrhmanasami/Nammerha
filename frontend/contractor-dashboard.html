@@ -65,15 +65,27 @@
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="contractor_portal">Contractor Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>    </div>
-    <!-- GAP-A11Y-01 FIX: Migrated from <a href="#"> to <button role="tab"> with
-         full WAI-ARIA semantics (aria-selected, aria-controls).
+    <!-- RES-C03 FIX: Separated <a> links from role="tablist" — WAI-ARIA §3.26 mandates
+         tab containers may ONLY contain role="tab" elements.
+         Previous: <a> links mixed with <button role="tab"> inside the same tablist.
+         Screen readers announced 2 tabs, but visually 6 items existed.
+         Now: tablist has 2 tabs (Dashboard, Bids). Navigation links are in a separate section.
          Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
-    <nav class="flex-1 px-4 space-y-1" role="tablist" aria-label="Contractor portal navigation">
+    <!-- RES-I04 FIX: Added pt-3 for breathing room between sidebar header and first tab.
+         2/6 portals (homeowner, donor) already had it; 4/6 lacked it.
+         Standard: Apple HIG Navigation Spacing, Nielsen #4 (Consistency). -->
+    <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Contractor portal navigation">
       <button type="button" role="tab" id="tab-projects" aria-selected="true" aria-controls="section-projects" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
       </button>
-      <!-- P2-MOB-001 FIX: Wired to contractor portal page (was dead href="#") -->
+      <button type="button" role="tab" id="tab-bids" aria-selected="false" aria-controls="section-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
+        <i class="ph ph-flag-banner" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="contractor_my_bids">My Bids</span>
+      </button>
+    </nav>
+    <!-- Navigation links outside tablist — these navigate to different pages -->
+    <div class="px-4 space-y-1 pb-2">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html">
         <i class="ph ph-buildings" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_my_projects">My Projects</span>
@@ -84,10 +96,6 @@
         <span class="font-medium" data-i18n="contractor_spatial_proofs">Spatial Proofs</span>
         <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
       </a>
-      <button type="button" role="tab" id="tab-bids" aria-selected="false" aria-controls="section-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
-        <i class="ph ph-flag-banner" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="contractor_my_bids">My Bids</span>
-      </button>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="wallet.html">
         <i class="ph ph-wallet" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_payments">Escrow Payments</span>
@@ -96,7 +104,7 @@
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_profile">Profile</span>
       </a>
-    </nav>
+    </div>
     <div class="p-4 border-t border-slate-200">
       <div class="flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
@@ -124,7 +132,11 @@
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <h1 class="font-bold text-lg page-header-title" data-i18n="contractor_dashboard_title">Contractor Dashboard</h1>
+        <!-- RES-I03 FIX: Demoted sticky bar title to <h2> (navigation label).
+             Content <h1> added below for proper heading hierarchy.
+             Matches homeowner-portal/donor-portal TYPE A pattern.
+             Standard: WCAG 1.3.1 (Heading Hierarchy), Apple HIG. -->
+        <h2 class="font-bold text-lg page-header-title" data-i18n="contractor_dashboard_title">Contractor Dashboard</h2>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
@@ -145,6 +157,12 @@
     </header>
 
     <div class="p-6 space-y-6">
+      <!-- RES-I03 FIX: Content-level <h1> + subtitle — TYPE A heading pattern.
+           Provides richer semantic structure for screen readers. -->
+      <div>
+        <h1 class="text-xl font-bold" data-i18n="contractor_dashboard_heading">Dashboard Overview</h1>
+        <p class="text-sm text-slate-500 mt-0.5" data-i18n="contractor_dashboard_desc">Manage your assigned projects, competitive bids, and escrow payments</p>
+      </div>
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">

@@ -53,24 +53,31 @@
 
   <!-- Sidebar Navigation -->
   <aside class="dashboard-sidebar">
-    <!-- INC-A04 FIX: Sidebar padding standardized to p-4 (was p-6, inconsistent with contractor-dashboard INC-P03 fix) -->
-    <div class="p-4 flex items-center gap-3">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
+    <!-- RES-I01 FIX: Added border-b — was missing. All other portal sidebar headers have it.
+         RES-I02 FIX: Standardized logo to h-9 (was h-8).
+         Standard: Nielsen #4 (Consistency), Brand identity. -->
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="supplier_portal">Supplier Portal</span>
-      <div id="role-switcher-mount" class="ms-auto"></div>    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <a id="tab-orders" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#" aria-current="page">
+      <div id="role-switcher-mount" class="ms-auto"></div>
+    </div>
+    <!-- RES-C02 FIX: Converted from <a href="#"> to <button role="tab"> with full WAI-ARIA semantics.
+         Previous: <a> elements caused unwanted history entries and announced as 'link' to screen readers.
+         Wallet/Profile links separated outside tablist — they navigate to other pages.
+         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+    <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Supplier dashboard navigation">
+      <button type="button" role="tab" id="tab-orders" aria-selected="true" aria-controls="section-orders" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="supplier_orders">Purchase Orders</span>
         <span class="ms-auto text-[10px] font-bold bg-trust-blue text-white size-5 rounded-full flex items-center justify-center" id="bid-count">0</span>
-      </a>
-      <a id="tab-catalog" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      </button>
+      <button type="button" role="tab" id="tab-catalog" aria-selected="false" aria-controls="section-catalog" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-storefront" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="supplier_catalog">My Catalog</span>
-      </a>
-      <!-- GAP-NEW-08 FIX: Was dead href="#" — contractor-dashboard correctly links to wallet.html.
-           Supplier payments follows same pattern for consistency.
-           Standard: Nielsen #2 (No dead controls), Nielsen #4 (Consistency). -->
+      </button>
+    </nav>
+    <!-- Navigation links outside tablist — these navigate to different pages, not tab panels -->
+    <div class="px-4 space-y-1 pb-2">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="wallet.html">
         <i class="ph ph-wallet" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="supplier_payments">Payments</span>
@@ -79,7 +86,7 @@
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_profile">Profile</span>
       </a>
-    </nav>
+    </div>
     <div class="p-4 border-t border-slate-200">
       <div class="flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-warm-earth/20 flex items-center justify-center">
@@ -109,12 +116,15 @@
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <!-- INC-NEW-01 FIX: Was text-sm (14px) while contractor-dashboard h1 uses text-lg (18px).
-             Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
-        <h1 class="text-lg font-bold page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</h1>
+        <!-- RES-I03 FIX: Demoted sticky bar title to <h2> (navigation label).
+             Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+        <h2 class="text-lg font-bold page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</h2>
         <span class="text-[10px] text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-3">
+        <!-- RES-G01 FIX: role-switcher-mount-header was missing — all other dashboards have it.
+             Standard: Nielsen #4 (Consistency). -->
+        <div id="role-switcher-mount-header"></div>
         <!-- GAP-NEW-02 FIX: Notification bell was a dead button.
              Now wired to scroll to orders section via data-scroll-target.
              Standard: Nielsen #2 (No dead controls). -->
@@ -126,6 +136,11 @@
     </header>
 
     <div class="p-6 space-y-6">
+      <!-- RES-I03 FIX: Content-level <h1> + subtitle — TYPE A heading pattern. -->
+      <div>
+        <h1 class="text-xl font-bold" data-i18n="supplier_dashboard_heading">Dashboard Overview</h1>
+        <p class="text-sm text-slate-500 mt-0.5" data-i18n="supplier_dashboard_desc">Manage your material catalog and track purchase orders</p>
+      </div>
       <!-- Feedback Banner -->
       <div id="dashboard-banner" class="hidden px-4 py-3 rounded-lg text-sm font-medium" style="display:none"></div>
 
@@ -344,6 +359,12 @@
     </form>
   </div>
 </dialog>
+
+  <!-- RES-G02 FIX: Gradient orbs — were missing from supplier-dashboard.
+       Every other page has them.
+       Standard: Design System Visual Cohesion. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/supplier.js" defer></script>

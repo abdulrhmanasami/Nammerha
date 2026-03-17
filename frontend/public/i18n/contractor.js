@@ -12,6 +12,13 @@
         'contractor_welcome': { ar: 'مرحباً أيها المقاول', de: 'Willkommen, Auftragnehmer', fr: 'Bienvenue, entrepreneur', tr: 'Hoş geldiniz, müteahhit' },
         'contractor_subtitle': { ar: 'إدارة المشاريع والعروض', de: 'Projekte und Angebote verwalten', fr: 'Gérer les projets et offres', tr: 'Projeleri ve teklifleri yönetin' },
         'contractor_dashboard_title': { ar: 'لوحة المقاول', de: 'Auftragnehmer-Dashboard', fr: 'Tableau de bord entrepreneur', tr: 'Müteahhit Paneli' },
+        /* RES-F01 FIX: Dedicated title for contractor-portal.html — was reusing contractor_dashboard_title,
+           causing identity confusion between two separate pages. */
+        'contractor_portal_title': { ar: 'بوابة المقاول', de: 'Auftragnehmerportal', fr: 'Portail entrepreneur', tr: 'Müteahhit Portalı' },
+        /* RES-I03 FIX: Content-level heading keys for TYPE A heading pattern */
+        'contractor_dashboard_heading': { ar: 'نظرة عامة على اللوحة', de: 'Dashboard-Übersicht', fr: 'Aperçu du tableau de bord', tr: 'Panel Genel Bakış' },
+        'contractor_dashboard_desc': { ar: 'إدارة المشاريع المسندة والعروض والمدفوعات الآمنة', de: 'Zugewiesene Projekte, Angebote und Treuhandzahlungen verwalten', fr: 'Gérer vos projets assignés, offres et paiements séquestrés', tr: 'Atanan projeleri, teklifleri ve emanet ödemeleri yönetin' },
+        'contractor_portal_heading': { ar: 'مشاريعي', de: 'Meine Projekte', fr: 'Mes projets', tr: 'Projelerim' },
         'contractor_my_projects': { ar: 'مشاريعي', de: 'Meine Projekte', fr: 'Mes projets', tr: 'Projelerim' },
         'contractor_assigned_projects': { ar: 'المشاريع المسندة', de: 'Zugewiesene Projekte', fr: 'Projets assignés', tr: 'Atanan Projeler' },
         'contractor_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },

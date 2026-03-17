@@ -126,21 +126,44 @@
         <p class="text-sm text-slate-500 mt-0.5" data-i18n="homeowner_subtitle">Track your projects, manage repairs, and review approvals</p>
       </div>
 
-      <!-- KPI Cards -->
+      <!-- RES-I05 FIX: Enriched from SIMPLE to RICH KPI card pattern.
+           Added icon containers, hover:shadow-md, p-5 padding.
+           Matches contractor-dashboard/supplier-dashboard visual standard.
+           Standard: Design System Component Unity, Nielsen #4 (Consistency). -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
           <p class="text-2xl font-black mt-1" id="kpi-active">0</p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-flag-banner text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
           <p class="text-2xl font-black mt-1 text-blue-600" id="kpi-bids">0</p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
+              <i class="ph ph-clock text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
           <p class="text-2xl font-black mt-1 text-amber-600" id="kpi-approvals">0</p>
         </div>
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-vault text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_escrow">In Escrow</p>
           <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-escrow">$0</p>
         </div>

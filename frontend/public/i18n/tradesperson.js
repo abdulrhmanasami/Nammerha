@@ -10,6 +10,9 @@
         'tradesperson_portal': { ar: 'بوابة الحرفي', de: 'Handwerkerportal', fr: 'Portail artisan', tr: 'Esnaf Portalı' },
         'tradesperson_welcome': { ar: 'مرحباً أيها الحرفي', de: 'Willkommen, Handwerker', fr: 'Bienvenue, artisan', tr: 'Hoş geldiniz, esnaf' },
         'tradesperson_subtitle': { ar: 'إدارة المهام والأرباح', de: 'Aufgaben und Verdienste verwalten', fr: 'Gérer vos tâches et revenus', tr: 'Görevleri ve kazançları yönetin' },
+        /* RES-I03 FIX: Content-level heading + nav bar title keys for TYPE A heading pattern */
+        'tradesperson_dashboard_title': { ar: 'لوحة الحرفي', de: 'Handwerker-Dashboard', fr: 'Tableau de bord artisan', tr: 'Zanaatkar Paneli' },
+        'tradesperson_portal_heading': { ar: 'مساحة العمل', de: 'Mein Arbeitsbereich', fr: 'Mon espace de travail', tr: 'Çalışma Alanım' },
         'tradesperson_jobs': { ar: 'المهام', de: 'Aufträge', fr: 'Tâches', tr: 'İşler' },
         'tradesperson_active_jobs': { ar: 'مهام نشطة', de: 'Aktive Aufträge', fr: 'Tâches actives', tr: 'Aktif İşler' },
         'tradesperson_completed': { ar: 'مكتملة', de: 'Abgeschlossen', fr: 'Terminées', tr: 'Tamamlanan' },
