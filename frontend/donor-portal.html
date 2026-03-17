@@ -96,7 +96,7 @@
     </nav>
     <!-- Quick Actions -->
     <div class="p-4 border-t border-slate-200 space-y-2">
-      <a href="/donor-basket.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors">
+      <a href="/donor-basket.html" class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-smoky-jade text-white text-xs font-bold rounded-lg hover:bg-smoky-jade/90 transition-colors">
         <i class="ph ph-shopping-cart" aria-hidden="true"></i>
         <span data-i18n="donor_go_basket">My Basket</span>
       </a>
@@ -157,7 +157,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_total">Total Donated</p>
-          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-donated">
+          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-donated">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -168,7 +168,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_projects">Projects Supported</p>
-          <p class="text-2xl font-black mt-1" id="kpi-projects">
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-projects">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -179,7 +179,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_items">Items Funded</p>
-          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-items">
+          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-items">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -190,7 +190,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_score">Impact Score</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-score">
+          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-score">
             <span class="inline-block h-7 w-14 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -198,16 +198,17 @@
 
       <!-- Escrow Summary -->
       <div class="grid grid-cols-2 gap-4">
-        <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-          <p class="text-[10px] font-bold text-emerald-500 uppercase" data-i18n="donor_in_escrow">In Escrow (Secured)</p>
-          <p class="text-lg font-black text-emerald-700 mt-1" id="kpi-locked">
-            <span class="inline-block h-6 w-16 bg-emerald-200 rounded animate-pulse"></span>
+        <!-- DK-001 FIX: Raw Tailwind → design tokens (smoky-jade = secured, trust-blue = released) -->
+        <div class="bg-smoky-jade/10 rounded-xl p-4 border border-smoky-jade/20">
+          <p class="text-[10px] font-bold text-smoky-jade uppercase" data-i18n="donor_in_escrow">In Escrow (Secured)</p>
+          <p class="text-lg font-black text-smoky-jade mt-1" aria-live="polite" id="kpi-locked">
+            <span class="inline-block h-6 w-16 bg-smoky-jade/20 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-green-50 rounded-xl p-4 border border-green-100">
-          <p class="text-[10px] font-bold text-green-500 uppercase" data-i18n="donor_released">Released to Suppliers</p>
-          <p class="text-lg font-black text-green-700 mt-1" id="kpi-released">
-            <span class="inline-block h-6 w-16 bg-green-200 rounded animate-pulse"></span>
+        <div class="bg-trust-blue/10 rounded-xl p-4 border border-trust-blue/20">
+          <p class="text-[10px] font-bold text-trust-blue uppercase" data-i18n="donor_released">Released to Suppliers</p>
+          <p class="text-lg font-black text-trust-blue mt-1" aria-live="polite" id="kpi-released">
+            <span class="inline-block h-6 w-16 bg-trust-blue/20 rounded animate-pulse"></span>
           </p>
         </div>
       </div>

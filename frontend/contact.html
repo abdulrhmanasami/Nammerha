@@ -5,8 +5,11 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- CONF-P01 FIX: Enforceable CSP directives -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,6 +22,10 @@
   <meta property="og:title" content="Nammerha — Contact Us" />
   <meta property="og:description" content="Official contact details for the Nammerha platform." />
   <meta property="og:url" content="https://nammerha.com/contact" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Nammerha — Contact Us" />
   <!-- Schema.org — ContactPage -->
   <script type="application/ld+json">
   {
@@ -39,11 +46,20 @@
     }
   }
   </script>
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
   <script type="module" src="/src/pages/contact.ts"></script>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
+<!-- PE-001 FIX: Noscript fallback -->
+<noscript>
+  <style>html:not([data-theme]){visibility:visible!important}</style>
+  <div style="padding:2rem;text-align:center;font-family:system-ui;direction:rtl;">
+    <p style="font-size:1.25rem;font-weight:700;">نعمّرها تحتاج JavaScript</p>
+    <p style="margin-top:0.5rem;color:#64748b;">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
+  </div>
+</noscript>
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 <div class="mobile-container min-h-screen flex flex-col">
@@ -154,11 +170,11 @@
         <div class="grid grid-cols-1 gap-4">
           <label class="flex flex-col gap-1.5">
             <span class="text-xs font-semibold text-slate-500 uppercase" data-i18n="contact_name">Full Name</span>
-            <input name="name" type="text" required maxlength="100" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all" />
+            <input name="name" type="text" required maxlength="100" autocomplete="name" enterkeyhint="next" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all" />
           </label>
           <label class="flex flex-col gap-1.5">
             <span class="text-xs font-semibold text-slate-500 uppercase" data-i18n="contact_email">Email Address</span>
-            <input name="email" type="email" required maxlength="254" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all" />
+            <input name="email" type="email" required maxlength="254" autocomplete="email" enterkeyhint="next" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all" />
           </label>
           <label class="flex flex-col gap-1.5">
             <span class="text-xs font-semibold text-slate-500 uppercase" data-i18n="contact_category">Category</span>
@@ -173,11 +189,11 @@
           </label>
           <label class="flex flex-col gap-1.5">
             <span class="text-xs font-semibold text-slate-500 uppercase" data-i18n="contact_subject">Subject</span>
-            <input name="subject" type="text" required maxlength="200" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all" />
+            <input name="subject" type="text" required maxlength="200" enterkeyhint="next" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all" />
           </label>
           <label class="flex flex-col gap-1.5">
             <span class="text-xs font-semibold text-slate-500 uppercase" data-i18n="contact_message">Message</span>
-            <textarea name="message" required maxlength="2000" rows="4" class="px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all resize-none"></textarea>
+            <textarea name="message" required maxlength="2000" rows="4" enterkeyhint="send" class="px-4 py-3 rounded-xl bg-white border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all resize-none"></textarea>
           </label>
         </div>
         <button id="contact-submit" type="submit" class="btn-primary w-full !h-12 !text-base">
@@ -196,6 +212,20 @@
   </main>
 
 </div>
+<!-- COS-003 FIX: Decorative gradient orbs — visual consistency with consumer pages -->
+<div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+<div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+<footer class="nm-legal-footer">
+  <nav aria-label="Legal navigation">
+    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+  </nav>
+  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+</footer>
+
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/contact.js" defer></script>
 <script src="/nav.js?v=7" defer></script>

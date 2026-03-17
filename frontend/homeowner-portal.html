@@ -72,12 +72,12 @@
       <button type="button" id="tab-requests" role="tab" aria-selected="false" aria-controls="section-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-wrench" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_service_requests">Service Requests</span>
-        <span class="ms-auto bg-blue-500/20 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
+        <span class="ms-auto bg-trust-blue/20 text-trust-blue text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
       </button>
       <button type="button" id="tab-approvals" role="tab" aria-selected="false" aria-controls="section-approvals" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-check-square" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_approvals">Approvals</span>
-        <span class="ms-auto bg-amber-500/20 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
+        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
       </button>
       <button type="button" id="tab-payments" role="tab" aria-selected="false" aria-controls="section-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-vault" aria-hidden="true"></i>
@@ -148,7 +148,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
-          <p class="text-2xl font-black mt-1" id="kpi-active">0</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-active">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -157,7 +157,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
-          <p class="text-2xl font-black mt-1 text-blue-600" id="kpi-bids">0</p>
+          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-bids">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -166,7 +166,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
-          <p class="text-2xl font-black mt-1 text-amber-600" id="kpi-approvals">0</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-approvals">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -175,7 +175,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_escrow">In Escrow</p>
-          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-escrow">$0</p>
+          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-escrow">$0</p>
         </div>
       </div>
 

@@ -103,7 +103,7 @@
            Standard: WAI-ARIA button toggle pattern (aria-pressed). -->
       <!-- I18N-AUD-F01 FIX: All three status labels now have data-i18n attributes. -->
       <div class="flex gap-1" id="availability-btns" role="group" aria-label="Availability status">
-        <button data-status="available" aria-pressed="true" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-green-200 bg-green-50 text-green-700" data-i18n="tradesperson_available">Available</button>
+        <button data-status="available" aria-pressed="true" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-smoky-jade/30 bg-smoky-jade/10 text-smoky-jade" data-i18n="tradesperson_available">Available</button>
         <button data-status="busy" aria-pressed="false" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_busy">Busy</button>
         <button data-status="offline" aria-pressed="false" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_offline">Offline</button>
       </div>
@@ -170,7 +170,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_active_jobs">Active Jobs</p>
-          <p class="text-2xl font-black mt-1" id="kpi-active">0</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-active">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -179,7 +179,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_completed">Completed</p>
-          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-completed">0</p>
+          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-completed">0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -188,7 +188,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_total_earnings">Total Earnings</p>
-          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-earnings">$0</p>
+          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-earnings">$0</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -197,7 +197,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_rating">Rating</p>
-          <p class="text-2xl font-black mt-1" id="kpi-rating">—</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-rating">—</p>
         </div>
       </div>
 
