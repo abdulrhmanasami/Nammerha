@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
+  <script src="/theme-boot.js"></script>
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- P0-MOB-001 FIX: PWA installability -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
+  <title>Nammerha — 404 | الصفحة غير موجودة</title>
+  <meta name="description" content="The page you're looking for doesn't exist." />
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+  <link href="/i18n.css?v=7" rel="stylesheet"/>
+  <style>
+    /* GAP-006: Inline critical styles to avoid dependency on Vite build for error pages */
+    body {
+      font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .error-container {
+      max-width: 360px;
+      padding: 2rem;
+    }
+    .error-icon {
+      width: 6rem;
+      height: 6rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2.5rem;
+    }
+    .error-code {
+      font-size: 4rem;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .error-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .error-desc {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .error-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 0.75rem;
+      transition: all 0.15s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-back {
+      background: none;
+      border: none;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-decoration: none;
+    }
+    .btn-back:hover { opacity: 0.7; }
+
+    /* Light theme (default) */
+    html[data-theme="light"] body,
+    html:not([data-theme]) body {
+      background: #F4F6F8;
+      color: #0f172a;
+    }
+    html[data-theme="light"] .error-icon,
+    html:not([data-theme]) .error-icon {
+      background: rgba(26, 115, 232, 0.08);
+      color: #1A73E8;
+    }
+    html[data-theme="light"] .error-code,
+    html:not([data-theme]) .error-code {
+      background: linear-gradient(135deg, #1A73E8, #109173);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    html[data-theme="light"] .error-desc,
+    html:not([data-theme]) .error-desc {
+      color: #64748b;
+    }
+    html[data-theme="light"] .btn-home,
+    html:not([data-theme]) .btn-home {
+      background: #1A73E8;
+      color: white;
+    }
+    html[data-theme="light"] .btn-home:hover,
+    html:not([data-theme]) .btn-home:hover {
+      background: #1557b0;
+    }
+    html[data-theme="light"] .btn-back,
+    html:not([data-theme]) .btn-back {
+      color: #1A73E8;
+    }
+
+    /* Dark theme */
+    html[data-theme="dark"] body {
+      background: #0f1117;
+      color: #e2e8f0;
+    }
+    html[data-theme="dark"] .error-icon {
+      background: rgba(26, 115, 232, 0.15);
+      color: #60a5fa;
+    }
+    html[data-theme="dark"] .error-code {
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    html[data-theme="dark"] .error-desc {
+      color: #94a3b8;
+    }
+    html[data-theme="dark"] .btn-home {
+      background: #2563eb;
+      color: white;
+    }
+    html[data-theme="dark"] .btn-home:hover {
+      background: #1d4ed8;
+    }
+    html[data-theme="dark"] .btn-back {
+      color: #60a5fa;
+    }
+
+    /* Haptic feedback */
+    @media (pointer: coarse) {
+      .btn-home:active {
+        transform: scale(0.97);
+        opacity: 0.85;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+    <div class="error-icon" aria-hidden="true">
+      <i class="ph ph-compass"></i>
+    </div>
+    <div class="error-code">404</div>
+    <h1 class="error-title" data-i18n="error_404_title">Page Not Found</h1>
+    <p class="error-desc" data-i18n="error_404_desc">The page you're looking for doesn't exist or has been moved. Let's get you back on track.</p>
+    <div class="error-actions">
+      <a href="/index.html" class="btn-home">
+        <i class="ph ph-house" aria-hidden="true"></i>
+        <span data-i18n="error_404_go_home">Go to Homepage</span>
+      </a>
+      <button onclick="history.back()" class="btn-back" data-i18n="error_404_go_back">← Go Back</button>
+    </div>
+  </div>
+
+  <script src="/i18n.js?v=7" defer></script>
+</body>
+</html>

@@ -6,6 +6,7 @@
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
@@ -15,6 +16,7 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Homeowner Portal | بوابة مالك المنزل</title>
   <meta name="description" content="Track your reconstruction projects, manage repair requests, review bids, and approve construction phases." />
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-portal.ts"></script>
   <script type="module" src="/src/components/role-switcher.ts"></script>
@@ -35,26 +37,27 @@
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="homeowner_portal">Homeowner Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>    </div>
-    <nav class="flex-1 px-4 space-y-1 pt-3">
-      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#">
+    <!-- A11Y-002 FIX: WAI-ARIA tabs pattern — screen readers announce these as tabs, not links -->
+    <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Dashboard navigation">
+      <a id="tab-dashboard" role="tab" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
       </a>
-      <a id="tab-projects" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-projects" role="tab" aria-selected="false" aria-controls="section-projects" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-buildings" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_my_projects">My Projects</span>
       </a>
-      <a id="tab-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-requests" role="tab" aria-selected="false" aria-controls="section-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-wrench" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_service_requests">Service Requests</span>
         <span class="ms-auto bg-blue-500/20 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
       </a>
-      <a id="tab-approvals" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-approvals" role="tab" aria-selected="false" aria-controls="section-approvals" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-check-square" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_approvals">Approvals</span>
         <span class="ms-auto bg-amber-500/20 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
       </a>
-      <a id="tab-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <a id="tab-payments" role="tab" aria-selected="false" aria-controls="section-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-vault" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_payments">Payments</span>
       </a>
@@ -118,7 +121,7 @@
       </div>
 
       <!-- ═══════ Dashboard ═══════ -->
-      <div id="section-dashboard" class="space-y-4">
+      <div id="section-dashboard" class="space-y-4" role="tabpanel" aria-labelledby="tab-dashboard">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_active_projects">Active Projects</h3>
@@ -134,7 +137,7 @@
       </div>
 
       <!-- ═══════ My Projects ═══════ -->
-      <div id="section-projects" style="display:none">
+      <div id="section-projects" style="display:none" role="tabpanel" aria-labelledby="tab-projects">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100 flex items-center justify-between">
             <div>
@@ -166,7 +169,7 @@
       </div>
 
       <!-- ═══════ Service Requests ═══════ -->
-      <div id="section-requests" style="display:none" class="space-y-4">
+      <div id="section-requests" style="display:none" class="space-y-4" role="tabpanel" aria-labelledby="tab-requests">
         <!-- Create Request Form -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
@@ -246,7 +249,7 @@
       </div>
 
       <!-- ═══════ Approvals ═══════ -->
-      <div id="section-approvals" style="display:none">
+      <div id="section-approvals" style="display:none" role="tabpanel" aria-labelledby="tab-approvals">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_approval_list">Engineer Approvals</h3>
@@ -259,7 +262,7 @@
       </div>
 
       <!-- ═══════ Payments ═══════ -->
-      <div id="section-payments" style="display:none">
+      <div id="section-payments" style="display:none" role="tabpanel" aria-labelledby="tab-payments">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_escrow_overview">Escrow Overview</h3>

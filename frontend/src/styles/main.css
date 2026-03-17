@@ -1443,6 +1443,26 @@ html[data-theme="dark"] .text-red-400 {
     --z-skip: var(--z-skip-link);
 }
 
+/* CONF-005 FIX: Checkout sheet keyboard viewport accommodation.
+   On iOS Safari and Android when virtual keyboard is visible, the fixed
+   checkout sheet should not overlap content. Uses dvh (dynamic viewport height)
+   which accounts for the virtual keyboard. Falls back gracefully.
+   Standard: Apple HIG — "Accommodate the keyboard gracefully." */
+@supports (height: 100dvh) {
+    #checkout-sheet {
+        max-height: calc(50dvh);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* When keyboard is likely visible (viewport height significantly reduced),
+   collapse the checkout sheet to prevent content occlusion. */
+@media (max-height: 450px) and (pointer: coarse) {
+    #checkout-sheet {
+        position: sticky;
+    }
+}
 /* ============================================================================
    P1-MOB-001 FIX: Pull-to-Refresh Indicator
    ============================================================================ */
@@ -1589,8 +1609,8 @@ html[data-theme="dark"] .nm-toast {
 #nm-offline-banner {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
+    /* ARCH-001 FIX: Logical property replaces physical left/right for RTL safety */
+    inset-inline: 0;
     z-index: var(--z-offline);
     display: flex;
     align-items: center;
@@ -1812,11 +1832,10 @@ html[data-theme="dark"] .empty-cart .text-slate-500 {
 html[data-theme="dark"] .empty-cart .text-slate-300 {
     color: #475569 !important;
 }
-/* Badge pills (e.g., "80% Funded") */
-html[data-theme="dark"] .badge-verified {
-    background-color: rgba(22, 163, 74, 0.15) !important;
-    color: #4ade80 !important;
-}
+/* INC-003 FIX: Removed contradictory .badge-verified dark mode override.
+   Canonical rule at L668 uses Smoky Jade (rgba(16, 145, 115, 0.15)) — brand-correct.
+   This section previously used green (rgba(22, 163, 74, 0.15) !important) which
+   conflicted with the brand identity. Single source of truth now governs badges. */
 /* Cart total $ symbol and currency amounts */
 html[data-theme="dark"] #cart-total {
     color: #f1f5f9 !important;

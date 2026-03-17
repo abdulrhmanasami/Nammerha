@@ -8,7 +8,13 @@
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <!-- PWA-003 FIX: iOS requires PNG apple-touch-icon (ignores SVG). 192px downscaled to 180×180. -->
+  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ARCH-003 FIX: Content Security Policy — critical for a financial platform.
+       frame-ancestors 'none' prevents clickjacking. script-src prevents eval() XSS.
+       Standard: OWASP CSP Implementation. -->
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; object-src 'none'; base-uri 'self';" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -167,7 +173,8 @@
 
     <!-- ─── Main Content ────────────────────────────────────────────────────── -->
     <!-- C-001: pt-16 on mobile (below new fixed mobile nav h-14), pt-20 on sm+ (below desktop fixed nav) -->
-    <main id="main-content" class="pt-16 sm:pt-20 pb-24">
+    <!-- CONF-006 FIX: mobile-container added for width consistency with all consumer pages -->
+    <main id="main-content" class="mobile-container pt-16 sm:pt-20 pb-24">
       <!-- Hero: Interactive Reconstruction Map (MapLibre GL JS) -->
       <section class="px-4 mb-8">
         <div
@@ -177,9 +184,11 @@
           <div id="main-map" class="absolute inset-0"></div>
 
           <!-- GAP-001 FIX: Fallback state when MapLibre GL JS fails to load (Syrian 2G/3G) -->
-          <div id="map-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl">
+          <!-- A11Y-003 FIX: Descriptive fallback content for screen readers (WCAG 1.1.1) -->
+          <div id="map-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl" role="img" aria-label="Interactive map showing reconstruction project locations across Syria">
             <i class="ph ph-map-trifold text-slate-300 dark:text-slate-500" style="font-size:48px" aria-hidden="true"></i>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-3" data-i18n="map_load_failed">Map unavailable</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px] text-center" data-i18n="map_fallback_desc">Interactive map of reconstruction projects across regions</p>
             <button id="map-retry-btn" class="btn-secondary !w-auto !px-4 mt-2 text-xs" data-i18n="retry">Retry</button>
           </div>
 

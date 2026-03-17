@@ -70,6 +70,7 @@
     // ─── Page→Tab Mapping ────────────────────────────────────────────────
     var PAGE_TAB_MAP = {
         'index.html': 'home',
+        'projects.html': 'projects',
         'project-details.html': 'projects',
         'engineer-boq.html': 'projects',
         'engineer-camera.html': 'projects',
@@ -114,7 +115,7 @@
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────
     var TABS = [
         { id: 'home', label: 'Home', i18n: 'nav_home', icon: 'ph-house', href: '/index.html' },
-        { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/project-details.html' },
+        { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/projects.html' },
         { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-bar', href: '/donor-basket.html' },
         { id: 'wallet', label: 'Wallet', i18n: 'nav_wallet', icon: 'ph-wallet', href: '/wallet.html' },
         { id: 'profile', label: 'Profile', i18n: 'nav_profile', icon: 'ph-user', href: '/profile.html' },

@@ -67,14 +67,14 @@
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Nammerha — Syria Reconstruction Platform"
+      "label": "Nammerha — Syria Reconstruction Platform Dashboard"
     },
     {
-      "src": "/brand/icon-512.png",
-      "sizes": "512x512",
+      "src": "/images/og-cover.png",
+      "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "نعمّرها — منصة إعادة إعمار سوريا"
+      "label": "نعمّرها — تصفح مشاريع إعادة الإعمار"
     }
   ]
 }

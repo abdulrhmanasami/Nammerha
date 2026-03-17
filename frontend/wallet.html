@@ -6,7 +6,9 @@
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; object-src 'none'; base-uri 'self';" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,6 +22,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
   <meta name="twitter:card" content="summary" />
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/wallet.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
@@ -60,26 +63,39 @@
           <span id="released-count" data-i18n="released_items">0 released</span>
         </div>
       </div>
+      <!-- GAP-004 FIX: "Add Funds" CTA — completes the wallet financial lifecycle.
+           Standard: FinTech UX — "Every balance display must have a deposit action." -->
+      <button id="add-funds-btn" class="mt-4 w-full py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-colors">
+        <i class="ph ph-plus-circle" style="font-size:18px" aria-hidden="true"></i>
+        <span data-i18n="add_funds">Add Funds</span>
+      </button>
       <div class="absolute -end-6 -bottom-6 size-24 bg-white/10 rounded-full blur-2xl"></div>
     </div>
   </section>
 
   <!-- Quick Actions -->
   <section class="px-4 pt-6">
-    <div class="grid grid-cols-3 gap-3">
-      <a href="donor-basket.html" class="glass-card flex flex-col items-center gap-2 p-4 rounded-xl text-center hover:shadow-md transition-shadow">
+    <!-- GAP-004 FIX: Grid expanded to 4 columns to include Deposit action -->
+    <div class="grid grid-cols-4 gap-2">
+      <a href="donor-basket.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
         <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
           <i class="ph ph-hand-heart text-trust-blue" aria-hidden="true"></i>
         </div>
         <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider" data-i18n="donate">Donate</span>
       </a>
-      <a href="donor-proof.html" class="glass-card flex flex-col items-center gap-2 p-4 rounded-xl text-center hover:shadow-md transition-shadow">
+      <button id="deposit-action" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
+        <div class="size-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+          <i class="ph ph-arrow-circle-down text-emerald-600" aria-hidden="true"></i>
+        </div>
+        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider" data-i18n="deposit">Deposit</span>
+      </button>
+      <a href="donor-proof.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
         <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
           <i class="ph ph-receipt text-smoky-jade" aria-hidden="true"></i>
         </div>
         <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider" data-i18n="receipts">Receipts</span>
       </a>
-      <a href="donor-portal.html" class="glass-card flex flex-col items-center gap-2 p-4 rounded-xl text-center hover:shadow-md transition-shadow">
+      <a href="donor-portal.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
         <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center">
           <i class="ph ph-chart-pie text-warm-earth" aria-hidden="true"></i>
         </div>

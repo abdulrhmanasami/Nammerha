@@ -6,6 +6,7 @@
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
@@ -15,6 +16,7 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Profile | الملف الشخصي</title>
   <meta name="description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <meta property="og:title" content="Profile — Nammerha" />
   <meta property="og:description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />
@@ -32,7 +34,10 @@
 
   <!-- Header -->
   <header class="glass-nav sticky top-0 z-50">
-    <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+    <!-- CONF-004 FIX: Height standardized to h-14 (56px) — matches all consumer pages.
+         Previous: h-16 (64px), inconsistent with wallet h-14 and donor-basket .page-header (56px).
+         Standard: Apple HIG — "Navigation bars are 44pt plus safe area." -->
+    <div class="flex items-center justify-between px-4 h-14 mobile-container">
       <!-- P1-MOB-001 FIX: Removed inline onclick — wired in profile.ts via data-back-btn -->
       <a href="index.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left text-slate-700" aria-hidden="true"></i>
@@ -74,6 +79,27 @@
         <div>
           <label for="edit-email" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1" data-i18n="email_label">Email</label>
           <input id="edit-email" type="email" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue transition" />
+        </div>
+        <!-- GAP-005 FIX: Phone number field — fulfills completion checklist data-completion="phone".
+             Standard: Apple HIG — "Use appropriate keyboard types for input fields."
+             type="tel" triggers numeric dialpad on mobile. -->
+        <div>
+          <label for="edit-phone" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1" data-i18n="phone_label">Phone Number</label>
+          <div class="relative">
+            <i class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" style="font-size:16px" aria-hidden="true"></i>
+            <input id="edit-phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+963 XXX XXX XXXX" data-i18n-placeholder="phone_placeholder" class="w-full ps-10 pe-4 py-2.5 rounded-xl border border-slate-200 bg-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue transition" />
+          </div>
+        </div>
+        <!-- GAP-005 FIX: Profile photo upload — fulfills completion checklist data-completion="photo".
+             Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
+        <div>
+          <label for="edit-photo" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1" data-i18n="profile_photo_label">Profile Photo</label>
+          <label for="edit-photo" class="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-dashed border-slate-300 bg-surface text-sm cursor-pointer hover:border-trust-blue/50 hover:bg-trust-blue/5 transition-colors">
+            <i class="ph ph-camera text-slate-400" style="font-size:20px" aria-hidden="true"></i>
+            <span id="photo-filename" class="text-slate-400 font-medium truncate" data-i18n="choose_photo">Choose a photo...</span>
+          </label>
+          <input id="edit-photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
+          <p class="text-[10px] text-slate-400 mt-1" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
         </div>
         <div id="profile-edit-banner" class="hidden text-xs font-bold p-3 rounded-xl"></div>
         <div class="flex gap-2 pt-1">
@@ -173,7 +199,8 @@
       <span data-i18n="add_new_role">Activate a New Role</span>
     </button>
     <!-- Role Activation Modal (hidden by default) -->
-    <div id="role-activation-modal" class="hidden mt-3">
+    <!-- A11Y-001 FIX: Added role="dialog", aria-modal, aria-label for screen reader accessibility -->
+    <div id="role-activation-modal" class="hidden mt-3" role="dialog" aria-modal="true" aria-label="Activate a new role">
       <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-lg">
         <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">Choose a role to activate</h4>
         <div id="available-roles-grid" class="grid grid-cols-2 gap-2">

@@ -6,6 +6,7 @@
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- P0-MOB-001 FIX: PWA installability -->
   <link rel="manifest" href="/manifest.json">
@@ -15,6 +16,7 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Project Details | تفاصيل المشروع</title>
   <meta name="description" content="Itemized project BOQ with funding progress and donation buttons." />
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/project-details.ts"></script>
   <!-- GAP-010 FIX: OG/Twitter meta for project sharing — critical for crowdfunding reach -->
@@ -70,21 +72,22 @@
       </div>
     </div>
 
+    <!-- INC-006 FIX: Semantic section elements for WCAG 1.3.1 landmark navigation -->
     <!-- Progress Overview -->
-    <div class="px-4 mb-6">
+    <section class="px-4 mb-6" aria-label="Funding progress overview">
       <div class="glass-card rounded-xl p-4 flex flex-col gap-3">
         <div class="flex justify-between items-center">
           <span class="text-sm font-semibold text-slate-600" data-i18n="overall_funding">Overall Funding</span>
           <span class="text-sm font-bold text-trust-blue" data-i18n="64_raised">64% Raised</span>
         </div>
-        <div class="progress-track">
+        <div class="progress-track" role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Overall funding progress">
           <div class="progress-fill-primary" style="width: 64%"></div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Itemized Needs (BOQ) -->
-    <div class="px-4">
+    <section class="px-4" aria-label="Itemized construction needs">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-bold tracking-tight" data-i18n="itemized_needs_boq">Itemized Needs (BOQ)</h3>
         <span class="text-xs font-medium text-slate-500 uppercase tracking-widest" data-i18n="verified_list">Verified List</span>
@@ -104,7 +107,7 @@
               </div>
               <span class="badge-progress" data-i18n="80_funded">80% Funded</span>
             </div>
-            <div class="progress-track mb-4">
+            <div class="progress-track" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" aria-label="Cement funding progress">
               <div class="progress-fill" style="width: 80%"></div>
             </div>
             <button
@@ -138,7 +141,7 @@
               </div>
               <span class="badge-progress" data-i18n="35_funded">35% Funded</span>
             </div>
-            <div class="progress-track mb-4">
+            <div class="progress-track" role="progressbar" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100" aria-label="Copper wiring funding progress">
               <div class="progress-fill" style="width: 35%"></div>
             </div>
             <button
@@ -172,7 +175,7 @@
               </div>
               <span class="bg-slate-200 text-slate-600 text-[11px] font-bold px-2 py-0.5 rounded-full" data-i18n="fully_funded">Fully Funded</span>
             </div>
-            <div class="progress-track mb-4">
+            <div class="progress-track" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Reinforcement steel funding progress">
               <div class="h-full bg-slate-400 w-full rounded-full"></div>
             </div>
             <button class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed" disabled>
@@ -197,7 +200,7 @@
               </div>
               <span class="badge-progress" data-i18n="15_funded">15% Funded</span>
             </div>
-            <div class="progress-track mb-4">
+            <div class="progress-track" role="progressbar" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" aria-label="Glass panels funding progress">
               <div class="progress-fill" style="width: 15%"></div>
             </div>
             <button
@@ -231,7 +234,7 @@
               </div>
               <span class="badge-progress" data-i18n="50_funded">50% Funded</span>
             </div>
-            <div class="progress-track mb-4">
+            <div class="progress-track" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" aria-label="Plumbing pipes funding progress">
               <div class="progress-fill" style="width: 50%"></div>
             </div>
             <button
