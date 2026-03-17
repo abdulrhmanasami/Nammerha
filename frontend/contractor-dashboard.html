@@ -58,15 +58,21 @@
   <!-- Sidebar Navigation -->
   <aside class="dashboard-sidebar">
     <!-- INC-P03 FIX: Standardized to p-4 (was p-6, mismatched homeowner-portal/donor-portal) -->
-    <div class="p-4 flex items-center gap-3">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
+    <!-- INC-VIS-01/02 FIX: Standardized to border-b + h-9 logo (was p-4 no-border + h-8).
+         Matches homeowner-portal and donor-portal sidebar header.
+         Standard: Nielsen #4 (Consistency), Brand identity. -->
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="contractor_portal">Contractor Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <a id="tab-projects" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#" aria-current="page">
+    <!-- GAP-A11Y-01 FIX: Migrated from <a href="#"> to <button role="tab"> with
+         full WAI-ARIA semantics (aria-selected, aria-controls).
+         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+    <nav class="flex-1 px-4 space-y-1" role="tablist" aria-label="Contractor portal navigation">
+      <button type="button" role="tab" id="tab-projects" aria-selected="true" aria-controls="section-projects" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
+      </button>
       <!-- P2-MOB-001 FIX: Wired to contractor portal page (was dead href="#") -->
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html">
         <i class="ph ph-buildings" aria-hidden="true"></i>
@@ -78,10 +84,10 @@
         <span class="font-medium" data-i18n="contractor_spatial_proofs">Spatial Proofs</span>
         <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
       </a>
-      <a id="tab-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      <button type="button" role="tab" id="tab-bids" aria-selected="false" aria-controls="section-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-flag-banner" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_my_bids">My Bids</span>
-      </a>
+      </button>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="wallet.html">
         <i class="ph ph-wallet" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_payments">Escrow Payments</span>
@@ -122,6 +128,10 @@
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
+        <!-- INC-HDR-01 FIX: role-switcher-mount-header was missing.
+             All other dashboards (homeowner, donor, tradesperson) include it.
+             Standard: Nielsen #4 (Consistency). -->
+        <div id="role-switcher-mount-header"></div>
         <!-- INC-AUD-03 FIX: Notification bell identity crisis resolved.
              Previous: id="notification-bell" used ph-flag-banner icon and
              aria-label="Active bids" — three conflicting semantic signals.
@@ -180,7 +190,7 @@
       </div>
 
       <!-- ═══════ Projects Section ═══════ -->
-      <div id="section-projects" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div id="section-projects" class="bg-white rounded-xl border border-slate-200 shadow-sm" role="tabpanel" aria-labelledby="tab-projects">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h3 class="font-bold" data-i18n="contractor_project_timeline">Assigned Projects</h3>
@@ -216,7 +226,7 @@
       </div>
 
       <!-- ═══════ Bids Section (hidden by default) ═══════ -->
-      <div id="section-bids" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none">
+      <div id="section-bids" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none" role="tabpanel" aria-labelledby="tab-bids">
         <div class="p-5 border-b border-slate-100">
           <h3 class="font-bold" data-i18n="contractor_bid_history">Bid History</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="contractor_bids_desc">Competitive bids you've submitted on published projects</p>
@@ -259,6 +269,12 @@
     </nav>
     <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
   </footer>
+
+  <!-- GAP-VIS-01 FIX: Gradient orbs — were missing from contractor-dashboard.
+       Every other consumer page has them.
+       Standard: Design System Visual Cohesion. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <!-- i18n Engine -->
 <script src="/i18n.js?v=7" defer></script>

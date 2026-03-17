@@ -426,10 +426,20 @@ function initWhatsAppCTA(): void {
     });
 }
 
+// ─── CONF-CSP-01 FIX: BOQ Retry Button ─────────────────────────────────────
+// Previous: inline onclick="location.reload()" — blocked by CSP script-src 'self'.
+// Now: wired via addEventListener for CSP compliance.
+function initRetryButton(): void {
+    const btn = document.getElementById('boq-retry-btn');
+    if (!btn) { return; }
+    btn.addEventListener('click', () => { location.reload(); });
+}
+
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
     initShareButton(); // GAP-005: Web Share API
+    initRetryButton(); // CONF-CSP-01: CSP-safe retry handler
     loadProjectData();
     initTransparencyToggle();
     initWhatsAppCTA();

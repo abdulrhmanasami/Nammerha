@@ -27,6 +27,9 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
   <meta name="twitter:card" content="summary" />
+  <!-- GAP-SEO-01 FIX: twitter:title was missing — all other pages include it.
+       Standard: Social sharing completeness, OG/Twitter parity. -->
+  <meta name="twitter:title" content="Project Details — Nammerha" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
@@ -206,7 +209,10 @@
         </div>
         <h4 class="text-sm font-bold text-slate-700 mb-1" data-i18n="boq_error_title">Could not load items</h4>
         <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4" data-i18n="boq_error_desc">Please check your connection and try again.</p>
-        <button onclick="location.reload()" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
+        <!-- CONF-CSP-01 FIX: Removed inline onclick="location.reload()" — violated CSP script-src 'self'.
+             Handler now wired via addEventListener in project-details.ts.
+             Standard: CSP Level 2 §4.1, OWASP XSS Prevention. -->
+        <button id="boq-retry-btn" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
           <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
           <span data-i18n="retry">Retry</span>
         </button>

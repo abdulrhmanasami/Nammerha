@@ -61,34 +61,39 @@
     <!-- CONF-NEW-A03/A04 FIX: Standardized to p-4 (no border-b) + h-8 logo.
          Matches contractor-dashboard/supplier-dashboard convention.
          Standard: Nielsen #4 (Consistency), Brand identity. -->
-    <div class="p-4 flex items-center gap-3">
+    <!-- INC-VIS-03 FIX: Standardized to border-b (was missing, inconsistent with homeowner/donor).
+         Standard: Nielsen #4 (Consistency). -->
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       <span class="font-bold text-sm" data-i18n="tradesperson_portal">Tradesperson Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>
     </div>
     <!-- INC-AUD-C02 FIX: Removed non-standard pt-3 from nav. Matches other dashboards. -->
-    <nav class="flex-1 px-4 space-y-1">
-      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#" aria-current="page">
+    <!-- GAP-A11Y-02 FIX: Migrated from <a href="#"> to <button role="tab"> with
+         full WAI-ARIA semantics (aria-selected, aria-controls).
+         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+    <nav class="flex-1 px-4 space-y-1" role="tablist" aria-label="Tradesperson portal navigation">
+      <button type="button" role="tab" id="tab-dashboard" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
-      <a id="tab-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      </button>
+      <button type="button" role="tab" id="tab-requests" aria-selected="false" aria-controls="section-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-megaphone" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="tradesperson_jobs">Available Jobs</span>
         <span class="ms-auto bg-teal-500/20 text-teal-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="pending-count">0</span>
-      </a>
-      <a id="tab-assignments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      </button>
+      <button type="button" role="tab" id="tab-assignments" aria-selected="false" aria-controls="section-assignments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-clipboard-text" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="tradesperson_assignments">Assignments</span>
-      </a>
-      <a id="tab-earnings" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      </button>
+      <button type="button" role="tab" id="tab-earnings" aria-selected="false" aria-controls="section-earnings" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-coins" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="tradesperson_earnings">Earnings</span>
-      </a>
-      <a id="tab-profile" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
+      </button>
+      <button type="button" role="tab" id="tab-profile" aria-selected="false" aria-controls="section-profile" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="common_profile">Profile</span>
-      </a>
+      </button>
     </nav>
     <!-- Availability Toggle -->
     <div class="p-4 border-t border-slate-200 space-y-2">
@@ -169,7 +174,7 @@
       </div>
 
       <!-- ═══════ Dashboard Section (active jobs overview) ═══════ -->
-      <div id="section-dashboard" class="space-y-4">
+      <div id="section-dashboard" class="space-y-4" role="tabpanel" aria-labelledby="tab-dashboard">
         <!-- Active contractor assignments -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
@@ -198,7 +203,7 @@
       </div>
 
       <!-- ═══════ Available Requests (Thumbtack) ═══════ -->
-      <div id="section-requests" style="display:none">
+      <div id="section-requests" style="display:none" role="tabpanel" aria-labelledby="tab-requests">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="tradesperson_available_requests">Available Service Requests</h3>
@@ -214,7 +219,7 @@
       </div>
 
       <!-- ═══════ Contractor Assignments ═══════ -->
-      <div id="section-assignments" style="display:none">
+      <div id="section-assignments" style="display:none" role="tabpanel" aria-labelledby="tab-assignments">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="tradesperson_assignment_list">Contractor Assignments</h3>
@@ -244,7 +249,7 @@
       </div>
 
       <!-- ═══════ Earnings ═══════ -->
-      <div id="section-earnings" style="display:none">
+      <div id="section-earnings" style="display:none" role="tabpanel" aria-labelledby="tab-earnings">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="tradesperson_earnings_history">Earnings History</h3>
@@ -272,7 +277,7 @@
       </div>
 
       <!-- ═══════ Profile ═══════ -->
-      <div id="section-profile" style="display:none">
+      <div id="section-profile" style="display:none" role="tabpanel" aria-labelledby="tab-profile">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="tradesperson_my_profile">My Trade Profile</h3>
@@ -302,6 +307,12 @@
     </nav>
     <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
   </footer>
+
+  <!-- GAP-VIS-02 FIX: Gradient orbs — were missing from tradesperson-portal.
+       Every other consumer page has them.
+       Standard: Design System Visual Cohesion. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/tradesperson.js" defer></script>

@@ -296,6 +296,21 @@
         <i class="ph ph-clock text-trust-blue ph-md" aria-hidden="true"></i>
         <p class="text-sm text-slate-700"><span class="font-bold text-trust-blue" data-i18n="expected_response">Expected response:</span> Within 24–48 hours</p>
       </div>
+
+      <!-- GAP-FLOW-01 FIX: Forward-navigation CTAs — user was stranded on success screen.
+           Previous: no buttons after submission → dead end.
+           Now: two clear paths forward: Dashboard or new report.
+           Standard: Nielsen #3 (User Control & Freedom), Apple HIG (Post-Action Navigation). -->
+      <div class="mt-6 space-y-3 w-full max-w-xs mx-auto">
+        <a href="homeowner-portal.html" class="btn-primary w-full flex items-center justify-center gap-2">
+          <i class="ph ph-house" style="font-size:18px" aria-hidden="true"></i>
+          <span data-i18n="go_to_dashboard">Go to Dashboard</span>
+        </a>
+        <button type="button" id="submit-another-btn" class="btn-secondary w-full flex items-center justify-center gap-2">
+          <i class="ph ph-plus-circle" style="font-size:18px" aria-hidden="true"></i>
+          <span data-i18n="submit_another_report">Submit Another Report</span>
+        </button>
+      </div>
     </div>
   </section>
   </main>

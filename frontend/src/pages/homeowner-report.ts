@@ -153,6 +153,14 @@ function showStep(step: number): void {
         populateSummary();
         // GAP-NEW-06: Clear persisted state on successful submission
         clearWizardState();
+
+        // GAP-FLOW-01 FIX: Wire "Submit Another Report" button on success screen.
+        // Previous: user was stranded on success screen with no forward CTA.
+        // Standard: Nielsen #3 (User Control & Freedom).
+        const submitAnotherBtn = document.getElementById('submit-another-btn');
+        if (submitAnotherBtn) {
+            submitAnotherBtn.addEventListener('click', () => { location.reload(); });
+        }
     }
 
     // GAP-NEW-06: Persist state on every step transition
