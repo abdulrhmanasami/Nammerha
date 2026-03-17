@@ -128,7 +128,7 @@
       <div class="flex items-center gap-4">
         <div id="role-switcher-mount-header"></div>
         <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
-        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard">
+        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
@@ -252,7 +252,8 @@
             <h3 class="font-bold" data-i18n="donor_donation_history">Donation History</h3>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <!-- FRIC-2026-006 FIX: nm-donation-table enables mobile card-collapse via CSS -->
+            <table class="w-full text-sm nm-donation-table">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   <th class="px-5 py-3 text-start" data-i18n="th_material">Material</th>

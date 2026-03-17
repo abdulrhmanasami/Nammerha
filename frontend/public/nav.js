@@ -189,74 +189,51 @@
             a.appendChild(lbl);
             // PLT-AUD-F005 FIX: Title for landscape mode where labels are hidden
             a.title = tab.label;
+            // GAP-2026-005 FIX: Haptic feedback on tab tap
+            a.setAttribute('data-haptic', 'tap');
             wrap.appendChild(a);
         }
 
         nav.appendChild(wrap);
 
-        // ─── Theme Toggle Button (sun/moon) ─────────────────────────────
+        // ─── Theme Toggle FAB ─────────────────────────────────────────────
+        // CONF-2026-004 FIX: All theme logic is in theme-toggle.js (Single Source of Truth).
+        // nav.js ONLY creates the FAB button with data attributes — theme-toggle.js
+        // auto-discovers [data-nm-theme-toggle] and wires the click handler + icon sync.
+        // No inline toggle logic, no OS listener, no cross-page icon hacks.
         var themeBtn = document.createElement('button');
         themeBtn.id = 'nm-global-theme-toggle';
-        // P2-AUD-003 FIX: i18n-aware theme toggle title (was hardcoded Arabic)
+        themeBtn.setAttribute('data-nm-theme-toggle', '');
+        // GAP-2026-005 FIX: Haptic feedback on theme toggle
+        themeBtn.setAttribute('data-haptic', 'tap');
+        // P2-AUD-003 FIX: i18n-aware theme toggle title
         var themeLabel = isDark
             ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
             : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
         themeBtn.title = themeLabel;
-        // P1-I18N-003 FIX: aria-label for screen reader accessibility
         themeBtn.setAttribute('aria-label', themeLabel);
-        // P1-001 FIX: CSS class replaces inline style.cssText
         themeBtn.className = 'nm-theme-fab';
+
         var themeBtnIcon = document.createElement('i');
-        themeBtnIcon.className = isDark ? 'ph ph-sun' : 'ph ph-moon';
+        themeBtnIcon.setAttribute('data-nm-theme-icon', '');
+        // Initial icon class — theme-toggle.js will sync correctly on init
+        themeBtnIcon.className = isDark ? 'ph ph-sun-dim text-amber-500' : 'ph ph-moon-stars text-indigo-400';
         themeBtn.appendChild(themeBtnIcon);
         nav.appendChild(themeBtn);
 
-        themeBtn.addEventListener('click', function() {
-            document.documentElement.classList.add('nm-theme-transition');
-            // P0-ARCH-004 FIX: Delegate to shared NammerhaTheme module (Single Source of Truth).
-            // Falls back to inline logic if theme-toggle.js hasn't loaded (graceful degradation).
-            var next;
-            if (window.NammerhaTheme && window.NammerhaTheme.toggle) {
-                next = window.NammerhaTheme.toggle();
-            } else {
-                var cur = document.documentElement.getAttribute('data-theme') || 'dark';
-                next = cur === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                try { localStorage.setItem('nm-theme', next); } catch(e) {}
-            }
-            themeBtnIcon.className = next === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-            // P2-AUD-003 FIX: i18n-aware theme toggle title
-            themeBtn.title = next === 'dark'
+        // Listen for theme changes dispatched by theme-toggle.js to update nav-level state
+        document.addEventListener('nm-theme-changed', function(e) {
+            var next = e.detail && e.detail.theme;
+            if (!next) { return; }
+            // Update nav theme attribute (CSS uses this for nav bar colors)
+            nav.setAttribute('data-nav-theme', next);
+            // Update i18n-aware title/aria-label
+            var newLabel = next === 'dark'
                 ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
                 : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-            // P1-001 FIX: Theme switching now only flips data-nav-theme — CSS handles the rest
-            nav.setAttribute('data-nav-theme', next);
-            // Also sync about page's toggle if present
-            var aboutIcon = document.getElementById('themeIcon');
-            if (aboutIcon) aboutIcon.className = (next === 'dark') ? 'ph ph-sun' : 'ph ph-moon';
-            setTimeout(function() {
-                document.documentElement.classList.remove('nm-theme-transition');
-            }, 500);
+            themeBtn.title = newLabel;
+            themeBtn.setAttribute('aria-label', newLabel);
         });
-
-        // P3-AUD-003 FIX: Auto-sync theme when OS preference changes.
-        // Respects manual override: if user explicitly toggled theme (stored in
-        // localStorage), OS changes are ignored. Otherwise, follows system preference.
-        try {
-            var mql = window.matchMedia('(prefers-color-scheme: dark)');
-            if (mql && mql.addEventListener) {
-                mql.addEventListener('change', function(e) {
-                    // Only auto-sync if user hasn't manually set a preference
-                    try { if (localStorage.getItem('nm-theme')) return; } catch(ex) {}
-                    var next = e.matches ? 'dark' : 'light';
-                    document.documentElement.setAttribute('data-theme', next);
-                    var nd = next === 'dark';
-                    themeBtnIcon.className = nd ? 'ph ph-sun' : 'ph ph-moon';
-                    // P1-001 FIX: Only flip attribute — CSS handles theme colors
-                    nav.setAttribute('data-nav-theme', next);
-                });
-            }
-        } catch(e) { /* matchMedia not supported — graceful degradation */ }
 
         // Safe area for modern phones
         var safe = document.createElement('div');
@@ -362,10 +339,63 @@
 
         document.body.appendChild(buildNavBar());
 
+        // CONF-2026-004 FIX: Ensure unified theme engine is loaded.
+        // Pages like auth.html and about.html load theme-toggle.js explicitly.
+        // Dashboard pages only load nav.js — so we inject theme-toggle.js
+        // dynamically to wire the FAB's [data-nm-theme-toggle] button.
+        if (!window.NammerhaTheme) {
+            var themeScript = document.createElement('script');
+            themeScript.src = '/theme-toggle.js?v=2';
+            // No defer — already past DOMContentLoaded. Executes immediately on load.
+            document.head.appendChild(themeScript);
+        } else {
+            // theme-toggle.js already loaded — re-run autoWireAll to discover
+            // the dynamically-created FAB button.
+            if (window.NammerhaTheme.syncAllIcons) {
+                window.NammerhaTheme.syncAllIcons();
+            }
+        }
+
+        // GAP-2026-004 FIX: Load offline indicator for network status detection.
+        // Critical for Syrian users with intermittent connectivity.
+        // Uses navigator.onLine + online/offline events (no service worker needed).
+        if (!window._nmOfflineIndicator) {
+            var offlineScript = document.createElement('script');
+            offlineScript.src = '/offline-indicator.js?v=1';
+            document.head.appendChild(offlineScript);
+        }
+
+        // GAP-2026-005 FIX: Load haptic feedback engine.
+        // Wraps navigator.vibrate() for tactile feedback on touch devices.
+        // Auto-wires [data-haptic] elements via event delegation.
+        if (!window.NammerhaHaptic) {
+            var hapticScript = document.createElement('script');
+            hapticScript.src = '/haptic.js?v=1';
+            document.head.appendChild(hapticScript);
+        }
+
+        // CONF-2026-001 FIX: Dynamic bottom padding based on actual nav height.
+        // Previous: hardcoded 96px — failed on iPhone 14+ (34px safe area caused
+        // content cutoff) and wasted space on non-notch devices.
+        // Now: requestAnimationFrame waits for browser paint (including CSS
+        // env(safe-area-inset-bottom) resolution), then measures real height.
+        // A CSS custom property --nm-nav-h is set on :root so any page can use it.
+        // Standard: Apple HIG (Safe Area adaptation), CSS env() specification.
+        var nav = document.getElementById('nammerha-unified-nav');
         var main = document.querySelector('main');
-        if (main) {
-            var currentPadding = parseInt(window.getComputedStyle(main).paddingBottom, 10) || 0;
-            if (currentPadding < 80) main.style.paddingBottom = '96px';
+        if (nav && main) {
+            requestAnimationFrame(function () {
+                var navH = nav.offsetHeight;
+                // Fallback: minimum 64px (nav items ~52px + padding), max 140px (extreme safe area)
+                if (navH < 64) navH = 64;
+                if (navH > 140) navH = 140;
+                // Set CSS custom property for global use (toast, checkout sheet, etc.)
+                document.documentElement.style.setProperty('--nm-nav-h', navH + 'px');
+                // Add 16px breathing room beyond the nav
+                var totalPadding = navH + 16;
+                var currentPadding = parseInt(window.getComputedStyle(main).paddingBottom, 10) || 0;
+                if (currentPadding < totalPadding) main.style.paddingBottom = totalPadding + 'px';
+            });
         }
 
         initMobileSearchToggle();

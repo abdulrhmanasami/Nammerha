@@ -149,8 +149,15 @@
             var tabs = tablist.querySelectorAll('[role="tab"]');
             if (tabs.length > 0) {
                 // ── Activate a tab: update ARIA, show panel, dispatch event ──
+                // FRIC-2026-001 FIX: Smooth tab panel transition via CSS animation re-trigger.
+                // The existing sectionReveal keyframe in main.css targets [id^="section-"]
+                // but display:none → display:'' does NOT re-trigger CSS animations.
+                // Solution: After showing the panel, force a reflow via void offsetHeight,
+                // then re-apply the animation. This gives a smooth 250ms fade-slide-in on
+                // every tab switch — matching Material Design 3 motion standards.
+                // Standard: Material Design 3 (Motion), Apple HIG (Transitions).
                 function activateTab(tab) {
-                    // Deselect all tabs
+                    // Deselect all tabs and hide all panels
                     for (var t = 0; t < tabs.length; t++) {
                         tabs[t].setAttribute('aria-selected', 'false');
                         tabs[t].classList.remove('bg-trust-blue/10', 'text-trust-blue');
@@ -168,7 +175,17 @@
                     var activePanel = tab.getAttribute('aria-controls');
                     if (activePanel) {
                         var ap = document.getElementById(activePanel);
-                        if (ap) { ap.style.display = ''; }
+                        if (ap) {
+                            // Show the panel
+                            ap.style.display = '';
+                            // Force CSS animation re-trigger:
+                            // 1. Strip existing animation (browser clears pending animation)
+                            ap.style.animation = 'none';
+                            // 2. Force synchronous reflow so the browser acknowledges the reset
+                            void ap.offsetHeight;
+                            // 3. Remove override — main.css [id^="section-"] animation replays
+                            ap.style.animation = '';
+                        }
                     }
                     tab.focus();
                     // Dispatch custom event for portal TS modules

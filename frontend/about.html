@@ -1027,8 +1027,9 @@
       <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark" style="height:20px" />
     </div>
     <div style="display:flex;align-items:center;gap:12px">
-      <button class="nav-back" id="themeToggle" title="تبديل السمة">
-        <i class="ph ph-sun" id="themeIcon"></i>
+      <!-- CONF-2026-004 FIX: Unified theme engine via data attributes (was inline JS) -->
+      <button class="nav-back" id="themeToggle" title="تبديل السمة" data-nm-theme-toggle>
+        <i id="themeIcon" data-nm-theme-icon aria-hidden="true"></i>
       </button>
       <div class="nav-lang" id="langSwitcher">
         <i class="ph ph-globe"></i>
@@ -1318,27 +1319,9 @@
       else nav.classList.remove('scrolled');
     });
 
-    // ─── Theme Toggle (Dark/Light) ──────────────────────────────────────
-    var themeBtn = document.getElementById('themeToggle');
-    var themeIcon = document.getElementById('themeIcon');
-    var savedTheme = localStorage.getItem('nm-theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    if (savedTheme === 'light') {
-      themeIcon.className = 'ph ph-moon';
-    }
-    if (themeBtn) {
-      themeBtn.addEventListener('click', function() {
-        document.documentElement.classList.add('theme-transition');
-        var current = document.documentElement.getAttribute('data-theme') || 'dark';
-        var next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('nm-theme', next);
-        themeIcon.className = next === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
-        setTimeout(function() {
-          document.documentElement.classList.remove('theme-transition');
-        }, 500);
-      });
-    }
+    // CONF-2026-004 FIX: Inline theme toggle REMOVED.
+    // All theme logic is now in theme-toggle.js (canonical engine).
+    // The #themeToggle button has data-nm-theme-toggle — auto-wired by theme-toggle.js.
 
     // ─── Language Switcher (cycle) ───────────────────────────────────────
     var langs = ['ar','en','de','fr','tr'];
@@ -1481,6 +1464,8 @@
   <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
 </footer>
 
+  <!-- CONF-2026-004 FIX: Unified theme engine (auto-wires [data-nm-theme-toggle] buttons) -->
+  <script src="/theme-toggle.js?v=2" defer></script>
   <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/legal.js" defer></script>
   <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.

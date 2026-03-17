@@ -226,11 +226,11 @@ async function loadDonations(): Promise<void> {
 
         tbody.innerHTML = donations.map((d) => `
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(d.material_name)}</td>
-                <td class="px-5 py-3 text-xs">${esc(d.project_title)}</td>
-                <td class="px-5 py-3 font-mono font-bold text-emerald-600">${formatCents(d.amount_locked)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(d.locked_at)}</td>
+                <td class="px-5 py-3 font-medium" data-label="${esc(t('th_material', 'Material'))}">${esc(d.material_name)}</td>
+                <td class="px-5 py-3 text-xs" data-label="${esc(t('th_project', 'Project'))}">${esc(d.project_title)}</td>
+                <td class="px-5 py-3 font-mono font-bold text-emerald-600" data-label="${esc(t('th_amount', 'Amount'))}">${formatCents(d.amount_locked)}</td>
+                <td class="px-5 py-3" data-label="${esc(t('th_status', 'Status'))}"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
+                <td class="px-5 py-3 text-xs text-slate-400" data-label="${esc(t('th_date', 'Date'))}">${formatDate(d.locked_at)}</td>
             </tr>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });

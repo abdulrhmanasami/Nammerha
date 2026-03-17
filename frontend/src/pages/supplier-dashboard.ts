@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
+import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { supplier } from '../api';
 import { t } from '../utils/i18n';
@@ -198,7 +199,8 @@ async function loadOrders(): Promise<void> {
 
         applyI18n();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent — error captured by centralized reporter
+        // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)
+        renderTableErrorWithRetry(tbody, loadOrders, 7);
     }
 }
 
@@ -251,7 +253,8 @@ async function loadCatalog(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent — error captured by centralized reporter
+        // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)
+        renderErrorWithRetry(container, loadCatalog);
     }
 }
 

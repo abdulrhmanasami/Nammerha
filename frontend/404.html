@@ -40,6 +40,8 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+      /* GAP-2026-003 FIX: Bottom padding clears the injected nav bar */
+      padding-bottom: 96px;
     }
     .error-container {
       max-width: 360px;
@@ -175,6 +177,115 @@
         opacity: 0.85;
       }
     }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       GAP-2026-003 FIX: Bottom Navigation CSS (inline for self-containment)
+       Extracted from main.css — 404.html must not depend on Vite build.
+       Standard: Apple HIG (Persistent Navigation), Nielsen #3 (User Control).
+       ═══════════════════════════════════════════════════════════════════ */
+    .nm-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      inset-inline: 0;
+      z-index: 9900;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      background: rgba(17,24,39,0.95);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .nm-bottom-nav[data-nav-theme="light"] {
+      background: rgba(255,255,255,0.92);
+      border-top-color: rgba(226,232,240,0.6);
+    }
+    .nm-nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .nm-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      text-decoration: none;
+      padding: 4px 8px;
+      min-width: 54px;
+      min-height: 44px;
+      color: #64748b;
+      transition: color 0.2s;
+    }
+    .nm-bottom-nav[data-nav-theme="light"] .nm-nav-item { color: #94a3b8; }
+    .nm-nav-item[aria-current="page"] { color: #1A73E8; }
+    .nm-nav-icon { font-size: 22px; }
+    .nm-nav-label { font-size: 10px; letter-spacing: 0.02em; font-weight: 500; }
+    .nm-nav-item[aria-current="page"] .nm-nav-label { font-weight: 700; }
+    .nm-theme-fab {
+      position: absolute;
+      top: -18px;
+      inset-inline-end: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(17,24,39,0.95);
+      color: #fbbf24;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: all 0.3s;
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+      padding: 0;
+    }
+    .nm-bottom-nav[data-nav-theme="light"] .nm-theme-fab {
+      border-color: rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.95);
+      color: #6366f1;
+    }
+    .nm-nav-safe-area {
+      height: max(env(safe-area-inset-bottom, 0px), 8px);
+    }
+    @media (min-width: 640px) {
+      .nm-bottom-nav { display: none !important; }
+    }
+    /* Gradient orbs for visual consistency */
+    .gradient-orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+      opacity: 0.5;
+      z-index: 0;
+    }
+    .gradient-orb-primary { width: 300px; height: 300px; background: radial-gradient(circle, rgba(26,115,232,0.12), transparent 70%); }
+    .gradient-orb-jade { width: 250px; height: 250px; background: radial-gradient(circle, rgba(16,145,115,0.10), transparent 70%); }
+    .gradient-orb-pos-end { top: -60px; inset-inline-end: -80px; }
+    .gradient-orb-pos-start { bottom: 120px; inset-inline-start: -60px; }
+    /* Legal footer (self-contained duplicate of main.css .nm-legal-footer) */
+    .nm-legal-footer-404 {
+      position: fixed; bottom: 70px; inset-inline: 0;
+      text-align: center; padding: 8px 16px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      z-index: 1;
+    }
+    .nm-legal-footer-404 a {
+      font-size: 9px; color: #94a3b8; text-decoration: none;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin: 0 8px; transition: color 0.15s;
+    }
+    .nm-legal-footer-404 a:hover { color: #1A73E8; }
+    @media (min-width: 640px) {
+      .nm-legal-footer-404 { bottom: 0; }
+    }
   </style>
 </head>
 <body>
@@ -202,6 +313,24 @@
     </div>
   </div>
 
+  <!-- GAP-2026-003 FIX: Decorative gradient orbs — visual consistency with all platform pages -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+  <!-- GAP-2026-003 FIX: Legal footer — consistent with all other pages -->
+  <footer class="nm-legal-footer-404">
+    <nav aria-label="Legal navigation">
+      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+    </nav>
+  </footer>
+
   <script src="/i18n.js?v=7" defer></script>
+  <!-- GAP-2026-003 FIX: Bottom navigation bar — users are no longer stranded on 404.
+       nav.js auto-injects the unified bottom nav + dynamically loads theme-toggle.js.
+       Standard: Nielsen #3 (User Control & Freedom), Apple HIG (Persistent Navigation). -->
+  <script src="/load-guard.js" defer></script>
+  <script src="/nav.js?v=7" defer></script>
 </body>
 </html>

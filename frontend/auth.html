@@ -75,11 +75,9 @@
         #nm-theme-toggle { top: auto !important; bottom: 0.75rem !important; }
       }
     </style>
-    <!-- CONF-003 FIX: Auth theme toggle delegates to NammerhaTheme (nav.js shared module).
-         This ensures theme state is consistent across all pages.
-         Position: fixed top-right matches auth layout (no bottom-nav on auth). -->
-    <button id="nm-theme-toggle" class="fixed top-3 z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-inline-end: 0.75rem; margin-top: env(safe-area-inset-top, 0px);" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-      <i id="nm-theme-toggle-icon" class="ph ph-sun-dim text-amber-500" aria-hidden="true" style="font-size:18px"></i>
+    <!-- CONF-2026-004 FIX: data-nm-theme-toggle + data-nm-theme-icon for canonical engine auto-wiring -->
+    <button id="nm-theme-toggle" data-nm-theme-toggle class="fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-block-start: calc(0.75rem + env(safe-area-inset-top, 0px)); inset-inline-end: 0.75rem;" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+      <i id="nm-theme-toggle-icon" data-nm-theme-icon aria-hidden="true" style="font-size:18px"></i>
     </button>
 
     <!-- Error/Success Banner -->
@@ -287,6 +285,7 @@
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
 <script src="/load-guard.js" defer></script>
-<script src="/theme-toggle.js?v=1" defer></script>
+<!-- CONF-2026-004 FIX: Unified theme engine v2 -->
+<script src="/theme-toggle.js?v=2" defer></script>
 </body>
 </html>
