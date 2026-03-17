@@ -8,6 +8,13 @@ import { statusColor, escrowColor } from '../utils/status-colors';
 import { donor } from '../api';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
+// GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { autoTriggerTour } from '../components/tour-engine';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
+autoTriggerTour();
 import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';

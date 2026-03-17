@@ -17,6 +17,7 @@ import './offline/network-status';  // Self-injecting: bilingual offline status 
 import { autoTriggerTour } from './components/tour-engine';
 // P2-I18N-TIMING FIX: Explicit applyI18n call after dynamic card injection
 import { applyI18n } from './utils/locale';
+import { initSearch } from './utils/search-overlay';
 
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
@@ -34,24 +35,28 @@ autoTriggerTour();
 // The map module self-initializes on DOMContentLoaded.
 async function initMapIfNeeded(): Promise<void> {
     if (document.getElementById('main-map') || document.getElementById('map') || document.getElementById('nammerha-map')) {
-        // P1-F5 FIX: 15s timeout fallback if MapLibre fails to load.
-        // Previous: map container showed "Loading..." forever on network failure.
+        // FRC-008 FIX: 5s timeout (was 15s — eternity on Syrian 2G).
+        // Apple HIG: "Provide immediate feedback."
         const mapContainer = document.getElementById('main-map') ?? document.getElementById('map') ?? document.getElementById('nammerha-map');
         const fallbackTimer = setTimeout(() => {
             if (mapContainer && !mapContainer.querySelector('canvas')) {
-                // Map didn't render within 15s — show fallback
+                // Map didn't render within 5s — show fallback
                 const overlay = mapContainer.closest('.relative')?.querySelector('.glass-card');
                 if (overlay) {
                     overlay.innerHTML = `
                         <div class="flex flex-col items-center gap-3 text-center p-4">
                             <i class="ph ph-map-trifold text-slate-400" style="font-size:40px" aria-hidden="true"></i>
-                            <p class="text-sm font-bold text-slate-600">Map unavailable</p>
-                            <p class="text-xs text-slate-400">Network issues prevented the map from loading</p>
-                            <button onclick="location.reload()" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">Retry</button>
+                            <p class="text-sm font-bold text-slate-600" data-i18n="map_unavailable">Map unavailable</p>
+                            <p class="text-xs text-slate-400" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
+                            <button onclick="location.reload()" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">
+                                <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
+                                <span data-i18n="common_retry">Retry</span>
+                            </button>
                         </div>`;
+                    applyI18n();
                 }
             }
-        }, 15_000);
+        }, 5_000);
 
         try {
             await import('./pages/homepage-map');
@@ -211,6 +216,9 @@ function initDashboard(): void {
 
     // F-001 FIX: Progressive disclosure — sections reveal as they scroll into view
     initScrollReveal();
+
+    // FRC-005 FIX: Platform-wide search (Cmd/Ctrl+K)
+    initSearch();
 }
 
 // Initialize when DOM is ready

@@ -1,6 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { t } from '../utils/i18n';
+import { initBreadcrumb } from '../utils/breadcrumb';
 // P2-AUD-FETCH-003 FIX: Use centralized API client instead of raw fetch().
 // Gains: 30s AbortController timeout, automatic CSRF token, centralized error reporting.
 import { engineer, storage } from '../api';
@@ -41,6 +42,7 @@ const syncBtn = document.getElementById('sync-btn');
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     projectId = new URLSearchParams(window.location.search).get('project');
+    initBreadcrumb(); // GAP-007: Breadcrumb navigation
     initTimestamp();
     initGPS();
     initCamera();

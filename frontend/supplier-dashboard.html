@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Supplier Dashboard</title>
+  <title>Nammerha — Supplier Dashboard | لوحة المورد</title>
   <meta name="description" content="Manage your material catalog and track purchase orders on the Nammerha reconstruction platform." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/supplier-dashboard.ts"></script>
@@ -26,16 +28,16 @@
   <div class="sidebar-overlay" aria-hidden="true"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar hidden md:flex">
+  <aside class="dashboard-sidebar">
     <div class="p-6 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       <span class="font-bold text-sm" data-i18n="supplier_portal">Supplier Portal</span>
-      <div id="role-switcher-mount" class="ml-auto"></div>    </div>
+      <div id="role-switcher-mount" class="ms-auto"></div>    </div>
     <nav class="flex-1 px-4 space-y-1">
       <a id="tab-orders" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#" aria-current="page">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="supplier_orders">Purchase Orders</span>
-        <span class="ml-auto text-[10px] font-bold bg-trust-blue text-white size-5 rounded-full flex items-center justify-center" id="bid-count">0</span>
+        <span class="ms-auto text-[10px] font-bold bg-trust-blue text-white size-5 rounded-full flex items-center justify-center" id="bid-count">0</span>
       </a>
       <a id="tab-catalog" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-storefront" aria-hidden="true"></i>

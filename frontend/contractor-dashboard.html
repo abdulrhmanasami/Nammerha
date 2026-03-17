@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,13 +13,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Contractor Dashboard</title>
+  <title>Nammerha — Contractor Dashboard | لوحة المقاول</title>
   <meta name="description" content="Contractor portal for managing assigned projects, spatial proofs, competitive bids, and escrow payments." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <meta property="og:title" content="Contractor Dashboard — Nammerha" />
   <meta property="og:description" content="Contractor portal for managing assigned projects, spatial proofs, competitive bids, and escrow payments." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="/brand/Nammerha_logo_icon.svg" />
+  <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
   <meta name="twitter:card" content="summary" />
   <script type="module" src="/src/pages/contractor-dashboard.ts"></script>
   <script type="module" src="/src/components/role-switcher.ts"></script><link href="/i18n.css?v=7" rel="stylesheet"/>
@@ -31,11 +33,11 @@
   <div class="sidebar-overlay" aria-hidden="true"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar hidden md:flex">
+  <aside class="dashboard-sidebar">
     <div class="p-6 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       <span class="font-bold text-sm" data-i18n="contractor_portal">Contractor Portal</span>
-      <div id="role-switcher-mount" class="ml-auto"></div>    </div>
+      <div id="role-switcher-mount" class="ms-auto"></div>    </div>
     <nav class="flex-1 px-4 space-y-1">
       <a id="tab-projects" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#" aria-current="page">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
@@ -45,12 +47,12 @@
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html">
         <i class="ph ph-buildings" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_my_projects">My Projects</span>
-        <span class="ml-auto bg-trust-blue/20 text-trust-blue text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="project-count">0</span>
+        <span class="ms-auto bg-trust-blue/20 text-trust-blue text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="project-count">0</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html?tab=proofs">
         <i class="ph ph-camera" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_spatial_proofs">Spatial Proofs</span>
-        <span class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
+        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
       </a>
       <a id="tab-bids" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-flag-banner" aria-hidden="true"></i>

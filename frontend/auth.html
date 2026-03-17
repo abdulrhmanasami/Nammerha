@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,13 +13,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Sign In</title>
+  <title>Nammerha — Sign In | تسجيل الدخول</title>
   <meta name="description" content="Sign in to Nammerha — the OCDS-compliant reconstruction platform rebuilding Syria with transparency." />
   <!-- I-004 FIX: OpenGraph & Twitter Card meta tags for social sharing -->
   <meta property="og:title" content="Sign In — Nammerha" />
   <meta property="og:description" content="Sign in to Nammerha — the OCDS-compliant reconstruction platform rebuilding Syria with transparency." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="/brand/Nammerha_logo_icon.svg" />
+  <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Sign In — Nammerha" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />

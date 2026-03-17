@@ -18,6 +18,14 @@ import { escapeHtml as esc } from '../utils/xss';
 import { openData, marketplace } from '../api';
 import { formatCents } from '../utils/format';
 import { applyI18n } from '../utils/locale';
+import { initBreadcrumb } from '../utils/breadcrumb';
+// GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { autoTriggerTour } from '../components/tour-engine';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
+autoTriggerTour();
 
 // ─── Data Interfaces ────────────────────────────────────────────────────────
 interface ProjectData {
@@ -416,6 +424,7 @@ function initWhatsAppCTA(): void {
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
+    initBreadcrumb(); // GAP-007: Breadcrumb navigation
     loadProjectData();
     initTransparencyToggle();
     initWhatsAppCTA();

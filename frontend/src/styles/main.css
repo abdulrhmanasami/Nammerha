@@ -79,6 +79,18 @@
   --shadow-elevation: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-cta: 0 4px 16px rgba(26, 115, 232, 0.25);
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.1);
+
+  /* CONF-003 FIX: Z-Index Token Scale (ordered stacking context) */
+  --z-base: 0;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-sidebar-overlay: 40;
+  --z-sidebar: 50;
+  --z-modal: 60;
+  --z-bottom-nav: 70;
+  --z-checkout: 80;
+  --z-skip-link: 90;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -217,7 +229,8 @@ html[data-theme="dark"] :focus-visible {
   /* P0-SKIP-LTR FIX: Logical property replaces physical `left` for RTL safety */
   inset-inline-start: 50%;
   transform: translateX(-50%);
-  z-index: 99999;
+  /* CONF-003 FIX: z-index uses design token instead of magic number 99999 */
+  z-index: var(--z-skip-link);
   padding: 12px 24px;
   background: var(--trust-blue);
   color: white;
@@ -232,6 +245,21 @@ html[data-theme="dark"] :focus-visible {
   top: 0;
   outline: 3px solid var(--trust-blue);
   outline-offset: 2px;
+}
+
+/* CONF-002 FIX: Hide bottom navigation on desktop viewports (≥640px).
+   Desktop uses the glassmorphism top nav bar instead. Mobile keeps 5-tab bar. */
+@media (min-width: 640px) {
+  .nm-bottom-nav { display: none !important; }
+}
+
+/* INC-003 FIX: Standardized skeleton loading bar component.
+   Replaces ad-hoc animate-pulse implementations across 25+ pages. */
+.skeleton-bar {
+  display: inline-block;
+  background: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* PERF-02 FIX: Removed duplicate RTL icon-flipping rules.
@@ -1351,7 +1379,7 @@ html[data-theme="dark"] .text-red-400 {
     /* CON-04 FIX: Added overlay + i18n tokens — eliminates z-[10000] arms race */
     --z-overlay: 9970;
     --z-i18n-banner: 9980;
-    --z-skip: 99999;
+    --z-skip: var(--z-skip-link);
 }
 
 /* ============================================================================
@@ -1681,4 +1709,425 @@ html[data-theme="dark"] #cart-total {
 /* BOQ card gradient placeholders */
 html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
     background-image: linear-gradient(to bottom right, var(--tw-gradient-from, rgba(255,255,255,0.04)), rgba(255,255,255,0.06)) !important;
+}
+
+/* ============================================================================
+   FRC-004 FIX: Platform-Wide Native Haptic Feedback (Touch Targets)
+   Previous: Only btn-field-capture had :active state. 95% of interactive
+   elements had ZERO tactile response — making the PWA feel like "just a website."
+   Now: Every touch target provides 120ms feedback via scale + opacity shift.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap."
+   Material Design 3 — "State layers for pressed state."
+   ============================================================================ */
+@media (pointer: coarse) {
+    /* Primary buttons */
+    .btn-primary:active,
+    .btn-secondary:active {
+        transform: scale(0.97);
+        opacity: 0.85;
+        transition: transform 0.1s ease, opacity 0.1s ease;
+    }
+
+    /* Glass cards, navigation items, sidebar links */
+    .glass-card:active,
+    .nm-nav-item:active,
+    .dashboard-sidebar nav a:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+        transition: transform 0.1s ease, opacity 0.1s ease;
+    }
+
+    /* Quick action grid items */
+    [id="quick-actions-grid"] > a:active,
+    [id="quick-actions-grid"] > div:active {
+        transform: scale(0.96);
+        opacity: 0.85;
+        transition: transform 0.1s ease, opacity 0.1s ease;
+    }
+
+    /* Back buttons, icon buttons, header actions */
+    a[data-back-btn]:active,
+    button[aria-label]:active,
+    .sidebar-toggle:active {
+        transform: scale(0.92);
+        opacity: 0.7;
+        transition: transform 0.08s ease, opacity 0.08s ease;
+    }
+
+    /* Tip buttons (donor-basket) */
+    .tip-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.08s ease;
+    }
+
+    /* Cart add-to-cart buttons */
+    .add-to-cart-btn:active {
+        transform: scale(0.96);
+        opacity: 0.85;
+        transition: transform 0.1s ease, opacity 0.1s ease;
+    }
+
+    /* Tab switchers, select dropdowns */
+    .tab-active:active,
+    select:active {
+        transform: scale(0.98);
+        transition: transform 0.08s ease;
+    }
+
+    /* Generic fallback: any remaining interactive elements not covered above */
+    a[href]:not(.skip-link):not(.nm-nav-item):not([data-back-btn]):active,
+    button:not(.btn-primary):not(.btn-secondary):not([aria-label]):not(.sidebar-toggle):not(.tip-btn):not(.nm-theme-fab):active {
+        opacity: 0.8;
+        transition: opacity 0.1s ease;
+    }
+}
+
+/* ============================================================================
+   CON-005 FIX: Dark Mode Dashboard Headers
+   Dashboard headers use bg-white which doesn't respond to data-theme.
+   This override ensures dashboard headers are dark-mode aware.
+   ============================================================================ */
+html[data-theme="dark"] .dashboard-main > header {
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+html[data-theme="dark"] .dashboard-main > header h2,
+html[data-theme="dark"] .dashboard-main > header .page-header-title {
+    color: #e2e8f0;
+}
+html[data-theme="dark"] .dashboard-main > header .sidebar-toggle {
+    color: #94a3b8;
+}
+
+/* ============================================================================
+   INC-001 FIX: Standardized Page Header Component
+   Previous: 6 different page header heights (48px–96px) with ad-hoc spacing.
+   Now: Unified .page-header class with consistent height, RTL-safe.
+   • Consumer pages: h-14 (56px) — matches mobile app conventions
+   • Auth page keeps its pt-12 safe-area-inset for status bar
+   Standard: Apple HIG — "Navigation bars are 44pt plus safe area."
+   ============================================================================ */
+.page-header {
+    height: 3.5rem; /* 56px = 14 × 4 */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 1rem;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+@media (min-width: 768px) {
+    .page-header {
+        padding-inline: 1.5rem;
+    }
+}
+html[data-theme="dark"] .page-header {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================================================
+   GAP-008 FIX: Confirmation Dialog Component
+   Destructive actions (Sign Out, Clear Cart) now require user confirmation.
+   Features:
+   • Backdrop with blur overlay
+   • Glassmorphism dialog card
+   • Danger (red) and cancel (neutral) action buttons
+   • Keyboard Escape dismissal
+   • WCAG: role="alertdialog", aria-modal="true"
+   • RTL-safe via logical properties
+   Standard: Material Design 3 — "Full-screen dialog for destructive actions"
+   ============================================================================ */
+.confirm-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-skip-link);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+.confirm-dialog-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+.confirm-dialog {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+    text-align: center;
+}
+.confirm-dialog-backdrop.active .confirm-dialog {
+    transform: scale(1);
+}
+.confirm-dialog-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+.confirm-dialog-icon.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+.confirm-dialog-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+.confirm-dialog h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--dark-tech, #0f172a);
+}
+.confirm-dialog p {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+.confirm-dialog-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+.confirm-dialog-actions button {
+    flex: 1;
+    padding: 0.625rem 1rem;
+    border-radius: 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+}
+.confirm-dialog-actions .btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+}
+.confirm-dialog-actions .btn-cancel:hover {
+    background: #e2e8f0;
+}
+.confirm-dialog-actions .btn-danger {
+    background: #ef4444;
+    color: white;
+}
+.confirm-dialog-actions .btn-danger:hover {
+    background: #dc2626;
+}
+html[data-theme="dark"] .confirm-dialog {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .confirm-dialog h3 {
+    color: #e2e8f0;
+}
+html[data-theme="dark"] .confirm-dialog-actions .btn-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+}
+
+/* ============================================================================
+   GAP-006 FIX: KPI Skeleton Dark Mode
+   ============================================================================ */
+html[data-theme="dark"] .kpi-skeleton span {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================================================
+   GAP-007 FIX: Breadcrumb Navigation
+   Standard: WCAG 2.4.8 — Location. Users always know where they are.
+   ============================================================================ */
+.breadcrumb-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.breadcrumb-nav::-webkit-scrollbar {
+    display: none;
+}
+.breadcrumb-nav ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+/* RTL: flip the chevron separator */
+[dir="rtl"] .breadcrumb-nav .ph-caret-right {
+    transform: scaleX(-1);
+}
+html[data-theme="dark"] .breadcrumb-nav {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .breadcrumb-nav a {
+    color: var(--trust-blue);
+}
+html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
+    color: #94a3b8;
+}
+
+/* ============================================================================
+   FRC-005 FIX: Search Overlay
+   Apple Spotlight / Material Design Search pattern.
+   Activated via Cmd/Ctrl+K or data-search-trigger buttons.
+   ============================================================================ */
+.search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 5vh 1rem 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+.search-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.search-overlay-content {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 1rem;
+    max-width: 480px;
+    width: 100%;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transform: scale(0.97) translateY(-10px);
+    transition: transform 0.15s ease;
+    overflow: hidden;
+}
+.search-overlay.active .search-overlay-content {
+    transform: scale(1) translateY(0);
+}
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.9375rem;
+    color: #0f172a;
+    outline: none;
+    font-family: inherit;
+}
+.search-input::placeholder {
+    color: #94a3b8;
+}
+.search-kbd {
+    font-size: 0.625rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    border: 1px solid #e2e8f0;
+    font-family: inherit;
+    line-height: 1.4;
+}
+.search-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+    max-height: 50vh;
+}
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.1s ease;
+}
+.search-result-item:hover {
+    background: #f8fafc;
+}
+.search-result-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--trust-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.search-footer {
+    padding: 0.625rem 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    display: flex;
+    justify-content: flex-end;
+}
+.search-kbd-mini {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #94a3b8;
+    padding: 0.0625rem 0.25rem;
+    border-radius: 0.1875rem;
+    border: 1px solid #e2e8f0;
+    font-family: monospace;
+}
+/* Search Dark Mode */
+html[data-theme="dark"] .search-overlay-content {
+    background: rgba(30, 41, 59, 0.98);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .search-input {
+    color: #e2e8f0;
+}
+html[data-theme="dark"] .search-input-wrapper {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .search-kbd,
+html[data-theme="dark"] .search-kbd-mini {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #64748b;
+}
+html[data-theme="dark"] .search-result-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+html[data-theme="dark"] .search-footer {
+    border-color: rgba(255, 255, 255, 0.06);
 }

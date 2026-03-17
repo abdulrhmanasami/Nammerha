@@ -38,6 +38,7 @@ const SHELL_ASSETS = [
     '/nav.js?v=7',
     '/i18n.js?v=7',
     '/i18n.css?v=7',
+    '/i18n/wallet.js',
     '/fonts/phosphor/phosphor.css',
     '/theme-boot.js',
 ];

@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Report Damage</title>
+  <title>Nammerha — Report Damage | الإبلاغ عن أضرار</title>
   <meta name="description" content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-report.ts"></script>
@@ -40,10 +42,14 @@
     </div>
   </header>
 
+  <!-- CONF-001 FIX: Single <main> wrapper — was 4 separate <main id="main-content"> (HTML5 violation).
+       Wizard steps are now <section> elements inside one <main>. -->
+  <main id="main-content" class="flex-1 flex flex-col">
+
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 1 — What kind of damage? (One question per screen)
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="main-content" id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
+  <section id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
     <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="what_kind_of_damage">What kind of damage<br>needs repair?
     </h1>
     <p class="text-slate-500 text-sm text-center mb-8" data-i18n="select_the_type_that_best_describes_your">Select the type that best describes your situation</p>
@@ -105,12 +111,12 @@
         </div>
       </button>
     </div>
-  </main>
+  </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 2 — Where is your property? (Location)
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="main-content" id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
+  <section id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
     <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="where_is_your">Where is your<br>property located?
     </h1>
     <p class="text-slate-500 text-sm text-center mb-8" data-i18n="we_need_this_to_connect_you_with_nearby">We need this to connect you with nearby engineers</p>
@@ -160,12 +166,12 @@
         <p class="text-slate-700 text-sm font-mono" id="gps-display">—</p>
       </div>
     </div>
-  </main>
+  </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 3 — Describe the damage + Upload photos
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="main-content" id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
+  <section id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
     <h1 class="text-[28px] font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="describe_the_damage">Describe the damage</h1>
     <p class="text-slate-500 text-sm text-center mb-6" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
 
@@ -195,12 +201,12 @@
 
     <!-- Photo Thumbnails -->
     <div id="photo-thumbnails" class="flex gap-2 flex-wrap"></div>
-  </main>
+  </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 4 — Confirmation / Success
        ═══════════════════════════════════════════════════════════════════════ -->
-  <main id="main-content" id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
+  <section id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
     <div class="text-center">
       <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
         <i class="ph ph-check-circle text-smoky-jade" style="font-size:56px" aria-hidden="true"></i>
@@ -223,13 +229,15 @@
         <p class="text-sm text-slate-700"><span class="font-bold text-trust-blue" data-i18n="expected_response">Expected response:</span> Within 24–48 hours</p>
       </div>
     </div>
+  </section>
   </main>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        FOOTER — Fixed CTA buttons
        ═══════════════════════════════════════════════════════════════════════ -->
   <footer id="wizard-footer" class="p-6 pt-2 space-y-3">
-    <button id="next-btn" class="btn-primary w-full !py-5 text-lg disabled:opacity-40 disabled:cursor-not-allowed transition-opacity" disabled>
+    <!-- INC-007 FIX: disabled:opacity-65 matches design system standard (was opacity-40, violating WCAG 1.4.3) -->
+    <button id="next-btn" class="btn-primary w-full !py-5 text-lg disabled:opacity-[0.65] disabled:cursor-not-allowed transition-opacity" disabled>
       <span id="next-btn-text" data-i18n="select_damage_type">Select damage type</span>
       <i class="ph ph-arrow-right" aria-hidden="true"></i>
     </button>
@@ -250,9 +258,10 @@
       <p class="text-slate-500 text-sm" id="voice-timer">00:00</p>
       <p class="text-slate-400 text-xs mt-4 max-w-[260px]" data-i18n="describe_the_damage_clearly_we_ll_conve">Describe the damage clearly. We'll convert your speech to text.</p>
     </div>
+    <!-- INC-001 FIX: Added data-i18n for "Done" text (was hardcoded English) -->
     <button id="voice-stop-btn" class="mt-8 px-8 py-4 rounded-full bg-trust-blue text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">
       <i class="ph ph-stop-circle" style="font-size:22px" aria-hidden="true"></i>
-      Done
+      <span data-i18n="common_done">Done</span>
     </button>
   </div>
 

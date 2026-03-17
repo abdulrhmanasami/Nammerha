@@ -7,6 +7,12 @@ import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
 import { initOfflineIndicator } from '../utils/offline-indicator';
 import { guardSkeleton } from '../utils/skeleton-guard';
+import { requireAuth } from '../utils/auth-guard';
+// GAP-002 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
 
 // ============================================================================
 // Nammerha — Wallet Page Engine
@@ -130,6 +136,11 @@ async function loadTransactions(): Promise<void> {
 function init(): void {
     // P2-MOB-002 FIX: Show offline indicator when device loses connectivity
     initOfflineIndicator();
+
+    // GAP-004 FIX: Auth guard — show sign-in overlay if not authenticated
+    if (!requireAuth()) {
+        return; // Auth overlay shown, skip data loading
+    }
 
     // P3-UX-004 FIX: Guard skeleton loaders with timeout fallback
     const cancelSkeletonGuard = guardSkeleton({

@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Homeowner Portal</title>
+  <title>Nammerha — Homeowner Portal | بوابة مالك المنزل</title>
   <meta name="description" content="Track your reconstruction projects, manage repair requests, review bids, and approve construction phases." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-portal.ts"></script>
@@ -27,13 +29,13 @@
   <div class="sidebar-overlay" aria-hidden="true"></div>
 
   <!-- ═══════ Sidebar ═══════ -->
-  <aside class="dashboard-sidebar hidden md:flex">
+  <aside class="dashboard-sidebar">
     <div class="p-4 border-b border-slate-200 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="homeowner_portal">Homeowner Portal</span>
-      <div id="role-switcher-mount" class="ml-auto"></div>    </div>
+      <div id="role-switcher-mount" class="ms-auto"></div>    </div>
     <nav class="flex-1 px-4 space-y-1 pt-3">
-      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-blue-600/10 text-blue-700 rounded-lg cursor-pointer" href="#">
+      <a id="tab-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer" href="#">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
       </a>
@@ -44,12 +46,12 @@
       <a id="tab-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-wrench" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_service_requests">Service Requests</span>
-        <span class="ml-auto bg-blue-500/20 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
+        <span class="ms-auto bg-blue-500/20 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
       </a>
       <a id="tab-approvals" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-check-square" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_approvals">Approvals</span>
-        <span class="ml-auto bg-amber-500/20 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
+        <span class="ms-auto bg-amber-500/20 text-amber-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
       </a>
       <a id="tab-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" href="#">
         <i class="ph ph-vault" aria-hidden="true"></i>
@@ -75,7 +77,7 @@
   <!-- ═══════ Main Content ═══════ -->
   <div class="dashboard-main">
     <!-- Top Bar -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>

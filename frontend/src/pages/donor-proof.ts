@@ -5,6 +5,7 @@ import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { formatDateTime } from '../utils/locale';
 import { t } from '../utils/i18n';
+import { initBreadcrumb } from '../utils/breadcrumb';
 
 // ============================================================================
 // Nammerha — Donor Proof of Delivery Page Engine
@@ -185,8 +186,13 @@ async function loadProof(): Promise<void> {
 }
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadProof);
-} else {
+function init(): void {
+    initBreadcrumb(); // GAP-007: Breadcrumb navigation
     loadProof();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
 }

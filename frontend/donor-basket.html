@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Construction Basket</title>
+  <title>Nammerha — Construction Basket | سلة البناء</title>
   <meta name="description" content="Your itemized construction basket — fund specific materials for verified reconstruction projects." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/donor-basket.ts"></script>
@@ -20,12 +22,16 @@
 <body class="bg-cloud-white font-display text-slate-900 antialiased">
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <div id="main-content" class="mobile-container flex flex-col relative pb-48">
+  <!-- FRC-003 FIX: Increased pb from pb-48 to pb-64 — prevents checkout sheet from permanently
+       obscuring cart items on small screens (iPhone SE 375×667). Sheet is ~280px tall. -->
+  <main id="main-content" class="mobile-container flex flex-col relative pb-64">
 
     <!-- Header -->
     <header class="glass-nav sticky top-0 z-50 px-6 py-5 flex items-center justify-between border-b border-slate-200">
       <!-- P2-003 FIX: history.back() with fallback -->
-      <a href="project-details.html" onclick="if(history.length>1){history.back();return false;}" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <!-- CON-002 FIX: Unified back-navigation via data-back-btn (same pattern as wallet/profile).
+           Previous: inline onclick with history.back() mixed with href fallback — unpredictable behavior. -->
+      <a href="project-details.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h1 class="text-xl font-bold" data-i18n="construction_basket">Construction Basket</h1>
@@ -90,8 +96,9 @@
     </div>
 
     <!-- Bottom Checkout Sheet -->
-    <!-- P2-002 FIX: z-[10000] ensures checkout sheet sits ABOVE nav.js bottom nav (z-9999) -->
-    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-[10000]" id="checkout-sheet">
+    <!-- GAP-009 FIX: Sheet starts hidden, JS reveals when cart has items -->
+    <!-- CONF-003 FIX: Uses z-index token instead of magic number z-[10000] -->
+    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-[var(--z-checkout)] hidden" id="checkout-sheet">
       <div class="flex items-center justify-between mb-4">
         <div>
           <span class="text-slate-400 text-sm" data-i18n="total_funding_amount">Total Funding Amount</span>
@@ -146,11 +153,11 @@
       </p>
     </div>
 
-  </div>
+  </main>
 
-  <!-- Decorative Gradient Orbs -->
-  <div class="gradient-orb gradient-orb-primary" style="width:200px;height:200px;top:-60px;right:-60px"></div>
-  <div class="gradient-orb gradient-orb-jade" style="width:250px;height:250px;top:50%;left:-80px"></div>
+  <!-- CON-001 FIX: RTL-safe gradient orbs via CSS classes (was inline physical right/left) -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/project.js" defer></script>
 <script src="/nav.js?v=7" defer></script>

@@ -6,7 +6,7 @@
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "dir": "auto",
   "lang": "ar",
   "background_color": "#242424",
@@ -40,25 +40,25 @@
   ],
   "shortcuts": [
     {
-      "name": "الإبلاغ عن أضرار",
+      "name": "الإبلاغ عن أضرار — Report Damage",
       "short_name": "إبلاغ",
-      "description": "الإبلاغ عن أضرار منزلك",
+      "description": "Report Damage — الإبلاغ عن أضرار منزلك",
       "url": "/homeowner-report.html",
-      "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "محفظتي",
+      "name": "محفظتي — My Wallet",
       "short_name": "المحفظة",
-      "description": "عرض رصيدك ومعاملاتك",
+      "description": "My Wallet — عرض رصيدك ومعاملاتك",
       "url": "/wallet.html",
-      "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "تبرّع",
+      "name": "تبرّع — Donate",
       "short_name": "تبرّع",
-      "description": "تصفح المشاريع وتبرع",
+      "description": "Donate — تصفح المشاريع وتبرع",
       "url": "/donor-basket.html",
-      "icons": [{ "src": "/brand/Nammerha_logo_icon.svg", "sizes": "any" }]
+      "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "screenshots": [

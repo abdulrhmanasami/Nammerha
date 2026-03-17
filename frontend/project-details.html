@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Project Details</title>
+  <title>Nammerha — Project Details | تفاصيل المشروع</title>
   <meta name="description" content="Itemized project BOQ with funding progress and donation buttons." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/project-details.ts"></script>
@@ -23,8 +25,10 @@
 
   <!-- Header -->
   <header class="glass-nav sticky top-0 z-50 border-b border-slate-200">
-    <div class="flex items-center p-4 justify-between max-w-md mx-auto">
-      <a href="index.html" class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50">
+    <!-- CON-003 FIX: Container uses mobile-container for progressive width scaling (was max-w-md fixed 448px) -->
+    <div class="flex items-center p-4 justify-between mobile-container">
+      <!-- CON-002 FIX: Unified back-nav via data-back-btn pattern -->
+      <a href="index.html" data-back-btn class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center" data-i18n="project_details">Project Details</h2>
@@ -33,14 +37,14 @@
           <i class="ph ph-shopping-cart" aria-hidden="true"></i>
           <span class="cart-badge" id="header-cart-badge" style="display:none">0</span>
         </a>
-        <button class="flex size-10 items-center justify-center rounded-full hover:bg-slate-200/50">
+        <button class="flex size-10 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Share project" data-i18n-aria="aria_share_project">
           <i class="ph ph-share-network" aria-hidden="true"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <main id="main-content" class="max-w-md mx-auto pb-32">
+  <main id="main-content" class="mobile-container pb-32">
     <!-- Hero -->
     <div class="p-4">
       <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-warm-earth/30 to-slate-300">
@@ -200,7 +204,7 @@
               data-item-icon="ph-window"
             >
               <i class="ph ph-shopping-cart-simple" style="font-size:20px" aria-hidden="true"></i>
-              Add to Cart
+              <span data-i18n="add_to_cart">Add to Cart</span>
             </button>
           </div>
         </div>
@@ -234,7 +238,7 @@
               data-item-icon="ph-drop"
             >
               <i class="ph ph-shopping-cart-simple" style="font-size:20px" aria-hidden="true"></i>
-              Add to Cart
+              <span data-i18n="add_to_cart">Add to Cart</span>
             </button>
           </div>
         </div>

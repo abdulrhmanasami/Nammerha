@@ -4,6 +4,7 @@ import { projects, epaOracle, marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
+import { initBreadcrumb } from '../utils/breadcrumb';
 
 // ============================================================================
 // Nammerha — Engineer BOQ Builder Page Engine
@@ -292,6 +293,7 @@ publishBtn?.addEventListener('click', async () => {
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     state.projectId = getProjectId();
+    initBreadcrumb(); // GAP-007: Breadcrumb navigation
     if (state.projectId) {
         loadExistingBOQ();
     } else {

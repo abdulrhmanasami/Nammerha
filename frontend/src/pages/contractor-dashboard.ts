@@ -10,6 +10,13 @@ import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { autoTriggerTour } from '../components/tour-engine';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
+autoTriggerTour();
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Dashboard — Project Execution & Bidding Engine

@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+  <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Admin Dashboard</title>
+  <title>Nammerha — Admin Dashboard | لوحة التحكم</title>
   <meta name="description" content="Command center for managing reconstruction projects, escrow verification, and pricing oracle." />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/admin-dashboard.ts"></script>
@@ -26,7 +28,7 @@
   <div class="sidebar-overlay" aria-hidden="true"></div>
 
   <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar hidden md:flex">
+  <aside class="dashboard-sidebar">
     <div class="p-6 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       <h1 class="text-xl font-bold tracking-tight">Nammerha</h1>
@@ -51,12 +53,12 @@
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span id="sidebar-escrow-count" class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
+        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span id="sidebar-kyc-count" class="ml-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
+        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
@@ -68,7 +70,7 @@
       <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true" title="Coming Soon">
         <i class="ph ph-gear" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ml-auto text-[8px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+        <span class="ms-auto text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
       </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
@@ -117,7 +119,7 @@
             </span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="total_impact_funded">Total Impact Funded</p>
-          <p class="text-2xl font-black mt-1" id="kpi-total-funded" data-kpi="0" data-prefix="$">$0</p>
+          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-total-funded" data-kpi="0" data-prefix="$"><span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -127,7 +129,7 @@
             <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full" data-i18n="badge_active">Active</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_active_projects">Active Projects</p>
-          <p class="text-2xl font-black mt-1" id="kpi-active-projects" data-kpi="0">0</p>
+          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-active-projects" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -136,7 +138,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_registered_eng">Registered Engineers</p>
-          <p class="text-2xl font-black mt-1" id="kpi-engineers" data-kpi="0">0</p>
+          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-engineers" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -146,7 +148,7 @@
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_pending_verify">Pending Verifications</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-pending" data-kpi="0">0</p>
+          <p class="text-2xl font-black mt-1 text-warning-yellow kpi-skeleton" id="kpi-pending" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
       </div>
 

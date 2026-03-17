@@ -8,6 +8,13 @@ import { loadProjectMarkers, getProjectStats, applyFilter } from '../map/map-mar
 import { addStandardControls, createFilterControl } from '../map/map-controls';
 import { t, tParams } from '../map/i18n-bridge';
 import { reportWarning } from '../error-reporter';
+// GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { autoTriggerTour } from '../components/tour-engine';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
+autoTriggerTour();
 
 /**
  * Boot the interactive reconstruction map on the homepage.

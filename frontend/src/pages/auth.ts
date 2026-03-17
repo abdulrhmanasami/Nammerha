@@ -261,8 +261,21 @@ formLogin?.addEventListener('submit', async (e) => {
                 kyc_verified: userData.is_active,
             });
             showBanner('success', t('auth_welcome_back', 'Welcome back! Redirecting...'));
+            // GAP-008 FIX: Role-based redirect — each role goes to their dashboard
+            const ROLE_DASHBOARD: Record<string, string> = {
+                homeowner: '/homeowner-portal.html',
+                donor: '/donor-portal.html',
+                contractor: '/contractor-portal.html',
+                supplier: '/supplier-dashboard.html',
+                tradesperson: '/tradesperson-portal.html',
+                engineer: '/engineer-camera.html',
+                admin: '/admin-dashboard.html',
+                auditor: '/compliance-dashboard.html',
+            };
+            const activeRole = userData.activeRole ?? userData.role;
+            const target = ROLE_DASHBOARD[activeRole] ?? '/';
             setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = target;
             }, 800);
         } else {
             showBanner('error', response.error ?? t('auth_login_failed', 'Invalid credentials. Please try again.'));

@@ -9,6 +9,13 @@ import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
+// GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { autoTriggerTour } from '../components/tour-engine';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
+autoTriggerTour();
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine

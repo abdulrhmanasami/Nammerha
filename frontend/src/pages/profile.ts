@@ -8,6 +8,11 @@ import { auth, roles as rolesApi } from '../api';
 // instead of maintaining a duplicate copy.
 import { ROLE_META, getRoleLabel } from '../components/role-switcher';
 import { t, isRTL } from '../utils/i18n';
+// GAP-002 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
 
 // ============================================================================
 // Nammerha — Profile Page Engine
@@ -303,6 +308,108 @@ document.getElementById('add-role-btn')?.addEventListener('click', () => {
 document.getElementById('cancel-role-activation')?.addEventListener('click', () => {
     const modal = document.getElementById('role-activation-modal');
     if (modal) { modal.classList.add('hidden'); }
+});
+
+// ─── GAP-003 FIX: Profile Edit Mode ────────────────────────────────────────
+// Toggles between display mode and inline edit form.
+// Saves to local auth state; API call placeholder for backend wiring.
+function toggleEditMode(show: boolean): void {
+    const displayMode = document.getElementById('profile-display-mode');
+    const editForm = document.getElementById('profile-edit-form');
+    if (!displayMode || !editForm) { return; }
+
+    if (show) {
+        // Pre-fill with current data
+        const user = getCurrentUser();
+        const nameInput = document.getElementById('edit-name') as HTMLInputElement | null;
+        const emailInput = document.getElementById('edit-email') as HTMLInputElement | null;
+        if (nameInput) { nameInput.value = user?.full_name ?? ''; }
+        if (emailInput) { emailInput.value = user?.email ?? ''; }
+
+        displayMode.classList.add('hidden');
+        editForm.classList.remove('hidden');
+        document.getElementById('edit-name')?.focus();
+    } else {
+        displayMode.classList.remove('hidden');
+        editForm.classList.add('hidden');
+        hideEditBanner();
+    }
+}
+
+function showEditBanner(type: 'error' | 'success', message: string): void {
+    const banner = document.getElementById('profile-edit-banner');
+    if (!banner) { return; }
+    banner.className = `text-xs font-bold p-3 rounded-xl ${
+        type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
+    }`;
+    banner.textContent = message;
+    banner.classList.remove('hidden');
+}
+
+function hideEditBanner(): void {
+    const banner = document.getElementById('profile-edit-banner');
+    if (banner) { banner.classList.add('hidden'); }
+}
+
+async function saveProfile(): Promise<void> {
+    const nameInput = document.getElementById('edit-name') as HTMLInputElement | null;
+    const emailInput = document.getElementById('edit-email') as HTMLInputElement | null;
+    const saveBtn = document.getElementById('save-profile-btn') as HTMLButtonElement | null;
+
+    const newName = nameInput?.value.trim() ?? '';
+    const newEmail = emailInput?.value.trim() ?? '';
+
+    // Validation
+    if (!newName) {
+        showEditBanner('error', t('profile_name_required', 'Please enter your name.'));
+        nameInput?.focus();
+        return;
+    }
+    if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+        showEditBanner('error', t('profile_email_invalid', 'Please enter a valid email address.'));
+        emailInput?.focus();
+        return;
+    }
+
+    // Disable button during save
+    if (saveBtn) { saveBtn.disabled = true; }
+
+    try {
+        // TODO: Wire to auth.updateProfile({ full_name: newName, email: newEmail })
+        // when backend endpoint is available. For now, save to local state.
+        const user = getCurrentUser();
+        if (user) {
+            setCurrentUser({
+                ...user,
+                full_name: newName,
+                email: newEmail,
+            });
+        }
+
+        // Re-render profile display
+        const nameEl = document.getElementById('user-name');
+        const emailEl = document.getElementById('user-email');
+        if (nameEl) { nameEl.textContent = newName; }
+        if (emailEl) { emailEl.textContent = newEmail; }
+        renderAvatarInitials(newName);
+        updateProfileCompletion(getCurrentUser());
+
+        showEditBanner('success', t('profile_saved', 'Profile updated successfully.'));
+        setTimeout(() => toggleEditMode(false), 800);
+    } catch (err) {
+        reportWarning('[Profile] Edit save failed', { error: err instanceof Error ? err.message : String(err) });
+        showEditBanner('error', t('profile_save_failed', 'Failed to save. Please try again.'));
+    } finally {
+        if (saveBtn) { saveBtn.disabled = false; }
+    }
+}
+
+// Wire edit/cancel buttons
+document.getElementById('edit-profile-btn')?.addEventListener('click', () => toggleEditMode(true));
+document.getElementById('cancel-edit-btn')?.addEventListener('click', () => toggleEditMode(false));
+document.getElementById('profile-edit-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveProfile();
 });
 
 // ─── Initialize ─────────────────────────────────────────────────────────────

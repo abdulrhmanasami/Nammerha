@@ -8,6 +8,13 @@ import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
+// GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+import { initPullToRefresh } from '../utils/pull-refresh';
+import { autoTriggerTour } from '../components/tour-engine';
+import { initBackToTop } from '../components/back-to-top';
+initPullToRefresh();
+initBackToTop();
+autoTriggerTour();
 import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
