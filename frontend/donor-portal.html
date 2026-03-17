@@ -201,12 +201,18 @@
         <!-- DK-001 FIX: Raw Tailwind → design tokens (smoky-jade = secured, trust-blue = released) -->
         <div class="bg-smoky-jade/10 rounded-xl p-4 border border-smoky-jade/20">
           <p class="text-[10px] font-bold text-smoky-jade uppercase" data-i18n="donor_in_escrow">In Escrow (Secured)</p>
+          <!-- FRIC-2602 FIX: Plain-language escrow subtitle — Syrian users encountering "escrow" for the first time.
+               wallet.html explains this but donor portal KPI cards did not.
+               Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
+          <p class="text-[9px] text-smoky-jade/70 -mt-0.5" data-i18n="donor_escrow_hint">Held securely until milestones verified</p>
           <p class="text-lg font-black text-smoky-jade mt-1" aria-live="polite" id="kpi-locked">
             <span class="inline-block h-6 w-16 bg-smoky-jade/20 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-trust-blue/10 rounded-xl p-4 border border-trust-blue/20">
           <p class="text-[10px] font-bold text-trust-blue uppercase" data-i18n="donor_released">Released to Suppliers</p>
+          <!-- FRIC-2602 FIX: Plain-language subtitle for released funds. -->
+          <p class="text-[9px] text-trust-blue/70 -mt-0.5" data-i18n="donor_released_hint">Paid to verified suppliers</p>
           <p class="text-lg font-black text-trust-blue mt-1" aria-live="polite" id="kpi-released">
             <span class="inline-block h-6 w-16 bg-trust-blue/20 rounded animate-pulse"></span>
           </p>
@@ -327,6 +333,9 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/donor.js" defer></script>
+<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+<script src="/load-guard.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
 <script src="/sidebar.js?v=1" defer></script>
 </body>

@@ -285,6 +285,9 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/admin.js" defer></script>
+<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+<script src="/load-guard.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
 <script src="/sidebar.js?v=1" defer></script>
 </body>

@@ -177,11 +177,14 @@
       <div class="w-full mt-4" id="profile-completion-container">
         <div class="flex items-center justify-between mb-1">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="profile_completion">Profile Completion</span>
-          <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">0%</span>
+          <!-- FRIC-2604 FIX: Skeleton loader replaces hardcoded "0%" before API data loads.
+               Previous: showed "0%" → misleading flash for users who may have 60% completion.
+               Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
+          <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">
+            <span class="inline-block h-3 w-8 bg-slate-200 rounded animate-pulse" data-skeleton></span>
+          </span>
         </div>
-        <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar.
-             Previous: div with width% — invisible to screen readers.
-             Standard: WCAG 4.1.2 (Name, Role, Value), WCAG 1.3.1 (Info and Relationships). -->
+        <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar. -->
         <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Profile completion" aria-describedby="profile-completion-pct">
           <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700" style="width:0%"></div>
         </div>
@@ -364,6 +367,9 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/profile.js" defer></script>
+<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+<script src="/load-guard.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
 </body>
 </html>

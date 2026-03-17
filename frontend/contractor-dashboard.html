@@ -86,7 +86,9 @@
       </button>
     </nav>
     <!-- Navigation links outside tablist — these navigate to different pages -->
-    <div class="px-4 space-y-1 pb-2">
+    <!-- FRIC-2601 FIX: data-section-label provides visible "Navigate" label via CSS ::before.
+         Standard: Nielsen #6 (Recognition over Recall), Gestalt (Proximity). -->
+    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html">
         <i class="ph ph-buildings" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_my_projects">My Projects</span>
@@ -318,6 +320,9 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/contractor.js" defer></script>
+<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+<script src="/load-guard.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
 <script src="/sidebar.js?v=1" defer></script>
 </body>

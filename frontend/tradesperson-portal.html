@@ -79,7 +79,10 @@
       <button type="button" role="tab" id="tab-requests" aria-selected="false" aria-controls="section-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-megaphone" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="tradesperson_jobs">Available Jobs</span>
-        <span class="ms-auto bg-teal-500/20 text-teal-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="pending-count">0</span>
+        <!-- INC-2602 FIX: Was teal-500 — not a design token. Replaced with smoky-jade.
+             Platform tokens: trust-blue, smoky-jade, warm-earth, warning-yellow.
+             Standard: Design System Token Governance, Nielsen #4 (Consistency). -->
+        <span class="ms-auto bg-smoky-jade/20 text-smoky-jade text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="pending-count">0</span>
       </button>
       <button type="button" role="tab" id="tab-assignments" aria-selected="false" aria-controls="section-assignments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-clipboard-text" aria-hidden="true"></i>
@@ -364,6 +367,9 @@
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/tradesperson.js" defer></script>
+<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+<script src="/load-guard.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
 <script src="/sidebar.js?v=1" defer></script>
 </body>
