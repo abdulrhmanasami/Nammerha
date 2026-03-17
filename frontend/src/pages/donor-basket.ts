@@ -10,6 +10,9 @@ import { CartStore, type CartItem } from '../components/cart';
 import { escapeHtml } from '../utils/xss';
 import { formatDollars } from '../utils/format';
 import { t } from '../utils/i18n';
+// GAP-N03 FIX: Global search overlay on checkout page
+import { initSearch } from '../utils/search-overlay';
+initSearch();
 
 // FRC-003 FIX: Default tip 0% (was 3%). Humanitarian platform — opt-in tipping only.
 let selectedTipPercentage = 0;
@@ -241,6 +244,53 @@ function initDonorBasket(): void {
         }
         if (countEl) {
             countEl.textContent = String(count);
+        }
+
+        // FRC-N03 FIX: Inject itemized breakdown into checkout sheet.
+        // Previous: Only a single total was shown — donors had no line-item transparency.
+        // Now: Each item is listed with qty × unit price = subtotal.
+        // Standard: eCommerce UX — checkout must show per-item breakdown.
+        const confirmTotalEl = document.getElementById('confirm-total');
+        if (confirmTotalEl) {
+            confirmTotalEl.textContent = `— ${formatDollars(total)}`;
+        }
+
+        // Render itemized breakdown above checkout button
+        let breakdownEl = document.getElementById('checkout-breakdown');
+        if (!breakdownEl && checkoutSheet) {
+            breakdownEl = document.createElement('div');
+            breakdownEl.id = 'checkout-breakdown';
+            breakdownEl.className = 'px-4 mb-3';
+            // Insert before the confirm button
+            const confirmBtn = document.getElementById('confirm-funding-btn');
+            if (confirmBtn) {
+                confirmBtn.parentElement?.insertBefore(breakdownEl, confirmBtn);
+            }
+        }
+
+        if (breakdownEl) {
+            const items = CartStore.getItems();
+            if (items.length > 0) {
+                const itemsHtml = items.map(item => `
+                    <div class="flex justify-between text-xs text-slate-600">
+                        <span class="truncate max-w-[60%]">${escapeHtml(item.name)} <span class="text-slate-400">×${item.quantity}</span></span>
+                        <span class="font-bold">${formatDollars(item.unitPrice * item.quantity)}</span>
+                    </div>
+                `).join('');
+
+                breakdownEl.innerHTML = `
+                    <div class="border-t border-slate-100 pt-3 space-y-1.5">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="checkout_breakdown">${t('checkout_breakdown', 'Order Summary')}</p>
+                        ${itemsHtml}
+                        <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
+                            <span data-i18n="checkout_subtotal">${t('checkout_subtotal', 'Subtotal')}</span>
+                            <span>${formatDollars(total)}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                breakdownEl.innerHTML = '';
+            }
         }
 
         // Update tip display when totals change

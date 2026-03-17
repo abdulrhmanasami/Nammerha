@@ -19,6 +19,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Report Damage | الإبلاغ عن أضرار</title>
   <meta name="description" content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners." />
+  <!-- GAP-A04 FIX: IBM Plex Sans Arabic preload — was missing on this page.
+       All other pages preload this critical Arabic font for rendering performance. -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-report.ts"></script>
   <!-- GAP-010 FIX: OG/Twitter meta for damage report sharing -->
@@ -27,9 +30,21 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://nammerha.com/brand/icon-512.png" />
   <meta name="twitter:card" content="summary" />
+  <!-- INC-A06 FIX: Missing twitter:title — all other pages with OG tags include it -->
+  <meta name="twitter:title" content="Report Damage — Nammerha" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
 <body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+<!-- GAP-A02 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
+     Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible.
+     Standard: Progressive Enhancement — "Content must be accessible without JavaScript." -->
+<noscript>
+  <style>html:not([data-theme]){visibility:visible!important}</style>
+  <div style="padding:2rem;text-align:center;font-family:system-ui;direction:rtl;">
+    <p style="font-size:1.25rem;font-weight:700;">نعمّرها تحتاج JavaScript</p>
+    <p style="margin-top:0.5rem;color:#64748b;">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
+  </div>
+</noscript>
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 <div class="mobile-container flex flex-col min-h-screen">
@@ -39,7 +54,10 @@
        ═══════════════════════════════════════════════════════════════════════ -->
   <header class="p-6 pb-2">
     <div class="flex items-center justify-between mb-4">
-      <button id="back-btn" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <!-- CONF-NEW-04 FIX: Back button standardized from size-12 (48px) to w-11 h-11 (44px).
+           44px meets Apple HIG 44pt minimum while matching all other pages.
+           Standard: Design System Consistency, Apple HIG. -->
+      <button id="back-btn" class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </button>
       <div class="flex-1 flex flex-col items-center">
@@ -48,7 +66,7 @@
           <div class="h-full bg-trust-blue rounded-full transition-all duration-500 ease-out" id="progress-fill" style="width: 33.33%"></div>
         </div>
       </div>
-      <div class="size-12"></div>
+      <div class="w-11 h-11 shrink-0"></div>
     </div>
   </header>
 
@@ -279,6 +297,18 @@
   </div>
 
 </div>
+
+  <!-- GAP-A01 FIX: Legal footer was completely missing from this page.
+       All other consumer pages include Terms, Privacy, Refund Policy footer.
+       Standard: Legal compliance, Nielsen Heuristic #4 (Consistency). -->
+  <footer class="nm-legal-footer">
+    <nav aria-label="Legal navigation">
+      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+    </nav>
+    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+  </footer>
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/homeowner.js" defer></script>
 <script src="/nav.js?v=7" defer></script>

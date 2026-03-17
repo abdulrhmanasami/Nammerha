@@ -29,18 +29,18 @@
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 
-  <!-- Header -->
-  <!-- INC-001 FIX: Height standardized to h-14 (56px). INC-002: data-back-btn added. INC-003: mobile-container. -->
-  <header class="glass-nav sticky top-0 z-50 border-b border-trust-blue/10">
-    <div class="flex items-center justify-between px-4 h-14 mobile-container">
-      <a href="index.html" data-back-btn class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
-        <i class="ph ph-arrow-left text-slate-700" aria-hidden="true"></i>
+  <!-- INC-NEW-01 FIX: Unified .page-header component.
+       Previous: glass-nav sticky + inner div — ad-hoc nesting, size-10 back button (40px < 44px).
+       Now: Flat .page-header, w-11 h-11 touch targets. Back button wired by page-header.ts.
+       Standard: Nielsen #4, Apple HIG 44pt, WCAG 2.5.5. -->
+  <header class="page-header border-b border-slate-200">
+      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
+        <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
-      <h1 class="text-lg font-bold tracking-tight" data-i18n="proof_of_delivery">Proof of Delivery</h1>
-      <button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors" aria-label="Share" data-i18n-aria="aria_share_project">
-        <i class="ph ph-share-network text-slate-700" aria-hidden="true"></i>
+      <h1 class="text-lg font-bold tracking-tight flex-1 text-center page-header-title" data-i18n="proof_of_delivery">Proof of Delivery</h1>
+      <button class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Share" data-i18n-aria="aria_share_project">
+        <i class="ph ph-share-network" aria-hidden="true"></i>
       </button>
-    </div>
   </header>
 
   <main id="main-content" class="flex-1 w-full mobile-container px-4 py-6">

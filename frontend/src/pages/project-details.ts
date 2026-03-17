@@ -24,9 +24,12 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 import { showToast } from '../utils/toast';
+// GAP-N03 FIX: Global search overlay on inner pages
+import { initSearch } from '../utils/search-overlay';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
+initSearch();
 
 // ─── Data Interfaces ────────────────────────────────────────────────────────
 interface ProjectData {

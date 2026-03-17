@@ -87,6 +87,7 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     setupServiceRequestForm();
+    setupToggleDetails();  // CONF-N04 FIX
     const initialTab = hashRouter.getInitialTab();
     switchTab(initialTab);
     hashRouter.onHashChange(switchTab);
@@ -98,8 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
         onSwitch: switchTab as (tab: string) => void,
         getCurrentTab: () => hashRouter.getInitialTab(),
     });
-    setupServiceRequestForm();
-
 
     // ─── Secure Logout ──────────────────────────────────────────────────
     document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
@@ -108,6 +107,32 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/auth.html';
     });
 });
+
+// ─── CONF-N04 FIX: Toggle Details via addEventListener ──────────────────────
+// Previous: inline onclick in HTML — violated CSP script-src 'self'.
+// FRC-N06 FIX: After toggling, re-applies i18n to translate new data-i18n spans.
+// Standard: CSP Level 2 §4.1, OWASP XSS Prevention Cheat Sheet.
+function setupToggleDetails(): void {
+    const btn = document.getElementById('sr-toggle-details');
+    const wrap = document.getElementById('sr-details-wrap');
+    if (!btn || !wrap) { return; }
+
+    let isExpanded = false;
+
+    btn.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+            wrap.classList.remove('hidden');
+            btn.innerHTML = '<i class="ph ph-minus-circle" aria-hidden="true"></i> <span data-i18n="ho_fewer_details">Fewer Details</span>';
+        } else {
+            wrap.classList.add('hidden');
+            btn.innerHTML = '<i class="ph ph-plus-circle" aria-hidden="true"></i> <span data-i18n="ho_add_details">Add Details</span>';
+        }
+        // FRC-N06 FIX: Re-translate the newly injected data-i18n spans
+        // so Arabic users don't see English fallback text after toggling.
+        import('../utils/locale').then(m => m.applyI18n()).catch(() => { /* non-critical */ });
+    });
+}
 
 // ─── Tab Navigation ─────────────────────────────────────────────────────────
 function setupTabs(): void {

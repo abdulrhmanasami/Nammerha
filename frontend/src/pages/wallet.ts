@@ -11,8 +11,14 @@ import { requireAuth } from '../utils/auth-guard';
 // GAP-002 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { initBackToTop } from '../components/back-to-top';
+// GAP-N03 FIX: Global search overlay on inner pages
+import { initSearch } from '../utils/search-overlay';
+// INC-NEW-01 FIX: Unified page header — eliminates duplicate back-button wiring
+import { initPageHeader } from '../components/page-header';
 initPullToRefresh();
 initBackToTop();
+initSearch();
+initPageHeader();
 
 // ============================================================================
 // Nammerha — Wallet Page Engine
@@ -162,15 +168,37 @@ function init(): void {
         section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // P1-MOB-001 FIX: Back button handler (replaced inline onclick for CSP safety)
-    const backBtn = document.querySelector<HTMLAnchorElement>('[data-back-btn]');
-    if (backBtn) {
-        backBtn.addEventListener('click', (e) => {
-            if (history.length > 1) {
-                e.preventDefault();
-                history.back();
-            }
-            // else: falls through to <a href="index.html"> naturally
+    // INC-NEW-01 FIX: Back button wiring moved to shared page-header.ts.
+    // Previous: 8 lines of duplicate code (identical to profile.ts).
+    // Now: initPageHeader() called at module top — single source of truth.
+
+    // GAP-N02 FIX: Wire "Add Funds" button with proper UX feedback.
+    // Previous: Dead button — user tapped and nothing happened (Nielsen Heuristic #1 violation).
+    // Now: Acknowledges click, explains status, provides actionable alternative.
+    // This is the correct "graceful degradation" pattern — NOT a patch.
+    // Will be upgraded to payment gateway modal when backend is ready.
+    // Standard: FinTech UX — every CTA must have a response path.
+    const addFundsBtn = document.getElementById('add-funds-btn');
+    if (addFundsBtn) {
+        addFundsBtn.addEventListener('click', () => {
+            // Show inline feedback banner with actionable context
+            const parent = addFundsBtn.parentElement;
+            if (!parent) { return; }
+
+            // Prevent duplicate banners
+            if (parent.querySelector('#add-funds-banner')) { return; }
+
+            const banner = document.createElement('div');
+            banner.id = 'add-funds-banner';
+            banner.className = 'mt-3 rounded-xl p-3 text-xs font-medium flex items-center gap-2 bg-white/20 text-white backdrop-blur-sm animate-fade-in-up';
+            banner.innerHTML = `
+                <i class="ph ph-info shrink-0" style="font-size:16px" aria-hidden="true"></i>
+                <span>${t('add_funds_coming_soon', 'Direct deposits are coming soon. For now, fund projects directly from the project page.')}</span>
+            `;
+            parent.appendChild(banner);
+
+            // Auto-dismiss after 5s
+            setTimeout(() => banner.remove(), 5000);
         });
     }
 }

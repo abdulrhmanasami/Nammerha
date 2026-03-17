@@ -137,9 +137,10 @@
           style="font-size:20px"
           aria-hidden="true"
         ></i>
+        <!-- INC-A05 FIX: type="search" for semantic input, native clear button, and proper mobile keyboard -->
         <input
           id="search-input"
-          type="text"
+          type="search"
           class="w-full bg-slate-200/50 border-none rounded-full py-2 ps-10 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 transition-all outline-none"
           placeholder="Search reconstruction projects..." data-i18n-placeholder="search_placeholder"
         />
@@ -237,12 +238,15 @@
       <section class="mb-8 scroll-reveal">
         <div class="flex items-center justify-between px-4 mb-4">
           <h2 class="text-lg font-bold" data-i18n="featured_projects">Featured Projects</h2>
+          <!-- GAP-N01 FIX: Was href="donor-portal.html" — role-gated page, dead-end for unauthenticated.
+               Now links to projects.html (public listing). Standard: Nielsen Heuristic #3 — User Control. -->
+          <!-- CONF-N06 FIX: ph-caret-right auto-flips in RTL via [dir=rtl] scaleX(-1) in main.css breadcrumb rules. -->
           <a
             class="text-sm text-trust-blue font-semibold flex items-center gap-1"
-            href="donor-portal.html"
+            href="projects.html"
           >
             <span data-i18n="view_all">View all</span>
-            <i class="ph ph-arrow-right" style="font-size:18px" aria-hidden="true"></i>
+            <i class="ph ph-caret-right" style="font-size:18px" aria-hidden="true"></i>
           </a>
         </div>
         <div id="projects-carousel" class="flex overflow-x-auto gap-4 px-4 pb-4 no-scrollbar" tabindex="0" role="region" aria-label="Featured projects" data-i18n-aria="aria_featured_projects">
@@ -361,6 +365,11 @@
       <!-- Role-Based Quick Actions -->
       <section class="px-4 mt-8 scroll-reveal">
         <h2 class="text-lg font-bold mb-4" data-i18n="quick_actions">Quick Actions</h2>
+        <!-- FRC-N01 FIX: Quick Action section with subtitles & default-hidden role-gated items.
+             Previous: all 4 actions shown to all users with no descriptions — "Build BOQ" meaningless to donors.
+             Now: role-gated items hidden by default (main.ts unhides for authenticated users).
+             Subtitles provide context — reduces cognitive load for first-time visitors.
+             Standard: Miller's Law, Progressive Disclosure, Nielsen Heuristic #6 (Recognition). -->
         <div id="quick-actions-grid" class="grid grid-cols-2 gap-3">
           <a
             href="homeowner-report.html"
@@ -372,10 +381,11 @@
               <i class="ph ph-wrench text-trust-blue text-2xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-slate-700" data-i18n="report_damage">Report Damage</span>
+            <span class="text-[10px] text-slate-400 leading-tight" data-i18n="report_damage_desc">Submit your property for assessment</span>
           </a>
           <a
             href="engineer-boq.html"
-            class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow"
+            class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow hidden"
             data-roles="engineer,admin"
           >
             <div
@@ -384,6 +394,7 @@
               <i class="ph ph-clipboard-text text-smoky-jade text-2xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-slate-700" data-i18n="build_boq">Build BOQ</span>
+            <span class="text-[10px] text-slate-400 leading-tight" data-i18n="build_boq_desc">Create a bill of quantities estimate</span>
           </a>
           <a
             href="projects.html"
@@ -395,10 +406,11 @@
               <i class="ph ph-hand-heart text-warm-earth text-2xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-slate-700" data-i18n="fund_materials">Fund Materials</span>
+            <span class="text-[10px] text-slate-400 leading-tight" data-i18n="fund_materials_desc">Browse projects and donate</span>
           </a>
           <a
             href="admin-oracle.html"
-            class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow"
+            class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow hidden"
             data-roles="admin"
           >
             <div
@@ -407,12 +419,34 @@
               <i class="ph ph-chart-line-up text-warning-yellow text-2xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-slate-700" data-i18n="price_oracle">Price Oracle</span>
+            <span class="text-[10px] text-slate-400 leading-tight" data-i18n="price_oracle_desc">Real-time market price analytics</span>
+          </a>
+          <!-- FRC-NEW-05 FIX: Guest-only CTA card fills the visual gap.
+               Unauthenticated users see 3 items instead of 2 (abundance UX).
+               Hidden when authenticated (JS adds .hidden based on auth state).
+               Standard: Gestalt (Completion), First Impression UX. -->
+          <a
+            href="auth.html"
+            class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow border border-dashed border-trust-blue/20"
+            id="guest-cta-card"
+            data-guest-only
+          >
+            <div
+              class="size-12 bg-gradient-to-br from-trust-blue/10 to-smoky-jade/10 rounded-xl flex items-center justify-center"
+            >
+              <i class="ph ph-user-plus text-trust-blue text-2xl" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-trust-blue" data-i18n="join_community">Join Us</span>
+            <span class="text-[10px] text-slate-400 leading-tight" data-i18n="join_community_desc">Create an account to access all features</span>
           </a>
         </div>
       </section>
 
-    <!-- GAP-X01 FIX: Legal footer — accessible from every consumer page.
-         Standard: GDPR Art. 13, FinTech UX (legal links on all payment surfaces). -->
+    </main>
+
+    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> for correct WCAG 1.3.1 landmark semantics.
+         Previous: <footer> was a child of <main> — screen readers announced legal links as "main content".
+         Standard: HTML5 §4.4.2 — "The footer element is not sectioning content; it doesn't introduce a new section." -->
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -421,8 +455,6 @@
       </nav>
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
     </footer>
-
-    </main>
 
     <!-- Bottom Navigation: injected by nav.js (canonical source) -->
 

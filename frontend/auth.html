@@ -41,16 +41,22 @@
 </noscript>
   <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
   <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <!-- CONF-006 FIX: <main> landmark replaces <div> for WCAG 1.3.1 screen reader navigation -->
-  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
+  <!-- CONF-N05 FIX: Removed mobile-container (max-width: 448px) — breaks immersive auth on tablets.
+       Auth page has full-viewport gradient orbs and centered brand header that need edge-to-edge presentation.
+       Now uses max-w-lg (512px) for the content area via CSS, with full-width background.
+       Standard: Apple HIG — Full-screen immersive experiences should not be artificially constrained. -->
+  <main id="main-content" class="flex flex-col relative min-h-screen" style="max-width: 32rem; margin-inline: auto;">
 
     <!-- Brand Header -->
     <header class="px-6 pt-12 pb-6 text-center relative z-10">
       <img src="/brand/Nammerha_logo_Full.svg" alt="Nammerha — نعمّرها" class="h-28 w-auto mx-auto mb-2" />
       <p class="text-sm text-slate-500 mt-1" data-i18n="auth_subtitle">Rebuild Syria Together</p>
-      <!-- P2-004 FIX: Escape hatch — users can navigate away from auth -->
-      <a href="index.html" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-trust-blue transition-colors mt-3" data-i18n="auth_back_home">
-        <i class="ph ph-arrow-left" style="font-size:12px" aria-hidden="true"></i> Back to Home
+      <!-- CONF-NEW-05 FIX: Escape hatch visibility dramatically improved.
+           Previous: 12px text-slate-400 — nearly invisible on the page.
+           Now: 13px, text-slate-500, underline, icon enlarged — obvious exit path.
+           Standard: Nielsen #3 (User Control), Apple HIG (Clear Escape Routes). -->
+      <a href="index.html" class="inline-flex items-center gap-2 text-[13px] font-medium text-slate-500 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3" data-i18n="auth_back_home">
+        <i class="ph ph-arrow-left" style="font-size:14px" aria-hidden="true"></i> Back to Home
       </a>
     </header>
 
@@ -255,9 +261,10 @@
           </div>
         </div>
       </details>
-      <!-- P1-F3 FIX: Entire legal sentence translatable via single i18n key.
-           Previous: "By continuing, you agree to our" and "and" were hardcoded English. -->
-      <p class="text-[10px] text-slate-400" data-i18n-html="auth_footer_legal">By continuing, you agree to our <a href="/terms.html" class="underline hover:text-trust-blue transition-colors">Terms of Service</a> and <a href="/privacy.html" class="underline hover:text-trust-blue transition-colors">Privacy Policy</a>.</p>
+      <!-- CONF-N02 FIX: Removed passive footer text "By continuing, you agree..."
+           The explicit checkbox consent (L221-227) is the binding legal mechanism per GDPR Art. 7.
+           Having both created dual consent ambiguity — one demonstrable act is required.
+           Standard: GDPR Art. 7, ePrivacy Directive, Nielsen Heuristic #8 (Minimalist Design). -->
     </div>
 
   </main>

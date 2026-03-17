@@ -138,19 +138,27 @@
     <!-- Bottom Checkout Sheet -->
     <!-- CONF-N04 FIX: Uses .z-checkout CSS class instead of z-[var(--z-checkout)] Tailwind arbitrary value.
          Tailwind JIT may not reliably parse CSS custom properties in arbitrary brackets. -->
-    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-checkout hidden" id="checkout-sheet">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <span class="text-slate-400 text-sm" data-i18n="total_funding_amount">Total Funding Amount</span>
-          <!-- FRC-X04 FIX: Explicit USD currency code. Standard: ISO 4217. -->
-          <div class="text-3xl font-bold text-slate-900" id="cart-total">$0.00 <span class="text-xs font-semibold text-slate-400 align-middle">USD</span></div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-slate-400 uppercase font-medium" data-i18n="items_label">Items</span>
-          <span class="bg-trust-blue text-white text-sm font-bold px-2.5 py-0.5 rounded-full" id="cart-count">0</span>
-        </div>
-
+    <!-- FRC-NEW-02 FIX: Checkout sheet collapsibility — was fixed at ~320px taking >50% of iPhone SE.
+         Added drag handle and collapse toggle so users can minimize while browsing.
+         Standard: Apple HIG (Content Visibility), Responsive Design. -->
+    <div class="glass-sheet fixed bottom-0 start-0 end-0 max-w-[448px] mx-auto p-6 pb-8 z-checkout hidden" id="checkout-sheet" data-expanded="true">
+      <!-- Drag handle for visual affordance -->
+      <div class="flex justify-center mb-3 cursor-pointer" id="checkout-handle" role="button" aria-label="Toggle checkout panel" tabindex="0">
+        <div class="w-10 h-1 bg-slate-300 rounded-full"></div>
       </div>
+      <div id="checkout-content">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-slate-400 text-sm" data-i18n="total_funding_amount">Total Funding Amount</span>
+            <!-- FRC-X04 FIX: Explicit USD currency code. Standard: ISO 4217. -->
+            <div class="text-3xl font-bold text-slate-900" id="cart-total">$0.00 <span class="text-xs font-semibold text-slate-400 align-middle">USD</span></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-400 uppercase font-medium" data-i18n="items_label">Items</span>
+            <span class="bg-trust-blue text-white text-sm font-bold px-2.5 py-0.5 rounded-full" id="cart-count">0</span>
+          </div>
+
+        </div>
 
       <!-- FRC-P01 FIX: Progressive disclosure — tip section collapsed by default.
            Reduces visible decision points from 5 to 3 (Hick's Law). -->
@@ -252,7 +260,10 @@
       </p>
     </div>
 
-    <!-- GAP-X01 FIX: Legal footer — essential on payment/checkout surfaces. -->
+
+  </main>
+
+    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> — WCAG 1.3.1 landmark semantics. -->
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -261,8 +272,6 @@
       </nav>
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
     </footer>
-
-  </main>
 
   <!-- CON-001 FIX: RTL-safe gradient orbs via CSS classes (was inline physical right/left) -->
   <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>

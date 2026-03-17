@@ -286,31 +286,34 @@ async function updatePOStatus(poId: string, status: 'acknowledged' | 'shipped' |
 }
 
 // ─── Catalog Modal ──────────────────────────────────────────────────────────
-// PLT-AUD-G005 FIX: Added Escape key and overlay click dismissal (was keyboard-trapped)
+// INC-A01 FIX: Migrated from manual display:none toggling to native <dialog> API.
+// Native <dialog> provides: built-in focus trap, Escape key dismissal (automatic),
+// ::backdrop pseudo-element, and proper ARIA semantics.
 function setupCatalogModal(): void {
     const openBtn = document.getElementById('btn-add-material');
-    const modal = document.getElementById('modal-add-material');
+    const modal = document.getElementById('modal-add-material') as HTMLDialogElement | null;
     const cancelBtn = document.getElementById('modal-cancel');
     const form = document.getElementById('form-add-material') as HTMLFormElement | null;
 
+    // INC-A02 FIX: Wire data-add-first-material button (replaced inline onclick handler).
+    // Standard: CSP Level 2 — no inline event handlers.
+    const addFirstBtn = document.querySelector<HTMLButtonElement>('[data-add-first-material]');
+    addFirstBtn?.addEventListener('click', () => {
+        openBtn?.click();
+    });
+
     function closeModal(): void {
-        if (modal) { modal.style.display = 'none'; }
+        if (modal?.open) { modal.close(); }
     }
 
     openBtn?.addEventListener('click', () => {
-        if (modal) { modal.style.display = 'flex'; }
+        if (modal && !modal.open) { modal.showModal(); }
     });
 
     cancelBtn?.addEventListener('click', closeModal);
 
-    // G-005 FIX: Escape key dismissal
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal?.style.display === 'flex') {
-            closeModal();
-        }
-    });
-
-    // G-005 FIX: Overlay/backdrop click dismissal
+    // Native <dialog> handles Escape key automatically — no manual keydown listener needed.
+    // G-005 FIX retained: backdrop click dismissal (::backdrop doesn't auto-close).
     modal?.addEventListener('click', (e) => {
         if (e.target === modal) { closeModal(); }
     });

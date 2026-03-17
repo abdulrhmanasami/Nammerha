@@ -248,17 +248,10 @@
 
             <!-- Toggle + Submit -->
             <div class="flex items-center gap-2">
-              <button type="button" id="sr-toggle-details" class="text-xs text-trust-blue font-semibold hover:underline flex items-center gap-1 transition-colors" data-i18n="ho_add_details" onclick="
-                const wrap = document.getElementById('sr-details-wrap');
-                const btn = this;
-                if (wrap.classList.contains('hidden')) {
-                  wrap.classList.remove('hidden');
-                  btn.innerHTML = '<i class=&quot;ph ph-minus-circle&quot; aria-hidden=&quot;true&quot;></i> <span data-i18n=&quot;ho_fewer_details&quot;>Fewer Details</span>';
-                } else {
-                  wrap.classList.add('hidden');
-                  btn.innerHTML = '<i class=&quot;ph ph-plus-circle&quot; aria-hidden=&quot;true&quot;></i> <span data-i18n=&quot;ho_add_details&quot;>Add Details</span>';
-                }
-              ">
+              <!-- CONF-N04 FIX: Removed inline onclick — CSP script-src 'self' blocks inline JS.
+                   Handler now wired via addEventListener in homeowner-portal.ts.
+                   Standard: CSP Level 2 §4.1, OWASP XSS Prevention Cheat Sheet. -->
+              <button type="button" id="sr-toggle-details" class="w-full text-start text-xs text-trust-blue font-semibold hover:underline flex items-center gap-1 transition-colors">
                 <i class="ph ph-plus-circle" aria-hidden="true"></i>
                 <span data-i18n="ho_add_details">Add Details</span>
               </button>

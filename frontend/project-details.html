@@ -41,29 +41,24 @@
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 
-  <!-- Header -->
-  <header class="glass-nav sticky top-0 z-50 border-b border-slate-200">
-    <!-- CON-003 FIX: Container uses mobile-container for progressive width scaling (was max-w-md fixed 448px) -->
-    <div class="flex items-center p-4 justify-between mobile-container">
-      <!-- CON-002 FIX: Unified back-nav via data-back-btn pattern -->
-      <!-- INC-X01 FIX: Touch target corrected from size-10 (40×40px) to w-11 h-11 (44×44px).
-           Previous: violated WCAG 2.5.5 & Apple HIG 44pt minimum on the most critical donation page.
-           Standard: WCAG 2.5.5 (Target Size: Minimum), Apple HIG §44pt Touch Targets. -->
+  <!-- INC-N01 FIX: Standardized to .page-header pattern (was ad-hoc glass-nav with inconsistent height).
+       CONF-N01 FIX: Cart & share buttons upgraded from size-10 (40×40px) to w-11 h-11 (44×44px).
+       FRC-N05 FIX: Title uses .page-header-title for text-overflow:ellipsis on narrow screens.
+       Standard: Apple HIG §44pt Touch Targets, WCAG 2.5.5, Nielsen Heuristic #4 — Consistency. -->
+  <header class="page-header border-b border-slate-200">
       <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
-      <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center" data-i18n="project_details">Project Details</h2>
+      <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center page-header-title" data-i18n="project_details">Project Details</h2>
       <div class="flex items-center gap-1">
-        <a href="donor-basket.html" id="header-cart-btn" class="relative flex size-10 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
+        <a href="donor-basket.html" id="header-cart-btn" class="relative flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart" aria-hidden="true"></i>
           <span class="cart-badge" id="header-cart-badge" style="display:none">0</span>
         </a>
-        <!-- GAP-005 FIX: Share button now has id for JS handler binding (Web Share API + clipboard fallback) -->
-        <button id="share-project-btn" class="flex size-10 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Share project" data-i18n-aria="aria_share_project">
+        <button id="share-project-btn" class="flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Share project" data-i18n-aria="aria_share_project">
           <i class="ph ph-share-network" aria-hidden="true"></i>
         </button>
       </div>
-    </div>
   </header>
 
   <main id="main-content" class="mobile-container pb-32">
@@ -99,8 +94,11 @@
           <span class="text-sm font-semibold text-slate-600" data-i18n="overall_funding">Overall Funding</span>
           <span class="text-sm font-bold text-trust-blue" data-i18n="64_raised">64% Raised</span>
         </div>
+        <!-- INC-N04 FIX: Unified to .progress-fill (smoky-jade) — was progress-fill-primary (trust-blue).
+             Having two different colors for "funding progress" on the same page confused users.
+             Standard: Gestalt Law of Similarity — same meaning should use same visual encoding. -->
         <div class="progress-track" role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Overall funding progress">
-          <div class="progress-fill-primary" style="width: 64%"></div>
+          <div class="progress-fill" style="width: 64%"></div>
         </div>
       </div>
     </section>
@@ -117,8 +115,26 @@
            Now: Grouped by category with styled labels and icons (Gestalt Proximity).
            Standard: Gestalt principle of Proximity, Miller's Law, Material Design 3. -->
 
+      <!-- FRC-NEW-01 FIX: Category jump navigation — no way to skip to a category.
+           On mobile, BOQ creates ~1200px+ of scroll. These pills anchor to each category.
+           Standard: Nielsen #7 (Flexibility), Miller's Law, iOS Table of Contents pattern. -->
+      <nav class="flex gap-2 overflow-x-auto scrollbar-hide py-2 -mx-1 px-1 mb-2" aria-label="BOQ categories">
+        <a href="#cat-structural" class="boq-category-pill shrink-0 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-warm-earth/20 text-warm-earth bg-warm-earth/5 hover:bg-warm-earth/10 transition-colors whitespace-nowrap">
+          <i class="ph ph-wall" style="font-size:12px" aria-hidden="true"></i> <span data-i18n="boq_cat_structural">Structural</span>
+        </a>
+        <a href="#cat-mechanical" class="boq-category-pill shrink-0 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-trust-blue/20 text-trust-blue bg-trust-blue/5 hover:bg-trust-blue/10 transition-colors whitespace-nowrap">
+          <i class="ph ph-drop" style="font-size:12px" aria-hidden="true"></i> <span data-i18n="boq_cat_plumbing">Plumbing</span>
+        </a>
+        <a href="#cat-electrical" class="boq-category-pill shrink-0 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-warning-yellow/30 text-amber-600 bg-warning-yellow/5 hover:bg-warning-yellow/10 transition-colors whitespace-nowrap">
+          <i class="ph ph-lightning" style="font-size:12px" aria-hidden="true"></i> <span data-i18n="boq_cat_electrical">Electrical</span>
+        </a>
+        <a href="#cat-finishing" class="boq-category-pill shrink-0 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-smoky-jade/20 text-smoky-jade bg-smoky-jade/5 hover:bg-smoky-jade/10 transition-colors whitespace-nowrap">
+          <i class="ph ph-paint-roller" style="font-size:12px" aria-hidden="true"></i> <span data-i18n="boq_cat_finishing">Finishing</span>
+        </a>
+      </nav>
+
       <!-- ═══ Category: Structural Foundation ═══ -->
-      <div class="flex items-center gap-2 mb-3 mt-2">
+      <div id="cat-structural" class="flex items-center gap-2 mb-3 mt-2 scroll-mt-20">
         <div class="w-7 h-7 rounded-lg bg-warm-earth/10 flex items-center justify-center">
           <i class="ph ph-wall text-warm-earth" style="font-size:14px" aria-hidden="true"></i>
         </div>
@@ -161,7 +177,7 @@
       </div>
 
       <!-- ═══ Category: Electrical Grid ═══ -->
-      <div class="flex items-center gap-2 mb-3 mt-6">
+      <div id="cat-electrical" class="flex items-center gap-2 mb-3 mt-6 scroll-mt-20">
         <div class="w-7 h-7 rounded-lg bg-trust-blue/10 flex items-center justify-center">
           <i class="ph ph-lightning text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
         </div>
@@ -230,7 +246,7 @@
       </div>
 
       <!-- ═══ Category: Finishing ═══ -->
-      <div class="flex items-center gap-2 mb-3 mt-6">
+      <div id="cat-finishing" class="flex items-center gap-2 mb-3 mt-6 scroll-mt-20">
         <div class="w-7 h-7 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
           <i class="ph ph-paint-roller text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
         </div>
@@ -253,66 +269,82 @@
               <span class="badge-progress" data-i18n="15_funded">15% Funded</span>
             </div>
             <div class="progress-track" role="progressbar" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" aria-label="Glass panels funding progress">
-              <div class="progress-fill" style="width: 15%"></div>
-            </div>
-            <button
-              class="btn-primary !text-sm !py-3 add-to-cart-btn"
-              data-item-id="glass-12"
-              data-item-name="12 Glass Window Panels"
-              data-item-price="420"
-              data-item-unit-price="35"
-              data-item-category="Finishing"
-              data-item-project="harbor-view"
-              data-item-icon="ph-window"
-            >
-              <i class="ph ph-shopping-cart-simple" style="font-size:20px" aria-hidden="true"></i>
-              <span data-i18n="add_to_cart">Add to Cart</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- GAP-NEW-01 CRITICAL FIX: Hardcoded BOQ items replaced with proper skeleton→container pattern.
+           Previous: 5 static HTML items with fake names, prices, and funding percentages (80%, 65%, etc.)
+           that never changed — destroying donor trust on a live crowdfunding platform.
+           Now: Skeleton loaders shown until project-details.ts fetches real data from marketplace.getProjectBOQ().
+           The TS module's renderBOQ() targets: #boq-skeleton, #boq-container, #boq-empty, #boq-error.
+           Standard: FinTech UX (Real-time Data Integrity), Nielsen #1 (Visibility of System Status). -->
 
-      <!-- ═══ Category: Plumbing ═══ -->
-      <div class="flex items-center gap-2 mb-3 mt-6">
-        <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-          <i class="ph ph-drop text-blue-500" style="font-size:14px" aria-hidden="true"></i>
-        </div>
-        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="boq_cat_plumbing">Plumbing</h4>
-        <div class="flex-1 h-px bg-slate-200"></div>
-      </div>
-
-      <!-- BOQ Item 5: Plumbing Pipes -->
-      <div class="mb-4" id="boq-item-5">
-        <div class="glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50">
-          <div class="h-40 w-full bg-gradient-to-br from-warm-earth/10 to-slate-200 flex items-center justify-center">
-            <i class="ph ph-drop text-warm-earth/40" style="font-size:48px" aria-hidden="true"></i>
-          </div>
-          <div class="p-4">
-            <div class="flex justify-between items-start mb-2">
-              <div>
-                <h4 class="text-lg font-bold" data-i18n="30m_pvc_plumbing_pipes">30m PVC Plumbing Pipes</h4>
-                <p class="text-sm text-slate-500 font-medium" data-i18n="unit_4_50_meter">Unit: $4.50 / meter</p>
+      <!-- BOQ Loading Skeleton -->
+      <div id="boq-skeleton" class="flex flex-col gap-4">
+        <div class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse">
+          <div class="h-24 w-full bg-gradient-to-br from-warm-earth/10 to-slate-200"></div>
+          <div class="p-4 space-y-3">
+            <div class="flex justify-between">
+              <div class="space-y-2 flex-1">
+                <div class="h-5 bg-slate-200 rounded w-3/4"></div>
+                <div class="h-3 bg-slate-100 rounded w-1/2"></div>
               </div>
-              <span class="badge-progress" data-i18n="50_funded">50% Funded</span>
+              <div class="h-5 bg-slate-200 rounded-full w-20"></div>
             </div>
-            <div class="progress-track" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" aria-label="Plumbing pipes funding progress">
-              <div class="progress-fill" style="width: 50%"></div>
-            </div>
-            <button
-              class="btn-primary !text-sm !py-3 add-to-cart-btn"
-              data-item-id="pvc-30m"
-              data-item-name="30m PVC Plumbing Pipes"
-              data-item-price="135"
-              data-item-unit-price="4.50"
-              data-item-category="Plumbing"
-              data-item-project="harbor-view"
-              data-item-icon="ph-drop"
-            >
-              <i class="ph ph-shopping-cart-simple" style="font-size:20px" aria-hidden="true"></i>
-              <span data-i18n="add_to_cart">Add to Cart</span>
-            </button>
+            <div class="h-2 bg-slate-200 rounded-full w-full"></div>
+            <div class="h-10 bg-slate-200 rounded-lg w-full"></div>
           </div>
         </div>
+        <div class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse">
+          <div class="h-24 w-full bg-gradient-to-br from-trust-blue/10 to-slate-200"></div>
+          <div class="p-4 space-y-3">
+            <div class="flex justify-between">
+              <div class="space-y-2 flex-1">
+                <div class="h-5 bg-slate-200 rounded w-2/3"></div>
+                <div class="h-3 bg-slate-100 rounded w-1/3"></div>
+              </div>
+              <div class="h-5 bg-slate-200 rounded-full w-16"></div>
+            </div>
+            <div class="h-2 bg-slate-200 rounded-full w-full"></div>
+            <div class="h-10 bg-slate-200 rounded-lg w-full"></div>
+          </div>
+        </div>
+        <div class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse">
+          <div class="h-24 w-full bg-gradient-to-br from-smoky-jade/10 to-slate-200"></div>
+          <div class="p-4 space-y-3">
+            <div class="flex justify-between">
+              <div class="space-y-2 flex-1">
+                <div class="h-5 bg-slate-200 rounded w-1/2"></div>
+                <div class="h-3 bg-slate-100 rounded w-2/5"></div>
+              </div>
+              <div class="h-5 bg-slate-200 rounded-full w-20"></div>
+            </div>
+            <div class="h-2 bg-slate-200 rounded-full w-full"></div>
+            <div class="h-10 bg-slate-200 rounded-lg w-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOQ Dynamic Content Container (populated by project-details.ts renderBOQ) -->
+      <div id="boq-container" class="hidden"></div>
+
+      <!-- BOQ Empty State -->
+      <div id="boq-empty" class="hidden text-center py-12">
+        <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
+          <i class="ph ph-clipboard-text text-warm-earth" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <h4 class="text-sm font-bold text-slate-700 mb-1" data-i18n="boq_empty_title">No items yet</h4>
+        <p class="text-xs text-slate-400 max-w-xs mx-auto" data-i18n="boq_empty_desc">The bill of quantities for this project is being prepared by the assigned engineer.</p>
+      </div>
+
+      <!-- BOQ Error State -->
+      <div id="boq-error" class="hidden text-center py-12">
+        <div class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <i class="ph ph-warning-circle text-red-400" style="font-size:32px" aria-hidden="true"></i>
+        </div>
+        <h4 class="text-sm font-bold text-slate-700 mb-1" data-i18n="boq_error_title">Could not load items</h4>
+        <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4" data-i18n="boq_error_desc">Please check your connection and try again.</p>
+        <button onclick="location.reload()" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
+          <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
+          <span data-i18n="retry">Retry</span>
+        </button>
       </div>
 
       <!-- FRC-N01 FIX: Escrow trust banner moved from fixed position to content flow.
@@ -334,7 +366,36 @@
       </div>
     </div>
 
-    <!-- GAP-X01 FIX: Legal footer — critical on donation decision surface. -->
+    <!-- GAP-NEW-04 FIX: Cart feedback toast — was no visible confirmation after 'Add to Cart'.
+         Hidden by default; JS shows it with item name and a link to the basket.
+         Standard: Nielsen #1 (Visibility of System Status), E-commerce UX. -->
+    <div id="cart-toast" class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 hidden animate-fade-in-up">
+      <div class="glass-card p-4 rounded-xl border border-smoky-jade/20 shadow-lg flex items-center gap-3">
+        <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
+          <i class="ph ph-check-circle text-smoky-jade" style="font-size:22px" aria-hidden="true"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-800 truncate" id="cart-toast-text" data-i18n="added_to_cart">Added to cart</p>
+          <a href="donor-basket.html" class="text-[10px] font-semibold text-trust-blue hover:underline" data-i18n="view_basket">View basket →</a>
+        </div>
+        <button id="cart-toast-dismiss" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors shrink-0" aria-label="Dismiss">
+          <i class="ph ph-x text-slate-400" style="font-size:14px" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- FRC-NEW-08 FIX: Continue browsing CTA — no guidance after adding items to cart.
+         Standard: E-commerce UX (Cross-selling), Conversion Optimization. -->
+    <div class="px-4 pb-6 pt-2">
+      <a href="projects.html" class="btn-secondary !w-full flex items-center justify-center gap-2">
+        <i class="ph ph-compass" style="font-size:18px" aria-hidden="true"></i>
+        <span data-i18n="browse_more_projects">Browse More Projects</span>
+      </a>
+    </div>
+
+  </main>
+
+    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> — WCAG 1.3.1 landmark semantics. -->
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -344,8 +405,9 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
     </footer>
 
-  </main>
-
+  <!-- INC-N03 FIX: Gradient orbs for visual cohesion — present on all other consumer pages. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/project.js" defer></script>

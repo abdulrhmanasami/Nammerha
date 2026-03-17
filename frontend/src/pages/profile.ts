@@ -8,11 +8,19 @@ import { auth, roles as rolesApi } from '../api';
 // instead of maintaining a duplicate copy.
 import { ROLE_META, getRoleLabel } from '../components/role-switcher';
 import { t, isRTL } from '../utils/i18n';
+// FRC-NEW-06: Loading state feedback for save buttons
+import { setLoadingState } from '../utils/loading-state';
 // GAP-002 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { initBackToTop } from '../components/back-to-top';
+// GAP-N03 FIX: Global search overlay on inner pages
+import { initSearch } from '../utils/search-overlay';
+// INC-NEW-01 FIX: Unified page header — eliminates duplicate back-button wiring
+import { initPageHeader } from '../components/page-header';
 initPullToRefresh();
 initBackToTop();
+initSearch();
+initPageHeader();
 
 // ============================================================================
 // Nammerha — Profile Page Engine
@@ -371,8 +379,8 @@ async function saveProfile(): Promise<void> {
         return;
     }
 
-    // Disable button during save
-    if (saveBtn) { saveBtn.disabled = true; }
+    // FRC-NEW-06 FIX: Visual loading state with spinner during save
+    const restoreBtn = saveBtn ? setLoadingState(saveBtn, t('saving', 'Saving...')) : null;
 
     try {
         // TODO: Wire to auth.updateProfile({ full_name: newName, email: newEmail })
@@ -394,13 +402,13 @@ async function saveProfile(): Promise<void> {
         renderAvatarInitials(newName);
         updateProfileCompletion(getCurrentUser());
 
+        restoreBtn?.('success');
         showEditBanner('success', t('profile_saved', 'Profile updated successfully.'));
         setTimeout(() => toggleEditMode(false), 800);
     } catch (err) {
+        restoreBtn?.('error');
         reportWarning('[Profile] Edit save failed', { error: err instanceof Error ? err.message : String(err) });
         showEditBanner('error', t('profile_save_failed', 'Failed to save. Please try again.'));
-    } finally {
-        if (saveBtn) { saveBtn.disabled = false; }
     }
 }
 
@@ -507,17 +515,46 @@ function init(): void {
         }
     }
 
-    // P1-MOB-001 FIX: Back button handler (replaced inline onclick for CSP safety)
-    const backBtn = document.querySelector<HTMLAnchorElement>('[data-back-btn]');
-    if (backBtn) {
-        backBtn.addEventListener('click', (e) => {
-            if (history.length > 1) {
-                e.preventDefault();
-                history.back();
+    // GAP-N04 FIX: Wire profile completion checklist actions.
+    // Tapping a checklist item scrolls to and focuses the target field.
+    // Standard: Nielsen Heuristic #10 — Help & Documentation.
+    document.querySelectorAll<HTMLButtonElement>('.completion-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.dataset.focusTarget;
+            if (!targetId) { return; }
+            const target = document.getElementById(targetId);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Focus the element if it's focusable (input, button, etc.)
+                if (target instanceof HTMLInputElement || target instanceof HTMLButtonElement || target instanceof HTMLSelectElement) {
+                    setTimeout(() => target.focus(), 400); // After scroll animation completes
+                }
             }
-            // else: falls through to <a href="index.html"> naturally
+        });
+    });
+
+    // GAP-N06 FIX: Wire notification toggle with localStorage persistence.
+    // Previous: Cosmetic toggle — looked interactive but saved nothing.
+    // Now: Persists to localStorage immediately; restored on load.
+    // When backend notification API is available, this preference will be synced.
+    // Standard: Progressive Enhancement — save locally now, sync later.
+    const notifToggle = document.getElementById('notif-toggle') as HTMLInputElement | null;
+    if (notifToggle) {
+        const NOTIF_KEY = 'nmr_notifications_enabled';
+        // Restore saved preference
+        const saved = localStorage.getItem(NOTIF_KEY);
+        if (saved !== null) {
+            notifToggle.checked = saved === '1';
+        }
+        // Save on change
+        notifToggle.addEventListener('change', () => {
+            localStorage.setItem(NOTIF_KEY, notifToggle.checked ? '1' : '0');
         });
     }
+
+    // INC-NEW-01 FIX: Back button wiring moved to shared page-header.ts.
+    // Previous: 8 lines of duplicate code (identical to wallet.ts).
+    // Now: initPageHeader() called at module top — single source of truth.
 }
 
 if (document.readyState === 'loading') {

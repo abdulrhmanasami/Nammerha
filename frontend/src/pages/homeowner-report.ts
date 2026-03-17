@@ -2,6 +2,8 @@ import '../styles/main.css';
 import { projects } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
+// FRC-NEW-06: Loading state feedback for submit button
+import { setLoadingState } from '../utils/loading-state';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -29,6 +31,66 @@ const state: WizardState = {
 };
 
 const TOTAL_STEPS = 3;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GAP-NEW-06 FIX: Wizard State Persistence via sessionStorage.
+// Syrian homeowners on 3G may spend 5+ minutes on GPS lock and photo upload.
+// A browser crash or accidental refresh MUST NOT destroy their work.
+// State is saved on every step transition, restored on page load,
+// and cleared only on successful submission (step 4).
+// Standard: Nielsen #5 (Error Prevention), Progressive Web App (Offline Resilience).
+// ═══════════════════════════════════════════════════════════════════════════
+const WIZARD_STORAGE_KEY = 'nmr_wizard_state';
+
+function saveWizardState(): void {
+    try {
+        const serializable = {
+            currentStep: state.currentStep,
+            damageType: state.damageType,
+            governorate: state.governorate,
+            neighborhood: state.neighborhood,
+            gpsCoords: state.gpsCoords,
+            description: state.description,
+            // Note: photos and projectId are NOT persisted (binary data / server-side)
+        };
+        sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(serializable));
+    } catch {
+        // sessionStorage may be full or disabled — fail silently
+    }
+}
+
+function restoreWizardState(): boolean {
+    try {
+        const stored = sessionStorage.getItem(WIZARD_STORAGE_KEY);
+        if (!stored) { return false; }
+
+        const parsed = JSON.parse(stored) as Partial<WizardState>;
+
+        // Only restore if there's meaningful data
+        if (!parsed.damageType && !parsed.governorate) { return false; }
+
+        if (parsed.damageType) { state.damageType = parsed.damageType; }
+        if (parsed.governorate) { state.governorate = parsed.governorate; }
+        if (parsed.neighborhood) { state.neighborhood = parsed.neighborhood; }
+        if (parsed.gpsCoords) { state.gpsCoords = parsed.gpsCoords; }
+        if (parsed.description) { state.description = parsed.description; }
+        if (parsed.currentStep && parsed.currentStep >= 1 && parsed.currentStep <= TOTAL_STEPS) {
+            state.currentStep = parsed.currentStep;
+        }
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function clearWizardState(): void {
+    try {
+        sessionStorage.removeItem(WIZARD_STORAGE_KEY);
+    } catch {
+        // fail silently
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DOM REFERENCES
@@ -89,7 +151,12 @@ function showStep(step: number): void {
         if (stepLabel) { stepLabel.textContent = t('hr_done', 'Done!'); }
         if (progressFill) { progressFill.style.width = '100%'; }
         populateSummary();
+        // GAP-NEW-06: Clear persisted state on successful submission
+        clearWizardState();
     }
+
+    // GAP-NEW-06: Persist state on every step transition
+    if (step < 4) { saveWizardState(); }
 }
 
 function updateNextButton(): void {
@@ -124,11 +191,10 @@ if (nextBtn) {
         } else if (state.currentStep === 3) {
             state.description = (document.getElementById('damage-description') as HTMLTextAreaElement)?.value.trim() || '';
 
-            // P1-002 FIX: Submit to backend API instead of showing fake ID
-            if (nextBtn) {
-                nextBtn.disabled = true;
-                if (nextBtnText) { nextBtnText.textContent = t('hr_submitting', 'Submitting...'); }
-            }
+            // FRC-NEW-06 FIX: Visual loading state with spinner during API submission.
+            // Previous: manually set disabled + text — no spinner, no visual feedback.
+            // Now: animated spinner + "Submitting..." text, success/error flash on result.
+            const restoreBtn = setLoadingState(nextBtn, t('hr_submitting', 'Submitting...'));
 
             try {
                 // Parse GPS coords if available
@@ -154,8 +220,11 @@ if (nextBtn) {
                     state.projectId = project.project_id;
                 }
 
-                showStep(4);
+                restoreBtn('success');
+                // Small delay for visual feedback before transitioning
+                setTimeout(() => showStep(4), 650);
             } catch (err) {
+                restoreBtn('error');
                 const message = err instanceof Error ? err.message : t('hr_submission_failed', 'Submission failed');
                 // HIGH-002 FIX: Replace alert() with inline error banner
                 const errDiv = document.createElement('div');
@@ -163,8 +232,6 @@ if (nextBtn) {
                 errDiv.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${esc(message)}`;
                 steps[2]?.prepend(errDiv);
                 setTimeout(() => errDiv.remove(), 5000);
-                if (nextBtn) { nextBtn.disabled = false; }
-                if (nextBtnText) { nextBtnText.textContent = t('hr_submit_request', 'Submit Request'); }
             }
         }
     });
@@ -446,7 +513,50 @@ function populateSummary(): void {
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
-showStep(1);
+// GAP-NEW-06 FIX: Restore wizard state from sessionStorage on page load
+const hasRestoredState = restoreWizardState();
+
+if (hasRestoredState && state.currentStep > 1) {
+    // Restore UI selections BEFORE showStep
+    // Step 1: Re-select the damage card
+    if (state.damageType) {
+        const card = document.querySelector<HTMLButtonElement>(`.damage-card[data-type="${state.damageType}"]`);
+        if (card) {
+            card.classList.add('glass-card-active');
+            const checkIcon = card.querySelector('.damage-check i');
+            if (checkIcon) { checkIcon.className = 'ph ph-check-circle'; }
+            const iconBox = card.querySelector('.size-14');
+            if (iconBox) {
+                iconBox.classList.remove('bg-slate-100', 'text-slate-600');
+                iconBox.classList.add('bg-trust-blue/10', 'text-trust-blue');
+            }
+        }
+    }
+    // Step 2: Restore form values
+    if (state.governorate) {
+        const govSelect = document.getElementById('governorate') as HTMLSelectElement | null;
+        if (govSelect) { govSelect.value = state.governorate; }
+    }
+    if (state.neighborhood) {
+        const hoodInput = document.getElementById('neighborhood') as HTMLInputElement | null;
+        if (hoodInput) { hoodInput.value = state.neighborhood; }
+    }
+    if (state.gpsCoords) {
+        const gpsDisplay = document.getElementById('gps-display');
+        const gpsResult = document.getElementById('gps-result');
+        if (gpsDisplay) { gpsDisplay.textContent = state.gpsCoords; }
+        if (gpsResult) { gpsResult.classList.remove('hidden'); }
+    }
+    // Step 3: Restore description
+    if (state.description) {
+        const descArea = document.getElementById('damage-description') as HTMLTextAreaElement | null;
+        if (descArea) { descArea.value = state.description; }
+    }
+
+    showStep(state.currentStep);
+} else {
+    showStep(1);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GAP-008 FIX: Unsaved Changes Guard

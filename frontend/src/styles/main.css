@@ -1930,6 +1930,19 @@ html[data-theme="dark"] .page-header {
     border-color: rgba(255, 255, 255, 0.06);
 }
 
+/* ─── CONF-N06 FIX: RTL Directional Icon Flip ────────────────────────────────
+   Caret and arrow icons automatically flip in RTL layouts so they point
+   in the correct reading/navigation direction.
+   Standard: Apple HIG — "Right-to-left" guidelines, WCAG 1.3.2 Meaningful Sequence. */
+[dir="rtl"] .ph-caret-right,
+[dir="rtl"] .ph-arrow-right {
+    transform: scaleX(-1);
+}
+[dir="rtl"] .ph-caret-left,
+[dir="rtl"] .ph-arrow-left {
+    transform: scaleX(-1);
+}
+
 /* ============================================================================
    GAP-008 FIX: Confirmation Dialog Component
    Destructive actions (Sign Out, Clear Cart) now require user confirmation.

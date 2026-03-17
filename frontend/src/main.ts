@@ -124,7 +124,10 @@ function buildProjectCard(project: ProjectCard, index: number): string {
             <p class="text-[10px] text-slate-400 font-bold uppercase" data-i18n="card_funded">Funded</p>
             <p class="text-sm font-bold text-trust-blue">${formatCents(project.funded_amount)}</p>
           </div>
-          <a href="project-details.html?project=${project.project_id}" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">
+          <!-- FRC-N04 FIX: Fund Now CTA upgraded from text-xs (12px) to text-sm (14px) font-bold.
+               This is the primary revenue-critical action on a crowdfunding platform — needs prominence.
+               Standard: Fitts's Law, Nielsen Heuristic #6 (Recognition). -->
+          <a href="project-details.html?project=${project.project_id}" class="btn-secondary !w-auto !px-4 !py-2 !text-sm font-bold">
             <span data-i18n="fund_now">Fund Now</span>
             <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
           </a>
