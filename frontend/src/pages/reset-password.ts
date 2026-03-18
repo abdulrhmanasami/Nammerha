@@ -33,7 +33,9 @@ const resetToken = urlParams.get('token');
 // If no token, show error immediately
 if (!resetToken) {
     showBanner('error', t('reset_invalid_token', 'Invalid or missing reset token. Please request a new password reset link.'));
-    if (form) { form.style.display = 'none'; }
+    // DEF-RESET-002 FIX: Replaced form.style.display = 'none' with class toggle.
+    // Standard: DEF-VIS-001 precedent — CSS Single Source of Truth.
+    if (form) { form.classList.add('hidden'); }
 }
 
 // ─── Form Validation ────────────────────────────────────────────────────────
@@ -105,7 +107,11 @@ form?.addEventListener('submit', async (e) => {
     }
 
     isSubmitting = true;
-    if (submitBtn) { submitBtn.disabled = true; }
+    // DEF-RESET-002 FIX: Replaced submitBtn.disabled with .btn-loading class.
+    // Previous: disabled attribute removes button from tab order (WCAG 2.1.1 violation)
+    // and shows no spinner. .btn-loading: pointer-events:none + spinner + opacity.
+    // Standard: Design System Governance (auth.ts uses .btn-loading since DEF-A08 FIX).
+    if (submitBtn) { submitBtn.classList.add('btn-loading'); }
     if (submitText) { submitText.textContent = t('reset_resetting', 'Resetting...'); }
 
     try {
@@ -115,7 +121,8 @@ form?.addEventListener('submit', async (e) => {
 
         if (data.success) {
             showBanner('success', data.message ?? t('reset_success', 'Password reset successfully! Redirecting to sign in...'));
-            if (form) { form.style.display = 'none'; }
+            // DEF-RESET-002 FIX: Hide form via class toggle.
+            if (form) { form.classList.add('hidden'); }
             setTimeout(() => {
                 window.location.href = '/auth.html';
             }, 2000);
@@ -131,7 +138,7 @@ form?.addEventListener('submit', async (e) => {
         }
     } finally {
         isSubmitting = false;
-        if (submitBtn) { submitBtn.disabled = false; }
+        if (submitBtn) { submitBtn.classList.remove('btn-loading'); }
         if (submitText) { submitText.textContent = t('reset_submit_btn', 'Reset Password'); }
     }
 });

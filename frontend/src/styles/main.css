@@ -157,6 +157,7 @@
   --z-i18n-banner: 9980;
   --z-skip-link: 9990;
   --z-skip: var(--z-skip-link);
+  --z-search-overlay: 9995;
 
   /* Checkout sheet height token (CONF-X03) */
   --checkout-sheet-height: 320px;
@@ -1689,6 +1690,48 @@ html[data-theme="dark"] .nm-toast {
    ============================================================================ */
 .nm-nav-safe-area {
     height: max(env(safe-area-inset-bottom, 0px), 8px);
+}
+
+/* ============================================================================
+   P1-AUD4-002 FIX: Cooldown state for buttons/links (forgot-password, rate-limit)
+   Previous: auth.ts L808-809 used inline style.pointerEvents + style.opacity.
+   Standard: P1-001 precedent — CSS Single Source of Truth.
+   ============================================================================ */
+.nm-btn-cooldown {
+    pointer-events: none;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+/* ============================================================================
+   P1-AUD4-003 FIX: Soft disabled visual state (valid/invalid toggle)
+   Previous: auth.ts L481 used inline regSubmit.style.opacity = '0.6'.
+   Standard: P1-001 precedent — CSS Single Source of Truth.
+   ============================================================================ */
+.nm-btn-disabled-soft {
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+}
+
+/* ============================================================================
+   P2-AUD4-001 FIX: Normalized portal header min-height
+   Previous: header-normalize.ts L36 set header.style.minHeight = '3rem' inline.
+   Standard: P1-001 precedent — CSS Single Source of Truth.
+   ============================================================================ */
+.nm-header-normalized {
+    min-height: 3rem;
+}
+
+/* ============================================================================
+   DEF-THEME-001 FIX: Theme Toggle Canonical Positioning
+   Previous: 3 auth-flow pages (auth.html, reset-password.html, verify-email.html)
+   used identical inline `style="inset-block-start: calc(0.75rem + env(...));
+   inset-inline-end: 0.75rem;"`. Violated P1-001 CSS Single Source of Truth.
+   Standard: CSS Architecture — DRY, RTL-safe Logical Properties.
+   ============================================================================ */
+.nm-theme-toggle-pos {
+    inset-block-start: calc(0.75rem + env(safe-area-inset-top, 0px));
+    inset-inline-end: 0.75rem;
 }
 
 /* RES-008 REMOVED: .nm-portal-header — zero HTML references.

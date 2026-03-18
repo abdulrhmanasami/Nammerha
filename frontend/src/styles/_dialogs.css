@@ -66,7 +66,9 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
 .search-overlay {
     position: fixed;
     inset: 0;
-    z-index: 99998;
+    /* P2-AUD4-002 FIX: Replaced magic number 99998 with design token.
+       Standard: INC-X06 z-index token governance — no hardcoded z-index values. */
+    z-index: var(--z-search-overlay, 9995);
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);

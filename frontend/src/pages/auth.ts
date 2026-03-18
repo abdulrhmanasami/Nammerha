@@ -478,7 +478,10 @@ function updateRegisterButton(): void {
     const valid = Boolean(name) && Boolean(email) && password.length >= 8 && password === confirmPw;
     // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
     // The button is ALWAYS clickable so the submit handler can show validation feedback.
-    regSubmit.style.opacity = valid ? '1' : '0.6';
+    // P1-AUD4-003 FIX: Replaced inline style.opacity with CSS class toggle.
+    // Previous: regSubmit.style.opacity = valid ? '1' : '0.6' — violated P1-001.
+    // Standard: CSS Single Source of Truth.
+    regSubmit.classList.toggle('nm-btn-disabled-soft', !valid);
 
     // FRC-002: Show/hide real-time mismatch error
     const mismatchEl = document.getElementById('pw-mismatch-error');
@@ -805,8 +808,10 @@ forgotBtn?.addEventListener('click', async (e) => {
         // Standard: Design System Governance (all loading states must show spinners).
         forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:14px" aria-hidden="true"></i> ${t('auth_forgot_sending', 'Sending...')}`;
         forgotBtn.setAttribute('aria-disabled', 'true');
-        forgotBtn.style.pointerEvents = 'none';
-        forgotBtn.style.opacity = '0.5';
+        // P1-AUD4-002 FIX: Replaced inline style.pointerEvents + style.opacity with CSS class.
+        // Previous: forgotBtn.style.pointerEvents = 'none'; forgotBtn.style.opacity = '0.5'
+        // Standard: P1-001 precedent — CSS Single Source of Truth.
+        forgotBtn.classList.add('nm-btn-cooldown');
     }
 
     try {
@@ -826,8 +831,8 @@ forgotBtn?.addEventListener('click', async (e) => {
             // Standard: Design System Governance (consistent loading states).
             forgotBtn.innerHTML = `<span data-i18n="forgot_password">${t('auth_forgot_link_text', 'Forgot your password?')}</span>`;
             forgotBtn.removeAttribute('aria-disabled');
-            forgotBtn.style.pointerEvents = '';
-            forgotBtn.style.opacity = '';
+            // P1-AUD4-002 FIX: Remove CSS cooldown class (replaces inline style reset).
+            forgotBtn.classList.remove('nm-btn-cooldown');
         }
     }
 });

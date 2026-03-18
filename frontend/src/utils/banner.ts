@@ -63,7 +63,10 @@ export function showStructuredBanner(
     const { banner, inner, icon, text } = elements;
     if (!banner || !inner || !icon || !text) { return; }
 
-    banner.style.display = 'block';
+    // DEF-VIS-002 FIX: Replaced `style.display = 'block'` with classList toggle.
+    // Previous: inline style overrode CSS and violated P1-001 precedent.
+    // Standard: CSS Single Source of Truth — use Tailwind `hidden` utility class.
+    banner.classList.remove('hidden');
     text.textContent = message;
     inner.className = STRUCTURED_CLASSES[type].inner;
     icon.className = STRUCTURED_CLASSES[type].icon;
@@ -71,7 +74,7 @@ export function showStructuredBanner(
 
 /** Hide a structured banner. */
 export function hideStructuredBanner(banner: HTMLElement | null): void {
-    if (banner) { banner.style.display = 'none'; }
+    if (banner) { banner.classList.add('hidden'); }
 }
 
 // ─── Simple Banner (Dashboard Pages) ────────────────────────────────────────
@@ -96,9 +99,10 @@ export function showSimpleBanner(
 
     banner.className = SIMPLE_CLASSES[type];
     banner.textContent = message;
-    banner.style.display = '';
+    // DEF-VIS-002 FIX: Replaced `style.display = ''` with classList toggle.
+    banner.classList.remove('hidden');
 
     if (autoDismissMs > 0) {
-        setTimeout(() => { banner.style.display = 'none'; }, autoDismissMs);
+        setTimeout(() => { banner.classList.add('hidden'); }, autoDismissMs);
     }
 }

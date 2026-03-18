@@ -32,8 +32,12 @@ export function normalizeHeader(config: HeaderConfig = {}): void {
     const header = document.querySelector<HTMLElement>('header');
     if (!header) { return; }
 
-    // Ensure consistent height
-    header.style.minHeight = header.style.minHeight || '3rem';
+    // P2-AUD4-001 FIX: Replaced inline style.minHeight = '3rem' with CSS class.
+    // Previous: header.style.minHeight = header.style.minHeight || '3rem' — violated P1-001.
+    // Standard: CSS Single Source of Truth.
+    if (!header.classList.contains('nm-header-normalized')) {
+        header.classList.add('nm-header-normalized');
+    }
 
     // ── Back Button ────────────────────────────────────────────────────
     const hasBackBtn = header.querySelector('[data-back-btn], .back-btn, a[href*="portal"], a[href*="dashboard"]');

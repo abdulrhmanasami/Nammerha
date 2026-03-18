@@ -96,13 +96,18 @@
     <!-- P3-PLT-002 FIX: Landscape media query moved to main.css (single source of truth).
          Standard: CSS Architecture — no inline <style> blocks for reusable rules. -->
     <!-- CONF-2026-004 FIX: data-nm-theme-toggle + data-nm-theme-icon for canonical engine auto-wiring -->
-    <button id="nm-theme-toggle" data-nm-theme-toggle class="fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" style="inset-block-start: calc(0.75rem + env(safe-area-inset-top, 0px)); inset-inline-end: 0.75rem;" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+    <!-- DEF-THEME-001 FIX: Replaced inline `style="inset-block-start:...; inset-inline-end:..."` with CSS class.
+         Standard: P1-001 CSS Single Source of Truth. -->
+    <button id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
       <i id="nm-theme-toggle-icon" data-nm-theme-icon aria-hidden="true" style="font-size:18px"></i>
     </button>
 
     <!-- Error/Success Banner -->
     <!-- P0-A2 FIX: aria-live region for screen reader announcement of status changes (WCAG 4.1.3) -->
-    <div class="px-6 mb-4 relative z-10" id="auth-banner" role="alert" aria-live="assertive" style="display:none">
+    <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
+         banner.ts now uses classList.add/remove('hidden') for show/hide.
+         Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
+    <div class="px-6 mb-4 relative z-10 hidden" id="auth-banner" role="alert" aria-live="assertive">
       <div class="rounded-xl p-3 text-sm font-medium flex items-center gap-2" id="auth-banner-inner">
         <i class="ph" id="auth-banner-icon" aria-hidden="true"></i>
         <span id="auth-banner-text"></span>

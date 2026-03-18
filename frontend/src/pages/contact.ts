@@ -73,5 +73,6 @@ function showResult(type: 'success' | 'error', message: string): void {
             <i class="ph ${type === 'success' ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-red-600'} shrink-0" style="font-size:20px" aria-hidden="true"></i>
             <p>${escapeHtml(message)}</p>
         </div>`;
-    resultBox.style.display = '';
+    // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
+    resultBox.classList.remove('hidden');
 }

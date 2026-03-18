@@ -51,7 +51,8 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
 
     // Show banner
     if (banner && bannerInner && bannerIcon && bannerTitle && bannerText) {
-        banner.style.display = 'block';
+        // DEF-VIS-002 FIX: Replaced style.display with classList toggle.
+        banner.classList.remove('hidden');
         bannerTitle.textContent = titleText;
         bannerText.textContent = message;
 
@@ -68,10 +69,11 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
     }
 
     // Show sign-in action + resend section for expired/error states
-    if (actions) { actions.style.display = 'block'; }
+    // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
+    if (actions) { actions.classList.remove('hidden'); }
     const resendSection = document.getElementById('verify-resend');
     if (resendSection && (type === 'expired' || type === 'error')) {
-        resendSection.style.display = 'block';
+        resendSection.classList.remove('hidden');
     }
 }
 
@@ -156,7 +158,8 @@ resendBtn?.addEventListener('click', async () => {
 
 function showResendFeedback(type: 'success' | 'error', message: string): void {
     if (!resendFeedback) { return; }
-    resendFeedback.style.display = 'block';
+    // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
+    resendFeedback.classList.remove('hidden');
     resendFeedback.className = `mt-2 rounded-lg p-2 text-xs font-medium ${type === 'success'
         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
         : 'bg-red-50 text-red-700 border border-red-200'}`;
