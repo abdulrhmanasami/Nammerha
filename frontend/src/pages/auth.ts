@@ -40,20 +40,57 @@ function switchTab(mode: 'login' | 'register'): void {
     state.mode = mode;
     hideBanner();
 
+    // P0-UXA-001 FIX: Sync aria-selected on tab elements (WCAG 4.1.2)
+    // Previous: CSS classes toggled but aria-selected never updated — screen readers
+    // announced wrong tab state. Standard: WAI-ARIA Authoring Practices §3.26 (Tabs).
     if (mode === 'login') {
         tabLogin?.classList.add('auth-tab-active');
         tabLogin?.classList.remove('text-slate-500');
+        tabLogin?.setAttribute('aria-selected', 'true');
         tabRegister?.classList.remove('auth-tab-active');
         tabRegister?.classList.add('text-slate-500');
-        if (formLogin) { formLogin.style.display = 'flex'; }
-        if (formRegister) { formRegister.style.display = 'none'; }
+        tabRegister?.setAttribute('aria-selected', 'false');
+        // P1-UXA-006 FIX: Smooth transition using CSS auth-panel-exit class.
+        // Previous: instant display toggle (style.display) felt jarring.
+        // Now: fade-out exit class → display swap → fade-in on next paint.
+        // Standard: Apple HIG (Fluid Motion), Material Design 3 (Animated Tabs).
+        if (formRegister) {
+            formRegister.classList.add('auth-panel-exit');
+            setTimeout(() => {
+                formRegister.style.display = 'none';
+                formRegister.classList.remove('auth-panel-exit');
+            }, 250);
+        }
+        if (formLogin) {
+            formLogin.style.display = 'flex';
+            formLogin.classList.remove('auth-panel-exit');
+        }
+        // P0-UXA-003 FIX: Always clear hash when switching to login.
+        // Previous: hash cleared only on tab click (L212), not on programmatic switch
+        // (e.g., after registration success). URL retained #register-step-3 ghost state.
+        // Standard: Nielsen #3 (User Control & Freedom).
+        if (window.location.hash) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
     } else {
         tabRegister?.classList.add('auth-tab-active');
         tabRegister?.classList.remove('text-slate-500');
+        tabRegister?.setAttribute('aria-selected', 'true');
         tabLogin?.classList.remove('auth-tab-active');
         tabLogin?.classList.add('text-slate-500');
-        if (formLogin) { formLogin.style.display = 'none'; }
-        if (formRegister) { formRegister.style.display = 'flex'; }
+        tabLogin?.setAttribute('aria-selected', 'false');
+        // P1-UXA-006: Smooth transition out of login panel
+        if (formLogin) {
+            formLogin.classList.add('auth-panel-exit');
+            setTimeout(() => {
+                formLogin.style.display = 'none';
+                formLogin.classList.remove('auth-panel-exit');
+            }, 250);
+        }
+        if (formRegister) {
+            formRegister.style.display = 'flex';
+            formRegister.classList.remove('auth-panel-exit');
+        }
     }
 }
 
@@ -208,8 +245,8 @@ formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach(bt
 // Reset wizard to Step 1 when switching to Register tab.
 tabLogin?.addEventListener('click', () => {
     switchTab('login');
-    // FRIC-003: Clear hash when switching to login
-    if (window.location.hash) { history.replaceState(null, '', window.location.pathname); }
+    // P0-UXA-003: Hash clearing now handled inside switchTab() — removed duplicate here.
+    // FRIC-003 original logic preserved in switchTab() for all callers.
 });
 tabRegister?.addEventListener('click', () => {
     switchTab('register');
@@ -224,7 +261,7 @@ tabRegister?.addEventListener('click', () => {
 window.addEventListener('hashchange', () => {
     const match = window.location.hash.match(/^#register-step-(\d+)$/);
     if (match) {
-        const step = parseInt(match[1], 10);
+        const step = parseInt(match[1]!, 10);
         if (step >= 1 && step <= 3 && step !== currentRegStep) {
             // Switch to register mode if not already
             if (state.mode !== 'register') { switchTab('register'); }
@@ -248,7 +285,7 @@ window.addEventListener('hashchange', () => {
 (function restoreHashState(): void {
     const match = window.location.hash.match(/^#register-step-(\d+)$/);
     if (match) {
-        const step = parseInt(match[1], 10);
+        const step = parseInt(match[1]!, 10);
         if (step >= 1 && step <= 3) {
             switchTab('register');
             // For step > 1, we skip validation on initial load (user may have refreshed)
@@ -313,6 +350,11 @@ function setupPasswordToggle(toggleId: string, inputId: string): void {
 
 setupPasswordToggle('login-toggle-pw', 'login-password');
 setupPasswordToggle('reg-toggle-pw', 'reg-password');
+// P0-UXA-002 FIX: Wire confirm password toggle.
+// Previous: reg-password had toggle (L275) but reg-password-confirm did NOT.
+// Users typing complex passwords (upper+lower+number+symbol) could not verify confirm input.
+// Standard: Password UX Best Practices, Apple HIG (Authentication).
+setupPasswordToggle('reg-toggle-pw-confirm', 'reg-password-confirm');
 
 // PLT-MAR11-005 FIX: Import shared password strength utility (single source of truth)
 import { updatePasswordStrength } from '../utils/password-strength';
@@ -434,6 +476,9 @@ function validateRegisterForm(): boolean {
         showBanner('error', t('auth_terms_required', 'Please accept the Terms and Privacy Policy.'));
         return false;
     }
+    // P0-UXA-004: Hide terms error if it was previously shown
+    const termsErrorEl = document.getElementById('reg-terms-error');
+    if (termsErrorEl) { termsErrorEl.classList.add('hidden'); }
 
     return true;
 }
@@ -442,6 +487,12 @@ function validateRegisterForm(): boolean {
 formLogin?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (state.isSubmitting) { return; }
+
+    // P0-UXA-005 FIX: Add .submitted class for CSS validation highlighting.
+    // main.css L1646-1652 defines form[novalidate].submitted styles that highlight
+    // all empty required fields on first submit attempt.
+    // Standard: Nielsen #9 (Error Recognition), CSS-Driven Validation.
+    formLogin.classList.add('submitted');
 
     const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
     const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
@@ -523,10 +574,24 @@ formLogin?.addEventListener('submit', async (e) => {
     }
 });
 
+// P0-UXA-004 FIX: Live listener — auto-hide terms error when user checks the box.
+// Previous: error persisted even after correction — violates Nielsen #9 (Error Recovery).
+// Standard: Immediate Error Clearance, Material Design 3 (Form Validation).
+const _termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
+_termsCheckbox?.addEventListener('change', () => {
+    const termsErr = document.getElementById('reg-terms-error');
+    if (_termsCheckbox.checked && termsErr) {
+        termsErr.classList.add('hidden');
+    }
+});
+
 // ─── Form Submission: REGISTER ──────────────────────────────────────────────
 formRegister?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (state.isSubmitting) { return; }
+
+    // P0-UXA-005 FIX: Add .submitted class for CSS validation highlighting.
+    formRegister.classList.add('submitted');
 
     // FIX-REG-003: Comprehensive validation with clear per-field feedback
     if (!validateRegisterForm()) { return; }

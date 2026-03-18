@@ -1939,10 +1939,15 @@ html[data-theme="dark"] .page-header {
    Now: Pointer events allowed (for "coming soon" banner feedback),
    but visual affordance reduced via opacity + grayscale + no hover lift.
    Standard: Honest Affordances, Nielsen #1 (System Status Visibility). */
+/* P1-UXA-009 FIX: Changed cursor from not-allowed to pointer.
+   Previous: cursor: not-allowed + pointer-events: auto = cognitive dissonance.
+   Users saw "forbidden" cursor but COULD click → toast appeared. Nielsen #2 violation.
+   Now: cursor: pointer — the toast feedback already communicates "not yet available."
+   Standard: Honest Affordances, Nielsen #2 (Match System ↔ Real World). */
 .sso-coming-soon {
     position: relative;
     opacity: 0.55;
-    cursor: not-allowed;
+    cursor: pointer;
     filter: grayscale(40%);
     transition: opacity 0.2s ease;
 }
