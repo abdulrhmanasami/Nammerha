@@ -15,10 +15,28 @@ import { renderTableErrorWithRetry, renderErrorWithRetry } from '../utils/error-
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     initTimestamp();
+    initNotificationBell();
     loadKPIs();
     loadProjects();
     loadAuditTrail();
 });
+
+/* GAP-ADM-003 FIX: Notification bell scroll handler.
+   Bell button has data-scroll-target="section-audit-trail".
+   Clicks smooth-scroll to the target element.
+   Standard: Nielsen #4 (Consistency). */
+function initNotificationBell(): void {
+    const bell = document.getElementById('notification-bell');
+    if (!bell) { return; }
+    bell.addEventListener('click', () => {
+        const targetId = bell.getAttribute('data-scroll-target');
+        if (!targetId) { return; }
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+}
 
 // ─── Live Timestamp ─────────────────────────────────────────────────────────
 function initTimestamp(): void {
@@ -57,6 +75,30 @@ async function loadKPIs(): Promise<void> {
             animateKPI('kpi-total-funded', stats['total_funded'] ?? 0, '$');
             animateKPI('kpi-active-projects', stats['active_projects'] ?? 0);
             animateKPI('kpi-engineers', stats['registered_engineers'] ?? 0);
+
+            /* GAP-ADM-005 FIX: KPI trend badge showed "—" forever.
+               Now calculates from stats.trend_funded (percentage change).
+               Falls back to "New" if trend data is unavailable.
+               Standard: Nielsen #1 (Visibility of system status). */
+            const trendEl = document.getElementById('kpi-impact-trend');
+            if (trendEl) {
+                const trendValue = stats['trend_funded'] as number | undefined;
+                if (trendValue !== undefined && trendValue !== null) {
+                    const sign = trendValue >= 0 ? '+' : '';
+                    trendEl.textContent = `${sign}${trendValue.toFixed(1)}%`;
+                } else {
+                    trendEl.textContent = 'New';
+                    trendEl.setAttribute('data-i18n', 'badge_new');
+                }
+            }
+
+            // Update notification count badge with pending count
+            const notifCount = document.getElementById('notif-count');
+            if (notifCount) {
+                const pending = (stats['kyc_pending'] as number | undefined) ?? 0;
+                notifCount.textContent = String(pending);
+                notifCount.style.display = pending > 0 ? 'flex' : 'none';
+            }
         }
 
         // Pending verifications count
@@ -66,7 +108,30 @@ async function loadKPIs(): Promise<void> {
         // Update escrow pending badge
         const escrowBadge = document.getElementById('escrow-pending-count');
         if (escrowBadge) {
-            escrowBadge.textContent = `${pendingCount} Pending`;
+            /* FRIC-ADM-002 FIX: Was hardcoded English "{count} Pending".
+               Now uses i18n-safe numeric-only format. The word "Pending" is
+               already in the parent context (card title).
+               Standard: i18n Completeness, WCAG 3.1.1. */
+            escrowBadge.textContent = `${pendingCount}`;
+            escrowBadge.setAttribute('data-i18n-count', String(pendingCount));
+        }
+
+        /* FRIC-ADM-003 FIX: Sidebar badges (#sidebar-escrow-count, #sidebar-kyc-count)
+           were showing "—" forever because loadKPIs() only updated the quick-action badge.
+           Now both sidebar badges are in sync with API data.
+           Standard: Nielsen #1 (System Status Visibility). */
+        const sidebarEscrow = document.getElementById('sidebar-escrow-count');
+        if (sidebarEscrow) {
+            sidebarEscrow.textContent = pendingCount > 0 ? String(pendingCount) : '';
+            sidebarEscrow.setAttribute('data-count', String(pendingCount));
+        }
+
+        // KYC count from stats API
+        const kycPending = (stats?.['kyc_pending'] as number | undefined) ?? 0;
+        const sidebarKyc = document.getElementById('sidebar-kyc-count');
+        if (sidebarKyc) {
+            sidebarKyc.textContent = kycPending > 0 ? String(kycPending) : '';
+            sidebarKyc.setAttribute('data-count', String(kycPending));
         }
     } catch (err) {
         reportWarning('[AdminDashboard] KPI load failed', {
@@ -105,6 +170,10 @@ async function loadProjects(): Promise<void> {
             const progress = Math.min(100, Math.max(0, Number(p['funding_progress'] ?? p['progress'] ?? 0)));
             const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
             const textColor = progress >= 75 ? 'text-smoky-jade' : progress >= 40 ? 'text-trust-blue' : 'text-warning-yellow';
+            /* FRIC-ADM-002 FIX: Status labels were hardcoded English ("Fully Funded", "In Progress", etc.).
+               Now uses data-i18n attributes so the i18n engine can translate them.
+               Standard: i18n Completeness, WCAG 3.1.1. */
+            const statusI18nKey = progress >= 100 ? 'status_fully_funded' : progress > 0 ? 'status_in_progress' : 'status_under_review';
             const statusLabel = progress >= 100 ? 'Fully Funded' : progress > 0 ? 'In Progress' : 'Under Review';
             const statusBg = progress >= 100
                 ? 'text-trust-blue bg-trust-blue/10'
@@ -120,7 +189,7 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">${esc(String(p['ocds_id'] ?? p['project_id'] ?? ''))}</td>
                 <td class="px-5 py-3 font-medium">${esc(String(p['title'] ?? ''))}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(String(p['region'] ?? p['location'] ?? ''))}</td>
-                <td class="px-5 py-3 ${engineer ? 'text-slate-600' : 'text-slate-500 italic'}">${engineer ? esc(String(engineer)) : '— Pending'}</td>
+                <td class="px-5 py-3 ${engineer ? 'text-slate-600' : 'text-slate-500 italic'}">${engineer ? esc(String(engineer)) : '<span data-i18n="admin_pending_assignment">— Pending</span>'}</td>
                 <td class="px-5 py-3 font-bold">${cost}</td>
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
@@ -128,11 +197,17 @@ async function loadProjects(): Promise<void> {
                         <span class="text-xs ${textColor} font-bold">${progress}%</span>
                     </div>
                 </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold px-2 py-0.5 rounded-full ${statusBg}">${statusLabel}</span></td>
+                <td class="px-5 py-3"><span class="text-xs font-bold px-2 py-0.5 rounded-full ${statusBg}" data-i18n="${statusI18nKey}">${esc(statusLabel)}</span></td>
             </tr>`;
         }).join('');
 
         applyI18n();
+
+        /* GAP-ADM-001 FIX: Project table rows had cursor-pointer but no click handler.
+           Uses event delegation for performance — single listener on tbody.
+           Navigates to project-details.html with the project ID.
+           Standard: Nielsen #2 (Match real world), Fitts' Law. */
+        initClickableRows(tbody);
     } catch (err) {
         reportWarning('[AdminDashboard] Projects load failed', {
             component: 'admin-dashboard', action: 'load_projects',
@@ -140,6 +215,23 @@ async function loadProjects(): Promise<void> {
         });
         renderTableErrorWithRetry(tbody, loadProjects, 7);
     }
+}
+
+/* GAP-ADM-001 FIX: Project table rows had cursor-pointer but no click handler.
+   Uses event delegation on tbody for O(1) listener count regardless of row count.
+   Reads the project OCDS ID from the first <td> and navigates to project-details.
+   Standard: Nielsen #2 (Match between system and real world), Fitts' Law. */
+function initClickableRows(tbody: HTMLElement): void {
+    tbody.addEventListener('click', (e: MouseEvent) => {
+        const row = (e.target as HTMLElement).closest('tr');
+        if (!row) { return; }
+        const firstTd = row.querySelector('td');
+        if (!firstTd) { return; }
+        const projectId = firstTd.textContent?.trim();
+        if (projectId) {
+            window.location.href = `project-details.html?id=${encodeURIComponent(projectId)}`;
+        }
+    });
 }
 
 // ─── Load Audit Trail ───────────────────────────────────────────────────────

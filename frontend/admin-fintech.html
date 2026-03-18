@@ -40,64 +40,134 @@
 </noscript>
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <!-- LMK-001 FIX: skip-link target must be a main element, not div -->
-  <main id="main-content" class="max-w-6xl mx-auto px-6 py-10">
+  <!-- INC-ADM-005 FIX: Was standalone centered layout (max-w-6xl mx-auto) with NO sidebar.
+       Every other admin page (5/6) uses the dashboard-layout pattern with sidebar.
+       This created a jarring UX switch when navigating between admin portals.
+       Standard: Nielsen #4 (Consistency), Platform Architecture. -->
+<div class="dashboard-layout">
 
-    <!-- Header -->
-    <header class="mb-10">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold tracking-tight" data-i18n="fintech_title">FinTech & Enterprise</h1>
-          <p class="text-sm text-slate-500 mt-1" data-i18n="fintech_subtitle">Escrow fees, enterprise subscriptions, and TaaS management</p>
+  <!-- Sidebar Navigation — standardized across all 6 admin pages -->
+  <aside class="dashboard-sidebar">
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
+      <span class="text-xl font-bold tracking-tight">Nammerha</span>
+      <div id="role-switcher-mount" class="ms-auto"></div>
+    </div>
+    <nav class="flex-1 px-4 space-y-1">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-dashboard.html">
+        <i class="ph ph-squares-four" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-revenue.html">
+        <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="rev_dashboard">Revenue</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="admin-fintech.html">
+        <i class="ph ph-bank" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="fintech_title">FinTech</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-oracle.html">
+        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
+        <i class="ph ph-shield-check" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
+        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
+        <i class="ph ph-identification-card" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
+        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
+        <i class="ph ph-package" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="nav_projects">Projects</span>
+      </a>
+    </nav>
+    <div class="p-4 border-t border-slate-200">
+      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true" title="Coming Soon">
+        <i class="ph ph-gear" aria-hidden="true"></i>
+        <span class="font-medium" data-i18n="admin_settings">Settings</span>
+        <span class="ms-auto text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+      </span>
+      <div class="mt-4 flex items-center gap-3 px-3 py-2">
+        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+          <i class="ph ph-user-circle text-trust-blue" style="font-size:16px" aria-hidden="true"></i>
         </div>
-        <a href="admin-dashboard.html" class="text-sm text-trust-blue hover:underline flex items-center gap-1">
-          <i class="ph ph-arrow-left" aria-hidden="true"></i>
-          <span data-i18n="fintech_back">Back to Dashboard</span>
-        </a>
+        <div>
+          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
+          <p class="text-[10px] text-slate-500" data-i18n="admin_institutional">Institutional Access</p>
+        </div>
+      </div>
+      <button id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <main id="main-content" class="dashboard-main">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
+      <div class="flex items-center gap-3">
+        <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
+          <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
+        </button>
+        <span class="font-bold text-lg page-header-title" data-i18n="fintech_title">FinTech & Enterprise</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div id="role-switcher-mount-header"></div>
       </div>
     </header>
 
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+      <!-- Page Header -->
+      <div>
+        <h1 class="text-xl font-bold" data-i18n="fintech_title">FinTech & Enterprise</h1>
+        <p class="text-sm text-slate-500 mt-0.5" data-i18n="fintech_subtitle">Escrow fees, enterprise subscriptions, and TaaS management</p>
+      </div>
+
     <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-      <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-            <i class="ph ph-bank text-smoky-jade text-xl" aria-hidden="true"></i>
+          <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
+            <i class="ph ph-bank text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
           </div>
-          <span class="text-xs text-slate-400 font-semibold uppercase" data-i18n="fintech_escrow_fees">Escrow Fees</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_escrow_fees">Escrow Fees</span>
         </div>
         <span class="text-2xl font-black" aria-live="polite" id="kpi-escrow-fees">$0</span>
         <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_all_time">All time</span>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-            <i class="ph ph-buildings text-trust-blue text-xl" aria-hidden="true"></i>
+          <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+            <i class="ph ph-buildings text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
           </div>
-          <span class="text-xs text-slate-400 font-semibold uppercase" data-i18n="fintech_enterprise_orgs">Enterprise Orgs</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_enterprise_orgs">Enterprise Orgs</span>
         </div>
         <span class="text-2xl font-black" aria-live="polite" id="kpi-enterprise-orgs">0</span>
         <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_active">Active</span>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
-            <i class="ph ph-chart-line-up text-warm-earth text-xl" aria-hidden="true"></i>
+          <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
+            <i class="ph ph-chart-line-up text-warm-earth" style="font-size:20px" aria-hidden="true"></i>
           </div>
-          <span class="text-xs text-slate-400 font-semibold uppercase" data-i18n="fintech_mtd_fees">MTD Fees</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_mtd_fees">MTD Fees</span>
         </div>
         <span class="text-2xl font-black" aria-live="polite" id="kpi-mtd-fees">$0</span>
         <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_this_month">This month</span>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-            <i class="ph ph-key text-slate-600 text-xl" aria-hidden="true"></i>
+          <div class="size-10 rounded-lg bg-slate-100 flex items-center justify-center">
+            <i class="ph ph-key text-slate-600" style="font-size:20px" aria-hidden="true"></i>
           </div>
-          <span class="text-xs text-slate-400 font-semibold uppercase" data-i18n="fintech_api_calls">API Calls</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_api_calls">API Calls</span>
         </div>
         <span class="text-2xl font-black" aria-live="polite" id="kpi-api-calls">0</span>
         <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_this_month">This month</span>
@@ -105,21 +175,24 @@
     </div>
 
     <!-- Fee Configuration -->
-    <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-8">
-      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-        <i class="ph ph-gear text-slate-400" aria-hidden="true"></i>
-        <span data-i18n="fintech_fee_config">Fee Configuration</span>
-      </h2>
+    <section class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div class="p-5 border-b border-slate-100">
+        <h2 class="font-bold flex items-center gap-2">
+          <i class="ph ph-gear text-slate-400" aria-hidden="true"></i>
+          <span data-i18n="fintech_fee_config">Fee Configuration</span>
+        </h2>
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm" id="fee-config-table">
+          <caption class="sr-only" data-i18n="fintech_fee_config">Fee Configuration</caption>
           <thead>
             <tr class="border-b border-slate-100">
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_fee_name">Name</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_fee_rate">Rate</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_fee_min">Min Fee</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_fee_max">Max Fee</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_applies_to">Applies To</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_status">Status</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_fee_name">Name</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_fee_rate">Rate</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_fee_min">Min Fee</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_fee_max">Max Fee</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_applies_to">Applies To</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_status">Status</th>
             </tr>
           </thead>
           <tbody id="fee-config-body">
@@ -130,9 +203,9 @@
     </section>
 
     <!-- Enterprise Organizations -->
-    <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold flex items-center gap-2">
+    <section class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="font-bold flex items-center gap-2">
           <i class="ph ph-buildings text-slate-400" aria-hidden="true"></i>
           <span data-i18n="fintech_enterprise_list">Enterprise Organizations</span>
         </h2>
@@ -143,13 +216,14 @@
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm" id="orgs-table">
+          <caption class="sr-only" data-i18n="fintech_enterprise_list">Enterprise Organizations</caption>
           <thead>
             <tr class="border-b border-slate-100">
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_org_name">Organization</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_org_type">Type</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_tier">Tier</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_org_email">Email</th>
-              <th class="text-start py-3 px-4 text-slate-400 font-semibold" data-i18n="fintech_status">Status</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_org_name">Organization</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_org_type">Type</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_tier">Tier</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_org_email">Email</th>
+              <th class="text-start py-3 px-5 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_status">Status</th>
             </tr>
           </thead>
           <tbody id="orgs-body">
@@ -159,7 +233,9 @@
       </div>
     </section>
 
+    </div>
   </main>
+</div>
 <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
 <footer class="nm-legal-footer">
   <nav aria-label="Legal navigation">
@@ -170,11 +246,26 @@
   <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
 </footer>
 
+  <!-- Gradient orbs -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+<template id="tpl-table-empty">
+  <tr>
+    <td colspan="99" class="px-5 py-0">
+      <div class="nm-table-empty">
+        <div class="nm-empty-icon"><i class="ph ph-bank" aria-hidden="true"></i></div>
+        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
+        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+      </div>
+    </td>
+  </tr>
+</template>
+
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/admin.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
 <script src="/load-guard.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
+<script src="/sidebar.js?v=1" defer></script>
 </body>
 </html>
