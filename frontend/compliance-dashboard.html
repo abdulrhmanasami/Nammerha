@@ -48,20 +48,38 @@
 
   <!-- Sidebar Navigation -->
   <aside class="dashboard-sidebar">
-    <div class="p-6 flex items-center gap-3">
+    <!-- P1-AUD-005 FIX: Standardized to p-4 + border-b (was p-6 no-border).
+         Matches homeowner-portal, donor-portal, contractor-dashboard sidebar headers.
+         Standard: Nielsen #4 (Consistency), Brand identity. -->
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="auditor_portal">Auditor Portal</span>
-      <div id="role-switcher-mount" class="ms-auto"></div>    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <a class="flex items-center gap-3 px-3 py-2 bg-smoky-jade/10 text-smoky-jade rounded-lg" href="#">
+      <div id="role-switcher-mount" class="ms-auto"></div>
+    </div>
+    <!-- P0-AUD-002 FIX: Complete WAI-ARIA tablist rewrite.
+         Previous: <a href="#"> links with no ARIA semantics — violated WAI-ARIA §3.26.
+         - Caused unwanted history entries and scroll-to-top on click
+         - No role="tablist", role="tab", aria-selected, or aria-controls
+         - Active tab used bg-smoky-jade (brand inconsistency — all other portals use bg-trust-blue)
+         - Missing data-i18n on 4 of 5 sidebar items
+         Now: Proper tablist with 2 tabs (Dashboard, Escrow Reviews) + separate nav links.
+         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2, Nielsen #4. -->
+    <!-- P3-AUD-002 FIX: Added pt-3 for breathing room between sidebar header and first tab.
+         Standard: Apple HIG Navigation Spacing, Nielsen #4 (Consistency). -->
+    <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Auditor portal navigation">
+      <button type="button" role="tab" id="tab-dashboard" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
+        <span class="font-medium" data-i18n="common_dashboard">Dashboard</span>
+      </button>
+      <button type="button" role="tab" id="tab-escrow" aria-selected="false" aria-controls="section-escrow" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-file-search" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="auditor_escrow_reviews">Escrow Reviews</span>
         <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="review-count">0</span>
-      </a>
+      </button>
+    </nav>
+    <!-- Navigation links outside tablist — these navigate to different pages.
+         Standard: WAI-ARIA §3.26 mandates tab containers may ONLY contain role="tab" elements. -->
+    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="#">
         <i class="ph ph-chart-bar" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="auditor_financial_reports">Financial Reports</span>
@@ -78,7 +96,7 @@
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_profile">Profile</span>
       </a>
-    </nav>
+    </div>
     <div class="p-4 border-t border-slate-200">
       <div class="flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-smoky-jade/20 flex items-center justify-center">
@@ -89,32 +107,64 @@
           <p class="text-[10px] text-slate-500" data-i18n="auditor_access">Compliance Access</p>
         </div>
       </div>
+      <!-- P0-AUD-003 FIX: Logout button was missing from compliance sidebar.
+           All other portal sidebars (homeowner, donor, tradesperson, contractor) have it.
+           Standard: Nielsen #3 (User Control and Freedom), Security UX. -->
+      <button id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+        <i class="ph ph-sign-out" aria-hidden="true"></i>
+        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
+      </button>
     </div>
   </aside>
 
-  <!-- Main Content -->
-  <div id="main-content" class="dashboard-main">
-    <!-- PLT-AUD-C004 FIX: Sticky header -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
+  <!-- P0-AUD-001 FIX: Was <div> — skip-link targets #main-content, must be <main> landmark (WCAG 1.3.1).
+       Every other dashboard/portal page uses <main>. This was the sole violator.
+       Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.1. -->
+  <main id="main-content" class="dashboard-main">
+    <!-- P2-AUD-002 FIX: Wrapped header content in max-w-6xl centered container.
+         Previous: content stretched edge-to-edge on wide screens.
+         Standard: Nielsen #4 (Consistency), PLT-AUD2-C001 pattern. -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-40">
+      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list" style="font-size:22px" aria-hidden="true"></i>
         </button>
-        <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
-             echoing page context, NOT a structural heading. The real <h1> is in content below.
-             h2-before-h1 is invalid heading hierarchy for screen readers (WCAG 1.3.1). -->
         <span class="font-bold text-lg page-header-title" data-i18n="auditor_dashboard_title">Compliance Dashboard</span>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
+        <!-- P3-AUD-001 FIX: role-switcher-mount-header was missing.
+             All other portals include it for the role-switcher component to mount into.
+             Standard: Design System Component Consistency. -->
+        <div id="role-switcher-mount-header"></div>
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors" style="font-size:20px" aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-warning-yellow text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <!-- P2-AUD-003 FIX: Changed bg-warning-yellow → bg-trust-blue.
+               All other portals use bg-trust-blue for notification count badge.
+               Compliance was the sole outlier using bg-warning-yellow.
+               Standard: Nielsen #4 (Consistency), Design System Color Token. -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[8px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
+      </div>
       </div>
     </header>
 
-    <div class="p-6 space-y-6">
+    <!-- P1-AUD-003 FIX: Added max-w-6xl wrapper — was missing.
+         Content stretched full-width on >1920px screens. Every other portal has the centering wrapper.
+         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width), CRIT-006 pattern. -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
+      <!-- P1-AUD-004 FIX: Content-level <h1> + subtitle — TYPE A heading pattern.
+           Was missing entirely. The only heading was the <span> in the sticky header bar.
+           Standard: WCAG 1.3.1 (Heading Hierarchy), RES-I03 pattern. -->
+      <div>
+        <h1 class="text-xl font-bold" data-i18n="auditor_dashboard_heading">Compliance Overview</h1>
+        <p class="text-sm text-slate-500 mt-0.5" data-i18n="auditor_dashboard_desc">Verify OCDS compliance, review escrow releases, and audit financial transparency</p>
+      </div>
+
+      <!-- ═══════ Dashboard Section (tab panel) ═══════ -->
+      <div id="section-dashboard" role="tabpanel" aria-labelledby="tab-dashboard">
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -151,25 +201,29 @@
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
+        <!-- P2-AUD-001 FIX: Changed non-existent danger-red token to red-500 Tailwind utility.
+             danger-red was not defined in :root or main.css — CSS custom property resolved to empty.
+             Platform uses red-500 for destructive states (profile.html sign-out, error banners).
+             Standard: Design System Token Governance, CSS Custom Property hygiene. -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-xl bg-danger-red/10 flex items-center justify-center">
-              <i class="ph ph-warning text-danger-red" style="font-size:20px" aria-hidden="true"></i>
+            <div class="size-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+              <i class="ph ph-warning text-red-500" style="font-size:20px" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_flagged">Flagged Issues</p>
-          <p class="text-2xl font-black mt-1 text-danger-red" aria-live="polite" data-kpi="flagged-issues">
+          <p class="text-2xl font-black mt-1 text-red-500" aria-live="polite" data-kpi="flagged-issues">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
       </div>
 
       <!-- OCDS Compliance Status -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
             <i class="ph ph-shield-check text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
-            <h4 class="font-bold text-sm" data-i18n="auditor_ocds_status">OCDS Compliance</h4>
+            <h3 class="font-bold text-sm" data-i18n="auditor_ocds_status">OCDS Compliance</h3>
           </div>
           <div class="flex items-center gap-2">
             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -184,7 +238,7 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
             <i class="ph ph-database text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
-            <h4 class="font-bold text-sm" data-i18n="auditor_audit_integrity">Audit Trail Integrity</h4>
+            <h3 class="font-bold text-sm" data-i18n="auditor_audit_integrity">Audit Trail Integrity</h3>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-lg font-black text-smoky-jade" id="audit-integrity">
@@ -197,7 +251,7 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
             <i class="ph ph-map-pin text-warm-earth" style="font-size:20px" aria-hidden="true"></i>
-            <h4 class="font-bold text-sm" data-i18n="auditor_spatial_accuracy">Spatial Verification</h4>
+            <h3 class="font-bold text-sm" data-i18n="auditor_spatial_accuracy">Spatial Verification</h3>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-lg font-black" id="spatial-accuracy">
@@ -208,9 +262,10 @@
           <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_spatial_desc">Average accuracy of submitted spatial proofs</p>
         </div>
       </div>
+      </div>
 
-      <!-- Escrow Review Queue -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <!-- ═══════ Escrow Review Section (hidden by default) ═══════ -->
+      <div id="section-escrow" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none" role="tabpanel" aria-labelledby="tab-escrow">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h3 class="font-bold" data-i18n="auditor_review_queue">Escrow Review Queue</h3>
@@ -221,7 +276,11 @@
           </button>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
+          <!-- P0-AUD-004 FIX: Added nm-donation-table class for mobile card-collapse.
+               Previous: table had no responsive class — 7 columns forced horizontal scrolling on mobile.
+               Every other portal table uses nm-donation-table for responsive behavior.
+               Standard: Material Design 3 (Responsive Tables), WCAG 1.3.1. -->
+          <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <th class="px-5 py-3 text-start" data-i18n="auditor_th_ref">Reference</th>
@@ -251,16 +310,22 @@
           <i class="ph ph-shield-check text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
         </div>
         <div>
-          <h4 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h4>
+          <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="auditor_footer_desc">All auditing operations are logged in the immutable audit trail. Financial reports adhere to Open Contracting Data Standard for institutional transparency.</p>
         </div>
         <span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider" data-i18n="common_verified">Verified</span>
       </div>
     </div>
-  </div>
+    </div>
+  </main>
 </div>
 
-<!-- i18n Engine -->
+  <!-- P1-AUD-001 FIX: Gradient orbs — were missing from compliance-dashboard.
+       Every other consumer and portal page has them for visual cohesion.
+       Standard: Design System Visual Cohesion (INC-N03). -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
 <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
 <footer class="nm-legal-footer">
   <nav aria-label="Legal navigation">
@@ -270,6 +335,22 @@
   </nav>
   <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
 </footer>
+
+<!-- P1-AUD-002 FIX: Empty-state template — was missing from compliance-dashboard.
+     All other portals (donor, homeowner, tradesperson, contractor-dashboard) have it.
+     TS modules clone this template into empty tbody after data fetch.
+     Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
+<template id="tpl-table-empty">
+  <tr>
+    <td colspan="99" class="px-5 py-0">
+      <div class="nm-table-empty">
+        <div class="nm-empty-icon"><i class="ph ph-clipboard-text" aria-hidden="true"></i></div>
+        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
+        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+      </div>
+    </td>
+  </tr>
+</template>
 
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/compliance.js" defer></script>

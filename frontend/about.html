@@ -33,7 +33,9 @@
   <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
   <link rel="stylesheet" href="/fonts/plus-jakarta-sans.css" />
   <!-- Phosphor Icons -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P2-AUD-004 FIX: Removed duplicate font preload — was declared on both line 32 and here.
+       Duplicate <link rel="preload"> wastes browser resources and triggers console warnings.
+       Standard: Performance hygiene, single source of preload. -->
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <!-- GSAP + ScrollTrigger (self-hosted, zero-CDN) -->
   <!-- P0-002 FIX: Replaced cdnjs.cloudflare.com CDN with self-hosted copies -->
@@ -60,7 +62,11 @@
       --trust-blue-glow: rgba(26,115,232,0.25);
       --smoky-jade: #109173;
       --smoky-jade-glow: rgba(16,145,115,0.25);
-      --warm-earth: #c2956b;
+      /* P2-AUD-005 FIX: Aligned to main.css canonical token (was #c2956b).
+           main.css defines --warm-earth: #d59f80. Mismatched values cause visual
+           inconsistency between about page and the rest of the platform.
+           Standard: Design System Token Governance. */
+      --warm-earth: #d59f80;
       --warm-earth-glow: rgba(194,149,107,0.25);
 
       /* Text */
@@ -70,7 +76,11 @@
 
       /* Typography */
       --font-ar: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
-      --font-en: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
+      /* P2-AUD-006 FIX: Changed from 'Inter' to 'Plus Jakarta Sans' — platform standard.
+           Inter is neither loaded nor present in /fonts/. The platform uses Plus Jakarta Sans
+           as the English display font (loaded via plus-jakarta-sans.css on this page).
+           Standard: Typography consistency, font stack hygiene. */
+      --font-en: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', sans-serif;
 
       /* Spacing */
       --section-gap: clamp(80px, 12vw, 160px);
@@ -514,11 +524,15 @@
       border: 2px solid rgba(255,255,255,0.2);
       position: relative;
     }
+    /* P3-AUD-003 FIX: Changed physical left:50% to logical inset-inline-start:50%.
+       The parent .scroll-hint already uses inset-inline-start correctly (line 499).
+       This pseudo-element was the sole remaining physical-axis property.
+       Standard: RTL consistency, CSS Logical Properties. */
     .scroll-hint .mouse::after {
       content: '';
       position: absolute;
       top: 8px;
-      left: 50%;
+      inset-inline-start: 50%;
       transform: translateX(-50%);
       width: 3px; height: 8px;
       border-radius: 2px;
