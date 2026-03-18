@@ -235,6 +235,37 @@ export const admin = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+
+    // GAP-P3-009 FIX: KYC admin endpoints — replaces hardcoded APPLICANTS[].
+    getKycQueue: (params?: { status?: string; limit?: number; offset?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.status) { qs.set('status', params.status); }
+        if (params?.limit) { qs.set('limit', String(params.limit)); }
+        if (params?.offset) { qs.set('offset', String(params.offset)); }
+        const q = qs.toString();
+        return request<{
+            user_id: string;
+            full_name: string;
+            email: string;
+            role: string;
+            kyc_verification_status: string;
+            kyc_document_url: string | null;
+            commercial_register_number: string | null;
+            engineering_license_number: string | null;
+            guild_membership_id: string | null;
+            created_at: string;
+            updated_at: string;
+        }[]>(`/admin/kyc/queue${q ? `?${q}` : ''}`);
+    },
+
+    getKycStats: () =>
+        request<{ pending: number; verified: number; rejected: number; total: number }>('/admin/kyc/stats'),
+
+    updateKycStatus: (userId: string, data: { decision: 'verified' | 'rejected'; reason?: string }) =>
+        request(`/admin/kyc/${userId}/decision`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
 };
 
 // ─── Notifications (Cross-cutting) ──────────────────────────────────────────

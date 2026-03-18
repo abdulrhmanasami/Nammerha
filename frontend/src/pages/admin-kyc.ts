@@ -1,96 +1,144 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
-/* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
-   Standard: DRY, Code Hygiene. */
 import { showToast } from '../utils/toast';
+/* GAP-P3-009 FIX: Wire KYC queue to live admin.getKycQueue() API.
+   Standard: No hardcoded data, API-Driven Rendering. */
+import { admin } from '../api';
 
-/* ─── KYC Verification Portal — Interactive Controller ─── */
+/* ─── KYC Verification Portal — API-Driven Controller ─── */
 
-interface KycApplicant {
-    name: string;
-    role: 'engineer' | 'supplier';
-    submitted: string;
-    documents: KycDocument[];
+interface KycEntry {
+    user_id: string;
+    full_name: string;
+    email: string;
+    role: string;
+    kyc_verification_status: string;
+    kyc_document_url: string | null;
+    commercial_register_number: string | null;
+    engineering_license_number: string | null;
+    guild_membership_id: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
-interface KycDocument {
-    name: string;
-    type: string;
-    icon: string;
-    size: string;
-}
-
-const APPLICANTS: KycApplicant[] = [
-    {
-        name: 'Ahmad Al-Khatib',
-        role: 'engineer',
-        submitted: '2 hours ago',
-        documents: [
-            { name: 'Engineering Union License', type: 'PDF', icon: 'ph ph-certificate', size: '1.2 MB' },
-            { name: 'National ID (Front & Back)', type: 'Image', icon: 'ph ph-identification-card', size: '850 KB' },
-        ],
-    },
-    {
-        name: 'Damascus Building Supplies LLC',
-        role: 'supplier',
-        submitted: '5 hours ago',
-        documents: [
-            { name: 'Commercial Trade Registration', type: 'PDF', icon: 'ph ph-scroll', size: '2.1 MB' },
-            { name: 'Tax Clearance Certificate', type: 'PDF', icon: 'ph ph-stamp', size: '780 KB' },
-            { name: 'Company Ownership Deed', type: 'PDF', icon: 'ph ph-buildings', size: '1.5 MB' },
-        ],
-    },
-    {
-        name: 'Layla Mansour',
-        role: 'engineer',
-        submitted: '1 day ago',
-        documents: [
-            { name: 'Syrian Engineering Syndicate Card', type: 'Image', icon: 'ph ph-identification-badge', size: '640 KB' },
-            { name: 'University Degree (Civil Eng.)', type: 'PDF', icon: 'ph ph-graduation-cap', size: '1.8 MB' },
-        ],
-    },
-    {
-        name: 'Homs Industrial Metals',
-        role: 'supplier',
-        submitted: '2 days ago',
-        documents: [
-            { name: 'Trade License', type: 'PDF', icon: 'ph ph-storefront', size: '990 KB' },
-            { name: 'Industrial Zone Permit', type: 'PDF', icon: 'ph ph-factory', size: '1.1 MB' },
-        ],
-    },
-    {
-        name: 'Youssef Haddad',
-        role: 'engineer',
-        submitted: '3 days ago',
-        documents: [
-            { name: 'Professional License (Structural)', type: 'PDF', icon: 'ph ph-certificate', size: '1.4 MB' },
-        ],
-    },
-];
-
+let applicants: KycEntry[] = [];
 let selectedIndex = -1;
-const resolvedApplicants: Map<number, 'verified' | 'rejected'> = new Map();
 
 document.addEventListener('DOMContentLoaded', () => {
-    initRowSelection();
+    loadKycStats();
+    loadKycQueue();
     initDropZone();
     initActionButtons();
 });
+
+/* ─── Load KYC Stats from API ─── */
+async function loadKycStats(): Promise<void> {
+    try {
+        const res = await admin.getKycStats();
+        const stats = res.data;
+        if (!stats) { return; }
+
+        const pendingEl = document.getElementById('stat-pending');
+        const verifiedEl = document.getElementById('stat-verified');
+        const rejectedEl = document.getElementById('stat-rejected');
+        const totalEl = document.getElementById('stat-total');
+
+        if (pendingEl) { pendingEl.textContent = String(stats.pending); }
+        if (verifiedEl) { verifiedEl.textContent = String(stats.verified); }
+        if (rejectedEl) { rejectedEl.textContent = String(stats.rejected); }
+        if (totalEl) { totalEl.textContent = String(stats.total); }
+    } catch {
+        showToast(t('kyc_stats_error', 'Unable to load KYC statistics'), 'error');
+    }
+}
+
+/* ─── Load KYC Queue from API ─── */
+async function loadKycQueue(): Promise<void> {
+    const container = document.getElementById('kyc-queue-rows');
+    if (!container) { return; }
+
+    try {
+        const res = await admin.getKycQueue();
+        applicants = (res.data ?? []) as KycEntry[];
+
+        if (applicants.length === 0) {
+            container.innerHTML = `
+                <div class="p-8 flex flex-col items-center justify-center text-center">
+                    <div class="size-12 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-3">
+                        <i class="ph ph-check-circle text-smoky-jade" style="font-size:24px" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-bold text-slate-600">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
+                    <p class="text-xs text-slate-400 mt-1">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = applicants.map((entry, index) => {
+            const isEngineer = entry.role === 'engineer';
+            const iconClass = isEngineer ? 'ph-hard-hat' : 'ph-storefront';
+            const bgClass = isEngineer ? 'bg-trust-blue/10' : 'bg-warm-earth/10';
+            const textClass = isEngineer ? 'text-trust-blue' : 'text-warm-earth';
+            const roleLabel = isEngineer
+                ? t('kyc_role_engineer', 'Engineer')
+                : t('kyc_role_supplier', 'Supplier');
+            const timeAgo = formatTimeAgo(entry.updated_at);
+            const statusLabel = entry.kyc_verification_status === 'submitted'
+                ? t('kyc_status_submitted', 'Submitted')
+                : t('kyc_status_pending', 'Pending');
+
+            return `
+                <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                     data-index="${index}" data-user-id="${esc(entry.user_id)}"
+                     role="option" tabindex="0" aria-selected="false">
+                    <div class="size-10 rounded-full ${bgClass} flex items-center justify-center shrink-0">
+                        <i class="ph ${iconClass} ${textClass}" style="font-size:18px" aria-hidden="true"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold truncate">${esc(entry.full_name)}</p>
+                        <p class="text-[10px] text-slate-400">${esc(roleLabel)} • ${esc(timeAgo)}</p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            ${esc(statusLabel)}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        initRowSelection();
+    } catch {
+        container.innerHTML = `
+            <div class="p-6 text-center">
+                <p class="text-sm text-slate-400">${esc(t('kyc_load_error', 'Unable to load KYC queue'))}</p>
+                <button id="kyc-retry-btn" class="mt-2 text-xs text-trust-blue font-bold hover:underline">${esc(t('common_retry', 'Retry'))}</button>
+            </div>
+        `;
+        const retryBtn = document.getElementById('kyc-retry-btn');
+        retryBtn?.addEventListener('click', () => loadKycQueue());
+    }
+}
+
+/* ─── Time Ago Formatter ─── */
+function formatTimeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 60) { return `${mins}m ago`; }
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) { return `${hours}h ago`; }
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}
 
 /* ─── Row Selection ─── */
 function initRowSelection(): void {
     const rows = document.querySelectorAll<HTMLElement>('.kyc-row');
 
     rows.forEach((row) => {
-        /* Click handler */
-        row.addEventListener('click', () => {
-            selectRow(row, rows);
-        });
+        row.addEventListener('click', () => selectRow(row, rows));
 
-        /* FRIC-P3-003 FIX: Keyboard navigation for WCAG 2.1.1.
-           Enter/Space selects the row. ArrowUp/Down moves focus.
-           Standard: WCAG 2.1.1 (Keyboard), WAI-ARIA Practices (Listbox). */
         row.addEventListener('keydown', (e: KeyboardEvent) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -98,15 +146,11 @@ function initRowSelection(): void {
             } else if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 const next = row.nextElementSibling as HTMLElement | null;
-                if (next?.classList.contains('kyc-row')) {
-                    next.focus();
-                }
+                if (next?.classList.contains('kyc-row')) { next.focus(); }
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 const prev = row.previousElementSibling as HTMLElement | null;
-                if (prev?.classList.contains('kyc-row')) {
-                    prev.focus();
-                }
+                if (prev?.classList.contains('kyc-row')) { prev.focus(); }
             }
         });
     });
@@ -115,14 +159,10 @@ function initRowSelection(): void {
 /* ─── Select Row Helper ─── */
 function selectRow(row: HTMLElement, rows: NodeListOf<HTMLElement>): void {
     const index = parseInt(row.dataset.index ?? '-1', 10);
-    if (index < 0 || index >= APPLICANTS.length) {
-        return;
-    }
+    if (index < 0 || index >= applicants.length) { return; }
 
     selectedIndex = index;
 
-    /* Highlight selected — INC-P3-005 FIX: border-l-2 → border-s-2 for RTL.
-       Standard: RTL UX, BiDi Correctness. */
     rows.forEach((r) => {
         r.classList.remove('bg-trust-blue/5', 'border-s-2', 'border-trust-blue');
         r.setAttribute('aria-selected', 'false');
@@ -135,10 +175,8 @@ function selectRow(row: HTMLElement, rows: NodeListOf<HTMLElement>): void {
 
 /* ─── Render Document Viewer ─── */
 function renderDocumentViewer(index: number): void {
-    const applicant = APPLICANTS[index];
-    if (!applicant) {
-        return;
-    }
+    const entry = applicants[index];
+    if (!entry) { return; }
 
     const empty = document.getElementById('viewer-empty');
     const content = document.getElementById('viewer-content');
@@ -147,74 +185,91 @@ function renderDocumentViewer(index: number): void {
     const docList = document.getElementById('doc-list');
     const actionButtons = document.getElementById('action-buttons');
 
-    if (empty) {
-        empty.classList.add('hidden');
-    }
-    if (content) {
-        content.classList.remove('hidden');
-    }
-    if (title) {
-        title.textContent = applicant.name;
-    }
+    if (empty) { empty.classList.add('hidden'); }
+    if (content) { content.classList.remove('hidden'); }
+    if (title) { title.textContent = entry.full_name; }
     if (subtitle) {
-        const roleLabel = applicant.role === 'engineer' ? t('kyc_role_engineer', 'Engineer') : t('kyc_role_supplier', 'Supplier');
-        subtitle.textContent = `${roleLabel} • ${t('kyc_submitted', 'Submitted')} ${applicant.submitted}`;
+        const roleLabel = entry.role === 'engineer'
+            ? t('kyc_role_engineer', 'Engineer')
+            : t('kyc_role_supplier', 'Supplier');
+        subtitle.textContent = `${roleLabel} • ${entry.email}`;
     }
 
-    /* Render document list */
+    /* Render credential details */
     if (docList) {
-        docList.innerHTML = applicant.documents
-            .map(
-                (doc) => `
-      <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-        <div class="size-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-          <i class="${doc.icon} text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">${esc(doc.name)}</p>
-          <p class="text-[10px] text-slate-400">${esc(doc.type)} • ${esc(doc.size)}</p>
-        </div>
-        <i class="ph ph-eye text-slate-400 hover:text-trust-blue cursor-pointer transition-colors" style="font-size:16px" aria-hidden="true"></i>
-      </div>
-    `
-            )
-            .join('');
+        const credentials: Array<{ name: string; value: string | null; icon: string }> = [];
+
+        if (entry.engineering_license_number) {
+            credentials.push({
+                name: t('kyc_eng_license', 'Engineering License'),
+                value: entry.engineering_license_number,
+                icon: 'ph ph-certificate',
+            });
+        }
+        if (entry.commercial_register_number) {
+            credentials.push({
+                name: t('kyc_commercial_reg', 'Commercial Registration'),
+                value: entry.commercial_register_number,
+                icon: 'ph ph-scroll',
+            });
+        }
+        if (entry.guild_membership_id) {
+            credentials.push({
+                name: t('kyc_guild_membership', 'Guild Membership'),
+                value: entry.guild_membership_id,
+                icon: 'ph ph-identification-badge',
+            });
+        }
+        if (entry.kyc_document_url) {
+            credentials.push({
+                name: t('kyc_uploaded_doc', 'Uploaded Document'),
+                value: t('kyc_view_doc', 'View Document'),
+                icon: 'ph ph-file-pdf',
+            });
+        }
+
+        if (credentials.length === 0) {
+            docList.innerHTML = `
+                <div class="p-4 text-center text-sm text-slate-400 italic">
+                    ${esc(t('kyc_no_credentials', 'No credentials submitted yet.'))}
+                </div>
+            `;
+        } else {
+            docList.innerHTML = credentials.map((cred) => `
+                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <div class="size-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                        <i class="${cred.icon} text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">${esc(cred.name)}</p>
+                        <p class="text-[10px] text-slate-400">${esc(cred.value ?? '—')}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
     }
 
-    /* Show/hide action buttons */
+    /* Show action buttons (reset state for new selection) */
     if (actionButtons) {
-        const resolved = resolvedApplicants.get(index);
-        if (resolved) {
-            actionButtons.style.display = 'block';
-            const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
-            const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
+        actionButtons.style.display = 'block';
+        const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
+        const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
 
-            if (resolved === 'verified') {
-                if (verifyBtn) {
-                    verifyBtn.disabled = true;
-                    verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`;
-                }
-                if (rejectBtn) {
-                    rejectBtn.disabled = true;
-                    rejectBtn.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                }
-            } else {
-                if (rejectBtn) {
-                    rejectBtn.disabled = true;
-                    rejectBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_rejected_state', 'Rejected — Resubmission Requested')}`;
-                }
-                if (verifyBtn) {
-                    verifyBtn.disabled = true;
-                    verifyBtn.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                }
+        if (entry.kyc_verification_status === 'verified' || entry.kyc_verification_status === 'rejected') {
+            /* Already processed — disable buttons */
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                verifyBtn.innerHTML = entry.kyc_verification_status === 'verified'
+                    ? `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`
+                    : `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+            }
+            if (rejectBtn) {
+                rejectBtn.disabled = true;
+                rejectBtn.classList.add('opacity-50', 'cursor-not-allowed');
             }
         } else {
-            actionButtons.style.display = 'block';
-            const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
-            const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
-
+            /* Pending — enable buttons */
             if (verifyBtn) {
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
@@ -232,9 +287,7 @@ function renderDocumentViewer(index: number): void {
 /* ─── Drag & Drop Zone ─── */
 function initDropZone(): void {
     const zone = document.getElementById('drop-zone');
-    if (!zone) {
-        return;
-    }
+    if (!zone) { return; }
 
     zone.addEventListener('dragover', (e: DragEvent) => {
         e.preventDefault();
@@ -252,27 +305,24 @@ function initDropZone(): void {
     });
 }
 
-/* ─── Action Buttons ─── */
+/* ─── Action Buttons (API-Driven) ─── */
 function initActionButtons(): void {
     const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
     const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
 
-    // FIX-02: Click-twice-to-confirm replaces blocking confirm() for verification.
     let verifyPending = false;
 
     if (verifyBtn) {
-        verifyBtn.addEventListener('click', () => {
+        verifyBtn.addEventListener('click', async () => {
             if (selectedIndex < 0) { return; }
-            const applicant = APPLICANTS[selectedIndex];
-            if (!applicant) { return; }
+            const entry = applicants[selectedIndex];
+            if (!entry) { return; }
 
             if (!verifyPending) {
-                // First click: confirmation state
                 verifyPending = true;
                 verifyBtn.classList.add('bg-amber-500', 'text-white');
                 verifyBtn.classList.remove('bg-smoky-jade/10', 'text-smoky-jade');
-                verifyBtn.innerHTML = `<i class="ph ph-warning" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(applicant.name)}`;
-                // Auto-reset after 5s
+                verifyBtn.innerHTML = `<i class="ph ph-warning" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(entry.full_name)}`;
                 setTimeout(() => {
                     if (verifyPending) {
                         verifyPending = false;
@@ -284,28 +334,39 @@ function initActionButtons(): void {
                 return;
             }
 
-            // Second click: execute verification
+            /* Second click: API call */
             verifyPending = false;
-            resolvedApplicants.set(selectedIndex, 'verified');
-            updateRowBadge(selectedIndex, 'verified');
-            updateStats('verify');
-            renderDocumentViewer(selectedIndex);
-            showToast(`${t('kyc_verified_toast', 'Verified Badge granted to')}: ${esc(applicant.name)}`);
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verifying', 'Verifying...')}`;
+
+            try {
+                await admin.updateKycStatus(entry.user_id, { decision: 'verified' });
+                entry.kyc_verification_status = 'verified';
+                updateRowBadge(selectedIndex, 'verified');
+                renderDocumentViewer(selectedIndex);
+                showToast(`${t('kyc_verified_toast', 'Verified Badge granted to')}: ${esc(entry.full_name)}`, 'success');
+                /* Refresh stats */
+                loadKycStats();
+            } catch {
+                verifyBtn.disabled = false;
+                verifyBtn.classList.remove('bg-amber-500', 'text-white');
+                verifyBtn.classList.add('bg-smoky-jade/10', 'text-smoky-jade');
+                verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                showToast(t('kyc_verify_error', 'Failed to verify — please try again'), 'error');
+            }
         });
     }
 
-    // FIX-02: Inline reason input replaces blocking prompt() for rejection.
     if (rejectBtn) {
         let rejectInputVisible = false;
         let rejectInput: HTMLInputElement | null = null;
 
-        rejectBtn.addEventListener('click', () => {
+        rejectBtn.addEventListener('click', async () => {
             if (selectedIndex < 0) { return; }
-            const applicant = APPLICANTS[selectedIndex];
-            if (!applicant) { return; }
+            const entry = applicants[selectedIndex];
+            if (!entry) { return; }
 
             if (!rejectInputVisible) {
-                // First click: show inline reason input
                 rejectInputVisible = true;
                 rejectInput = document.createElement('input');
                 rejectInput.type = 'text';
@@ -318,7 +379,7 @@ function initActionButtons(): void {
                 return;
             }
 
-            // Second click: submit rejection
+            /* Second click: API call */
             const reason = rejectInput?.value.trim() ?? '';
             if (reason === '') {
                 showToast(t('kyc_reason_required', 'A reason is required for rejection.'));
@@ -326,13 +387,23 @@ function initActionButtons(): void {
                 return;
             }
 
-            rejectInputVisible = false;
-            rejectInput?.remove();
-            resolvedApplicants.set(selectedIndex, 'rejected');
-            updateRowBadge(selectedIndex, 'rejected');
-            updateStats('reject');
-            renderDocumentViewer(selectedIndex);
-            showToast(`${t('kyc_rejected_toast', 'Application rejected')}: ${esc(applicant.name)}. ${t('kyc_resubmission', 'Resubmission requested.')}`);
+            rejectBtn.disabled = true;
+            rejectBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_rejecting', 'Rejecting...')}`;
+
+            try {
+                await admin.updateKycStatus(entry.user_id, { decision: 'rejected', reason });
+                rejectInputVisible = false;
+                rejectInput?.remove();
+                entry.kyc_verification_status = 'rejected';
+                updateRowBadge(selectedIndex, 'rejected');
+                renderDocumentViewer(selectedIndex);
+                showToast(`${t('kyc_rejected_toast', 'Application rejected')}: ${esc(entry.full_name)}. ${t('kyc_resubmission', 'Resubmission requested.')}`, 'success');
+                loadKycStats();
+            } catch {
+                rejectBtn.disabled = false;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
+                showToast(t('kyc_reject_error', 'Failed to reject — please try again'), 'error');
+            }
         });
     }
 }
@@ -340,14 +411,10 @@ function initActionButtons(): void {
 /* ─── Update Row Badge ─── */
 function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
     const row = document.querySelector(`.kyc-row[data-index="${index}"]`);
-    if (!row) {
-        return;
-    }
+    if (!row) { return; }
 
-    const badge = row.querySelector('.rounded-full:last-child') as HTMLElement | null;
-    if (!badge) {
-        return;
-    }
+    const badge = row.querySelector('.rounded-full') as HTMLElement | null;
+    if (!badge) { return; }
 
     if (status === 'verified') {
         badge.className = 'bg-smoky-jade/10 text-smoky-jade text-[10px] font-bold px-2 py-0.5 rounded-full';
@@ -357,27 +424,3 @@ function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
         badge.innerHTML = `<i class="ph ph-x" style="margin-inline-end:3px"></i>${t('kyc_rejected', 'Rejected')}`;
     }
 }
-
-/* ─── Update Stats ─── */
-function updateStats(action: 'verify' | 'reject'): void {
-    const pendingEl = document.getElementById('stat-pending');
-    const verifiedEl = document.getElementById('stat-verified');
-    const rejectedEl = document.getElementById('stat-rejected');
-
-    if (pendingEl) {
-        const current = parseInt(pendingEl.textContent ?? '0', 10);
-        pendingEl.textContent = String(Math.max(0, current - 1));
-    }
-
-    if (action === 'verify' && verifiedEl) {
-        const current = parseInt(verifiedEl.textContent ?? '0', 10);
-        verifiedEl.textContent = String(current + 1);
-    }
-
-    if (action === 'reject' && rejectedEl) {
-        const current = parseInt(rejectedEl.textContent ?? '0', 10);
-        rejectedEl.textContent = String(current + 1);
-    }
-}
-
-/* INC-P3-001: Inline showToast() removed — using shared import from utils/toast.ts */

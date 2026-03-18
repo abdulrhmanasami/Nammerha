@@ -132,20 +132,19 @@
           <span class="text-xs font-bold uppercase tracking-widest text-slate-500" data-i18n="live_market">Live Market</span>
         </div>
         <div class="ticker-scroll overflow-hidden whitespace-nowrap">
-          <div class="flex items-center gap-4 text-sm">
-            <span class="font-medium text-slate-700">Steel:</span>
-            <span class="font-bold">$850/ton</span>
-            <span class="text-smoky-jade flex items-center font-semibold"><i class="ph ph-trend-up" style="margin-inline-end:4px"></i>(+2.4%)</span>
-          </div>
-          <div class="flex items-center gap-4 text-sm">
-            <span class="font-medium text-slate-700">Cement:</span>
-            <span class="font-bold">$50/bag</span>
-            <span class="text-smoky-jade flex items-center font-semibold"><i class="ph ph-trend-up" style="margin-inline-end:4px"></i>(+1.1%)</span>
-          </div>
-          <div class="flex items-center gap-4 text-sm">
-            <span class="font-medium text-slate-700">Lumber:</span>
-            <span class="font-bold">$420/mbf</span>
-            <span class="text-rose-600 flex items-center font-semibold"><i class="ph ph-trend-down" style="margin-inline-end:4px"></i>(-0.5%)</span>
+          <!-- GAP-P3-008 FIX: Dynamic ticker — data loaded from epaOracle.getPrices() API.
+               Skeleton placeholders shown during fetch. -->
+          <div id="ticker-prices" class="flex items-center gap-4 text-sm">
+            <div class="flex items-center gap-4 animate-pulse">
+              <span class="h-3 w-12 bg-slate-200 rounded"></span>
+              <span class="h-3 w-16 bg-slate-200 rounded"></span>
+              <span class="h-3 w-14 bg-slate-200 rounded"></span>
+            </div>
+            <div class="flex items-center gap-4 animate-pulse">
+              <span class="h-3 w-14 bg-slate-200 rounded"></span>
+              <span class="h-3 w-12 bg-slate-200 rounded"></span>
+              <span class="h-3 w-14 bg-slate-200 rounded"></span>
+            </div>
           </div>
         </div>
       </div>

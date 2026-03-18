@@ -162,22 +162,27 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_pending_review">Pending Review</p>
-          <!-- FRIC-P3-001 FIX: text-warning-yellow (#FCC934) on white is 1.56:1 contrast.
-               Using --warning-yellow-text (#b45309, 4.73:1) for WCAG AA.
-               Standard: WCAG 1.4.3 (Contrast Minimum). -->
-          <p class="text-xl font-bold" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" id="stat-pending">5</p>
+          <p class="text-xl font-bold" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" id="stat-pending">
+            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
-          <p class="text-xl font-bold text-smoky-jade" aria-live="polite" id="stat-verified">18</p>
+          <p class="text-xl font-bold text-smoky-jade" aria-live="polite" id="stat-verified">
+            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="rejected">Rejected</p>
-          <p class="text-xl font-bold text-rose-500" aria-live="polite" id="stat-rejected">2</p>
+          <p class="text-xl font-bold text-rose-500" aria-live="polite" id="stat-rejected">
+            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="total_users">Total Users</p>
-          <p class="text-xl font-bold text-slate-900">47</p>
+          <p class="text-xl font-bold text-slate-900" id="stat-total">
+            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+          </p>
         </div>
       </div>
 
@@ -191,76 +196,32 @@
           <!-- FRIC-P3-003 FIX: Added role="listbox" for keyboard accessibility.
                Queue rows now have role="option" and tabindex="0" for screen readers.
                Standard: WCAG 2.1.1 (Keyboard), WAI-ARIA Practices. -->
-          <div class="divide-y divide-slate-50" id="queue-list" role="listbox" aria-label="KYC applications pending review">
-            <!-- Row 1 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="0" role="option" tabindex="0" aria-selected="false">
-              <div class="size-10 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-hard-hat text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+          <div class="divide-y divide-slate-50" id="kyc-queue-rows" role="listbox" aria-label="KYC applications pending review">
+            <!-- GAP-P3-009 FIX: Queue rows loaded dynamically from admin.getKycQueue() API.
+                 Skeleton placeholders shown during fetch. -->
+            <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
+              <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 w-32 bg-slate-200 rounded"></div>
+                <div class="h-2 w-24 bg-slate-100 rounded"></div>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold truncate">Ahmad Al-Khatib</p>
-                <p class="text-[10px] text-slate-400">Engineer • Submitted 2 hours ago</p>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_2">2 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
-              </div>
+              <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
             </div>
-            <!-- Row 2 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="1" role="option" tabindex="0" aria-selected="false">
-              <div class="size-10 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-storefront text-warm-earth" style="font-size:18px" aria-hidden="true"></i>
+            <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
+              <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 w-40 bg-slate-200 rounded"></div>
+                <div class="h-2 w-20 bg-slate-100 rounded"></div>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold truncate">Damascus Building Supplies LLC</p>
-                <p class="text-[10px] text-slate-400">Supplier • Submitted 5 hours ago</p>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_3">3 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
-              </div>
+              <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
             </div>
-            <!-- Row 3 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="2" role="option" tabindex="0" aria-selected="false">
-              <div class="size-10 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-hard-hat text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+            <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
+              <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 w-28 bg-slate-200 rounded"></div>
+                <div class="h-2 w-22 bg-slate-100 rounded"></div>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold truncate">Layla Mansour</p>
-                <p class="text-[10px] text-slate-400">Engineer • Submitted 1 day ago</p>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_2">2 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
-              </div>
-            </div>
-            <!-- Row 4 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="3" role="option" tabindex="0" aria-selected="false">
-              <div class="size-10 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-storefront text-warm-earth" style="font-size:18px" aria-hidden="true"></i>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold truncate">Homs Industrial Metals</p>
-                <p class="text-[10px] text-slate-400">Supplier • Submitted 2 days ago</p>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_2">2 docs</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
-              </div>
-            </div>
-            <!-- Row 5 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="4" role="option" tabindex="0" aria-selected="false">
-              <div class="size-10 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-hard-hat text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold truncate">Youssef Haddad</p>
-                <p class="text-[10px] text-slate-400">Engineer • Submitted 3 days ago</p>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] font-bold text-slate-400" data-i18n="kyc_docs_count_1">1 doc</span>
-                <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="kyc_status_pending">Pending</span>
-              </div>
+              <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
             </div>
           </div>
         </div>

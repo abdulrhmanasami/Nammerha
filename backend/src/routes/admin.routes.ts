@@ -6,6 +6,7 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as escrowService from '../services/escrow.service';
+import * as kycService from '../services/kyc.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ReleaseEscrowDTO, FlagDiscrepancyDTO, ApiResponse } from '../types';
 
@@ -157,6 +158,106 @@ router.post(
             res.json({ success: true, data: result } as ApiResponse);
         } catch (error) {
             safeRouteError(res, error, 'Admin.ProcessRefund');
+        }
+    }
+);
+
+// ─── GET /api/admin/kyc/queue — KYC Verification Queue ──────────────────────
+// GAP-P3-009 FIX: Replaces hardcoded APPLICANTS[] with live DB query.
+router.get(
+    '/kyc/queue',
+    requireRole('admin'),
+    async (req: Request, res: Response) => {
+        try {
+            const status = req.query['status'] as string | undefined;
+            const limit = Math.min(parseInt(req.query['limit'] as string) || 25, 100);
+            const offset = Math.max(parseInt(req.query['offset'] as string) || 0, 0);
+
+            const validStatuses = ['pending', 'submitted', 'verified', 'rejected', 'suspended'];
+            if (status && !validStatuses.includes(status)) {
+                res.status(400).json({
+                    success: false,
+                    error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+                } as ApiResponse);
+                return;
+            }
+
+            const { entries, total } = await kycService.getKycQueue(
+                status as Parameters<typeof kycService.getKycQueue>[0],
+                limit,
+                offset,
+            );
+            res.json({
+                success: true,
+                data: entries,
+                message: `${total} KYC applications`,
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Admin.GetKycQueue');
+        }
+    }
+);
+
+// ─── GET /api/admin/kyc/stats — KYC Status Counts ───────────────────────────
+router.get(
+    '/kyc/stats',
+    requireRole('admin'),
+    async (_req: Request, res: Response) => {
+        try {
+            const stats = await kycService.getKycStats();
+            res.json({
+                success: true,
+                data: stats,
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Admin.GetKycStats');
+        }
+    }
+);
+
+// ─── POST /api/admin/kyc/:userId/decision — Approve/Reject KYC ──────────────
+router.post(
+    '/kyc/:userId/decision',
+    requireRole('admin'),
+    async (req: Request, res: Response) => {
+        try {
+            const { userId } = req.params;
+            const { decision, reason } = req.body as {
+                decision: 'verified' | 'rejected';
+                reason?: string;
+            };
+
+            if (!decision || !['verified', 'rejected'].includes(decision)) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Required: decision ("verified" or "rejected")',
+                } as ApiResponse);
+                return;
+            }
+
+            if (reason && reason.length > 2000) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Reason must be 2000 characters or less',
+                } as ApiResponse);
+                return;
+            }
+
+            const result = await kycService.updateKycStatus(
+                String(userId),
+                decision,
+                getAuthUser(req).user_id,
+                reason,
+            );
+
+            const actionLabel = decision === 'verified' ? 'verified' : 'rejected';
+            res.json({
+                success: true,
+                data: result,
+                message: `KYC ${actionLabel}: ${result.full_name}`,
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Admin.UpdateKycStatus');
         }
     }
 );

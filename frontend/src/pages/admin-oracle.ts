@@ -1,17 +1,70 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
-/* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
-   Standard: DRY, Code Hygiene. */
 import { showToast } from '../utils/toast';
+/* GAP-P3-008 FIX: Wire oracle ticker to live API data.
+   Standard: No hardcoded data, API-Driven Rendering. */
+import { epaOracle } from '../api';
 
 /* ─── Pricing Oracle & EPA Engine — Interactive Controller ─── */
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadTickerData();
     initApproveButton();
     initTabSwitching();
-    initTickerAnimation();
 });
+
+/* ─── Load Live Ticker Data from API ─── */
+async function loadTickerData(): Promise<void> {
+    const tickerContainer = document.getElementById('ticker-prices');
+    if (!tickerContainer) { return; }
+
+    try {
+        const res = await epaOracle.getPrices();
+        const entries = (res.data ?? []) as Array<{
+            material_name: string;
+            current_price: number;
+            unit: string;
+            price_change_pct: number;
+        }>;
+
+        if (entries.length === 0) {
+            tickerContainer.innerHTML = `
+                <span class="text-sm text-slate-400 italic">${esc(t('oracle_no_prices', 'No price data available'))}</span>
+            `;
+            return;
+        }
+
+        tickerContainer.innerHTML = entries.map((entry) => {
+            const isPositive = entry.price_change_pct >= 0;
+            const colorClass = isPositive ? 'text-smoky-jade' : 'text-rose-600';
+            const icon = isPositive ? 'ph-trend-up' : 'ph-trend-down';
+            const sign = isPositive ? '+' : '';
+            /* Backend stores prices in cents — convert to dollars for display */
+            const displayPrice = (entry.current_price / 100).toLocaleString('en-US', {
+                style: 'currency', currency: 'USD', maximumFractionDigits: 0,
+            });
+
+            return `
+                <div class="flex items-center gap-4 text-sm">
+                    <span class="font-medium text-slate-700">${esc(entry.material_name)}:</span>
+                    <span class="font-bold">${displayPrice}/${esc(entry.unit)}</span>
+                    <span class="${colorClass} flex items-center font-semibold">
+                        <i class="ph ${icon}" style="margin-inline-end:4px"></i>(${sign}${entry.price_change_pct.toFixed(1)}%)
+                    </span>
+                </div>
+            `;
+        }).join('');
+
+        /* Initialize ticker animation AFTER data is loaded */
+        initTickerAnimation();
+    } catch {
+        tickerContainer.innerHTML = `
+            <span class="text-sm text-slate-400 italic">${esc(t('oracle_price_error', 'Unable to load prices'))}</span>
+        `;
+        showToast(t('oracle_price_error', 'Unable to load market prices'), 'error');
+    }
+}
 
 /* ─── EPA Adjustment Approval Flow ─── */
 function initApproveButton(): void {
@@ -66,7 +119,6 @@ function initApproveButton(): void {
             badge.classList.add('bg-smoky-jade/10', 'text-smoky-jade', 'text-[10px]', 'font-bold', 'px-2', 'py-0.5', 'rounded-full', 'uppercase');
         }
 
-        /* Show notification — INC-P3-001 FIX: Uses shared toast utility */
         showToast(t('oracle_approval_toast', 'EPA adjustment approved. Audit log updated. All stakeholders notified.'), 'success');
     });
 }
@@ -93,17 +145,12 @@ function initTabSwitching(): void {
 
 /* ─── Ticker Price Animation ─── */
 function initTickerAnimation(): void {
-    /* FRIC-P3-004 FIX: Respect prefers-reduced-motion.
-       Users with vestibular conditions should not see ticker pulse.
-       Standard: WCAG 2.3.3 (Animation from Interactions). */
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (prefersReduced.matches) { return; }
 
-    const priceElements = document.querySelectorAll('.ticker-scroll .font-bold');
+    const priceElements = document.querySelectorAll('#ticker-prices .font-bold');
+    if (priceElements.length === 0) { return; }
 
-    /* FRIC-P3-002 FIX: Store interval ID and clear on page unload.
-       Prevents ghost interval leaks during SPA-like navigation.
-       Standard: Resource Hygiene, Nielsen #7 (Efficiency). */
     const tickerId = setInterval(() => {
         priceElements.forEach((el) => {
             el.classList.add('transition-transform', 'duration-300');
@@ -115,5 +162,3 @@ function initTickerAnimation(): void {
     }, 8000);
     window.addEventListener('beforeunload', () => clearInterval(tickerId));
 }
-
-/* INC-P3-001: Inline showNotification() removed — using shared showToast() from utils/toast.ts */
