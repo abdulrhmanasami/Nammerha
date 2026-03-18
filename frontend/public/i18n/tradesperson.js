@@ -39,7 +39,18 @@
         'tp_decline': { ar: 'رفض', de: 'Ablehnen', fr: 'Refuser', tr: 'Reddet' },
         'tp_years': { ar: 'سنة', de: 'Jahre', fr: 'ans', tr: 'yıl' },
         'tp_per_hour': { ar: '/ساعة', de: '/Std.', fr: '/h', tr: '/saat' },
-        'tp_per_day': { ar: '/يوم', de: '/Tag', fr: '/jour', tr: '/gün' }
+        'tp_per_day': { ar: '/يوم', de: '/Tag', fr: '/jour', tr: '/gün' },
+
+        // P0-I18N-001 FIX: Tradesperson orphan key remediation (9 keys)
+        'tradesperson_availability': { ar: 'الحالة', de: 'Verfügbarkeit', fr: 'Disponibilité', tr: 'Uygunluk' },
+        'tradesperson_available': { ar: 'متاح', de: 'Verfügbar', fr: 'Disponible', tr: 'Müsait' },
+        'tradesperson_busy': { ar: 'مشغول', de: 'Beschäftigt', fr: 'Occupé', tr: 'Meşgul' },
+        'tradesperson_offline': { ar: 'غير متصل', de: 'Offline', fr: 'Hors ligne', tr: 'Çevrimdışı' },
+        'tradesperson_current_work': { ar: 'العمل الحالي', de: 'Aktuelle Arbeit', fr: 'Travail actuel', tr: 'Mevcut İş' },
+        'tradesperson_current_desc': { ar: 'المهام المسندة إليك حالياً', de: 'Ihre aktuell zugewiesenen Aufgaben', fr: 'Vos tâches actuellement assignées', tr: 'Şu anda size atanan görevler' },
+        'tradesperson_assignments_hint': { ar: 'التكليفات ومهام العمل', de: 'Zuweisungen und Arbeitsaufgaben', fr: 'Affectations et tâches de travail', tr: 'Görevlendirmeler ve iş görevleri' },
+        'tradesperson_earnings_hint': { ar: 'سجل الأرباح والمدفوعات', de: 'Verdienst- und Zahlungshistorie', fr: 'Historique des revenus et paiements', tr: 'Kazanç ve ödeme geçmişi' },
+        'tradesperson_requests_hint': { ar: 'طلبات الخدمة المتاحة', de: 'Verfügbare Serviceanfragen', fr: 'Demandes de service disponibles', tr: 'Mevcut hizmet talepleri' }
         });
     }
 })();

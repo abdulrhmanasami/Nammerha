@@ -349,6 +349,117 @@
         'urgency_urgent': { ar: 'مستعجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
         'urgency_emergency': { ar: 'طارئ', de: 'Notfall', fr: 'Urgence', tr: 'Acil Durum' },
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // P0-I18N-001 FIX: Orphan Key Remediation (72 keys)
+        // These data-i18n keys existed in HTML but had NO dictionary entries.
+        // DE/FR/TR users saw raw English for all affected elements.
+        // Standard: i18n completeness — 100% translation coverage.
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ═══ FOOTER (all 33 pages) ═══
+        'footer_terms': { ar: 'الشروط', de: 'AGB', fr: 'Conditions', tr: 'Şartlar' },
+        'footer_privacy': { ar: 'الخصوصية', de: 'Datenschutz', fr: 'Confidentialité', tr: 'Gizlilik' },
+        'footer_refund': { ar: 'سياسة الاسترداد', de: 'Rückerstattung', fr: 'Remboursement', tr: 'İade Politikası' },
+        'footer_copyright': { ar: '© ٢٠٢٦ نعمّرها. جميع الحقوق محفوظة.', de: '© 2026 Nammerha. Alle Rechte vorbehalten.', fr: '© 2026 Nammerha. Tous droits réservés.', tr: '© 2026 Nammerha. Tüm hakları saklıdır.' },
+
+        // ═══ 404 ERROR PAGE ═══
+        'error_404_title': { ar: 'الصفحة غير موجودة', de: 'Seite nicht gefunden', fr: 'Page non trouvée', tr: 'Sayfa Bulunamadı' },
+        'error_404_desc': { ar: 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها. دعنا نعيدك للمسار الصحيح.', de: 'Die gesuchte Seite existiert nicht oder wurde verschoben. Lassen Sie uns Sie zurückbringen.', fr: 'La page que vous cherchez n\'existe pas ou a été déplacée. Remettons-vous sur la bonne voie.', tr: 'Aradığınız sayfa mevcut değil veya taşınmış. Sizi doğru yola geri götürelim.' },
+        'error_404_go_home': { ar: 'العودة للرئيسية', de: 'Zur Startseite', fr: 'Retour à l\'accueil', tr: 'Ana Sayfaya Dön' },
+        'error_404_go_back': { ar: '← العودة للخلف', de: '← Zurück', fr: '← Retour', tr: '← Geri Dön' },
+
+        // ═══ COMMON UI ACTIONS ═══
+        'clear': { ar: 'مسح', de: 'Löschen', fr: 'Effacer', tr: 'Temizle' },
+        'clear_all': { ar: 'مسح الكل', de: 'Alles löschen', fr: 'Tout effacer', tr: 'Tümünü Temizle' },
+        'close': { ar: 'إغلاق', de: 'Schließen', fr: 'Fermer', tr: 'Kapat' },
+        'coming_soon': { ar: 'قريباً', de: 'Demnächst', fr: 'Bientôt', tr: 'Yakında' },
+        'common_done': { ar: 'تم', de: 'Fertig', fr: 'Terminé', tr: 'Tamam' },
+        'common_edit': { ar: 'تعديل', de: 'Bearbeiten', fr: 'Modifier', tr: 'Düzenle' },
+        'common_filter': { ar: 'تصفية', de: 'Filtern', fr: 'Filtrer', tr: 'Filtrele' },
+        'common_no_data': { ar: 'لا توجد بيانات', de: 'Keine Daten', fr: 'Aucune donnée', tr: 'Veri yok' },
+        'common_no_data_desc': { ar: 'لا توجد بيانات متاحة حالياً.', de: 'Derzeit sind keine Daten verfügbar.', fr: 'Aucune donnée disponible actuellement.', tr: 'Şu anda veri bulunmuyor.' },
+        'common_select_category': { ar: 'اختر الفئة', de: 'Kategorie wählen', fr: 'Choisir la catégorie', tr: 'Kategori Seçin' },
+        'common_select_unit': { ar: 'اختر الوحدة', de: 'Einheit wählen', fr: 'Choisir l\'unité', tr: 'Birim Seçin' },
+        'save_changes': { ar: 'حفظ التغييرات', de: 'Änderungen speichern', fr: 'Enregistrer les modifications', tr: 'Değişiklikleri Kaydet' },
+        'edit_profile': { ar: 'تعديل الملف الشخصي', de: 'Profil bearbeiten', fr: 'Modifier le profil', tr: 'Profili Düzenle' },
+        'go_to_dashboard': { ar: 'الذهاب للوحة المتابعة', de: 'Zum Dashboard', fr: 'Aller au tableau de bord', tr: 'Panele Git' },
+        'view_basket': { ar: 'عرض السلة', de: 'Warenkorb anzeigen', fr: 'Voir le panier', tr: 'Sepeti Görüntüle' },
+        'added_to_cart': { ar: 'تمت الإضافة للسلة', de: 'Zum Warenkorb hinzugefügt', fr: 'Ajouté au panier', tr: 'Sepete Eklendi' },
+        'stop_recording': { ar: 'إيقاف التسجيل', de: 'Aufnahme stoppen', fr: 'Arrêter l\'enregistrement', tr: 'Kaydı Durdur' },
+        'submit_another_report': { ar: 'تقديم بلاغ آخر', de: 'Weiteren Bericht einreichen', fr: 'Soumettre un autre rapport', tr: 'Başka Rapor Gönder' },
+        'photo_hint': { ar: 'التقط صوراً للأضرار', de: 'Fotografieren Sie die Schäden', fr: 'Prenez des photos des dégâts', tr: 'Hasarın fotoğraflarını çekin' },
+        'photo_selected': { ar: 'تم اختيار الصورة', de: 'Foto ausgewählt', fr: 'Photo sélectionnée', tr: 'Fotoğraf seçildi' },
+        'choose_photo': { ar: 'اختر صورة', de: 'Foto auswählen', fr: 'Choisir une photo', tr: 'Fotoğraf Seç' },
+        'detecting_region': { ar: 'تحديد المنطقة...', de: 'Region erkennen...', fr: 'Détection de la région...', tr: 'Bölge tespit ediliyor...' },
+
+        // ═══ PASSWORD MANAGEMENT ═══
+        'current_password': { ar: 'كلمة المرور الحالية', de: 'Aktuelles Passwort', fr: 'Mot de passe actuel', tr: 'Mevcut Şifre' },
+        'new_password': { ar: 'كلمة المرور الجديدة', de: 'Neues Passwort', fr: 'Nouveau mot de passe', tr: 'Yeni Şifre' },
+        'confirm_new_password': { ar: 'تأكيد كلمة المرور الجديدة', de: 'Neues Passwort bestätigen', fr: 'Confirmer le nouveau mot de passe', tr: 'Yeni Şifreyi Onayla' },
+        'update_password': { ar: 'تحديث كلمة المرور', de: 'Passwort aktualisieren', fr: 'Mettre à jour le mot de passe', tr: 'Şifreyi Güncelle' },
+        'change_password': { ar: 'تغيير كلمة المرور', de: 'Passwort ändern', fr: 'Changer le mot de passe', tr: 'Şifre Değiştir' },
+        'password_strength_hint': { ar: 'يجب أن تحتوي على ٨ أحرف على الأقل، حرف كبير، ورقم', de: 'Mindestens 8 Zeichen, Großbuchstabe und Zahl', fr: 'Au moins 8 caractères, une majuscule et un chiffre', tr: 'En az 8 karakter, büyük harf ve rakam' },
+        'full_name': { ar: 'الاسم الكامل', de: 'Vollständiger Name', fr: 'Nom complet', tr: 'Tam Ad' },
+        'phone_label': { ar: 'رقم الهاتف', de: 'Telefonnummer', fr: 'Numéro de téléphone', tr: 'Telefon Numarası' },
+
+        // ═══ CONFIRMATION DIALOGS ═══
+        'confirm_logout_title': { ar: 'تسجيل الخروج', de: 'Abmelden', fr: 'Déconnexion', tr: 'Çıkış Yap' },
+        'confirm_logout_desc': { ar: 'هل أنت متأكد من تسجيل الخروج؟', de: 'Möchten Sie sich wirklich abmelden?', fr: 'Êtes-vous sûr de vouloir vous déconnecter ?', tr: 'Çıkış yapmak istediğinizden emin misiniz?' },
+        'confirm_clear_title': { ar: 'مسح الكل', de: 'Alles löschen', fr: 'Tout effacer', tr: 'Tümünü Temizle' },
+        'confirm_clear_desc': { ar: 'هل أنت متأكد من أنك تريد مسح جميع العناصر؟', de: 'Möchten Sie wirklich alle Elemente löschen?', fr: 'Êtes-vous sûr de vouloir effacer tous les éléments ?', tr: 'Tüm öğeleri silmek istediğinizden emin misiniz?' },
+
+        // ═══ MAP & HOMEPAGE ═══
+        'hero_map_context': { ar: 'خريطة إعادة الإعمار التفاعلية', de: 'Interaktive Wiederaufbaukarte', fr: 'Carte interactive de reconstruction', tr: 'İnteraktif Yeniden Yapım Haritası' },
+        'map_load_failed': { ar: 'فشل تحميل الخريطة', de: 'Karte konnte nicht geladen werden', fr: 'Échec du chargement de la carte', tr: 'Harita yüklenemedi' },
+        'map_fallback_desc': { ar: 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.', de: 'Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.', fr: 'Veuillez vérifier votre connexion Internet et réessayer.', tr: 'İnternet bağlantınızı kontrol edip tekrar deneyin.' },
+        'join_community': { ar: 'انضم للمجتمع', de: 'Community beitreten', fr: 'Rejoindre la communauté', tr: 'Topluluğa Katıl' },
+        'join_community_desc': { ar: 'انضم لمجتمع المتطوعين والمانحين', de: 'Treten Sie der Gemeinschaft von Freiwilligen und Spendern bei', fr: 'Rejoignez la communauté des bénévoles et des donateurs', tr: 'Gönüllüler ve bağışçılar topluluğuna katılın' },
+        'report_damage_desc': { ar: 'الإبلاغ عن أضرار في منشأتك', de: 'Schäden an Ihrem Gebäude melden', fr: 'Signaler des dégâts dans votre bâtiment', tr: 'Binanızdaki hasarı bildirin' },
+        'build_boq_desc': { ar: 'إنشاء جدول كميات للمشروع', de: 'Leistungsverzeichnis für das Projekt erstellen', fr: 'Créer le devis quantitatif du projet', tr: 'Proje için malzeme listesi oluşturun' },
+        'fund_materials_desc': { ar: 'تمويل مواد البناء مباشرة', de: 'Baumaterialien direkt finanzieren', fr: 'Financer les matériaux de construction directement', tr: 'İnşaat malzemelerini doğrudan finanse edin' },
+        'price_oracle_desc': { ar: 'مراقبة أسعار مواد البناء', de: 'Baumaterialpreise überwachen', fr: 'Surveiller les prix des matériaux', tr: 'Yapı malzemesi fiyatlarını izleyin' },
+        'marketplace_empty_title': { ar: 'لا توجد عروض', de: 'Keine Angebote', fr: 'Aucune offre', tr: 'Teklif yok' },
+        'marketplace_empty_hint': { ar: 'لا توجد عروض متاحة حالياً. المحاولة لاحقاً.', de: 'Derzeit keine Angebote verfügbar. Versuchen Sie es später.', fr: 'Aucune offre disponible actuellement. Réessayez plus tard.', tr: 'Şu anda teklif yok. Daha sonra tekrar deneyin.' },
+
+        // ═══ ROLE SWITCHER ═══
+        'my_roles': { ar: 'أدواري', de: 'Meine Rollen', fr: 'Mes rôles', tr: 'Rollerim' },
+        'add_new_role': { ar: 'إضافة دور جديد', de: 'Neue Rolle hinzufügen', fr: 'Ajouter un rôle', tr: 'Yeni Rol Ekle' },
+        'choose_role_to_activate': { ar: 'اختر الدور لتفعيله', de: 'Rolle zum Aktivieren auswählen', fr: 'Choisir le rôle à activer', tr: 'Etkinleştirilecek rolü seçin' },
+        'my_wallet': { ar: 'محفظتي', de: 'Mein Wallet', fr: 'Mon portefeuille', tr: 'Cüzdanım' },
+        'deposit': { ar: 'إيداع', de: 'Einzahlung', fr: 'Dépôt', tr: 'Para Yatır' },
+
+        // ═══ VERIFICATION PAGE ═══
+        'verify_resend_label': { ar: 'لم يصلك البريد؟', de: 'E-Mail nicht erhalten?', fr: 'E-mail non reçu ?', tr: 'E-posta almadınız mı?' },
+        'verify_resend_btn': { ar: 'إعادة الإرسال', de: 'Erneut senden', fr: 'Renvoyer', tr: 'Tekrar Gönder' },
+
+        // ═══ ADDITIONAL TABLE HEADERS ═══
+        'th_funded': { ar: 'مموّل', de: 'Finanziert', fr: 'Financé', tr: 'Finanse' },
+        'th_governorate': { ar: 'المحافظة', de: 'Gouvernement', fr: 'Gouvernorat', tr: 'İl' },
+        'th_project_id': { ar: 'معرف المشروع', de: 'Projekt-ID', fr: 'ID du projet', tr: 'Proje Kimliği' },
+        'th_rate_bps': { ar: 'السعر (نقطة أساس)', de: 'Satz (BPS)', fr: 'Taux (BPS)', tr: 'Oran (BPS)' },
+        'th_rate_pct': { ar: 'السعر (%)', de: 'Satz (%)', fr: 'Taux (%)', tr: 'Oran (%)' },
+        'th_revenue_range': { ar: 'نطاق الإيرادات', de: 'Umsatzbereich', fr: 'Plage de revenus', tr: 'Gelir Aralığı' },
+        'th_tier': { ar: 'المستوى', de: 'Stufe', fr: 'Niveau', tr: 'Kademe' },
+
+        // ═══ ADDITIONAL UNITS ═══
+        'unit_bag': { ar: 'كيس', de: 'Sack', fr: 'Sac', tr: 'Torba' },
+        'unit_kg': { ar: 'كغ', de: 'kg', fr: 'kg', tr: 'kg' },
+        'unit_m': { ar: 'م', de: 'm', fr: 'm', tr: 'm' },
+        'unit_m2': { ar: 'م²', de: 'm²', fr: 'm²', tr: 'm²' },
+        'unit_m3': { ar: 'م³', de: 'm³', fr: 'm³', tr: 'm³' },
+
+        // ═══ ARIA LABELS (data-i18n-aria) ═══
+        'aria_featured_projects': { ar: 'المشاريع المميزة', de: 'Ausgewählte Projekte', fr: 'Projets en vedette', tr: 'Öne Çıkan Projeler' },
+        'aria_jump_audit': { ar: 'الانتقال لسجل التدقيق', de: 'Zum Prüfpfad springen', fr: 'Aller à la piste d\'audit', tr: 'Denetim izine atla' },
+        'aria_search_projects': { ar: 'البحث في المشاريع', de: 'Projekte durchsuchen', fr: 'Rechercher des projets', tr: 'Projeleri ara' },
+        'aria_share_project': { ar: 'مشاركة المشروع', de: 'Projekt teilen', fr: 'Partager le projet', tr: 'Projeyi paylaş' },
+        'aria_toggle_theme': { ar: 'تبديل المظهر', de: 'Design wechseln', fr: 'Changer le thème', tr: 'Temayı değiştir' },
+
+        // ═══ SHARED PLACEHOLDERS (data-i18n-placeholder) ═══
+        'search_placeholder': { ar: 'بحث...', de: 'Suche...', fr: 'Recherche...', tr: 'Ara...' },
+        'projects_search_placeholder': { ar: 'البحث في المشاريع...', de: 'Projekte durchsuchen...', fr: 'Rechercher des projets...', tr: 'Proje ara...' },
+        'phone_placeholder': { ar: '+963 XXX XXX XXXX', de: '+49 XXX XXXXXXX', fr: '+33 X XX XX XX XX', tr: '+90 XXX XXX XXXX' },
+
     };
 
 

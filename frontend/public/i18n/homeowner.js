@@ -80,7 +80,34 @@
         /* GAP-AUD-06 FIX: Photo counter format string */
         'photos_jpg_or_png': { ar: 'JPG أو PNG', de: 'JPG oder PNG', fr: 'JPG ou PNG', tr: 'JPG veya PNG' },
         /* AUD-P2-003 FIX: Progressive disclosure field count badge */
-        'sr_optional_fields_count': { ar: '(4 حقول اختيارية)', de: '(4 optionale Felder)', fr: '(4 champs facultatifs)', tr: '(4 isteğe bağlı alan)' }
+        'sr_optional_fields_count': { ar: '(4 حقول اختيارية)', de: '(4 optionale Felder)', fr: '(4 champs facultatifs)', tr: '(4 isteğe bağlı alan)' },
+
+        // P0-I18N-001 FIX: Homeowner orphan key remediation (19 keys)
+        'badge_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'badge_urgent': { ar: 'عاجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
+        'badge_verified': { ar: 'معتمد', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulanmış' },
+        'ho_add_details': { ar: 'أضف التفاصيل', de: 'Details hinzufügen', fr: 'Ajouter des détails', tr: 'Detay Ekle' },
+        'ho_lbl_photos': { ar: 'الصور', de: 'Fotos', fr: 'Photos', tr: 'Fotoğraflar' },
+        'ho_photos_coming_soon': { ar: 'رفع الصور قريباً', de: 'Fotoupload demnächst', fr: 'Upload de photos bientôt', tr: 'Fotoğraf yükleme yakında' },
+        'ho_section_overview': { ar: 'نظرة عامة', de: 'Übersicht', fr: 'Aperçu', tr: 'Genel Bakış' },
+        'ho_urgency_hint': { ar: 'اختر مستوى الأولوية لطلبك', de: 'Wählen Sie die Prioritätsstufe Ihrer Anfrage', fr: 'Choisissez le niveau de priorité de votre demande', tr: 'Talebinizin öncelik düzeyini seçin' },
+        'homeowner_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
+        'homeowner_approval_hint': { ar: 'موافقات بانتظار قرارك', de: 'Genehmigungen, die auf Ihre Entscheidung warten', fr: 'Approbations en attente de votre décision', tr: 'Kararınızı bekleyen onaylar' },
+        'homeowner_escrow_hint': { ar: 'أموالك محفوظة بأمان في الضمان', de: 'Ihre Gelder sind sicher im Treuhandkonto', fr: 'Vos fonds sont en sécurité sous séquestre', tr: 'Fonlarınız emanette güvende' },
+        'homeowner_escrow_kpi_hint': { ar: 'إجمالي الأموال المحجوزة في الضمان', de: 'Gesamte Gelder im Treuhandkonto', fr: 'Total des fonds en entiercement', tr: 'Emanetteki toplam fonlar' },
+        'homeowner_my_requests': { ar: 'طلباتي', de: 'Meine Anfragen', fr: 'Mes demandes', tr: 'Taleplerim' },
+        'homeowner_new_report': { ar: 'بلاغ جديد', de: 'Neuer Bericht', fr: 'Nouveau rapport', tr: 'Yeni Rapor' },
+        'homeowner_progress_glance': { ar: 'نظرة سريعة على التقدم', de: 'Fortschritt auf einen Blick', fr: 'Progression en un coup d\'œil', tr: 'İlerlemeye hızlı bakış' },
+        'homeowner_projects_desc': { ar: 'إدارة مشاريع الإصلاح الخاصة بك', de: 'Verwalten Sie Ihre Reparaturprojekte', fr: 'Gérez vos projets de réparation', tr: 'Onarım projelerinizi yönetin' },
+        'homeowner_request_hint': { ar: 'طلبات الخدمة المقدمة', de: 'Eingereichte Serviceanfragen', fr: 'Demandes de service soumises', tr: 'Gönderilen hizmet talepleri' },
+        'homeowner_submit_request': { ar: 'تقديم طلب', de: 'Anfrage einreichen', fr: 'Soumettre une demande', tr: 'Talep Gönder' },
+        'sr_select_trade': { ar: 'اختر المهنة', de: 'Gewerk auswählen', fr: 'Sélectionner le métier', tr: 'Meslek Seçin' },
+
+        // ═══ PLACEHOLDER KEYS (data-i18n-placeholder) ═══
+        'ho_damage_desc_placeholder': { ar: 'صف الأضرار بالتفصيل...', de: 'Beschreiben Sie die Schäden im Detail...', fr: 'Décrivez les dégâts en détail...', tr: 'Hasarı detaylı olarak açıklayın...' },
+        'ho_neighborhood_placeholder': { ar: 'الحي أو المنطقة', de: 'Stadtviertel oder Gebiet', fr: 'Quartier ou zone', tr: 'Mahalle veya bölge' },
+        'supplier_desc_placeholder': { ar: 'صف المادة أو المنتج...', de: 'Material oder Produkt beschreiben...', fr: 'Décrivez le matériau ou produit...', tr: 'Malzeme veya ürünü açıklayın...' },
+        'supplier_material_placeholder': { ar: 'بحث عن المواد...', de: 'Materialien suchen...', fr: 'Rechercher des matériaux...', tr: 'Malzeme ara...' }
         });
     }
 })();

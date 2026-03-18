@@ -28,7 +28,15 @@
         'wallet_load_failed': { ar: 'تعذّر تحميل المعاملات. يرجى تسجيل الدخول.', de: 'Transaktionen konnten nicht geladen werden. Bitte melden Sie sich an.', fr: 'Impossible de charger les transactions. Veuillez vous connecter.', tr: 'İşlemler yüklenemedi. Lütfen giriş yapın.' },
         'wallet_sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Se connecter', tr: 'Giriş Yap' },
         /* FRIC-AUD-01 FIX: Coming Soon badge on Add Funds button */
-        'common_coming_soon': { ar: 'قريباً', de: 'Bald', fr: 'Bientôt', tr: 'Yakında' }
+        'common_coming_soon': { ar: 'قريباً', de: 'Bald', fr: 'Bientôt', tr: 'Yakında' },
+
+        // P0-I18N-001 FIX: Wallet orphan key remediation (6 keys)
+        'add_funds': { ar: 'إضافة رصيد', de: 'Guthaben aufladen', fr: 'Ajouter des fonds', tr: 'Bakiye Ekle' },
+        'deposit_title': { ar: 'إيداع الأموال', de: 'Einzahlung', fr: 'Dépôt de fonds', tr: 'Para Yatırma' },
+        'deposit_desc': { ar: 'أضف رصيداً إلى محفظتك', de: 'Guthaben zu Ihrer Geldbörse hinzufügen', fr: 'Ajoutez des fonds à votre portefeuille', tr: 'Cüzdanınıza bakiye ekleyin' },
+        'deposit_info': { ar: 'تتم معالجة الإيداعات بشكل آمن عبر Stripe', de: 'Einzahlungen werden sicher über Stripe verarbeitet', fr: 'Les dépôts sont traités de manière sécurisée via Stripe', tr: 'Yatırımlar Stripe üzerinden güvenli şekilde işlenir' },
+        'deposit_notify_me': { ar: 'أعلمني عند التوفر', de: 'Benachrichtigen wenn verfügbar', fr: 'Me prévenir quand disponible', tr: 'Kullanılabilir olduğunda bildir' },
+        'wallet_desc': { ar: 'إدارة رصيدك ومعاملاتك', de: 'Verwalten Sie Ihr Guthaben und Ihre Transaktionen', fr: 'Gérez votre solde et vos transactions', tr: 'Bakiyenizi ve işlemlerinizi yönetin' }
         });
     }
 })();

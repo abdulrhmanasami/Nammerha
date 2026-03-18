@@ -333,7 +333,10 @@
           <i class="ph ph-shield-check text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
         </div>
         <div>
-          <h4 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h4>
+          <!-- HH-003 FIX: Was <h4> — skipped <h3> after <h2> sections above.
+               Sequential hierarchy required for screen reader document outline.
+               Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+          <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_ocds_desc">All financial transactions adhere to Open Contracting Data Standard. Audit trail is immutable (INSERT-only). Escrow release requires spatial proof verification.</p>
         </div>
         <!-- FRIC-ADM-004 FIX: "Verified" text was not i18n-ized. -->

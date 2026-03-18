@@ -89,7 +89,17 @@
         'esc_discrepancy_flagged': { ar: '⚠ تم الإبلاغ عن تناقض', de: '⚠ Abweichung gemeldet', fr: '⚠ Écart signalé', tr: '⚠ Uyuşmazlık Bildirildi' },
         'kyc_verified': { ar: '✓ معتمد', de: '✓ Verifiziert', fr: '✓ Vérifié', tr: '✓ Doğrulandı' },
         'kyc_rejected': { ar: '✗ مرفوض', de: '✗ Abgelehnt', fr: '✗ Rejeté', tr: '✗ Reddedildi' },
-        'oracle_approved': { ar: 'مُعتمد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' }
+        'oracle_approved': { ar: 'مُعتمد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' },
+
+        // P0-I18N-001 FIX: Profile orphan key remediation (8 keys)
+        'profile_completion': { ar: 'اكتمال الملف الشخصي', de: 'Profilvervollständigung', fr: 'Complétude du profil', tr: 'Profil Tamamlama' },
+        'profile_whats_missing': { ar: 'ما الذي ينقصك؟', de: 'Was fehlt?', fr: 'Qu\'est-ce qui manque ?', tr: 'Neleri eksik?' },
+        'profile_add_name': { ar: 'أضف اسمك', de: 'Namen hinzufügen', fr: 'Ajouter votre nom', tr: 'İsminizi ekleyin' },
+        'profile_add_phone': { ar: 'أضف رقم الهاتف', de: 'Telefonnummer hinzufügen', fr: 'Ajouter le numéro de téléphone', tr: 'Telefon numarası ekleyin' },
+        'profile_add_photo': { ar: 'أضف صورة شخصية', de: 'Profilfoto hinzufügen', fr: 'Ajouter une photo de profil', tr: 'Profil fotoğrafı ekleyin' },
+        'profile_photo_label': { ar: 'الصورة الشخصية', de: 'Profilfoto', fr: 'Photo de profil', tr: 'Profil Fotoğrafı' },
+        'profile_complete_kyc': { ar: 'أكمل التحقق من الهوية', de: 'Identitätsverifizierung abschließen', fr: 'Compléter la vérification d\'identité', tr: 'Kimlik doğrulamasını tamamlayın' },
+        'profile_verify_email': { ar: 'تحقق من البريد الإلكتروني', de: 'E-Mail verifizieren', fr: 'Vérifier l\'e-mail', tr: 'E-postayı doğrulayın' }
         });
     }
 })();

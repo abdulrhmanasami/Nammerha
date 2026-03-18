@@ -23,11 +23,12 @@
    ║     this file to inline `dark:` utilities.                             ║
    ║  4. Target: shrink this file to 0 lines over time (gradual).           ║
    ║                                                                        ║
-   ║  P1-AUD2-002: MIGRATION PROGRESS METRICS (March 18, 2026 baseline)    ║
-   ║  • Total lines: 249  │ Target: 0                                      ║
-   ║  • !important count: ~45  │ Target: 0                                 ║
-   ║  • Legacy selectors: ~35  │ Target: 0                                 ║
-   ║  • New text tokens added (P2-AUD2-003) — NOT legacy, keep here.       ║
+   ║  P1-AUD2-002: MIGRATION PROGRESS METRICS (updated March 18, 2026)       ║
+   ║  • Total lines: 256  │ Target: 0                                      ║
+   ║  • !important count: 46  │ Target: 0                                  ║
+   ║  • Legacy selectors: ~42  │ Target: 0                                 ║
+   ║  • CSS custom props (L61-66): 4 tokens — NOT legacy, keep here.       ║
+   ║  • Strategy: gradual per-page migration to dark: utilities.            ║
    ║  Update these metrics after each migration wave.                       ║
    ╚══════════════════════════════════════════════════════════════════════════╝
 

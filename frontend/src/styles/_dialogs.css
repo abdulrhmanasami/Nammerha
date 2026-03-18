@@ -9,116 +9,15 @@
    ============================================================================ */
 
 /* ============================================================================
-   @deprecated — CON-AUD-01: System A dialog DEPRECATED.
-   Replaced by native <dialog> System B (.nm-confirm-dialog) in confirm-action.ts.
-   This CSS block is retained only for backward compatibility during migration.
-   All new dialogs MUST use .nm-confirm-dialog and showModal().
+   DC-001 FIX: Removed deprecated System A dialog CSS (105 lines).
+   Previous: .confirm-dialog-backdrop, .confirm-dialog, .confirm-dialog-icon,
+   .confirm-dialog-actions, .btn-cancel, .btn-danger — retained during migration
+   from div-based overlays to native <dialog> (System B / .nm-confirm-dialog).
+   Verification: Zero HTML/TS/JS references exist (grep 2026-03-18).
+   All dialogs now use .nm-confirm-dialog + showModal() exclusively.
+   Standard: CSS Hygiene — Dead Code Elimination.
    ============================================================================ */
-.confirm-dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: var(--z-skip-link);
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-.confirm-dialog-backdrop.active {
-    opacity: 1;
-    visibility: visible;
-}
-.confirm-dialog {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    max-width: 320px;
-    width: 100%;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    transform: scale(0.95);
-    transition: transform 0.2s ease;
-    text-align: center;
-}
-.confirm-dialog-backdrop.active .confirm-dialog {
-    transform: scale(1);
-}
-.confirm-dialog-icon {
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 1.5rem;
-}
-.confirm-dialog-icon.danger {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-.confirm-dialog-icon.warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-.confirm-dialog h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--dark-tech, #0f172a);
-}
-.confirm-dialog p {
-    font-size: 0.8125rem;
-    color: #64748b;
-    margin-bottom: 1.25rem;
-    line-height: 1.5;
-}
-.confirm-dialog-actions {
-    display: flex;
-    gap: 0.75rem;
-}
-.confirm-dialog-actions button {
-    flex: 1;
-    padding: 0.625rem 1rem;
-    border-radius: 0.625rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.15s ease;
-}
-.confirm-dialog-actions .btn-cancel {
-    background: #f1f5f9;
-    color: #475569;
-}
-.confirm-dialog-actions .btn-cancel:hover {
-    background: #e2e8f0;
-}
-.confirm-dialog-actions .btn-danger {
-    background: #ef4444;
-    color: white;
-}
-.confirm-dialog-actions .btn-danger:hover {
-    background: #dc2626;
-}
-html[data-theme="dark"] .confirm-dialog {
-    background: rgba(30, 41, 59, 0.95);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-html[data-theme="dark"] .confirm-dialog h3 {
-    color: #e2e8f0;
-}
-html[data-theme="dark"] .confirm-dialog-actions .btn-cancel {
-    background: rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
-}
+
 
 /* ============================================================================
    GAP-006 FIX: KPI Skeleton Dark Mode

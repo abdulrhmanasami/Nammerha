@@ -28,7 +28,13 @@
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
   <style>
-    /* GAP-006: Inline critical styles to avoid dependency on Vite build for error pages */
+    /* GAP-006: Inline critical styles to avoid dependency on Vite build for error pages.
+       TD-002 SYNC GOVERNANCE (March 2026):
+       These styles are manually synced from the following source-of-truth files:
+         • src/styles/main.css — base typography, colors, glass-card, dark mode tokens
+         • src/styles/_dark-mode.css — dark mode overrides
+       When updating main.css or _dark-mode.css, check if 404.html styles need a corresponding update.
+       This file is intentionally self-contained for standalone operation without Vite. */
     body {
       font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, sans-serif;
       margin: 0;

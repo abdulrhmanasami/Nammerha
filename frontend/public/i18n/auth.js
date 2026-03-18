@@ -58,7 +58,22 @@
         'reset_password_btn': { ar: 'إعادة تعيين كلمة المرور', de: 'Passwort zurücksetzen', fr: 'Réinitialiser le mot de passe', tr: 'Şifreyi Sıfırla' },
         /* FRC-002 FIX: Password confirmation i18n keys */
         'auth_pw_confirm_placeholder': { ar: 'أعد إدخال كلمة المرور', de: 'Passwort erneut eingeben', fr: 'Ressaisissez le mot de passe', tr: 'Şifreyi tekrar girin' },
-        'pw_mismatch_error': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' }
+        'pw_mismatch_error': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' },
+
+        // P0-I18N-001 FIX: Auth orphan key remediation (13 keys)
+        'auth_google_sso': { ar: 'المتابعة بحساب Google', de: 'Weiter mit Google', fr: 'Continuer avec Google', tr: 'Google ile devam et' },
+        'auth_apple_sso': { ar: 'المتابعة بحساب Apple', de: 'Weiter mit Apple', fr: 'Continuer avec Apple', tr: 'Apple ile devam et' },
+        'auth_or_divider': { ar: 'أو', de: 'oder', fr: 'ou', tr: 'veya' },
+        'auth_back_home': { ar: 'العودة للرئيسية', de: 'Zur Startseite', fr: 'Retour à l\'accueil', tr: 'Ana Sayfaya Dön' },
+        'auth_security_details': { ar: 'تفاصيل الأمان', de: 'Sicherheitsdetails', fr: 'Détails de sécurité', tr: 'Güvenlik Detayları' },
+        'auth_terms_required': { ar: 'يجب الموافقة على الشروط', de: 'Zustimmung zu den Bedingungen erforderlich', fr: 'Acceptation des conditions requise', tr: 'Şartların kabul edilmesi gerekli' },
+        'remember_me': { ar: 'تذكرني', de: 'Angemeldet bleiben', fr: 'Se souvenir de moi', tr: 'Beni Hatırla' },
+        'reg_back': { ar: 'رجوع', de: 'Zurück', fr: 'Retour', tr: 'Geri' },
+        'reg_next': { ar: 'التالي', de: 'Weiter', fr: 'Suivant', tr: 'İleri' },
+        'reg_step_identity': { ar: 'الهوية', de: 'Identität', fr: 'Identité', tr: 'Kimlik' },
+        'reg_step_security': { ar: 'الأمان', de: 'Sicherheit', fr: 'Sécurité', tr: 'Güvenlik' },
+        'reg_step_consent': { ar: 'الموافقة', de: 'Zustimmung', fr: 'Consentement', tr: 'Onay' },
+        'reg_review_info': { ar: 'راجع معلوماتك قبل إنشاء الحساب', de: 'Überprüfen Sie Ihre Angaben vor der Kontoerstellung', fr: 'Vérifiez vos informations avant de créer le compte', tr: 'Hesap oluşturmadan önce bilgilerinizi kontrol edin' }
         });
     }
 })();

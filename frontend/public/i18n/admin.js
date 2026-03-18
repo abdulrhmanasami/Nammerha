@@ -80,7 +80,60 @@
         'kyc_docs_count_2': { ar: 'وثيقتان', de: '2 Dokumente', fr: '2 documents', tr: '2 belge' },
         'kyc_docs_count_3': { ar: '٣ وثائق', de: '3 Dokumente', fr: '3 documents', tr: '3 belge' },
         'kyc_institutional_access': { ar: 'الوصول المؤسسي', de: 'Institutioneller Zugang', fr: 'Accès institutionnel', tr: 'Kurumsal Erişim' },
-        'confidence_score': { ar: 'درجة الثقة', de: 'Vertrauensbewertung', fr: 'Score de confiance', tr: 'Güven Skoru' }
+        'confidence_score': { ar: 'درجة الثقة', de: 'Vertrauensbewertung', fr: 'Score de confiance', tr: 'Güven Skoru' },
+
+        // P0-I18N-001 FIX: Admin orphan key remediation (45 keys)
+        'admin_dashboard_heading': { ar: 'مركز القيادة', de: 'Kommandozentrale', fr: 'Centre de commande', tr: 'Komuta Merkezi' },
+        'admin_dashboard_desc': { ar: 'نظرة عامة على المنصة', de: 'Plattformübersicht', fr: 'Aperçu de la plateforme', tr: 'Platform Genel Bakış' },
+        'admin_portal_desc': { ar: 'إدارة المنصة بالكامل', de: 'Komplette Plattformverwaltung', fr: 'Gestion complète de la plateforme', tr: 'Eksiksiz platform yönetimi' },
+        'admin_audit_trail': { ar: 'سجل التدقيق', de: 'Prüfpfad', fr: 'Piste d\'audit', tr: 'Denetim İzi' },
+        'admin_audit_desc': { ar: 'سجل العمليات الأخيرة', de: 'Letzte Aktivitäten', fr: 'Activités récentes', tr: 'Son işlem geçmişi' },
+        'admin_actions_count': { ar: 'إجراءات', de: 'Aktionen', fr: 'Actions', tr: 'İşlemler' },
+        'admin_ocds_verified': { ar: 'معتمد OCDS', de: 'OCDS-verifiziert', fr: 'Vérifié OCDS', tr: 'OCDS Doğrulanmış' },
+        'admin_projects_table_caption': { ar: 'جدول المشاريع النشطة', de: 'Tabelle aktiver Projekte', fr: 'Tableau des projets actifs', tr: 'Aktif Proje Tablosu' },
+        'admin_view_all_projects': { ar: 'عرض جميع المشاريع', de: 'Alle Projekte anzeigen', fr: 'Voir tous les projets', tr: 'Tüm Projeleri Gör' },
+        'admin_view_full_log': { ar: 'عرض السجل الكامل', de: 'Vollständiges Protokoll', fr: 'Voir le journal complet', tr: 'Tam Günlüğü Gör' },
+
+        // ═══ FINTECH ═══
+        'fintech_title': { ar: 'البنية المالية التقنية', de: 'FinTech-Infrastruktur', fr: 'Infrastructure FinTech', tr: 'FinTech Altyapısı' },
+        'fintech_subtitle': { ar: 'إدارة الرسوم والمنظمات المؤسسية', de: 'Gebühren- und Organisationsverwaltung', fr: 'Gestion des frais et organisations', tr: 'Ücret ve Kurum Yönetimi' },
+        'fintech_fee_config': { ar: 'تهيئة الرسوم', de: 'Gebühreneinstellungen', fr: 'Configuration des frais', tr: 'Ücret Yapılandırması' },
+        'fintech_fee_name': { ar: 'اسم الرسم', de: 'Gebührenname', fr: 'Nom du frais', tr: 'Ücret Adı' },
+        'fintech_fee_rate': { ar: 'النسبة', de: 'Satz', fr: 'Taux', tr: 'Oran' },
+        'fintech_fee_min': { ar: 'الحد الأدنى', de: 'Minimum', fr: 'Minimum', tr: 'Minimum' },
+        'fintech_fee_max': { ar: 'الحد الأقصى', de: 'Maximum', fr: 'Maximum', tr: 'Maksimum' },
+        'fintech_applies_to': { ar: 'ينطبق على', de: 'Gilt für', fr: 'S\'applique à', tr: 'Uygulanır' },
+        'fintech_enterprise_orgs': { ar: 'المنظمات المؤسسية', de: 'Unternehmen', fr: 'Organisations', tr: 'Kurumsal Organizasyonlar' },
+        'fintech_enterprise_list': { ar: 'قائمة المنظمات', de: 'Organisationsliste', fr: 'Liste des organisations', tr: 'Kurum Listesi' },
+        'fintech_add_org': { ar: 'إضافة منظمة', de: 'Organisation hinzufügen', fr: 'Ajouter une organisation', tr: 'Kurum Ekle' },
+        'fintech_org_name': { ar: 'اسم المنظمة', de: 'Organisationsname', fr: 'Nom de l\'organisation', tr: 'Kurum Adı' },
+        'fintech_org_email': { ar: 'البريد الإلكتروني', de: 'E-Mail', fr: 'E-mail', tr: 'E-posta' },
+        'fintech_org_type': { ar: 'النوع', de: 'Typ', fr: 'Type', tr: 'Tür' },
+        'fintech_tier': { ar: 'المستوى', de: 'Stufe', fr: 'Niveau', tr: 'Kademe' },
+        'fintech_status': { ar: 'الحالة', de: 'Status', fr: 'Statut', tr: 'Durum' },
+        'fintech_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'fintech_loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
+        'fintech_escrow_fees': { ar: 'رسوم الضمان', de: 'Treuhandgebühren', fr: 'Frais d\'entiercement', tr: 'Emanet Ücretleri' },
+        'fintech_mtd_fees': { ar: 'رسوم الشهر الحالي', de: 'Gebühren diesen Monat', fr: 'Frais ce mois', tr: 'Bu Ay Ücretler' },
+        'fintech_api_calls': { ar: 'استدعاءات API', de: 'API-Aufrufe', fr: 'Appels API', tr: 'API Çağrıları' },
+        'fintech_this_month': { ar: 'هذا الشهر', de: 'Diesen Monat', fr: 'Ce mois', tr: 'Bu Ay' },
+        'fintech_all_time': { ar: 'كل الأوقات', de: 'Gesamt', fr: 'Depuis le début', tr: 'Tüm Zamanlar' },
+
+        // ═══ REVENUE ═══
+        'rev_dashboard': { ar: 'لوحة الإيرادات', de: 'Umsatz-Dashboard', fr: 'Tableau de bord des revenus', tr: 'Gelir Paneli' },
+        'rev_dashboard_desc': { ar: 'تحليلات الإيرادات والعمولات', de: 'Umsatz- und Provisionsanalysen', fr: 'Analyses des revenus et commissions', tr: 'Gelir ve komisyon analizleri' },
+        'rev_total_revenue': { ar: 'إجمالي الإيرادات', de: 'Gesamtumsatz', fr: 'Revenus totaux', tr: 'Toplam Gelir' },
+        'rev_commissions': { ar: 'العمولات', de: 'Provisionen', fr: 'Commissions', tr: 'Komisyonlar' },
+        'rev_tips': { ar: 'الإكراميات', de: 'Trinkgelder', fr: 'Pourboires', tr: 'Bahşişler' },
+        'rev_commission_rate': { ar: 'نسبة العمولة', de: 'Provisionssatz', fr: 'Taux de commission', tr: 'Komisyon Oranı' },
+        'rev_avg_tip': { ar: 'متوسط الإكرامية', de: 'Durchschn. Trinkgeld', fr: 'Pourboire moyen', tr: 'Ort. Bahşiş' },
+        'rev_tier_config': { ar: 'تهيئة المستويات', de: 'Stufenkonfiguration', fr: 'Configuration des niveaux', tr: 'Kademe Yapılandırması' },
+        'rev_recent_commissions': { ar: 'آخر العمولات', de: 'Letzte Provisionen', fr: 'Commissions récentes', tr: 'Son Komisyonlar' },
+        'rev_recent_tips': { ar: 'آخر الإكراميات', de: 'Letzte Trinkgelder', fr: 'Pourboires récents', tr: 'Son Bahşişler' },
+        'rev_no_data': { ar: 'لا بيانات متاحة', de: 'Keine Daten verfügbar', fr: 'Aucune donnée disponible', tr: 'Veri yok' },
+
+        // ═══ KYC ═══
+        'kyc_select_title': { ar: 'اختر طلباً للمراجعة', de: 'Antrag zur Prüfung auswählen', fr: 'Sélectionner une demande à examiner', tr: 'İncelenecek başvuru seçin' }
         });
     }
 })();

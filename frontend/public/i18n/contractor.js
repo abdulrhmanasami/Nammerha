@@ -58,7 +58,18 @@
         'ct_no_payments_yet': { ar: 'لا توجد مدفوعات بعد', de: 'Noch keine Zahlungen', fr: 'Aucun paiement', tr: 'Henüz ödeme yok' },
         'ct_fill_cost_days': { ar: 'يرجى تعبئة التكلفة والأيام', de: 'Bitte Kosten und Tage ausfüllen', fr: 'Veuillez remplir le coût et les jours', tr: 'Lütfen maliyet ve günleri doldurun' },
         /* AUD-P2-001 FIX: Plain-language escrow subtitle — parity with donor portal */
-        'contractor_escrow_hint': { ar: 'الدفعات محفوظة بالأمانة حتى التحقق من المراحل', de: 'Zahlungen werden treuhänderisch verwahrt bis zur Meilensteinverifizierung', fr: 'Paiements sécurisés en fiducie jusqu\'à vérification des jalons', tr: 'Ödemeler, kilometre taşları doğrulanana kadar emanette tutulur' }
+        'contractor_escrow_hint': { ar: 'الدفعات محفوظة بالأمانة حتى التحقق من المراحل', de: 'Zahlungen werden treuhänderisch verwahrt bis zur Meilensteinverifizierung', fr: 'Paiements sécurisés en fiducie jusqu\'à vérification des jalons', tr: 'Ödemeler, kilometre taşları doğrulanana kadar emanette tutulur' },
+
+        // P0-I18N-001 FIX: Contractor orphan key remediation (9 keys)
+        'contractor_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'contractor_active_bids': { ar: 'عروض نشطة', de: 'Aktive Angebote', fr: 'Offres actives', tr: 'Aktif Teklifler' },
+        'contractor_bids_desc': { ar: 'إدارة العروض والمناقصات', de: 'Angebote und Ausschreibungen verwalten', fr: 'Gérer les offres et appels d\'offres', tr: 'Teklifleri ve ihaleleri yönetin' },
+        'contractor_completed_projects': { ar: 'المشاريع المكتملة', de: 'Abgeschlossene Projekte', fr: 'Projets terminés', tr: 'Tamamlanan Projeler' },
+        'contractor_total_earnings': { ar: 'إجمالي الأرباح', de: 'Gesamtverdienst', fr: 'Revenus totaux', tr: 'Toplam Kazanç' },
+        'ct_desc_bids': { ar: 'عروضك المقدمة والمعلقة', de: 'Ihre eingereichten und ausstehenden Angebote', fr: 'Vos offres soumises et en attente', tr: 'Verilen ve bekleyen teklifleriniz' },
+        'ct_desc_marketplace': { ar: 'تصفح المشاريع المتاحة للمناقصة', de: 'Verfügbare Projekte für Angebote durchsuchen', fr: 'Parcourir les projets disponibles pour soumissionner', tr: 'Teklif verebileceğiniz projelere göz atın' },
+        'ct_desc_my_projects': { ar: 'المشاريع المسندة إليك', de: 'Ihnen zugewiesene Projekte', fr: 'Projets qui vous sont assignés', tr: 'Size atanan projeler' },
+        'ct_desc_payments': { ar: 'سجل المدفوعات والضمان', de: 'Zahlungs- und Treuhandverlauf', fr: 'Historique des paiements et de l\'entiercement', tr: 'Ödeme ve emanet geçmişi' }
         });
     }
 })();

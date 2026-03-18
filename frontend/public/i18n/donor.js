@@ -30,7 +30,36 @@
         'browse_projects_hint': { ar: 'اكتشف مشاريع بحاجة لدعمك', de: 'Entdecken Sie Projekte, die Ihre Unterstützung brauchen', fr: 'Découvrez des projets qui ont besoin de votre soutien', tr: 'Desteğinize ihtiyaç duyan projeleri keşfedin' },
         'confirm_funding': { ar: 'تأكيد التمويل', de: 'Finanzierung bestätigen', fr: 'Confirmer le financement', tr: 'Finansmanı Onayla' },
         'basket_empty': { ar: 'سلتك فارغة', de: 'Ihr Warenkorb ist leer', fr: 'Votre panier est vide', tr: 'Sepetiniz boş' },
-        'construction_basket': { ar: 'سلة البناء', de: 'Baukorb', fr: 'Panier de construction', tr: 'İnşaat Sepeti' }
+        'construction_basket': { ar: 'سلة البناء', de: 'Baukorb', fr: 'Panier de construction', tr: 'İnşaat Sepeti' },
+
+        // P0-I18N-001 FIX: Donor orphan key remediation (23 keys)
+        'donor_dashboard_heading': { ar: 'نظرة عامة على التأثير', de: 'Wirkungsübersicht', fr: 'Aperçu de l\'impact', tr: 'Etki Genel Bakış' },
+        'donor_supported_projects': { ar: 'المشاريع المدعومة', de: 'Unterstützte Projekte', fr: 'Projets soutenus', tr: 'Desteklenen Projeler' },
+        'donor_escrow_hint': { ar: 'أموالك محفوظة بأمان في الضمان', de: 'Ihre Gelder sind sicher im Treuhandkonto', fr: 'Vos fonds sont en sécurité sous séquestre', tr: 'Fonlarınız emanette güvende' },
+        'donor_impact_hint': { ar: 'أثرك الإجمالي على المجتمعات', de: 'Ihre Gesamtwirkung auf die Gemeinden', fr: 'Votre impact total sur les communautés', tr: 'Topluluklara toplam etkiniz' },
+        'donor_marketplace_hint': { ar: 'تصفح مشاريع بحاجة لدعمك', de: 'Projekte durchsuchen, die Ihre Unterstützung benötigen', fr: 'Parcourir les projets nécessitant votre soutien', tr: 'Desteğinize ihtiyaç duyan projeleri keşfedin' },
+        'donor_proof_hint': { ar: 'إثباتات التسليم الميداني GPS', de: 'GPS-Feldliefernachweise', fr: 'Preuves GPS de livraison terrain', tr: 'GPS saha teslimat kanıtları' },
+        'donor_released_hint': { ar: 'الأموال المحررة للموردين', de: 'An Lieferanten freigegebene Gelder', fr: 'Fonds libérés aux fournisseurs', tr: 'Tedarikçilere serbest bırakılan fonlar' },
+        'escrow_explainer': { ar: 'جميع التبرعات محمية بالضمان حتى يتم التحقق من التسليم الميداني.', de: 'Alle Spenden sind treuhänderisch geschützt bis zur verifizierten Feldlieferung.', fr: 'Tous les dons sont protégés par séquestre jusqu\'à vérification de la livraison terrain.', tr: 'Tüm bağışlar saha teslimatı doğrulanana kadar emanet koruması altındadır.' },
+
+        // ═══ PAYMENT METHODS ═══
+        'payment_method': { ar: 'طريقة الدفع', de: 'Zahlungsmethode', fr: 'Mode de paiement', tr: 'Ödeme Yöntemi' },
+        'payment_card': { ar: 'بطاقة ائتمان', de: 'Kreditkarte', fr: 'Carte de crédit', tr: 'Kredi Kartı' },
+        'payment_card_desc': { ar: 'Visa, Mastercard, AMEX', de: 'Visa, Mastercard, AMEX', fr: 'Visa, Mastercard, AMEX', tr: 'Visa, Mastercard, AMEX' },
+        'payment_bank': { ar: 'تحويل بنكي', de: 'Banküberweisung', fr: 'Virement bancaire', tr: 'Banka Havalesi' },
+        'payment_bank_desc': { ar: 'SEPA، SWIFT، تحويل محلي', de: 'SEPA, SWIFT, lokale Überweisung', fr: 'SEPA, SWIFT, virement local', tr: 'SEPA, SWIFT, yerel havale' },
+        'payment_escrow': { ar: 'ضمان آمن', de: 'Sicheres Treuhandkonto', fr: 'Séquestre sécurisé', tr: 'Güvenli Emanet' },
+        'payment_escrow_desc': { ar: 'تُحرَّر الأموال فقط بعد التحقق', de: 'Freigabe erst nach Verifizierung', fr: 'Libération uniquement après vérification', tr: 'Yalnızca doğrulamadan sonra serbest' },
+
+        // ═══ TIP SYSTEM ═══
+        'tip_label': { ar: 'إكرامية', de: 'Trinkgeld', fr: 'Pourboire', tr: 'Bahşiş' },
+        'tip_optional': { ar: 'اختياري', de: 'Optional', fr: 'Optionnel', tr: 'İsteğe bağlı' },
+        'tip_0_pct': { ar: 'بدون', de: 'Kein', fr: 'Aucun', tr: 'Yok' },
+        'tip_3_pct': { ar: '٣٪', de: '3 %', fr: '3 %', tr: '%3' },
+        'tip_5_pct': { ar: '٥٪', de: '5 %', fr: '5 %', tr: '%5' },
+        'tip_10_pct': { ar: '١٠٪', de: '10 %', fr: '10 %', tr: '%10' },
+        'tip_amount_label': { ar: 'مبلغ الإكرامية', de: 'Trinkgeldbetrag', fr: 'Montant du pourboire', tr: 'Bahşiş Tutarı' },
+        'tip_total_label': { ar: 'المجموع مع الإكرامية', de: 'Gesamt mit Trinkgeld', fr: 'Total avec pourboire', tr: 'Bahşişli Toplam' }
         });
     }
 })();

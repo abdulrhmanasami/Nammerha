@@ -79,7 +79,37 @@
         'original_boq_cost': { ar: 'تكلفة جدول الكميات الأصلي', de: 'Ursprüngliche LV-Kosten', fr: 'Coût DQE original', tr: 'Orijinal BOQ Maliyeti' },
         'fidic_formula': { ar: 'صيغة FIDIC', de: 'FIDIC-Formel', fr: 'Formule FIDIC', tr: 'FIDIC Formülü' },
         'epa_approval_disclaimer': { ar: 'تعديلات الأسعار تخضع لموافقة EPA', de: 'Preisanpassungen unterliegen der EPA-Genehmigung', fr: 'Les ajustements de prix sont soumis à l\'approbation EPA', tr: 'Fiyat düzeltmeleri EPA onayına tabidir' },
-        'contribution_onsite': { ar: 'مساهمة في الموقع', de: 'Beitrag vor Ort', fr: 'Contribution sur site', tr: 'Sahada Katkı' }
+        'contribution_onsite': { ar: 'مساهمة في الموقع', de: 'Beitrag vor Ort', fr: 'Contribution sur site', tr: 'Sahada Katkı' },
+
+        // P0-I18N-001 FIX: Project orphan key remediation (25 keys)
+        'boq_cat_structural': { ar: 'إنشائي', de: 'Baustruktur', fr: 'Structural', tr: 'Yapısal' },
+        'boq_cat_electrical': { ar: 'كهربائي', de: 'Elektrik', fr: 'Électrique', tr: 'Elektrik' },
+        'boq_cat_plumbing': { ar: 'سباكة', de: 'Sanitär', fr: 'Plomberie', tr: 'Tesisat' },
+        'boq_cat_finishing': { ar: 'تشطيبات', de: 'Ausbau', fr: 'Finitions', tr: 'Son Kat' },
+        'boq_empty_title': { ar: 'لا توجد بنود بعد', de: 'Noch keine Einträge', fr: 'Aucun article pour le moment', tr: 'Henüz kalem yok' },
+        'boq_empty_desc': { ar: 'يتم إعداد جدول الكميات بواسطة المهندس المعتمد.', de: 'Das Leistungsverzeichnis wird vom zuständigen Ingenieur erstellt.', fr: 'Le devis quantitatif est en cours de préparation par l\'ingénieur.', tr: 'BOQ yetkili mühendis tarafından hazırlanıyor.' },
+        'boq_error_title': { ar: 'تعذر تحميل البنود', de: 'Einträge konnten nicht geladen werden', fr: 'Impossible de charger les articles', tr: 'Kalemler yüklenemedi' },
+        'boq_error_desc': { ar: 'يرجى التحقق من اتصالك والمحاولة مرة أخرى.', de: 'Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.', fr: 'Veuillez vérifier votre connexion et réessayer.', tr: 'Bağlantınızı kontrol edip tekrar deneyin.' },
+        'browse_all_projects': { ar: 'تصفح جميع المشاريع', de: 'Alle Projekte durchsuchen', fr: 'Parcourir tous les projets', tr: 'Tüm Projeleri Gözat' },
+        'browse_more_projects': { ar: 'تصفح المزيد من المشاريع', de: 'Mehr Projekte durchsuchen', fr: 'Parcourir plus de projets', tr: 'Daha Fazla Proje Gözat' },
+        'projects_title': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
+        'projects_loading': { ar: 'جاري تحميل المشاريع...', de: 'Projekte werden geladen...', fr: 'Chargement des projets...', tr: 'Projeler yükleniyor...' },
+        'projects_empty_title': { ar: 'لا توجد مشاريع', de: 'Keine Projekte', fr: 'Aucun projet', tr: 'Proje yok' },
+        'projects_empty_desc': { ar: 'لا توجد مشاريع تطابق معايير البحث.', de: 'Keine Projekte entsprechen den Suchkriterien.', fr: 'Aucun projet ne correspond aux critères de recherche.', tr: 'Arama kriterlerine uyan proje bulunamadı.' },
+        'projects_error_title': { ar: 'خطأ في التحميل', de: 'Ladefehler', fr: 'Erreur de chargement', tr: 'Yükleme Hatası' },
+        'projects_error_desc': { ar: 'تعذر تحميل المشاريع. حاول مرة أخرى.', de: 'Projekte konnten nicht geladen werden. Versuchen Sie es erneut.', fr: 'Impossible de charger les projets. Veuillez réessayer.', tr: 'Projeler yüklenemedi. Tekrar deneyin.' },
+        'projects_retry': { ar: 'إعادة المحاولة', de: 'Erneut versuchen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'projects_load_more': { ar: 'تحميل المزيد', de: 'Mehr laden', fr: 'Charger plus', tr: 'Daha Fazla Yükle' },
+        'projects_filter_all': { ar: 'الكل', de: 'Alle', fr: 'Tout', tr: 'Tümü' },
+        'projects_filter_structural': { ar: 'إنشائي', de: 'Baustruktur', fr: 'Structural', tr: 'Yapısal' },
+        'projects_filter_electrical': { ar: 'كهربائي', de: 'Elektrik', fr: 'Électrique', tr: 'Elektrik' },
+        'projects_filter_plumbing': { ar: 'سباكة', de: 'Sanitär', fr: 'Plomberie', tr: 'Tesisat' },
+        'projects_filter_mixed': { ar: 'مختلط', de: 'Gemischt', fr: 'Mixte', tr: 'Karma' },
+        'projects_sort_newest': { ar: 'الأحدث', de: 'Neueste', fr: 'Plus récents', tr: 'En Yeni' },
+        'projects_sort_funding': { ar: 'نسبة التمويل', de: 'Finanzierungsgrad', fr: 'Taux de financement', tr: 'Finansman Oranı' },
+
+        // ═══ PLACEHOLDER KEYS (data-i18n-placeholder) ═══
+        'eng_search_materials': { ar: 'ابحث عن مواد البناء...', de: 'Baumaterialien suchen...', fr: 'Rechercher des matériaux de construction...', tr: 'İnşaat malzemesi ara...' }
         });
     }
 })();
