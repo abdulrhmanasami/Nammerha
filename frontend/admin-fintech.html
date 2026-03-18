@@ -107,6 +107,11 @@
     </div>
   </aside>
 
+  <!-- CONF-P3-005 FIX: sidebar-overlay was missing from fintech.
+       All other 5 admin pages have it. Required for mobile sidebar dismiss.
+       Standard: Platform Architecture, Mobile UX. -->
+  <div class="sidebar-overlay" aria-hidden="true"></div>
+
   <main id="main-content" class="dashboard-main">
     <header class="h-14 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 justify-between shrink-0 sticky top-0 z-40">
       <div class="flex items-center gap-3">
@@ -209,10 +214,13 @@
           <i class="ph ph-buildings text-slate-400" aria-hidden="true"></i>
           <span data-i18n="fintech_enterprise_list">Enterprise Organizations</span>
         </h2>
-        <button id="btn-add-org" class="text-sm bg-trust-blue text-white px-4 py-2 rounded-lg font-semibold hover:bg-trust-blue/90 transition-colors flex items-center gap-1">
+        <!-- GAP-P3-005 FIX: "Add Organization" button had no JS handler — disabled.
+             Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
+        <span class="text-sm bg-slate-200 text-slate-400 px-4 py-2 rounded-lg font-semibold flex items-center gap-1 cursor-not-allowed opacity-60" aria-disabled="true">
           <i class="ph ph-plus" aria-hidden="true"></i>
           <span data-i18n="fintech_add_org">Add Organization</span>
-        </button>
+          <span class="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full ms-1" data-i18n="coming_soon">Soon</span>
+        </span>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm" id="orgs-table">

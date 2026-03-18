@@ -1,6 +1,9 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
+/* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
+   Standard: DRY, Code Hygiene. */
+import { showToast } from '../utils/toast';
 
 /* ─── Pricing Oracle & EPA Engine — Interactive Controller ─── */
 
@@ -63,8 +66,8 @@ function initApproveButton(): void {
             badge.classList.add('bg-smoky-jade/10', 'text-smoky-jade', 'text-[10px]', 'font-bold', 'px-2', 'py-0.5', 'rounded-full', 'uppercase');
         }
 
-        /* Show notification */
-        showNotification(t('oracle_approval_toast', 'EPA adjustment approved. Audit log updated. All stakeholders notified.'));
+        /* Show notification — INC-P3-001 FIX: Uses shared toast utility */
+        showToast(t('oracle_approval_toast', 'EPA adjustment approved. Audit log updated. All stakeholders notified.'), 'success');
     });
 }
 
@@ -90,9 +93,18 @@ function initTabSwitching(): void {
 
 /* ─── Ticker Price Animation ─── */
 function initTickerAnimation(): void {
+    /* FRIC-P3-004 FIX: Respect prefers-reduced-motion.
+       Users with vestibular conditions should not see ticker pulse.
+       Standard: WCAG 2.3.3 (Animation from Interactions). */
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (prefersReduced.matches) { return; }
+
     const priceElements = document.querySelectorAll('.ticker-scroll .font-bold');
 
-    setInterval(() => {
+    /* FRIC-P3-002 FIX: Store interval ID and clear on page unload.
+       Prevents ghost interval leaks during SPA-like navigation.
+       Standard: Resource Hygiene, Nielsen #7 (Efficiency). */
+    const tickerId = setInterval(() => {
         priceElements.forEach((el) => {
             el.classList.add('transition-transform', 'duration-300');
             el.classList.add('scale-105');
@@ -101,37 +113,7 @@ function initTickerAnimation(): void {
             }, 300);
         });
     }, 8000);
+    window.addEventListener('beforeunload', () => clearInterval(tickerId));
 }
 
-/* ─── Notification Toast ─── */
-function showNotification(message: string): void {
-    const toast = document.createElement('div');
-    toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50 animate-slideUp';
-    toast.innerHTML = `
-    <i class="ph ph-check-circle text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-    <span class="text-sm font-medium">${esc(message)}</span>
-  `;
-
-    /* Add animation keyframes if not present */
-    if (!document.getElementById('toast-styles')) {
-        const style = document.createElement('style');
-        style.id = 'toast-styles';
-        style.textContent = `
-      @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-      .animate-slideUp { animation: slideUp 0.3s ease-out; }
-    `;
-        document.head.appendChild(style);
-    }
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.transition = 'opacity 0.3s, transform 0.3s';
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
+/* INC-P3-001: Inline showNotification() removed — using shared showToast() from utils/toast.ts */

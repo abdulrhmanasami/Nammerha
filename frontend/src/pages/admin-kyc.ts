@@ -1,6 +1,9 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
+/* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
+   Standard: DRY, Code Hygiene. */
+import { showToast } from '../utils/toast';
 
 /* ─── KYC Verification Portal — Interactive Controller ─── */
 
@@ -80,21 +83,54 @@ function initRowSelection(): void {
     const rows = document.querySelectorAll<HTMLElement>('.kyc-row');
 
     rows.forEach((row) => {
+        /* Click handler */
         row.addEventListener('click', () => {
-            const index = parseInt(row.dataset.index ?? '-1', 10);
-            if (index < 0 || index >= APPLICANTS.length) {
-                return;
+            selectRow(row, rows);
+        });
+
+        /* FRIC-P3-003 FIX: Keyboard navigation for WCAG 2.1.1.
+           Enter/Space selects the row. ArrowUp/Down moves focus.
+           Standard: WCAG 2.1.1 (Keyboard), WAI-ARIA Practices (Listbox). */
+        row.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectRow(row, rows);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const next = row.nextElementSibling as HTMLElement | null;
+                if (next?.classList.contains('kyc-row')) {
+                    next.focus();
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prev = row.previousElementSibling as HTMLElement | null;
+                if (prev?.classList.contains('kyc-row')) {
+                    prev.focus();
+                }
             }
-
-            selectedIndex = index;
-
-            /* Highlight selected */
-            rows.forEach((r) => r.classList.remove('bg-trust-blue/5', 'border-l-2', 'border-trust-blue'));
-            row.classList.add('bg-trust-blue/5', 'border-l-2', 'border-trust-blue');
-
-            renderDocumentViewer(index);
         });
     });
+}
+
+/* ─── Select Row Helper ─── */
+function selectRow(row: HTMLElement, rows: NodeListOf<HTMLElement>): void {
+    const index = parseInt(row.dataset.index ?? '-1', 10);
+    if (index < 0 || index >= APPLICANTS.length) {
+        return;
+    }
+
+    selectedIndex = index;
+
+    /* Highlight selected — INC-P3-005 FIX: border-l-2 → border-s-2 for RTL.
+       Standard: RTL UX, BiDi Correctness. */
+    rows.forEach((r) => {
+        r.classList.remove('bg-trust-blue/5', 'border-s-2', 'border-trust-blue');
+        r.setAttribute('aria-selected', 'false');
+    });
+    row.classList.add('bg-trust-blue/5', 'border-s-2', 'border-trust-blue');
+    row.setAttribute('aria-selected', 'true');
+
+    renderDocumentViewer(index);
 }
 
 /* ─── Render Document Viewer ─── */
@@ -344,33 +380,4 @@ function updateStats(action: 'verify' | 'reject'): void {
     }
 }
 
-/* ─── Toast ─── */
-function showToast(message: string): void {
-    const toast = document.createElement('div');
-    toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50';
-    toast.style.animation = 'slideUp 0.3s ease-out';
-    toast.innerHTML = `
-    <i class="ph ph-check-circle text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-    <span class="text-sm font-medium">${esc(message)}</span>
-  `;
-
-    if (!document.getElementById('toast-styles')) {
-        const style = document.createElement('style');
-        style.id = 'toast-styles';
-        style.textContent = `
-      @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-    `;
-        document.head.appendChild(style);
-    }
-
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.style.transition = 'opacity 0.3s, transform 0.3s';
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
+/* INC-P3-001: Inline showToast() removed — using shared import from utils/toast.ts */

@@ -82,8 +82,10 @@
         <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
         <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
+      <!-- CONF-P3-003 FIX: Was ph-buildings — corrected to ph-package to match all other admin pages.
+           Standard: Nielsen #4 (Consistency), Design DNA. -->
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
-        <i class="ph ph-buildings" aria-hidden="true"></i>
+        <i class="ph ph-package" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_projects">Projects</span>
       </a>
     </nav>
@@ -133,6 +135,13 @@
     </header>
 
     <div id="main-content-inner" class="flex-1 overflow-y-auto p-6 space-y-6">
+      <!-- CONF-P3-001 FIX: Was missing <h1> entirely — only admin page without one.
+           Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+      <div>
+        <h1 class="text-xl font-bold" data-i18n="rev_dashboard">Revenue Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-0.5" data-i18n="rev_dashboard_desc">Platform revenue analytics — commissions, tips, and monetization KPIs</p>
+      </div>
+
       <!-- Revenue KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" id="rev-kpi-grid">
         <!-- Total Revenue -->
@@ -190,19 +199,23 @@
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
-            <h3 class="font-bold" data-i18n="rev_tier_config">Commission Tier Configuration</h3>
+            <!-- GAP-P3-011 FIX: Was <h3> — promoted to <h2> now that <h1> exists.
+                 Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+            <h2 class="font-bold" data-i18n="rev_tier_config">Commission Tier Configuration</h2>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="rev_commission_rate">Tiered rates based on monthly supplier revenue</p>
           </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
+              <!-- GAP-P3-007 FIX: Table headers were missing i18n attributes.
+                   Standard: i18n Completeness. -->
               <tr class="border-b border-slate-100 text-start">
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tier</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Revenue Range</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rate (bps)</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rate (%)</th>
-                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_tier">Tier</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_revenue_range">Revenue Range</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_rate_bps">Rate (bps)</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_rate_pct">Rate (%)</th>
+                <th class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_status">Status</th>
               </tr>
             </thead>
             <tbody id="tier-table-body">
@@ -217,7 +230,7 @@
         <!-- Recent Commissions -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="rev_recent_commissions">Recent Commissions</h3>
+            <h2 class="font-bold" data-i18n="rev_recent_commissions">Recent Commissions</h2>
           </div>
           <div class="divide-y divide-slate-50" id="recent-commissions-list">
             <div class="px-5 py-8 text-center text-sm text-slate-400" data-i18n="rev_no_data">No data yet</div>
@@ -227,7 +240,7 @@
         <!-- Recent Tips -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="rev_recent_tips">Recent Tips</h3>
+            <h2 class="font-bold" data-i18n="rev_recent_tips">Recent Tips</h2>
           </div>
           <div class="divide-y divide-slate-50" id="recent-tips-list">
             <div class="px-5 py-8 text-center text-sm text-slate-400" data-i18n="rev_no_data">No data yet</div>
@@ -241,10 +254,12 @@
           <i class="ph ph-shield-check text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
         </div>
         <div>
-          <h4 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h4>
+          <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="admin_ocds_desc">All financial transactions adhere to Open Contracting Data Standard. Audit trail is immutable (INSERT-only).</p>
         </div>
-        <span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider">Verified</span>
+        <!-- CONF-P3-004 FIX: "Verified" text was not i18n-ized. Dashboard has data-i18n.
+             Standard: i18n Completeness. -->
+        <span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider" data-i18n="admin_ocds_verified">Verified</span>
       </div>
     </div>
   </main>

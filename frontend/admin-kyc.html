@@ -124,13 +124,14 @@
         <span class="font-bold text-lg page-header-title" data-i18n="kyc_portal_title">KYC Verification Portal</span>
       </div>
       <div class="flex items-center gap-4">
-        <button class="text-slate-500 hover:text-trust-blue transition-colors">
+        <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled.
+             Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
+        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Search — Coming Soon" title="Coming Soon">
           <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-        </button>
-        <button class="text-slate-500 hover:text-trust-blue transition-colors relative">
+        </span>
+        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Notifications — Coming Soon" title="Coming Soon">
           <i class="ph ph-bell" aria-hidden="true"></i>
-          <span class="absolute top-0 end-0 h-1.5 w-1.5 bg-rose-500 rounded-full"></span>
-        </button>
+        </span>
       </div>
     </header>
 
@@ -138,16 +139,22 @@
       <!-- Page Header -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
         <div>
-          <h2 class="text-2xl font-bold" data-i18n="identity_verification_queue">Identity Verification Queue</h2>
+          <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
+               Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+          <h1 class="text-2xl font-bold" data-i18n="identity_verification_queue">Identity Verification Queue</h1>
           <p class="text-slate-500 text-sm mt-0.5" data-i18n="kyc_review_subtitle">Review professional licenses and trade registrations before granting verified status.</p>
         </div>
+        <!-- GAP-P3-003 FIX: Filter & Export had no JS handler — disabled with Coming Soon.
+             Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
         <div class="flex gap-2 shrink-0">
-          <button class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
+          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true">
             <i class="ph ph-funnel" style="font-size:14px" aria-hidden="true"></i> <span data-i18n="kyc_filter">Filter</span>
-          </button>
-          <button class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors">
+            <span class="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+          </span>
+          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true">
             <i class="ph ph-download" style="font-size:14px" aria-hidden="true"></i> <span data-i18n="kyc_export">Export</span>
-          </button>
+            <span class="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+          </span>
         </div>
       </div>
 
@@ -155,7 +162,10 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_pending_review">Pending Review</p>
-          <p class="text-xl font-bold text-warning-yellow" aria-live="polite" id="stat-pending">5</p>
+          <!-- FRIC-P3-001 FIX: text-warning-yellow (#FCC934) on white is 1.56:1 contrast.
+               Using --warning-yellow-text (#b45309, 4.73:1) for WCAG AA.
+               Standard: WCAG 1.4.3 (Contrast Minimum). -->
+          <p class="text-xl font-bold" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" id="stat-pending">5</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
@@ -178,9 +188,12 @@
           <div class="p-4 border-b border-slate-100">
             <h3 class="font-bold text-sm" data-i18n="applications_pending_review">Applications Pending Review</h3>
           </div>
-          <div class="divide-y divide-slate-50" id="queue-list">
+          <!-- FRIC-P3-003 FIX: Added role="listbox" for keyboard accessibility.
+               Queue rows now have role="option" and tabindex="0" for screen readers.
+               Standard: WCAG 2.1.1 (Keyboard), WAI-ARIA Practices. -->
+          <div class="divide-y divide-slate-50" id="queue-list" role="listbox" aria-label="KYC applications pending review">
             <!-- Row 1 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="0">
+            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="0" role="option" tabindex="0" aria-selected="false">
               <div class="size-10 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
                 <i class="ph ph-hard-hat text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
               </div>
@@ -194,7 +207,7 @@
               </div>
             </div>
             <!-- Row 2 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="1">
+            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="1" role="option" tabindex="0" aria-selected="false">
               <div class="size-10 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
                 <i class="ph ph-storefront text-warm-earth" style="font-size:18px" aria-hidden="true"></i>
               </div>
@@ -208,7 +221,7 @@
               </div>
             </div>
             <!-- Row 3 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="2">
+            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="2" role="option" tabindex="0" aria-selected="false">
               <div class="size-10 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
                 <i class="ph ph-hard-hat text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
               </div>
@@ -222,7 +235,7 @@
               </div>
             </div>
             <!-- Row 4 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="3">
+            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="3" role="option" tabindex="0" aria-selected="false">
               <div class="size-10 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
                 <i class="ph ph-storefront text-warm-earth" style="font-size:18px" aria-hidden="true"></i>
               </div>
@@ -236,7 +249,7 @@
               </div>
             </div>
             <!-- Row 5 -->
-            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="4">
+            <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors" data-index="4" role="option" tabindex="0" aria-selected="false">
               <div class="size-10 rounded-full bg-trust-blue/10 flex items-center justify-center shrink-0">
                 <i class="ph ph-hard-hat text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
               </div>

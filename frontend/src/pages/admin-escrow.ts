@@ -1,6 +1,9 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
+/* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
+   Standard: DRY, Code Hygiene. */
+import { showToast } from '../utils/toast';
 
 /* ─── Concierge Escrow — Interactive Controller ─── */
 
@@ -210,7 +213,7 @@ function initActionButtons(): void {
                 flagBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
             }
 
-            showToast(t('esc_released_toast', 'Escrow released') + `: ${esc(c.amount)} <i class="ph ph-arrow-right" style="vertical-align:-1px"></i> ${esc(c.vendorName)}`);
+            showToast(`${t('esc_released_toast', 'Escrow released')}: ${c.amount} → ${c.vendorName}`, 'success');
         });
     }
 
@@ -263,33 +266,4 @@ function initActionButtons(): void {
     }
 }
 
-/* ─── Toast ─── */
-function showToast(message: string): void {
-    const toast = document.createElement('div');
-    toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50';
-    toast.style.animation = 'slideUp 0.3s ease-out';
-    toast.innerHTML = `
-    <i class="ph ph-check-circle text-smoky-jade" style="font-size:18px" aria-hidden="true"></i>
-    <span class="text-sm font-medium">${esc(message)}</span>
-  `;
-
-    if (!document.getElementById('toast-styles')) {
-        const style = document.createElement('style');
-        style.id = 'toast-styles';
-        style.textContent = `
-      @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-    `;
-        document.head.appendChild(style);
-    }
-
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.style.transition = 'opacity 0.3s, transform 0.3s';
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
+/* INC-P3-001: Inline showToast() removed — using shared import from utils/toast.ts */
