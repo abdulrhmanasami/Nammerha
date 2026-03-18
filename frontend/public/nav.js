@@ -191,6 +191,17 @@
             a.title = tab.label;
             // GAP-2026-005 FIX: Haptic feedback on tab tap
             a.setAttribute('data-haptic', 'tap');
+
+            // P1-NAV-001 FIX: Scroll-to-top on active tab re-tap.
+            // Native iOS tab bars scroll to top when the already-active tab is tapped.
+            // Without this, the app feels like a web page — active tabs do nothing.
+            // Standard: Apple HIG (Tab Bar), Material Design 3 (Navigation Bar).
+            if (active) {
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
             wrap.appendChild(a);
         }
 
@@ -435,20 +446,28 @@
             navigator.serviceWorker.ready.then(function (reg) {
                 // Check if an update is already waiting
                 function promptUpdate(sw) {
-                    // Create a simple banner if toast system is not loaded yet
+                    // P1-SW-001 FIX: CSS class replaces 4-line inline style.cssText.
+                    // Previous: physical left:0;right:0 (RTL-unsafe), z-index:99999 (magic number).
+                    // Now: .nm-sw-banner uses inset-inline:0 and var(--z-overlay).
+                    // Standard: P1-001 precedent, CSS Architecture, Logical Properties.
                     var banner = document.createElement('div');
-                    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;' +
-                        'background:linear-gradient(135deg,#1A73E8,#109173);color:#fff;' +
-                        'padding:12px 16px;text-align:center;font-size:13px;font-weight:700;' +
-                        'cursor:pointer;-webkit-tap-highlight-color:transparent;';
+                    banner.className = 'nm-sw-banner';
                     banner.setAttribute('role', 'alert');
-                    banner.textContent = window.NammerhaI18n && window.NammerhaI18n.t
+                    var bannerText = document.createElement('span');
+                    bannerText.textContent = window.NammerhaI18n && window.NammerhaI18n.t
                         ? window.NammerhaI18n.t('sw_update_available')
                         : 'Update available — tap to refresh';
-                    banner.addEventListener('click', function () {
+                    var bannerBtn = document.createElement('button');
+                    bannerBtn.textContent = window.NammerhaI18n && window.NammerhaI18n.t
+                        ? window.NammerhaI18n.t('sw_update_btn')
+                        : 'Update';
+                    bannerBtn.setAttribute('data-haptic', 'tap');
+                    bannerBtn.addEventListener('click', function () {
                         sw.postMessage({ type: 'SKIP_WAITING' });
                         banner.remove();
                     });
+                    banner.appendChild(bannerText);
+                    banner.appendChild(bannerBtn);
                     document.body.appendChild(banner);
                 }
 

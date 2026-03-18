@@ -1542,8 +1542,6 @@ html[data-theme="dark"] .text-red-400 {
     width: 90%;
     max-width: 420px;
     pointer-events: none;
-    /* PLT-UX-AUD-WC FIX: Pre-promote to GPU layer. */
-    will-change: transform;
 }
 /* PLT-UX-AUD-KB FIX: Reposition toast above keyboard when visible.
    Standard: Apple HIG — "Don't let overlays compete with keyboard." */
@@ -2717,4 +2715,247 @@ html[data-theme="dark"] a.text-warning-yellow {
 .scroll-reveal {
     content-visibility: auto;
     contain-intrinsic-size: auto 500px;
+}
+
+/* ============================================================================
+   P1-BTT-001 FIX: Back-to-Top FAB — CSS Single Source of Truth
+   Previous: 17-property inline style.cssText in back-to-top.js — violated
+   P1-001 precedent (nav.js refactored from inline to CSS).
+   Now: All styling in CSS, enabling dark mode, keyboard-hide, reduced motion.
+   Standard: P1-001 precedent, CSS Architecture, Apple HIG (FAB).
+   ============================================================================ */
+.nm-back-to-top {
+    position: fixed;
+    bottom: 100px;
+    inset-inline-end: 16px;
+    z-index: var(--z-dropdown, 10);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--surface-elevated, rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-light, rgba(255, 255, 255, 0.3));
+    box-shadow: var(--shadow-elevation, 0 2px 8px rgba(0, 0, 0, 0.08));
+    color: var(--trust-blue, #1a73e8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    /* P2-IOS-001: Stable GPU compositing layer for iOS Safari */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+}
+/* Active press feedback via CSS — replaces JS pointerdown/up/leave handlers */
+.nm-back-to-top:active {
+    transform: scale(0.9);
+    transition: transform 50ms ease;
+}
+/* P1-BTT-002 FIX: Hide FAB when virtual keyboard is open.
+   Previous: FAB floated above keyboard, obscuring input.
+   Standard: Visual Viewport API, Apple HIG — "Adjust layout for keyboard." */
+.keyboard-visible .nm-back-to-top {
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+/* P3-A11Y-001 FIX: Respect reduced motion for FAB transitions */
+@media (prefers-reduced-motion: reduce) {
+    .nm-back-to-top {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================================================
+   P1-SW-001 FIX: Service Worker Update Banner — CSS Single Source of Truth
+   Previous: nav.js L440-443 used inline style.cssText with physical left:0;
+   right:0 (RTL-unsafe) and hardcoded z-index:99999 (violated INC-X06 tokens).
+   Standard: P1-001 precedent, CSS Architecture, Logical Properties.
+   ============================================================================ */
+.nm-sw-banner {
+    position: fixed;
+    top: 0;
+    inset-inline: 0;
+    z-index: var(--z-overlay, 9970);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+    background: var(--trust-blue);
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.nm-sw-banner button {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm, 6px);
+    font-weight: 700;
+    font-size: 0.75rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease;
+}
+.nm-sw-banner button:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+.nm-sw-banner button:active {
+    transform: scale(0.95);
+}
+
+/* ============================================================================
+   P2-CRS-001 FIX: Horizontal Carousel Touch-Action Constraint
+   Previous: overflow-x:auto + scroll-snap-type but NO touch-action.
+   Diagonal swipes triggered horizontal scroll AND vertical back-gesture.
+   Now: pan-x constrains touch to horizontal axis only.
+   Standard: CSS Touch-Action L1, Material Design 3 (Carousel).
+   ============================================================================ */
+[id="projects-carousel"] {
+    touch-action: pan-x;
+}
+
+/* ============================================================================
+   P2-IOS-001 FIX: iOS Glassmorphism Compositing Stabilization
+   Fixed glassmorphism headers with backdrop-filter:blur can exhibit 1-frame
+   white flashes during fast momentum scrolling on iOS Safari 16-17.
+   Explicit 3D transform promotion creates a stable compositing layer.
+   Standard: iOS Safari Compositing, Apple HIG (Visual Stability).
+   ============================================================================ */
+.glass-nav,
+.page-header {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+}
+
+/* ============================================================================
+   P1-NIT-001 FIX: Theme FAB Touch Target Compliance
+   Previous: .nm-theme-fab was 36×36px (L1409) — below WCAG 2.5.5 44px minimum.
+   Now: Visual size bumped to 40px, with 44px touch area via min-width/min-height.
+   Standard: WCAG 2.5.5 (Target Size), Apple HIG 44pt minimum.
+   ============================================================================ */
+.nm-theme-fab {
+    width: 40px;
+    height: 40px;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* ============================================================================
+   DT-1 FIX: i18n Language Selector Widget — CSS Single Source of Truth
+   Previous: 6 inline style.cssText blocks + 7 hardcoded style.color/fontWeight
+   assignments in i18n.js createSelector(). Dark mode was set ONCE at mount via
+   isDark() which checked for .dark class (NEVER true — system uses data-theme).
+   Now: All styling in CSS classes. Dark mode auto-responds to html[data-theme].
+   RTL uses inset-inline-end instead of physical right/left.
+   Standard: P1-001 precedent, CSS Architecture, Logical Properties.
+   ============================================================================ */
+#nm-lang-widget {
+    position: relative;
+    z-index: 10;
+    font-family: "Plus Jakarta Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
+    flex-shrink: 0;
+}
+/* DT-1: Fallback mount — when no navbar or mount point exists */
+#nm-lang-widget.nm-lang-fallback {
+    position: fixed;
+    top: 12px;
+    inset-inline-end: 12px;
+    z-index: var(--z-dropdown, 10);
+}
+#nm-lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(100, 116, 139, 0.25);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    -webkit-tap-highlight-color: transparent;
+}
+#nm-lang-dd {
+    position: absolute;
+    top: calc(100% + 6px);
+    /* DT-4 FIX: inset-inline-end replaces physical right:0/left:0 for RTL.
+       Previous: updateWidgetPosition() toggled right/left via JS.
+       Now: CSS logical property handles RTL automatically. */
+    inset-inline-end: 0;
+    min-width: 160px;
+    padding: 6px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(100, 116, 139, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    /* Hidden state */
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#nm-lang-dd.nm-lang-dd-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+.nm-lang-opt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    color: #334155;
+    font-weight: 400;
+}
+.nm-lang-opt:hover {
+    background: rgba(26, 115, 232, 0.08);
+}
+.nm-lang-opt.active {
+    color: var(--trust-blue);
+    font-weight: 600;
+}
+
+/* DT-3 FIX: Dark mode auto-responds to runtime theme changes.
+   Previous: isDark() checked `.dark` class (NEVER true — system uses data-theme).
+   Widget was ALWAYS rendered in light mode even in dark theme.
+   Now: CSS cascade via html[data-theme="dark"] handles dark mode automatically.
+   Premium glassmorphism with elevated contrast for readability. */
+html[data-theme="dark"] #nm-lang-btn {
+    background: rgba(24, 17, 33, 0.85);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+}
+html[data-theme="dark"] #nm-lang-dd {
+    background: rgba(24, 17, 33, 0.97);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="dark"] .nm-lang-opt {
+    color: #cbd5e1;
+}
+html[data-theme="dark"] .nm-lang-opt:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .nm-lang-opt.active {
+    color: var(--trust-blue);
 }

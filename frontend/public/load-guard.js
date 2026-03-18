@@ -82,10 +82,12 @@
     banner.setAttribute('aria-live', 'assertive');
     banner.style.cssText = [
       'position:fixed',
-      'bottom:80px',
+      /* P2-LDG-001 FIX: Was magic bottom:80px — doesn't respect dynamic --nm-nav-h\n         set by nav.js. On devices with large safe-area insets, the banner could\n         be partially hidden behind the nav bar.\n         Standard: CSS Custom Properties, Adaptive Component Positioning. */
+      'bottom:calc(var(--nm-nav-h, 80px) + 8px)',
       'inset-inline-start:50%',
       'transform:translateX(-50%)',
-      'z-index:9940',
+      /* DT-5 FIX: Was magic z-index:9940 — now uses design token with fallback.\n         Note: load-guard inline styles are INTENTIONAL — fallback component\n         must render when main CSS fails to load (progressive enhancement).\n         Standard: INC-X06 z-index token governance. */
+      'z-index:var(--z-toast, 9940)',
       'max-width:380px',
       'width:calc(100% - 32px)',
       'background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',

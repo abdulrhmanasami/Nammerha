@@ -807,18 +807,15 @@
     function createSelector() {
         var wrap = document.createElement('div');
         wrap.id = 'nm-lang-widget';
-        wrap.style.cssText = 'position:relative;z-index:10;font-family:"Plus Jakarta Sans",sans-serif;flex-shrink:0;';
+        // DT-1 FIX: All styling now in main.css (#nm-lang-widget).
+        // Previous: inline style.cssText with 4 properties.
 
         var btn = document.createElement('button');
         btn.id = 'nm-lang-btn';
         btn.setAttribute('aria-label', 'Select language');
         btn.setAttribute('aria-expanded', 'false');
-        btn.style.cssText =
-            'display:flex;align-items:center;gap:6px;padding:6px 12px;' +
-            'border-radius:999px;border:1px solid rgba(100,116,139,0.25);' +
-            'background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);' +
-            '-webkit-backdrop-filter:blur(12px);cursor:pointer;font-size:13px;' +
-            'font-weight:500;color:#334155;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.08);';
+        // DT-1 FIX: All styling now in main.css (#nm-lang-btn).
+        // Previous: inline style.cssText with 10 properties.
         btn.innerHTML = GLOBE + '<span id="nm-lang-label">' + getLang(currentLang).name + '</span>' +
             '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" style="opacity:0.5"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -830,41 +827,30 @@
         // Dropdown
         var dd = document.createElement('div');
         dd.id = 'nm-lang-dd';
-        dd.style.cssText =
-            'position:absolute;top:calc(100% + 6px);right:0;min-width:160px;padding:6px;' +
-            'border-radius:12px;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);' +
-            '-webkit-backdrop-filter:blur(16px);border:1px solid rgba(100,116,139,0.12);' +
-            'box-shadow:0 8px 32px rgba(0,0,0,0.12);opacity:0;transform:translateY(-4px) scale(0.97);' +
-            'pointer-events:none;transition:all 0.2s cubic-bezier(0.22,1,0.36,1);';
+        // DT-1 FIX: All styling now in main.css (#nm-lang-dd).
+        // Previous: inline style.cssText with 12 properties.
+        // DT-4 FIX: RTL handled by CSS inset-inline-end (replaces JS updateWidgetPosition).
 
         for (var i = 0; i < LANGS.length; i++) {
             (function (lang) {
                 var opt = document.createElement('div');
+                // DT-1 FIX: CSS class replaces inline style.cssText with 7 properties.
+                // Active state color/weight now via .active class toggle in CSS.
                 opt.className = 'nm-lang-opt' + (lang.code === currentLang ? ' active' : '');
                 opt.dataset.lang = lang.code;
-                opt.style.cssText =
-                    'display:flex;align-items:center;justify-content:space-between;' +
-                    'padding:8px 12px;border-radius:8px;font-size:14px;cursor:pointer;' +
-                    'transition:background 0.15s;color:' + (lang.code === currentLang ? '#1A73E8' : '#334155') + ';' +
-                    'font-weight:' + (lang.code === currentLang ? '600' : '400') + ';';
                 var chkSvg = CHECK.replace('opacity:0', 'opacity:' + (lang.code === currentLang ? '1' : '0'));
                 opt.innerHTML = '<span>' + lang.name + '</span>' + chkSvg;
 
-                opt.addEventListener('mouseenter', function () {
-                    opt.style.background = 'rgba(26,115,232,0.08)';
-                });
-                opt.addEventListener('mouseleave', function () {
-                    opt.style.background = 'transparent';
-                });
+                // DT-1 FIX: Hover state handled by CSS (.nm-lang-opt:hover).
+                // Previous: JS mouseenter/mouseleave toggled inline style.background.
                 opt.addEventListener('click', function (e) {
                     e.stopPropagation();
+                    // DT-1 FIX: Toggle .active class instead of inline style.color/fontWeight.
                     var allOpts = dd.querySelectorAll('.nm-lang-opt');
                     for (var j = 0; j < allOpts.length; j++) {
-                        allOpts[j].style.color = '#334155';
-                        allOpts[j].style.fontWeight = '400';
+                        allOpts[j].classList.remove('active');
                     }
-                    opt.style.color = '#1A73E8';
-                    opt.style.fontWeight = '600';
+                    opt.classList.add('active');
                     applyLanguage(lang.code);
                 });
                 dd.appendChild(opt);
@@ -874,33 +860,27 @@
         wrap.appendChild(btn);
         wrap.appendChild(dd);
 
-        // Dark mode adaptation
-        if (isDark()) {
-            btn.style.background = 'rgba(24,17,33,0.85)';
-            btn.style.borderColor = 'rgba(255,255,255,0.15)';
-            btn.style.color = '#e2e8f0';
-            dd.style.background = 'rgba(24,17,33,0.97)';
-            dd.style.borderColor = 'rgba(255,255,255,0.1)';
-            dd.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
-        }
+        // DT-2/DT-3 FIX: Removed isDark() check and manual dark mode JS assignments.
+        // Previous: isDark() checked `.dark` CSS class (NEVER true — system uses data-theme).
+        // Widget was ALWAYS rendered in light mode even in dark theme.
+        // Now: Dark mode handled entirely by CSS html[data-theme="dark"] rules.
+        // Auto-responds to runtime theme changes without any JS code.
 
         return wrap;
     }
-
-    function isDark() {
-        return document.documentElement.classList.contains('dark') ||
-            document.body.classList.contains('dark');
-    }
+    // DT-2 FIX: Removed isDark() function.
+    // Previous: checked document.documentElement.classList.contains('dark') ||
+    //           document.body.classList.contains('dark') — ALWAYS returned false
+    //           because Nammerha uses data-theme="dark" attribute, not .dark class.
+    // Dark mode now handled entirely by CSS html[data-theme="dark"] rules.
 
     function toggleDropdown() {
         dropdownOpen = !dropdownOpen;
         var dd = document.getElementById('nm-lang-dd');
         var btn = document.getElementById('nm-lang-btn');
-        if (dd) {
-            dd.style.opacity = dropdownOpen ? '1' : '0';
-            dd.style.transform = dropdownOpen ? 'translateY(0) scale(1)' : 'translateY(-4px) scale(0.97)';
-            dd.style.pointerEvents = dropdownOpen ? 'auto' : 'none';
-        }
+        // DT-1 FIX: CSS class toggle replaces 3 inline style assignments.
+        // Previous: style.opacity, style.transform, style.pointerEvents.
+        if (dd) dd.classList.toggle('nm-lang-dd-open', dropdownOpen);
         if (btn) btn.setAttribute('aria-expanded', String(dropdownOpen));
     }
 
@@ -908,25 +888,15 @@
         dropdownOpen = false;
         var dd = document.getElementById('nm-lang-dd');
         var btn = document.getElementById('nm-lang-btn');
-        if (dd) {
-            dd.style.opacity = '0';
-            dd.style.transform = 'translateY(-4px) scale(0.97)';
-            dd.style.pointerEvents = 'none';
-        }
+        // DT-1 FIX: CSS class toggle replaces 3 inline style assignments.
+        if (dd) dd.classList.remove('nm-lang-dd-open');
         if (btn) btn.setAttribute('aria-expanded', 'false');
     }
 
-    // ─── RTL Direction Fix for Widget ─────────────────────────────────────
-    // Since the widget is now inside the navbar (flex container), RTL
-    // direction is handled automatically by the parent's flex direction.
-    // We only need to flip the dropdown anchor side.
-    function updateWidgetPosition() {
-        var dd = document.getElementById('nm-lang-dd');
-        if (!dd) return;
-        var isRTL = document.documentElement.getAttribute('dir') === 'rtl';
-        dd.style.right = isRTL ? 'auto' : '0';
-        dd.style.left = isRTL ? '0' : 'auto';
-    }
+    // DT-4 FIX: Removed updateWidgetPosition() function.
+    // Previous: toggled physical right/left via JS based on document dir.
+    // Now: CSS inset-inline-end:0 on #nm-lang-dd handles RTL automatically.
+    // No JS needed for RTL positioning.
 
     // ─── Suggestion Banner (Doc §4.3) ──────────────────────────────────
     // "لافتة إشعار علوية ذكية" — NO forced redirects, suggestion only.
@@ -1042,8 +1012,11 @@
                 if (langMount) {
                     langMount.appendChild(widget);
                 } else {
-                    // Final fallback: append to body with fixed positioning
-                    widget.style.cssText = 'position:fixed;top:12px;right:12px;z-index:10000;font-family:"Plus Jakarta Sans",sans-serif;';
+                    // DT-1 FIX: CSS class replaces inline style.cssText for fallback mount.
+                    // Previous: inline 'position:fixed;top:12px;right:12px;z-index:10000;'
+                    //           — physical right (RTL-unsafe), z-index magic number.
+                    // Now: .nm-lang-fallback uses inset-inline-end and var(--z-dropdown).
+                    widget.classList.add('nm-lang-fallback');
                     document.body.appendChild(widget);
                 }
             }
@@ -1051,7 +1024,7 @@
 
         // Apply stored/detected language
         applyLanguage(currentLang);
-        updateWidgetPosition();
+        // DT-4 FIX: Removed updateWidgetPosition() call — CSS handles RTL.
 
         // §4.3: Show suggestion banner if browser language differs
         showSuggestionBanner();
@@ -1080,7 +1053,7 @@
             }
             if (needsUpdate) {
                 translatePage(currentLang);
-                updateWidgetPosition();
+                // DT-4 FIX: Removed updateWidgetPosition() call — CSS handles RTL.
             }
         });
         observer.observe(document.body, { childList: true, subtree: true });

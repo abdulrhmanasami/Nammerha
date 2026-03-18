@@ -34,40 +34,20 @@
         btn.setAttribute('data-haptic', 'tap');
         btn.innerHTML = '<i class="ph ph-arrow-up" style="font-size:20px" aria-hidden="true"></i>';
 
-        // Glassmorphism styling matching Nammerha design system
-        btn.style.cssText =
-            'position:fixed;' +
-            'bottom:100px;' +
-            'inset-inline-end:16px;' +
-            'z-index:var(--z-dropdown,10);' +
-            'width:44px;height:44px;' +
-            'border-radius:var(--radius-full,9999px);' +
-            'background:var(--surface-elevated,rgba(255,255,255,0.7));' +
-            'backdrop-filter:blur(12px);' +
-            '-webkit-backdrop-filter:blur(12px);' +
-            'border:1px solid var(--border-light,rgba(255,255,255,0.3));' +
-            'box-shadow:var(--shadow-elevation,0 2px 8px rgba(0,0,0,0.08));' +
-            'color:var(--trust-blue,#1a73e8);' +
-            'cursor:pointer;' +
-            'display:flex;align-items:center;justify-content:center;' +
-            'opacity:0;visibility:hidden;' +
-            'transition:opacity 0.3s ease,visibility 0.3s ease,transform 0.15s ease;' +
-            '-webkit-tap-highlight-color:transparent;';
+        // P1-BTT-001 FIX: CSS class replaces 17-property inline style.cssText.
+        // All styling now in main.css (.nm-back-to-top), enabling:
+        //   • Dark mode overrides via html[data-theme="dark"]
+        //   • .keyboard-visible hide (P1-BTT-002)
+        //   • @media (prefers-reduced-motion) override (P3-A11Y-001)
+        // Standard: P1-001 precedent (nav.js), CSS Single Source of Truth.
+        btn.className = 'nm-back-to-top';
 
         btn.addEventListener('click', function () {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Active press feedback
-        btn.addEventListener('pointerdown', function () {
-            btn.style.transform = 'scale(0.9)';
-        });
-        btn.addEventListener('pointerup', function () {
-            btn.style.transform = '';
-        });
-        btn.addEventListener('pointerleave', function () {
-            btn.style.transform = '';
-        });
+        // Active press feedback — uses CSS :active state (.nm-back-to-top:active in main.css)
+        // No JS pointerdown/up/leave needed — CSS handles it for consistency.
 
         document.body.appendChild(btn);
         return btn;

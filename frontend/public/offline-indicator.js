@@ -48,7 +48,7 @@
             '  position: fixed;',
             '  top: 0;',
             '  inset-inline: 0;',
-            '  z-index: 99999;', /* Above everything, including modals */
+            '  z-index: var(--z-overlay, 9970);', /* P2-OFF-001 FIX: Was 99999 magic number — now uses design token */
             '  transform: translateY(-100%);',
             '  transition: transform ' + ANIMATION_DURATION + 'ms cubic-bezier(0.4, 0, 0.2, 1),',
             '              background ' + ANIMATION_DURATION + 'ms ease,',

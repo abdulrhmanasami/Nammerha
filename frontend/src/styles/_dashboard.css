@@ -69,6 +69,11 @@
   .sidebar-overlay.active {
     display: block;
     opacity: 1;
+    /* P3-SCR-001 FIX: Prevent background scroll propagation on iOS Safari.
+       body overflow:hidden can be bypassed during elastic overscroll.
+       overscroll-behavior:contain is belt-and-suspenders containment.
+       Standard: CSS Overscroll Behavior L1, Apple HIG (Modal Scroll). */
+    overscroll-behavior: contain;
   }
 
   /* Main content takes full width on mobile */
