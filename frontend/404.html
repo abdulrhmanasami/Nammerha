@@ -25,7 +25,6 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Nammerha — 404 | الصفحة غير موجودة" />
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
   <style>
@@ -297,7 +296,11 @@
     <p style="margin-top:0.5rem;color:#64748b;">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
   </div>
 </noscript>
-  <div class="error-container">
+<!-- DEF-AUD3-001 FIX: Skip-to-content link — was the only page missing it (WCAG 2.4.1).
+     On 404 pages there's no navigation to bypass, but consistency demands it.
+     Standard: WCAG 2.4.1 (Bypass Blocks), Cross-page consistency. -->
+<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
+  <div id="main-content" class="error-container">
     <div class="error-icon" aria-hidden="true">
       <i class="ph ph-compass"></i>
     </div>
@@ -309,7 +312,11 @@
         <i class="ph ph-house" aria-hidden="true"></i>
         <span data-i18n="error_404_go_home">Go to Homepage</span>
       </a>
-      <button onclick="history.back()" class="btn-back" data-i18n="error_404_go_back">← Go Back</button>
+      <!-- DEF-AUD3-002 FIX: Replaced inline onclick with data-back-btn.
+           Previous: onclick="history.back()" violates CSP and breaks external script pattern.
+           Now: data-back-btn attribute wired by nav.js (same as all other back buttons).
+           Standard: CSP compliance, Nielsen #4 (Consistency). -->
+      <button data-back-btn class="btn-back" data-i18n="error_404_go_back">← Go Back</button>
     </div>
   </div>
 

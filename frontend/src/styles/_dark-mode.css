@@ -22,6 +22,13 @@
    ║  3. When touching an existing page, migrate its overrides from         ║
    ║     this file to inline `dark:` utilities.                             ║
    ║  4. Target: shrink this file to 0 lines over time (gradual).           ║
+   ║                                                                        ║
+   ║  P1-AUD2-002: MIGRATION PROGRESS METRICS (March 18, 2026 baseline)    ║
+   ║  • Total lines: 249  │ Target: 0                                      ║
+   ║  • !important count: ~45  │ Target: 0                                 ║
+   ║  • Legacy selectors: ~35  │ Target: 0                                 ║
+   ║  • New text tokens added (P2-AUD2-003) — NOT legacy, keep here.       ║
+   ║  Update these metrics after each migration wave.                       ║
    ╚══════════════════════════════════════════════════════════════════════════╝
 
    PLT-AUD3-B01: DARK MODE SPLIT STRATEGY
@@ -46,6 +53,16 @@
 html[data-theme="dark"] body {
   background-color: var(--dark-tech);
   color: #e2e8f0;
+}
+/* P2-AUD2-003 FIX: Dark mode overrides for semantic text tokens (defined in main.css :root).
+   Light: heading=#0f172a, body=#475569, muted=#94a3b8, subtle=#cbd5e1
+   Dark:  heading=#f1f5f9, body=#cbd5e1, muted=#64748b, subtle=#475569
+   Standard: Design System Governance — centralized dark mode token remapping. */
+html[data-theme="dark"] {
+  --text-heading: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #64748b;
+  --text-subtle: #475569;
 }
 
 /* ── Glass Components ── */

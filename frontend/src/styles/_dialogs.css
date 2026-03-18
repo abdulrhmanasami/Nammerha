@@ -452,7 +452,7 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
     border-color: var(--trust-blue);
 }
 .nm-confirm-primary:hover {
-    background: var(--trust-blue-hover, #1e5fbb);
+    background: var(--trust-blue-hover, #1557b0);
 }
 html[data-theme="dark"] .nm-confirm-dialog {
     background: #1e1e1e;

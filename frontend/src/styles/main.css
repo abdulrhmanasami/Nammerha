@@ -91,6 +91,17 @@
   --border-light: rgba(255, 255, 255, 0.3);
   --border-subtle: #e2e8f0;
 
+  /* P2-AUD2-003 FIX: Semantic text color tokens.
+     Previous: ~45 hardcoded hex values (#94a3b8, #475569, #1e293b, #0f172a) scattered across rules.
+     Now: Centralized tokens for CSS rules (Tailwind utility classes remain unchanged).
+     Standard: Design System Governance — all author-controlled text colors use tokens.
+     Maps: heading=#0f172a (slate-900), body=#475569 (slate-600), muted=#94a3b8 (slate-400),
+            subtle=#cbd5e1 (slate-300). */
+  --text-heading: #0f172a;
+  --text-body: #475569;
+  --text-muted: #94a3b8;
+  --text-subtle: #cbd5e1;
+
   /* Typography */
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-arabic: 'IBM Plex Sans Arabic', 'Kufam', sans-serif;
