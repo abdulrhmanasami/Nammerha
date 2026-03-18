@@ -318,7 +318,8 @@ function initSearchInput(): void {
             const title = (card.dataset.projectTitle ?? '').toLowerCase();
             const region = (card.dataset.projectRegion ?? '').toLowerCase();
             const matches = title.includes(query) || region.includes(query);
-            card.style.display = matches ? '' : 'none';
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            card.classList.toggle('nm-hidden', !matches);
             if (matches) { matchCount++; }
         });
 
@@ -333,9 +334,9 @@ function initSearchInput(): void {
                     <p class="mt-2 text-sm font-medium" data-i18n="search_no_results">No projects match your search</p>`;
                 carousel.appendChild(noResults);
             }
-            noResults.style.display = '';
+            noResults.classList.remove('nm-hidden');
         } else if (noResults) {
-            noResults.style.display = 'none';
+            noResults.classList.add('nm-hidden');
         }
 
         // Scroll to carousel section
@@ -348,10 +349,11 @@ function initSearchInput(): void {
         const carousel = document.getElementById('projects-carousel');
         if (!carousel) { return; }
         carousel.querySelectorAll<HTMLElement>('[data-project-title]').forEach((c) => {
-            c.style.display = '';
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            c.classList.remove('nm-hidden');
         });
         const noResults = carousel.querySelector<HTMLElement>('.search-no-results');
-        if (noResults) { noResults.style.display = 'none'; }
+        if (noResults) { noResults.classList.add('nm-hidden'); }
     }
 
     searchInput.addEventListener('keydown', (e: KeyboardEvent) => {

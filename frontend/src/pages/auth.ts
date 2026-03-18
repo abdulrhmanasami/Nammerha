@@ -95,8 +95,8 @@ function switchTab(mode: 'login' | 'register'): void {
     }
     if (enteringPanel) {
         enteringPanel.removeAttribute('aria-hidden');
-        enteringPanel.style.display = 'flex';
-        enteringPanel.classList.remove('auth-panel-exit');
+        // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+        enteringPanel.classList.remove('nm-hidden', 'auth-panel-exit');
         setFormFocusable(enteringPanel, true);
     }
 
@@ -104,12 +104,14 @@ function switchTab(mode: 'login' | 'register'): void {
     if (exitingPanel) {
         if (prefersReducedMotion) {
             // PLAT-P2-001: Skip animation for reduced-motion users
-            exitingPanel.style.display = 'none';
+            // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+            exitingPanel.classList.add('nm-hidden');
             exitingPanel.classList.remove('auth-panel-exit');
         } else {
             exitingPanel.classList.add('auth-panel-exit');
             setTimeout(() => {
-                exitingPanel.style.display = 'none';
+                // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+                exitingPanel.classList.add('nm-hidden');
                 exitingPanel.classList.remove('auth-panel-exit');
             }, 250);
         }
@@ -160,14 +162,16 @@ function goToRegStep(targetStep: number): void {
         if (step === targetStep) {
             // P2-MOT-001: Apply directional animation class
             panel.classList.toggle('nm-step-backward', isBackward);
-            panel.style.display = '';
+            // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+            panel.classList.remove('nm-hidden');
             // Re-trigger animation
             panel.style.animation = 'none';
             // Force reflow
             void panel.offsetHeight;
             panel.style.animation = '';
         } else {
-            panel.style.display = 'none';
+            // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+            panel.classList.add('nm-hidden');
             panel.classList.remove('nm-step-backward');
         }
     });
@@ -194,11 +198,8 @@ function goToRegStep(targetStep: number): void {
     lines?.forEach((line, i) => {
         // Line i connects step (i+1) to step (i+2)
         const afterStep = i + 1;
-        if (afterStep < targetStep) {
-            line.style.background = 'var(--smoky-jade)';
-        } else {
-            line.style.background = '';
-        }
+        // P2-SST-002 FIX: CSS class toggle replaces inline style.background.
+        line.classList.toggle('nm-step-line--completed', afterStep < targetStep);
     });
 
     // ── Populate Step 3 review card ──
@@ -378,7 +379,8 @@ window.addEventListener('hashchange', () => {
                 const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
                 panels?.forEach(panel => {
                     const s = parseInt(panel.dataset.regStep ?? '0', 10);
-                    panel.style.display = s === step ? '' : 'none';
+                    // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+                    panel.classList.toggle('nm-hidden', s !== step);
                 });
                 currentRegStep = step;
                 // Update stepper UI
@@ -394,7 +396,8 @@ window.addEventListener('hashchange', () => {
                 });
                 const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
                 lines?.forEach((line, i) => {
-                    line.style.background = (i + 1) < step ? 'var(--smoky-jade)' : '';
+                    // P2-SST-002 FIX: CSS class toggle replaces inline style.background.
+                    line.classList.toggle('nm-step-line--completed', (i + 1) < step);
                 });
             }
         }

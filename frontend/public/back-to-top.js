@@ -64,13 +64,10 @@
                 fab = createFab();
             }
 
-            if (scrollY > SCROLL_THRESHOLD) {
-                fab.style.opacity = '1';
-                fab.style.visibility = 'visible';
-            } else {
-                fab.style.opacity = '0';
-                fab.style.visibility = 'hidden';
-            }
+            // P1-BTT-SYNC FIX: CSS class toggle replaces inline style.opacity/visibility.
+            // Aligns with back-to-top.ts and main.css (.nm-back-to-top--visible).
+            // Enables: dark mode, reduced motion, keyboard-visible hiding.
+            fab.classList.toggle('nm-back-to-top--visible', scrollY > SCROLL_THRESHOLD);
             ticking = false;
         });
     }

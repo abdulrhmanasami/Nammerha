@@ -126,9 +126,9 @@ export function renderCartBadge(badgeEl: HTMLElement | null): void {
     const count = CartStore.getCount();
     if (count > 0) {
         badgeEl.textContent = count > 99 ? '99+' : String(count);
-        badgeEl.style.display = 'flex';
+        badgeEl.classList.remove('nm-hidden');
     } else {
-        badgeEl.style.display = 'none';
+        badgeEl.classList.add('nm-hidden');
     }
 }
 

@@ -108,15 +108,17 @@ function switchDashTab(tab: ContractorDashTab): void {
         tabProjects?.classList.remove('text-slate-600');
         tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabBids?.classList.add('text-slate-600');
-        if (sectionProjects) { sectionProjects.style.display = ''; }
-        if (sectionBids) { sectionBids.style.display = 'none'; }
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+        if (sectionProjects) { sectionProjects.classList.remove('nm-hidden'); }
+        if (sectionBids) { sectionBids.classList.add('nm-hidden'); }
     } else {
         tabBids?.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabBids?.classList.remove('text-slate-600');
         tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabProjects?.classList.add('text-slate-600');
-        if (sectionBids) { sectionBids.style.display = ''; }
-        if (sectionProjects) { sectionProjects.style.display = 'none'; }
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+        if (sectionBids) { sectionBids.classList.remove('nm-hidden'); }
+        if (sectionProjects) { sectionProjects.classList.add('nm-hidden'); }
         loadBids();
     }
 }
@@ -162,8 +164,9 @@ async function loadProjectTimeline(): Promise<void> {
             // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
             const loadingRow = document.getElementById('projects-loading-row');
             const emptyRow = document.getElementById('projects-empty-row');
-            if (loadingRow) { loadingRow.style.display = 'none'; }
-            if (emptyRow) { emptyRow.style.display = ''; }
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
+            if (emptyRow) { emptyRow.classList.remove('nm-hidden'); }
             return;
         }
 
@@ -225,8 +228,9 @@ async function loadBids(): Promise<void> {
             // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
             const loadingRow = document.getElementById('bids-loading-row');
             const emptyRow = document.getElementById('bids-empty-row');
-            if (loadingRow) { loadingRow.style.display = 'none'; }
-            if (emptyRow) { emptyRow.style.display = ''; }
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
+            if (emptyRow) { emptyRow.classList.remove('nm-hidden'); }
             return;
         }
 

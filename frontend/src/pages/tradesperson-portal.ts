@@ -84,7 +84,8 @@ function switchTab(tab: TabName): void {
             : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
 
         const section = document.getElementById(`section-${tabId}`);
-        if (section) {section.style.display = tabId === tab ? '' : 'none';}
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+        if (section) {section.classList.toggle('nm-hidden', tabId !== tab);}
     }
 
     if (tab === 'dashboard') { loadStats(); loadActiveJobs(); }

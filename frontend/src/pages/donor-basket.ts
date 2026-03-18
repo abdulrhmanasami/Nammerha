@@ -135,33 +135,35 @@ function initDonorBasket(): void {
         existingCards.forEach((el) => el.remove());
 
         if (items.length === 0) {
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
             if (heading) {
-                heading.style.display = 'none';
+                heading.classList.add('nm-hidden');
             }
             if (emptyState) {
-                emptyState.style.display = 'block';
+                emptyState.classList.remove('nm-hidden');
             }
             if (checkoutSheet) {
-                checkoutSheet.style.display = 'none';
+                checkoutSheet.classList.add('nm-hidden');
             }
             if (trustFeatures) {
-                trustFeatures.style.display = 'none';
+                trustFeatures.classList.add('nm-hidden');
             }
             return;
         }
 
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         // Show elements
         if (heading) {
-            heading.style.display = 'block';
+            heading.classList.remove('nm-hidden');
         }
         if (emptyState) {
-            emptyState.style.display = 'none';
+            emptyState.classList.add('nm-hidden');
         }
         if (checkoutSheet) {
-            checkoutSheet.style.display = 'block';
+            checkoutSheet.classList.remove('nm-hidden');
         }
         if (trustFeatures) {
-            trustFeatures.style.display = 'grid';
+            trustFeatures.classList.remove('nm-hidden');
         }
 
         // Render each item

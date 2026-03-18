@@ -97,7 +97,8 @@ async function loadKPIs(): Promise<void> {
             if (notifCount) {
                 const pending = (stats['kyc_pending'] as number | undefined) ?? 0;
                 notifCount.textContent = String(pending);
-                notifCount.style.display = pending > 0 ? 'flex' : 'none';
+                // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+                notifCount.classList.toggle('nm-hidden', pending === 0);
             }
         }
 

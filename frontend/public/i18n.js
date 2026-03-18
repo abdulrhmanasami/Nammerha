@@ -671,8 +671,10 @@
         for (var i = 0; i < opts.length; i++) {
             var isActive = opts[i].dataset.lang === cfg.code;
             opts[i].classList.toggle('active', isActive);
-            var chk = opts[i].querySelector('svg:last-child');
-            if (chk) chk.style.opacity = isActive ? '1' : '0';
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.opacity.
+            // Check SVG defaults to opacity:0 via inline attr. .nm-lang-opt.active svg:last-child
+            // gets opacity:1 via CSS cascade — no JS needed beyond class toggle (L673).
+            // The classList.toggle('active') on line 673 handles this.
         }
 
         closeDropdown();

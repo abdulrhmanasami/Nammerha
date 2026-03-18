@@ -105,8 +105,9 @@
     function syncIcon(iconEl, theme) {
         if (!iconEl) { return; }
         iconEl.className = theme === 'dark' ? ICON_DARK : ICON_LIGHT;
-        // Preserve inline font-size if set
-        if (!iconEl.style.fontSize) { iconEl.style.fontSize = '18px'; }
+        // P3-SST-003 FIX: Removed defensive `iconEl.style.fontSize = '18px'`.
+        // Font-size is now governed by CSS: `[data-nm-theme-icon] { font-size: 18px; }`
+        // Standard: CSS Single Source of Truth.
     }
 
     /**

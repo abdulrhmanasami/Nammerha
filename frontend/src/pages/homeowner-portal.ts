@@ -180,8 +180,9 @@ function switchTab(tab: TabName): void {
         // WCAG: Update aria-selected for screen reader parity
         el.setAttribute('aria-selected', String(tabId === tab));
 
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         const section = document.getElementById(`section-${tabId}`);
-        if (section) { section.style.display = tabId === tab ? '' : 'none'; }
+        if (section) { section.classList.toggle('nm-hidden', tabId !== tab); }
     }
 
     if (tab === 'dashboard') { loadStats(); loadDashboardProjects(); }
@@ -212,7 +213,8 @@ async function loadStats(): Promise<void> {
         if (notifEl) {
             const count = s.pending_approvals;
             notifEl.textContent = String(count);
-            notifEl.style.display = count > 0 ? '' : 'none';
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            notifEl.classList.toggle('nm-hidden', count === 0);
         }
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults

@@ -117,7 +117,8 @@ async function initCamera(): Promise<void> {
         video.id = 'camera-video';
 
         if (viewfinder) {
-            if (cameraReady) { cameraReady.style.display = 'none'; }
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            if (cameraReady) { cameraReady.classList.add('nm-hidden'); }
             viewfinder.insertBefore(video, viewfinder.firstChild);
         }
     } catch (err) {
@@ -278,11 +279,13 @@ function setupSync(): void {
             if (icon) {
                 icon.classList.remove('ph-spinner', 'animate-spin');
                 icon.classList.add('ph-check-circle');
-                (icon as HTMLElement).style.color = '#109173';
+                // P3-CAM-002 FIX: CSS class replaces inline style.color.
+                (icon as HTMLElement).classList.add('nm-upload-success');
             }
             if (label) {
                 label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check" style="margin-inline-start:4px"></i>`;
-                label.style.color = '#109173';
+                // P3-CAM-002 FIX: CSS class replaces inline style.color.
+                label.classList.add('nm-upload-success');
             }
 
             showToast(`${uploaded} ${t('cam_proofs_submitted', 'spatial proof(s) submitted for verification')}`);

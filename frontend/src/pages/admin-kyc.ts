@@ -251,7 +251,8 @@ function renderDocumentViewer(index: number): void {
 
     /* Show action buttons (reset state for new selection) */
     if (actionButtons) {
-        actionButtons.style.display = 'block';
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+        actionButtons.classList.remove('nm-hidden');
         const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
         const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
 

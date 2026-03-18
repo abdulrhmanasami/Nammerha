@@ -52,7 +52,8 @@ function updateBadges(count: number): void {
 
         if (count > 0) {
             el.textContent = String(count);
-            el.style.display = '';
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            el.classList.remove('nm-hidden');
             // Subtle scale animation for visual feedback
             el.animate?.(
                 [
@@ -62,7 +63,8 @@ function updateBadges(count: number): void {
                 { duration: 200, easing: 'ease-out' },
             );
         } else {
-            el.style.display = 'none';
+            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+            el.classList.add('nm-hidden');
         }
     }
 }

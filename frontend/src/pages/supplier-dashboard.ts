@@ -117,15 +117,17 @@ function switchSupplierTab(tab: SupplierTab): void {
         tabOrders?.classList.remove('text-slate-600');
         tabCatalog?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog?.classList.add('text-slate-600');
-        if (sectionOrders) { sectionOrders.style.display = ''; }
-        if (sectionCatalog) { sectionCatalog.style.display = 'none'; }
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+        if (sectionOrders) { sectionOrders.classList.remove('nm-hidden'); }
+        if (sectionCatalog) { sectionCatalog.classList.add('nm-hidden'); }
     } else {
         tabCatalog?.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog?.classList.remove('text-slate-600');
         tabOrders?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabOrders?.classList.add('text-slate-600');
-        if (sectionCatalog) { sectionCatalog.style.display = ''; }
-        if (sectionOrders) { sectionOrders.style.display = 'none'; }
+        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+        if (sectionCatalog) { sectionCatalog.classList.remove('nm-hidden'); }
+        if (sectionOrders) { sectionOrders.classList.add('nm-hidden'); }
         loadCatalog();
     }
 }

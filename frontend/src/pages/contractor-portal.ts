@@ -119,10 +119,11 @@ function switchTab(tab: TabName): void {
     }
 
     // Show/hide sections
+    // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
     for (const tabId of ALL_TABS) {
         const section = document.getElementById(`section-${tabId}`);
         if (section) {
-            section.style.display = tabId === tab ? '' : 'none';
+            section.classList.toggle('nm-hidden', tabId !== tab);
         }
     }
 

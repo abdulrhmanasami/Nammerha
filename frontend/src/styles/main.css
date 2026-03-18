@@ -177,6 +177,11 @@ html.nm-theme-transition *::after {
                 border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
+/* P3-SST-003 FIX: Theme icon default font-size.
+   Replaces defensive `iconEl.style.fontSize = '18px'` in theme-toggle.js.
+   Standard: CSS Single Source of Truth. */
+[data-nm-theme-icon] { font-size: 18px; }
+
 /* ── Light Mode Variables ── */
 html[data-theme="light"] {
     --bg-primary: #f5f7fa;
@@ -1693,6 +1698,24 @@ html[data-theme="dark"] .nm-toast {
 }
 
 /* ============================================================================
+   P1-SST-001 FIX: CSS Single Source of Truth — JS Visibility Utilities
+   Previous: 15+ files used inline style.display = 'none' / style.opacity = '0'.
+   Now: All JS visibility toggle uses these CSS classes via classList.toggle().
+   Standard: P1-001 precedent (nav.js, banner.ts, back-to-top.ts).
+   ============================================================================ */
+.nm-hidden { display: none !important; }
+
+/* P2-AUTH-003 FIX: Wizard step connector line — completed state.
+   Replaces inline `line.style.background = 'var(--smoky-jade)'`.
+   Standard: CSS Single Source of Truth. */
+.nm-step-line--completed { background: var(--smoky-jade) !important; }
+
+/* P3-CAM-002 FIX: Upload success icon/label color.
+   Replaces inline `style.color = '#109173'`.
+   Standard: CSS Single Source of Truth + design token adherence. */
+.nm-upload-success { color: var(--smoky-jade); }
+
+/* ============================================================================
    P1-AUD4-002 FIX: Cooldown state for buttons/links (forgot-password, rate-limit)
    Previous: auth.ts L808-809 used inline style.pointerEvents + style.opacity.
    Standard: P1-001 precedent — CSS Single Source of Truth.
@@ -3015,6 +3038,8 @@ html[data-theme="dark"] a.text-warning-yellow {
     color: var(--trust-blue);
     font-weight: 600;
 }
+/* P1-SST-001 FIX: Checkmark opacity now CSS-driven (was inline JS style.opacity). */
+.nm-lang-opt.active svg:last-child { opacity: 1 !important; }
 
 /* DT-3 FIX: Dark mode auto-responds to runtime theme changes.
    Previous: isDark() checked `.dark` class (NEVER true — system uses data-theme).
