@@ -319,7 +319,10 @@
             <h2 class="font-bold" data-i18n="tradesperson_earnings_history">Earnings History</h2>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="tradesperson_earnings_hint">Completed jobs and payments received</p>
           </div>
-          <div class="overflow-x-auto">
+          <!-- PLAT-P1-003 FIX: Was the ONLY overflow-x-auto wrapper across all 7 portals
+               missing data-scroll-hint. All other tables have it for mobile UX affordance.
+               Standard: Nielsen #4 (Consistency), Touch Interaction Discoverability. -->
+          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <table class="w-full text-sm nm-donation-table">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">

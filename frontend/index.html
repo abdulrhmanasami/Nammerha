@@ -7,10 +7,10 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <!-- PWA-003 FIX: iOS requires PNG apple-touch-icon (ignores SVG). 192px downscaled to 180×180. -->
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
@@ -205,6 +205,11 @@
     <!-- C-001: pt-16 on mobile (below new fixed mobile nav h-14), pt-20 on sm+ (below desktop fixed nav) -->
     <!-- CONF-006 FIX: mobile-container added for width consistency with all consumer pages -->
     <main id="main-content" class="mobile-container pt-16 sm:pt-20 pb-24">
+      <!-- DEFER-P0-003 FIX: Homepage had ZERO h1 — the MOST critical page for SEO.
+           Search engines weight h1 heavily for topic relevance. Screen readers had no primary heading.
+           Visually hidden because the map hero is the visual anchor, not a text heading.
+           Standard: WCAG 2.2 SC 1.3.1, Google SEO (h1 required), Apple HIG (Accessibility). -->
+      <h1 class="sr-only" data-i18n="homepage_heading">Nammerha — Rebuild Syria Together</h1>
       <!-- Hero: Interactive Reconstruction Map (MapLibre GL JS) -->
       <section class="px-4 mb-8">
         <!-- M-AUD-004 FIX: Reduced from aspect-[4/3] to aspect-[16/9] on mobile.

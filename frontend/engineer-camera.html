@@ -5,9 +5,14 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>html:not([data-theme]){visibility:hidden}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- PLAT-P0-001 FIX: Removed maximum-scale=1.0, user-scalable=no.
+       Previous: Zoom was blocked — cargo-culted from native camera apps.
+       This is an HTML page, NOT a native camera. Users with low vision MUST be able to zoom
+       to read GPS coordinates and timestamps in the telemetry strip.
+       Standard: WCAG 2.2 SC 1.4.4 (Resize Text) — "text can be resized up to 200%". -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- CONF-P01 FIX: Enforceable CSP directives -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self'; object-src 'none'; base-uri 'self'" />
   <!-- P0-MOB-001 FIX: PWA installability -->
@@ -34,11 +39,18 @@
     /* DEF-AUD3-003 FIX: Migrated from html.dark to html[data-theme="dark"] — matches theme-boot.js.
        Previous: class="dark" on <html> was legacy; theme-boot.js sets data-theme, not class.
        Standard: Theme System Consistency, Single Source of Truth. */
-    html[data-theme="dark"] body { background-color: #242424 !important; color: #f1f5f9; }
+    /* PLAT-P2-002 FIX: Removed !important — html[data-theme="dark"] body already
+       wins by specificity over body { background-color }. !important was unnecessary
+       and violated CSS Specificity Architecture standards. */
+    html[data-theme="dark"] body { background-color: #242424; color: #f1f5f9; }
   </style>
 <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="font-display min-h-screen flex flex-col antialiased select-none">
+<!-- PLAT-P3-003 FIX: Removed select-none from body — prevents ALL text selection globally.
+     Users may need to select GPS coordinates or project IDs to copy-paste.
+     select-none is now scoped to ONLY the viewfinder overlay (L124 crosshair div).
+     Standard: WCAG 2.1 SC 1.3.1 (Content must be operable), Apple HIG (Text Selection). -->
+<body class="font-display min-h-screen flex flex-col antialiased">
 <!-- PE-001 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -78,7 +90,9 @@
       <!-- GPS Coordinates -->
       <div class="flex-1 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg">
         <p class="text-[10px] text-trust-blue font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1">
-          <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i> GPS Lock
+          <!-- PLAT-P1-001 FIX: Was hardcoded English — Syrian field engineers need Arabic.
+               Standard: Platform Translation Mandate, i18n RTL parity. -->
+          <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i> <span data-i18n="camera_gps_lock">GPS Lock</span>
         </p>
         <p class="text-white text-xs font-mono" id="gps-coords">36.2021° N, 37.1342° E</p>
         <p class="text-slate-500 text-[10px] mt-0.5" id="gps-accuracy">Accuracy: ±3.2m</p>
@@ -86,13 +100,20 @@
       <!-- Project ID -->
       <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-end">
         <p class="text-[10px] text-warning-yellow font-bold uppercase tracking-widest mb-0.5 flex items-center justify-end gap-1">
-          <i class="ph ph-hash ph-xs" aria-hidden="true"></i> Project
+          <!-- PLAT-P1-001 FIX: Was hardcoded English — now translatable. -->
+          <i class="ph ph-hash ph-xs" aria-hidden="true"></i> <span data-i18n="camera_project_label">Project</span>
         </p>
         <p class="text-white text-xs font-mono font-bold" data-i18n="nmr_hvr_001">NMR-HVR-001</p>
         <p class="text-slate-500 text-[10px] mt-0.5" data-i18n="harbor_view">Harbor View</p>
       </div>
     </div>
   </header>
+
+  <!-- PLAT-P2-001 FIX: sr-only h2 headings for screen reader section navigation.
+       Previous: h1 "Site Verification" (L69) was the ONLY heading — no h2s at all.
+       4 semantic sections had zero heading structure for assistive technology.
+       Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy), Apple HIG (Accessibility). -->
+  <h2 class="sr-only" data-i18n="camera_section_viewfinder">Camera Viewfinder</h2>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        CAMERA VIEWFINDER — Full-screen dark viewport with crosshair overlay
@@ -121,7 +142,7 @@
       </div>
 
       <!-- Crosshair overlay -->
-      <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute inset-0 pointer-events-none select-none">
         <div class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8"></div>
         <div class="absolute top-1/2 left-0 right-0 h-px bg-trust-blue/8"></div>
         <!-- Corner brackets -->
@@ -149,6 +170,8 @@
     </div>
   </div>
 
+  <h2 class="sr-only" data-i18n="camera_section_material">Material Context</h2>
+
   <!-- ═══════════════════════════════════════════════════════════════════════
        MATERIAL CONTEXT CARD — Current BOQ item being verified
        ═══════════════════════════════════════════════════════════════════════ -->
@@ -164,6 +187,8 @@
       <span class="badge-verified text-[8px] shrink-0" data-i18n="matched">Matched</span>
     </div>
   </div>
+
+  <h2 class="sr-only" data-i18n="camera_section_actions">Capture Actions</h2>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        ZERO UI ACTION ZONE — Massive floating buttons for field workers
@@ -242,6 +267,16 @@
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
 <script src="/load-guard.js" defer></script>
+<!-- PLAT-P2-003 FIX: Haptic feedback — camera page has 4 large touch targets (Capture 360,
+     Voice Snag, Gallery, Sync) but had NO haptic feedback. This is the MOST touch-intensive
+     page on the platform.
+     Standard: Native-App Feel, Apple HIG (Tactile Feedback). -->
+<script src="/haptic.js" defer></script>
+<!-- PLAT-P1-002 FIX: Offline indicator — field engineers in Syria on 2G/3G are the PRIMARY
+     users of this page. Without this, connectivity drops are SILENT while the page attempts
+     S3 uploads of captured proofs. Critical for this specific page more than any other.
+     Standard: Sustainable UX (Syrian 2G/3G), Nielsen #1 (System Status Visibility). -->
+<script src="/offline-indicator.js" defer></script>
 <script src="/nav.js?v=7" defer></script>
 </body>
 </html>

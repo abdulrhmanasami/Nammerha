@@ -21,7 +21,9 @@
         'report_damage': { ar: 'الإبلاغ عن أضرار', de: 'Schaden melden', fr: 'Signaler des dégâts', tr: 'Hasar Bildir' },
         'build_boq': { ar: 'إنشاء جدول كميات', de: 'LV erstellen', fr: 'Créer le DQE', tr: 'BOQ Oluştur' },
         'fund_materials': { ar: 'تمويل المواد', de: 'Materialien finanzieren', fr: 'Financer les matériaux', tr: 'Malzemeleri Finanse Et' },
-        'price_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' }
+        'price_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' },
+        /* DEFER-P0-003: sr-only h1 heading for SEO + screen readers */
+        'homepage_heading': { ar: 'نعمِّرها — نعيد بناء سوريا معاً', de: 'Nammerha — Syrien gemeinsam wiederaufbauen', fr: 'Nammerha — Reconstruire la Syrie ensemble', tr: 'Nammerha — Suriye\'yi Birlikte Yeniden İnşa Edelim' }
         });
     }
 })();
