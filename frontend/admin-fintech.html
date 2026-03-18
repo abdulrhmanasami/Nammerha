@@ -132,52 +132,56 @@
         <p class="text-sm text-slate-500 mt-0.5" data-i18n="fintech_subtitle">Escrow fees, enterprise subscriptions, and TaaS management</p>
       </div>
 
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-            <i class="ph ph-bank text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+      <!-- INC-P3-003/004 FIX: KPI cards unified to admin-dashboard golden reference.
+           INC-P3-004: Added sm:grid-cols-2 breakpoint (was missing — tablets showed 1-col).
+           INC-P3-003: Card header flex-gap-3 → flex-justify-between, label below icon row.
+           Standard: Nielsen #4 (Consistency), Gestalt (Similarity). -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-bank text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
           </div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_escrow_fees">Escrow Fees</span>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_escrow_fees">Escrow Fees</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-escrow-fees">$0</p>
+          <p class="text-[10px] text-slate-400 mt-1" data-i18n="fintech_all_time">All time</p>
         </div>
-        <span class="text-2xl font-black" aria-live="polite" id="kpi-escrow-fees">$0</span>
-        <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_all_time">All time</span>
-      </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-            <i class="ph ph-buildings text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full" data-i18n="badge_active">Active</span>
           </div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_enterprise_orgs">Enterprise Orgs</span>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_enterprise_orgs">Enterprise Orgs</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-enterprise-orgs">0</p>
+          <p class="text-[10px] text-slate-400 mt-1" data-i18n="fintech_active">Active</p>
         </div>
-        <span class="text-2xl font-black" aria-live="polite" id="kpi-enterprise-orgs">0</span>
-        <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_active">Active</span>
-      </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
-            <i class="ph ph-chart-line-up text-warm-earth" style="font-size:20px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
+              <i class="ph ph-chart-line-up text-warm-earth" style="font-size:20px" aria-hidden="true"></i>
+            </div>
           </div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_mtd_fees">MTD Fees</span>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_mtd_fees">MTD Fees</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-mtd-fees">$0</p>
+          <p class="text-[10px] text-slate-400 mt-1" data-i18n="fintech_this_month">This month</p>
         </div>
-        <span class="text-2xl font-black" aria-live="polite" id="kpi-mtd-fees">$0</span>
-        <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_this_month">This month</span>
-      </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="size-10 rounded-lg bg-slate-100 flex items-center justify-center">
-            <i class="ph ph-key text-slate-600" style="font-size:20px" aria-hidden="true"></i>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-slate-100 flex items-center justify-center">
+              <i class="ph ph-key text-slate-600" style="font-size:20px" aria-hidden="true"></i>
+            </div>
           </div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_api_calls">API Calls</span>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_api_calls">API Calls</p>
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-api-calls">0</p>
+          <p class="text-[10px] text-slate-400 mt-1" data-i18n="fintech_this_month">This month</p>
         </div>
-        <span class="text-2xl font-black" aria-live="polite" id="kpi-api-calls">0</span>
-        <span class="text-xs text-slate-400 block mt-1" data-i18n="fintech_this_month">This month</span>
       </div>
-    </div>
 
     <!-- Fee Configuration -->
     <section class="bg-white rounded-xl border border-slate-200 shadow-sm">

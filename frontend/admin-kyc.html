@@ -158,30 +158,53 @@
         </div>
       </div>
 
-      <!-- Stats -->
+      <!-- INC-P3-003 FIX: KYC stat cards unified to admin-dashboard golden reference.
+           p-4→p-5, added icon containers, text-xl→text-2xl font-black, hover:shadow-md.
+           Standard: Nielsen #4 (Consistency), Gestalt (Similarity). -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_pending_review">Pending Review</p>
-          <p class="text-xl font-bold" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" id="stat-pending">
-            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
+              <i class="ph ph-clock-countdown text-warning-yellow" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="kyc_pending_review">Pending Review</p>
+          <p class="text-2xl font-black mt-1" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" id="stat-pending">
+            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
-          <p class="text-xl font-bold text-smoky-jade" aria-live="polite" id="stat-verified">
-            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
+              <i class="ph ph-seal-check text-smoky-jade" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
+          <p class="text-2xl font-black text-smoky-jade mt-1" aria-live="polite" id="stat-verified">
+            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="rejected">Rejected</p>
-          <p class="text-xl font-bold text-rose-500" aria-live="polite" id="stat-rejected">
-            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-rose-50 flex items-center justify-center">
+              <i class="ph ph-x-circle text-rose-500" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="rejected">Rejected</p>
+          <p class="text-2xl font-black text-rose-500 mt-1" aria-live="polite" id="stat-rejected">
+            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" data-i18n="total_users">Total Users</p>
-          <p class="text-xl font-bold text-slate-900" id="stat-total">
-            <span class="inline-block h-5 w-8 bg-slate-200 rounded animate-pulse"></span>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+              <i class="ph ph-users text-trust-blue" style="font-size:20px" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="total_users">Total Users</p>
+          <p class="text-2xl font-black text-slate-900 mt-1" id="stat-total">
+            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
       </div>
