@@ -122,7 +122,7 @@
                Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
                Now: Inherits dark mode, focus ring, and token updates from design system.
                Standard: Design System Governance, DEF-004. -->
-          <input id="login-email" name="email" type="email" required autocomplete="email" enterkeyhint="next"
+          <input id="login-email" name="email" type="email" required autocomplete="email" inputmode="email" enterkeyhint="next"
             class="nm-input ps-12"
             placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
         </div>
@@ -196,7 +196,6 @@
           </svg>
           <span data-i18n="auth_apple_sso">Sign in with Apple</span>
         </button>
-      </div>
     </form>
 
     <!-- REGISTER FORM (hidden by default)
@@ -212,7 +211,10 @@
     <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate style="display:none">
 
       <!-- ─── Stepper Indicator ─────────────────────────── -->
-      <div class="flex items-center justify-center gap-0 mb-2" role="navigation" aria-label="Registration steps">
+      <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
+           not page navigation targets. aria-label describes the group purpose.
+           Standard: WAI-ARIA Best Practices, WCAG 1.3.1 (Info & Relationships). -->
+      <div class="flex items-center justify-center gap-0 mb-2" role="group" aria-label="Registration progress">
         <div class="nm-step-indicator active" data-step-dot="1">
           <span class="nm-step-num">1</span>
           <span class="nm-step-label" data-i18n="reg_step_identity">Identity</span>
@@ -231,7 +233,7 @@
 
       <!-- ─── STEP 1: Identity ─────────────────────────── -->
       <fieldset class="nm-step-panel" data-reg-step="1" style="border:none;padding:0;margin:0;">
-        <legend class="sr-only">Step 1: Your Identity</legend>
+        <legend class="sr-only" data-i18n="reg_legend_identity">Step 1: Your Identity</legend>
         <!-- Full Name -->
         <div class="mb-4">
           <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="full_name_label">Full Name</label>
@@ -249,7 +251,7 @@
           <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
           <div class="relative">
             <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
-            <input id="reg-email" name="email" type="email" required autocomplete="email" enterkeyhint="next"
+            <input id="reg-email" name="email" type="email" required autocomplete="email" inputmode="email" enterkeyhint="next"
               class="nm-input ps-12"
               placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
           </div>
@@ -263,7 +265,7 @@
 
       <!-- ─── STEP 2: Security ─────────────────────────── -->
       <fieldset class="nm-step-panel" data-reg-step="2" style="display:none;border:none;padding:0;margin:0;">
-        <legend class="sr-only">Step 2: Create a Password</legend>
+        <legend class="sr-only" data-i18n="reg_legend_security">Step 2: Create a Password</legend>
         <!-- Password -->
         <div class="mb-4">
           <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
@@ -283,13 +285,13 @@
             <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
             <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
           </div>
-          <!-- P3-PLT-003 FIX: Increased from text-[10px] to text-[11px] — nearly illegible on mobile.
-               Standard: WCAG 1.4.4 (Resize Text), Mobile Typography Best Practices. -->
+          <!-- INC-002 FIX: Governed micro-hint tier (10px). Complies with text-size governance.
+               Standard: INC-002 Micro-Text Governance, WCAG 1.4.4 (Resize Text). -->
           <!-- C-AUD-001 FIX: Corrected to match actual auth.ts validation requirements (L175-178).
                Previous: "8+ chars, 1 uppercase, 1 number" — omitted lowercase and symbol requirements.
                Users crafted compliant-looking passwords that were rejected, destroying trust.
                Standard: Nielsen #2 (Match System ↔ Real World), WCAG 3.3.2. -->
-          <p class="text-[11px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
+          <p class="text-[10px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
         </div>
         <!-- FRC-002 FIX: Confirm Password field -->
         <div class="mb-4">
@@ -331,19 +333,19 @@
 
       <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
       <fieldset class="nm-step-panel" data-reg-step="3" style="display:none;border:none;padding:0;margin:0;">
-        <legend class="sr-only">Step 3: Review and Agree</legend>
+        <legend class="sr-only" data-i18n="reg_legend_consent">Step 3: Review and Agree</legend>
         <!-- Multi-Role Architecture note -->
         <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
 
         <!-- Summary card: show what user entered -->
         <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
           <div class="flex items-center justify-between mb-2">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="reg_review_info">Review Your Info</p>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="reg_review_info">Review Your Info</p>
             <!-- DEF-008 FIX: Direct edit shortcut from review card.
                  Previous: Users had to click "Back" twice to edit name/email.
                  Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
-            <button type="button" class="text-[10px] font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors" data-goto-step="1">
-              <i class="ph ph-pencil-simple" style="font-size:11px" aria-hidden="true"></i>
+            <button type="button" class="text-xs font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors min-h-[44px] min-w-[44px] justify-center" data-goto-step="1">
+              <i class="ph ph-pencil-simple" style="font-size:12px" aria-hidden="true"></i>
               <span data-i18n="common_edit">Edit</span>
             </button>
           </div>
@@ -364,7 +366,7 @@
           <input id="reg-terms" name="terms" type="checkbox" required
             aria-describedby="reg-terms-error"
             class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
-          <label for="reg-terms" class="text-[11px] text-slate-500 leading-relaxed cursor-pointer">
+          <label for="reg-terms" class="text-xs text-slate-500 leading-relaxed cursor-pointer">
             <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Privacy Policy</a></span>
           </label>
         </div>
@@ -419,7 +421,7 @@
          Standard: Nielsen #8 — "Aesthetic and minimalist design." -->
     <div class="mt-auto px-6 py-8 text-center relative z-10">
       <details class="mb-3">
-        <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1">
+        <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px]">
           <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
           <span data-i18n="auth_security_details">Security Details</span>
         </summary>

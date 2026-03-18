@@ -2,6 +2,11 @@ import '../styles/main.css';
 import { auth } from '../api';
 import { t } from '../utils/i18n';
 import { showStructuredBanner, hideStructuredBanner, type StructuredBannerElements } from '../utils/banner';
+// P0-PLAT-001 FIX: Wire native-app mobile utilities that exist but were never connected to auth.
+// Auth is the FIRST screen every user sees — it MUST feel native.
+import { initSwipeTabs } from '../utils/swipe-tabs';
+import { haptic } from '../utils/haptic';
+import { initPullToRefresh } from '../utils/pull-refresh';
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
@@ -39,6 +44,10 @@ const bannerText = document.getElementById('auth-banner-text') as HTMLElement | 
 function switchTab(mode: 'login' | 'register'): void {
     state.mode = mode;
     hideBanner();
+
+    // P0-PLAT-001 FIX: Haptic feedback on tab switch — native-app tactile response.
+    // Standard: Apple HIG ("Provide haptic feedback for mode changes").
+    haptic.light();
 
     // P0-UXA-001 FIX: Sync aria-selected on tab elements (WCAG 4.1.2)
     // Previous: CSS classes toggled but aria-selected never updated — screen readers
@@ -117,11 +126,22 @@ function goToRegStep(targetStep: number): void {
         if (!validateCurrentStep()) { return; }
     }
 
+    // P0-PLAT-001 FIX: Haptic feedback on wizard step navigation.
+    // Standard: Apple HIG ("Haptic for navigation state changes").
+    haptic.light();
+
+    // P2-MOT-001 FIX: Determine animation direction for spatial consistency.
+    // Forward steps slide from right, backward steps slide from left.
+    // Standard: Material Design 3 ("Transitions reinforce spatial model").
+    const isBackward = targetStep < currentRegStep;
+
     // ── Update panels ──
     const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
     panels?.forEach(panel => {
         const step = parseInt(panel.dataset.regStep ?? '0', 10);
         if (step === targetStep) {
+            // P2-MOT-001: Apply directional animation class
+            panel.classList.toggle('nm-step-backward', isBackward);
             panel.style.display = '';
             // Re-trigger animation
             panel.style.animation = 'none';
@@ -130,6 +150,7 @@ function goToRegStep(targetStep: number): void {
             panel.style.animation = '';
         } else {
             panel.style.display = 'none';
+            panel.classList.remove('nm-step-backward');
         }
     });
 
@@ -163,8 +184,8 @@ function goToRegStep(targetStep: number): void {
         const emailVal = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim() ?? '—';
         const reviewName = document.getElementById('reg-review-name');
         const reviewEmail = document.getElementById('reg-review-email');
-        if (reviewName) reviewName.textContent = nameVal;
-        if (reviewEmail) reviewEmail.textContent = emailVal;
+        if (reviewName) { reviewName.textContent = nameVal; }
+        if (reviewEmail) { reviewEmail.textContent = emailVal; }
     }
 
     currentRegStep = targetStep;
@@ -326,6 +347,12 @@ const bannerElements: StructuredBannerElements = {
 
 function showBanner(type: 'error' | 'success' | 'info', message: string): void {
     showStructuredBanner(bannerElements, type, message);
+    // P0-PLAT-001 FIX: Haptic feedback on banner display — tactile reinforcement.
+    // Error → heavy (alert), success → success pattern, info → light.
+    // Standard: Apple HIG ("Use haptics to reinforce feedback").
+    if (type === 'error') { haptic.heavy(); }
+    else if (type === 'success') { haptic.success(); }
+    else { haptic.light(); }
 }
 
 function hideBanner(): void {
@@ -503,9 +530,15 @@ formLogin?.addEventListener('submit', async (e) => {
     }
 
     state.isSubmitting = true;
+    // P0-PLAT-001 FIX: Haptic on submission start.
+    haptic.medium();
     const submitBtn = document.getElementById('login-submit') as HTMLButtonElement | null;
     const submitText = document.getElementById('login-submit-text');
-    if (submitBtn) { submitBtn.disabled = true; }
+    // DEF-A08 FIX: Use canonical .btn-loading class instead of disabled attribute.
+    // Previous: submitBtn.disabled = true → removes button from tab order (WCAG 2.1.1 violation).
+    // .btn-loading: pointer-events:none + spinner animation + consistent opacity.
+    // Standard: Design System Governance, WCAG 2.1.1 (Keyboard).
+    if (submitBtn) { submitBtn.classList.add('btn-loading'); }
     if (submitText) { submitText.textContent = t('auth_signing_in', 'Signing in...'); }
 
     try {
@@ -569,7 +602,7 @@ formLogin?.addEventListener('submit', async (e) => {
         showBanner('error', message);
     } finally {
         state.isSubmitting = false;
-        if (submitBtn) { submitBtn.disabled = false; }
+        if (submitBtn) { submitBtn.classList.remove('btn-loading'); }
         if (submitText) { submitText.textContent = t('sign_in_btn', 'Sign In'); }
     }
 });
@@ -611,13 +644,17 @@ formRegister?.addEventListener('submit', async (e) => {
     // silently died as an unhandled rejection with no error banner and
     // the button stuck in loading state forever.
     state.isSubmitting = true;
+    // P0-PLAT-001 FIX: Haptic on submission start.
+    haptic.medium();
     const submitText = document.getElementById('reg-submit-text');
 
     try {
-        // Visual feedback — inside try so any error is caught
+        // DEF-A07 FIX: Use canonical .btn-loading class.
+        // Previous: inline style.pointerEvents + style.opacity — no spinner, inconsistent with login.
+        // .btn-loading: spinner animation + pointer-events:none + opacity:0.7.
+        // Standard: Design System Governance (main.css L1491), DRY Principle.
         if (regSubmit) {
-            regSubmit.style.pointerEvents = 'none';
-            regSubmit.style.opacity = '0.5';
+            regSubmit.classList.add('btn-loading');
         }
         if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
 
@@ -657,8 +694,7 @@ formRegister?.addEventListener('submit', async (e) => {
     } finally {
         state.isSubmitting = false;
         if (regSubmit) {
-            regSubmit.style.pointerEvents = '';
-            regSubmit.style.opacity = '1';
+            regSubmit.classList.remove('btn-loading');
         }
         if (submitText) { submitText.textContent = t('create_account_btn', 'Create Account'); }
     }
@@ -726,3 +762,28 @@ document.querySelectorAll<HTMLButtonElement>('[data-sso-provider]').forEach(btn 
         showBanner('info', t('auth_sso_coming_soon', `Sign in with ${provider} is coming soon. Please register with email for now.`));
     });
 });
+
+// ─── P0-PLAT-001 FIX: Native-App Mobile Utilities ──────────────────────────
+// Three critical mobile utilities existed in the codebase but were NEVER wired
+// to the auth page — the first screen every user sees.
+// Standard: Apple HIG (Native-Feel PWA), Material Design 3 (Gesture Navigation).
+// ────────────────────────────────────────────────────────────────────────────
+
+// FIX-1: Horizontal swipe gesture between Login ↔ Register tabs.
+// swipe-tabs.ts handles RTL direction, threshold, and vertical scroll rejection.
+initSwipeTabs({
+    containerSelector: '#main-content',
+    tabs: ['login', 'register'] as const,
+    onSwitch: (tab) => {
+        switchTab(tab);
+        if (tab === 'register') { goToRegStep(1); }
+    },
+    getCurrentTab: () => state.mode,
+    threshold: 60,   // Slightly higher than default (50) to avoid accidental triggers
+    maxVertical: 80,
+});
+
+// FIX-3: Pull-to-refresh gesture.
+// On cached/stale auth page loads (common on Syrian mobile networks),
+// users need a way to force-refresh without knowing browser controls.
+initPullToRefresh();

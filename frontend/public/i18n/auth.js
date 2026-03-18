@@ -75,7 +75,11 @@
         'reg_step_consent': { ar: 'الموافقة', de: 'Zustimmung', fr: 'Consentement', tr: 'Onay' },
         'reg_review_info': { ar: 'راجع معلوماتك قبل إنشاء الحساب', de: 'Überprüfen Sie Ihre Angaben vor der Kontoerstellung', fr: 'Vérifiez vos informations avant de créer le compte', tr: 'Hesap oluşturmadan önce bilgilerinizi kontrol edin' },
         /* DEFER-P0-001: sr-only h1 heading for screen readers */
-        'auth_page_heading': { ar: 'تسجيل الدخول أو إنشاء حساب', de: 'Anmelden oder Konto erstellen', fr: 'Connexion ou création de compte', tr: 'Giriş Yap veya Hesap Oluştur' }
+        'auth_page_heading': { ar: 'تسجيل الدخول أو إنشاء حساب', de: 'Anmelden oder Konto erstellen', fr: 'Connexion ou création de compte', tr: 'Giriş Yap veya Hesap Oluştur' },
+        /* DEF-A06 FIX: sr-only <legend> translations for wizard fieldsets */
+        'reg_legend_identity': { ar: 'الخطوة ١: هويتك', de: 'Schritt 1: Ihre Identität', fr: 'Étape 1 : Votre identité', tr: 'Adım 1: Kimliğiniz' },
+        'reg_legend_security': { ar: 'الخطوة ٢: إنشاء كلمة مرور', de: 'Schritt 2: Passwort erstellen', fr: 'Étape 2 : Créer un mot de passe', tr: 'Adım 2: Şifre Oluşturun' },
+        'reg_legend_consent': { ar: 'الخطوة ٣: المراجعة والموافقة', de: 'Schritt 3: Überprüfen und Zustimmen', fr: 'Étape 3 : Vérifier et accepter', tr: 'Adım 3: Gözden Geçir ve Onayla' }
         });
     }
 })();

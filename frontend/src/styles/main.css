@@ -2027,6 +2027,41 @@ html[data-theme="dark"] .auth-tab:hover {
 }
 
 /* ============================================================================
+   P1-DM-AUTH FIX: Dark Mode Auth Tab Container Background
+   Previous: bg-slate-200/60 (Tailwind class) has NO dark mode override —
+   rendered as a jarring light-gray strip on the dark auth page background.
+   Now: Explicit dark mode background that matches the dark surface aesthetic.
+   Standard: WCAG 1.4.3 (Contrast), Apple HIG Dark Mode Guidelines.
+   ============================================================================ */
+html[data-theme="dark"] [role="tablist"] {
+    background: rgba(30, 41, 59, 0.6) !important;
+}
+
+/* ============================================================================
+   DEF-A03 FIX: Dark Mode Auth Review Card
+   Previous: bg-slate-50 + border-slate-200 (Tailwind) had NO dark mode override —
+   bright white card on dark background destroyed visual hierarchy.
+   Standard: WCAG 1.4.3 (Contrast), Material Design 3 Dark Theme.
+   ============================================================================ */
+html[data-theme="dark"] #form-register .bg-slate-50 {
+    background: rgba(30, 41, 59, 0.5) !important;
+    border-color: rgba(51, 65, 85, 0.6) !important;
+}
+
+/* DEF-A04 FIX: Dark Mode Auth Dividers
+   bg-slate-200 horizontal rule lines — too bright on dark backgrounds. */
+html[data-theme="dark"] #form-login .bg-slate-200,
+html[data-theme="dark"] #form-register .bg-slate-200 {
+    background: rgba(51, 65, 85, 0.5) !important;
+}
+
+/* DEF-A05 FIX: Dark Mode Remember-Me Checkbox */
+html[data-theme="dark"] #remember-me {
+    border-color: #475569;
+    background: rgba(30, 41, 59, 0.8);
+}
+
+/* ============================================================================
    INC-001 FIX: CSS-Driven Radio Indicator Component
    Previous: hardcoded bg-trust-blue / bg-transparent spans — visual state
    could desync from actual :checked state if JS failed or had race conditions.

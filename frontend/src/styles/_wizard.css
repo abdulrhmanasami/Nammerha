@@ -26,7 +26,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    /* INC-002 FIX: Aligned to governed micro-hint tier (10px). Was 11px — banned size. */
+    font-size: 10px;
     font-weight: 800;
     background: #e2e8f0;
     color: #94a3b8;
@@ -87,9 +88,31 @@
     to   { opacity: 1; transform: translateX(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-    .nm-step-panel {
+    .nm-step-panel,
+    .nm-step-panel.nm-step-backward {
         animation: none;
     }
+}
+
+/* P2-MOT-001 FIX: Backward step animation — content slides from LEFT.
+   When user navigates backward (step 3→2 or 2→1), sliding from right
+   creates spatial disorientation. Backward = slide from left.
+   auth.ts toggles .nm-step-backward based on navigation direction.
+   Standard: Material Design 3 ("Transitions reinforce spatial model"),
+   Apple HIG ("Animations communicate context and hierarchy"). */
+.nm-step-panel.nm-step-backward {
+    animation: stepSlideInBack 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes stepSlideInBack {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+[dir="rtl"] .nm-step-panel.nm-step-backward {
+    animation-name: stepSlideInBackRTL;
+}
+@keyframes stepSlideInBackRTL {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 
 /* Dark mode adaptation for stepper */
