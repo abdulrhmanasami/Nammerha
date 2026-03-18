@@ -19,6 +19,16 @@
     gap: 4px;
     cursor: default;
 }
+/* GAP-2026-008 FIX: Completed stepper dots are clickable — pointer cursor + hover hint.
+   Standard: Material Design 3 (Stepper Interaction), Fitts's Law. */
+.nm-step-indicator.completed {
+    cursor: pointer;
+}
+.nm-step-indicator.completed:hover .nm-step-num {
+    box-shadow: 0 2px 8px rgba(16, 145, 115, 0.3);
+    transform: scale(1.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 .nm-step-num {
     width: 28px;
     height: 28px;
@@ -68,9 +78,9 @@
 .nm-step-indicator.completed .nm-step-label {
     color: var(--smoky-jade);
 }
-.nm-step-indicator.completed + .nm-step-line {
-    background: var(--smoky-jade);
-}
+/* INC-2026-007: Removed dead rule `.nm-step-indicator.completed + .nm-step-line { background: var(--smoky-jade); }`
+   This CSS selector was overridden by inline styles set by auth.ts L170-179 (line.style.background).
+   Inline styles always win over CSS selectors without !important. Rule was dead code. */
 
 /* Step panels — slide transitions */
 .nm-step-panel {
@@ -130,4 +140,42 @@ html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
 html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
     background: var(--smoky-jade);
     color: white;
+}
+
+/* ============================================================================
+   INC-2026-004 + INC-2026-005 FIX: Canonical Back Button Component
+   Previous: 105+ chars of inline Tailwind (py-3 text-sm font-bold text-slate-500
+   bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors flex items-center
+   justify-center gap-2) — no dark mode, no single source of truth.
+   Standard: Design System Governance (DRY), WCAG 1.4.3 (Dark Mode Contrast).
+   ============================================================================ */
+.nm-step-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #64748b;
+    background: #f1f5f9;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.nm-step-back:hover {
+    background: #e2e8f0;
+}
+.nm-step-back:active {
+    transform: scale(0.97);
+}
+html[data-theme="dark"] .nm-step-back {
+    background: rgba(51, 65, 85, 0.5);
+    color: #94a3b8;
+}
+html[data-theme="dark"] .nm-step-back:hover {
+    background: rgba(51, 65, 85, 0.8);
+    color: #cbd5e1;
 }

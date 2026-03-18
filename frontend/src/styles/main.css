@@ -1925,9 +1925,12 @@ html[data-theme="dark"] .page-header {
    Moved from inline <style> in auth.html to CSS single source of truth.
    On landscape phones (<500px height), theme toggle shifts to bottom-right
    to avoid overlapping the auth tab switcher.
-   Standard: Apple HIG — Controls must not obscure actionable content. */
+/* CONF-2026-004 FIX: Aligned to logical properties matching the inline styles on #nm-theme-toggle.
+   Previous: Used physical `top: auto; bottom: 0.75rem` while inline styles used
+   logical `inset-block-start; inset-inline-end` — anti-pattern mixing logical + physical.
+   Standard: CSS Logical Properties, W3C CSS Writing Modes Level 3. */
 @media (max-height: 500px) and (orientation: landscape) {
-    #nm-theme-toggle { top: auto !important; bottom: 0.75rem !important; }
+    #nm-theme-toggle { inset-block-start: auto !important; inset-block-end: 0.75rem !important; }
 }
 
 /* ============================================================================

@@ -7,6 +7,8 @@ import { showStructuredBanner, hideStructuredBanner, type StructuredBannerElemen
 import { initSwipeTabs } from '../utils/swipe-tabs';
 import { haptic } from '../utils/haptic';
 import { initPullToRefresh } from '../utils/pull-refresh';
+// PLT-MAR11-005 FIX: Import shared password strength utility (single source of truth)
+import { updatePasswordStrength } from '../utils/password-strength';
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
@@ -41,65 +43,81 @@ const bannerIcon = document.getElementById('auth-banner-icon') as HTMLElement | 
 const bannerText = document.getElementById('auth-banner-text') as HTMLElement | null;
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
+// PLAT-P2-001 FIX: Respect reduced-motion preference for panel transitions.
+// Standard: WCAG 2.3.3 (Animation from Interactions), Apple HIG.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * Manage tabindex on panel inputs to prevent focus escaping into animating-out panels.
+ * PLAT-P2-002 FIX: Belt-and-suspenders alongside aria-hidden.
+ * Standard: WCAG 2.1.1 (Keyboard).
+ */
+function setFormFocusable(form: HTMLFormElement | null, focusable: boolean): void {
+    if (!form) { return; }
+    const inputs = form.querySelectorAll<HTMLElement>('input, button, a[href], select, textarea, [tabindex]');
+    inputs.forEach(el => {
+        if (focusable) {
+            el.removeAttribute('tabindex');
+        } else {
+            el.setAttribute('tabindex', '-1');
+        }
+    });
+}
+
 function switchTab(mode: 'login' | 'register'): void {
     state.mode = mode;
     hideBanner();
 
     // P0-PLAT-001 FIX: Haptic feedback on tab switch — native-app tactile response.
-    // Standard: Apple HIG ("Provide haptic feedback for mode changes").
     haptic.light();
 
-    // P0-UXA-001 FIX: Sync aria-selected on tab elements (WCAG 4.1.2)
-    // Previous: CSS classes toggled but aria-selected never updated — screen readers
-    // announced wrong tab state. Standard: WAI-ARIA Authoring Practices §3.26 (Tabs).
-    if (mode === 'login') {
-        tabLogin?.classList.add('auth-tab-active');
-        tabLogin?.classList.remove('text-slate-500');
-        tabLogin?.setAttribute('aria-selected', 'true');
-        tabRegister?.classList.remove('auth-tab-active');
-        tabRegister?.classList.add('text-slate-500');
-        tabRegister?.setAttribute('aria-selected', 'false');
-        // P1-UXA-006 FIX: Smooth transition using CSS auth-panel-exit class.
-        // Previous: instant display toggle (style.display) felt jarring.
-        // Now: fade-out exit class → display swap → fade-in on next paint.
-        // Standard: Apple HIG (Fluid Motion), Material Design 3 (Animated Tabs).
-        if (formRegister) {
-            formRegister.classList.add('auth-panel-exit');
+    // Determine which panels are entering vs exiting
+    const enteringPanel = mode === 'login' ? formLogin : formRegister;
+    const exitingPanel  = mode === 'login' ? formRegister : formLogin;
+
+    // ── Tab ARIA synchronization (WCAG 4.1.2) ──
+    const activeTab  = mode === 'login' ? tabLogin : tabRegister;
+    const inactiveTab = mode === 'login' ? tabRegister : tabLogin;
+    activeTab?.classList.add('auth-tab-active');
+    activeTab?.classList.remove('text-slate-500');
+    activeTab?.setAttribute('aria-selected', 'true');
+    inactiveTab?.classList.remove('auth-tab-active');
+    inactiveTab?.classList.add('text-slate-500');
+    inactiveTab?.setAttribute('aria-selected', 'false');
+
+    // ── PLAT-P0-001 FIX: aria-hidden sync IMMEDIATELY — before animation delay.
+    // Previous: During 250ms exit animation, both panels were display:flex and
+    // visible to screen readers. Now: exiting panel is instantly marked hidden.
+    // Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2.
+    if (exitingPanel) {
+        exitingPanel.setAttribute('aria-hidden', 'true');
+        setFormFocusable(exitingPanel, false);
+    }
+    if (enteringPanel) {
+        enteringPanel.removeAttribute('aria-hidden');
+        enteringPanel.style.display = 'flex';
+        enteringPanel.classList.remove('auth-panel-exit');
+        setFormFocusable(enteringPanel, true);
+    }
+
+    // ── Panel exit animation ──
+    if (exitingPanel) {
+        if (prefersReducedMotion) {
+            // PLAT-P2-001: Skip animation for reduced-motion users
+            exitingPanel.style.display = 'none';
+            exitingPanel.classList.remove('auth-panel-exit');
+        } else {
+            exitingPanel.classList.add('auth-panel-exit');
             setTimeout(() => {
-                formRegister.style.display = 'none';
-                formRegister.classList.remove('auth-panel-exit');
+                exitingPanel.style.display = 'none';
+                exitingPanel.classList.remove('auth-panel-exit');
             }, 250);
         }
-        if (formLogin) {
-            formLogin.style.display = 'flex';
-            formLogin.classList.remove('auth-panel-exit');
-        }
-        // P0-UXA-003 FIX: Always clear hash when switching to login.
-        // Previous: hash cleared only on tab click (L212), not on programmatic switch
-        // (e.g., after registration success). URL retained #register-step-3 ghost state.
-        // Standard: Nielsen #3 (User Control & Freedom).
-        if (window.location.hash) {
-            history.replaceState(null, '', window.location.pathname + window.location.search);
-        }
-    } else {
-        tabRegister?.classList.add('auth-tab-active');
-        tabRegister?.classList.remove('text-slate-500');
-        tabRegister?.setAttribute('aria-selected', 'true');
-        tabLogin?.classList.remove('auth-tab-active');
-        tabLogin?.classList.add('text-slate-500');
-        tabLogin?.setAttribute('aria-selected', 'false');
-        // P1-UXA-006: Smooth transition out of login panel
-        if (formLogin) {
-            formLogin.classList.add('auth-panel-exit');
-            setTimeout(() => {
-                formLogin.style.display = 'none';
-                formLogin.classList.remove('auth-panel-exit');
-            }, 250);
-        }
-        if (formRegister) {
-            formRegister.style.display = 'flex';
-            formRegister.classList.remove('auth-panel-exit');
-        }
+    }
+
+    // P0-UXA-003 FIX: Clear hash when switching to login.
+    if (mode === 'login' && window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
     }
 }
 
@@ -159,8 +177,13 @@ function goToRegStep(targetStep: number): void {
     dots?.forEach(dot => {
         const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
         dot.classList.remove('active', 'completed');
+        // INC-2026-008 FIX: aria-current="step" for screen readers.
+        // Previous: only visual .active class — SR users couldn't identify current step.
+        // Standard: WAI-ARIA Best Practices, WCAG 4.1.2 (Name, Role, Value).
+        dot.removeAttribute('aria-current');
         if (dotStep === targetStep) {
             dot.classList.add('active');
+            dot.setAttribute('aria-current', 'step');
         } else if (dotStep < targetStep) {
             dot.classList.add('completed');
         }
@@ -186,6 +209,18 @@ function goToRegStep(targetStep: number): void {
         const reviewEmail = document.getElementById('reg-review-email');
         if (reviewName) { reviewName.textContent = nameVal; }
         if (reviewEmail) { reviewEmail.textContent = emailVal; }
+
+        // FRIC-2026-003 FIX: Show password strength status in review card.
+        // Previous: Only name + email shown — no confirmation password met requirements.
+        // Standard: Nielsen #1 (System Status Visibility).
+        const strengthLabel = document.getElementById('pw-strength-label');
+        const reviewPwStrength = document.getElementById('reg-review-pw-strength');
+        if (reviewPwStrength && strengthLabel) {
+            const strengthText = strengthLabel.textContent?.trim() ?? '';
+            if (strengthText) {
+                reviewPwStrength.classList.remove('hidden');
+            }
+        }
     }
 
     currentRegStep = targetStep;
@@ -260,6 +295,33 @@ formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach(bt
         const target = parseInt(btn.dataset.gotoStep ?? '1', 10);
         goToRegStep(target);
     });
+});
+
+// ─── FRIC-2026-006 FIX: Enter/Next Key Handler for Wizard Steps ─────────────
+// enterkeyhint="next" on wizard inputs promises the keyboard Next key will advance.
+// But Next buttons are type="button" (not submit) — pressing Enter does nothing.
+// This handler intercepts Enter on wizard inputs and triggers the active Next button.
+// Standard: Apple HIG (Keyboard Management), WCAG 2.1.1 (Keyboard Accessible).
+// ─────────────────────────────────────────────────────────────────────────────
+formRegister?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key !== 'Enter') { return; }
+    const target = e.target as HTMLElement;
+    // Only intercept Enter on text/email/password inputs (not checkboxes, buttons)
+    if (!(target instanceof HTMLInputElement) || target.type === 'checkbox') { return; }
+    e.preventDefault(); // Prevent form submission
+    // Find the visible Next button in the current step
+    const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(
+        `[data-reg-step="${currentRegStep}"]`
+    );
+    if (!activePanel) { return; }
+    // If current step has a "next" button, click it. If Step 3, let form submit handle it.
+    const nextBtn = activePanel.querySelector<HTMLButtonElement>('.nm-step-next[data-goto-step]');
+    if (nextBtn) {
+        nextBtn.click();
+    } else if (currentRegStep === 3) {
+        // Step 3 has no Next — Enter should submit the form
+        formRegister?.requestSubmit();
+    }
 });
 
 // P2-MED-001 FIX: Single source of truth for tab click handlers.
@@ -383,8 +445,7 @@ setupPasswordToggle('reg-toggle-pw', 'reg-password');
 // Standard: Password UX Best Practices, Apple HIG (Authentication).
 setupPasswordToggle('reg-toggle-pw-confirm', 'reg-password-confirm');
 
-// PLT-MAR11-005 FIX: Import shared password strength utility (single source of truth)
-import { updatePasswordStrength } from '../utils/password-strength';
+// PLT-MAR11-005 FIX: updatePasswordStrength imported at top of file (PLAT-P1-002 governance)
 
 // ─── Password Strength Meter ────────────────────────────────────────────────
 const regPassword = document.getElementById('reg-password') as HTMLInputElement | null;
@@ -429,6 +490,20 @@ function updateRegisterButton(): void {
 // Listen for all register form inputs
 ['reg-name', 'reg-email', 'reg-password-confirm'].forEach((id) => {
     document.getElementById(id)?.addEventListener('input', updateRegisterButton);
+});
+
+// ─── GAP-2026-009 FIX: Auto-Clear Banner Errors on User Input ───────────────
+// Previous: banner errors persisted even after user started correcting the field.
+// Only hideBanner() called on successful validateCurrentStep() — stale errors stayed.
+// Standard: Nielsen #9 (Error Recovery), Material Design 3 (Form Validation).
+// ─────────────────────────────────────────────────────────────────────────────
+['reg-name', 'reg-email', 'reg-password', 'reg-password-confirm', 'login-email', 'login-password'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', () => {
+        // Only hide if banner is currently showing an error (not success/info)
+        if (bannerInner?.classList.contains('bg-red-50')) {
+            hideBanner();
+        }
+    });
 });
 
 // Initialize button opacity
@@ -725,7 +800,10 @@ forgotBtn?.addEventListener('click', async (e) => {
     }
 
     if (forgotBtn) {
-        forgotBtn.textContent = t('auth_forgot_sending', 'Sending...');
+        // GAP-2026-001 FIX: Added spinner icon for visual loading consistency.
+        // Previous: text-only change "Sending..." — no visual loading indicator.
+        // Standard: Design System Governance (all loading states must show spinners).
+        forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:14px" aria-hidden="true"></i> ${t('auth_forgot_sending', 'Sending...')}`;
         forgotBtn.setAttribute('aria-disabled', 'true');
         forgotBtn.style.pointerEvents = 'none';
         forgotBtn.style.opacity = '0.5';
@@ -742,7 +820,11 @@ forgotBtn?.addEventListener('click', async (e) => {
         showBanner('error', err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.'));
     } finally {
         if (forgotBtn) {
-            forgotBtn.textContent = t('auth_forgot_link_text', 'Forgot your password?');
+            // GAP-2026-001 FIX: Restore original content with i18n data attribute.
+            // Previous: text-only "Sending..." with no spinner — inconsistent with btn-loading pattern.
+            // Now: uses data-i18n attribute for proper i18n restoration.
+            // Standard: Design System Governance (consistent loading states).
+            forgotBtn.innerHTML = `<span data-i18n="forgot_password">${t('auth_forgot_link_text', 'Forgot your password?')}</span>`;
             forgotBtn.removeAttribute('aria-disabled');
             forgotBtn.style.pointerEvents = '';
             forgotBtn.style.opacity = '';
@@ -760,6 +842,11 @@ document.querySelectorAll<HTMLButtonElement>('[data-sso-provider]').forEach(btn 
     btn.addEventListener('click', () => {
         const provider = btn.dataset.ssoProvider === 'apple' ? 'Apple' : 'Google';
         showBanner('info', t('auth_sso_coming_soon', `Sign in with ${provider} is coming soon. Please register with email for now.`));
+        haptic.light();
+        // PLAT-P3-002 FIX: Auto-dismiss "Coming Soon" banner after 4s.
+        // Previous: Banner stayed until next user interaction, blocking form view.
+        // Standard: Material Design 3 (Snackbar Auto-Dismiss), Nielsen #1.
+        setTimeout(() => hideBanner(), 4000);
     });
 });
 
@@ -787,3 +874,31 @@ initSwipeTabs({
 // On cached/stale auth page loads (common on Syrian mobile networks),
 // users need a way to force-refresh without knowing browser controls.
 initPullToRefresh();
+
+// ─── FRIC-2026-004 FIX: Autofocus Login Email on Page Load ──────────────────
+// Previous: No field auto-focused — mobile users had to manually tap the email field.
+// Auth is the first screen every user sees; reducing time-to-first-input is critical.
+// Standard: Apple HIG ("Focus the primary input"), Material Design 3.
+// Only focus if user is on login mode AND not restoring a hash state (register wizard).
+// ─────────────────────────────────────────────────────────────────────────────
+if (state.mode === 'login') {
+    // Delay to avoid competing with theme-boot.js visibility restore
+    requestAnimationFrame(() => {
+        document.getElementById('login-email')?.focus();
+    });
+}
+
+// ─── GAP-2026-008 FIX: Clickable Stepper Dots (Completed Steps) ─────────────
+// Previous: cursor:default — users couldn't click step indicators to jump.
+// Now: Completed step dots are clickable (not active or future steps).
+// Standard: Material Design 3 (Stepper Interaction), Nielsen #3 (User Control).
+// ─────────────────────────────────────────────────────────────────────────────
+formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]').forEach(dot => {
+    dot.addEventListener('click', () => {
+        const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
+        // Allow navigation to completed steps only (not forward from current)
+        if (dot.classList.contains('completed')) {
+            goToRegStep(dotStep);
+        }
+    });
+});

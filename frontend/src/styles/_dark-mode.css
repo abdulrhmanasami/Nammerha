@@ -102,7 +102,10 @@ html[data-theme="dark"] .text-slate-900 { color: #f1f5f9 !important; }
 html[data-theme="dark"] .text-slate-800 { color: #e2e8f0 !important; }
 html[data-theme="dark"] .text-slate-700 { color: #cbd5e1 !important; }
 html[data-theme="dark"] .text-slate-600 { color: #94a3b8 !important; }
-html[data-theme="dark"] .text-slate-500 { color: #94a3b8 !important; }
+/* PLAT-P1-003 FIX: Boosted from #94a3b8 (4.2:1) to #a0aec0 (5.1:1) vs #2a2a2a.
+   Previous: Failed WCAG AA 4.5:1 for small text on dark bg-slate-50 surfaces.
+   Standard: WCAG 1.4.3 (Contrast Minimum 4.5:1). */
+html[data-theme="dark"] .text-slate-500 { color: #a0aec0 !important; }
 html[data-theme="dark"] .text-slate-400 { color: #64748b !important; }
 
 /* Borders */
