@@ -1,0 +1,180 @@
+/* ============================================================================
+   Nammerha Design System — Dashboard Layout & Sidebar
+   FRIC-AUD-F02: Extracted from main.css monolith for modularity.
+   Source: main.css L952-L1116 (165 lines)
+   Contains:
+   - Responsive dashboard layout (flex, dvh)
+   - Off-canvas sidebar (mobile-first, RTL-safe)
+   - Sidebar overlay (blur backdrop)
+   - Sidebar toggle button (44px touch target)
+   - Tab/navigation visual separator
+   - Phosphor arrow-up-right indicator (FRIC-2601)
+   - Landscape pinhole prevention
+   Standard: CSS Architecture — Single Responsibility Principle.
+   ============================================================================ */
+
+/* ─── Responsive Dashboard Sidebar System ──────────────────────────────────── */
+/* Mobile-first: sidebar hidden by default, shown via JS toggle or md+ screen  */
+@layer components {
+  /* The entire sidebar+main wrapper */
+  .dashboard-layout {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Sidebar: off-canvas on mobile, visible on md+ */
+  .dashboard-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 16rem;                          /* w-64 */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-inline-end: 1px solid var(--border-subtle);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  /* RTL support */
+  [dir='rtl'] .dashboard-sidebar {
+    transform: translateX(100%);
+  }
+  /* P0-ARCH-002 FIX: sidebar-open now handles all visual properties via CSS
+     — no inline JS styles needed. Includes box-shadow for depth cue. */
+  .dashboard-sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+  [dir='rtl'] .dashboard-sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Dark overlay behind sidebar on mobile */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  .sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Main content takes full width on mobile */
+  .dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* CONF-004 FIX: Touch target increased to 44×44px minimum (was 40×40px).
+     Apple HIG mandates 44pt minimum. WCAG 2.5.8 Target Size (Minimum).
+     min-width/min-height ensures compliance even if parent overrides width/height. */
+  .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sidebar-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--trust-blue);
+  }
+}
+
+/* md breakpoint (768px+): sidebar is always visible, toggle hidden */
+@media (min-width: 768px) {
+  .dashboard-sidebar {
+    position: relative;
+    transform: none !important;
+    flex-shrink: 0;
+  }
+  .sidebar-overlay {
+    display: none !important;
+  }
+  .sidebar-toggle {
+    display: none !important;
+  }
+}
+
+/* FRIC-2601 FIX: Visual separator between in-page tabs and navigation links.
+   Dashboard sidebars mix <button role="tab"> (in-page tab switches) with <a> links
+   (navigate to different pages). Both look identical without this visual distinction.
+   After the tablist container, the sibling div with navigation links gets a top border
+   and a subtle "Navigate" label via ::before pseudo-element.
+   Standard: Nielsen #6 (Recognition over Recall), Gestalt (Proximity + Similarity). */
+.dashboard-sidebar [role="tablist"] + div {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  position: relative;
+}
+.dashboard-sidebar [role="tablist"] + div::before {
+  content: attr(data-section-label);
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  padding: 0 12px 6px;
+}
+/* FRIC-2601 FIX: Replaced inline SVG with Phosphor font glyph (ph-arrow-up-right) */
+/* Navigation links get a subtle icon indicator to show they leave the page */
+.dashboard-sidebar [role="tablist"] + div > a::after {
+  content: "\e092";
+  font-family: "Phosphor" !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: inline-block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.dashboard-sidebar [role="tablist"] + div > a:hover::after {
+  opacity: 1;
+}
+
+/* PLT-AUD-F004 FIX: Mobile landscape dashboard — prevent content pinhole */
+@media (orientation: landscape) and (max-height: 500px) {
+  .dashboard-layout {
+    height: auto;
+    min-height: 100dvh;
+  }
+  .dashboard-main {
+    overflow: auto;
+  }
+}

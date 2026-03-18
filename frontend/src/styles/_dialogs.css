@@ -443,6 +443,17 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
 .nm-confirm-destructive:hover {
     background: rgba(239, 68, 68, 0.05);
 }
+/* FRIC-2601-F06 FIX: Primary action button for dialogs.
+   Same pattern as .nm-confirm-destructive but for positive/primary CTAs.
+   Eliminates need for inline styles on primary dialog buttons. */
+.nm-confirm-primary {
+    background: var(--trust-blue);
+    color: white;
+    border-color: var(--trust-blue);
+}
+.nm-confirm-primary:hover {
+    background: var(--trust-blue-hover, #1e5fbb);
+}
 html[data-theme="dark"] .nm-confirm-dialog {
     background: #1e1e1e;
 }
@@ -452,4 +463,6 @@ html[data-theme="dark"] .nm-confirm-actions { border-color: rgba(255,255,255,0.0
 html[data-theme="dark"] .nm-confirm-cancel { color: #94a3b8; }
 html[data-theme="dark"] .nm-confirm-cancel:hover { background: rgba(255,255,255,0.04); }
 html[data-theme="dark"] .nm-confirm-destructive:hover { background: rgba(239,68,68,0.1); }
+html[data-theme="dark"] .nm-confirm-primary { background: var(--trust-blue); }
+html[data-theme="dark"] .nm-confirm-primary:hover { background: var(--trust-blue-hover, #1e5fbb); }
 

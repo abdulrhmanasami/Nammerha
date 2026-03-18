@@ -949,164 +949,9 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   height: 100% !important;
 }
 
-/* ─── Responsive Dashboard Sidebar System ──────────────────────────────────── */
-/* Mobile-first: sidebar hidden by default, shown via JS toggle or md+ screen  */
-@layer components {
-  /* The entire sidebar+main wrapper */
-  .dashboard-layout {
-    display: flex;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-  }
+/* FRIC-AUD-F02: Dashboard sidebar system extracted to _dashboard.css (165 lines → 1 line) */
+@import './_dashboard.css';
 
-  /* Sidebar: off-canvas on mobile, visible on md+ */
-  .dashboard-sidebar {
-    position: fixed;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: 16rem;                          /* w-64 */
-    z-index: 60;
-    display: flex;
-    flex-direction: column;
-    background: #ffffff;
-    border-inline-end: 1px solid var(--border-subtle);
-    transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-  }
-  /* RTL support */
-  [dir='rtl'] .dashboard-sidebar {
-    transform: translateX(100%);
-  }
-  /* P0-ARCH-002 FIX: sidebar-open now handles all visual properties via CSS
-     — no inline JS styles needed. Includes box-shadow for depth cue. */
-  .dashboard-sidebar.sidebar-open {
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-  }
-  [dir='rtl'] .dashboard-sidebar.sidebar-open {
-    transform: translateX(0);
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
-  }
-
-  /* Dark overlay behind sidebar on mobile */
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 55;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    opacity: 0;
-    transition: opacity 0.28s ease;
-  }
-  .sidebar-overlay.active {
-    display: block;
-    opacity: 1;
-  }
-
-  /* Main content takes full width on mobile */
-  .dashboard-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* CONF-004 FIX: Touch target increased to 44×44px minimum (was 40×40px).
-     Apple HIG mandates 44pt minimum. WCAG 2.5.8 Target Size (Minimum).
-     min-width/min-height ensures compliance even if parent overrides width/height. */
-  .sidebar-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    min-width: 44px;
-    min-height: 44px;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: transparent;
-    color: #475569;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .sidebar-toggle:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--trust-blue);
-  }
-}
-
-/* md breakpoint (768px+): sidebar is always visible, toggle hidden */
-@media (min-width: 768px) {
-  .dashboard-sidebar {
-    position: relative;
-    transform: none !important;
-    flex-shrink: 0;
-  }
-  .sidebar-overlay {
-    display: none !important;
-  }
-  .sidebar-toggle {
-    display: none !important;
-  }
-}
-
-/* FRIC-2601 FIX: Visual separator between in-page tabs and navigation links.
-   Dashboard sidebars mix <button role="tab"> (in-page tab switches) with <a> links
-   (navigate to different pages). Both look identical without this visual distinction.
-   After the tablist container, the sibling div with navigation links gets a top border
-   and a subtle "Navigate" label via ::before pseudo-element.
-   Standard: Nielsen #6 (Recognition over Recall), Gestalt (Proximity + Similarity). */
-.dashboard-sidebar [role="tablist"] + div {
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-subtle);
-  position: relative;
-}
-.dashboard-sidebar [role="tablist"] + div::before {
-  content: attr(data-section-label);
-  display: block;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  padding: 0 12px 6px;
-}
-/* Navigation links get a subtle icon indicator to show they leave the page */
-.dashboard-sidebar [role="tablist"] + div > a::after {
-  content: '';
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  margin-inline-start: auto;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17l9.2-9.2M17 17V7H7'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.dashboard-sidebar [role="tablist"] + div > a:hover::after {
-  opacity: 1;
-}
-
-/* PLT-AUD-F004 FIX: Mobile landscape dashboard — prevent content pinhole */
-@media (orientation: landscape) and (max-height: 500px) {
-  .dashboard-layout {
-    height: auto;
-    min-height: 100dvh;
-  }
-  .dashboard-main {
-    overflow: auto;
-  }
-}
 
 /* ─── Responsive Homepage Navbar ───────────────────────────────────────────── */
 /* On small screens, hide the full search bar and show only a search icon.
@@ -2530,8 +2375,18 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     border-color: var(--smoky-jade) !important;
     box-shadow: 0 0 0 2px rgba(16, 145, 115, 0.15), var(--shadow-glass);
 }
+/* FRIC-2601 FIX: Replaced inline SVG with Phosphor font glyph (ph-check) */
 [data-funded="100"]::after {
-    content: '';
+    content: "\e182";
+    font-family: "Phosphor" !important;
+    speak: never;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     position: absolute;
     top: 8px;
     inset-inline-end: 8px;
@@ -2542,11 +2397,8 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Checkmark via CSS pseudo-element */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 14px;
+    font-size: 14px;
+    color: white;
     animation: fundedPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes fundedPop {
@@ -2560,110 +2412,10 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     }
 }
 
-/* ============================================================================
-   FRIC-2026-D03 FIX: Multi-Step Registration Wizard
-   Stepper indicator, step panel transitions, and navigation layout.
-   Uses progressive disclosure: 7 fields → 3 steps × 2-3 fields each.
-   Standard: Miller's Law (7±2), Material Design 3, Apple HIG.
-   ============================================================================ */
+/* FRIC-AUD-F02: Registration wizard extracted to _wizard.css (104 lines → 1 line) */
+@import './_wizard.css';
 
-/* Stepper Indicator */
-.nm-step-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    cursor: default;
-}
-.nm-step-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    background: #e2e8f0;
-    color: #94a3b8;
-    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.nm-step-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    transition: color 0.3s;
-}
-.nm-step-line {
-    width: 32px;
-    height: 2px;
-    background: #e2e8f0;
-    border-radius: 1px;
-    margin-bottom: 20px; /* align with dot center */
-    transition: background 0.4s;
-}
 
-/* Active step */
-.nm-step-indicator.active .nm-step-num {
-    background: var(--trust-blue);
-    color: white;
-    box-shadow: 0 2px 12px rgba(26, 115, 232, 0.35);
-}
-.nm-step-indicator.active .nm-step-label {
-    color: var(--trust-blue);
-}
-
-/* Completed step */
-.nm-step-indicator.completed .nm-step-num {
-    background: var(--smoky-jade);
-    color: white;
-}
-.nm-step-indicator.completed .nm-step-label {
-    color: var(--smoky-jade);
-}
-.nm-step-indicator.completed + .nm-step-line {
-    background: var(--smoky-jade);
-}
-
-/* Step panels — slide transitions */
-.nm-step-panel {
-    animation: stepSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes stepSlideIn {
-    from { opacity: 0; transform: translateX(16px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-[dir="rtl"] .nm-step-panel {
-    animation-name: stepSlideInRTL;
-}
-@keyframes stepSlideInRTL {
-    from { opacity: 0; transform: translateX(-16px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-@media (prefers-reduced-motion: reduce) {
-    .nm-step-panel {
-        animation: none;
-    }
-}
-
-/* Dark mode adaptation for stepper */
-html[data-theme="dark"] .nm-step-num {
-    background: #334155;
-    color: #64748b;
-}
-html[data-theme="dark"] .nm-step-line {
-    background: #334155;
-}
-html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
-    background: var(--trust-blue);
-    color: white;
-}
-html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
-    background: var(--smoky-jade);
-    color: white;
-}
 
 /* ============================================================================
    RES-005 FIX: WCAG AA Contrast for warning-yellow Text on Light Surfaces
