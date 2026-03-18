@@ -242,7 +242,8 @@
            Standard: Material Design 3 — "Text fields with character counts." -->
       <textarea id="damage-description" class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none" placeholder="Describe the damage in your own words..." data-i18n-placeholder="ho_damage_desc_placeholder" maxlength="1000"></textarea>
       <div class="flex justify-end mt-1">
-        <span class="text-[11px] text-slate-400" id="desc-char-count">0 / 1000</span>
+        <!-- INC-002 FIX: text-[11px] → text-[10px] — micro-hint tier (char counter). -->
+        <span class="text-[10px] text-slate-400" id="desc-char-count">0 / 1000</span>
       </div>
     </div>
 
@@ -265,7 +266,8 @@
       <!-- GAP-AUD-06 FIX: Dynamic photo upload counter.
            Previous: Static text "Maximum 5 photos" — no feedback as photos are added.
            Standard: Nielsen #1 (System Status Visibility). -->
-      <p class="text-slate-400 text-[11px]"><span id="photo-count">0</span>/5 • <span data-i18n="photos_jpg_or_png">JPG or PNG</span></p>
+      <!-- INC-002 FIX: text-[11px] → text-[10px] — micro-hint tier (photo counter). -->
+      <p class="text-slate-400 text-[10px]"><span id="photo-count">0</span>/5 • <span data-i18n="photos_jpg_or_png">JPG or PNG</span></p>
       <input id="photo-input" type="file" accept="image/*" multiple class="hidden" />
     </div>
 
