@@ -155,11 +155,14 @@
         <span id="login-submit-text" data-i18n="sign_in_btn">Sign In</span>
       </button>
       <!-- PLT-AUD-002: Forgot Password Link -->
-      <!-- GAP-004 FIX: <a> with mailto fallback replaces dead <button> for progressive enhancement.
-           If auth.ts loads, JS intercepts and shows inline reset flow.
-           If JS fails, user still reaches support. Standard: Progressive Enhancement. -->
+      <!-- GAP-002 FIX: href changed from mailto: to /reset-password.html.
+           Previous: mailto:support@nammerha.com — opened email client, not password reset.
+           The platform HAS a dedicated reset-password.html with proper password change flow.
+           If auth.ts loads, JS can still intercept for inline UX.
+           If JS fails (common on Syrian mobile networks), users navigate to the real reset page.
+           Standard: Progressive Enhancement, Security UX Best Practices. -->
       <div class="text-center mt-3">
-        <a href="mailto:support@nammerha.com?subject=Password%20Reset%20Request" id="forgot-password-btn" class="text-sm text-trust-blue font-medium hover:underline" data-i18n="forgot_password">Forgot your password?</a>
+        <a href="/reset-password.html" id="forgot-password-btn" class="text-sm text-trust-blue font-medium hover:underline" data-i18n="forgot_password">Forgot your password?</a>
       </div>
 
       <!-- FRC-003 FIX: Social Login — reduces friction for mobile users.

@@ -45,23 +45,32 @@
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
 <div id="main-content" class="mobile-container min-h-screen flex flex-col">
 
-  <!-- Header -->
-  <div class="sticky top-0 z-10 flex items-center bg-white p-4 border-b border-slate-200 justify-between">
-    <a href="index.html" class="text-slate-900 flex size-10 shrink-0 items-center justify-center cursor-pointer">
+  <!-- GAP-004 FIX: Migrated from ad-hoc inline Tailwind to canonical .page-header.
+       Previous: z-10 (wrong token), no backdrop-filter, hardcoded bg-white, ~64px height.
+       Now: .page-header — correct z-index (--z-header: 30), glassmorphism, dark mode, 56px height.
+       Standard: Design System Component Unity, Apple HIG (44pt touch targets). -->
+  <header class="page-header">
+    <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
       <i class="ph ph-arrow-left" aria-hidden="true"></i>
     </a>
     <!-- DEFER-P0-002 FIX: Was h2 — promoted to h1 for proper heading hierarchy.
          Previously zero h1 on this page. Screen readers had no primary heading.
          Standard: WCAG 2.2 SC 1.3.1, single h1 per page. -->
-    <h1 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center" data-i18n="engineer_boq_builder">Engineer BOQ Builder</h1>
-    <div class="flex size-10 items-center justify-end">
+    <span class="page-header-title" data-i18n="engineer_boq_builder">Engineer BOQ Builder</span>
+    <div class="flex w-11 h-11 items-center justify-end">
       <!-- DEFER-P1-002 FIX: Was missing aria-label — icon-only button is invisible to screen readers.
            Standard: WCAG 2.2 SC 1.1.1 (Non-text Content), 4.1.2 (Name, Role, Value). -->
       <button class="flex items-center justify-center text-slate-900" aria-label="More options" data-i18n-aria="aria_more_options">
         <i class="ph ph-dots-three-vertical" aria-hidden="true"></i>
       </button>
     </div>
-  </div>
+  </header>
+
+  <!-- GAP-004 FIX (cont.): h1 moved from header to content as sr-only.
+       The .page-header uses <span class="page-header-title"> for visual text.
+       The actual h1 lives here for screen readers — same pattern as other consumer pages.
+       Standard: WCAG 1.3.1, single h1 per page. -->
+  <h1 class="sr-only" data-i18n="engineer_boq_builder">Engineer BOQ Builder</h1>
 
   <!-- Search Bar -->
   <div class="px-4 py-4 bg-white">

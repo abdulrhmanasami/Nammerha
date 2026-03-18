@@ -59,7 +59,8 @@
          Previous: custom px-6 py-5 padding (~68px height) — inconsistent with all
          other consumer pages (wallet h-16, profile h-16, dashboards h-14).
          Standard: Apple HIG — "Navigation bars are 44pt plus safe area." -->
-    <header class="page-header border-b border-slate-200">
+    <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
+    <header class="page-header">
       <!-- GAP-P02 FIX: Was href='project-details.html' — dead-end without query context.
            Fallback to index.html; data-back-btn JS will use history.back() first. -->
       <a href="index.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">

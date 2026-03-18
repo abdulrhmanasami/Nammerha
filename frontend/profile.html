@@ -51,7 +51,11 @@
        Previous: glass-nav sticky + inner div.px-4.h-14.mobile-container — ad-hoc nesting.
        Now: Flat .page-header — single source of truth. Back button wired by page-header.ts.
        Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
-  <header class="page-header border-b border-slate-200">
+  <!-- CON-002 FIX: Removed redundant border-b border-slate-200.
+       .page-header CSS (main.css L1806) already defines border-bottom: 1px solid.
+       The Tailwind override broke dark mode border-color theming.
+       Standard: Design System Single Source of Truth. -->
+  <header class="page-header">
       <a href="index.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
@@ -128,7 +132,8 @@
                 <i class="ph ph-x" style="font-size:10px" aria-hidden="true"></i>
               </button>
             </div>
-            <span class="text-[11px] text-smoky-jade font-semibold" data-i18n="photo_selected">Photo selected ✓</span>
+            <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-[10px] (hints) + text-xs (labels/status). -->
+            <span class="text-xs text-smoky-jade font-semibold" data-i18n="photo_selected">Photo selected ✓</span>
           </div>
           <p class="text-[10px] text-slate-400 mt-1" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
         </div>

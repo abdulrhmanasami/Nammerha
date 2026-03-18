@@ -132,6 +132,14 @@ function goToRegStep(targetStep: number): void {
 
     currentRegStep = targetStep;
 
+    // ── FRIC-003 FIX: Sync URL hash with wizard step ──
+    // Enables browser back-button navigation between wizard steps.
+    // Standard: Nielsen #3 (User Control & Freedom), History API best practices.
+    const newHash = `#register-step-${targetStep}`;
+    if (window.location.hash !== newHash) {
+        history.pushState(null, '', newHash);
+    }
+
     // ── Auto-focus first input in step ──
     const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(`[data-reg-step="${targetStep}"]`);
     const firstInput = activePanel?.querySelector<HTMLInputElement>('input:not([type="hidden"]):not([type="checkbox"])');
@@ -200,11 +208,78 @@ formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach(bt
 // Reset wizard to Step 1 when switching to Register tab.
 tabLogin?.addEventListener('click', () => {
     switchTab('login');
+    // FRIC-003: Clear hash when switching to login
+    if (window.location.hash) { history.replaceState(null, '', window.location.pathname); }
 });
 tabRegister?.addEventListener('click', () => {
     switchTab('register');
     goToRegStep(1);
 });
+
+// ─── FRIC-003 FIX: URL Hash State for Registration Wizard ───────────────────
+// Enables browser back-button to navigate between wizard steps instead of
+// leaving the page. Prevents registration progress loss on accidental back.
+// Standard: Nielsen #3 (User Control & Freedom), WCAG 2.4.5 (Multiple Ways).
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('hashchange', () => {
+    const match = window.location.hash.match(/^#register-step-(\d+)$/);
+    if (match) {
+        const step = parseInt(match[1], 10);
+        if (step >= 1 && step <= 3 && step !== currentRegStep) {
+            // Switch to register mode if not already
+            if (state.mode !== 'register') { switchTab('register'); }
+            // Navigate backward without validation (user chose to go back)
+            // Navigate forward with validation gate (goToRegStep handles this)
+            if (step < currentRegStep) {
+                // Going back — bypass validation
+                currentRegStep = step + 1; // trick: set current to step+1 so goToRegStep treats it as backward
+                goToRegStep(step);
+            } else {
+                goToRegStep(step);
+            }
+        }
+    } else if (!window.location.hash) {
+        // Hash cleared (e.g., back from step-1 to no hash) — return to login
+        if (state.mode === 'register') { switchTab('login'); }
+    }
+});
+
+// FRIC-003: Restore wizard state from URL hash on page load
+(function restoreHashState(): void {
+    const match = window.location.hash.match(/^#register-step-(\d+)$/);
+    if (match) {
+        const step = parseInt(match[1], 10);
+        if (step >= 1 && step <= 3) {
+            switchTab('register');
+            // For step > 1, we skip validation on initial load (user may have refreshed)
+            currentRegStep = 1;
+            if (step > 1) {
+                // Set panels directly without validation
+                const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
+                panels?.forEach(panel => {
+                    const s = parseInt(panel.dataset.regStep ?? '0', 10);
+                    panel.style.display = s === step ? '' : 'none';
+                });
+                currentRegStep = step;
+                // Update stepper UI
+                const dots = formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]');
+                dots?.forEach(dot => {
+                    const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
+                    dot.classList.remove('active', 'completed');
+                    if (dotStep === step) {
+                        dot.classList.add('active');
+                    } else if (dotStep < step) {
+                        dot.classList.add('completed');
+                    }
+                });
+                const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
+                lines?.forEach((line, i) => {
+                    line.style.background = (i + 1) < step ? 'var(--smoky-jade)' : '';
+                });
+            }
+        }
+    }
+})();
 
 // ─── Banner / Feedback ──────────────────────────────────────────────────────
 // P2-AUD-002 FIX: Shared banner utility replaces local duplicate

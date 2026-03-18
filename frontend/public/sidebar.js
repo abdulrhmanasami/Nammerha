@@ -150,12 +150,12 @@
             if (tabs.length > 0) {
                 // ── Activate a tab: update ARIA, show panel, dispatch event ──
                 // FRIC-2026-001 FIX: Smooth tab panel transition via CSS animation re-trigger.
-                // The existing sectionReveal keyframe in main.css targets [id^="section-"]
-                // but display:none → display:'' does NOT re-trigger CSS animations.
-                // Solution: After showing the panel, force a reflow via void offsetHeight,
-                // then re-apply the animation. This gives a smooth 250ms fade-slide-in on
-                // every tab switch — matching Material Design 3 motion standards.
-                // Standard: Material Design 3 (Motion), Apple HIG (Transitions).
+                // INC-001 FIX: Migrated from style.display to classList.add/remove('hidden').
+                // Previous: inline style manipulation — inconsistent with class="hidden" convention.
+                // Now: Uses classList which is consistent with HTML initial state and sidebar toggle.
+                // Animation re-trigger preserved: classList.remove('hidden') triggers reflow,
+                // then void offsetHeight and animation reset ensure CSS keyframes replay.
+                // Standard: Design System Consistency, Material Design 3, Apple HIG.
                 function activateTab(tab) {
                     // Deselect all tabs and hide all panels
                     for (var t = 0; t < tabs.length; t++) {
@@ -165,7 +165,7 @@
                         var panelId = tabs[t].getAttribute('aria-controls');
                         if (panelId) {
                             var panel = document.getElementById(panelId);
-                            if (panel) { panel.style.display = 'none'; }
+                            if (panel) { panel.classList.add('hidden'); }
                         }
                     }
                     // Select target tab
@@ -177,7 +177,7 @@
                         var ap = document.getElementById(activePanel);
                         if (ap) {
                             // Show the panel
-                            ap.style.display = '';
+                            ap.classList.remove('hidden');
                             // Force CSS animation re-trigger:
                             // 1. Strip existing animation (browser clears pending animation)
                             ap.style.animation = 'none';
