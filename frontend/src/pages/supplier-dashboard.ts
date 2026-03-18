@@ -404,9 +404,10 @@ async function executeDeactivation(catalogId: string): Promise<void> {
 }
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
-// PLT-AUD-I002 FIX: Uses Intl.NumberFormat with getLocale() (was hardcoded '$' prefix)
+// LOW-002 FIX: Normalized from querySelector('[data-kpi="${name}"]') to getElementById('kpi-${name}')
+// — matches all other portal TS files. Standard: Nielsen #4 (Consistency).
 function setKPI(name: string, value: number, prefix = ''): void {
-    const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
+    const el = document.getElementById(`kpi-${name}`);
     if (!el) { return; }
 
     const duration = 1200;

@@ -8,6 +8,12 @@ import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
+// CRIT-001 + HIGH-001/002/003/004 FIX: Import shared utilities
+import { confirmAction } from '../utils/confirm-action';
+import { setLoadingState } from '../utils/loading-state';
+// MED-008 FIX: Haptic feedback for native-feel mobile interactions.
+// Gracefully degrades to no-op on unsupported devices.
+import { haptic } from '../utils/haptic';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -117,16 +123,23 @@ function setupToggleDetails(): void {
     const wrap = document.getElementById('sr-details-wrap');
     if (!btn || !wrap) { return; }
 
+    // MED-006 FIX: Preserve the '(4 optional fields)' badge on collapse.
+    // Previous: innerHTML replacement destroyed the badge after first toggle cycle.
+    // Now: Stores original HTML and restores it on collapse.
+    // Standard: Progressive Disclosure Context Preservation.
+    const originalBtnHTML = btn.innerHTML;
     let isExpanded = false;
 
     btn.addEventListener('click', () => {
         isExpanded = !isExpanded;
+        // MED-008 FIX: Light haptic on toggle — item selection feedback.
+        haptic.light();
         if (isExpanded) {
             wrap.classList.remove('hidden');
             btn.innerHTML = '<i class="ph ph-minus-circle" aria-hidden="true"></i> <span data-i18n="ho_fewer_details">Fewer Details</span>';
         } else {
             wrap.classList.add('hidden');
-            btn.innerHTML = '<i class="ph ph-plus-circle" aria-hidden="true"></i> <span data-i18n="ho_add_details">Add Details</span>';
+            btn.innerHTML = originalBtnHTML;
         }
         // FRC-N06 FIX: Re-translate the newly injected data-i18n spans
         // so Arabic users don't see English fallback text after toggling.
@@ -141,6 +154,8 @@ function setupTabs(): void {
         if (!el) { continue; }
         el.addEventListener('click', (e) => {
             e.preventDefault();
+            // MED-008 FIX: Light haptic on tab switch — item selection.
+            haptic.light();
             switchTab(tab);
         });
     }
@@ -154,9 +169,16 @@ function switchTab(tab: TabName): void {
     for (const tabId of ALL_TABS) {
         const el = document.getElementById(`tab-${tabId}`);
         if (!el) { continue; }
+        // CRIT-001 FIX: Use design system tokens (bg-trust-blue/10 text-trust-blue).
+        // Previous: raw Tailwind bg-blue-600/10 text-blue-700 — broke token governance.
+        // Also restores w-full text-start dropped during prior migration — fixes RTL layout.
+        // Standard: Design System Token Governance, Nielsen #4 (Consistency).
         el.className = tabId === tab
-            ? 'flex items-center gap-3 px-3 py-2 bg-blue-600/10 text-blue-700 rounded-lg cursor-pointer'
-            : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
+            ? 'flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start'
+            : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start';
+
+        // WCAG: Update aria-selected for screen reader parity
+        el.setAttribute('aria-selected', String(tabId === tab));
 
         const section = document.getElementById(`section-${tabId}`);
         if (section) { section.style.display = tabId === tab ? '' : 'none'; }
@@ -183,6 +205,15 @@ async function loadStats(): Promise<void> {
         // P2-AUD-KPI-001 FIX: Backend field is total_invested, not total_funded
         setText('kpi-escrow', formatCents(s.total_invested));
         setText('approval-count', String(s.pending_approvals));
+        // MED-003 FIX: Notification bell count was hardcoded "0" — now synced to pending_approvals.
+        // Hides badge when zero to avoid misleading "0" indicator.
+        // Standard: Nielsen #1 (Visibility of System Status).
+        const notifEl = document.getElementById('notif-count');
+        if (notifEl) {
+            const count = s.pending_approvals;
+            notifEl.textContent = String(count);
+            notifEl.style.display = count > 0 ? '' : 'none';
+        }
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // Silent degradation — KPIs retain HTML defaults
     }
@@ -203,7 +234,7 @@ async function loadDashboardProjects(): Promise<void> {
                 <i class="ph ph-house" style="font-size:40px" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('ho_no_active_projects', 'No active projects'))}</p>
                 <p class="text-xs mt-1">${esc(t('ho_report_to_start', 'Report damage to get started'))}</p>
-                <a href="/homeowner-report.html" class="inline-block mt-3 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg">${esc(t('ho_report_damage', 'Report Damage'))}</a>
+                <a href="/homeowner-report.html" class="inline-block mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('ho_report_damage', 'Report Damage'))}</a>
             </div>`;
             return;
         }
@@ -220,7 +251,7 @@ async function loadDashboardProjects(): Promise<void> {
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.engineer_name ? `<span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(p.engineer_name)}</span>` : ''}
                             ${p.contractor_name ? `<span><i class="ph ph-crane" aria-hidden="true"></i> ${esc(p.contractor_name)}</span>` : ''}
-                            ${p.bid_count > 0 ? `<span class="text-blue-600 font-bold"><i class="ph ph-file-text" aria-hidden="true"></i> ${p.bid_count} ${esc(t('ho_bids', 'bids'))}</span>` : ''}
+                            ${p.bid_count > 0 ? `<span class="text-trust-blue font-bold"><i class="ph ph-file-text" aria-hidden="true"></i> ${p.bid_count} ${esc(t('ho_bids', 'bids'))}</span>` : ''}
                         </div>
                         ${p.total_boq_cost > 0 ? `<p class="text-xs text-slate-500 mt-1">${esc(t('ho_boq_total', 'BOQ Total'))}: <span class="font-mono font-bold">${formatCents(p.total_boq_cost)}</span></p>` : ''}
                     </div>
@@ -253,12 +284,14 @@ async function loadProjects(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3">
                     <p class="font-medium">${esc(p.title)}</p>
-                    <p class="text-[10px] text-slate-400">${esc(p.project_id)}</p>
+                    <!-- LOW-005 FIX: Truncate raw UUID to first 8 chars — reduces cognitive noise.
+                         Homeowners don't need technical IDs; short prefix is enough for support. -->
+                    <p class="text-[10px] text-slate-400">${esc(p.project_id.substring(0, 8))}…</p>
                 </td>
                 <td class="px-5 py-3">${esc(p.damage_type)}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.engineer_name ?? '—')}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.contractor_name ?? '—')}</td>
-                <td class="px-5 py-3"><span class="text-blue-600 font-bold text-xs">${p.bid_count}</span></td>
+                <td class="px-5 py-3"><span class="text-trust-blue font-bold text-xs">${p.bid_count}</span></td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
             </tr>
         `).join('');
@@ -268,6 +301,10 @@ async function loadProjects(): Promise<void> {
 }
 
 // ─── Service Request Form ───────────────────────────────────────────────────
+// CRIT-003 FIX: Added trade validation — was submittable with trade_needed: "".
+// HIGH-003 FIX: Uses setLoadingState for production-quality spinner feedback.
+// MED-001 FIX: All button resets use bg-trust-blue design token (was bg-blue-600).
+// Standard: Nielsen #5 (Error Prevention), Nielsen #1 (System Status Visibility).
 function setupServiceRequestForm(): void {
     const btn = document.getElementById('submit-sr-btn');
     if (!btn) { return; }
@@ -280,14 +317,23 @@ function setupServiceRequestForm(): void {
         const budget = (document.getElementById('sr-budget') as HTMLInputElement)?.value;
         const urgency = (document.getElementById('sr-urgency') as HTMLSelectElement)?.value;
 
+        // CRIT-003 FIX: Validate trade selection — required field for matching.
+        // Previous: Only title was checked. Empty trade = unmatchable request (dead end).
+        if (!trade) {
+            showSrBanner('error', t('ho_sr_trade_required', 'Please select a trade for your request'));
+            return;
+        }
+
         if (!title) {
             showSrBanner('error', t('ho_sr_title_required', 'Please enter a title for your request'));
             return;
         }
 
+        // HIGH-003 FIX: Use shared loading state utility (spinner + disabled + aria-busy).
+        // Previous: Manual b.textContent = 'Submitting...' — no spinner, no cursor-wait.
+        // Critical for Syria 2G/3G networks where submissions take 5-30 seconds.
         const b = btn as HTMLButtonElement;
-        b.disabled = true;
-        b.textContent = t('ho_submitting', 'Submitting...');
+        const restore = setLoadingState(b, t('ho_submitting', 'Submitting...'));
 
         try {
             const res = await homeowner.createServiceRequest({
@@ -303,31 +349,22 @@ function setupServiceRequestForm(): void {
                 throw new Error(res.error ?? t('ho_failed', 'Failed'));
             }
 
-            b.innerHTML = `<i class="ph ph-check" style="margin-inline-end:4px"></i>${t('ho_submitted', 'Submitted')}`;
-            b.className = 'px-5 py-2.5 bg-green-100 text-green-700 text-sm font-bold rounded-lg';
+            // Show success state via utility — auto-restores after 600ms
+            restore('success');
 
-            // Reset form
+            // Reset form fields
+            (document.getElementById('sr-trade') as HTMLSelectElement).selectedIndex = 0;
             (document.getElementById('sr-title') as HTMLInputElement).value = '';
             (document.getElementById('sr-description') as HTMLTextAreaElement).value = '';
             (document.getElementById('sr-address') as HTMLInputElement).value = '';
             (document.getElementById('sr-budget') as HTMLInputElement).value = '';
 
-            setTimeout(() => {
-                b.textContent = t('ho_submit_request', '📢 Submit Request');
-                b.className = 'px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors';
-                b.disabled = false;
-            }, 2000);
-
             loadServiceRequests();
             loadStats();
         } catch (err) {
-            b.textContent = err instanceof Error ? err.message : t('ho_failed', 'Failed');
-            b.className = 'px-5 py-2.5 bg-red-100 text-red-600 text-sm font-bold rounded-lg';
-            setTimeout(() => {
-                b.textContent = t('ho_submit_request', '📢 Submit Request');
-                b.className = 'px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors';
-                b.disabled = false;
-            }, 3000);
+            // Show error state via utility — auto-restores after 800ms
+            restore('error');
+            showSrBanner('error', err instanceof Error ? err.message : t('ho_failed', 'Failed'));
         }
     });
 }
@@ -364,18 +401,35 @@ async function loadServiceRequests(): Promise<void> {
             </tr>
         `).join('');
 
-        // Cancel handlers
+        // HIGH-001 FIX: Cancel handlers with confirmation dialog.
+        // Previous: Direct API call — one tap = irreversible cancellation.
+        // Now: confirmAction dialog protects against accidental cancellation.
+        // Standard: Nielsen #5 (Error Prevention), Apple HIG (Destructive Actions).
         tbody.querySelectorAll('.cancel-sr-btn').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = (btn as HTMLElement).dataset['id'];
                 if (!id) { return; }
-                try {
-                    await homeowner.cancelServiceRequest(id);
-                    loadServiceRequests();
-                    loadStats();
-                } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-                    // Silent — error captured by centralized reporter
-                }
+                confirmAction({
+                    title: t('ho_confirm_cancel_title', 'Cancel Service Request'),
+                    message: t('ho_confirm_cancel_msg', 'Are you sure you want to cancel this request? This action cannot be undone.'),
+                    confirmLabel: t('ho_cancel', 'Cancel Request'),
+                    icon: 'x-circle',
+                    variant: 'danger',
+                    i18n: { title: 'ho_confirm_cancel_title', message: 'ho_confirm_cancel_msg', confirm: 'ho_cancel', cancel: 'common_cancel' },
+                    onConfirm: async () => {
+                        const b = btn as HTMLButtonElement;
+                        const restore = setLoadingState(b, t('ho_cancelling', 'Cancelling...'));
+                        try {
+                            await homeowner.cancelServiceRequest(id);
+                            restore('success');
+                            loadServiceRequests();
+                            loadStats();
+                        } catch (err) {
+                            restore('error');
+                            reportWarning('[HomeownerPortal] Cancel failed', { error: err instanceof Error ? err.message : String(err) });
+                        }
+                    },
+                });
             });
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -427,18 +481,46 @@ async function loadApprovals(): Promise<void> {
             </div>
         `).join('');
 
-        // Approval handlers
+        // HIGH-002 + HIGH-004 FIX: Approve/Reject with confirmation + loading state.
+        // Previous: Instant API call — no confirmation, no loading, no debounce.
+        // Now: Reject goes through confirmAction (destructive). Both use setLoadingState.
+        // Standard: Nielsen #5 (Error Prevention), Material Design 3 (Confirmation).
         container.querySelectorAll('.approval-btn').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = (btn as HTMLElement).dataset['id'];
                 const decision = (btn as HTMLElement).dataset['decision'] as 'approved' | 'rejected';
                 if (!id || !decision) { return; }
-                try {
-                    await homeowner.respondToApproval(id, decision);
-                    loadApprovals();
-                    loadStats();
-                } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-                    // Silent — error captured by centralized reporter
+
+                const executeApproval = async () => {
+                    const b = btn as HTMLButtonElement;
+                    const restore = setLoadingState(b, decision === 'approved'
+                        ? t('ho_approving', 'Approving...')
+                        : t('ho_rejecting', 'Rejecting...'));
+                    try {
+                        await homeowner.respondToApproval(id, decision);
+                        restore('success');
+                        loadApprovals();
+                        loadStats();
+                    } catch (err) {
+                        restore('error');
+                        reportWarning('[HomeownerPortal] Approval failed', { error: err instanceof Error ? err.message : String(err) });
+                    }
+                };
+
+                // Reject is destructive — requires confirmation
+                if (decision === 'rejected') {
+                    confirmAction({
+                        title: t('ho_confirm_reject_title', 'Reject Approval'),
+                        message: t('ho_confirm_reject_msg', 'Are you sure you want to reject this? The engineer will be notified.'),
+                        confirmLabel: t('ho_reject', 'Reject'),
+                        icon: 'x-circle',
+                        variant: 'danger',
+                        i18n: { title: 'ho_confirm_reject_title', message: 'ho_confirm_reject_msg', confirm: 'ho_reject', cancel: 'common_cancel' },
+                        onConfirm: executeApproval,
+                    });
+                } else {
+                    // Approve is non-destructive — proceed with loading state
+                    await executeApproval();
                 }
             });
         });
@@ -458,17 +540,17 @@ async function loadEscrow(): Promise<void> {
 
         container.innerHTML = `
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-blue-50 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-blue-400 uppercase">${esc(t('ho_total_deposited', 'Total Deposited'))}</p>
-                    <p class="text-xl font-black mt-1 text-blue-700">${formatCents(e.total_deposited ?? 0)}</p>
+                <div class="bg-trust-blue/5 rounded-xl p-4">
+                    <p class="text-[10px] font-bold text-trust-blue/60 uppercase">${esc(t('ho_total_deposited', 'Total Deposited'))}</p>
+                    <p class="text-xl font-black mt-1 text-trust-blue">${formatCents(e.total_deposited ?? 0)}</p>
                 </div>
-                <div class="bg-green-50 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-green-400 uppercase">${esc(t('ho_released', 'Released'))}</p>
-                    <p class="text-xl font-black mt-1 text-green-700">${formatCents(e.total_released ?? 0)}</p>
+                <div class="bg-smoky-jade/5 rounded-xl p-4">
+                    <p class="text-[10px] font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'Released'))}</p>
+                    <p class="text-xl font-black mt-1 text-smoky-jade">${formatCents(e.total_released ?? 0)}</p>
                 </div>
-                <div class="bg-amber-50 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-amber-400 uppercase">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
-                    <p class="text-xl font-black mt-1 text-amber-700">${formatCents(e.held_in_escrow ?? 0)}</p>
+                <div class="bg-warning-yellow/5 rounded-xl p-4">
+                    <p class="text-[10px] font-bold text-warning-yellow/60 uppercase">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
+                    <p class="text-xl font-black mt-1 text-warning-yellow">${formatCents(e.held_in_escrow ?? 0)}</p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4">
                     <p class="text-[10px] font-bold text-slate-400 uppercase">${esc(t('ho_projects', 'Projects'))}</p>
@@ -476,8 +558,8 @@ async function loadEscrow(): Promise<void> {
                 </div>
             </div>
             ${(e.held_in_escrow ?? 0) > 0 ? `
-                <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <div class="flex items-center gap-2 text-blue-700">
+                <div class="mt-4 p-4 bg-trust-blue/5 rounded-xl border border-trust-blue/10">
+                    <div class="flex items-center gap-2 text-trust-blue">
                         <i class="ph ph-shield-check" style="font-size:20px" aria-hidden="true"></i>
                         <p class="text-sm font-medium">${esc(t('ho_escrow_guarantee', 'Your funds are secured in escrow and will be released upon approved construction milestones.'))}</p>
                     </div>

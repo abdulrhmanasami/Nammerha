@@ -167,7 +167,8 @@
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_pending_bids">Pending Orders</p>
           <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="pending-bids">
+          <!-- LOW-002 FIX: Normalized from data-kpi to id pattern matching all other portals. -->
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-pending-bids">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -178,7 +179,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_won_contracts">Won Contracts</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="won-contracts">
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-won-contracts">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -193,7 +194,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_in_transit">In Transit</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="in-transit">
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-in-transit">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -204,7 +205,7 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_total_revenue">Total Revenue</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="total-revenue" data-prefix="$">
+          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-total-revenue" data-prefix="$">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>

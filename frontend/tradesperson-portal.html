@@ -104,10 +104,14 @@
          Previous: Had data-section-label but no i18n binding — "Navigate" was stuck in English.
          Now matches contractor-dashboard + supplier-dashboard canonical pattern.
          Standard: Nielsen #4 (Consistency), i18n RTL parity. -->
-    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
+    <!-- MED-004 FIX: Added border-t and p-4 — was px-4 pb-2 without separator.
+         All other 5 portals use border-t border-slate-200 p-4 for the profile section.
+         Standard: Nielsen #4 (Consistency), Gestalt (Grouping). -->
+    <div class="p-4 border-t border-slate-200 space-y-1" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a href="profile.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="common_profile">Profile</span>
+        <!-- LOW-003 FIX: Normalized to nav_profile — matches contractor/supplier. -->
+        <span class="font-medium" data-i18n="nav_profile">Profile</span>
       </a>
     </div>
     <!-- Availability Toggle -->
@@ -238,7 +242,9 @@
             <h3 class="font-bold" data-i18n="tradesperson_current_work">Current Work</h3>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="tradesperson_current_desc">Your active jobs and assignments</p>
           </div>
-          <div class="overflow-x-auto">
+          <!-- MED-005 FIX: Added data-scroll-hint — was missing. All other portals have it.
+               Standard: Mobile UX Affordance, Touch Interaction Discoverability. -->
+          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <table class="w-full text-sm nm-donation-table">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -282,7 +288,8 @@
             <h3 class="font-bold" data-i18n="tradesperson_assignment_list">Contractor Assignments</h3>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="tradesperson_assignments_hint">Tasks assigned by general contractors on projects</p>
           </div>
-          <div class="overflow-x-auto">
+          <!-- MED-005 FIX: Added data-scroll-hint for assignments table. -->
+          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <table class="w-full text-sm nm-donation-table">
               <thead>
                 <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
