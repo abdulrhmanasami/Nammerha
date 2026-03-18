@@ -12,6 +12,8 @@ import { formatDollars } from '../utils/format';
 import { t } from '../utils/i18n';
 // GAP-N03 FIX: Global search overlay on checkout page
 import { initSearch } from '../utils/search-overlay';
+// UX-004 FIX: Haptic feedback for native-app tactile response
+import { haptic } from '../utils/haptic';
 initSearch();
 
 // FRC-003 FIX: Default tip 0% (was 3%). Humanitarian platform — opt-in tipping only.
@@ -88,6 +90,7 @@ function initDonorBasket(): void {
 
         tipButtons.forEach((btn) => {
             btn.addEventListener('click', () => {
+                haptic.light(); // UX-004: Tip select feedback
                 const tipValue = btn.dataset['tip'];
 
                 // Update active state
@@ -211,6 +214,7 @@ function initDonorBasket(): void {
         const plusBtn = card.querySelector('.qty-plus');
 
         minusBtn?.addEventListener('click', () => {
+            haptic.light(); // UX-004: Qty adjust feedback
             if (item.quantity <= 1) {
                 // P2-007 FIX: RTL-aware removal animation direction
                 const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
@@ -228,6 +232,7 @@ function initDonorBasket(): void {
         });
 
         plusBtn?.addEventListener('click', () => {
+            haptic.light(); // UX-004: Qty adjust feedback
             CartStore.updateQuantity(item.id, item.quantity + 1);
             render();
         });
@@ -335,6 +340,7 @@ function initDonorBasket(): void {
 
     // P0-003 FIX: Confirm funding button with double-click guard and disabled state
     confirmBtn?.addEventListener('click', () => {
+        haptic.success(); // UX-004: Confirm funding celebration feedback
         if (CartStore.getItems().length === 0 || (confirmBtn as HTMLButtonElement).disabled) {
             return;
         }

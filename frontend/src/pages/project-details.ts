@@ -24,6 +24,8 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 import { showToast } from '../utils/toast';
+// UX-004 FIX: Haptic feedback for native-app tactile response
+import { haptic } from '../utils/haptic';
 // GAP-N03 FIX: Global search overlay on inner pages
 import { initSearch } from '../utils/search-overlay';
 initPullToRefresh();
@@ -301,6 +303,8 @@ function initCartButtons(): void {
                 iconClass,
             });
 
+            haptic.medium(); // UX-004: Add-to-cart confirmation feedback
+
             const iconEl = btn.querySelector<HTMLElement>('i.ph');
             if (iconEl && cartBtn) {
                 flyToCart(iconEl, cartBtn, () => renderCartBadge(cartBadge));
@@ -451,6 +455,7 @@ function initShareButton(): void {
     if (!btn) { return; }
 
     btn.addEventListener('click', async () => {
+        haptic.light(); // UX-004: Share action feedback
         const title = document.title;
         const url = window.location.href;
         const text = t('share_project_text', 'Help rebuild Syria — support this project on Nammerha');

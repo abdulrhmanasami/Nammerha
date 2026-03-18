@@ -13,6 +13,8 @@ import { marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
+// UX-004 FIX: Centralized haptic module (replaces inline navigator.vibrate)
+import { haptic } from '../utils/haptic';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STATE
@@ -241,8 +243,8 @@ document.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach((pill) => {
         state.filter = pill.dataset['filter'] ?? 'all';
         void fetchProjects();
 
-        // Haptic feedback
-        if ('vibrate' in navigator) { navigator.vibrate(20); }
+        // UX-004 FIX: Centralized haptic feedback (was inline navigator.vibrate(20))
+        haptic.light();
     });
 });
 

@@ -10,6 +10,8 @@ import { guardSkeleton } from '../utils/skeleton-guard';
 import { requireAuth } from '../utils/auth-guard';
 // GAP-002 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
+// UX-004 FIX: Haptic feedback for native-app tactile response
+import { haptic } from '../utils/haptic';
 import { initBackToTop } from '../components/back-to-top';
 // GAP-N03 FIX: Global search overlay on inner pages
 import { initSearch } from '../utils/search-overlay';
@@ -164,6 +166,7 @@ function init(): void {
     // P1-F4 FIX: Wire wallet history button to scroll to transaction section.
     // Previous: dead button with no handler, no id.
     document.getElementById('scroll-to-history')?.addEventListener('click', () => {
+        haptic.light(); // UX-004: Tactile tap feedback
         const section = document.getElementById('transaction-list');
         section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -181,6 +184,7 @@ function init(): void {
     const addFundsBtn = document.getElementById('add-funds-btn');
     if (addFundsBtn) {
         addFundsBtn.addEventListener('click', () => {
+            haptic.medium(); // UX-004: Confirm action feedback
             // Show inline feedback banner with actionable context
             const parent = addFundsBtn.parentElement;
             if (!parent) { return; }
