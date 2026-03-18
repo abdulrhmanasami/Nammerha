@@ -51,7 +51,7 @@
     <!-- Brand Header -->
     <header class="px-6 pt-12 pb-6 text-center relative z-10">
       <div class="inline-flex items-center justify-center size-16 bg-smoky-jade rounded-2xl shadow-lg shadow-smoky-jade/20 mb-4" id="verify-icon-container">
-        <i class="ph ph-spinner-gap text-white animate-spin" style="font-size:32px" aria-hidden="true" id="verify-icon"></i>
+        <i class="ph ph-spinner-gap text-white animate-spin nm-icon-32"  aria-hidden="true" id="verify-icon"></i>
       </div>
       <h1 class="text-2xl font-bold tracking-tight" id="verify-title" data-i18n="verify_email_title">Verifying Email…</h1>
       <p class="text-sm text-slate-500 mt-1" id="verify-subtitle" data-i18n="verify_email_subtitle">Please wait while we verify your email address</p>
@@ -62,7 +62,7 @@
     <!-- DEF-THEME-001 FIX: Replaced inline positioning with CSS class.
          Standard: P1-001 CSS Single Source of Truth. -->
     <button id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-      <i id="nm-theme-toggle-icon" data-nm-theme-icon aria-hidden="true" style="font-size:18px"></i>
+      <i id="nm-theme-toggle-icon" class="text-lg" data-nm-theme-icon aria-hidden="true"></i>
     </button>
 
     <!-- PLAT-M06 FIX: Added role="alert" and aria-live for screen reader announcements.
@@ -71,7 +71,7 @@
          Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
     <div class="px-6 mb-4 relative z-10 hidden" id="verify-banner" role="alert" aria-live="assertive">
       <div class="rounded-xl p-4 text-sm font-medium flex items-start gap-3" id="verify-banner-inner">
-        <i class="ph mt-0.5" id="verify-banner-icon" style="font-size:20px" aria-hidden="true"></i>
+        <i class="ph mt-0.5 text-xl" id="verify-banner-icon" aria-hidden="true"></i>
         <div>
           <p class="font-bold" id="verify-banner-title"></p>
           <p class="mt-1 opacity-80" id="verify-banner-text"></p>
@@ -112,16 +112,16 @@
     <div class="mt-auto px-6 py-8 text-center relative z-10">
       <details class="mb-3">
         <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1">
-          <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+          <i class="ph ph-shield-check text-xs"  aria-hidden="true"></i>
           <span data-i18n="auth_security_details">Security Details</span>
         </summary>
         <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
           <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-            <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+            <i class="ph ph-shield-check text-smoky-jade text-sm"  aria-hidden="true"></i>
             <span data-i18n="auth_trust_1">OCDS Verified</span>
           </div>
           <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-            <i class="ph ph-lock text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
+            <i class="ph ph-lock text-trust-blue text-sm"  aria-hidden="true"></i>
             <span data-i18n="auth_trust_2">256-bit Encrypted</span>
           </div>
         </div>

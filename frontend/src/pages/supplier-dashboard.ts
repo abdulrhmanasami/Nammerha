@@ -166,7 +166,7 @@ async function loadOrders(): Promise<void> {
         if (!items || items.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-package" style="font-size:24px" aria-hidden="true"></i>
+                    <i class="ph ph-package text-2xl"  aria-hidden="true"></i>
                     <p class="mt-2 text-xs">${esc(t('supplier_no_orders', 'No purchase orders yet'))}</p>
                 </td>
             </tr>`;
@@ -218,7 +218,7 @@ async function loadCatalog(): Promise<void> {
         if (!items || items.length === 0) {
             container.innerHTML = `
                 <div class="col-span-full text-center py-12 text-slate-400">
-                    <i class="ph ph-storefront" style="font-size:32px" aria-hidden="true"></i>
+                    <i class="ph ph-storefront nm-icon-32"  aria-hidden="true"></i>
                     <p class="mt-3 text-sm">${esc(t('supplier_catalog_empty', 'Your catalog is empty'))}</p>
                     <p class="text-xs mt-1">${esc(t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'))}</p>
                 </div>`;

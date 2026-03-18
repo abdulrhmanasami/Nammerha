@@ -6,6 +6,8 @@
  * and optional platform tip selection per profitability study §1.
  */
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { CartStore, type CartItem } from '../components/cart';
 import { escapeHtml } from '../utils/xss';
 import { formatDollars } from '../utils/format';
@@ -219,10 +221,8 @@ function initDonorBasket(): void {
             haptic.light(); // UX-004: Qty adjust feedback
             if (item.quantity <= 1) {
                 // P2-007 FIX: RTL-aware removal animation direction
-                const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
-                card.style.transition = 'opacity 0.3s, transform 0.3s';
-                card.style.opacity = '0';
-                card.style.transform = isRtl ? 'translateX(20px)' : 'translateX(-20px)';
+                // P3-BAS-01 FIX: CSS class instead of 3× inline style mutations
+                card.classList.add('nm-card-removing');
                 setTimeout(() => {
                     CartStore.removeItem(item.id);
                     render();

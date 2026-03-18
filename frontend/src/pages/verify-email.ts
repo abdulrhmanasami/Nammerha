@@ -33,15 +33,15 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
         if (type === 'success') {
             iconContainer.className = 'inline-flex items-center justify-center size-16 bg-smoky-jade rounded-2xl shadow-lg shadow-smoky-jade/20 mb-4';
             icon.className = 'ph ph-check-circle text-white';
-            icon.style.fontSize = '32px';
+            icon.classList.add('nm-icon-32');
         } else if (type === 'expired') {
             iconContainer.className = 'inline-flex items-center justify-center size-16 bg-warning-yellow rounded-2xl shadow-lg shadow-warning-yellow/20 mb-4';
             icon.className = 'ph ph-clock-countdown text-white';
-            icon.style.fontSize = '32px';
+            icon.classList.add('nm-icon-32');
         } else {
             iconContainer.className = 'inline-flex items-center justify-center size-16 bg-red-500 rounded-2xl shadow-lg shadow-red-500/20 mb-4';
             icon.className = 'ph ph-x-circle text-white';
-            icon.style.fontSize = '32px';
+            icon.classList.add('nm-icon-32');
         }
     }
 

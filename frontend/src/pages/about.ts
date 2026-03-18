@@ -12,6 +12,8 @@
  * low-bandwidth/accessibility environments.
  */
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 
 (function initAboutPage(): void {
     // ─── Respect reduced motion preferences ─────────────────────────────

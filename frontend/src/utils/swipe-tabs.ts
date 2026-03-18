@@ -2,6 +2,8 @@
 // Nammerha — Swipeable Tab Navigation (Native-App Feel)
 // P1-MOB-003 FIX: Horizontal swipe gesture for dashboard tab switching
 // ============================================================================
+
+import { haptic } from './haptic';
 // Architecture: Clean observer pattern — controllers subscribe to swipe events,
 // the module handles all touch math internally. Zero coupling to DOM structure.
 //
@@ -105,15 +107,11 @@ export function initSwipeTabs<T extends string>(config: SwipeTabsConfig<T>): (()
         if (logicalDelta < 0 && idx < tabs.length - 1) {
             // Logical swipe forward → next tab
             // P1-MOB-002 FIX: Haptic feedback on tab switch
-            if (navigator.vibrate) {
-                navigator.vibrate(8);
-            }
+            haptic.light();
             onSwitch(tabs[idx + 1]!);
         } else if (logicalDelta > 0 && idx > 0) {
             // Logical swipe backward → previous tab
-            if (navigator.vibrate) {
-                navigator.vibrate(8);
-            }
+            haptic.light();
             onSwitch(tabs[idx - 1]!);
         }
     }

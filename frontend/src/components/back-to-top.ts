@@ -20,7 +20,7 @@ function createFab(): HTMLButtonElement {
     btn.id = 'back-to-top-fab';
     btn.setAttribute('aria-label', 'Back to top');
     btn.setAttribute('data-i18n-aria', 'aria_back_to_top');
-    btn.innerHTML = '<i class="ph ph-arrow-up" style="font-size:20px" aria-hidden="true"></i>';
+    btn.innerHTML = '<i class="ph ph-arrow-up text-xl"  aria-hidden="true"></i>';
 
     // DEF-BTT-TS FIX: CSS class replaces 22-line inline style.cssText.
     // .nm-back-to-top in main.css handles all styling including dark mode,

@@ -162,7 +162,7 @@ async function loadProjects(): Promise<void> {
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-clipboard-text" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-clipboard-text nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_assigned_projects', 'No assigned projects yet')}</p>
                 <p class="text-xs mt-1">${t('ct_browse_marketplace', 'Browse the marketplace and submit bids')}</p>
             </td></tr>`;
@@ -201,7 +201,7 @@ async function loadMarketplace(): Promise<void> {
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-magnifying-glass" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_projects_available', 'No projects available')}</p>
                 <p class="text-xs mt-1">${t('ct_new_projects_appear', 'New projects will appear here when published')}</p>
             </td></tr>`;
@@ -248,7 +248,7 @@ async function loadBids(): Promise<void> {
 
         if (bids.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-flag-banner" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-flag-banner nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_bids_yet', 'No bids submitted yet')}</p>
             </td></tr>`;
             return;
@@ -279,7 +279,7 @@ async function loadPayments(): Promise<void> {
 
         if (payments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-wallet" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-wallet nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_payments_yet', 'No payments yet')}</p>
             </td></tr>`;
             return;

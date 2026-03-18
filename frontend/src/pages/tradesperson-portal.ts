@@ -179,7 +179,7 @@ async function loadActiveJobs(): Promise<void> {
 
         if (requests.length === 0 && assignments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-sun-dim" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-sun-dim nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_active_work">No active work</p>
                 <p class="text-xs mt-1" data-i18n="tp_check_available">Check Available Jobs for new opportunities</p>
             </td></tr>`;
@@ -225,7 +225,7 @@ async function loadRequests(): Promise<void> {
 
         if (requests.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <i class="ph ph-magnifying-glass" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_requests">No requests matching your trade</p>
                 <p class="text-xs mt-1" data-i18n="tp_new_requests_auto">New requests will appear here automatically</p>
             </div>`;
@@ -299,7 +299,7 @@ async function loadAssignments(): Promise<void> {
 
         if (assignments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-clipboard-text" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-clipboard-text nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_assignments">No contractor assignments</p>
             </td></tr>`;
             return;
@@ -359,7 +359,7 @@ async function loadEarnings(): Promise<void> {
 
         if (earnings.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-coins" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-coins nm-icon-32"  aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_earnings">No earnings yet</p>
             </td></tr>`;
             return;

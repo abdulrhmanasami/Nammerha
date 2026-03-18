@@ -1,8 +1,14 @@
 // ============================================================================
 // Nammerha Frontend — Compare Slider Module
 // Before/After satellite imagery comparison using MapLibre GL Compare
+// P1-CMP-01 FIX: All visual styles moved to CSS (.nm-compare-* classes in main.css).
+//   Previous: 6× `style.cssText` blocks — 100+ lines of inline CSS, hardcoded
+//   physical properties (left/right), no dark mode, no RTL support.
+//   Now: CSS-only. TS handles only DOM structure and dynamic % positioning.
+//   Standard: P1-SST-001, CSS Logical Properties (RTL-safe), dark mode tokens.
 // ============================================================================
 import maplibregl from 'maplibre-gl';
+import { escapeHtml } from '../utils/xss';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -17,6 +23,7 @@ interface CompareState {
     leftMap: maplibregl.Map | null;
     rightMap: maplibregl.Map | null;
     slider: HTMLDivElement | null;
+    clipDiv: HTMLDivElement | null;
     isActive: boolean;
     isDragging: boolean;
 }
@@ -26,6 +33,7 @@ const state: CompareState = {
     leftMap: null,
     rightMap: null,
     slider: null,
+    clipDiv: null,
     isActive: false,
     isDragging: false,
 };
@@ -57,114 +65,56 @@ export interface CompareConfig {
  * Initialize a before/after comparison slider.
  * Creates two synchronized MapLibre maps with image overlays
  * and a draggable divider between them.
+ *
+ * P1-CMP-01: All visual styling via CSS classes (.nm-compare-*).
+ * TS only manages DOM structure and dynamic percentage positioning.
  */
 export function initCompareSlider(config: CompareConfig): void {
     // Cleanup any existing instance
     destroyCompareSlider();
 
-    // Create container structure
+    // Create container structure — P1-CMP-01: CSS classes, no inline styles
     const container = document.createElement('div');
     container.id = COMPARE_CONTAINER_ID;
-    container.style.cssText = `
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        border-radius: 12px;
-    `;
+    container.className = 'nm-compare';
 
-    // Left map container (before)
+    // Left map container (before) — full-width base layer
     const leftDiv = document.createElement('div');
     leftDiv.id = COMPARE_LEFT_ID;
-    leftDiv.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-    `;
+    leftDiv.className = 'nm-compare__panel';
 
-    // Right map container (after)
+    // Right map container (after) — clipped overlay
     const rightDiv = document.createElement('div');
     rightDiv.id = COMPARE_RIGHT_ID;
-    rightDiv.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 50%;
-        height: 100%;
-        overflow: hidden;
-    `;
+    rightDiv.className = 'nm-compare__clip';
 
-    // Slider handle
+    // Slider handle — draggable divider line
     const slider = document.createElement('div');
-    slider.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 50%;
-        width: 4px;
-        height: 100%;
-        background: white;
-        cursor: ew-resize;
-        z-index: 10;
-        transform: translateX(-50%);
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-    `;
+    slider.className = 'nm-compare__divider';
 
-    // Slider knob
+    // Slider knob — centered grab indicator
     const knob = document.createElement('div');
-    knob.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 36px;
-        height: 36px;
-        background: white;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        color: #334155;
-        pointer-events: none;
-    `;
-    knob.innerHTML = '⟺';
+    knob.className = 'nm-compare__knob';
+    knob.textContent = '⟺';
     slider.appendChild(knob);
 
     container.appendChild(leftDiv);
     container.appendChild(rightDiv);
     container.appendChild(slider);
 
-    // Labels
-    if (config.beforeLabel || config.afterLabel) {
-        const labelStyle = `
-            position: absolute;
-            top: 16px;
-            padding: 4px 12px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 4px;
-            z-index: 5;
-            pointer-events: none;
-        `;
+    // Labels — P1-CMP-01: RTL-safe via inset-inline-start/end in CSS
+    if (config.beforeLabel) {
+        const beforeLabel = document.createElement('div');
+        beforeLabel.className = 'nm-compare__label nm-compare__label--before';
+        beforeLabel.textContent = escapeHtml(config.beforeLabel);
+        container.appendChild(beforeLabel);
+    }
 
-        if (config.beforeLabel) {
-            const beforeLabel = document.createElement('div');
-            beforeLabel.style.cssText = labelStyle + 'left: 16px;';
-            beforeLabel.textContent = config.beforeLabel;
-            container.appendChild(beforeLabel);
-        }
-
-        if (config.afterLabel) {
-            const afterLabel = document.createElement('div');
-            afterLabel.style.cssText = labelStyle + 'right: 16px;';
-            afterLabel.textContent = config.afterLabel;
-            container.appendChild(afterLabel);
-        }
+    if (config.afterLabel) {
+        const afterLabel = document.createElement('div');
+        afterLabel.className = 'nm-compare__label nm-compare__label--after';
+        afterLabel.textContent = escapeHtml(config.afterLabel);
+        container.appendChild(afterLabel);
     }
 
     config.container.appendChild(container);
@@ -205,38 +155,15 @@ export function initCompareSlider(config: CompareConfig): void {
         });
     });
 
-    // Slider drag logic
-    const onPointerDown = (_e: PointerEvent): void => {
-        state.isDragging = true;
-        document.body.style.cursor = 'ew-resize';
-    };
-
-    const onPointerMove = (e: PointerEvent): void => {
-        if (!state.isDragging) {
-            return;
-        }
-        const rect = container.getBoundingClientRect();
-        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-        const pct = (x / rect.width) * 100;
-
-        slider.style.left = `${pct}%`;
-        rightDiv.style.width = `${pct}%`;
-    };
-
-    const onPointerUp = (): void => {
-        state.isDragging = false;
-        document.body.style.cursor = '';
-    };
-
-    slider.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('pointermove', onPointerMove);
-    document.addEventListener('pointerup', onPointerUp);
+    // Slider drag logic — P1-CMP-01: Uses CSS class for cursor lock
+    setupSliderInteraction(container, slider, rightDiv);
 
     // Store state
     state.container = container;
     state.leftMap = leftMap;
     state.rightMap = rightMapInner;
     state.slider = slider;
+    state.clipDiv = rightDiv;
     state.isActive = true;
 }
 
@@ -257,8 +184,11 @@ export function destroyCompareSlider(): void {
         state.container = null;
     }
     state.slider = null;
+    state.clipDiv = null;
     state.isActive = false;
     state.isDragging = false;
+    // P1-CMP-01: Ensure cursor class is removed on destroy
+    document.body.classList.remove('nm-compare-dragging');
 }
 
 /**
@@ -266,6 +196,53 @@ export function destroyCompareSlider(): void {
  */
 export function isCompareActive(): boolean {
     return state.isActive;
+}
+
+// ─── Slider Interaction ─────────────────────────────────────────────────────
+// P1-CMP-01: Encapsulated slider drag logic. Uses CSS class toggle for
+// cursor lock instead of `document.body.style.cursor`.
+
+function setupSliderInteraction(
+    container: HTMLDivElement,
+    slider: HTMLDivElement,
+    clipDiv: HTMLDivElement,
+): void {
+    const onPointerDown = (_e: PointerEvent): void => {
+        state.isDragging = true;
+        // P1-CMP-01 FIX: CSS class instead of document.body.style.cursor
+        document.body.classList.add('nm-compare-dragging');
+    };
+
+    const onPointerMove = (e: PointerEvent): void => {
+        if (!state.isDragging) {
+            return;
+        }
+        const rect = container.getBoundingClientRect();
+        const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+
+        // P1-CMP-01 FIX: RTL-aware position calculation
+        let x: number;
+        if (isRtl) {
+            x = Math.max(0, Math.min(rect.right - e.clientX, rect.width));
+        } else {
+            x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        }
+        const pct = (x / rect.width) * 100;
+
+        // Only dynamic values — position percentage — are set via JS
+        slider.style.insetInlineStart = `${pct}%`;
+        clipDiv.style.width = `${pct}%`;
+    };
+
+    const onPointerUp = (): void => {
+        state.isDragging = false;
+        // P1-CMP-01 FIX: CSS class instead of document.body.style.cursor
+        document.body.classList.remove('nm-compare-dragging');
+    };
+
+    slider.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

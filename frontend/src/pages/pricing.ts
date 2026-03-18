@@ -10,6 +10,8 @@
  * $99 Enterprise for international organizations.
  */
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { subscriptions } from '../api';
 import { reportError } from '../error-reporter';
 import { getCurrentUser } from '../auth';

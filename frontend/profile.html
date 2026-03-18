@@ -67,7 +67,7 @@
   <section class="px-4 pt-6 animate-fade-in-up">
     <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
       <div class="size-20 bg-trust-blue rounded-full flex items-center justify-center mb-3">
-        <i class="ph ph-user text-white" style="font-size:36px" aria-hidden="true"></i>
+        <i class="ph ph-user text-white nm-icon-36"  aria-hidden="true"></i>
       </div>
       <!-- GAP-003: Display mode -->
       <div id="profile-display-mode">
@@ -81,7 +81,7 @@
           </span>
         </div>
         <button id="edit-profile-btn" class="mt-4 px-5 py-2 text-xs font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center gap-2 mx-auto">
-          <i class="ph ph-pencil-simple" style="font-size:14px" aria-hidden="true"></i>
+          <i class="ph ph-pencil-simple text-sm"  aria-hidden="true"></i>
           <span data-i18n="edit_profile">Edit Profile</span>
         </button>
       </div>
@@ -110,7 +110,7 @@
         <div>
           <label for="edit-phone" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="phone_label">Phone Number</label>
           <div class="relative">
-            <i class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" style="font-size:16px" aria-hidden="true"></i>
+            <i class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-base"  aria-hidden="true"></i>
             <input id="edit-phone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done" placeholder="+963 XXX XXX XXXX" data-i18n-placeholder="phone_placeholder" class="nm-input nm-input-icon" />
           </div>
         </div>
@@ -119,7 +119,7 @@
         <div>
           <label for="edit-photo" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="profile_photo_label">Profile Photo</label>
           <label for="edit-photo" class="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-dashed border-slate-300 bg-surface text-sm cursor-pointer hover:border-trust-blue/50 hover:bg-trust-blue/5 transition-colors">
-            <i class="ph ph-camera text-slate-400" style="font-size:20px" aria-hidden="true"></i>
+            <i class="ph ph-camera text-slate-400 text-xl"  aria-hidden="true"></i>
             <span id="photo-filename" class="text-slate-400 font-medium truncate" data-i18n="choose_photo">Choose a photo...</span>
           </label>
           <input id="edit-photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
@@ -131,7 +131,7 @@
             <div class="relative">
               <img id="photo-preview-img" class="w-16 h-16 rounded-full object-cover border-2 border-trust-blue shadow-sm" alt="Selected photo preview" />
               <button type="button" id="photo-preview-remove" class="absolute -top-1 -end-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 transition-colors" aria-label="Remove selected photo">
-                <i class="ph ph-x" style="font-size:10px" aria-hidden="true"></i>
+                <i class="ph ph-x text-[10px]"  aria-hidden="true"></i>
               </button>
             </div>
             <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-[10px] (hints) + text-xs (labels/status). -->
@@ -156,7 +156,7 @@
       <div class="mt-4 border-t border-slate-100 pt-4">
         <button id="toggle-password-change" type="button" class="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-600 hover:text-trust-blue transition-colors">
           <span class="flex items-center gap-2">
-            <i class="ph ph-lock-key" style="font-size:16px" aria-hidden="true"></i>
+            <i class="ph ph-lock-key text-base"  aria-hidden="true"></i>
             <span data-i18n="change_password">Change Password</span>
           </span>
           <i class="ph ph-caret-down text-slate-400 transition-transform" id="password-caret" aria-hidden="true"></i>
@@ -232,23 +232,23 @@
                Standard: Design System Typography Scale Governance. -->
           <ul id="completion-items" class="mt-1.5 space-y-1 text-xs text-slate-500">
             <li class="flex items-center gap-1.5" data-completion="name">
-              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <i class="ph ph-circle text-slate-300 text-xs"  aria-hidden="true"></i>
               <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-name" data-i18n="profile_add_name">Add your full name</button>
             </li>
             <li class="flex items-center gap-1.5" data-completion="email">
-              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <i class="ph ph-circle text-slate-300 text-xs"  aria-hidden="true"></i>
               <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-email" data-i18n="profile_verify_email">Verify your email</button>
             </li>
             <li class="flex items-center gap-1.5" data-completion="phone">
-              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <i class="ph ph-circle text-slate-300 text-xs"  aria-hidden="true"></i>
               <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-phone" data-i18n="profile_add_phone">Add phone number</button>
             </li>
             <li class="flex items-center gap-1.5" data-completion="photo">
-              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <i class="ph ph-circle text-slate-300 text-xs"  aria-hidden="true"></i>
               <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-photo" data-i18n="profile_add_photo">Upload profile photo</button>
             </li>
             <li class="flex items-center gap-1.5" data-completion="kyc">
-              <i class="ph ph-circle text-slate-300" style="font-size:12px" aria-hidden="true"></i>
+              <i class="ph ph-circle text-slate-300 text-xs"  aria-hidden="true"></i>
               <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="kyc-section" data-i18n="profile_complete_kyc">Complete identity verification</button>
             </li>
           </ul>
@@ -269,12 +269,12 @@
     <div id="roles-list" class="flex flex-col gap-2">
       <!-- Roles rendered dynamically by profile.ts -->
       <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200">
-        <i class="ph ph-spinner-gap ph-spin text-slate-300" style="font-size:20px" aria-hidden="true"></i>
+        <i class="ph ph-spinner-gap ph-spin text-slate-300 text-xl"  aria-hidden="true"></i>
       </div>
     </div>
     <!-- Add New Role Button -->
     <button id="add-role-btn" class="w-full mt-3 py-3 text-sm font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center justify-center gap-2">
-      <i class="ph ph-plus-circle" style="font-size:18px" aria-hidden="true"></i>
+      <i class="ph ph-plus-circle text-lg"  aria-hidden="true"></i>
       <span data-i18n="add_new_role">Activate a New Role</span>
     </button>
     <!-- INC-002/GAP-006 FIX: Migrated from <div role="dialog"> to native <dialog>.
@@ -368,7 +368,7 @@
   <section class="px-4 pt-8 mt-auto">
     <div class="border-t border-red-100 pt-5 mt-1"></div>
     <button id="logout-action" class="w-full py-3 text-sm font-bold text-red-500 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition-colors">
-      <i class="ph ph-sign-out" style="font-size:16px" aria-hidden="true"></i>
+      <i class="ph ph-sign-out text-base"  aria-hidden="true"></i>
       <span data-i18n="sign_out">Sign Out</span>
     </button>
   </section>

@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
@@ -98,7 +100,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
         if (reviews.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-check-circle" style="font-size:24px" aria-hidden="true"></i>
+                    <i class="ph ph-check-circle text-2xl"  aria-hidden="true"></i>
                     <p class="mt-2 text-xs">${esc(t('compliance_all_reviewed', 'All escrow releases reviewed'))}</p>
                 </td>
             </tr>`;

@@ -10,6 +10,8 @@
  * Added:  centralized imports, escapeHtml() on dynamic content.
  */
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { enterpriseAdmin } from '../api';
 import type { FeeConfig, EnterpriseOrg, EscrowFeeSummary } from '../api';
 import { reportError } from '../error-reporter';

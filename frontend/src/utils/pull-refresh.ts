@@ -1,8 +1,10 @@
 // ============================================================================
 // Nammerha — Pull-to-Refresh (Native-App Feel)
 // P1-MOB-001 FIX: Touch gesture handler for pull-to-refresh on mobile
-// P1-MOB-002 FIX: Haptic feedback via navigator.vibrate()
+// P1-MOB-002 FIX: Haptic feedback via centralized haptic utility
 // ============================================================================
+
+import { haptic } from './haptic';
 
 const THRESHOLD_PX = 60;
 const MAX_PULL_PX  = 120;
@@ -17,7 +19,7 @@ function createIndicator(): HTMLElement {
     const el = document.createElement('div');
     el.id = 'pull-refresh-indicator';
     el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = `<div class="pull-refresh-spinner"><i class="ph ph-arrow-counter-clockwise" style="font-size:20px"></i></div>`;
+    el.innerHTML = `<div class="pull-refresh-spinner"><i class="ph ph-arrow-counter-clockwise text-xl" ></i></div>`;
     document.body.prepend(el);
     return el;
 }
@@ -56,9 +58,7 @@ function handleTouchMove(e: TouchEvent): void {
     if (distance >= THRESHOLD_PX && !hapticFired) {
         // PLT-AUD-C002 FIX: Single haptic pulse at threshold (was firing every frame)
         hapticFired = true;
-        if (navigator.vibrate) {
-            navigator.vibrate(10);
-        }
+        haptic.light();
     }
 }
 

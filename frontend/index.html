@@ -133,8 +133,7 @@
       </a>
       <div class="flex-1 max-w-md mx-2 relative nav-search-full">
         <i
-          class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400"
-          style="font-size:20px"
+          class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl"
           aria-hidden="true"
         ></i>
         <!-- INC-A05 FIX: type="search" for semantic input, native clear button, and proper mobile keyboard -->
@@ -149,15 +148,15 @@
       <!-- Cart Badge -->
       <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-cart-btn" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
         <i class="ph ph-shopping-cart text-slate-700" aria-hidden="true"></i>
-        <span class="cart-badge" id="nav-cart-badge" style="display:none">0</span>
+        <span class="cart-badge hidden" id="nav-cart-badge">0</span>
       </a>
       <!-- FRIC-2026-D05 FIX: Notification bell — parity with dashboard portals (MED-008).
            Previous: Homepage navbar had no notification bell — users received notifications
            but couldn't see them from the main consumer surface.
            Standard: Nielsen #1 (Visibility of System Status), Apple HIG (Navigation Bar). -->
       <button type="button" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-notification-btn" aria-label="Notifications" data-i18n-aria="aria_notifications">
-        <i class="ph ph-bell text-slate-700" style="font-size:20px" aria-hidden="true"></i>
-        <span class="cart-badge" id="nav-notif-badge" style="display:none">0</span>
+        <i class="ph ph-bell text-slate-700 text-xl"  aria-hidden="true"></i>
+        <span class="cart-badge hidden" id="nav-notif-badge">0</span>
       </button>
       <!-- Multi-Role Architecture: Role Switcher Mount Point -->
       <div id="role-switcher-mount"></div>
@@ -165,7 +164,7 @@
         class="w-11 h-11 rounded-full border-2 border-trust-blue/20 overflow-hidden shrink-0 bg-trust-blue/10 flex items-center justify-center"
         aria-label="Profile" data-i18n-aria="aria_profile"
       >
-        <i class="ph ph-user text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+        <i class="ph ph-user text-trust-blue text-lg"  aria-hidden="true"></i>
       </a>
     </nav>
 
@@ -177,15 +176,15 @@
       </a>
       <div class="flex items-center gap-1">
         <button data-search-trigger class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Search projects" data-i18n-aria="aria_search_projects">
-          <i class="ph ph-magnifying-glass text-slate-700" style="font-size:20px" aria-hidden="true"></i>
+          <i class="ph ph-magnifying-glass text-slate-700 text-xl"  aria-hidden="true"></i>
         </button>
         <!-- C-AUD-005 FIX: Notification bell added for mobile parity with desktop nav.
              Previous: Desktop nav had bell (L157-160) but mobile header did not.
              Syrian mobile-first users had no notification access from homepage.
              Standard: Nielsen #4 (Consistency), Feature Parity, Apple HIG. -->
         <button class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="mobile-notif-bell" aria-label="Notifications" data-i18n-aria="aria_notifications">
-          <i class="ph ph-bell text-slate-700" style="font-size:20px" aria-hidden="true"></i>
-          <span class="cart-badge" id="mobile-notif-badge" style="display:none">0</span>
+          <i class="ph ph-bell text-slate-700 text-xl"  aria-hidden="true"></i>
+          <span class="cart-badge hidden" id="mobile-notif-badge">0</span>
         </button>
         <!-- DEF-002 FIX (Wave 4): Removed inline mobile header theme toggle.
              Previous: 5 controls in 343px at 375px — touch target density exceeded Apple HIG spacing.
@@ -197,7 +196,7 @@
         <div id="role-switcher-mount-mobile" class="sm:hidden"></div>
         <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart text-slate-700" aria-hidden="true"></i>
-          <span class="cart-badge" id="mobile-cart-badge" style="display:none">0</span>
+          <span class="cart-badge hidden" id="mobile-cart-badge">0</span>
         </a>
       </div>
     </header>
@@ -229,7 +228,7 @@
           <!-- GAP-001 FIX: Fallback state when MapLibre GL JS fails to load (Syrian 2G/3G) -->
           <!-- A11Y-003 FIX: Descriptive fallback content for screen readers (WCAG 1.1.1) -->
           <div id="map-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl" role="img" aria-label="Interactive map showing reconstruction project locations across Syria">
-            <i class="ph ph-map-trifold text-slate-300 dark:text-slate-500" style="font-size:48px" aria-hidden="true"></i>
+            <i class="ph ph-map-trifold text-slate-300 dark:text-slate-500 nm-icon-48"  aria-hidden="true"></i>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-3" data-i18n="map_load_failed">Map unavailable</p>
             <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px] text-center" data-i18n="map_fallback_desc">Interactive map of reconstruction projects across regions</p>
             <button id="map-retry-btn" class="btn-secondary !w-auto !px-4 mt-2 text-xs" data-i18n="retry">Retry</button>
@@ -285,7 +284,7 @@
             href="projects.html"
           >
             <span data-i18n="view_all">View all</span>
-            <i class="ph ph-caret-right" style="font-size:18px" aria-hidden="true"></i>
+            <i class="ph ph-caret-right text-lg"  aria-hidden="true"></i>
           </a>
         </div>
         <div id="projects-carousel" class="flex overflow-x-auto gap-4 px-4 pb-4 no-scrollbar" tabindex="0" role="region" aria-label="Featured projects" data-i18n-aria="aria_featured_projects">
@@ -313,7 +312,7 @@
           </div>
           <!-- Empty state (shown when no projects) -->
           <div id="projects-empty" class="hidden w-full py-8 text-center">
-            <i class="ph ph-buildings text-slate-300" style="font-size:48px" aria-hidden="true"></i>
+            <i class="ph ph-buildings text-slate-300 nm-icon-48"  aria-hidden="true"></i>
             <p class="text-slate-400 text-sm mt-2" data-i18n="no_projects_yet">No projects published yet</p>
           </div>
         </div>
@@ -337,7 +336,7 @@
               <span
                 class="text-smoky-jade text-xs font-bold bg-smoky-jade/20 px-2 py-0.5 rounded-full flex items-center gap-1"
               >
-                <i class="ph ph-trend-up" style="font-size:14px" aria-hidden="true"></i>
+                <i class="ph ph-trend-up text-sm"  aria-hidden="true"></i>
                 <span id="impact-trend">—</span>
               </span>
               <span class="text-slate-400 text-[10px]" data-i18n="vs_quarter">vs last quarter</span>
@@ -346,7 +345,7 @@
           <div
             class="size-14 bg-warm-earth/20 rounded-full flex items-center justify-center relative z-10"
           >
-            <i class="ph ph-globe text-warm-earth" style="font-size:32px" aria-hidden="true"></i>
+            <i class="ph ph-globe text-warm-earth nm-icon-32"  aria-hidden="true"></i>
           </div>
           <div
             class="absolute -end-4 -bottom-4 size-32 bg-trust-blue/10 rounded-full blur-3xl"
@@ -368,7 +367,7 @@
               <div
                 class="size-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10"
               >
-                <i class="ph ph-buildings text-white" style="font-size:28px" aria-hidden="true"></i>
+                <i class="ph ph-buildings text-white nm-icon-28"  aria-hidden="true"></i>
               </div>
               <div class="flex-1">
                 <h3 class="font-bold text-base mb-1" data-i18n="about_nammerha">About Nammerha</h3>
@@ -379,21 +378,21 @@
                 </p>
                 <div class="flex flex-wrap items-center gap-2 mt-3">
                   <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
-                    <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+                    <i class="ph ph-shield-check text-xs"  aria-hidden="true"></i>
                     OCDS
                   </span>
                   <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
-                    <i class="ph ph-map-pin" style="font-size:12px" aria-hidden="true"></i>
+                    <i class="ph ph-map-pin text-xs"  aria-hidden="true"></i>
                     GPS
                   </span>
                   <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
-                    <i class="ph ph-lock-key" style="font-size:12px" aria-hidden="true"></i>
+                    <i class="ph ph-lock-key text-xs"  aria-hidden="true"></i>
                     Escrow
                   </span>
                 </div>
                 <div class="flex items-center gap-1.5 mt-4 text-xs font-bold text-smoky-jade group-hover:text-white transition-colors">
                   <span data-i18n="about_learn_more">Learn more about us</span>
-                  <i class="ph ph-arrow-right transition-transform group-hover:translate-x-1" style="font-size:14px" aria-hidden="true"></i>
+                  <i class="ph ph-arrow-right transition-transform group-hover:translate-x-1 text-sm"  aria-hidden="true"></i>
                 </div>
               </div>
             </div>

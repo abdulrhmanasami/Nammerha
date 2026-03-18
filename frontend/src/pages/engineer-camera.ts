@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { reportWarning } from '../error-reporter';
 import { t } from '../utils/i18n';
 import { initBreadcrumb } from '../utils/breadcrumb';

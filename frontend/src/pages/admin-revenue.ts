@@ -10,6 +10,8 @@
  * Added:  escapeHtml() on all dynamic content, i18n t() on all user-facing strings.
  */
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { revenueAdmin } from '../api';
 import type { CommissionTier, CommissionEntry, TipEntry, RevenueAdminSummary } from '../api';
 import { reportError } from '../error-reporter';
@@ -89,7 +91,7 @@ function renderRecentCommissions(commissions: CommissionEntry[]): void {
     list.innerHTML = commissions.slice(0, 8).map((c) => `
         <div class="px-5 py-3 flex items-center gap-4">
             <div class="size-8 rounded-full bg-smoky-jade/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-receipt text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+                <i class="ph ph-receipt text-smoky-jade text-sm"  aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${t('rev_po_label', 'PO')} ${escapeHtml(c.po_id)} — ${formatCents(c.commission_amount_cents)}</p>
@@ -113,7 +115,7 @@ export function renderRecentTips(tips: TipEntry[]): void {
         return `
         <div class="px-5 py-3 flex items-center gap-4">
             <div class="size-8 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-heart text-warm-earth" style="font-size:14px" aria-hidden="true"></i>
+                <i class="ph ph-heart text-warm-earth text-sm"  aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${t('rev_donation_label', 'Donation')} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>

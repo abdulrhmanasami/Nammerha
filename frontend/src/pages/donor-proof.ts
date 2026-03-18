@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { reportError, reportWarning } from '../error-reporter';
 import { donations, spatialProof } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
@@ -123,7 +125,7 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
     // Timestamp
     if (timestampBadge) {
         timestampBadge.innerHTML = `
-            <i class="ph ph-clock" style="font-size:12px" aria-hidden="true"></i>
+            <i class="ph ph-clock text-xs"  aria-hidden="true"></i>
             ${formatDateTime(proof.captured_at)}
         `;
     }

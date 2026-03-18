@@ -60,7 +60,7 @@ function createOverlay(): HTMLDivElement {
     overlay.innerHTML = `
         <div class="search-overlay-content">
             <div class="search-input-wrapper">
-                <i class="ph ph-magnifying-glass text-slate-400" style="font-size:20px" aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass text-slate-400 text-xl"  aria-hidden="true"></i>
                 <input type="search" id="search-input" class="search-input"
                        placeholder="Search pages, features..." autocomplete="off"
                        data-i18n-placeholder="search_pages" />
@@ -101,7 +101,7 @@ function renderResults(query: string): void {
     if (matches.length === 0) {
         resultsEl.innerHTML = `
             <div class="flex flex-col items-center py-8 text-center">
-                <i class="ph ph-magnifying-glass text-slate-300" style="font-size:32px" aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass text-slate-300 nm-icon-32"  aria-hidden="true"></i>
                 <p class="text-sm text-slate-500 mt-2 font-medium">No results found</p>
                 <p class="text-xs text-slate-400 mt-1">Try a different search term</p>
             </div>`;
@@ -126,7 +126,7 @@ function buildResultHTML(result: SearchResult): string {
                 <p class="text-sm font-semibold truncate"${i18nAttr}>${result.title}</p>
                 <p class="text-xs text-slate-500 truncate">${result.subtitle}</p>
             </div>
-            <i class="ph ph-arrow-right text-slate-400" style="font-size:14px" aria-hidden="true"></i>
+            <i class="ph ph-arrow-right text-slate-400 text-sm"  aria-hidden="true"></i>
         </a>`;
 }
 
@@ -156,7 +156,7 @@ function openSearch(): void {
 
     isOpen = true;
     overlayEl.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('nm-scroll-locked');
 
     // Show suggestions
     renderResults('');
@@ -174,7 +174,7 @@ function closeSearch(): void {
 
     isOpen = false;
     overlayEl.classList.remove('active');
-    document.body.style.overflow = '';
+    document.body.classList.remove('nm-scroll-locked');
 
     // Clear input
     if (inputEl) {

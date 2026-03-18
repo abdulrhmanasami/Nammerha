@@ -125,7 +125,7 @@ async function loadFundedProjects(): Promise<void> {
 
         if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <i class="ph ph-hand-heart" style="font-size:40px" aria-hidden="true"></i>
+                <i class="ph ph-hand-heart nm-icon-40"  aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('donor_no_funded_projects', 'No funded projects yet'))}</p>
                 <p class="text-xs mt-1">${esc(t('donor_browse_start_impact', 'Browse projects and start making an impact'))}</p>
             </div>`;
@@ -259,7 +259,7 @@ async function loadImpact(): Promise<void> {
             <div class="p-5 hover:bg-slate-50/50 transition-colors">
                 <div class="flex items-center gap-4">
                     <div class="size-12 rounded-lg flex items-center justify-center ${p.status === 'completed' ? 'bg-green-100' : 'bg-emerald-100'}">
-                        <i class="ph ${p.status === 'completed' ? 'ph-check-circle text-green-600' : 'ph-buildings text-emerald-600'}" style="font-size:20px" aria-hidden="true"></i>
+                        <i class="ph ${p.status === 'completed' ? 'ph-check-circle text-green-600' : 'ph-buildings text-emerald-600'} text-xl"  aria-hidden="true"></i>
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -291,7 +291,7 @@ async function loadProofs(): Promise<void> {
 
         if (proofs.length === 0) {
             container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400">
-                <i class="ph ph-camera" style="font-size:40px" aria-hidden="true"></i>
+                <i class="ph ph-camera nm-icon-40"  aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('donor_no_proofs', 'No proofs yet'))}</p>
                 <p class="text-xs mt-1">${esc(t('donor_proofs_hint', 'GPS-verified photos appear here after on-site verification'))}</p>
             </div>`;
@@ -303,7 +303,7 @@ async function loadProofs(): Promise<void> {
                 <div class="aspect-video bg-slate-100 flex items-center justify-center relative">
                     ${proof.photo_url
                 ? `<img src="${esc(proof.photo_url)}" alt="${esc(t('donor_site_proof', 'Site proof'))}" class="w-full h-full object-cover" />`
-                : `<i class="ph ph-image text-slate-300" style="font-size:40px" aria-hidden="true"></i>`
+                : `<i class="ph ph-image text-slate-300 nm-icon-40"  aria-hidden="true"></i>`
             }
                     ${proof.gps_lat ? `
                         <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[8px] px-2 py-1 rounded-full font-mono">

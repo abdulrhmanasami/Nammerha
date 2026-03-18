@@ -131,7 +131,7 @@ async function loadUserRoles(): Promise<void> {
     if (!user) {
         rolesListEl.innerHTML = `
             <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
-                <i class="ph ph-sign-in" style="font-size:24px" aria-hidden="true"></i>
+                <i class="ph ph-sign-in text-2xl"  aria-hidden="true"></i>
                 <p class="mt-2">${t('profile_sign_in_roles', 'Sign in to manage your roles')}</p>
             </div>`;
         return;
@@ -170,7 +170,7 @@ async function loadUserRoles(): Promise<void> {
         return `
             <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2' : 'border'} border-slate-100 transition-all" ${isActive ? `style="border-color: ${color}30"` : ''}>
                 <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background: ${color}15">
-                    <i class="ph ${escapeHtml(meta.icon)}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
+                    <i class="ph ${escapeHtml(meta.icon)} text-xl" style="color: ${color}" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
@@ -178,7 +178,7 @@ async function loadUserRoles(): Promise<void> {
                         ${isActive ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">${t('profile_active', 'Active')}</span>` : ''}
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
-                        <i class="ph ph-shield-check text-emerald-500" style="font-size:12px" aria-hidden="true"></i>
+                        <i class="ph ph-shield-check text-emerald-500 text-xs"  aria-hidden="true"></i>
                         <span class="text-[10px] text-slate-400">${verLabel}</span>
                     </div>
                 </div>
@@ -224,7 +224,7 @@ async function loadAvailableRoles(): Promise<void> {
                         data-role="${escapeHtml(r.role_name)}"
                         style="--role-color: ${color}">
                     <div class="size-10 rounded-lg flex items-center justify-center" style="background: ${color}15">
-                        <i class="ph ${escapeHtml(meta.icon)}" style="font-size:20px; color: ${color}" aria-hidden="true"></i>
+                        <i class="ph ${escapeHtml(meta.icon)} text-xl" style="color: ${color}" aria-hidden="true"></i>
                     </div>
                     <span class="text-xs font-bold text-slate-700">${label}</span>
                 </button>`;

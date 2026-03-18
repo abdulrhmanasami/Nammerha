@@ -79,7 +79,7 @@
            Previous: nearly invisible on light backgrounds, especially under sunlight.
            Standard: WCAG 1.4.3 (Minimum Contrast), Apple HIG. -->
       <a href="index.html" class="inline-flex items-center gap-2 text-[13px] font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3" data-i18n="auth_back_home">
-        <i class="ph ph-arrow-left" style="font-size:14px" aria-hidden="true"></i> Back to Home
+        <i class="ph ph-arrow-left text-sm"  aria-hidden="true"></i> Back to Home
       </a>
     </header>
 
@@ -99,7 +99,7 @@
     <!-- DEF-THEME-001 FIX: Replaced inline `style="inset-block-start:...; inset-inline-end:..."` with CSS class.
          Standard: P1-001 CSS Single Source of Truth. -->
     <button id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-      <i id="nm-theme-toggle-icon" data-nm-theme-icon aria-hidden="true" style="font-size:18px"></i>
+      <i id="nm-theme-toggle-icon" class="text-lg" data-nm-theme-icon aria-hidden="true"></i>
     </button>
 
     <!-- Error/Success Banner -->
@@ -145,7 +145,7 @@
             class="nm-input ps-12 pe-12"
             placeholder="••••••••" data-i18n-placeholder="auth_pw_dots" />
           <button type="button" id="login-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-            <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
+            <i class="ph ph-eye text-xl"  aria-hidden="true"></i>
           </button>
         </div>
       </div>
@@ -225,7 +225,7 @@
          Standard: Miller's Law (7±2), Progressive Disclosure, Material Design 3,
          Nielsen #6 (Recognition over Recall), Apple HIG (Multi-Step Forms). -->
     <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-    <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate style="display:none">
+    <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10 hidden" novalidate>
 
       <!-- ─── Stepper Indicator ─────────────────────────── -->
       <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
@@ -251,7 +251,7 @@
       </div>
 
       <!-- ─── STEP 1: Identity ─────────────────────────── -->
-      <fieldset class="nm-step-panel" data-reg-step="1" style="border:none;padding:0;margin:0;">
+      <fieldset class="nm-step-panel" data-reg-step="1">
         <legend class="sr-only" data-i18n="reg_legend_identity">Step 1: Your Identity</legend>
         <!-- Full Name -->
         <div class="mb-4">
@@ -283,7 +283,7 @@
       </fieldset>
 
       <!-- ─── STEP 2: Security ─────────────────────────── -->
-      <fieldset class="nm-step-panel" data-reg-step="2" style="display:none;border:none;padding:0;margin:0;">
+      <fieldset class="nm-step-panel hidden" data-reg-step="2">
         <legend class="sr-only" data-i18n="reg_legend_security">Step 2: Create a Password</legend>
         <!-- Password -->
         <div class="mb-4">
@@ -294,7 +294,7 @@
               class="nm-input ps-12 pe-12"
               placeholder="Min 8 chars: upper, lower, number & symbol" data-i18n-placeholder="auth_pw_placeholder" />
             <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-              <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
+              <i class="ph ph-eye text-xl"  aria-hidden="true"></i>
             </button>
           </div>
           <!-- Password Strength -->
@@ -328,7 +328,7 @@
                  Users typing complex passwords could not verify their confirm input.
                  Standard: Password UX Best Practices, WCAG 1.3.1. -->
             <button type="button" id="reg-toggle-pw-confirm" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-              <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
+              <i class="ph ph-eye text-xl"  aria-hidden="true"></i>
             </button>
           </div>
           <!-- P2-UXA-010 FIX: Error text upgraded from text-[10px] (10px) to text-xs (12px).
@@ -353,7 +353,7 @@
       </fieldset>
 
       <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
-      <fieldset class="nm-step-panel" data-reg-step="3" style="display:none;border:none;padding:0;margin:0;">
+      <fieldset class="nm-step-panel hidden" data-reg-step="3">
         <legend class="sr-only" data-i18n="reg_legend_consent">Step 3: Review and Agree</legend>
         <!-- Multi-Role Architecture note -->
         <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
@@ -366,13 +366,13 @@
                  Previous: Users had to click "Back" twice to edit name/email.
                  Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
             <button type="button" class="text-xs font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors min-h-[44px] min-w-[44px] justify-center" data-goto-step="1">
-              <i class="ph ph-pencil-simple" style="font-size:12px" aria-hidden="true"></i>
+              <i class="ph ph-pencil-simple text-xs"  aria-hidden="true"></i>
               <span data-i18n="common_edit">Edit</span>
             </button>
           </div>
           <div class="flex items-center gap-3">
             <div class="size-10 bg-trust-blue/10 rounded-full flex items-center justify-center shrink-0">
-              <i class="ph ph-user text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+              <i class="ph ph-user text-trust-blue text-lg"  aria-hidden="true"></i>
             </div>
             <div class="min-w-0">
               <p id="reg-review-name" class="text-sm font-bold truncate">—</p>
@@ -382,7 +382,7 @@
                    Reduces user anxiety about password acceptance at final step.
                    Standard: Nielsen #1 (System Status Visibility), Material Design 3. -->
               <p id="reg-review-pw-strength" class="text-xs text-smoky-jade font-semibold mt-0.5 hidden">
-                <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+                <i class="ph ph-shield-check text-xs"  aria-hidden="true"></i>
                 <span data-i18n="pw_strength_strong">Strong</span> ✓
               </p>
             </div>
@@ -429,16 +429,16 @@
     <div class="mt-auto px-6 py-8 text-center relative z-10">
       <details class="mb-3">
         <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px]">
-          <i class="ph ph-shield-check" style="font-size:12px" aria-hidden="true"></i>
+          <i class="ph ph-shield-check text-xs"  aria-hidden="true"></i>
           <span data-i18n="auth_security_details">Security Details</span>
         </summary>
         <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
           <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-            <i class="ph ph-shield-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+            <i class="ph ph-shield-check text-smoky-jade text-sm"  aria-hidden="true"></i>
             <span data-i18n="auth_trust_1">OCDS Verified</span>
           </div>
           <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-            <i class="ph ph-lock text-trust-blue" style="font-size:14px" aria-hidden="true"></i>
+            <i class="ph ph-lock text-trust-blue text-sm"  aria-hidden="true"></i>
             <span data-i18n="auth_trust_2">256-bit Encrypted</span>
           </div>
         </div>

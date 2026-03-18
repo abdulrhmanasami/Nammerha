@@ -95,7 +95,7 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
         dialog.innerHTML = `
             <div class="nm-confirm-body">
                 <div class="size-14 rounded-full ${variant === 'danger' ? 'bg-red-50' : 'bg-amber-50'} flex items-center justify-center mx-auto mb-3">
-                    <i class="ph ph-${icon} ${variant === 'danger' ? 'text-red-500' : 'text-amber-500'}" style="font-size:28px" aria-hidden="true"></i>
+                    <i class="ph ph-${icon} ${variant === 'danger' ? 'text-red-500' : 'text-amber-500'} nm-icon-28"  aria-hidden="true"></i>
                 </div>
                 <h3${i18nTitle}>${opts.title}</h3>
                 <p${i18nMsg}>${opts.message}</p>

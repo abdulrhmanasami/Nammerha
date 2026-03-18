@@ -162,7 +162,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
 
     const buttonHtml = isFullyFunded
         ? `<button class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed" disabled>
-             <i class="ph ph-check-circle" style="font-size:20px" aria-hidden="true"></i>
+             <i class="ph ph-check-circle text-xl"  aria-hidden="true"></i>
              <span data-i18n="funding_complete">${esc(t('funding_complete', 'Funding Complete'))}</span>
            </button>`
         : `<button class="btn-primary !text-sm !py-3 add-to-cart-btn"
@@ -173,7 +173,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
              data-item-category="${esc(item.material_category ?? '')}"
              data-item-project="${esc(projectId)}"
              data-item-icon="ph-${meta.icon}">
-             <i class="ph ph-shopping-cart-simple" style="font-size:20px" aria-hidden="true"></i>
+             <i class="ph ph-shopping-cart-simple text-xl"  aria-hidden="true"></i>
              <span data-i18n="add_to_cart">${esc(t('add_to_cart', 'Add to Cart'))}</span>
            </button>`;
 
@@ -189,7 +189,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
         <div class="h-24 w-full bg-gradient-to-br from-${meta.color}/10 to-slate-200 flex items-center justify-center">
           ${item.image_url
             ? `<img src="${esc(item.image_url)}" class="w-full h-full object-cover" alt="${esc(item.material_name)}" loading="lazy" />`
-            : `<i class="ph ph-${meta.icon} text-${meta.color}/40" style="font-size:48px" aria-hidden="true"></i>`}
+            : `<i class="ph ph-${meta.icon} text-${meta.color}/40 nm-icon-48"  aria-hidden="true"></i>`}
         </div>
         <div class="p-4">
           <div class="flex justify-between items-start mb-2">
@@ -214,7 +214,7 @@ function buildCategoryHeader(category: string): string {
     return `
     <div class="flex items-center gap-2 mb-3">
       <div class="size-6 rounded bg-${meta.color}/10 flex items-center justify-center">
-        <i class="ph ph-${meta.icon} text-${meta.color}" style="font-size:14px" aria-hidden="true"></i>
+        <i class="ph ph-${meta.icon} text-${meta.color} text-sm"  aria-hidden="true"></i>
       </div>
       <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400">${esc(category)}</h4>
       <div class="flex-1 h-px bg-slate-100"></div>
@@ -334,7 +334,7 @@ function initCartButtons(): void {
 function markAsAdded(btn: HTMLButtonElement): void {
     btn.classList.add('btn-added');
     btn.innerHTML = `
-    <i class="ph ph-check-circle" style="font-size:20px" aria-hidden="true"></i>
+    <i class="ph ph-check-circle text-xl"  aria-hidden="true"></i>
     ${esc(t('project_added_to_cart', 'Added to Cart'))}`;
     btn.disabled = true;
 }
@@ -412,14 +412,14 @@ function initWhatsAppCTA(): void {
     ctaBanner.innerHTML = `
         <div class="bg-[#25D366] text-white p-4 rounded-xl shadow-2xl flex items-center gap-3">
             <div class="size-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-                <i class="ph ph-whatsapp-logo" style="font-size:24px" aria-hidden="true"></i>
+                <i class="ph ph-whatsapp-logo text-2xl"  aria-hidden="true"></i>
             </div>
             <div class="flex-1">
                 <p class="text-sm font-bold" data-i18n="whatsapp_cta_title">${esc(t('whatsapp_cta_title', 'Get Updates via WhatsApp'))}</p>
                 <p class="text-xs text-white/80" data-i18n="whatsapp_cta_desc">${esc(t('whatsapp_cta_desc', 'Instant notifications about your project progress'))}</p>
             </div>
             <button type="button" id="whatsapp-dismiss" class="text-white/70 hover:text-white shrink-0" aria-label="Dismiss">
-                <i class="ph ph-x" style="font-size:18px" aria-hidden="true"></i>
+                <i class="ph ph-x text-lg"  aria-hidden="true"></i>
             </button>
         </div>`;
     document.body.appendChild(ctaBanner);

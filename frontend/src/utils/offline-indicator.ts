@@ -14,7 +14,7 @@ function createBanner(): HTMLElement {
     el.setAttribute('role', 'alert');
     el.setAttribute('aria-live', 'assertive');
     el.innerHTML = `
-        <i class="ph ph-wifi-slash" aria-hidden="true" style="font-size:16px"></i>
+        <i class="ph ph-wifi-slash text-base" aria-hidden="true"></i>
         <span data-i18n="offline_message">You are offline — showing cached data</span>
     `;
     document.body.prepend(el);

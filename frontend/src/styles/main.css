@@ -1705,6 +1705,133 @@ html[data-theme="dark"] .nm-toast {
    ============================================================================ */
 .nm-hidden { display: none !important; }
 
+/* P0-SST-R01 FIX: Fieldset reset for auth wizard step panels.
+   Previous: inline style="border:none;padding:0;margin:0;" on each <fieldset>.
+   Now: .nm-step-panel absorbs the resets via CSS class.
+   Standard: P1-SST-001 governance, CSS Single Source of Truth. */
+.nm-step-panel {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* P1-SOV-01 FIX: Body scroll lock for overlay components (search, modals).
+   Previous: document.body.style.overflow = 'hidden' — inline style fights CSS !important.
+   Now: classList.add('nm-scroll-locked') — declarative and cascade-safe.
+   Standard: P1-SST-001 governance, CSS Single Source of Truth. */
+.nm-scroll-locked { overflow: hidden !important; }
+
+/* P2-ICON-01 FIX: Icon sizing scale — CSS Single Source of Truth.
+   Previous: 500+ inline style="font-size:XXpx" on Phosphor icons.
+   Now: Semantic classes for every size not covered by Tailwind defaults.
+   Standard: P1-SST-001 governance. */
+.nm-icon-22 { font-size: 22px; }
+.nm-icon-28 { font-size: 28px; }
+.nm-icon-30 { font-size: 30px; }
+.nm-icon-32 { font-size: 32px; }
+.nm-icon-36 { font-size: 36px; }
+.nm-icon-40 { font-size: 40px; }
+.nm-icon-48 { font-size: 48px; }
+.nm-icon-56 { font-size: 56px; }
+.nm-icon-60 { font-size: 60px; }
+.nm-icon-64 { font-size: 64px; }
+.nm-icon-72 { font-size: 72px; }
+
+/* ============================================================================
+   P1-CMP-01 FIX: Compare Slider — CSS Single Source of Truth
+   Previous: 6× `style.cssText` in compare-slider.ts — 100+ lines of inline CSS.
+   Now: All visual properties declared in CSS. TS only sets dynamic values (%).
+   Standard: P1-SST-001 governance, CSS Logical Properties (RTL-safe), dark mode.
+   ============================================================================ */
+.nm-compare {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.nm-compare__panel {
+    position: absolute;
+    top: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.nm-compare__clip {
+    position: absolute;
+    top: 0;
+    inset-inline-start: 0;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.nm-compare__divider {
+    position: absolute;
+    top: 0;
+    inset-inline-start: 50%;
+    width: 4px;
+    height: 100%;
+    background: white;
+    cursor: ew-resize;
+    z-index: 10;
+    transform: translateX(-50%);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.nm-compare__knob {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--text-primary, #334155);
+    pointer-events: none;
+}
+
+.nm-compare__label {
+    position: absolute;
+    top: 16px;
+    padding: 4px 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 4px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.nm-compare__label--before { inset-inline-start: 16px; }
+.nm-compare__label--after  { inset-inline-end: 16px; }
+
+/* P1-CMP-01: Dark mode overrides */
+html[data-theme="dark"] .nm-compare__divider {
+    background: var(--text-primary, #e2e8f0);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+html[data-theme="dark"] .nm-compare__knob {
+    background: var(--bg-card, #1e293b);
+    color: var(--text-primary, #e2e8f0);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+html[data-theme="dark"] .nm-compare__label {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* P1-CMP-01: Cursor lock during drag — CSS Single Source of Truth */
+.nm-compare-dragging { cursor: ew-resize !important; }
+
 /* P2-AUTH-003 FIX: Wizard step connector line — completed state.
    Replaces inline `line.style.background = 'var(--smoky-jade)'`.
    Standard: CSS Single Source of Truth. */
@@ -1714,6 +1841,19 @@ html[data-theme="dark"] .nm-toast {
    Replaces inline `style.color = '#109173'`.
    Standard: CSS Single Source of Truth + design token adherence. */
 .nm-upload-success { color: var(--smoky-jade); }
+
+/* P3-BAS-01 FIX: Donor basket card removal animation.
+   Previous: card.style.transition + card.style.opacity + card.style.transform (3 inline mutations).
+   Now: single class toggle. RTL direction handled by logical transform.
+   Standard: P1-SST-001 governance, CSS-driven animation. */
+.nm-card-removing {
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0;
+    transform: translateX(-20px);
+}
+[dir="rtl"] .nm-card-removing {
+    transform: translateX(20px);
+}
 
 /* ============================================================================
    P1-AUD4-002 FIX: Cooldown state for buttons/links (forgot-password, rate-limit)

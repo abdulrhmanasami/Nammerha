@@ -809,7 +809,7 @@ forgotBtn?.addEventListener('click', async (e) => {
         // GAP-2026-001 FIX: Added spinner icon for visual loading consistency.
         // Previous: text-only change "Sending..." — no visual loading indicator.
         // Standard: Design System Governance (all loading states must show spinners).
-        forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:14px" aria-hidden="true"></i> ${t('auth_forgot_sending', 'Sending...')}`;
+        forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-sm"  aria-hidden="true"></i> ${t('auth_forgot_sending', 'Sending...')}`;
         forgotBtn.setAttribute('aria-disabled', 'true');
         // P1-AUD4-002 FIX: Replaced inline style.pointerEvents + style.opacity with CSS class.
         // Previous: forgotBtn.style.pointerEvents = 'none'; forgotBtn.style.opacity = '0.5'

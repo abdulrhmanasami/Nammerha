@@ -52,7 +52,7 @@ export function setLoadingState(
         if (outcome === 'success') {
             // Brief success flash (600ms) before restoring
             btn.innerHTML = `
-                <i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i>
+                <i class="ph ph-check-circle text-lg"  aria-hidden="true"></i>
                 <span>✓</span>`;
             btn.classList.add('!bg-smoky-jade', '!text-white');
             setTimeout(() => {
@@ -63,7 +63,7 @@ export function setLoadingState(
         } else if (outcome === 'error') {
             // Brief error flash (800ms) before restoring
             btn.innerHTML = `
-                <i class="ph ph-warning-circle" style="font-size:18px" aria-hidden="true"></i>
+                <i class="ph ph-warning-circle text-lg"  aria-hidden="true"></i>
                 <span>!</span>`;
             btn.classList.add('!bg-red-500', '!text-white');
             setTimeout(() => {

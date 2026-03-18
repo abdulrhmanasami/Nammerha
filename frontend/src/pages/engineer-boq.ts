@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { reportError } from '../error-reporter';
 import { projects, epaOracle, marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
@@ -85,7 +87,7 @@ function renderItem(item: BOQItem, index: number): string {
     return `
     <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 animate-fade-in-up" data-index="${index}">
       <div class="bg-gradient-to-br from-warm-earth/20 to-slate-200 rounded-lg size-20 shrink-0 flex items-center justify-center">
-        <i class="ph ph-${esc(icon)} text-warm-earth" style="font-size:30px" aria-hidden="true"></i>
+        <i class="ph ph-${esc(icon)} text-warm-earth nm-icon-30"  aria-hidden="true"></i>
       </div>
       <div class="flex flex-1 flex-col justify-between">
         <div>
@@ -120,7 +122,7 @@ function renderAllItems(): void {
     if (state.items.length === 0) {
         itemsContainer.innerHTML = `
         <div class="text-center py-16">
-          <i class="ph ph-clipboard-text text-slate-300" style="font-size:64px" aria-hidden="true"></i>
+          <i class="ph ph-clipboard-text text-slate-300 nm-icon-64"  aria-hidden="true"></i>
           <p class="text-slate-500 font-bold mt-4">${t('boq_no_materials', 'No materials added yet')}</p>
           <p class="text-slate-400 text-sm mt-1">${t('boq_search_hint', 'Search for materials above to build your BOQ')}</p>
         </div>`;

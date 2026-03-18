@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
 /* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
@@ -115,14 +117,14 @@ function renderCase(index: number): void {
         if (releaseBtn) {
             releaseBtn.disabled = false;
             releaseBtn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
-            releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_release_funds', 'Match Verified: Release Funds to Vendor')}`;
+            releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg"  aria-hidden="true"></i> ${t('esc_release_funds', 'Match Verified: Release Funds to Vendor')}`;
             releaseBtn.classList.remove('bg-smoky-jade');
             releaseBtn.classList.add('bg-trust-blue');
         }
         if (flagBtn) {
             flagBtn.disabled = false;
             flagBtn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
-            flagBtn.innerHTML = `<i class="ph ph-warning-diamond" style="font-size:18px" aria-hidden="true"></i> ${t('esc_flag_discrepancy', 'Flag Discrepancy')}`;
+            flagBtn.innerHTML = `<i class="ph ph-warning-diamond text-lg"  aria-hidden="true"></i> ${t('esc_flag_discrepancy', 'Flag Discrepancy')}`;
             flagBtn.classList.remove('border-rose-300', 'text-rose-600', 'bg-rose-50');
             flagBtn.classList.add('border-slate-200', 'text-slate-700');
         }
@@ -187,14 +189,14 @@ function initActionButtons(): void {
                 releasePending = true;
                 releaseBtn.classList.remove('bg-trust-blue');
                 releaseBtn.classList.add('bg-amber-500');
-                releaseBtn.innerHTML = `<i class="ph ph-warning" style="font-size:18px" aria-hidden="true"></i> ${t('esc_confirm_release', 'Click again to release')} ${esc(c.amount)}`;
+                releaseBtn.innerHTML = `<i class="ph ph-warning text-lg"  aria-hidden="true"></i> ${t('esc_confirm_release', 'Click again to release')} ${esc(c.amount)}`;
                 // Auto-reset after 5s
                 setTimeout(() => {
                     if (releasePending) {
                         releasePending = false;
                         releaseBtn.classList.remove('bg-amber-500');
                         releaseBtn.classList.add('bg-trust-blue');
-                        releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_release_funds', 'Match Verified: Release Funds to Vendor')}`;
+                        releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg"  aria-hidden="true"></i> ${t('esc_release_funds', 'Match Verified: Release Funds to Vendor')}`;
                     }
                 }, 5000);
                 return;
@@ -206,7 +208,7 @@ function initActionButtons(): void {
             releaseBtn.disabled = true;
             releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
             releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
-            releaseBtn.innerHTML = `<i class="ph ph-check-circle" style="font-size:18px" aria-hidden="true"></i> ${t('esc_funds_released', 'Funds Released — Audit Trail Updated')}`;
+            releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg"  aria-hidden="true"></i> ${t('esc_funds_released', 'Funds Released — Audit Trail Updated')}`;
 
             if (flagBtn) {
                 flagBtn.disabled = true;
@@ -235,7 +237,7 @@ function initActionButtons(): void {
                 flagInput.className = 'w-full mt-2 px-3 py-2 text-sm rounded-lg border border-rose-200 bg-rose-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300';
                 flagBtn.parentElement?.insertBefore(flagInput, flagBtn.nextSibling);
                 flagInput.focus();
-                flagBtn.innerHTML = `<i class="ph ph-flag" style="font-size:18px" aria-hidden="true"></i> ${t('esc_submit_flag', 'Submit Flag')}`;
+                flagBtn.innerHTML = `<i class="ph ph-flag text-lg"  aria-hidden="true"></i> ${t('esc_submit_flag', 'Submit Flag')}`;
                 flagBtn.classList.add('border-rose-300', 'text-rose-600');
                 return;
             }
@@ -254,7 +256,7 @@ function initActionButtons(): void {
             flagBtn.disabled = true;
             flagBtn.classList.remove('border-slate-200', 'text-slate-700');
             flagBtn.classList.add('border-rose-300', 'text-rose-600', 'bg-rose-50', 'cursor-not-allowed');
-            flagBtn.innerHTML = `<i class="ph ph-flag" style="font-size:18px" aria-hidden="true"></i> ${t('esc_discrepancy_flagged', '⚠ Discrepancy Flagged')}`;
+            flagBtn.innerHTML = `<i class="ph ph-flag text-lg"  aria-hidden="true"></i> ${t('esc_discrepancy_flagged', '⚠ Discrepancy Flagged')}`;
 
             if (releaseBtn) {
                 releaseBtn.disabled = true;

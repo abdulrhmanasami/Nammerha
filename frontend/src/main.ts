@@ -46,7 +46,7 @@ async function initMapIfNeeded(): Promise<void> {
                 if (overlay) {
                     overlay.innerHTML = `
                         <div class="flex flex-col items-center gap-3 text-center p-4">
-                            <i class="ph ph-map-trifold text-slate-400" style="font-size:40px" aria-hidden="true"></i>
+                            <i class="ph ph-map-trifold text-slate-400 nm-icon-40"  aria-hidden="true"></i>
                             <p class="text-sm font-bold text-slate-600" data-i18n="map_unavailable">Map unavailable</p>
                             <p class="text-xs text-slate-400" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
                             <button onclick="location.reload()" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">
@@ -101,9 +101,9 @@ function buildProjectCard(project: ProjectCard, index: number): string {
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
-            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60" style="font-size:48px" aria-hidden="true"></i></div>`}
+            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48"  aria-hidden="true"></i></div>`}
         <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm" style="inset-inline-end:0.75rem">
-          <i class="ph ph-seal-check text-smoky-jade" style="font-size:14px" aria-hidden="true"></i>
+          <i class="ph ph-seal-check text-smoky-jade text-sm"  aria-hidden="true"></i>
           <span class="text-[10px] font-bold text-smoky-jade" data-i18n="verified_ocds">VERIFIED OCDS</span>
         </div>
       </div>
@@ -330,7 +330,7 @@ function initSearchInput(): void {
                 noResults = document.createElement('div');
                 noResults.className = 'search-no-results text-center py-8 text-slate-400 w-full';
                 noResults.innerHTML = `
-                    <i class="ph ph-magnifying-glass" style="font-size:32px" aria-hidden="true"></i>
+                    <i class="ph ph-magnifying-glass nm-icon-32"  aria-hidden="true"></i>
                     <p class="mt-2 text-sm font-medium" data-i18n="search_no_results">No projects match your search</p>`;
                 carousel.appendChild(noResults);
             }

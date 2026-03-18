@@ -9,6 +9,8 @@
  * Standard: OCDS-compliant project card rendering.
  */
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
@@ -191,7 +193,7 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
         <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
             ${project.cover_image_url
                 ? `<img src="${esc(project.cover_image_url)}" class="w-full h-full object-cover" alt="" loading="lazy" />`
-                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300" style="font-size:48px" aria-hidden="true"></i></div>`
+                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48"  aria-hidden="true"></i></div>`
             }
             <!-- Damage type badge -->
             <span class="absolute top-2 start-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${esc(config.color)}">

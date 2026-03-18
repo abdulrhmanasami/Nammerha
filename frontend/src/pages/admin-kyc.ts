@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
 import { showToast } from '../utils/toast';
@@ -66,7 +68,7 @@ async function loadKycQueue(): Promise<void> {
             container.innerHTML = `
                 <div class="p-8 flex flex-col items-center justify-center text-center">
                     <div class="size-12 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-3">
-                        <i class="ph ph-check-circle text-smoky-jade" style="font-size:24px" aria-hidden="true"></i>
+                        <i class="ph ph-check-circle text-smoky-jade text-2xl"  aria-hidden="true"></i>
                     </div>
                     <p class="text-sm font-bold text-slate-600">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
                     <p class="text-xs text-slate-400 mt-1">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
@@ -93,7 +95,7 @@ async function loadKycQueue(): Promise<void> {
                      data-index="${index}" data-user-id="${esc(entry.user_id)}"
                      role="option" tabindex="0" aria-selected="false">
                     <div class="size-10 rounded-full ${bgClass} flex items-center justify-center shrink-0">
-                        <i class="ph ${iconClass} ${textClass}" style="font-size:18px" aria-hidden="true"></i>
+                        <i class="ph ${iconClass} ${textClass} text-lg"  aria-hidden="true"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-bold truncate">${esc(entry.full_name)}</p>
@@ -238,7 +240,7 @@ function renderDocumentViewer(index: number): void {
             docList.innerHTML = credentials.map((cred) => `
                 <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <div class="size-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                        <i class="${cred.icon} text-trust-blue" style="font-size:18px" aria-hidden="true"></i>
+                        <i class="${cred.icon} text-trust-blue text-lg"  aria-hidden="true"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium truncate">${esc(cred.name)}</p>
@@ -262,8 +264,8 @@ function renderDocumentViewer(index: number): void {
                 verifyBtn.disabled = true;
                 verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 verifyBtn.innerHTML = entry.kyc_verification_status === 'verified'
-                    ? `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`
-                    : `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                    ? `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`
+                    : `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
             }
             if (rejectBtn) {
                 rejectBtn.disabled = true;
@@ -274,12 +276,12 @@ function renderDocumentViewer(index: number): void {
             if (verifyBtn) {
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
             }
             if (rejectBtn) {
                 rejectBtn.disabled = false;
                 rejectBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_reject_btn', 'Reject & Request Resubmission')}`;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg"  aria-hidden="true"></i> ${t('kyc_reject_btn', 'Reject & Request Resubmission')}`;
             }
         }
     }
@@ -323,13 +325,13 @@ function initActionButtons(): void {
                 verifyPending = true;
                 verifyBtn.classList.add('bg-amber-500', 'text-white');
                 verifyBtn.classList.remove('bg-smoky-jade/10', 'text-smoky-jade');
-                verifyBtn.innerHTML = `<i class="ph ph-warning" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(entry.full_name)}`;
+                verifyBtn.innerHTML = `<i class="ph ph-warning text-lg"  aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(entry.full_name)}`;
                 setTimeout(() => {
                     if (verifyPending) {
                         verifyPending = false;
                         verifyBtn.classList.remove('bg-amber-500', 'text-white');
                         verifyBtn.classList.add('bg-smoky-jade/10', 'text-smoky-jade');
-                        verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                        verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
                     }
                 }, 5000);
                 return;
@@ -338,7 +340,7 @@ function initActionButtons(): void {
             /* Second click: API call */
             verifyPending = false;
             verifyBtn.disabled = true;
-            verifyBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verifying', 'Verifying...')}`;
+            verifyBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"  aria-hidden="true"></i> ${t('kyc_verifying', 'Verifying...')}`;
 
             try {
                 await admin.updateKycStatus(entry.user_id, { decision: 'verified' });
@@ -352,7 +354,7 @@ function initActionButtons(): void {
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('bg-amber-500', 'text-white');
                 verifyBtn.classList.add('bg-smoky-jade/10', 'text-smoky-jade');
-                verifyBtn.innerHTML = `<i class="ph ph-seal-check" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
                 showToast(t('kyc_verify_error', 'Failed to verify — please try again'), 'error');
             }
         });
@@ -375,7 +377,7 @@ function initActionButtons(): void {
                 rejectInput.className = 'w-full mt-2 px-3 py-2 text-sm rounded-lg border border-rose-200 bg-rose-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300';
                 rejectBtn.parentElement?.insertBefore(rejectInput, rejectBtn.nextSibling);
                 rejectInput.focus();
-                rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg"  aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
                 rejectBtn.classList.add('border-rose-300', 'text-rose-600');
                 return;
             }
@@ -389,7 +391,7 @@ function initActionButtons(): void {
             }
 
             rejectBtn.disabled = true;
-            rejectBtn.innerHTML = `<i class="ph ph-spinner animate-spin" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_rejecting', 'Rejecting...')}`;
+            rejectBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"  aria-hidden="true"></i> ${t('kyc_rejecting', 'Rejecting...')}`;
 
             try {
                 await admin.updateKycStatus(entry.user_id, { decision: 'rejected', reason });
@@ -402,7 +404,7 @@ function initActionButtons(): void {
                 loadKycStats();
             } catch {
                 rejectBtn.disabled = false;
-                rejectBtn.innerHTML = `<i class="ph ph-x-circle" style="font-size:18px" aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg"  aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
                 showToast(t('kyc_reject_error', 'Failed to reject — please try again'), 'error');
             }
         });

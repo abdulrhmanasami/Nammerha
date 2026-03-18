@@ -49,7 +49,7 @@ export function normalizeHeader(config: HeaderConfig = {}): void {
         backBtn.setAttribute('aria-label', t('aria_back', 'Go back'));
         backBtn.href = config.backHref ?? '#';
         backBtn.className = 'size-11 flex items-center justify-center rounded-xl hover:bg-slate-100/50 transition-colors';
-        backBtn.innerHTML = '<i class="ph ph-arrow-left text-slate-700" style="font-size:22px" aria-hidden="true"></i>';
+        backBtn.innerHTML = '<i class="ph ph-arrow-left text-slate-700 nm-icon-22"  aria-hidden="true"></i>';
 
         // Insert as first child
         header.insertBefore(backBtn, header.firstChild);
@@ -71,7 +71,7 @@ export function normalizeHeader(config: HeaderConfig = {}): void {
         bell.setAttribute('aria-label', t('aria_notifications', 'Notifications'));
         bell.className = 'relative size-11 flex items-center justify-center rounded-xl hover:bg-slate-100/50 transition-colors';
         bell.innerHTML = `
-            <i class="ph ph-bell text-slate-700" style="font-size:22px" aria-hidden="true"></i>
+            <i class="ph ph-bell text-slate-700 nm-icon-22"  aria-hidden="true"></i>
             <span id="notif-count" class="absolute -top-0.5 -end-0.5 bg-red-500 text-white text-[9px] font-bold size-4 rounded-full flex items-center justify-center hidden">0</span>
         `;
         header.appendChild(bell);

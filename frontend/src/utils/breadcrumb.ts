@@ -94,7 +94,7 @@ export function renderBreadcrumb(containerId: string, crumbs?: BreadcrumbItem[])
             const sep = document.createElement('i');
             // Use RTL-safe chevron: CSS handles auto-flip via [dir="rtl"]
             sep.className = 'ph ph-caret-right text-slate-300 mx-0.5';
-            sep.style.fontSize = '10px';
+            sep.classList.add('text-[10px]');
             sep.setAttribute('aria-hidden', 'true');
             li.appendChild(sep);
         }
@@ -109,7 +109,7 @@ export function renderBreadcrumb(containerId: string, crumbs?: BreadcrumbItem[])
             if (item.icon) {
                 const icon = document.createElement('i');
                 icon.className = `ph ph-${item.icon}`;
-                icon.style.fontSize = '12px';
+                icon.classList.add('text-xs');
                 icon.setAttribute('aria-hidden', 'true');
                 a.appendChild(icon);
             }
@@ -128,7 +128,7 @@ export function renderBreadcrumb(containerId: string, crumbs?: BreadcrumbItem[])
             if (item.icon) {
                 const icon = document.createElement('i');
                 icon.className = `ph ph-${item.icon}`;
-                icon.style.fontSize = '12px';
+                icon.classList.add('text-xs');
                 icon.setAttribute('aria-hidden', 'true');
                 span.appendChild(icon);
             }

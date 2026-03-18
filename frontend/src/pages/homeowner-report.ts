@@ -1,4 +1,6 @@
 import '../styles/main.css';
+import { initPullToRefresh } from '../utils/pull-refresh';
+initPullToRefresh();
 import { projects } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
