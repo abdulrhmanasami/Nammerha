@@ -261,11 +261,13 @@
       background: rgba(0,0,0,0.08);
       color: #1a202c;
     }
-    /* Theme transition */
-    html.theme-transition,
-    html.theme-transition *,
-    html.theme-transition *::before,
-    html.theme-transition *::after {
+    /* P2-AUD3-003 FIX: .theme-transition → .nm-theme-transition — matches platform standard.
+       theme-boot.js toggles .nm-theme-transition, not .theme-transition.
+       Standard: Design System Class Naming Convention. */
+    html.nm-theme-transition,
+    html.nm-theme-transition *,
+    html.nm-theme-transition *::before,
+    html.nm-theme-transition *::after {
       transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
     }
 
@@ -325,12 +327,13 @@
     /* ═══════════════════════════════════════════════════════════════════════
        TOP NAV — Minimal Glassmorphism
        ═══════════════════════════════════════════════════════════════════════ */
+    /* P2-AUD3-002 FIX: left/right → inset-inline for RTL parity.
+       Standard: CSS Logical Properties, Platform RTL convention. */
     .top-nav {
       position: fixed;
       top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
+      inset-inline: 0;
+      z-index: var(--z-nav, 9000);
       padding: 16px 24px;
       display: flex;
       align-items: center;
@@ -514,7 +517,8 @@
       align-items: center;
       gap: 8px;
       color: var(--text-tertiary);
-      font-size: 11px;
+      /* P3-AUD3-003 FIX: Was 11px — INC-002 governance. */
+      font-size: 10px;
       letter-spacing: 0.1em;
       animation: scrollBounce 2s ease-in-out infinite;
     }
@@ -603,9 +607,10 @@
       background: rgba(255,255,255,0.06);
       border-radius: inherit;
     }
+    /* P2-AUD3-002 FIX: left/right → inset-inline for RTL parity. */
     .timeline-track-fill {
       position: absolute;
-      top: 0; left: 0; right: 0;
+      top: 0; inset-inline: 0;
       height: 0%;
       background: linear-gradient(to bottom, var(--trust-blue), var(--smoky-jade), var(--warm-earth));
       border-radius: inherit;
@@ -629,7 +634,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      /* P3-AUD3-003 FIX: Was 11px — INC-002 governance. */
+      font-size: 10px;
       font-weight: 800;
       color: white;
       z-index: 2;
@@ -741,12 +747,12 @@
       position: relative;
       overflow: hidden;
     }
+    /* P2-AUD3-002 FIX: right/left → inset-inline for RTL parity. */
     .leader-card::before {
       content: '';
       position: absolute;
       top: 0;
-      right: 0;
-      left: 0;
+      inset-inline: 0;
       height: 4px;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
@@ -791,10 +797,11 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+    /* P3-AUD3-003 FIX: Was 11px — violates INC-002 (only 10px + 12px permitted). */
     .leader-tag {
       padding: 6px 14px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
     }
     .tag-blue { background: rgba(26,115,232,0.1); color: var(--trust-blue); }
@@ -811,11 +818,12 @@
       position: relative;
       overflow: hidden;
     }
+    /* P2-AUD3-002 FIX: right → inset-inline-end for RTL parity. */
     .stats-section::before {
       content: '';
       position: absolute;
       top: -50%;
-      right: -20%;
+      inset-inline-end: -20%;
       width: 400px;
       height: 400px;
       background: radial-gradient(circle, rgba(26,115,232,0.08), transparent 70%);
@@ -1043,13 +1051,14 @@
       opacity: 1;
       pointer-events: auto;
     }
+    /* P3-AUD3-003 FIX: Was 11px — violates INC-002 (only 10px + 12px permitted). */
     .nm-toc-item {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 8px 14px;
       border-radius: 12px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: var(--text-tertiary);
       text-decoration: none;
@@ -1193,17 +1202,23 @@
       <div class="nav-lang" id="langSwitcher">
         <i class="ph ph-globe"></i>
         <span id="langLabel">العربية</span>
-        <i class="ph ph-caret-down" style="font-size:11px"></i>
+        <i class="ph ph-caret-down" style="font-size:10px"></i>
       </div>
     </div>
   </nav>
 
+  <!-- P1-AUD3-002 FIX: Wrapped all page content in <main id="main-content"> landmark.
+       Previous: skip-link targeted an empty <a> anchor — invalid landmark.
+       Now: proper <main> wrapping provides WCAG 1.3.1 landmark + skip-link target.
+       Standard: WCAG 2.4.1 (Bypass Blocks), WCAG 1.3.1 (Info and Relationships). -->
+  <main id="main-content">
   <!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
-  <section class="hero" id="hero" tabindex="-1"><a id="main-content"></a>
+  <section class="hero" id="hero" tabindex="-1">
     <!-- Ambient orbs -->
-    <div class="orb" style="width:400px;height:400px;top:-100px;right:-100px;background:rgba(26,115,232,0.06);"></div>
-    <div class="orb" style="width:350px;height:350px;bottom:-50px;left:-80px;background:rgba(16,145,115,0.05);"></div>
-    <div class="orb" style="width:250px;height:250px;top:40%;right:20%;background:rgba(194,149,107,0.04);"></div>
+    <!-- P2-AUD3-002 FIX: Inline right/left → inset-inline-end/start for RTL parity. -->
+    <div class="orb" style="width:400px;height:400px;top:-100px;inset-inline-end:-100px;background:rgba(26,115,232,0.06);"></div>
+    <div class="orb" style="width:350px;height:350px;bottom:-50px;inset-inline-start:-80px;background:rgba(16,145,115,0.05);"></div>
+    <div class="orb" style="width:250px;height:250px;top:40%;inset-inline-end:20%;background:rgba(194,149,107,0.04);"></div>
 
     <div class="hero-logo">
       <img src="/brand/Nammerha_logo_Full.svg?v=2" alt="نعمّرها" id="heroLogo" class="logo-light" />
@@ -1503,6 +1518,7 @@
       <p class="footer-copy">© ٢٠٢٥ نعمّرها. منصة إعادة إعمار متوافقة مع OCDS.</p>
     </div>
   </footer>
+  </main> <!-- P1-AUD3-002: End of <main> landmark -->
 
   <!-- ═══ ANIMATIONS — GSAP ScrollTrigger ══════════════════════════════════ -->
   <script>

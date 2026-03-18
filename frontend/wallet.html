@@ -149,7 +149,10 @@
   </section>
 
   <!-- Transaction History -->
-  <section class="px-4 pt-8">
+  <!-- P3-AUD3-001 FIX: Added animate-fade-in-up — balance card animates but
+       transaction section appeared instantly. Now both animate with stagger.
+       Standard: Visual consistency, Material Design (Staggered Entry). -->
+  <section class="px-4 pt-8 animate-fade-in-up" style="animation-delay: 120ms">
     <!-- INC-2026-C01 FIX: h3→h2 — heading hierarchy must not skip levels.
          Previous: h1 (Wallet) → h3 (Recent Transactions) — skipped h2.
          Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.3.10. -->

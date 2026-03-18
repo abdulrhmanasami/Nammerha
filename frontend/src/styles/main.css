@@ -629,7 +629,9 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    /* P2-AUD3-001 FIX: Was 11px — violates INC-002 (only 10px + 12px permitted).
+       Standard: Design System Typography Scale Governance. */
+    font-size: 10px;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: var(--radius-full);
@@ -675,7 +677,9 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     border-radius: var(--radius-full);
     background: var(--trust-blue-light);
     border: 1px solid rgba(26, 115, 232, 0.2);
-    font-size: 11px;
+    /* P2-AUD3-001 FIX: Was 11px — violates INC-002 (only 10px + 12px permitted).
+       Standard: Design System Typography Scale Governance. */
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
