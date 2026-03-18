@@ -127,11 +127,11 @@
 
 /* Dark mode adaptation for stepper */
 html[data-theme="dark"] .nm-step-num {
-    background: #334155;
+    background: #334155; /* slate-700 */
     color: #64748b;
 }
 html[data-theme="dark"] .nm-step-line {
-    background: #334155;
+    background: #334155; /* slate-700 */
 }
 html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
     background: var(--trust-blue);

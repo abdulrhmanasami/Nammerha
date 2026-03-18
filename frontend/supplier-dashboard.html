@@ -82,7 +82,11 @@
     <!-- Navigation links outside tablist — these navigate to different pages, not tab panels -->
     <!-- FRIC-2601 FIX: data-section-label provides visible "Navigate" label via CSS ::before.
          Standard: Nielsen #6 (Recognition over Recall), Gestalt (Proximity). -->
-    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
+    <!-- DEF-NAV-001 FIX: Standardized from legacy px-4 space-y-1 pb-2 to canonical pattern.
+         Previous: No border-t, asymmetric padding (px-4 pb-2 = 16px horizontal, 8px bottom).
+         Now: p-4 border-t border-slate-200 space-y-1 — matches homeowner, donor, tradesperson, contractor portals.
+         Standard: Nielsen #4 (Consistency), Design System Structural Unity. -->
+    <div class="p-4 border-t border-slate-200 space-y-1" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="wallet.html">
         <i class="ph ph-wallet" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="supplier_payments">Payments</span>

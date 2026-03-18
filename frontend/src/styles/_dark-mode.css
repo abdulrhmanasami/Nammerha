@@ -24,10 +24,11 @@
    ║  4. Target: shrink this file to 0 lines over time (gradual).           ║
    ║                                                                        ║
    ║  P1-AUD2-002: MIGRATION PROGRESS METRICS (updated March 18, 2026)       ║
-   ║  • Total lines: 256  │ Target: 0                                      ║
+   ║  • Total lines: 260  │ Target: 0                                      ║
    ║  • !important count: 46  │ Target: 0                                  ║
    ║  • Legacy selectors: ~42  │ Target: 0                                 ║
-   ║  • CSS custom props (L61-66): 4 tokens — NOT legacy, keep here.       ║
+   ║  • CSS custom props (L61-73): 10 tokens — NOT legacy, keep here.      ║
+   ║  • Dark elevation tokens: --dark-base thru --dark-border-subtle        ║
    ║  • Strategy: gradual per-page migration to dark: utilities.            ║
    ║  Update these metrics after each migration wave.                       ║
    ╚══════════════════════════════════════════════════════════════════════════╝
@@ -64,21 +65,31 @@ html[data-theme="dark"] {
   --text-body: #cbd5e1;
   --text-muted: #64748b;
   --text-subtle: #475569;
+  /* DM-TOKEN-001: Dark Mode Elevation Token System.
+     Material Design 3 — Elevation increases surface lightness in dark themes.
+     Scale: deep(#1a) → surface(#1e) → base(#24) → elevated(#2a) → glass.
+     Standard: Design System Token Governance, Single Source of Truth. */
+  --dark-surface-deep: #1a1a1a;
+  --dark-surface: #1e1e1e;
+  --dark-base: #242424; /* same as --dark-tech but scoped to dark context */
+  --dark-surface-elevated: #2a2a2a;
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-border-subtle: rgba(255, 255, 255, 0.06);
 }
 
 /* ── Glass Components ── */
 html[data-theme="dark"] .glass-card {
   background: rgba(42, 42, 42, 0.7);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--dark-border);
 }
 html[data-theme="dark"] .glass-nav {
   background: rgba(36, 36, 36, 0.92);
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--dark-border-subtle);
 }
 /* CONF-005 FIX: Removed dead .bottom-nav dark mode (replaced by .nm-bottom-nav theming) */
 html[data-theme="dark"] .glass-sheet {
   background: rgba(42, 42, 42, 0.85);
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--dark-border-subtle);
 }
 
 /* ── Progress ── */
@@ -91,10 +102,10 @@ html[data-theme="dark"] .progress-track {
 /* Backgrounds: bg-white, bg-cloud-white, bg-slate-50 */
 html[data-theme="dark"] .bg-white,
 html[data-theme="dark"] .bg-cloud-white {
-  background-color: #1e1e1e !important;
+  background-color: var(--dark-surface) !important;
 }
 html[data-theme="dark"] .bg-slate-50 {
-  background-color: #2a2a2a !important;
+  background-color: var(--dark-surface-elevated) !important;
 }
 
 /* Text colors: slate scale → light equivalents */
@@ -111,10 +122,10 @@ html[data-theme="dark"] .text-slate-400 { color: #64748b !important; }
 /* Borders */
 html[data-theme="dark"] .border-slate-200,
 html[data-theme="dark"] .border-slate-100 {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--dark-border) !important;
 }
 html[data-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--dark-border-subtle) !important;
 }
 
 /* Form inputs */
@@ -126,7 +137,7 @@ html[data-theme="dark"] input[type="tel"],
 html[data-theme="dark"] input[type="url"],
 html[data-theme="dark"] textarea,
 html[data-theme="dark"] select {
-  background-color: #2a2a2a;
+  background-color: var(--dark-surface-elevated);
   color: #e2e8f0;
   border-color: rgba(255, 255, 255, 0.12);
 }
@@ -148,7 +159,7 @@ html[data-theme="dark"] .badge-warning {
 
 /* Tip buttons */
 html[data-theme="dark"] .tip-btn {
-  background: #2a2a2a;
+  background: var(--dark-surface-elevated);
   border-color: rgba(255, 255, 255, 0.1);
   color: #94a3b8;
 }
@@ -159,13 +170,13 @@ html[data-theme="dark"] .tip-btn:hover {
 
 /* Sidebar (dashboard) */
 html[data-theme="dark"] .dashboard-sidebar {
-  background: #1a1a1a;
-  border-color: rgba(255, 255, 255, 0.06);
+  background: var(--dark-surface-deep);
+  border-color: var(--dark-border-subtle);
 }
 
 /* Tables */
 html[data-theme="dark"] table thead {
-  background: #2a2a2a;
+  background: var(--dark-surface-elevated);
 }
 html[data-theme="dark"] table th {
   color: #94a3b8;
@@ -193,7 +204,7 @@ html[data-theme="dark"] .border-trust-blue\/10 {
 
 /* Auth tab active state — P1-002 FIX */
 html[data-theme="dark"] .auth-tab-active {
-  background: #2a2a2a !important;
+  background: var(--dark-surface-elevated) !important;
   color: var(--trust-blue) !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
 }
@@ -252,7 +263,7 @@ html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) 
 /* INC-004 FIX: Missing dark mode overrides — these Tailwind utilities appeared
    as bright white patches in dark mode, violating visual cohesion.
    Standard: Design System completeness — 100% dark mode coverage. */
-html[data-theme="dark"] .bg-slate-200\/60 { background-color: rgba(255, 255, 255, 0.06) !important; }
+html[data-theme="dark"] .bg-slate-200\/60 { background-color: var(--dark-border-subtle) !important; }
 html[data-theme="dark"] .bg-slate-200\/50 { background-color: rgba(255, 255, 255, 0.05) !important; }
 html[data-theme="dark"] .bg-trust-blue\/8 { background-color: rgba(26, 115, 232, 0.12) !important; }
 html[data-theme="dark"] .bg-white\/98 { background-color: rgba(30, 30, 30, 0.98) !important; }

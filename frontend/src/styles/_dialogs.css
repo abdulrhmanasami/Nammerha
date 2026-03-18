@@ -23,7 +23,7 @@
    GAP-006 FIX: KPI Skeleton Dark Mode
    ============================================================================ */
 html[data-theme="dark"] .kpi-skeleton span {
-    background-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--dark-border) !important;
 }
 
 /* ============================================================================
@@ -49,7 +49,7 @@ html[data-theme="dark"] .kpi-skeleton span {
 }
 html[data-theme="dark"] .breadcrumb-nav {
     background: rgba(30, 41, 59, 0.6);
-    border-color: rgba(255, 255, 255, 0.06);
+    border-color: var(--dark-border-subtle);
 }
 html[data-theme="dark"] .breadcrumb-nav a {
     color: var(--trust-blue);
@@ -180,25 +180,25 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
 /* Search Dark Mode */
 html[data-theme="dark"] .search-overlay-content {
     background: rgba(30, 41, 59, 0.98);
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--dark-border);
 }
 html[data-theme="dark"] .search-input {
     color: #e2e8f0;
 }
 html[data-theme="dark"] .search-input-wrapper {
-    border-color: rgba(255, 255, 255, 0.06);
+    border-color: var(--dark-border-subtle);
 }
 html[data-theme="dark"] .search-kbd,
 html[data-theme="dark"] .search-kbd-mini {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
+    background: var(--dark-border-subtle);
+    border-color: var(--dark-border);
     color: #64748b;
 }
 html[data-theme="dark"] .search-result-item:hover {
     background: rgba(255, 255, 255, 0.04);
 }
 html[data-theme="dark"] .search-footer {
-    border-color: rgba(255, 255, 255, 0.06);
+    border-color: var(--dark-border-subtle);
 }
 
 /* ============================================================================
@@ -354,7 +354,7 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
     background: var(--trust-blue-hover, #1557b0);
 }
 html[data-theme="dark"] .nm-confirm-dialog {
-    background: #1e1e1e;
+    background: var(--dark-surface);
 }
 html[data-theme="dark"] .nm-confirm-body h3 { color: #f1f5f9; }
 html[data-theme="dark"] .nm-confirm-body p { color: #94a3b8; }

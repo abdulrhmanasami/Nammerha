@@ -1407,9 +1407,13 @@ html[data-theme="dark"] .text-red-400 {
     color: var(--smoky-jade);
 }
 .pull-refresh-loading .pull-refresh-spinner {
-    animation: ptr-spin 0.6s linear infinite;
+    animation: spin-360 0.6s linear infinite;
 }
-@keyframes ptr-spin {
+/* P3-001 FIX: Consolidated ptr-spin → spin-360 (canonical single rotation).
+   Previous: Two identical 0→360° keyframes existed (ptr-spin L1412, btn-spin L1512).
+   Now: Single @keyframes spin-360 shared by pull-refresh and button loading.
+   Standard: DRY Principle, CSS Architecture. */
+@keyframes spin-360 {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
 }
@@ -1504,15 +1508,12 @@ html[data-theme="dark"] .nm-toast {
     border: 2px solid currentColor;
     border-radius: 50%;
     border-top-color: transparent;
-    animation: btn-spin 0.6s linear infinite;
+    animation: spin-360 0.6s linear infinite;
     color: white;
 }
 /* Ensure spinner color matches button context */
 .btn-secondary.btn-loading::after { color: var(--trust-blue); }
-@keyframes btn-spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
+/* P3-001 FIX: Removed duplicate @keyframes btn-spin — now uses canonical spin-360 (L1416). */
 
 /* ============================================================================
    P2-MOB-002 FIX: Offline Indicator Banner
@@ -2337,7 +2338,9 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     bottom: -28px;
     inset-inline-start: 50%;
     transform: translateX(-50%);
-    background: #1e293b;
+    /* P3-002 FIX: Replaced hardcoded #1e293b with design token for consistency.
+       Standard: Design System Token Governance — no hardcoded colors in components. */
+    background: var(--dark-tech, #1e293b);
     color: #f8fafc;
     font-size: 9px;
     font-weight: 600;
@@ -2436,6 +2439,12 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
    Standard: Emotional Design, Trust UX, Gamification.
    ============================================================================ */
 [data-funded="100"] {
+    /* P3-003 FIX: Added position context for ::after checkmark badge.
+       Previous: ::after used position:absolute but parent had no explicit position:relative.
+       Worked accidentally when Tailwind's `relative` class was present on the card,
+       but broke if the class was ever removed.
+       Standard: Defensive CSS — explicit positioning context. */
+    position: relative;
     border-color: var(--smoky-jade) !important;
     box-shadow: 0 0 0 2px rgba(16, 145, 115, 0.15), var(--shadow-glass);
 }

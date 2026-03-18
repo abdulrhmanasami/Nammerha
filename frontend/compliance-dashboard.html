@@ -82,7 +82,9 @@
     </nav>
     <!-- Navigation links outside tablist — these navigate to different pages.
          Standard: WAI-ARIA §3.26 mandates tab containers may ONLY contain role="tab" elements. -->
-    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
+    <!-- DEF-NAV-001 FIX: Standardized from legacy px-4 space-y-1 pb-2 to canonical pattern.
+         Standard: Nielsen #4 (Consistency), Design System Structural Unity. -->
+    <div class="p-4 border-t border-slate-200 space-y-1" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <!-- CRIT-002 FIX: 3 dead href="#" links → disabled <span> with "Coming Soon" badge.
            Previous: <a href="#"> caused scroll-to-top, browser history pollution, and violated
            Nielsen #2 (No Dead Controls). WCAG 4.1.2 requires interactive elements to have purpose.
@@ -284,7 +286,11 @@
       </div>
 
       <!-- ═══════ Escrow Review Section (hidden by default) ═══════ -->
-      <div id="section-escrow" class="bg-white rounded-xl border border-slate-200 shadow-sm" style="display:none" role="tabpanel" aria-labelledby="tab-escrow">
+      <!-- DEF-VIS-001 FIX: Replaced style="display:none" with class="hidden".
+           Previous: Inline style forced JS to remove BOTH .hidden AND inline style to show the panel.
+           Every other portal uses class="hidden" exclusively for visibility toggling.
+           Standard: Single Source of Truth for visibility state, CSS Architecture. -->
+      <div id="section-escrow" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm" role="tabpanel" aria-labelledby="tab-escrow">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h2 class="font-bold" data-i18n="auditor_review_queue">Escrow Review Queue</h2>
