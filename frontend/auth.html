@@ -113,8 +113,12 @@
         <div class="relative">
           <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
           <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard context -->
+          <!-- AUD-P0-002 FIX: Migrated to .nm-input design system class.
+               Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
+               Now: Inherits dark mode, focus ring, and token updates from design system.
+               Standard: Design System Governance, DEF-004. -->
           <input id="login-email" name="email" type="email" required autocomplete="email" enterkeyhint="next"
-            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+            class="nm-input ps-12"
             placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
         </div>
       </div>
@@ -124,7 +128,7 @@
         <div class="relative">
           <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
           <input id="login-password" name="password" type="password" required autocomplete="current-password" minlength="8" enterkeyhint="go"
-            class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+            class="nm-input ps-12 pe-12"
             placeholder="••••••••" data-i18n-placeholder="auth_pw_dots" />
           <button type="button" id="login-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
             <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
@@ -228,7 +232,7 @@
             <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
                  Standard: Apple HIG (Keyboard Management), Android Material Design. -->
             <input id="reg-name" name="full_name" type="text" required autocomplete="name" enterkeyhint="next"
-              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              class="nm-input ps-12"
               placeholder="Full Name" data-i18n-placeholder="auth_name_placeholder" />
           </div>
         </div>
@@ -238,7 +242,7 @@
           <div class="relative">
             <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
             <input id="reg-email" name="email" type="email" required autocomplete="email" enterkeyhint="next"
-              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              class="nm-input ps-12"
               placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
           </div>
         </div>
@@ -258,7 +262,7 @@
           <div class="relative">
             <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
             <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="next"
-              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-12 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              class="nm-input ps-12 pe-12"
               placeholder="Min 8 chars: upper, lower, number & symbol" data-i18n-placeholder="auth_pw_placeholder" />
             <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
               <i class="ph ph-eye" style="font-size:20px" aria-hidden="true"></i>
@@ -285,7 +289,7 @@
           <div class="relative">
             <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
             <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="done"
-              class="w-full bg-white border border-slate-200 rounded-xl py-3.5 ps-12 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 focus:border-trust-blue outline-none transition-all"
+              class="nm-input ps-12"
               placeholder="Re-enter your password" data-i18n-placeholder="auth_pw_confirm_placeholder" />
           </div>
           <p class="text-[10px] text-red-500 mt-1 hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>

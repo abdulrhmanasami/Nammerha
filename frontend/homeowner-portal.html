@@ -128,7 +128,7 @@
     <!-- M-AUD-011 FIX: Added max-w-6xl mx-auto inner wrapper for header content.
          Previous: Header stretched full .dashboard-main width on 1440px+ screens.
          Standard: Responsive Design, Visual Hierarchy. -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-40">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
@@ -360,10 +360,14 @@
                  Handler now wired via addEventListener in homeowner-portal.ts.
                  Standard: CSP Level 2 §4.1, OWASP XSS Prevention Cheat Sheet. -->
             <div class="space-y-3">
+              <!-- AUD-P2-003 FIX: Added field count badge to progressive disclosure button.
+                   Previous: Users had no indication of how many fields were hidden.
+                   Now: "(4 optional fields)" tells users what to expect before expanding.
+                   Standard: Nielsen #1 (Visibility of System Status), Progressive Disclosure. -->
               <button type="button" id="sr-toggle-details" class="w-full text-start text-xs text-trust-blue font-semibold hover:underline flex items-center gap-1 transition-colors py-1">
                 <i class="ph ph-plus-circle" aria-hidden="true"></i>
                 <span data-i18n="ho_add_details">Add Details</span>
-                <span class="text-slate-400 font-normal" data-i18n="common_optional_parens">(optional)</span>
+                <span class="text-slate-400 font-normal" data-i18n="sr_optional_fields_count">(4 optional fields)</span>
               </button>
               <button id="submit-sr-btn" class="w-full py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
                 <i class="ph ph-megaphone" aria-hidden="true"></i> <span data-i18n="homeowner_submit_request">Submit Request</span>

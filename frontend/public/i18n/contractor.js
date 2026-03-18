@@ -56,7 +56,9 @@
         'ct_new_projects_appear': { ar: 'ستظهر المشاريع الجديدة هنا عند نشرها', de: 'Neue Projekte erscheinen hier wenn veröffentlicht', fr: 'Les nouveaux projets apparaîtront ici', tr: 'Yeni projeler yayınlandığında burada görünecek' },
         'ct_no_bids_yet': { ar: 'لم يتم تقديم عروض بعد', de: 'Noch keine Angebote eingereicht', fr: 'Aucune offre soumise', tr: 'Henüz teklif verilmedi' },
         'ct_no_payments_yet': { ar: 'لا توجد مدفوعات بعد', de: 'Noch keine Zahlungen', fr: 'Aucun paiement', tr: 'Henüz ödeme yok' },
-        'ct_fill_cost_days': { ar: 'يرجى تعبئة التكلفة والأيام', de: 'Bitte Kosten und Tage ausfüllen', fr: 'Veuillez remplir le coût et les jours', tr: 'Lütfen maliyet ve günleri doldurun' }
+        'ct_fill_cost_days': { ar: 'يرجى تعبئة التكلفة والأيام', de: 'Bitte Kosten und Tage ausfüllen', fr: 'Veuillez remplir le coût et les jours', tr: 'Lütfen maliyet ve günleri doldurun' },
+        /* AUD-P2-001 FIX: Plain-language escrow subtitle — parity with donor portal */
+        'contractor_escrow_hint': { ar: 'الدفعات محفوظة بالأمانة حتى التحقق من المراحل', de: 'Zahlungen werden treuhänderisch verwahrt bis zur Meilensteinverifizierung', fr: 'Paiements sécurisés en fiducie jusqu\'à vérification des jalons', tr: 'Ödemeler, kilometre taşları doğrulanana kadar emanette tutulur' }
         });
     }
 })();

@@ -102,7 +102,11 @@
          Previous: bare `px-4 pb-2` (no section label, no i18n, no space-y-1).
          Now matches contractor-dashboard + supplier-dashboard pattern.
          Standard: Nielsen #4 (Consistency), i18n RTL parity (FRIC-2601). -->
-    <div class="px-4 space-y-1 pb-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
+    <!-- AUD-P1-001 FIX: Standardized navigate section wrapper to canonical pattern.
+         Previous: px-4 space-y-1 pb-2 (no border-t) — inconsistent with homeowner/donor portals.
+         Now: p-4 border-t border-slate-200 space-y-1 — matches canonical dashboard pattern.
+         Standard: Nielsen #4 (Consistency), Design System Structural Unity. -->
+    <div class="p-4 border-t border-slate-200 space-y-1" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="profile.html">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_profile">Profile</span>
@@ -127,7 +131,7 @@
          Previously stretched full .dashboard-main width — visual disconnection on >1920px screens.
          Now matches the centering pattern from donor-portal and homeowner-portal headers.
          Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-40">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
@@ -214,6 +218,9 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_escrow_total">Escrow Received</p>
+          <!-- AUD-P2-001 FIX: Plain-language escrow subtitle — parity with donor portal FRIC-2602.
+               Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
+          <p class="text-[10px] text-trust-blue/70 -mt-0.5" data-i18n="contractor_escrow_hint">Payments held in trust until milestones verified</p>
           <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-escrow">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -221,7 +228,11 @@
       </div>
 
       <!-- ═══════ Projects Section ═══════ -->
-      <div id="section-dashboard" class="bg-white rounded-xl border border-slate-200 shadow-sm" role="tabpanel" aria-labelledby="tab-dashboard">
+      <!-- AUD-P2-002 FIX: Added space-y-4 for section content spacing consistency.
+           Matches homeowner-portal and donor-portal section-dashboard pattern.
+           Standard: Nielsen #4 (Consistency), Gestalt (Proximity). -->
+      <div id="section-dashboard" class="space-y-4" role="tabpanel" aria-labelledby="tab-dashboard">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div class="p-5 border-b border-slate-100">
           <h3 class="font-bold" data-i18n="contractor_my_projects">My Assigned Projects</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="ct_desc_my_projects">Construction projects you're executing</p>
@@ -246,6 +257,7 @@
             </tbody>
           </table>
         </div>
+      </div>
       </div>
 
       <!-- ═══════ Marketplace Section (hidden) ═══════ -->

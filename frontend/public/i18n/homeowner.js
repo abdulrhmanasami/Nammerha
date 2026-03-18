@@ -78,7 +78,9 @@
         'gps_error_unavailable': { ar: 'الموقع غير متاح. يرجى إدخال عنوانك يدوياً.', de: 'Standort nicht verfügbar. Bitte geben Sie Ihre Adresse manuell ein.', fr: 'Localisation non disponible. Veuillez entrer votre adresse manuellement.', tr: 'Konum kullanılamıyor. Lütfen adresinizi manuel olarak girin.' },
         'gps_error_timeout': { ar: 'انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى أو الإدخال يدوياً.', de: 'Standortanfrage hat das Zeitlimit überschritten. Bitte erneut versuchen oder manuell eingeben.', fr: 'Délai de localisation dépassé. Veuillez réessayer ou entrer manuellement.', tr: 'Konum isteği zaman aşımına uğradı. Lütfen tekrar deneyin veya manuel girin.' },
         /* GAP-AUD-06 FIX: Photo counter format string */
-        'photos_jpg_or_png': { ar: 'JPG أو PNG', de: 'JPG oder PNG', fr: 'JPG ou PNG', tr: 'JPG veya PNG' }
+        'photos_jpg_or_png': { ar: 'JPG أو PNG', de: 'JPG oder PNG', fr: 'JPG ou PNG', tr: 'JPG veya PNG' },
+        /* AUD-P2-003 FIX: Progressive disclosure field count badge */
+        'sr_optional_fields_count': { ar: '(4 حقول اختيارية)', de: '(4 optionale Felder)', fr: '(4 champs facultatifs)', tr: '(4 isteğe bağlı alan)' }
         });
     }
 })();
