@@ -187,7 +187,10 @@
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_active">Active</span>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_active_bids">Active Bids</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" data-kpi="active-bids">
+          <!-- CRIT-001b FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
+               Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
+               Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
+          <p class="text-2xl font-black mt-1" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" data-kpi="active-bids">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>

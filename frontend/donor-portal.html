@@ -220,7 +220,10 @@
             </div>
           </div>
           <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_score">Impact Score</p>
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-score">
+          <!-- CRIT-001c FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
+               Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
+               Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
+          <p class="text-2xl font-black mt-1" style="color: var(--warning-yellow-text, #b45309)" aria-live="polite" id="kpi-score">
             <span class="inline-block h-7 w-14 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>

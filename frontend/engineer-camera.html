@@ -222,6 +222,21 @@
   </div>
 
 </main>
+<!-- CRIT-003 FIX: Legal footer and gradient orbs were missing from engineer-camera.html.
+     32/33 pages had them — this was the sole outlier. Platinum Standard requires 33/33 consistency.
+     Note: Orbs use absolute positioning (position: absolute in main.css) — they do not interfere
+     with the immersive fullscreen dark camera UI. Footer scrolls below fold.
+     Standard: Platinum Standard Consistency Rule, Nielsen #4 (Consistency and Standards). -->
+<footer class="nm-legal-footer">
+  <nav aria-label="Legal navigation">
+    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
+    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
+    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+  </nav>
+  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+</footer>
+<div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+<div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/engineer.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
