@@ -257,7 +257,9 @@
       <div id="section-dashboard" class="space-y-4" role="tabpanel" aria-labelledby="tab-dashboard">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="donor_supported_projects">Projects You've Supported</h3>
+            <!-- DFR-HH-004 FIX: h3→h2 — bridges h1→h3 heading hierarchy gap.
+                 Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy). -->
+            <h2 class="font-bold" data-i18n="donor_supported_projects">Projects You've Supported</h2>
           </div>
           <!-- DFR-001 FIX: Skeleton loader replaces spinner for known-dimension list.
                Standard: DEF-005 Governance — skeleton for structured data, spinner for indeterminate ops. -->
@@ -274,7 +276,7 @@
       <div id="section-marketplace" style="display:none" role="tabpanel" aria-labelledby="tab-marketplace">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="donor_marketplace">Browse Projects Needing Funding</h3>
+            <h2 class="font-bold" data-i18n="donor_marketplace">Browse Projects Needing Funding</h2>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_marketplace_hint">Select items to fund and add them to your basket</p>
           </div>
           <div id="marketplace-list" class="divide-y divide-slate-100">
@@ -305,7 +307,7 @@
       <div id="section-donations" style="display:none" role="tabpanel" aria-labelledby="tab-donations">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="donor_donation_history">Donation History</h3>
+            <h2 class="font-bold" data-i18n="donor_donation_history">Donation History</h2>
           </div>
           <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <!-- FRIC-2026-006 FIX: nm-donation-table enables mobile card-collapse via CSS -->
@@ -334,7 +336,7 @@
       <div id="section-impact" style="display:none" role="tabpanel" aria-labelledby="tab-impact">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="donor_impact_details">My Impact Details</h3>
+            <h2 class="font-bold" data-i18n="donor_impact_details">My Impact Details</h2>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_impact_hint">How your contributions are changing lives</p>
           </div>
           <div id="impact-list" class="divide-y divide-slate-100">
@@ -349,7 +351,7 @@
       <div id="section-proofs" style="display:none" role="tabpanel" aria-labelledby="tab-proofs">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div class="p-5 border-b border-slate-100">
-            <h3 class="font-bold" data-i18n="donor_proof_gallery">GPS-Verified Proof Gallery</h3>
+            <h2 class="font-bold" data-i18n="donor_proof_gallery">GPS-Verified Proof Gallery</h2>
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_proof_hint">On-site photos proving your materials were delivered and used</p>
           </div>
           <div id="proofs-grid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
