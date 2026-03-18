@@ -52,6 +52,10 @@
    Previous .dark class selectors NEVER triggered. */
 
 /* ── Base ── */
+/* PLT-UX-AUD-BG FIX: Dark mode html background for iOS rubber-band overscroll. */
+html[data-theme="dark"] {
+  background-color: var(--dark-tech);
+}
 html[data-theme="dark"] body {
   background-color: var(--dark-tech);
   color: #e2e8f0;

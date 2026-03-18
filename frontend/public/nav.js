@@ -409,6 +409,23 @@
 
         initMobileSearchToggle();
 
+        // PLT-UX-AUD-KB FIX: Virtual keyboard management.
+        // Detects when mobile virtual keyboard opens/closes and toggles
+        // .keyboard-visible on <html> for CSS hooks (hide bottom nav, reposition toast).
+        // Uses Visual Viewport API (Chrome 61+, Safari 13+). No-op on desktop.
+        // Standard: Apple HIG — "Adjust layout for virtual keyboard."
+        if (window.visualViewport) {
+            var KBD_THRESHOLD = 150; // px — keyboard must be at least this tall
+            window.visualViewport.addEventListener('resize', function () {
+                var heightDiff = window.innerHeight - window.visualViewport.height;
+                if (heightDiff > KBD_THRESHOLD) {
+                    document.documentElement.classList.add('keyboard-visible');
+                } else {
+                    document.documentElement.classList.remove('keyboard-visible');
+                }
+            }, { passive: true });
+        }
+
         // ─── DEF-014 FIX: Service Worker Update Prompt ──────────────────────
         // Previous: SW registered but no update UI. Users on cached versions
         // see stale content until all tabs are closed.

@@ -254,6 +254,11 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* PLT-UX-AUD-BG FIX: iOS rubber-band overscroll background color.
+     Without explicit bg, overscroll rubber-band exposes white browser chrome —
+     dead giveaway of a web page. Now matches theme surface color.
+     Standard: Apple HIG — "Match system chrome to your app's color scheme." */
+  background-color: var(--cloud-white);
   /* P2-MOB-003 FIX: Prevent iOS Safari rubber-band overscroll.
      Keeps the app feeling native — no page-background exposure on pull. */
   overscroll-behavior: contain;
@@ -268,6 +273,9 @@ html {
      Reduced-motion override already exists at L1214 (scroll-behavior: auto).
      Standard: CSS Scroll Behavior L1, Apple HIG (Animated Transitions). */
   scroll-behavior: smooth;
+  /* PLT-UX-AUD-SG FIX: Prevent ~15px layout shift when scrollbar appears/disappears on desktop.
+     Standard: CSS Overflow Level 4, Core Web Vitals (CLS). */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -1298,10 +1306,27 @@ html[data-theme="dark"] .text-red-400 {
     border-top: 1px solid rgba(255,255,255,0.08);
     background: rgba(17,24,39,0.95);
     transition: background 0.3s ease, border-color 0.3s ease;
+    /* PLT-UX-AUD-WC FIX: Pre-promote to GPU layer — eliminates first-frame jank
+       from backdrop-filter recalculation during scroll. */
+    will-change: transform;
 }
 .nm-bottom-nav[data-nav-theme="light"] {
     background: rgba(255,255,255,0.92);
     border-top-color: rgba(226,232,240,0.6);
+}
+/* PLT-UX-AUD-KB FIX: Hide bottom nav when virtual keyboard is open.
+   JS (nav.js) adds .keyboard-visible to <html> via the Visual Viewport API.
+   Without this, the bottom nav physically overlaps the keyboard — #1 sign of a web app.
+   Standard: Visual Viewport API, Apple HIG — "Adjust layout for virtual keyboard." */
+.keyboard-visible .nm-bottom-nav {
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+.keyboard-visible .nm-theme-fab {
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
 }
 
 /* ─── Inner Flex Wrapper ─────────────────────────────────────────────── */
@@ -1517,6 +1542,13 @@ html[data-theme="dark"] .text-red-400 {
     width: 90%;
     max-width: 420px;
     pointer-events: none;
+    /* PLT-UX-AUD-WC FIX: Pre-promote to GPU layer. */
+    will-change: transform;
+}
+/* PLT-UX-AUD-KB FIX: Reposition toast above keyboard when visible.
+   Standard: Apple HIG — "Don't let overlays compete with keyboard." */
+.keyboard-visible #nm-toast-container {
+    bottom: 1rem;
 }
 
 .nm-toast {
@@ -1803,13 +1835,18 @@ html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
    Standard: Apple HIG — "Provide immediate, visible feedback on tap."
    Material Design 3 — "State layers for pressed state."
    ============================================================================ */
+/* PLT-UX-AUD-P0: Optimized active state timing for instant tactile response.
+   Previous: 0.1s (100ms) transition — perceptible delay between tap and visual response.
+   Now: 0.06s (60ms) — below the 80ms human perception threshold for "instantaneous".
+   Added will-change: transform to pre-promote elements for GPU compositing.
+   Standard: Google INP ≤200ms, Apple HIG — instant response, Fitts's Law. */
 @media (pointer: coarse) {
     /* Primary buttons */
     .btn-primary:active,
     .btn-secondary:active {
         transform: scale(0.97);
         opacity: 0.85;
-        transition: transform 0.1s ease, opacity 0.1s ease;
+        transition: transform 60ms ease, opacity 60ms ease;
     }
 
     /* Glass cards, navigation items, sidebar links */
@@ -1818,7 +1855,7 @@ html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
     .dashboard-sidebar nav a:active {
         transform: scale(0.98);
         opacity: 0.9;
-        transition: transform 0.1s ease, opacity 0.1s ease;
+        transition: transform 60ms ease, opacity 60ms ease;
     }
 
     /* Quick action grid items */
@@ -1826,47 +1863,45 @@ html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
     [id="quick-actions-grid"] > div:active {
         transform: scale(0.96);
         opacity: 0.85;
-        transition: transform 0.1s ease, opacity 0.1s ease;
+        transition: transform 60ms ease, opacity 60ms ease;
     }
 
     /* Back buttons, icon buttons, header actions
        PLT-AUD3-B03 FIX: Added :not([disabled]) — prevents haptic feedback on disabled buttons.
-       SCOPE NOTE: button[aria-label] is intentionally broad — ALL icon buttons with aria-label
-       should provide touch feedback (bell, hamburger, close, clear, etc.).
        Standard: Apple HIG — "Provide feedback for every interaction." */
     a[data-back-btn]:active,
     button[aria-label]:not([disabled]):active,
     .sidebar-toggle:active {
         transform: scale(0.92);
         opacity: 0.7;
-        transition: transform 0.08s ease, opacity 0.08s ease;
+        transition: transform 50ms ease, opacity 50ms ease;
     }
 
     /* Tip buttons (donor-basket) */
     .tip-btn:active {
         transform: scale(0.95);
-        transition: transform 0.08s ease;
+        transition: transform 50ms ease;
     }
 
     /* Cart add-to-cart buttons */
     .add-to-cart-btn:active {
         transform: scale(0.96);
         opacity: 0.85;
-        transition: transform 0.1s ease, opacity 0.1s ease;
+        transition: transform 60ms ease, opacity 60ms ease;
     }
 
     /* Tab switchers, select dropdowns */
     .tab-active:active,
     select:active {
         transform: scale(0.98);
-        transition: transform 0.08s ease;
+        transition: transform 50ms ease;
     }
 
     /* Generic fallback: any remaining interactive elements not covered above */
     a[href]:not(.skip-link):not(.nm-nav-item):not([data-back-btn]):active,
     button:not(.btn-primary):not(.btn-secondary):not([aria-label]):not(.sidebar-toggle):not(.tip-btn):not(.nm-theme-fab):active {
         opacity: 0.8;
-        transition: opacity 0.1s ease;
+        transition: opacity 60ms ease;
     }
 }
 
@@ -1908,10 +1943,10 @@ html[data-theme="dark"] .dashboard-main > header .sidebar-toggle {
     -webkit-backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
-    /* CON-AUD-04 FIX: Aligned to z-index token. Previous: hardcoded 50 (conflicted
-       with --z-sidebar: 50). Now uses --z-header: 30 per the token hierarchy.
-       Standard: Single Source of Definition for design tokens. */
+    /* CON-AUD-04 FIX: Aligned to z-index token. */
     z-index: var(--z-header);
+    /* PLT-UX-AUD-WC FIX: Pre-promote to GPU layer for smooth backdrop-filter scroll. */
+    will-change: transform;
 }
 @media (min-width: 768px) {
     .page-header {

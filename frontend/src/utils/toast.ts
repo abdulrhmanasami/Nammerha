@@ -1,7 +1,10 @@
 // ============================================================================
 // Nammerha — Global Toast Notification System
 // P2-DS-003 FIX: Consistent snackbar/toast for success, error, info, warning
+// PLT-UX-AUD-HF: Haptic feedback integration for native-app feel.
 // ============================================================================
+
+import { haptic } from './haptic';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -24,6 +27,18 @@ const TOAST_ICONS: Record<ToastType, string> = {
 const MAX_VISIBLE = 3;
 const activeToasts: HTMLElement[] = [];
 let container: HTMLElement | null = null;
+
+/* PLT-UX-AUD-HF: Map toast type → haptic intensity.
+   success/info = light (subtle confirmation)
+   error/warning = medium (attention-grabbing)
+   Standard: Apple HIG — "Use haptics to complement visual feedback." */
+type HapticKey = 'light' | 'medium' | 'heavy' | 'success';
+const TOAST_HAPTIC: Record<ToastType, HapticKey> = {
+    success: 'success',
+    error:   'medium',
+    info:    'light',
+    warning: 'medium',
+};
 
 function ensureContainer(): HTMLElement {
     if (container && document.body.contains(container)) {
@@ -109,6 +124,12 @@ export function showToast(
     // Force reflow then trigger enter animation
     void el.offsetHeight;
     el.classList.add('nm-toast-enter');
+
+    // PLT-UX-AUD-HF: Trigger haptic feedback for native-app feel
+    const hapticFn = haptic[TOAST_HAPTIC[type]];
+    if (hapticFn) {
+        hapticFn();
+    }
 
     if (duration > 0) {
         setTimeout(() => removeToast(el), duration);
