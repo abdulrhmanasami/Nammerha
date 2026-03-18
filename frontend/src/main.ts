@@ -258,6 +258,10 @@ function initScrollReveal(): void {
 // ─── P2-UX-001: Role-Aware Quick Actions ─────────────────────────────────────
 // Quick Action cards with `data-roles` are hidden when the authenticated user
 // doesn't hold any of the specified roles. Unauthenticated users see all cards.
+// P1-ROLE-271 FIX: Uses CSS class toggle (.role-granted) instead of inline
+// style.display. CSS [data-roles] { display: none !important } is the canonical
+// hide. .role-granted overrides it with display: flex !important.
+// Previous: inline style.display = 'none' fought CSS !important — desync.
 function filterQuickActionsByRole(): void {
     const user = getCurrentUser();
     // If not authenticated, show everything — user hasn't identified their role
@@ -267,16 +271,17 @@ function filterQuickActionsByRole(): void {
     roleCards.forEach(card => {
         const allowedRoles = (card.dataset.roles ?? '').split(',').map(r => r.trim());
         const userHasRole = user.roles.some(r => allowedRoles.includes(r));
-        if (!userHasRole) {
-            card.style.display = 'none';
+        if (userHasRole) {
+            card.classList.add('role-granted');
         }
+        // Non-matching roles stay hidden via CSS [data-roles] { display: none !important }
     });
 
     // P2-UX-001 FIX: Rebalance grid — if odd number visible, last item spans full width
     const grid = document.getElementById('quick-actions-grid');
     if (grid) {
         const visible = Array.from(grid.children).filter(
-            (el) => (el as HTMLElement).style.display !== 'none'
+            (el) => (el as HTMLElement).classList.contains('role-granted')
         );
         if (visible.length % 2 === 1 && visible.length > 0) {
             (visible[visible.length - 1] as HTMLElement).classList.add('col-span-2');

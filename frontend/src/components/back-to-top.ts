@@ -22,44 +22,26 @@ function createFab(): HTMLButtonElement {
     btn.setAttribute('data-i18n-aria', 'aria_back_to_top');
     btn.innerHTML = '<i class="ph ph-arrow-up" style="font-size:20px" aria-hidden="true"></i>';
 
-    // Glassmorphism styling matching Nammerha design system
-    btn.style.cssText = `
-        position: fixed;
-        bottom: 100px;
-        inset-inline-end: 16px;
-        z-index: var(--z-dropdown, 10);
-        width: 44px;
-        height: 44px;
-        border-radius: var(--radius-full, 9999px);
-        background: var(--surface-elevated, rgba(255, 255, 255, 0.7));
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--border-light, rgba(255, 255, 255, 0.3));
-        box-shadow: var(--shadow-elevation, 0 2px 8px rgba(0, 0, 0, 0.08));
-        color: var(--trust-blue, #1a73e8);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.15s ease;
-        -webkit-tap-highlight-color: transparent;
-    `;
+    // DEF-BTT-TS FIX: CSS class replaces 22-line inline style.cssText.
+    // .nm-back-to-top in main.css handles all styling including dark mode,
+    // reduced motion, and keyboard visibility.
+    // Previous: inline style.cssText duplicated the CSS class properties.
+    // Standard: CSS Single Source of Truth, DRY Principle.
+    btn.className = 'nm-back-to-top';
 
     btn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // Active press feedback
+    // Active press feedback via CSS class toggle (no inline styles)
     btn.addEventListener('pointerdown', () => {
-        btn.style.transform = 'scale(0.9)';
+        btn.classList.add('nm-back-to-top--pressed');
     });
     btn.addEventListener('pointerup', () => {
-        btn.style.transform = '';
+        btn.classList.remove('nm-back-to-top--pressed');
     });
     btn.addEventListener('pointerleave', () => {
-        btn.style.transform = '';
+        btn.classList.remove('nm-back-to-top--pressed');
     });
 
     document.body.appendChild(btn);
@@ -77,13 +59,9 @@ function handleScroll(): void {
             fab = createFab();
         }
 
-        if (scrollY > SCROLL_THRESHOLD) {
-            fab.style.opacity = '1';
-            fab.style.visibility = 'visible';
-        } else {
-            fab.style.opacity = '0';
-            fab.style.visibility = 'hidden';
-        }
+        // DEF-BTT-TS FIX: Class toggle replaces inline style.opacity/visibility.
+        // .nm-back-to-top--visible { opacity:1; visibility:visible } in main.css.
+        fab.classList.toggle('nm-back-to-top--visible', scrollY > SCROLL_THRESHOLD);
         ticking = false;
     });
 }

@@ -1034,43 +1034,41 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   height: 100% !important;
 }
 
+/* ─── P1-MAP-DM FIX: MapLibre Controls Dark Mode Theming ──────────────────── */
+/* Previous: Controls rendered with default white/black — visually jarring
+   on dark backgrounds. Zero CSS rules targeted these elements.
+   Standard: Apple HIG — "Adapt all UI to current appearance." */
+html[data-theme="dark"] .maplibregl-ctrl-group {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+html[data-theme="dark"] .maplibregl-ctrl-group button {
+    color: #e2e8f0 !important;
+}
+html[data-theme="dark"] .maplibregl-ctrl-group button + button {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html[data-theme="dark"] .maplibregl-ctrl-group button:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ─── P2-MAP-TOUCH FIX: Map Container Touch-Action ────────────────────────── */
+/* Prevent vertical scroll gestures from interfering with map pan/zoom.
+   Standard: CSS Touch-Action L1, MapLibre GL JS Best Practices. */
+#main-map {
+    touch-action: none;
+}
+
 /* FRIC-AUD-F02: Dashboard sidebar system extracted to _dashboard.css (165 lines → 1 line) */
 @import './_dashboard.css';
 
 
-/* ─── Responsive Homepage Navbar ───────────────────────────────────────────── */
-/* On small screens, hide the full search bar and show only a search icon.
-   When .nav-search-expanded is toggled by JS, the search bar is revealed
-   as a full-width overlay (class-based toggle, not inline style). */
-@media (max-width: 639px) {
-  .nav-search-full {
-    display: none !important;
-  }
-  .nav-search-icon {
-    display: inline-flex !important;
-  }
-  /* JS adds this class to the <nav> parent to reveal the search bar */
-  .nav-search-expanded .nav-search-full {
-    display: block !important;
-    position: absolute;
-    top: 50%;
-    /* P1-RTL-001 FIX: Logical properties for RTL safety (was left: 0; right: 0) */
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-    transform: translateY(-50%);
-    z-index: 60;
-    max-width: 100%;
-    margin: 0 8px;
-  }
-  .nav-search-expanded .nav-search-icon {
-    display: none !important;
-  }
-}
-@media (min-width: 640px) {
-  .nav-search-icon {
-    display: none !important;
-  }
-}
+/* P2-FB-GHOST CSS FIX: Removed dead CSS for .nav-search-icon, .nav-search-full,
+   and .nav-search-expanded (~37 lines). These classes were only used by the
+   now-deleted initMobileSearchToggle() in nav.js. Mobile search now uses
+   [data-search-trigger] wired by search-overlay.ts.
+   Standard: CSS Hygiene — Dead Code Elimination. */
 
 /* ─── Responsive Header for Inner Pages ────────────────────────────────────── */
 /* Prevent long titles + lang-switcher from overflowing on mobile */
@@ -1286,6 +1284,36 @@ html[data-theme="dark"] .text-red-400 {
     [id^="section-"] {
         animation: none !important;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P3-CONTRAST-HC FIX: Enhanced Contrast Mode
+   For users who request increased contrast (e.g. sun-washed screens in Syria).
+   Strengthens borders, increases font weight on navigation labels.
+   Standard: WCAG 1.4.6 (Contrast Enhanced), Apple HIG (Accessibility).
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-contrast: more) {
+    :root {
+        --border-subtle: rgba(0, 0, 0, 0.2);
+        --border-light: rgba(0, 0, 0, 0.15);
+    }
+    .glass-card, .glass-nav, .glass-sheet {
+        border-width: 2px;
+    }
+    .nm-nav-label {
+        font-weight: 700;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   P3-ORBS-CLIP FIX: Prevent Gradient Orb Horizontal Overflow
+   Previous: Gradient orbs (position:absolute, negative insets like -60px)
+   could cause horizontal scrollbar on narrow mobile viewports.
+   Using overflow-x: clip instead of hidden to preserve position:sticky.
+   Standard: CSS Containment, Mobile Viewport Stability.
+   ═══════════════════════════════════════════════════════════════════════════ */
+body {
+    overflow-x: clip;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2749,6 +2777,16 @@ html[data-theme="dark"] a.text-warning-yellow {
     /* P2-IOS-001: Stable GPU compositing layer for iOS Safari */
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
+}
+/* DEF-BTT-TS FIX: Class-based visibility toggle — replaces inline style.opacity/visibility */
+.nm-back-to-top--visible {
+    opacity: 1;
+    visibility: visible;
+}
+/* DEF-BTT-TS FIX: Class-based press state — replaces inline style.transform from TS */
+.nm-back-to-top--pressed {
+    transform: scale(0.9);
+    transition: transform 50ms ease;
 }
 /* Active press feedback via CSS — replaces JS pointerdown/up/leave handlers */
 .nm-back-to-top:active {

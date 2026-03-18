@@ -55,7 +55,8 @@ test.describe('Responsive Design', () => {
         await page.goto('/');
 
         // Bottom nav should be visible
-        const bottomNav = page.locator('.bottom-nav');
+        // P2-E2E-STALE FIX: .bottom-nav was refactored to .nm-bottom-nav in P1-001
+        const bottomNav = page.locator('.nm-bottom-nav');
         await expect(bottomNav).toBeVisible();
 
         // Search input should be visible

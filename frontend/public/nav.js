@@ -269,73 +269,10 @@
         }
     }
 
-    // ─── Mobile Search Toggle ─────────────────────────────────────────────
-    // On mobile (<640px), the full search bar (.nav-search-full) is hidden by CSS.
-    // Clicking .nav-search-icon toggles .nav-search-expanded on the parent <nav>.
-    //
-    // ARCHITECTURE: Uses event delegation on document.body for defense-in-depth.
-    // This guarantees the click handler fires even if DOM shifts or nav.js loads
-    // before elements are fully painted. The delegated handler matches clicks on
-    // .nav-search-icon *or any of its children* (e.g. the <i> icon inside).
-    function initMobileSearchToggle() {
-        var searchInput = document.getElementById('search-input');
-        if (!searchInput) return;
-
-        var isOpen = false;
-
-        function getNavBar() {
-            var icon = document.querySelector('.nav-search-icon');
-            return icon ? icon.closest('nav') : null;
-        }
-
-        function openSearch() {
-            var navBar = getNavBar();
-            if (!navBar) return;
-            isOpen = true;
-            navBar.classList.add('nav-search-expanded');
-            searchInput.focus();
-        }
-
-        function closeSearch() {
-            var navBar = getNavBar();
-            if (!navBar) return;
-            isOpen = false;
-            navBar.classList.remove('nav-search-expanded');
-            searchInput.blur();
-        }
-
-        // Event delegation: catch click on .nav-search-icon or any child of it
-        document.addEventListener('click', function (e) {
-            var target = e.target;
-            // Walk up from click target to see if we hit .nav-search-icon
-            while (target && target !== document) {
-                if (target.classList && target.classList.contains('nav-search-icon')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openSearch();
-                    return;
-                }
-                target = target.parentElement;
-            }
-        });
-
-        // Close on Escape
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && isOpen) closeSearch();
-        });
-
-        // Close when input loses focus (tap elsewhere)
-        searchInput.addEventListener('blur', function () {
-            setTimeout(function () {
-                if (isOpen && document.activeElement !== searchInput) closeSearch();
-            }, 200);
-        });
-
-        // Close on window resize if now desktop
-        window.addEventListener('resize', function () {
-            if (isOpen && window.innerWidth >= 640) closeSearch();
-        });
-    }
+    /* P2-FB-GHOST FIX: Removed initMobileSearchToggle() (was L280-338).
+       The function searched for .nav-search-icon elements — none exist anymore.
+       Mobile search was migrated to [data-search-trigger] wired by search-overlay.ts.
+       Standard: Dead Code Elimination, DRY Principle. */
 
     // ─── Init ────────────────────────────────────────────────────────────
     // P2-PERF-001 FIX: Sidebar toggle extracted to sidebar.js (loaded only
@@ -418,7 +355,7 @@
             });
         }
 
-        initMobileSearchToggle();
+        // P2-FB-GHOST: initMobileSearchToggle() removed — see L272 comment.
 
         // PLT-UX-AUD-KB FIX: Virtual keyboard management.
         // Detects when mobile virtual keyboard opens/closes and toggles
