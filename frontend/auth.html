@@ -311,7 +311,16 @@
 
         <!-- Summary card: show what user entered -->
         <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2" data-i18n="reg_review_info">Review Your Info</p>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="reg_review_info">Review Your Info</p>
+            <!-- DEF-008 FIX: Direct edit shortcut from review card.
+                 Previous: Users had to click "Back" twice to edit name/email.
+                 Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
+            <button type="button" class="text-[10px] font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors" data-goto-step="1">
+              <i class="ph ph-pencil-simple" style="font-size:11px" aria-hidden="true"></i>
+              <span data-i18n="common_edit">Edit</span>
+            </button>
+          </div>
           <div class="flex items-center gap-3">
             <div class="size-10 bg-trust-blue/10 rounded-full flex items-center justify-center shrink-0">
               <i class="ph ph-user text-trust-blue" style="font-size:18px" aria-hidden="true"></i>

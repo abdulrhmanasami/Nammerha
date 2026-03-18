@@ -18,6 +18,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Compliance | الامتثال والتدقيق</title>
   <meta name="description" content="Compliance and auditor portal for verifying OCDS compliance, reviewing escrow releases, and auditing financial transparency." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <meta property="og:title" content="Nammerha — Compliance | الامتثال والتدقيق" />
   <meta property="og:description" content="Compliance and auditor portal for verifying OCDS compliance, reviewing escrow releases, and auditing financial transparency." />
   <meta property="og:type" content="website" />
@@ -275,7 +278,7 @@
             <i class="ph ph-download" style="font-size:12px" aria-hidden="true"></i> <span data-i18n="auditor_export">Export Report</span>
           </button>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <!-- P0-AUD-004 FIX: Added nm-donation-table class for mobile card-collapse.
                Previous: table had no responsive class — 7 columns forced horizontal scrolling on mobile.
                Every other portal table uses nm-donation-table for responsive behavior.
@@ -293,12 +296,9 @@
               </tr>
             </thead>
             <tbody id="escrow-review-body">
-              <tr class="border-t border-slate-100">
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td>
-              </tr>
+              <!-- DFR-001: Skeleton rows -->
+                <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td></tr>
+                <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
             </tbody>
           </table>
         </div>

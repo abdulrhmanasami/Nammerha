@@ -408,6 +408,54 @@
         }
 
         initMobileSearchToggle();
+
+        // ─── DEF-014 FIX: Service Worker Update Prompt ──────────────────────
+        // Previous: SW registered but no update UI. Users on cached versions
+        // see stale content until all tabs are closed.
+        // Now: Detects 'waiting' SW and shows a toast with tap-to-update action.
+        // Standard: PWA Best Practices, Nielsen #1 (System Status Visibility).
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(function (reg) {
+                // Check if an update is already waiting
+                function promptUpdate(sw) {
+                    // Create a simple banner if toast system is not loaded yet
+                    var banner = document.createElement('div');
+                    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+                        'background:linear-gradient(135deg,#1A73E8,#109173);color:#fff;' +
+                        'padding:12px 16px;text-align:center;font-size:13px;font-weight:700;' +
+                        'cursor:pointer;-webkit-tap-highlight-color:transparent;';
+                    banner.setAttribute('role', 'alert');
+                    banner.textContent = window.NammerhaI18n && window.NammerhaI18n.t
+                        ? window.NammerhaI18n.t('sw_update_available')
+                        : 'Update available — tap to refresh';
+                    banner.addEventListener('click', function () {
+                        sw.postMessage({ type: 'SKIP_WAITING' });
+                        banner.remove();
+                    });
+                    document.body.appendChild(banner);
+                }
+
+                if (reg.waiting) { promptUpdate(reg.waiting); }
+
+                reg.addEventListener('updatefound', function () {
+                    var newSW = reg.installing;
+                    if (!newSW) return;
+                    newSW.addEventListener('statechange', function () {
+                        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                            promptUpdate(newSW);
+                        }
+                    });
+                });
+
+                // Reload when the new SW takes over
+                var refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function () {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
+            });
+        }
     }
 
     if (document.readyState === 'loading') {

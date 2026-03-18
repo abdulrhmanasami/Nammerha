@@ -19,6 +19,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Report Damage | الإبلاغ عن أضرار</title>
   <meta name="description" content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <!-- GAP-A04 FIX: IBM Plex Sans Arabic preload — was missing on this page.
        All other pages preload this critical Arabic font for rendering performance. -->
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />

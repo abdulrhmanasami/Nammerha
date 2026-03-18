@@ -19,6 +19,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Supplier Dashboard | لوحة المورد</title>
   <meta name="description" content="Manage your material catalog and track purchase orders on the Nammerha reconstruction platform." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <!-- INC-NEW-02 FIX: Arabic font preload — was missing on this dashboard page.
        Standard: Performance consistency, FOUT prevention. -->
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
@@ -221,7 +224,7 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="supplier_material_desc">Materials assigned to you by project engineers</p>
           </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -235,12 +238,9 @@
               </tr>
             </thead>
             <tbody id="material-requests-body">
-              <tr class="border-t border-slate-100">
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td>
-              </tr>
+              <!-- DFR-001: Skeleton rows -->
+                <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td></tr>
+                <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -263,9 +263,12 @@
           </button>
         </div>
         <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div id="catalog-loading" class="col-span-full text-center py-12 text-slate-400">
-            <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-            <p class="mt-2 text-xs" data-i18n="loading">Loading...</p>
+          <div id="catalog-loading" class="col-span-full py-12 animate-pulse">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div class="bg-slate-200 rounded-xl h-32"></div>
+              <div class="bg-slate-200 rounded-xl h-32 hidden sm:block"></div>
+              <div class="bg-slate-200 rounded-xl h-32 hidden md:block"></div>
+            </div>
           </div>
           <!-- FRC-007 FIX: Empty state component — educates and encourages first material addition.
                Standard: Material Design — Empty states should guide action. -->

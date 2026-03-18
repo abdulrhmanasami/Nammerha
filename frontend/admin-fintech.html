@@ -18,6 +18,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — FinTech Dashboard | لوحة التقنية المالية</title>
   <meta name="description" content="Admin dashboard for escrow fee management and enterprise TaaS subscriptions." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <meta property="og:title" content="Nammerha — FinTech Dashboard | لوحة التقنية المالية" />
   <meta property="og:description" content="Admin dashboard for escrow fee management and enterprise TaaS subscriptions." />
   <meta property="og:type" content="website" />
@@ -191,7 +194,7 @@
           <span data-i18n="fintech_fee_config">Fee Configuration</span>
         </h2>
       </div>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
         <table class="w-full text-sm" id="fee-config-table">
           <caption class="sr-only" data-i18n="fintech_fee_config">Fee Configuration</caption>
           <thead>
@@ -226,7 +229,7 @@
           <span class="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full ms-1" data-i18n="coming_soon">Soon</span>
         </span>
       </div>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
         <table class="w-full text-sm" id="orgs-table">
           <caption class="sr-only" data-i18n="fintech_enterprise_list">Enterprise Organizations</caption>
           <thead>

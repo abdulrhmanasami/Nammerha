@@ -18,6 +18,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Homeowner Portal | بوابة مالك المنزل</title>
   <meta name="description" content="Track your reconstruction projects, manage repair requests, review bids, and approve construction phases." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-portal.ts"></script>
@@ -219,9 +222,10 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_progress_glance">Your reconstruction progress at a glance</p>
           </div>
           <div id="active-projects-list" class="divide-y divide-slate-100">
-            <div class="p-5 text-center text-slate-400">
-              <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-              <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
+            <!-- DFR-001 FIX: Skeleton loader replaces spinner for known-dimension list -->
+            <div class="p-5 space-y-3 animate-pulse">
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-2/3"></div><div class="h-2 bg-slate-200 rounded w-1/3"></div></div></div>
             </div>
           </div>
         </div>
@@ -237,7 +241,7 @@
             </div>
             <a href="/homeowner-report.html" class="px-3 py-1.5 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90" data-i18n="homeowner_new_report">+ New Report</a>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <!-- INC-2026-C05 FIX: Added nm-donation-table for mobile card-collapse CSS.
                  Previous: bare table with overflow-x-auto forced horizontal scroll on mobile.
                  Now: matches donor-portal responsive table pattern.
@@ -254,9 +258,9 @@
                 </tr>
               </thead>
               <tbody id="projects-body">
-                <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                </td></tr>
+                <!-- DFR-001: Skeleton rows matching 6-column table structure -->
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-10"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td></tr>
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-22"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-8"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -281,7 +285,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="sr-trade" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_trade">Trade Needed</label>
-                <select id="sr-trade" class="flex-1 bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm">
+                <select id="sr-trade" class="nm-select">
             <!-- GAP-2602 FIX: Added disabled placeholder option — prevents accidental 'Tiling' submission.
                  Previous: First option auto-selected, users who didn't change it submitted wrong trade.
                  Standard: Apple HIG (Selection Controls), WCAG 4.1.2, Nielsen #5 (Error Prevention). -->
@@ -300,7 +304,7 @@
               </div>
               <div>
                 <label for="sr-title" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_title">Title</label>
-                <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="nm-input mt-1" />
               </div>
             </div>
 
@@ -309,7 +313,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label for="sr-urgency" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_urgency">Urgency</label>
-                  <select id="sr-urgency" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                  <select id="sr-urgency" class="nm-select mt-1">
                     <option value="low" data-i18n="urgency_routine">Routine</option>
                     <option value="high" data-i18n="urgency_urgent">Urgent</option>
                     <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
@@ -318,16 +322,16 @@
                 </div>
                 <div>
                   <label for="sr-address" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_location">Location</label>
-                  <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                  <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="nm-input mt-1" />
                 </div>
               </div>
               <div>
                 <label for="sr-description" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_description">Description (optional)</label>
-                <textarea id="sr-description" rows="2" placeholder="Describe the issue..." data-i18n-placeholder="ho_sr_desc_placeholder" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm resize-none"></textarea>
+                <textarea id="sr-description" rows="2" placeholder="Describe the issue..." data-i18n-placeholder="ho_sr_desc_placeholder" class="nm-textarea mt-1"></textarea>
               </div>
               <div>
                 <label for="sr-budget" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_max_budget">Max Budget ($)</label>
-                <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="nm-input mt-1" />
               </div>
               <!-- M-AUD-008 FIX: Photo upload for damage evidence.
                    Previous: Form collected trade, title, urgency, address, description, budget
@@ -345,17 +349,20 @@
               </div>
             </div>
 
-            <!-- Toggle + Submit -->
-            <div class="flex items-center gap-2">
-              <!-- CONF-N04 FIX: Removed inline onclick — CSP script-src 'self' blocks inline JS.
-                   Handler now wired via addEventListener in homeowner-portal.ts.
-                   Standard: CSP Level 2 §4.1, OWASP XSS Prevention Cheat Sheet. -->
-              <button type="button" id="sr-toggle-details" class="w-full text-start text-xs text-trust-blue font-semibold hover:underline flex items-center gap-1 transition-colors">
+            <!-- DEF-007 FIX: Separated "Add Details" and "Submit" into distinct visual rows.
+                 Previous: Both on same flex row — ambiguous whether details are required.
+                 Now: Toggle is own row with "(optional)" suffix; Submit is full-width below.
+                 Standard: Nielsen #5 (Error Prevention), Gestalt (Figure-Ground). -->
+            <!-- CONF-N04 FIX: Removed inline onclick — CSP script-src 'self' blocks inline JS.
+                 Handler now wired via addEventListener in homeowner-portal.ts.
+                 Standard: CSP Level 2 §4.1, OWASP XSS Prevention Cheat Sheet. -->
+            <div class="space-y-3">
+              <button type="button" id="sr-toggle-details" class="w-full text-start text-xs text-trust-blue font-semibold hover:underline flex items-center gap-1 transition-colors py-1">
                 <i class="ph ph-plus-circle" aria-hidden="true"></i>
                 <span data-i18n="ho_add_details">Add Details</span>
+                <span class="text-slate-400 font-normal" data-i18n="common_optional_parens">(optional)</span>
               </button>
-              <div class="flex-1"></div>
-              <button id="submit-sr-btn" class="px-5 py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">
+              <button id="submit-sr-btn" class="w-full py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
                 <i class="ph ph-megaphone" aria-hidden="true"></i> <span data-i18n="homeowner_submit_request">Submit Request</span>
               </button>
             </div>
@@ -366,7 +373,7 @@
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="homeowner_my_requests">My Service Requests</h3>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <!-- INC-2026-C05 FIX: nm-donation-table for mobile card-collapse -->
             <table class="w-full text-sm nm-donation-table">
               <thead>
@@ -380,7 +387,9 @@
                 </tr>
               </thead>
               <tbody id="requests-body">
-                <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></td></tr>
+                <!-- DFR-001: Skeleton rows matching 6-column table structure -->
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td></tr>
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-10"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -395,7 +404,9 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_approval_hint">Review and approve engineer requests for your projects</p>
           </div>
           <div id="approvals-list" class="divide-y divide-slate-100">
-            <div class="p-5 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+            <div class="p-5 space-y-3 animate-pulse">
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -408,7 +419,14 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="homeowner_escrow_hint">Funds held in secure escrow for your construction projects</p>
           </div>
           <div class="p-5" id="escrow-content">
-            <div class="text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+            <div class="space-y-3 animate-pulse">
+              <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+              <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+              <div class="grid grid-cols-2 gap-4 mt-3">
+                <div class="h-16 bg-slate-200 rounded-xl"></div>
+                <div class="h-16 bg-slate-200 rounded-xl"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

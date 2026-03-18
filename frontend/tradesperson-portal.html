@@ -21,6 +21,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Tradesperson Portal | بوابة الحرفي</title>
   <meta name="description" content="Tradesperson portal for finding repair jobs, accepting contractor assignments, and managing your trade work." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <!-- GAP-AUD-B01 FIX: Font preload — was missing.
        Standard: Performance consistency, FOUT prevention. -->
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
@@ -246,10 +249,9 @@
                 </tr>
               </thead>
               <tbody id="active-jobs-body">
-                <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td></tr>
+                <!-- DFR-001: Skeleton rows -->
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td></tr>
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -264,9 +266,10 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="tradesperson_requests_hint">Homeowner repair requests matching your trade</p>
           </div>
           <div id="requests-list" class="divide-y divide-slate-100">
-            <div class="p-5 text-center text-slate-400">
-              <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-              <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
+            <!-- DFR-001: Skeleton card -->
+            <div class="p-5 space-y-3 animate-pulse">
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-2/3"></div><div class="h-2 bg-slate-200 rounded w-1/3"></div></div></div>
             </div>
           </div>
         </div>
@@ -292,10 +295,8 @@
                 </tr>
               </thead>
               <tbody id="assignments-body">
-                <tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td></tr>
+                <!-- DFR-001: Skeleton rows -->
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -320,10 +321,8 @@
                 </tr>
               </thead>
               <tbody id="earnings-body">
-                <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td></tr>
+                <!-- DFR-001: Skeleton rows -->
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td></tr>
               </tbody>
             </table>
           </div>

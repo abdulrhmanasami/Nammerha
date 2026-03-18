@@ -19,6 +19,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Contractor Dashboard | لوحة المقاول</title>
   <meta name="description" content="Contractor portal for managing assigned projects, spatial proofs, competitive bids, and escrow payments." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <!-- INC-NEW-02 FIX: Arabic font preload — was missing on this dashboard page.
        All consumer pages preload IBM Plex Sans Arabic for first-paint performance.
        Standard: Performance consistency, FOUT prevention. -->
@@ -222,7 +225,7 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="contractor_timeline_desc">Projects assigned to you for assessment and execution</p>
           </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
               <!-- FRIC-AUD-03 FIX: Added temporal columns.
@@ -239,12 +242,9 @@
               </tr>
             </thead>
             <tbody id="project-timeline-body">
-              <tr class="border-t border-slate-100">
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td>
-              </tr>
+              <!-- DFR-001: Skeleton rows matching 7-column table -->
+              <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td></tr>
+              <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-10"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -256,7 +256,7 @@
           <h3 class="font-bold" data-i18n="contractor_bid_history">Bid History</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="contractor_bids_desc">Competitive bids you've submitted on published projects</p>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -268,12 +268,9 @@
               </tr>
             </thead>
             <tbody id="bids-body">
-              <tr class="border-t border-slate-100">
-                <td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                  <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                  <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-                </td>
-              </tr>
+              <!-- DFR-001: Skeleton rows matching 5-column table -->
+              <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
+              <tr class="animate-pulse border-t border-slate-100"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td></tr>
             </tbody>
           </table>
         </div>

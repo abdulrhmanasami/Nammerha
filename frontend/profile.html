@@ -18,6 +18,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Profile | الملف الشخصي</title>
   <meta name="description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <meta property="og:title" content="Profile — Nammerha" />
@@ -251,7 +254,7 @@
     <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="my_roles">My Roles</h2>
     <div id="roles-list" class="flex flex-col gap-2">
       <!-- Roles rendered dynamically by profile.ts -->
-      <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-100">
+      <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200">
         <i class="ph ph-spinner-gap ph-spin text-slate-300" style="font-size:20px" aria-hidden="true"></i>
       </div>
     </div>
@@ -283,7 +286,7 @@
     <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="settings">Settings</h2>
     <div class="flex flex-col gap-2">
       <!-- Notifications -->
-      <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100">
+      <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200">
         <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-bell text-smoky-jade" aria-hidden="true"></i>
         </div>
@@ -299,7 +302,7 @@
       </div>
       <!-- KYC Verification -->
       <!-- INC-NEW-04 FIX: Added id="kyc-section" so completion checklist data-focus-target works. -->
-      <div id="kyc-section" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100">
+      <div id="kyc-section" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200">
         <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-identification-card text-warm-earth" aria-hidden="true"></i>
         </div>
@@ -311,7 +314,7 @@
       </div>
       <!-- GAP-007 FIX: Wallet shortcut in profile settings.
            Standard: FinTech UX — "Financial info must be ≤1 tap from profile." -->
-      <a href="wallet.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors">
+      <a href="wallet.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
         <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-wallet text-trust-blue" aria-hidden="true"></i>
         </div>
@@ -323,7 +326,7 @@
       </a>
       <!-- GAP-008 FIX: Admin Portal link — visible only for admin-role users.
            Standard: Nielsen Heuristic #7 — "Flexibility and efficiency of use." -->
-      <a href="admin-dashboard.html" data-requires-role="admin" class="hidden bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors">
+      <a href="admin-dashboard.html" data-requires-role="admin" class="hidden bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
         <div class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-shield-check text-warning-yellow" aria-hidden="true"></i>
         </div>
@@ -333,7 +336,7 @@
         </div>
         <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
       </a>
-      <a href="about.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors">
+      <a href="about.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
         <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-info text-slate-500" aria-hidden="true"></i>
         </div>

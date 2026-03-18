@@ -36,6 +36,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   DEF-003 FIX (Wave 5): CSS View Transitions API — PWA Native-App Feel
+   Eliminates the jarring white-flash on page-to-page navigation.
+   Progressive enhancement: browsers that don't support it silently ignore.
+   Supported: Safari 18+ (iOS 18+), Chrome 111+, Edge 111+ — covers ~85% of
+   Syrian mobile browser share (Chrome Android dominates).
+   Standard: Apple HIG (Animations for context), Material Design 3 (Transitions).
+   ============================================================================ */
+@view-transition {
+    navigation: auto;
+}
+::view-transition-old(root) {
+    animation: nmPageFadeOut 0.12s ease-out;
+}
+::view-transition-new(root) {
+    animation: nmPageFadeIn 0.18s ease-in;
+}
+@keyframes nmPageFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+@keyframes nmPageFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+    }
+}
+
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */
 :root {
   /* Brand Colors */
@@ -473,6 +506,83 @@ html[data-theme="dark"] :focus-visible {
     transition: width 0.5s ease;
   }
 }
+
+/* ============================================================================
+   DEF-004 FIX: Canonical Form Input Components
+   Previous: 3 different input patterns across auth, profile, and portals.
+   - Auth: rounded-xl py-3.5 ps-12 pe-4
+   - Profile: px-4 py-2.5 rounded-xl bg-surface
+   - Portals: px-3 py-2 rounded-lg
+   Now: Single .nm-input / .nm-select / .nm-textarea class for all forms.
+   Standard: Design System Governance, Nielsen #4 (Consistency).
+   ============================================================================ */
+.nm-input,
+.nm-select,
+.nm-textarea {
+    width: 100%;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-lg, 0.75rem);
+    padding: 0.625rem 0.875rem; /* 10px 14px — balanced for mobile & desktop */
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #0f172a;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.nm-input:focus,
+.nm-select:focus,
+.nm-textarea:focus {
+    outline: none;
+    border-color: var(--trust-blue);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+}
+.nm-input::placeholder,
+.nm-textarea::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+/* Icon-prepended input variant: add ps-10 to the input and position icon with start-3 */
+.nm-input.nm-input-icon {
+    padding-inline-start: 2.5rem; /* 40px — room for 16-20px icon */
+}
+.nm-textarea {
+    resize: vertical;
+    min-height: 5rem;
+}
+/* Dark mode adaptation */
+html[data-theme="dark"] .nm-input,
+html[data-theme="dark"] .nm-select,
+html[data-theme="dark"] .nm-textarea {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+html[data-theme="dark"] .nm-input::placeholder,
+html[data-theme="dark"] .nm-textarea::placeholder {
+    color: #64748b;
+}
+
+/* ============================================================================
+   DEF-005 GOVERNANCE: Loading State Rules
+   - Skeleton loaders (nm-skeleton-bar / animate-pulse): For known-dimension data
+     (table cells, KPI values, text lines).
+   - Spinners (ph-spinner-gap ph-spin): ONLY for indeterminate operations
+     (form submission, button loading state, real-time fetching).
+   - nm-table-empty: For empty states after data loads successfully with 0 results.
+   Standard: Design System Component Unity, Nielsen #1 (System Status).
+   ============================================================================ */
+
+/* ============================================================================
+   DEF-006 GOVERNANCE: Button Sizing Rules
+   - .btn-primary: All primary CTAs (padding: 14px 24px, full-width).
+   - .btn-secondary: All secondary CTAs (padding: 12px 24px).
+   - Inline px-{n}/py-{n} padding on new primary buttons is PROHIBITED.
+   - Exception: Dashboard sidebar CTAs use compact padding (px-3 py-2.5)
+     within constrained sidebar width — these are link-like, not button-like.
+   Standard: Design System Token Governance, Visual Hierarchy.
+   ============================================================================ */
 
 /* ─── Badge System ─────────────────────────────────────────────────────────── */
 @layer components {
@@ -2597,4 +2707,53 @@ html[data-theme="dark"] p.text-warning-yellow[data-kpi],
 html[data-theme="dark"] span.text-warning-yellow:not([class*="rounded-full"]):not([class*="bg-"]):not([aria-hidden]),
 html[data-theme="dark"] a.text-warning-yellow {
     color: var(--warning-yellow) !important;
+}
+
+/* ============================================================================
+   DEF-015 FIX: Dashboard Table Scroll Hint (Mobile)
+   Previous: CSS mask-image gradient indicates scrollability passively, but
+   users unfamiliar with horizontal scroll may not realize the table extends.
+   Now: A brief animated text hint appears on first load, auto-fades.
+   Standard: Nielsen #6 (Recognition over Recall), Discoverability.
+   ============================================================================ */
+@media (max-width: 767px) {
+    .dashboard-main .overflow-x-auto[data-scroll-hint]::after {
+        content: attr(data-scroll-hint);
+        position: absolute;
+        bottom: 8px;
+        inset-inline-end: 12px;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        padding: 3px 8px;
+        border-radius: 4px;
+        pointer-events: none;
+        animation: scrollHintFade 3s ease-out forwards;
+    }
+    html[data-theme="dark"] .dashboard-main .overflow-x-auto[data-scroll-hint]::after {
+        background: rgba(30, 30, 30, 0.85);
+        color: #64748b;
+    }
+}
+@keyframes scrollHintFade {
+    0%, 60% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ============================================================================
+   DEF-011 FIX: Profile Section Scroll Margins
+   Ensures anchor-based navigation (from completion checklist) clears the
+   sticky page-header when scrolling to sections.
+   Standard: CSS Scroll Margin, Apple HIG (Section Index).
+   ============================================================================ */
+#main-content section[class*="px-4"] {
+    scroll-margin-top: 4.5rem; /* 72px = page-header (56px) + 16px breathing room */
+}
+#kyc-section {
+    scroll-margin-top: 4.5rem;
 }

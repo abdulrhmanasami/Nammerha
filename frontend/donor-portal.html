@@ -19,6 +19,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Donor Portal | بوابة المتبرع</title>
   <meta name="description" content="Track your impact, browse reconstruction projects, and see GPS-verified proof of your contributions." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <!-- INC-P01 FIX: Was missing font preload for Arabic text rendering -->
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
@@ -247,8 +250,13 @@
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="donor_supported_projects">Projects You've Supported</h3>
           </div>
+          <!-- DFR-001 FIX: Skeleton loader replaces spinner for known-dimension list.
+               Standard: DEF-005 Governance — skeleton for structured data, spinner for indeterminate ops. -->
           <div id="funded-projects-list" class="divide-y divide-slate-100">
-            <div class="p-5 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i><p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p></div>
+            <div class="p-5 space-y-3 animate-pulse">
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-2/3"></div><div class="h-2 bg-slate-200 rounded w-1/3"></div></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -261,7 +269,10 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_marketplace_hint">Select items to fund and add them to your basket</p>
           </div>
           <div id="marketplace-list" class="divide-y divide-slate-100">
-            <div class="p-5 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+            <div class="p-5 space-y-3 animate-pulse">
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-2/3"></div><div class="h-2 bg-slate-200 rounded w-1/3"></div></div></div>
+            </div>
           </div>
           <!-- F-AUD-002 FIX: Empty state template for marketplace.
                Previous: Only a loading spinner — no feedback if API returns empty results.
@@ -287,7 +298,7 @@
           <div class="p-5 border-b border-slate-100">
             <h3 class="font-bold" data-i18n="donor_donation_history">Donation History</h3>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <!-- FRIC-2026-006 FIX: nm-donation-table enables mobile card-collapse via CSS -->
             <table class="w-full text-sm nm-donation-table">
               <thead>
@@ -300,7 +311,10 @@
                 </tr>
               </thead>
               <tbody id="donations-body">
-                <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></td></tr>
+                <!-- DFR-001: Skeleton row matching 5-column table structure -->
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-32"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-22"></div></td></tr>
+                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -315,7 +329,9 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_impact_hint">How your contributions are changing lives</p>
           </div>
           <div id="impact-list" class="divide-y divide-slate-100">
-            <div class="p-5 text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+            <div class="p-5 space-y-3 animate-pulse">
+              <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/5"></div><div class="h-2 bg-slate-200 rounded w-2/5"></div></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -328,7 +344,9 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_proof_hint">On-site photos proving your materials were delivered and used</p>
           </div>
           <div id="proofs-grid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="col-span-full text-center text-slate-400"><i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i></div>
+            <div class="rounded-xl bg-slate-200 h-40 animate-pulse"></div>
+            <div class="rounded-xl bg-slate-200 h-40 animate-pulse hidden md:block"></div>
+            <div class="rounded-xl bg-slate-200 h-40 animate-pulse hidden lg:block"></div>
           </div>
         </div>
       </div>

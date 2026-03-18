@@ -1,8 +1,28 @@
 /* ============================================================================
-   Nammerha Design System — Dark Mode Overrides
+   Nammerha Design System — Dark Mode Overrides (LEGACY FILE)
    FRIC-AUD-04: Extracted from main.css monolith for modularity.
    Source: main.css L573-L770 (198 lines)
    Standard: CSS Architecture — Single Responsibility Principle.
+
+   ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  DEF-001 MIGRATION GOVERNANCE (Wave 6)                                 ║
+   ║                                                                        ║
+   ║  tailwind.config.js already uses:                                      ║
+   ║    darkMode: ['selector', '[data-theme="dark"]']                       ║
+   ║                                                                        ║
+   ║  This means Tailwind `dark:` prefix utilities WORK with the existing   ║
+   ║  data-theme attribute. The overrides in this file are LEGACY — they    ║
+   ║  predate the config fix.                                               ║
+   ║                                                                        ║
+   ║  RULES FOR ALL NEW CODE (effective March 18, 2026):                    ║
+   ║  1. DO NOT add new rules to this file.                                 ║
+   ║  2. Use `dark:` prefix in HTML templates instead:                      ║
+   ║     <div class="bg-white dark:bg-slate-800 text-slate-900             ║
+   ║          dark:text-slate-100">                                         ║
+   ║  3. When touching an existing page, migrate its overrides from         ║
+   ║     this file to inline `dark:` utilities.                             ║
+   ║  4. Target: shrink this file to 0 lines over time (gradual).           ║
+   ╚══════════════════════════════════════════════════════════════════════════╝
 
    PLT-AUD3-B01: DARK MODE SPLIT STRATEGY
    ┌─────────────────────────────────────────────────────────────────────────┐

@@ -21,6 +21,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Contractor Portal | بوابة المقاول</title>
   <meta name="description" content="Contractor portal for browsing reconstruction projects, submitting competitive bids, and managing assigned construction work." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <!-- GAP-AUD-B02 FIX: Font preload — was missing.
        Standard: Performance consistency, FOUT prevention. -->
   <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
@@ -223,7 +226,7 @@
           <h3 class="font-bold" data-i18n="contractor_my_projects">My Assigned Projects</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="ct_desc_my_projects">Construction projects you're executing</p>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <!-- PLT-AUD2-C002 FIX: Added nm-donation-table for mobile card-collapse.
                Standard: Material Design 3 (Responsive Tables), WCAG 1.3.1. -->
           <table class="w-full text-sm nm-donation-table">
@@ -237,10 +240,9 @@
               </tr>
             </thead>
             <tbody id="projects-body">
-              <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-              </td></tr>
+              <!-- DFR-001: Skeleton rows -->
+              <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td></tr>
+              <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -252,7 +254,7 @@
           <h3 class="font-bold" data-i18n="contractor_marketplace_title">Available Projects</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="ct_desc_marketplace">Published projects ready for competitive bids</p>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -266,10 +268,8 @@
               </tr>
             </thead>
             <tbody id="marketplace-body">
-              <tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-              </td></tr>
+              <!-- DFR-001: Skeleton rows -->
+              <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-10"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -281,7 +281,7 @@
           <h3 class="font-bold" data-i18n="contractor_bid_history">Bid History</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="ct_desc_bids">All competitive bids you've submitted</p>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -293,10 +293,8 @@
               </tr>
             </thead>
             <tbody id="bids-body">
-              <tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-              </td></tr>
+              <!-- DFR-001: Skeleton rows -->
+              <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -308,7 +306,7 @@
           <h3 class="font-bold" data-i18n="contractor_payment_history">Payment History</h3>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="ct_desc_payments">Escrow releases and financial transactions</p>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
               <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -319,10 +317,8 @@
               </tr>
             </thead>
             <tbody id="payments-body">
-              <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-spinner-gap ph-spin" style="font-size:24px" aria-hidden="true"></i>
-                <p class="mt-2 text-xs" data-i18n="common_loading">Loading...</p>
-              </td></tr>
+              <!-- DFR-001: Skeleton rows -->
+              <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td></tr>
             </tbody>
           </table>
         </div>

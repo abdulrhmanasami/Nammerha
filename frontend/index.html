@@ -186,14 +186,11 @@
           <i class="ph ph-bell text-slate-700" style="font-size:20px" aria-hidden="true"></i>
           <span class="cart-badge" id="mobile-notif-badge" style="display:none">0</span>
         </button>
-        <!-- PLAT-M07 FIX: Theme toggle added to mobile header for feature parity.
-             Previous: Only auto-injected floating toggle existed — not discoverable in
-             the mobile header where all other controls (search, bell, cart) live.
-             Syrian mobile-first users need an explicit, visible toggle.
-             Standard: Apple HIG (System Appearance Toggle), Feature Parity. -->
-        <button id="nm-theme-toggle-mobile" data-nm-theme-toggle class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-          <i data-nm-theme-icon class="text-slate-700" style="font-size:20px" aria-hidden="true"></i>
-        </button>
+        <!-- DEF-002 FIX (Wave 4): Removed inline mobile header theme toggle.
+             Previous: 5 controls in 343px at 375px — touch target density exceeded Apple HIG spacing.
+             The theme toggle persists in the bottom nav FAB (nav.js injection).
+             Removing it frees ~44px, ensuring ≥8px spacing between remaining controls.
+             Standard: Fitts's Law, Apple HIG (Touch Target Spacing). -->
         <!-- CONF-004 FIX: Role-switcher mount for mobile. Was only on desktop nav (sm:flex).
              Standard: Apple HIG — "Controls must be accessible at every breakpoint." -->
         <div id="role-switcher-mount-mobile" class="sm:hidden"></div>
@@ -251,6 +248,10 @@
               <h3 id="map-active-region" class="font-bold text-sm text-slate-900" data-i18n="detecting_region" aria-live="polite">
                 Detecting active region…
               </h3>
+              <!-- DEF-010 FIX: Map context for first-time visitors.
+                   Previous: no explanation of what the map represents.
+                   Standard: Nielsen #6 (Recognition over Recall), First-Impression UX. -->
+              <p class="text-[9px] text-slate-400 mt-1" data-i18n="hero_map_context">Live reconstruction activity</p>
               <div class="flex items-center gap-1 mt-1">
                 <span
                   class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"

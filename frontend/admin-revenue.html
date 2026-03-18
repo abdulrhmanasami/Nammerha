@@ -18,6 +18,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Revenue Dashboard | لوحة الإيرادات</title>
   <meta name="description" content="Platform revenue analytics — commissions, tips, and monetization KPIs for the Nammerha reconstruction marketplace." />
+  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
   <meta property="og:title" content="Nammerha — Revenue Dashboard | لوحة الإيرادات" />
   <meta property="og:description" content="Platform revenue analytics — commissions, tips, and monetization KPIs for the Nammerha reconstruction marketplace." />
   <meta property="og:type" content="website" />
@@ -205,7 +208,7 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="rev_commission_rate">Tiered rates based on monthly supplier revenue</p>
           </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm">
             <thead>
               <!-- GAP-P3-007 FIX: Table headers were missing i18n attributes.
