@@ -6,6 +6,8 @@ import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
 // FRC-NEW-06: Loading state feedback for submit button
 import { setLoadingState } from '../utils/loading-state';
+// DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
+import { haptic } from '../utils/haptic';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -128,7 +130,7 @@ function showStep(step: number): void {
     // Update progress bar
     if (step <= TOTAL_STEPS) {
         const pct = (step / TOTAL_STEPS) * 100;
-        if (progressFill) { progressFill.style.width = `${pct}%`; }
+        if (progressFill) { progressFill.style.setProperty('--progress', `${pct}%`); }
         if (stepLabel) { stepLabel.textContent = `${t('hr_step', 'Step')} ${step} ${t('hr_of', 'of')} ${TOTAL_STEPS}`; }
     }
 
@@ -151,7 +153,7 @@ function showStep(step: number): void {
         // Confirmation step — hide footer
         if (wizardFooter) { wizardFooter.classList.add('hidden'); }
         if (stepLabel) { stepLabel.textContent = t('hr_done', 'Done!'); }
-        if (progressFill) { progressFill.style.width = '100%'; }
+        if (progressFill) { progressFill.style.setProperty('--progress', '100%'); }
         populateSummary();
         // GAP-NEW-06: Clear persisted state on successful submission
         clearWizardState();
@@ -296,8 +298,8 @@ damageCards.forEach((card) => {
         state.damageType = card.dataset.type || null;
         updateNextButton();
 
-        // Haptic feedback
-        if ('vibrate' in navigator) { navigator.vibrate(30); }
+        // DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
+        haptic.medium();
     });
 });
 
@@ -434,7 +436,8 @@ function startVoice(): void {
         if (voiceTimerEl) { voiceTimerEl.textContent = `${m}:${s}`; }
     }, 200);
 
-    if ('vibrate' in navigator) { navigator.vibrate([40, 80, 40]); }
+    // DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
+    haptic.custom([40, 80, 40]);
 }
 
 function stopVoice(): void {

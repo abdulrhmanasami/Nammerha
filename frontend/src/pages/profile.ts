@@ -118,7 +118,7 @@ function updateProfileCompletion(user: ReturnType<typeof getCurrentUser>): void 
     const pct = calculateCompletion(user);
     const barEl = document.getElementById('profile-completion-bar');
     const pctEl = document.getElementById('profile-completion-pct');
-    if (barEl) { barEl.style.width = `${pct}%`; }
+    if (barEl) { barEl.style.setProperty('--progress', `${pct}%`); }
     if (pctEl) { pctEl.textContent = `${pct}%`; }
 }
 

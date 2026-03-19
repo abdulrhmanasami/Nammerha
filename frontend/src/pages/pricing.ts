@@ -52,14 +52,17 @@ function updateAllPrices(): void {
 
         const price = isYearly ? TIERS[tier].yearly : TIERS[tier].monthly;
 
-        // Animate price change
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(-4px)';
+        // DEF-REM-001 FIX: CSS class toggle replaces 5× inline style mutations.
+        // Previous: el.style.opacity/transform = ... — violated P1-SST-001.
+        // Standard: CSS Single Source of Truth, class-driven animation.
+        el.classList.add('nm-price-exit');
 
         setTimeout(() => {
             el.textContent = formatCents(price);
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
+            el.classList.remove('nm-price-exit');
+            el.classList.add('nm-price-enter');
+            // Clean up entry class after animation completes
+            setTimeout(() => el.classList.remove('nm-price-enter'), 200);
         }, 150);
     });
 
@@ -145,10 +148,8 @@ async function handleSubscribe(planSlug: string): Promise<void> {
 // ─── Initialization ─────────────────────────────────────────────────────────
 
 function initPricing(): void {
-    // Set transition styles on price elements
-    document.querySelectorAll<HTMLElement>('.tier-price').forEach(el => {
-        el.style.transition = 'opacity 150ms ease, transform 150ms ease';
-    });
+    // DEF-REM-001 FIX: Transition now governed by CSS `.tier-price` rule.
+    // Previous: el.style.transition = '...' on each element — violated P1-SST-001.
 
     // Billing toggle
     const switchBtn = document.getElementById('billing-switch');

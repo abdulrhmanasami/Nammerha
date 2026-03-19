@@ -147,7 +147,9 @@ function showStep(index: number): void {
         }, 350);
     } else {
         // Target not found — hide spotlight, show tooltip centered
-        spotlight.style.opacity = '0';
+        // DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.
+        // Standard: CSS Single Source of Truth.
+        spotlight.classList.remove('nmr-tour-spotlight--visible');
         tooltip.style.top = '50%';
         tooltip.style.left = '50%';
         tooltip.style.transform = 'translate(-50%, -50%)';
@@ -220,7 +222,8 @@ function positionSpotlight(spotlight: HTMLElement, target: HTMLElement): void {
     spotlight.style.left   = `${rect.left - SPOTLIGHT_PADDING}px`;
     spotlight.style.width  = `${rect.width + SPOTLIGHT_PADDING * 2}px`;
     spotlight.style.height = `${rect.height + SPOTLIGHT_PADDING * 2}px`;
-    spotlight.style.opacity = '1';
+    // DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.
+    spotlight.classList.add('nmr-tour-spotlight--visible');
 }
 
 function positionTooltip(

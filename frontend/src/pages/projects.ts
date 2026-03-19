@@ -182,7 +182,9 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
     const card = document.createElement('a');
     card.href = `project-details.html?id=${encodeURIComponent(project.project_id)}`;
     card.className = 'block glass-card rounded-xl overflow-hidden border border-slate-100 hover:shadow-lg transition-all duration-200 animate-fade-in-up';
-    card.style.animationDelay = `${index * 0.05}s`;
+    // DEF-REM-004 FIX: CSS custom property replaces inline style.animationDelay.
+    // Previous: card.style.animationDelay — violated P1-SST-001.
+    card.style.setProperty('--anim-delay', `${index * 0.05}s`);
 
     const config = damageTypeConfig[project.damage_type] ?? damageTypeConfig['general'] ?? { icon: 'ph-hammer', color: 'text-slate-500 bg-slate-50', label: 'General' };
     const pct = Math.min(100, Math.round(project.funded_percentage ?? 0));

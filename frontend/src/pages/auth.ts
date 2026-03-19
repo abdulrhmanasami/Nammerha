@@ -165,10 +165,13 @@ function goToRegStep(targetStep: number): void {
             // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
             panel.classList.remove('nm-hidden');
             // Re-trigger animation
-            panel.style.animation = 'none';
+            // DEF-UX-007 FIX: CSS class toggle replaces inline style.animation.
+            // Previous: panel.style.animation = 'none' / '' — violated P1-SST-001.
+            // Standard: CSS Single Source of Truth, class-driven animation restart.
+            panel.classList.add('nm-anim-reset');
             // Force reflow
             void panel.offsetHeight;
-            panel.style.animation = '';
+            panel.classList.remove('nm-anim-reset');
         } else {
             // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
             panel.classList.add('nm-hidden');

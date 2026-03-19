@@ -31,11 +31,12 @@ export function setLoadingState(
     // Preserve original state
     const originalHTML = btn.innerHTML;
     const originalDisabled = btn.disabled;
-    const originalMinWidth = btn.style.minWidth;
 
-    // Lock width to prevent layout shift
+    // DEF-UX-006 FIX: CSS custom property replaces inline style.minWidth.
+    // Previous: btn.style.minWidth = `${rect.width}px` — violated P1-SST-001.
+    // Standard: CSS Single Source of Truth, Custom Property-driven layout.
     const rect = btn.getBoundingClientRect();
-    btn.style.minWidth = `${rect.width}px`;
+    btn.style.setProperty('--nm-btn-lock-w', `${rect.width}px`);
 
     // Set loading state
     btn.disabled = true;
@@ -47,7 +48,8 @@ export function setLoadingState(
     // Return restore function
     return (outcome?: 'success' | 'error') => {
         btn.setAttribute('aria-busy', 'false');
-        btn.style.minWidth = originalMinWidth;
+        // DEF-UX-006 FIX: Clear CSS custom property on restore.
+        btn.style.removeProperty('--nm-btn-lock-w');
 
         if (outcome === 'success') {
             // Brief success flash (600ms) before restoring

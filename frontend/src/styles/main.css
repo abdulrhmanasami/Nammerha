@@ -581,12 +581,17 @@ html[data-theme="dark"] :focus-visible {
     background: var(--smoky-jade);
     border-radius: var(--radius-full);
     transition: width 0.5s ease;
+    /* DEF-REM-006 FIX: CSS custom property replaces inline style.width.
+       JS sets --progress; CSS consumes via var() with fallback to 0%. */
+    width: var(--progress, 0%);
   }
   .progress-fill-primary {
     height: 100%;
     background: var(--trust-blue);
     border-radius: var(--radius-full);
     transition: width 0.5s ease;
+    /* DEF-REM-006 FIX: CSS custom property for progress width. */
+    width: var(--progress, 0%);
   }
 }
 
@@ -832,6 +837,9 @@ html[data-theme="dark"] .nm-textarea::placeholder {
 */
 .animate-fade-in-up {
   animation: fadeInUp 0.4s ease-out forwards;
+  /* DEF-REM-004 FIX: CSS custom property for staggered animation delay.
+     JS sets --anim-delay; CSS consumes via var(). */
+  animation-delay: var(--anim-delay, 0s);
 }
 .animate-pulse-dot {
   animation: pulse-dot 1.5s ease-in-out infinite;
@@ -1524,10 +1532,13 @@ body {
     top: -48px;
     /* P3-CSS-PTR FIX: Logical property replaces physical `left` for RTL safety */
     inset-inline-start: 50%;
-    transform: translateX(-50%) translateY(0);
+    /* DEF-UX-004 FIX: CSS custom properties replace inline style.transform/opacity.
+       JS sets --pull-y and --pull-opacity; CSS consumes via var().
+       Standard: CSS Single Source of Truth, Custom Property-driven animation. */
+    transform: translateX(-50%) translateY(var(--pull-y, 0px));
     z-index: var(--z-offline);
     transition: transform 0.2s ease-out, opacity 0.2s ease-out;
-    opacity: 0;
+    opacity: var(--pull-opacity, 0);
     pointer-events: none;
 }
 .pull-refresh-spinner {
@@ -3205,3 +3216,109 @@ html[data-theme="dark"] .nm-lang-opt:hover {
 html[data-theme="dark"] .nm-lang-opt.active {
     color: var(--trust-blue);
 }
+
+/* ============================================================================
+   DEF-UX-005 FIX: Fly-to-Cart Animation — CSS Single Source of Truth
+   Previous: 7 inline style mutations in cart.ts (style.cssText + 4× style.*).
+   Now: CSS custom properties for dynamic position, CSS class for transition.
+   Standard: P1-SST-001 governance, CSS-driven animation.
+   ============================================================================ */
+.nm-fly-item {
+    position: fixed;
+    z-index: 9999;
+    left: var(--fly-x, 0px);
+    top: var(--fly-y, 0px);
+    font-size: var(--fly-size, 1rem);
+    color: var(--trust-blue);
+    pointer-events: none;
+    transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nm-fly-item--landing {
+    transform: scale(0.3);
+    opacity: 0;
+}
+
+/* DEF-UX-005 FIX: Cart target bounce — replaces inline style.transition + style.transform.
+   Standard: CSS Single Source of Truth. */
+@keyframes nm-cart-bounce-kf {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+.nm-cart-bounce {
+    animation: nm-cart-bounce-kf 0.3s ease-out;
+}
+
+/* ============================================================================
+   DEF-UX-006 FIX: Button Width Lock — CSS Custom Property
+   Previous: btn.style.minWidth = `${width}px` — inline style.
+   Now: JS sets --nm-btn-lock-w, CSS consumes via var().
+   Standard: CSS Single Source of Truth, Custom Property-driven layout.
+   ============================================================================ */
+[style*="--nm-btn-lock-w"] {
+    min-width: var(--nm-btn-lock-w);
+}
+
+/* ============================================================================
+   DEF-UX-007 FIX: Animation Reset Utility — CSS Class Toggle
+   Previous: panel.style.animation = 'none' / '' — inline style.
+   Now: classList.add('nm-anim-reset') → void reflow → classList.remove().
+   Standard: CSS Single Source of Truth, class-driven animation restart.
+   ============================================================================ */
+.nm-anim-reset {
+    animation: none !important;
+}
+
+/* ============================================================================
+   DEF-REM-001 FIX: Pricing Tier Price Animation — CSS Class Toggle
+   Previous: 5× el.style.opacity/transform on .tier-price — inline style.
+   Now: .nm-price-exit / .nm-price-enter classes + base transition in CSS.
+   Standard: CSS Single Source of Truth, class-driven animation.
+   ============================================================================ */
+.tier-price {
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+.nm-price-exit {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+.nm-price-enter {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================================================
+   DEF-REM-002 FIX: Chevron Rotation — CSS Class Toggle
+   Previous: chevron.style.transform = 'rotate(180deg)' — inline style.
+   Now: .nm-chevron-rotated class toggle.
+   Standard: CSS Single Source of Truth.
+   ============================================================================ */
+.nm-chevron-rotated {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+/* ============================================================================
+   DEF-REM-003 FIX: Timeline Stagger Delay — CSS Custom Property
+   Previous: item.style.transitionDelay = '...' — inline style.
+   Now: JS sets --stagger-delay; CSS consumes via var().
+   Standard: CSS Single Source of Truth.
+   ============================================================================ */
+.about-timeline-item {
+    transition-delay: var(--stagger-delay, 0ms);
+}
+
+/* ============================================================================
+   DEF-REM-005 FIX: Keyboard Viewport Shift — CSS Custom Property
+   Previous: 3× style.transform/transition on checkout sheet — inline style.
+   Now: .nm-keyboard-shifted class + --kb-shift custom property.
+   Standard: CSS Single Source of Truth.
+   ============================================================================ */
+.nm-keyboard-shifted {
+    transform: translateY(calc(-1 * var(--kb-shift, 0px)));
+    transition: transform 0.2s ease-out;
+}
+

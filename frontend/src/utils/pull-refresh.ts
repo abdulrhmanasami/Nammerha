@@ -51,8 +51,11 @@ function handleTouchMove(e: TouchEvent): void {
     if (!indicator) {
         indicator = createIndicator();
     }
-    indicator.style.transform  = `translateY(${distance}px)`;
-    indicator.style.opacity    = String(Math.min(distance / THRESHOLD_PX, 1));
+    // DEF-UX-004 FIX: CSS custom properties replace inline style.transform/opacity.
+    // Previous: indicator.style.transform + indicator.style.opacity — violated P1-SST-001.
+    // Standard: CSS Single Source of Truth, Custom Property-driven animation.
+    indicator.style.setProperty('--pull-y', `${distance}px`);
+    indicator.style.setProperty('--pull-opacity', String(Math.min(distance / THRESHOLD_PX, 1)));
     indicator.classList.toggle('pull-refresh-ready', distance >= THRESHOLD_PX);
 
     if (distance >= THRESHOLD_PX && !hapticFired) {
@@ -74,8 +77,9 @@ function handleTouchEnd(): void {
             indicator.classList.add('pull-refresh-loading');
             setTimeout(() => location.reload(), 300);
         } else {
-            indicator.style.transform = 'translateY(0)';
-            indicator.style.opacity   = '0';
+            // DEF-UX-004 FIX: CSS custom properties for reset state.
+            indicator.style.setProperty('--pull-y', '0px');
+            indicator.style.setProperty('--pull-opacity', '0');
         }
     }
     startY = 0;

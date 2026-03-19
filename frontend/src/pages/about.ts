@@ -58,8 +58,10 @@ initPullToRefresh();
 
     // ─── Timeline Items: Staggered Delay ────────────────────────────────
     const timelineItems = document.querySelectorAll<HTMLElement>('.about-timeline-item');
+    // DEF-REM-003 FIX: CSS custom property replaces inline style.transitionDelay.
+    // Previous: item.style.transitionDelay = '...' — violated P1-SST-001.
     timelineItems.forEach((item, index) => {
-        item.style.transitionDelay = `${index * 150}ms`;
+        item.style.setProperty('--stagger-delay', `${index * 150}ms`);
     });
 })();
 

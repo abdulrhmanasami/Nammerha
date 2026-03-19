@@ -131,7 +131,7 @@ function renderProgress(project: ProjectData): void {
         pctText.textContent = `${Math.round(pct)}% ${t('raised_suffix', 'Raised')}`;
     }
     if (progressBar) {
-        progressBar.style.width = `${pct}%`;
+        progressBar.style.setProperty('--progress', `${pct}%`);
     }
     if (progressTrack) {
         progressTrack.setAttribute('aria-valuenow', String(Math.round(pct)));
@@ -393,8 +393,10 @@ function initTransparencyToggle(): void {
         const isExpanded = !detail.classList.contains('hidden');
         detail.classList.toggle('hidden');
         toggle.setAttribute('aria-expanded', String(!isExpanded));
+        // DEF-REM-002 FIX: CSS class toggle replaces inline style.transform.
+        // Previous: chevron.style.transform = 'rotate(180deg)' — violated P1-SST-001.
         if (chevron) {
-            chevron.style.transform = isExpanded ? '' : 'rotate(180deg)';
+            chevron.classList.toggle('nm-chevron-rotated', !isExpanded);
         }
     });
 }

@@ -406,12 +406,14 @@ function initKeyboardHandler(): void {
         const keyboardHeight = window.innerHeight - viewport.height;
 
         if (keyboardHeight > 100) {
-            // Keyboard is visible — shift checkout sheet up
-            checkoutSheet.style.transform = `translateY(-${keyboardHeight}px)`;
-            checkoutSheet.style.transition = 'transform 0.2s ease-out';
+            // DEF-REM-005 FIX: CSS custom property + class toggle replaces inline styles.
+            // Previous: 3× style.transform/transition — violated P1-SST-001.
+            checkoutSheet.style.setProperty('--kb-shift', `${keyboardHeight}px`);
+            checkoutSheet.classList.add('nm-keyboard-shifted');
         } else {
             // Keyboard hidden — reset
-            checkoutSheet.style.transform = '';
+            checkoutSheet.classList.remove('nm-keyboard-shifted');
+            checkoutSheet.style.removeProperty('--kb-shift');
         }
     }
 

@@ -147,35 +147,32 @@ export function flyToCart(
     const flyEl = document.createElement('i');
     flyEl.className = sourceEl.className;
     flyEl.setAttribute('aria-hidden', 'true');
-    flyEl.style.cssText = `
-    position: fixed;
-    z-index: 9999;
-    left: ${sourceRect.left}px;
-    top: ${sourceRect.top}px;
-    font-size: ${getComputedStyle(sourceEl).fontSize};
-    color: var(--trust-blue);
-    pointer-events: none;
-    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  `;
+    // DEF-UX-005 FIX: CSS custom properties replace inline style.cssText.
+    // Previous: 7 inline style mutations — violated P1-SST-001.
+    // Now: Start position via CSS custom properties, animation via CSS class.
+    // Standard: CSS Single Source of Truth, Custom Property-driven animation.
+    flyEl.classList.add('nm-fly-item');
+    flyEl.style.setProperty('--fly-x', `${sourceRect.left}px`);
+    flyEl.style.setProperty('--fly-y', `${sourceRect.top}px`);
+    flyEl.style.setProperty('--fly-size', getComputedStyle(sourceEl).fontSize);
 
     document.body.appendChild(flyEl);
 
     // Force reflow before applying transition
     void flyEl.offsetHeight;
 
-    flyEl.style.left = `${targetRect.left + targetRect.width / 2 - 10}px`;
-    flyEl.style.top = `${targetRect.top + targetRect.height / 2 - 10}px`;
-    flyEl.style.transform = 'scale(0.3)';
-    flyEl.style.opacity = '0';
+    // DEF-UX-005 FIX: Target position via CSS custom properties + class toggle.
+    flyEl.style.setProperty('--fly-x', `${targetRect.left + targetRect.width / 2 - 10}px`);
+    flyEl.style.setProperty('--fly-y', `${targetRect.top + targetRect.height / 2 - 10}px`);
+    flyEl.classList.add('nm-fly-item--landing');
 
     flyEl.addEventListener('transitionend', () => {
         flyEl.remove();
-        // Bounce the target
-        targetEl.style.transition = 'transform 0.15s ease';
-        targetEl.style.transform = 'scale(1.3)';
-        setTimeout(() => {
-            targetEl.style.transform = 'scale(1)';
-        }, 150);
+        // DEF-UX-005 FIX: CSS class replaces inline style for target bounce.
+        targetEl.classList.add('nm-cart-bounce');
+        targetEl.addEventListener('animationend', () => {
+            targetEl.classList.remove('nm-cart-bounce');
+        }, { once: true });
         onComplete?.();
     }, { once: true });
 

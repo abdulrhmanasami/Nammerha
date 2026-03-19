@@ -69,7 +69,7 @@ async function loadComplianceMetrics(): Promise<void> {
         const ocdsBar = document.getElementById('ocds-bar');
         const ocdsPercent = document.getElementById('ocds-percent');
         const complianceRate = Number(data['ocds_compliance_rate'] ?? 0);
-        if (ocdsBar) { ocdsBar.style.width = `${complianceRate}%`; }
+        if (ocdsBar) { ocdsBar.style.setProperty('--progress', `${complianceRate}%`); }
         if (ocdsPercent) { ocdsPercent.textContent = `${complianceRate}%`; }
 
         // Audit trail integrity

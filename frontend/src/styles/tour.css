@@ -64,6 +64,11 @@
     animation: tour-spotlight-breathe 2s ease-in-out infinite;
 }
 
+/* DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.\n   Previous: spotlight.style.opacity = '0'/'1' — violated P1-SST-001.\n   Standard: CSS Single Source of Truth. */
+.nmr-tour-spotlight--visible {
+    opacity: 1;
+}
+
 @keyframes tour-spotlight-breathe {
     0%, 100% { outline-color: var(--tour-accent); outline-offset: 4px; }
     50%      { outline-color: var(--tour-accent-glow); outline-offset: 6px; }

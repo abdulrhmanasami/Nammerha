@@ -46,7 +46,7 @@
   <!-- PLAT-M06 FIX: Changed <div> to <main> for WCAG landmark semantics.
        Previous: <div id="main-content"> — screen readers didn't announce main region.
        Standard: HTML5 §4.4.1, parity with reset-password.html and auth.html. -->
-  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
+  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen pb-24">
 
     <!-- Brand Header -->
     <header class="px-6 pt-12 pb-6 text-center relative z-10">
@@ -94,9 +94,15 @@
         <div class="flex gap-2">
           <!-- DEF-VERIFY-001 FIX: Added enterkeyhint, inputmode, autocomplete for mobile keyboard.
                Standard: Apple HIG (Keyboard), WCAG 1.3.5 (Input Purpose). -->
+          <!-- DEF-UX-003 FIX: Migrated from ad-hoc Tailwind to canonical nm-input class.
+               Previous: rounded-xl border border-slate-200 px-4 py-3 text-sm — 5 classes duplicating nm-input.
+               Standard: Design System Governance, DRY Principle. -->
           <input type="email" id="verify-resend-email" inputmode="email" autocomplete="email" enterkeyhint="send" placeholder="your@email.com"
-                 class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-trust-blue/40" dir="ltr" />
-          <button id="verify-resend-btn" class="btn-outline px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-1 whitespace-nowrap">
+                 class="nm-input flex-1" dir="ltr" />
+          <!-- DEF-UX-001 FIX: Replaced ghost btn-outline (zero CSS definitions) with btn-secondary.
+               Previous: btn-outline had NO CSS rules — button rendered unstyled.
+               Standard: Design System Component Governance. -->
+          <button id="verify-resend-btn" class="btn-secondary !w-auto flex items-center gap-1 whitespace-nowrap">
             <i class="ph ph-envelope" aria-hidden="true"></i>
             <span data-i18n="verify_resend_btn">Resend</span>
           </button>
