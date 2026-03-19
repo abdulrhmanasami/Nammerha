@@ -65,13 +65,13 @@ function resolveMessage(message: string): string {
 
 function removeToast(el: HTMLElement): void {
     el.classList.add('nm-toast-exit');
-    setTimeout(() => {
+    el.addEventListener('transitionend', () => {
         el.remove();
         const idx = activeToasts.indexOf(el);
         if (idx !== -1) {
             activeToasts.splice(idx, 1);
         }
-    }, 300);
+    }, { once: true });
 }
 
 /**

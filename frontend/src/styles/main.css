@@ -804,7 +804,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     padding: 2px 8px;
     border-radius: var(--radius-sm);
     background: rgba(252, 201, 52, 0.15);
-    color: #b8860b;
+    color: var(--warning-yellow-text);
   }
 }
 

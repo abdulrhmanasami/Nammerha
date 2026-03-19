@@ -209,6 +209,20 @@ export function reportWarning(
  * Safe to call multiple times (idempotent).
  */
 export function initErrorReporter(): void {
+    // PLT-AUD6-001 FIX: Clear stale nav.js lightweight error catchers.
+    // nav.js installs window.onerror / window.onunhandledrejection as a
+    // fallback for pages that don't load this module (auth, wallet, etc.).
+    // Its guard (L14: `if (window.onerror) return`) was written when this
+    // module also used window.onerror, but PLT-AUD5-003 refactored to
+    // addEventListener — the guard no longer detects us, so both fire,
+    // causing DUPLICATE error reports on index.html.
+    // Fix: Clear the assignment-based handlers now that addEventListener
+    // provides superior error capture. nav.js remains active on all
+    // other pages where this module never loads.
+    // Standard: Error Handler Deduplication, Single Source of Truth.
+    window.onerror = null;
+    window.onunhandledrejection = null;
+
     // PLT-AUD5-003 FIX: Use addEventListener instead of assignment.
     // Previous: window.onerror = handler — silently overwrites any existing
     // error handlers from analytics, monitoring, or third-party scripts.

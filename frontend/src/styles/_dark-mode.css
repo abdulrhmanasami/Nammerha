@@ -58,7 +58,7 @@ html[data-theme="dark"] {
 }
 html[data-theme="dark"] body {
   background-color: var(--dark-tech);
-  color: #e2e8f0;
+  color: var(--text-heading);
 }
 /* P2-AUD2-003 FIX: Dark mode overrides for semantic text tokens (defined in main.css :root).
    Light: heading=#0f172a, body=#475569, muted=#94a3b8, subtle=#cbd5e1
@@ -84,6 +84,7 @@ html[data-theme="dark"] {
   --dark-surface-elevated: #2a2a2a;
   --dark-border: rgba(255, 255, 255, 0.08);
   --dark-border-subtle: rgba(255, 255, 255, 0.06);
+  --dark-track: #334155;
 }
 
 /* ── Glass Components ── */
@@ -103,7 +104,7 @@ html[data-theme="dark"] .glass-sheet {
 
 /* ── Progress ── */
 html[data-theme="dark"] .progress-track {
-  background: #334155;
+  background: var(--dark-track);
 }
 
 /* ── P1-001 FIX: Comprehensive dark mode coverage ── */

@@ -361,6 +361,18 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
 .nm-confirm-destructive:hover {
     background: rgba(239, 68, 68, 0.05);
 }
+/* PLT-AUD6-002 FIX: Warning variant button class for confirmation dialogs.
+   Previous: confirm-action.ts had a dead-code ternary that always produced
+   .nm-confirm-destructive regardless of variant, so warning dialogs got
+   red/danger styling instead of amber/warning.
+   Standard: Nielsen #5 (Error Prevention), Visual Semantic Distinction. */
+.nm-confirm-warning {
+    background: transparent;
+    color: var(--warning-yellow-text, #b45309);
+}
+.nm-confirm-warning:hover {
+    background: rgba(245, 158, 11, 0.05);
+}
 /* FRIC-2601-F06 FIX: Primary action button for dialogs.
    Same pattern as .nm-confirm-destructive but for positive/primary CTAs.
    Eliminates need for inline styles on primary dialog buttons. */
@@ -383,6 +395,7 @@ html[data-theme="dark"] .nm-confirm-actions { border-color: var(--dark-border); 
 html[data-theme="dark"] .nm-confirm-cancel { color: var(--text-secondary); }
 html[data-theme="dark"] .nm-confirm-cancel:hover { background: var(--surface-hover); }
 html[data-theme="dark"] .nm-confirm-destructive:hover { background: rgba(239,68,68,0.1); }
+html[data-theme="dark"] .nm-confirm-warning:hover { background: rgba(245,158,11,0.1); }
 html[data-theme="dark"] .nm-confirm-primary { background: var(--trust-blue); }
 html[data-theme="dark"] .nm-confirm-primary:hover { background: var(--trust-blue-hover, #1e5fbb); }
 

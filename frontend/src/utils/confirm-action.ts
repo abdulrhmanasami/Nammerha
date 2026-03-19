@@ -89,8 +89,9 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
         dialog.id = 'nm-confirm-programmatic';
         dialog.className = 'nm-confirm-dialog';
 
-        // Determine destructive button class
-        const actionClass = variant === 'danger' ? 'nm-confirm-destructive' : 'nm-confirm-destructive';
+        // PLT-AUD6-002 FIX: Dead-code ternary — both branches returned 'nm-confirm-destructive'.
+        // Warning-variant dialogs incorrectly rendered with danger-red buttons.
+        const actionClass = variant === 'danger' ? 'nm-confirm-destructive' : 'nm-confirm-warning';
 
         dialog.innerHTML = `
             <div class="nm-confirm-body">
