@@ -228,16 +228,16 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
             <h4 class="font-bold text-sm text-slate-900 leading-tight">
                 ${escapeHtml(String(props['title'] ?? 'Untitled Project'))}
             </h4>
-            ${props['address_text'] ? `<p class="text-[10px] text-slate-500">${escapeHtml(String(props['address_text']))}</p>` : ''}
+            ${props['address_text'] ? `<p class="text-3xs text-slate-500">${escapeHtml(String(props['address_text']))}</p>` : ''}
             <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full nm-role-badge-bg" 
+                <span class="text-3xs font-bold px-1.5 py-0.5 rounded-full nm-role-badge-bg" 
                       style="--role-color: ${statusColor}">
                     ${statusLabel}
                 </span>
-                <span class="text-[10px] text-slate-400">${String(props['damage_type'] ?? '')}</span>
+                <span class="text-3xs text-slate-400">${String(props['damage_type'] ?? '')}</span>
             </div>
             <div class="mt-2">
-                <div class="flex justify-between text-[10px] mb-1">
+                <div class="flex justify-between text-3xs mb-1">
                     <span class="text-slate-500">${t('map_funded', 'Funded')}</span>
                     <span class="font-bold text-slate-700">${fundedPct.toFixed(1)}%</span>
                 </div>
@@ -247,7 +247,7 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
                 </div>
             </div>
             <a href="project-details.html?id=${escapeHtml(String(props['project_id'] ?? ''))}" 
-               class="block mt-2 text-center text-[10px] font-bold text-trust-blue bg-trust-blue/10 
+               class="block mt-2 text-center text-3xs font-bold text-trust-blue bg-trust-blue/10 
                       rounded-lg py-1.5 hover:bg-trust-blue/20 transition-colors">
                 ${t('map_view_project', 'View Project')} <i class="ph ph-arrow-right nm-icon-va"></i>
             </a>

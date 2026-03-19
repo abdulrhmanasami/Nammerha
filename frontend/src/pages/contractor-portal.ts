@@ -173,7 +173,7 @@ async function loadProjects(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span></td>
                 <td class="px-5 py-3 text-slate-500">${esc(p.engineer_name ?? '—')}</td>
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
@@ -259,7 +259,7 @@ async function loadBids(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(b.project_title)}</td>
                 <td class="px-5 py-3 font-mono text-sm">${formatCents(b.proposed_cost)}</td>
                 <td class="px-5 py-3">${esc(String(b.estimated_days))}d</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span></td>
                 <td class="px-5 py-3 text-xs text-slate-400">${formatDate(b.created_at)}</td>
             </tr>
         `).join('');
@@ -289,7 +289,7 @@ async function loadPayments(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(p.project_title)}</td>
                 <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(p.amount)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${p.transaction_type === 'release' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${esc(p.transaction_type)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${p.transaction_type === 'release' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${esc(p.transaction_type)}</span></td>
                 <td class="px-5 py-3 text-xs text-slate-400">${formatDate(p.created_at)}</td>
             </tr>
         `).join('');

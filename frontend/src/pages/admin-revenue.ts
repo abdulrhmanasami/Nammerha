@@ -95,9 +95,9 @@ function renderRecentCommissions(commissions: CommissionEntry[]): void {
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${t('rev_po_label', 'PO')} ${escapeHtml(c.po_id)} — ${formatCents(c.commission_amount_cents)}</p>
-                <p class="text-[10px] text-slate-400 mt-0.5">${t('rev_rate_label', 'Rate')}: ${bpsToPercent(c.rate_bps)} • ${t('rev_po_label', 'PO')}: ${formatCents(c.po_amount_cents)}</p>
+                <p class="text-3xs text-slate-400 mt-0.5">${t('rev_rate_label', 'Rate')}: ${bpsToPercent(c.rate_bps)} • ${t('rev_po_label', 'PO')}: ${formatCents(c.po_amount_cents)}</p>
             </div>
-            <span class="text-[10px] text-slate-400 shrink-0">${relativeTimeAgo(c.created_at)}</span>
+            <span class="text-3xs text-slate-400 shrink-0">${relativeTimeAgo(c.created_at)}</span>
         </div>`).join('');
 }
 
@@ -119,9 +119,9 @@ export function renderRecentTips(tips: TipEntry[]): void {
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${t('rev_donation_label', 'Donation')} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
-                <p class="text-[10px] text-slate-400 mt-0.5">${t('rev_donor_label', 'Donor')}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
+                <p class="text-3xs text-slate-400 mt-0.5">${t('rev_donor_label', 'Donor')}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
             </div>
-            <span class="text-[10px] text-slate-400 shrink-0">${relativeTimeAgo(tip.created_at)}</span>
+            <span class="text-3xs text-slate-400 shrink-0">${relativeTimeAgo(tip.created_at)}</span>
         </div>`;
     }).join('');
 }

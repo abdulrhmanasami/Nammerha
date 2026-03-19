@@ -92,11 +92,11 @@ function renderTransaction(tx: Transaction): string {
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-bold truncate">${escapeHtml(tx.material_name ?? tx.project_title ?? t('wallet_transaction', 'Transaction'))}</p>
-        <p class="text-[10px] text-slate-400">${formatDate(tx.created_at)}</p>
+        <p class="text-3xs text-slate-400">${formatDate(tx.created_at)}</p>
       </div>
       <div class="text-end shrink-0">
         <p class="text-sm font-bold ${config.color}">${formatCents(tx.amount)}</p>
-        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${config.label}</p>
+        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400">${config.label}</p>
       </div>
     </div>`;
 }

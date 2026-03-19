@@ -208,7 +208,7 @@ function initDonorBasket(): void {
         </div>
         <div class="text-end min-w-[60px]">
           <div class="font-bold text-slate-900">${formatDollars(item.unitPrice * item.quantity)}</div>
-          <div class="text-[10px] text-slate-400">${formatDollars(item.unitPrice)}/${t('basket_per_unit', 'ea')}</div>
+          <div class="text-3xs text-slate-400">${formatDollars(item.unitPrice)}/${t('basket_per_unit', 'ea')}</div>
         </div>
       </div>
     `;
@@ -287,7 +287,7 @@ function initDonorBasket(): void {
 
                 breakdownEl.innerHTML = `
                     <div class="border-t border-slate-100 pt-3 space-y-1.5">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="checkout_breakdown">${t('checkout_breakdown', 'Order Summary')}</p>
+                        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="checkout_breakdown">${t('checkout_breakdown', 'Order Summary')}</p>
                         ${itemsHtml}
                         <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
                             <span data-i18n="checkout_subtotal">${t('checkout_subtotal', 'Subtotal')}</span>

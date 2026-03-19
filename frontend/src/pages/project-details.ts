@@ -178,7 +178,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
            </button>`;
 
     const badgeHtml = isFullyFunded
-        ? `<span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full" data-i18n="fully_funded">${esc(t('fully_funded', 'Fully Funded'))}</span>`
+        ? `<span class="bg-slate-200 text-slate-600 text-3xs font-bold px-2 py-0.5 rounded-full" data-i18n="fully_funded">${esc(t('fully_funded', 'Fully Funded'))}</span>`
         : `<span class="badge-verified">${pct}% ${t('funded_suffix', 'Funded')}</span>`;
 
     const progressFillClass = isFullyFunded ? 'h-full bg-slate-400 w-full rounded-full' : 'progress-fill';

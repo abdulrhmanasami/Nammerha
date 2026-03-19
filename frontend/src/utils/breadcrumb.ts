@@ -94,7 +94,7 @@ export function renderBreadcrumb(containerId: string, crumbs?: BreadcrumbItem[])
             const sep = document.createElement('i');
             // Use RTL-safe chevron: CSS handles auto-flip via [dir="rtl"]
             sep.className = 'ph ph-caret-right text-slate-300 mx-0.5';
-            sep.classList.add('text-[10px]');
+            sep.classList.add('text-3xs');
             sep.setAttribute('aria-hidden', 'true');
             li.appendChild(sep);
         }

@@ -247,9 +247,9 @@ async function loadDashboardProjects(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(p.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-400">
+                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.engineer_name ? `<span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(p.engineer_name)}</span>` : ''}
                             ${p.contractor_name ? `<span><i class="ph ph-crane" aria-hidden="true"></i> ${esc(p.contractor_name)}</span>` : ''}
@@ -257,7 +257,7 @@ async function loadDashboardProjects(): Promise<void> {
                         </div>
                         ${p.total_boq_cost > 0 ? `<p class="text-xs text-slate-500 mt-1">${esc(t('ho_boq_total', 'BOQ Total'))}: <span class="font-mono font-bold">${formatCents(p.total_boq_cost)}</span></p>` : ''}
                     </div>
-                    <span class="text-[10px] text-slate-400 shrink-0">${esc(p.project_id)}</span>
+                    <span class="text-3xs text-slate-400 shrink-0">${esc(p.project_id)}</span>
                 </div>
             </div>
         `).join('');
@@ -288,13 +288,13 @@ async function loadProjects(): Promise<void> {
                     <p class="font-medium">${esc(p.title)}</p>
                     <!-- LOW-005 FIX: Truncate raw UUID to first 8 chars — reduces cognitive noise.
                          Homeowners don't need technical IDs; short prefix is enough for support. -->
-                    <p class="text-[10px] text-slate-400">${esc(p.project_id.substring(0, 8))}…</p>
+                    <p class="text-3xs text-slate-400">${esc(p.project_id.substring(0, 8))}…</p>
                 </td>
                 <td class="px-5 py-3">${esc(p.damage_type)}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.engineer_name ?? '—')}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.contractor_name ?? '—')}</td>
                 <td class="px-5 py-3"><span class="text-trust-blue font-bold text-xs">${p.bid_count}</span></td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
             </tr>
         `).join('');
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -391,13 +391,13 @@ async function loadServiceRequests(): Promise<void> {
         tbody.innerHTML = requests.map((r) => `
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(r.title)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${tradeColor(r.trade_needed)}">${esc(r.trade_needed)}</span></td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${tradeColor(r.trade_needed)}">${esc(r.trade_needed)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span></td>
                 <td class="px-5 py-3 text-xs">—</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span></td>
                 <td class="px-5 py-3">
                     ${['open', 'matched'].includes(r.status) ? `
-                        <button class="cancel-sr-btn px-2.5 py-1 bg-red-100 text-red-600 text-[10px] font-bold rounded-lg hover:bg-red-200" data-id="${esc(r.request_id)}">${esc(t('ho_cancel', 'Cancel'))}</button>
+                        <button class="cancel-sr-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(r.request_id)}">${esc(t('ho_cancel', 'Cancel'))}</button>
                     ` : '—'}
                 </td>
             </tr>
@@ -462,10 +462,10 @@ async function loadApprovals(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(a.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1">${esc(a.description ?? t('ho_no_description', 'No description'))}</p>
-                        <div class="flex items-center gap-3 mt-2 text-[10px] text-slate-400">
+                        <div class="flex items-center gap-3 mt-2 text-3xs text-slate-400">
                             <span><i class="ph ph-buildings" aria-hidden="true"></i> ${esc(a.project_title)}</span>
                             <span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(a.engineer_name)}</span>
                             <span><i class="ph ph-clock" aria-hidden="true"></i> ${relativeTimeAgo(a.created_at)}</span>
@@ -473,9 +473,9 @@ async function loadApprovals(): Promise<void> {
                     </div>
                     ${a.status === 'pending' ? `
                         <div class="flex gap-1.5 shrink-0">
-                            <button class="approval-btn px-3 py-1.5 bg-green-600 text-white text-[10px] font-bold rounded-lg hover:bg-green-700"
+                            <button class="approval-btn px-3 py-1.5 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700"
                                     data-id="${esc(a.approval_id)}" data-decision="approved">${esc(t('ho_approve', 'Approve'))}</button>
-                            <button class="approval-btn px-3 py-1.5 bg-red-100 text-red-600 text-[10px] font-bold rounded-lg hover:bg-red-200"
+                            <button class="approval-btn px-3 py-1.5 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200"
                                     data-id="${esc(a.approval_id)}" data-decision="rejected">${esc(t('ho_reject', 'Reject'))}</button>
                         </div>
                     ` : ''}
@@ -543,19 +543,19 @@ async function loadEscrow(): Promise<void> {
         container.innerHTML = `
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-trust-blue/5 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-trust-blue/60 uppercase">${esc(t('ho_total_deposited', 'Total Deposited'))}</p>
+                    <p class="text-3xs font-bold text-trust-blue/60 uppercase">${esc(t('ho_total_deposited', 'Total Deposited'))}</p>
                     <p class="text-xl font-black mt-1 text-trust-blue">${formatCents(e.total_deposited ?? 0)}</p>
                 </div>
                 <div class="bg-smoky-jade/5 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'Released'))}</p>
+                    <p class="text-3xs font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'Released'))}</p>
                     <p class="text-xl font-black mt-1 text-smoky-jade">${formatCents(e.total_released ?? 0)}</p>
                 </div>
                 <div class="bg-warning-yellow/5 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-warning-yellow/60 uppercase">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
+                    <p class="text-3xs font-bold text-warning-yellow/60 uppercase">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
                     <p class="text-xl font-black mt-1 text-warning-yellow">${formatCents(e.held_in_escrow ?? 0)}</p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">${esc(t('ho_projects', 'Projects'))}</p>
+                    <p class="text-3xs font-bold text-slate-400 uppercase">${esc(t('ho_projects', 'Projects'))}</p>
                     <p class="text-xl font-black mt-1">${e.projects_with_escrow ?? 0}</p>
                 </div>
             </div>

@@ -310,7 +310,7 @@
                Previous: "8+ chars, 1 uppercase, 1 number" — omitted lowercase and symbol requirements.
                Users crafted compliant-looking passwords that were rejected, destroying trust.
                Standard: Nielsen #2 (Match System ↔ Real World), WCAG 3.3.2. -->
-          <p class="text-[10px] text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
+          <p class="text-3xs text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
         </div>
         <!-- FRC-002 FIX: Confirm Password field -->
         <div class="mb-4">
@@ -331,7 +331,7 @@
               <i class="ph ph-eye text-xl"  aria-hidden="true"></i>
             </button>
           </div>
-          <!-- P2-UXA-010 FIX: Error text upgraded from text-[10px] (10px) to text-xs (12px).
+          <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs (10px) to text-xs (12px).
                At 10px on 375px mobile at 2x DPI, error text was ~5pt physical — below readable threshold.
                Errors must be the ONE thing that is clearly readable.
                Standard: Mobile Typography, WCAG 1.4.4 (Resize Text). -->
@@ -400,7 +400,7 @@
           </label>
         </div>
         <!-- GAP-2026-B07 FIX: Custom validation error -->
-        <!-- P2-UXA-010 FIX: Error text upgraded from text-[10px] to text-xs for readability -->
+        <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs to text-xs for readability -->
         <p id="reg-terms-error" class="text-xs text-red-500 font-semibold mt-1 hidden" role="alert" data-i18n="auth_terms_required">Please accept the Terms and Privacy Policy to continue.</p>
 
         <!-- Navigation -->
@@ -428,16 +428,16 @@
          Standard: Nielsen #8 — "Aesthetic and minimalist design." -->
     <div class="mt-auto px-6 py-8 text-center relative z-10">
       <details class="mb-3">
-        <summary class="text-[10px] text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px]">
+        <summary class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px]">
           <i class="ph ph-shield-check text-xs"  aria-hidden="true"></i>
           <span data-i18n="auth_security_details">Security Details</span>
         </summary>
         <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
-          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium">
             <i class="ph ph-shield-check text-smoky-jade text-sm"  aria-hidden="true"></i>
             <span data-i18n="auth_trust_1">OCDS Verified</span>
           </div>
-          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium">
             <i class="ph ph-lock text-trust-blue text-sm"  aria-hidden="true"></i>
             <span data-i18n="auth_trust_2">256-bit Encrypted</span>
           </div>

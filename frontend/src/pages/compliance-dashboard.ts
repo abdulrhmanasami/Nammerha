@@ -115,8 +115,8 @@ async function loadEscrowReviewQueue(): Promise<void> {
                 <td class="px-5 py-3 text-slate-500">${esc(String(r['donor_name'] ?? t('compliance_anonymous', 'Anonymous')))}</td>
                 <td class="px-5 py-3">
                     ${r['has_spatial_proof']
-                ? `<span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">${esc(t('compliance_verified', 'Verified'))}</span>`
-                : `<span class="text-[10px] font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'Pending'))}</span>`}
+                ? `<span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">${esc(t('compliance_verified', 'Verified'))}</span>`
+                : `<span class="text-3xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'Pending'))}</span>`}
                 </td>
                 <td class="px-5 py-3 text-slate-500 text-xs">${esc(String(r['submitted_at'] ?? '—'))}</td>
                 <td class="px-5 py-3 flex gap-2">

@@ -77,7 +77,7 @@
       <button type="button" role="tab" id="tab-escrow" aria-selected="false" aria-controls="section-escrow" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-file-search" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="auditor_escrow_reviews">Escrow Reviews</span>
-        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="review-count">0</span>
+        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full" id="review-count">0</span>
       </button>
     </nav>
     <!-- Navigation links outside tablist — these navigate to different pages.
@@ -93,17 +93,17 @@
       <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true">
         <i class="ph ph-chart-bar" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="auditor_financial_reports">Financial Reports</span>
-        <span class="ms-auto text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
       </span>
       <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="auditor_ocds_compliance">OCDS Compliance</span>
-        <span class="ms-auto text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
       </span>
       <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true">
         <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="auditor_audit_trail">Audit Trail</span>
-        <span class="ms-auto text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
       </span>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="profile.html">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
@@ -117,7 +117,7 @@
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="auditor_portal">Auditor Portal</p>
-          <p class="text-[10px] text-slate-500" data-i18n="auditor_access">Compliance Access</p>
+          <p class="text-3xs text-slate-500" data-i18n="auditor_access">Compliance Access</p>
         </div>
       </div>
       <!-- P0-AUD-003 FIX: Logout button was missing from compliance sidebar.
@@ -160,7 +160,7 @@
                All other portals use bg-trust-blue for notification count badge.
                Compliance was the sole outlier using bg-warning-yellow.
                Standard: Nielsen #4 (Consistency), Design System Color Token. -->
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[10px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
       </div>
@@ -189,7 +189,7 @@
               <i class="ph ph-currency-dollar text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_total_audited">Total Funds Audited</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_total_audited">Total Funds Audited</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="total-audited" data-prefix="$">
             <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -201,7 +201,7 @@
             </div>
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_pending">Pending</span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_pending_reviews">Pending Reviews</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_pending_reviews">Pending Reviews</p>
           <!-- CRIT-001a FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
@@ -215,7 +215,7 @@
               <i class="ph ph-check-circle text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_approved_releases">Approved Releases</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_approved_releases">Approved Releases</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="approved-releases">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -230,7 +230,7 @@
               <i class="ph ph-warning text-red-500 text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_flagged">Flagged Issues</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_flagged">Flagged Issues</p>
           <p class="text-2xl font-black mt-1 text-red-500" aria-live="polite" data-kpi="flagged-issues">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -254,7 +254,7 @@
               <span class="inline-block h-4 w-10 bg-slate-200 rounded animate-pulse"></span>
             </span>
           </div>
-          <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_ocds_desc">All transactions verified against OCDS schema</p>
+          <p class="text-3xs text-slate-400 mt-2" data-i18n="auditor_ocds_desc">All transactions verified against OCDS schema</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
@@ -267,7 +267,7 @@
             </span>
             <span class="text-xs text-slate-400" data-i18n="auditor_immutable">INSERT-only / immutable</span>
           </div>
-          <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_no_deletions">Zero DELETE/UPDATE operations detected</p>
+          <p class="text-3xs text-slate-400 mt-2" data-i18n="auditor_no_deletions">Zero DELETE/UPDATE operations detected</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
@@ -280,7 +280,7 @@
             </span>
             <span class="text-xs text-slate-400" data-i18n="auditor_gps_verified">GPS-verified proofs</span>
           </div>
-          <p class="text-[10px] text-slate-400 mt-2" data-i18n="auditor_spatial_desc">Average accuracy of submitted spatial proofs</p>
+          <p class="text-3xs text-slate-400 mt-2" data-i18n="auditor_spatial_desc">Average accuracy of submitted spatial proofs</p>
         </div>
       </div>
       </div>
@@ -307,7 +307,7 @@
                Standard: Material Design 3 (Responsive Tables), WCAG 1.3.1. -->
           <table class="w-full text-sm nm-donation-table">
             <thead>
-              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="auditor_th_ref">Reference</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="auditor_th_project">Project</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="auditor_th_amount">Amount</th>
@@ -341,7 +341,7 @@
           <p class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</p>
           <p class="text-xs text-slate-500 mt-0.5" data-i18n="auditor_footer_desc">All auditing operations are logged in the immutable audit trail. Financial reports adhere to Open Contracting Data Standard for institutional transparency.</p>
         </div>
-        <span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider" data-i18n="common_verified">Verified</span>
+        <span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider" data-i18n="common_verified">Verified</span>
       </div>
     </div>
     </div>

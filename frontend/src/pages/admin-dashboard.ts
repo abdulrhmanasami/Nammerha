@@ -273,9 +273,9 @@ async function loadAuditTrail(): Promise<void> {
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium truncate">${esc(description)}</p>
-                    ${detail ? `<p class="text-[10px] text-slate-400 mt-0.5">${esc(detail)}</p>` : ''}
+                    ${detail ? `<p class="text-3xs text-slate-400 mt-0.5">${esc(detail)}</p>` : ''}
                 </div>
-                <span class="text-[10px] text-slate-400 shrink-0">${timestamp ? relativeTimeAgo(String(timestamp)) : '—'}</span>
+                <span class="text-3xs text-slate-400 shrink-0">${timestamp ? relativeTimeAgo(String(timestamp)) : '—'}</span>
             </div>`;
         }).join('');
 

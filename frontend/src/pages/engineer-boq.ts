@@ -99,7 +99,7 @@ function renderItem(item: BOQItem, index: number): string {
         </div>
         <div class="flex items-center justify-between mt-2">
           <div class="flex flex-col">
-            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">${t('boq_estimated', 'Estimated')}</p>
+            <p class="text-slate-400 text-3xs uppercase font-bold tracking-tighter">${t('boq_estimated', 'Estimated')}</p>
             <p class="text-trust-blue text-base font-bold">${esc(formatCents(totalCostCents))}</p>
           </div>
           <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">

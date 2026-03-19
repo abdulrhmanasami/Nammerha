@@ -72,7 +72,7 @@
       <button type="button" role="tab" id="tab-orders" aria-selected="true" aria-controls="section-orders" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="supplier_orders">Purchase Orders</span>
-        <span class="ms-auto text-[10px] font-bold bg-trust-blue text-white size-5 rounded-full flex items-center justify-center" id="bid-count">0</span>
+        <span class="ms-auto text-3xs font-bold bg-trust-blue text-white size-5 rounded-full flex items-center justify-center" id="bid-count">0</span>
       </button>
       <button type="button" role="tab" id="tab-catalog" aria-selected="false" aria-controls="section-catalog" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-storefront" aria-hidden="true"></i>
@@ -103,7 +103,7 @@
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="supplier_portal">Supplier Portal</p>
-          <p class="text-[10px] text-slate-500" data-i18n="supplier_access">Supplier Access</p>
+          <p class="text-3xs text-slate-500" data-i18n="supplier_access">Supplier Access</p>
         </div>
       </div>
       <!-- GAP-004 FIX: Logout button was missing from supplier-dashboard sidebar.
@@ -137,7 +137,7 @@
              Standard: Nielsen #4 (Design System Component Unity). -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-orders" title="Jump to orders">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[10px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
       </div>
@@ -168,7 +168,7 @@
               <i class="ph ph-clock-countdown text-warning-yellow text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_pending_bids">Pending Orders</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_pending_bids">Pending Orders</p>
           <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
           <!-- LOW-002 FIX: Normalized from data-kpi to id pattern matching all other portals. -->
@@ -182,7 +182,7 @@
               <i class="ph ph-handshake text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_won_contracts">Won Contracts</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_won_contracts">Won Contracts</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-won-contracts">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -197,7 +197,7 @@
               <i class="ph ph-truck text-warm-earth text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_in_transit">In Transit</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_in_transit">In Transit</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-in-transit">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -208,7 +208,7 @@
               <i class="ph ph-currency-dollar text-trust-blue text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_total_revenue">Total Revenue</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_total_revenue">Total Revenue</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-total-revenue" data-prefix="$">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -234,7 +234,7 @@
         <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
-              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="common_po_number">PO #</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="common_material">Material</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="common_project">Project</th>
@@ -264,7 +264,7 @@
             <h2 class="font-bold" data-i18n="supplier_my_catalog">My Material Catalog</h2>
             <!-- GAP-007 FIX: English fallback text (was Arabic). i18n engine translates at runtime.
                  Standard: Platform convention — English fallback, Arabic via dictionary. -->
-            <p class="text-[10px] text-slate-400 mt-0.5" data-i18n="supplier_catalog_desc">Engineers browse your catalog when selecting suppliers for BOQ items</p>
+            <p class="text-3xs text-slate-400 mt-0.5" data-i18n="supplier_catalog_desc">Engineers browse your catalog when selecting suppliers for BOQ items</p>
           </div>
           <button id="btn-add-material" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center gap-2">
             <i class="ph ph-plus-circle" aria-hidden="true"></i>
@@ -329,7 +329,7 @@
   <div class="bg-white rounded-2xl w-full">
     <div class="p-6 border-b border-slate-100">
       <h3 class="text-sm font-bold" data-i18n="supplier_add_material">Add Material to Catalog</h3>
-      <p class="text-[10px] text-slate-400 mt-1" data-i18n="supplier_modal_guide_price_info">Guide prices — actual PO amounts use BOQ rates</p>
+      <p class="text-3xs text-slate-400 mt-1" data-i18n="supplier_modal_guide_price_info">Guide prices — actual PO amounts use BOQ rates</p>
     </div>
     <!-- FRC-NEW-07 FIX: Added novalidate — forces custom styled validation feedback
          instead of inconsistent browser-native tooltips.

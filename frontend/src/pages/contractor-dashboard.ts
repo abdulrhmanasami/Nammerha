@@ -182,7 +182,7 @@ async function loadProjectTimeline(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(String(p['title'] ?? ''))}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(String(p['region'] ?? ''))}</td>
                 <td class="px-5 py-3">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1">
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1">
                         <i class="ph ${phaseIcon(String(p['phase'] ?? ''))}" aria-hidden="true"></i>
                         ${esc(String(p['phase'] ?? ''))}
                     </span>
@@ -192,7 +192,7 @@ async function loadProjectTimeline(): Promise<void> {
                         <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full ${progressColor} rounded-full nm-progress-bar" style="--progress:${progress}%"></div>
                         </div>
-                        <span class="text-[10px] font-bold text-slate-500">${progress}%</span>
+                        <span class="text-3xs font-bold text-slate-500">${progress}%</span>
                     </div>
                 </td>
                 <td class="px-5 py-3">
@@ -250,7 +250,7 @@ async function loadBids(): Promise<void> {
                 <td class="px-5 py-3 font-mono">${costFormatted}</td>
                 <td class="px-5 py-3 text-slate-500">${b['estimated_days']} ${daysLabel}</td>
                 <td class="px-5 py-3">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${bidColor(String(b['status'] ?? ''))}">
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${bidColor(String(b['status'] ?? ''))}">
                         ${esc(String(b['status'] ?? ''))}
                     </span>
                 </td>

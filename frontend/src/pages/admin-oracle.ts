@@ -118,7 +118,7 @@ function initApproveButton(): void {
         if (badge) {
             badge.textContent = t('oracle_approved', 'Approved');
             badge.classList.remove('badge-primary');
-            badge.classList.add('bg-smoky-jade/10', 'text-smoky-jade', 'text-[10px]', 'font-bold', 'px-2', 'py-0.5', 'rounded-full', 'uppercase');
+            badge.classList.add('bg-smoky-jade/10', 'text-smoky-jade', 'text-3xs', 'font-bold', 'px-2', 'py-0.5', 'rounded-full', 'uppercase');
         }
 
         showToast(t('oracle_approval_toast', 'EPA adjustment approved. Audit log updated. All stakeholders notified.'), 'success');

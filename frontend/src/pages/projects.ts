@@ -198,12 +198,12 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
                 : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48"  aria-hidden="true"></i></div>`
             }
             <!-- Damage type badge -->
-            <span class="absolute top-2 start-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${esc(config.color)}">
+            <span class="absolute top-2 start-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full ${esc(config.color)}">
                 ${esc(project.damage_type)}
             </span>
             <!-- Status badge -->
             ${project.status === 'published'
-                ? `<span class="absolute top-2 end-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-smoky-jade/10 text-smoky-jade">${t('projects_active', 'Active')}</span>`
+                ? `<span class="absolute top-2 end-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full bg-smoky-jade/10 text-smoky-jade">${t('projects_active', 'Active')}</span>`
                 : ''
             }
         </div>
@@ -215,14 +215,14 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
                 ${esc(project.address_text || t('projects_unknown_location', 'Location not specified'))}
             </p>
             <!-- Funding progress -->
-            <div class="flex items-center justify-between text-[10px] mb-1.5">
+            <div class="flex items-center justify-between text-3xs mb-1.5">
                 <span class="font-bold text-slate-700">${pct}% ${t('projects_funded', 'funded')}</span>
                 <span class="text-slate-400">${formatCents(project.total_funded ?? 0)} / ${formatCents(project.total_cost ?? 0)}</span>
             </div>
             <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                 <div class="h-full ${urgencyClass} rounded-full transition-all duration-700 nm-progress-bar" style="--progress:${pct}%"></div>
             </div>
-            ${pct < 30 ? `<span class="inline-block mt-2 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${t('projects_most_needed', '⚡ Most Needed')}</span>` : ''}
+            ${pct < 30 ? `<span class="inline-block mt-2 text-3xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${t('projects_most_needed', '⚡ Most Needed')}</span>` : ''}
         </div>
     `;
 

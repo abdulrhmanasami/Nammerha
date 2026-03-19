@@ -99,10 +99,10 @@ async function loadKycQueue(): Promise<void> {
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-bold truncate">${esc(entry.full_name)}</p>
-                        <p class="text-[10px] text-slate-400">${esc(roleLabel)} • ${esc(timeAgo)}</p>
+                        <p class="text-3xs text-slate-400">${esc(roleLabel)} • ${esc(timeAgo)}</p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <span class="bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <span class="bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-2 py-0.5 rounded-full">
                             ${esc(statusLabel)}
                         </span>
                     </div>
@@ -244,7 +244,7 @@ function renderDocumentViewer(index: number): void {
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium truncate">${esc(cred.name)}</p>
-                        <p class="text-[10px] text-slate-400">${esc(cred.value ?? '—')}</p>
+                        <p class="text-3xs text-slate-400">${esc(cred.value ?? '—')}</p>
                     </div>
                 </div>
             `).join('');
@@ -420,10 +420,10 @@ function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
     if (!badge) { return; }
 
     if (status === 'verified') {
-        badge.className = 'bg-smoky-jade/10 text-smoky-jade text-[10px] font-bold px-2 py-0.5 rounded-full';
+        badge.className = 'bg-smoky-jade/10 text-smoky-jade text-3xs font-bold px-2 py-0.5 rounded-full';
         badge.innerHTML = `<i class="ph ph-check nm-icon-gap-end"></i>${t('kyc_verified', 'Verified')}`;
     } else {
-        badge.className = 'bg-rose-50 text-rose-500 text-[10px] font-bold px-2 py-0.5 rounded-full';
+        badge.className = 'bg-rose-50 text-rose-500 text-3xs font-bold px-2 py-0.5 rounded-full';
         badge.innerHTML = `<i class="ph ph-x nm-icon-gap-end"></i>${t('kyc_rejected', 'Rejected')}`;
     }
 }

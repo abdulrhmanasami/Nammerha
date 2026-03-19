@@ -127,9 +127,9 @@ function updateAvailabilityUI(status: string): void {
                 busy: 'border-amber-200 bg-amber-50 text-amber-700',
                 offline: 'border-slate-200 bg-slate-50 text-slate-500',
             };
-            btn.className = `flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border ${colors[s] ?? 'border-slate-200 text-slate-500'}`;
+            btn.className = `flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border ${colors[s] ?? 'border-slate-200 text-slate-500'}`;
         } else {
-            btn.className = 'flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500';
+            btn.className = 'flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500';
         }
     });
 
@@ -140,7 +140,7 @@ function updateAvailabilityUI(status: string): void {
             busy: 'bg-amber-100 text-amber-700',
             offline: 'bg-slate-100 text-slate-500',
         };
-        badge.className = `px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${badgeStyles[status] ?? 'bg-slate-100 text-slate-500'}`;
+        badge.className = `px-2.5 py-1 rounded-full text-3xs font-bold uppercase ${badgeStyles[status] ?? 'bg-slate-100 text-slate-500'}`;
         badge.textContent = status;
     }
 }
@@ -194,7 +194,7 @@ async function loadActiveJobs(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(r.title)}</td>
                 <td class="px-5 py-3">${tradeLabel(r.trade_needed)}</td>
                 <td class="px-5 py-3 text-xs text-slate-500"><span data-i18n="tp_homeowner">Homeowner</span>: ${esc(r.homeowner_name)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-teal-100 text-teal-700" data-i18n="tp_direct">direct</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-teal-100 text-teal-700" data-i18n="tp_direct">direct</span></td>
             </tr>`;
         }
 
@@ -204,7 +204,7 @@ async function loadActiveJobs(): Promise<void> {
                 <td class="px-5 py-3 font-medium">${esc(a.project_title)}</td>
                 <td class="px-5 py-3">${tradeLabel(a.trade_required)}</td>
                 <td class="px-5 py-3 text-xs text-slate-500"><span data-i18n="tp_contractor">Contractor</span>: ${esc(a.contractor_name)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
             </tr>`;
         }
         tbody.innerHTML = html || `<tr><td colspan="4" class="px-5 py-4 text-center text-slate-400 text-sm" data-i18n="tp_no_active_work">No active work</td></tr>`;
@@ -238,10 +238,10 @@ async function loadRequests(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(r.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1">${esc(r.description ?? 'No description')}</p>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-400">
+                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
                             <span><i class="ph ph-user" aria-hidden="true"></i> ${esc(r.homeowner_name)}</span>
                             ${r.address_text ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(r.address_text)}</span>` : ''}
                             ${r.budget_max ? `<span><i class="ph ph-coins" aria-hidden="true"></i> <span data-i18n="tp_budget">Budget</span>: ${formatCents(r.budget_max)}</span>` : ''}
@@ -309,17 +309,17 @@ async function loadAssignments(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3">
                     <p class="font-medium">${esc(a.project_title)}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5"><span data-i18n="tp_contractor">Contractor</span>: ${esc(a.contractor_name)}</p>
+                    <p class="text-3xs text-slate-400 mt-0.5"><span data-i18n="tp_contractor">Contractor</span>: ${esc(a.contractor_name)}</p>
                 </td>
                 <td class="px-5 py-3">${tradeLabel(a.trade_required)}</td>
                 <td class="px-5 py-3 text-xs text-slate-500 max-w-[200px] truncate">${esc(a.scope_description)}</td>
                 <td class="px-5 py-3 font-mono text-sm">${formatCents(a.agreed_rate)}/${a.rate_type}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
+                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
                 <td class="px-5 py-3">
                     ${a.status === 'pending' ? `
                         <div class="flex gap-1.5">
-                            <button class="respond-btn px-2.5 py-1 bg-green-600 text-white text-[10px] font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
-                            <button class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-[10px] font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
+                            <button class="respond-btn px-2.5 py-1 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
+                            <button class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
                         </div>
                     ` : '—'}
                 </td>
@@ -368,7 +368,7 @@ async function loadEarnings(): Promise<void> {
         tbody.innerHTML = earnings.map((e) => `
             <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(e.title)}</td>
-                <td class="px-5 py-3 text-xs"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${e.source_type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-teal-100 text-teal-600'}" data-i18n="${e.source_type === 'assignment' ? 'tp_contractor_type' : 'tp_direct_type'}">${e.source_type === 'assignment' ? 'Contractor' : 'Direct'}</span></td>
+                <td class="px-5 py-3 text-xs"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${e.source_type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-teal-100 text-teal-600'}" data-i18n="${e.source_type === 'assignment' ? 'tp_contractor_type' : 'tp_direct_type'}">${e.source_type === 'assignment' ? 'Contractor' : 'Direct'}</span></td>
                 <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(e.amount)}</td>
                 <td class="px-5 py-3 text-xs text-slate-400">${formatDate(e.completed_at)}</td>
             </tr>
@@ -401,15 +401,15 @@ async function loadProfile(): Promise<void> {
 
         container.innerHTML = `
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${p.years_experience ?? '—'} ${t('tp_years', 'years')}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${t('tp_per_hour', '/hr')}` : '—'}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${t('tp_per_day', '/day')}` : '—'}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} <i class="ph ph-star nm-star-rating nm-icon-gap-start"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
-                <div><p class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${p.years_experience ?? '—'} ${t('tp_years', 'years')}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${t('tp_per_hour', '/hr')}` : '—'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${t('tp_per_day', '/day')}` : '—'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} <i class="ph ph-star nm-star-rating nm-icon-gap-start"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
             </div>
         `;
     } catch (err) {
@@ -435,7 +435,7 @@ function setText(id: string, text: string): void {
 function tradeLabel(trade: string): string {
     if (!trade) { return '—'; }
     const colorClass = tradeColor(trade);
-    return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${colorClass}" data-i18n="trade_${trade}">${esc(trade)}</span>`;
+    return `<span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${colorClass}" data-i18n="trade_${trade}">${esc(trade)}</span>`;
 }
 
 // NMR-AUD-305: timeAgo() removed — replaced by relativeTimeAgo() from '../utils/format'

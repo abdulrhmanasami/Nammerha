@@ -97,12 +97,12 @@
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html">
         <i class="ph ph-buildings" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_my_projects">My Projects</span>
-        <span class="ms-auto bg-trust-blue/20 text-trust-blue text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="project-count">0</span>
+        <span class="ms-auto bg-trust-blue/20 text-trust-blue text-3xs font-bold px-1.5 py-0.5 rounded-full" id="project-count">0</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="contractor-portal.html?tab=proofs">
         <i class="ph ph-camera" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="contractor_spatial_proofs">Spatial Proofs</span>
-        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
+        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full" id="proof-pending">0</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="wallet.html">
         <i class="ph ph-wallet" aria-hidden="true"></i>
@@ -120,7 +120,7 @@
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="contractor_portal">Contractor Portal</p>
-          <p class="text-[10px] text-slate-500" data-i18n="contractor_access">Contractor Access</p>
+          <p class="text-3xs text-slate-500" data-i18n="contractor_access">Contractor Access</p>
         </div>
       </div>
       <!-- INC-N04 FIX: Logout button was missing from contractor-dashboard sidebar.
@@ -149,7 +149,7 @@
         <div id="role-switcher-mount-header"></div>
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-bids" title="Jump to bids">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[10px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
       </div>
@@ -173,7 +173,7 @@
               <i class="ph ph-buildings text-trust-blue text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_assigned_projects">Assigned Projects</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_assigned_projects">Assigned Projects</p>
           <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
           <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="assigned-projects">
@@ -188,7 +188,7 @@
             </div>
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_active">Active</span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_active_bids">Active Bids</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_active_bids">Active Bids</p>
           <!-- CRIT-001b FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
@@ -203,7 +203,7 @@
               <i class="ph ph-check-circle text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_completed_projects">Completed Projects</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_completed_projects">Completed Projects</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="completed-projects">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -215,7 +215,7 @@
               <i class="ph ph-currency-dollar text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_total_earnings">Total Earnings</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="contractor_total_earnings">Total Earnings</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="total-earnings">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -238,7 +238,7 @@
               <!-- FRIC-AUD-03 FIX: Added temporal columns.
                    Previous: No date context — financial platform requires temporal accountability.
                    Standard: FinTech UX, ISO 8601 date formatting. -->
-              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="contractor_th_project">Project</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="contractor_th_region">Region</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="contractor_th_assigned">Assigned</th>
@@ -266,7 +266,7 @@
         <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
           <table class="w-full text-sm nm-donation-table">
             <thead>
-              <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="contractor_th_project">Project</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="contractor_th_proposed_cost">Proposed Cost</th>
                 <th scope="col" class="px-5 py-3 text-start" data-i18n="contractor_th_timeline">Timeline</th>

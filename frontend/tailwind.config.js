@@ -7,6 +7,13 @@ export default {
     darkMode: ['selector', '[data-theme="dark"]'],
     theme: {
         extend: {
+            /* TW-001 FIX: Design System Typography Floor Token.
+               Previous: 390× `text-[10px]` arbitrary JIT values across 50 files.
+               Now: Semantic `text-3xs` token — INC-002 governance minimum (10px).
+               Standard: Design System Token Governance, Tailwind Best Practices. */
+            fontSize: {
+                '3xs': ['0.625rem', { lineHeight: '1rem' }],
+            },
             colors: {
                 /* ─── Brand Identity (Visual Identity PDF — Source of Truth) ─── */
                 'trust-blue': '#1A73E8',  // Primary: CTAs, financial buttons

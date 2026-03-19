@@ -138,9 +138,9 @@ async function loadFundedProjects(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(p.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-400">
+                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
                             <span class="text-emerald-600 font-bold">${esc(t('donor_my_contribution', 'My contribution'))}: ${formatCents(p.my_total_donated)}</span>
@@ -151,7 +151,7 @@ async function loadFundedProjects(): Promise<void> {
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div class="h-full bg-emerald-500 rounded-full transition-all nm-progress-bar" style="--progress:${Math.min(p.funded_percentage, 100)}%"></div>
                             </div>
-                            <span class="text-[10px] font-bold text-emerald-600">${p.funded_percentage}%</span>
+                            <span class="text-3xs font-bold text-emerald-600">${p.funded_percentage}%</span>
                         </div>
                     </div>
                 </div>
@@ -183,7 +183,7 @@ async function loadMarketplace(): Promise<void> {
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <h4 class="font-medium">${esc(p.title)}</h4>
-                        <div class="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
+                        <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
                             <span>${p.items_count} ${esc(t('donor_items_label', 'items'))}</span>
@@ -192,13 +192,13 @@ async function loadMarketplace(): Promise<void> {
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div class="h-full rounded-full transition-all ${p.funded_percentage >= 100 ? 'bg-green-500' : 'bg-emerald-400'} nm-progress-bar" style="--progress:${Math.min(p.funded_percentage, 100)}%"></div>
                             </div>
-                            <span class="text-[10px] font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</span>
+                            <span class="text-3xs font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</span>
                         </div>
                         <div class="flex items-center justify-between mt-2">
                             <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
                             ${p.funded_percentage < 100 ? `
-                                <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
-                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded"><i class="ph ph-check-circle nm-icon-gap-end"></i>${esc(t('fully_funded', 'Fully Funded'))}</span>`}
+                                <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-3xs font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
+                            ` : `<span class="text-3xs font-bold text-green-600" data-i18n="fully_funded"><i class="ph ph-check-circle nm-icon-gap-end"></i>${esc(t('fully_funded', 'Fully Funded'))}</span>`}
                         </div>
                     </div>
                 </div>
@@ -230,7 +230,7 @@ async function loadDonations(): Promise<void> {
                 <td class="px-5 py-3 font-medium" data-label="${esc(t('th_material', 'Material'))}">${esc(d.material_name)}</td>
                 <td class="px-5 py-3 text-xs" data-label="${esc(t('th_project', 'Project'))}">${esc(d.project_title)}</td>
                 <td class="px-5 py-3 font-mono font-bold text-emerald-600" data-label="${esc(t('th_amount', 'Amount'))}">${formatCents(d.amount_locked)}</td>
-                <td class="px-5 py-3" data-label="${esc(t('th_status', 'Status'))}"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
+                <td class="px-5 py-3" data-label="${esc(t('th_status', 'Status'))}"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
                 <td class="px-5 py-3 text-xs text-slate-400" data-label="${esc(t('th_date', 'Date'))}">${formatDate(d.locked_at)}</td>
             </tr>
         `).join('');
@@ -264,9 +264,9 @@ async function loadImpact(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(p.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
-                        <div class="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
+                        <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400">
                             <span>${esc(t('donor_donated_label', 'Donated'))}: <strong class="text-emerald-600">${formatCents(p.my_total_donated)}</strong></span>
                             <span>${p.items_i_funded} ${esc(t('donor_items_funded', 'items funded'))}</span>
                             <span>${esc(t('donor_progress_label', 'Progress'))}: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</strong></span>
@@ -306,16 +306,16 @@ async function loadProofs(): Promise<void> {
                 : `<i class="ph ph-image text-slate-300 nm-icon-40"  aria-hidden="true"></i>`
             }
                     ${proof.gps_lat ? `
-                        <div class="absolute bottom-2 end-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full font-mono">
+                        <div class="absolute bottom-2 end-2 bg-black/60 text-white text-3xs px-2 py-1 rounded-full font-mono">
                             <i class="ph ph-map-pin" aria-hidden="true"></i> ${proof.gps_lat.toFixed(4)}, ${proof.gps_lng?.toFixed(4) ?? ''}
                         </div>
                     ` : ''}
                 </div>
                 <div class="p-3">
                     <p class="font-medium text-sm">${esc(proof.project_title)}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">${esc(proof.material_name ?? t('not_available', 'N/A'))}</p>
-                    ${proof.verified_by ? `<p class="text-[10px] text-emerald-600 mt-1"><i class="ph ph-shield-check" aria-hidden="true"></i> ${esc(proof.verified_by)}</p>` : ''}
-                    ${proof.verified_at ? `<p class="text-[10px] text-slate-400">${formatDate(proof.verified_at)}</p>` : ''}
+                    <p class="text-3xs text-slate-400 mt-0.5">${esc(proof.material_name ?? t('not_available', 'N/A'))}</p>
+                    ${proof.verified_by ? `<p class="text-3xs text-emerald-600 mt-1"><i class="ph ph-shield-check" aria-hidden="true"></i> ${esc(proof.verified_by)}</p>` : ''}
+                    ${proof.verified_at ? `<p class="text-3xs text-slate-400">${formatDate(proof.verified_at)}</p>` : ''}
                 </div>
             </div>
         `).join('');

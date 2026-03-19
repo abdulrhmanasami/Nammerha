@@ -77,12 +77,12 @@
       <button type="button" id="tab-requests" role="tab" aria-selected="false" aria-controls="section-requests" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-wrench" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_service_requests">Service Requests</span>
-        <span class="ms-auto bg-trust-blue/20 text-trust-blue text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
+        <span class="ms-auto bg-trust-blue/20 text-trust-blue text-3xs font-bold px-1.5 py-0.5 rounded-full" id="sr-count">0</span>
       </button>
       <button type="button" id="tab-approvals" role="tab" aria-selected="false" aria-controls="section-approvals" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-check-square" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="homeowner_approvals">Approvals</span>
-        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
+        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full" id="approval-count">0</span>
       </button>
       <button type="button" id="tab-payments" role="tab" aria-selected="false" aria-controls="section-payments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-vault" aria-hidden="true"></i>
@@ -147,7 +147,7 @@
         <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[10px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
       </div>
@@ -177,7 +177,7 @@
               <i class="ph ph-buildings text-trust-blue text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
           <!-- INC-2026-C03 FIX: Skeleton loader replaces hardcoded "0".
                Previous: Static "0" shown before API → false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
@@ -191,7 +191,7 @@
               <i class="ph ph-flag-banner text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
           <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-bids">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -202,7 +202,7 @@
               <i class="ph ph-clock text-warning-yellow text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
           <!-- CRIT-001d FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
@@ -216,10 +216,10 @@
               <i class="ph ph-vault text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_escrow">In Escrow</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_escrow">In Escrow</p>
           <!-- FRIC-2602 FIX: Plain-language escrow subtitle for homeowner KPI card.
                Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
-          <p class="text-[10px] text-slate-400/70 -mt-0.5" data-i18n="homeowner_escrow_kpi_hint">Funds held until milestones verified</p>
+          <p class="text-3xs text-slate-400/70 -mt-0.5" data-i18n="homeowner_escrow_kpi_hint">Funds held until milestones verified</p>
           <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-escrow">
             <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -260,7 +260,7 @@
                  Standard: Design System Component Unity, Nielsen #4 (Consistency). -->
             <table class="w-full text-sm nm-donation-table">
               <thead>
-                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_project">Project</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_type">Type</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_engineer">Engineer</th>
@@ -296,7 +296,7 @@
             <!-- ═══ Step 1: Essential (always visible) ═══ -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label for="sr-trade" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_trade">Trade Needed</label>
+                <label for="sr-trade" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_trade">Trade Needed</label>
                 <select id="sr-trade" class="nm-select">
             <!-- GAP-2602 FIX: Added disabled placeholder option — prevents accidental 'Tiling' submission.
                  Previous: First option auto-selected, users who didn't change it submitted wrong trade.
@@ -315,7 +315,7 @@
                 </select>
               </div>
               <div>
-                <label for="sr-title" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_title">Title</label>
+                <label for="sr-title" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_title">Title</label>
                 <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="nm-input mt-1" />
               </div>
             </div>
@@ -324,25 +324,25 @@
             <div id="sr-details-wrap" class="hidden space-y-4 animate-fade-in-up">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label for="sr-urgency" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_urgency">Urgency</label>
+                  <label for="sr-urgency" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_urgency">Urgency</label>
                   <select id="sr-urgency" class="nm-select mt-1">
                     <option value="low" data-i18n="urgency_routine">Routine</option>
                     <option value="high" data-i18n="urgency_urgent">Urgent</option>
                     <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
                   </select>
-                  <p class="text-[10px] text-slate-400 mt-1" data-i18n="ho_urgency_hint">Routine: 5-7 days · Urgent: 24-48 hrs · Emergency: Same day</p>
+                  <p class="text-3xs text-slate-400 mt-1" data-i18n="ho_urgency_hint">Routine: 5-7 days · Urgent: 24-48 hrs · Emergency: Same day</p>
                 </div>
                 <div>
-                  <label for="sr-address" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_location">Location</label>
+                  <label for="sr-address" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_location">Location</label>
                   <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="nm-input mt-1" />
                 </div>
               </div>
               <div>
-                <label for="sr-description" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_description">Description (optional)</label>
+                <label for="sr-description" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_description">Description (optional)</label>
                 <textarea id="sr-description" rows="2" placeholder="Describe the issue..." data-i18n-placeholder="ho_sr_desc_placeholder" class="nm-textarea mt-1"></textarea>
               </div>
               <div>
-                <label for="sr-budget" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_max_budget">Max Budget ($)</label>
+                <label for="sr-budget" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_max_budget">Max Budget ($)</label>
                 <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="nm-input mt-1" />
               </div>
               <!-- M-AUD-008 FIX: Photo upload for damage evidence.
@@ -357,12 +357,12 @@
                    The storage.presign() API exists for S3 upload — backend route extension needed.
                    Standard: Nielsen #1 (Visibility of System Status), Honest UX. -->
               <div>
-                <label for="sr-photos" class="text-[10px] font-bold text-slate-400 uppercase" data-i18n="ho_lbl_photos">Photos (coming soon)</label>
+                <label for="sr-photos" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_photos">Photos (coming soon)</label>
                 <div class="mt-1 relative">
                   <input id="sr-photos" type="file" accept="image/*" capture="environment" multiple disabled
                     class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-400 cursor-not-allowed opacity-60" />
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1" data-i18n="ho_photos_coming_soon">Photo upload will be available in the next update.</p>
+                <p class="text-3xs text-slate-400 mt-1" data-i18n="ho_photos_coming_soon">Photo upload will be available in the next update.</p>
               </div>
             </div>
 
@@ -398,7 +398,7 @@
             <!-- INC-2026-C05 FIX: nm-donation-table for mobile card-collapse -->
             <table class="w-full text-sm nm-donation-table">
               <thead>
-                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_title">Title</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_trade">Trade</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_urgency">Urgency</th>

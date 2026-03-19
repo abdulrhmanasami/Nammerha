@@ -63,7 +63,7 @@ export function createFilterControl(
 
     filters.forEach((f, idx) => {
         const btn = document.createElement('button');
-        btn.className = `text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all ${idx === 0
+        btn.className = `text-3xs font-bold px-2.5 py-1 rounded-lg transition-all ${idx === 0
             ? 'bg-trust-blue text-white shadow-sm'
             : 'text-slate-500 hover:bg-slate-100'
             }`;
@@ -74,9 +74,9 @@ export function createFilterControl(
         btn.addEventListener('click', () => {
             // Update active state
             container.querySelectorAll('button').forEach((b) => {
-                b.className = 'text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all text-slate-500 hover:bg-slate-100';
+                b.className = 'text-3xs font-bold px-2.5 py-1 rounded-lg transition-all text-slate-500 hover:bg-slate-100';
             });
-            btn.className = 'text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all bg-trust-blue text-white shadow-sm';
+            btn.className = 'text-3xs font-bold px-2.5 py-1 rounded-lg transition-all bg-trust-blue text-white shadow-sm';
 
             onFilterChange(f.value);
         });

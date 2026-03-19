@@ -78,12 +78,12 @@
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
+        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
       <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-kyc.html">
         <i class="ph ph-identification-card" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-[10px] font-bold px-1.5 py-0.5 rounded-full">—</span>
+        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
       <!-- CONF-P3-003 FIX: Was ph-buildings — corrected to ph-package to match all other admin pages.
            Standard: Nielsen #4 (Consistency), Design DNA. -->
@@ -97,7 +97,7 @@
       <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true" title="Coming Soon">
         <i class="ph ph-gear" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ms-auto text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
       </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
@@ -105,7 +105,7 @@
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-[10px] text-slate-500" data-i18n="admin_institutional">Institutional Access</p>
+          <p class="text-3xs text-slate-500" data-i18n="admin_institutional">Institutional Access</p>
         </div>
       </div>
       <button id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
@@ -157,10 +157,10 @@
               <i class="ph ph-currency-dollar text-trust-blue text-xl"  aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <i class="ph ph-trend-up text-[10px]"  aria-hidden="true"></i> Phase 1
+              <i class="ph ph-trend-up text-3xs"  aria-hidden="true"></i> Phase 1
             </span>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_total_revenue">Total Revenue</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_total_revenue">Total Revenue</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-total-revenue">$0.00</p>
         </div>
 
@@ -171,9 +171,9 @@
               <i class="ph ph-receipt text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_commissions">Commissions</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_commissions">Commissions</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-commissions">$0.00</p>
-          <p class="text-[10px] text-slate-400 mt-1"><span aria-live="polite" id="kpi-commission-count">0</span> transactions</p>
+          <p class="text-3xs text-slate-400 mt-1"><span aria-live="polite" id="kpi-commission-count">0</span> transactions</p>
         </div>
 
         <!-- Tip Revenue -->
@@ -183,9 +183,9 @@
               <i class="ph ph-heart text-warm-earth text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_tips">Tips</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_tips">Tips</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-tips">$0.00</p>
-          <p class="text-[10px] text-slate-400 mt-1"><span aria-live="polite" id="kpi-tip-count">0</span> donations</p>
+          <p class="text-3xs text-slate-400 mt-1"><span aria-live="polite" id="kpi-tip-count">0</span> donations</p>
         </div>
 
         <!-- Average Tip -->
@@ -195,9 +195,9 @@
               <i class="ph ph-chart-bar text-warning-yellow text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_avg_tip">Average Tip</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_avg_tip">Average Tip</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-avg-tip">$0.00</p>
-          <p class="text-[10px] text-slate-400 mt-1" aria-live="polite" id="kpi-avg-tip-pct">0%</p>
+          <p class="text-3xs text-slate-400 mt-1" aria-live="polite" id="kpi-avg-tip-pct">0%</p>
         </div>
       </div>
 
@@ -217,11 +217,11 @@
               <!-- GAP-P3-007 FIX: Table headers were missing i18n attributes.
                    Standard: i18n Completeness. -->
               <tr class="border-b border-slate-100 text-start">
-                <th scope="col" class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_tier">Tier</th>
-                <th scope="col" class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_revenue_range">Revenue Range</th>
-                <th scope="col" class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_rate_bps">Rate (bps)</th>
-                <th scope="col" class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_rate_pct">Rate (%)</th>
-                <th scope="col" class="px-5 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_status">Status</th>
+                <th scope="col" class="px-5 py-3 text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_tier">Tier</th>
+                <th scope="col" class="px-5 py-3 text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_revenue_range">Revenue Range</th>
+                <th scope="col" class="px-5 py-3 text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_rate_bps">Rate (bps)</th>
+                <th scope="col" class="px-5 py-3 text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_rate_pct">Rate (%)</th>
+                <th scope="col" class="px-5 py-3 text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="th_status">Status</th>
               </tr>
             </thead>
             <tbody id="tier-table-body">
@@ -265,7 +265,7 @@
         </div>
         <!-- CONF-P3-004 FIX: "Verified" text was not i18n-ized. Dashboard has data-i18n.
              Standard: i18n Completeness. -->
-        <span class="text-[10px] font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider" data-i18n="admin_ocds_verified">Verified</span>
+        <span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider" data-i18n="admin_ocds_verified">Verified</span>
       </div>
     </div>
   </main>

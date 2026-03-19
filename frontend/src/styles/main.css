@@ -316,6 +316,11 @@ body {
   min-height: 100dvh;
   line-height: 1.5;
   overscroll-behavior: contain;
+  /* DUP-002 FIX: Merged from separate body block at L1354.
+     P3-ORBS-CLIP: Prevent gradient orb horizontal overflow.
+     Using clip instead of hidden to preserve position:sticky.
+     Standard: CSS Containment, Mobile Viewport Stability. */
+  overflow-x: clip;
 }
 
 /* Arabic body variant */
@@ -416,11 +421,8 @@ html[data-theme="dark"] :focus-visible {
   outline-offset: 2px;
 }
 
-/* CONF-002 FIX: Hide bottom navigation on desktop viewports (≥640px).
-   Desktop uses the glassmorphism top nav bar instead. Mobile keeps 5-tab bar. */
-@media (min-width: 640px) {
-  .nm-bottom-nav { display: none !important; }
-}
+/* DUP-001 FIX: Removed duplicate .nm-bottom-nav desktop hide.
+   Canonical rule is at CON-01 FIX block (L1508+). */
 
 /* INC-003 FIX: Standardized skeleton loading bar component.
    Replaces ad-hoc animate-pulse implementations across 25+ pages. */
@@ -1344,16 +1346,8 @@ html[data-theme="dark"] .text-red-400 {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   P3-ORBS-CLIP FIX: Prevent Gradient Orb Horizontal Overflow
-   Previous: Gradient orbs (position:absolute, negative insets like -60px)
-   could cause horizontal scrollbar on narrow mobile viewports.
-   Using overflow-x: clip instead of hidden to preserve position:sticky.
-   Standard: CSS Containment, Mobile Viewport Stability.
-   ═══════════════════════════════════════════════════════════════════════════ */
-body {
-    overflow-x: clip;
-}
+/* DUP-002 FIX: Removed fragmented body{overflow-x:clip} — merged into canonical
+   body block at L312. Standard: CSS Architecture — Single Definition Rule. */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    P1-001 FIX: Unified Bottom Navigation Bar — CSS Classes
@@ -1468,12 +1462,17 @@ body {
 }
 
 /* ─── Theme Toggle FAB ───────────────────────────────────────────────── */
+/* DEAD-001 FIX: Consolidated P1-NIT-001 WCAG 2.5.5 touch target compliance.
+   Previous: 36×36px here, overridden to 40×40px + 44px min at L3214.
+   Now: Correct sizes in single definition. */
 .nm-theme-fab {
     position: absolute;
     top: -18px;
     inset-inline-end: 16px;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.12);
     background: rgba(17,24,39,0.95);
@@ -2091,6 +2090,11 @@ html[data-theme="dark"] .peer ~ div[class*="bg-slate-300"] {
        edge to signal "more content exists, keep scrolling."
        Standard: Material Design 3 (Carousel), Apple HIG (Peek Affordance). */
     padding-inline-end: 20px;
+    /* DUP-003 FIX: Merged from P2-CRS-001 block (was separate rule at L3191).
+       Constrains touch to horizontal axis — prevents diagonal swipes from
+       triggering both scroll and back-gesture.
+       Standard: CSS Touch-Action L1, Material Design 3 (Carousel). */
+    touch-action: pan-x;
 }
 [id="projects-carousel"]:focus-visible {
     outline: 2px solid var(--trust-blue);
@@ -3181,16 +3185,8 @@ html[data-theme="dark"] a.text-warning-yellow {
     transform: scale(0.95);
 }
 
-/* ============================================================================
-   P2-CRS-001 FIX: Horizontal Carousel Touch-Action Constraint
-   Previous: overflow-x:auto + scroll-snap-type but NO touch-action.
-   Diagonal swipes triggered horizontal scroll AND vertical back-gesture.
-   Now: pan-x constrains touch to horizontal axis only.
-   Standard: CSS Touch-Action L1, Material Design 3 (Carousel).
-   ============================================================================ */
-[id="projects-carousel"] {
-    touch-action: pan-x;
-}
+/* DUP-003 FIX: Removed duplicate [id="projects-carousel"] touch-action rule.
+   Merged into canonical carousel block at P2-A11Y-CAROUSEL section. */
 
 /* ============================================================================
    P2-IOS-001 FIX: iOS Glassmorphism Compositing Stabilization
@@ -3205,18 +3201,9 @@ html[data-theme="dark"] a.text-warning-yellow {
     transform: translate3d(0, 0, 0);
 }
 
-/* ============================================================================
-   P1-NIT-001 FIX: Theme FAB Touch Target Compliance
-   Previous: .nm-theme-fab was 36×36px (L1409) — below WCAG 2.5.5 44px minimum.
-   Now: Visual size bumped to 40px, with 44px touch area via min-width/min-height.
-   Standard: WCAG 2.5.5 (Target Size), Apple HIG 44pt minimum.
-   ============================================================================ */
-.nm-theme-fab {
-    width: 40px;
-    height: 40px;
-    min-width: 44px;
-    min-height: 44px;
-}
+/* DEAD-001 FIX: Removed duplicate .nm-theme-fab sizing override.
+   Touch target compliance (40px visual, 44px min) consolidated into canonical
+   definition at Theme Toggle FAB section. */
 
 /* ============================================================================
    DT-1 FIX: i18n Language Selector Widget — CSS Single Source of Truth
@@ -3339,7 +3326,9 @@ html[data-theme="dark"] .nm-lang-opt.active {
    ============================================================================ */
 .nm-fly-item {
     position: fixed;
-    z-index: 9999;
+    /* TOKEN-001 FIX: Replaced magic z-index 9999 with design token.
+       Standard: INC-X06 z-index token governance. */
+    z-index: var(--z-toast, 9950);
     left: var(--fly-x, 0px);
     top: var(--fly-y, 0px);
     font-size: var(--fly-size, 1rem);

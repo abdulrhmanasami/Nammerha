@@ -89,7 +89,7 @@
       <!-- GAP-003: Edit mode (hidden by default) -->
       <form id="profile-edit-form" class="hidden w-full mt-2 space-y-3 text-start">
         <div>
-          <!-- PLAT-M03 FIX: Standardized label from text-[10px] text-slate-400 mb-1 to
+          <!-- PLAT-M03 FIX: Standardized label from text-3xs text-slate-400 mb-1 to
                text-xs text-slate-500 mb-2 — matches auth.html design system pattern.
                Root cause: Two engineers styled forms independently with no shared component.
                Standard: Nielsen #4 (Consistency), Design System Typography Scale. -->
@@ -132,13 +132,13 @@
             <div class="relative">
               <img id="photo-preview-img" class="w-16 h-16 rounded-full object-cover border-2 border-trust-blue shadow-sm" alt="Selected photo preview" />
               <button type="button" id="photo-preview-remove" class="absolute -top-1 -end-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 transition-colors" aria-label="Remove selected photo">
-                <i class="ph ph-x text-[10px]"  aria-hidden="true"></i>
+                <i class="ph ph-x text-3xs"  aria-hidden="true"></i>
               </button>
             </div>
-            <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-[10px] (hints) + text-xs (labels/status). -->
+            <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-3xs (hints) + text-xs (labels/status). -->
             <span class="text-xs text-smoky-jade font-semibold" data-i18n="photo_selected">Photo selected ✓</span>
           </div>
-          <p class="text-[10px] text-slate-400 mt-1" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
+          <p class="text-3xs text-slate-400 mt-1" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
         </div>
         <div id="profile-edit-banner" class="hidden text-xs font-bold p-3 rounded-xl"></div>
         <div class="flex gap-2 pt-1">
@@ -181,9 +181,9 @@
               <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
             </div>
-            <!-- INC-002 FIX: text-[11px] → text-[10px] — micro-hint tier (password guidance).
+            <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (password guidance).
                  Standard: Design System Typography Scale Governance. -->
-            <p class="text-[10px] text-slate-400 mt-1" id="pw-change-strength-text" data-i18n="password_strength_hint">Min 8 characters, uppercase, lowercase, number, symbol</p>
+            <p class="text-3xs text-slate-400 mt-1" id="pw-change-strength-text" data-i18n="password_strength_hint">Min 8 characters, uppercase, lowercase, number, symbol</p>
           </div>
           <div>
             <label for="confirm-new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="confirm_new_password">Confirm New Password</label>
@@ -204,7 +204,7 @@
            Standard: Nielsen #1 (System Status Visibility), Consistent Loading States. -->
       <div class="w-full mt-4" id="profile-completion-container">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="profile_completion">Profile Completion</span>
+          <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="profile_completion">Profile Completion</span>
           <!-- FRIC-2604 FIX: Skeleton loader replaces hardcoded "0%" before API data loads.
                Previous: showed "0%" → misleading flash for users who may have 60% completion.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
@@ -220,7 +220,7 @@
              Without this, users see a progress metric but can't act on it.
              Standard: Nielsen #10 — Help and documentation. Gamification — Actionable progress. -->
         <details id="completion-checklist" class="mt-2">
-          <summary class="text-[10px] text-trust-blue font-semibold cursor-pointer hover:underline" data-i18n="profile_whats_missing">What's missing?</summary>
+          <summary class="text-3xs text-trust-blue font-semibold cursor-pointer hover:underline" data-i18n="profile_whats_missing">What's missing?</summary>
           <!-- GAP-N04 FIX: Checklist items are now interactive buttons with data-focus-target.
                Previous: static text — users saw what was missing but couldn't act.
                Now: tapping an item scrolls to and focuses the relevant form field.
@@ -307,7 +307,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="notification_setting">Notifications</p>
-          <p class="text-[10px] text-slate-400" data-i18n="notification_desc">Push and email alerts</p>
+          <p class="text-3xs text-slate-400" data-i18n="notification_desc">Push and email alerts</p>
         </div>
         <label class="relative inline-flex items-center cursor-pointer">
           <input type="checkbox" id="notif-toggle" class="sr-only peer" checked>
@@ -323,7 +323,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="kyc_verification">KYC Verification</p>
-          <p id="kyc-detail" class="text-[10px] text-slate-400" data-i18n="kyc_detail">Verify your identity</p>
+          <p id="kyc-detail" class="text-3xs text-slate-400" data-i18n="kyc_detail">Verify your identity</p>
         </div>
         <i id="kyc-status-icon" class="ph ph-clock text-slate-400" aria-hidden="true"></i>
       </div>
@@ -335,7 +335,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="my_wallet">My Wallet</p>
-          <p class="text-[10px] text-slate-400" data-i18n="wallet_desc">Balance, transactions & deposits</p>
+          <p class="text-3xs text-slate-400" data-i18n="wallet_desc">Balance, transactions & deposits</p>
         </div>
         <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
       </a>
@@ -347,7 +347,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-[10px] text-slate-400" data-i18n="admin_portal_desc">Dashboard & management</p>
+          <p class="text-3xs text-slate-400" data-i18n="admin_portal_desc">Dashboard & management</p>
         </div>
         <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
       </a>
@@ -357,7 +357,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="about_nammerha">About Nammerha</p>
-          <p class="text-[10px] text-slate-400">v1.0.0 — <span data-i18n="ocds_certified">OCDS Certified</span></p>
+          <p class="text-3xs text-slate-400">v1.0.0 — <span data-i18n="ocds_certified">OCDS Certified</span></p>
         </div>
         <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
       </a>

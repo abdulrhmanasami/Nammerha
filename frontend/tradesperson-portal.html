@@ -85,7 +85,7 @@
         <!-- INC-2602 FIX: Was teal-500 — not a design token. Replaced with smoky-jade.
              Platform tokens: trust-blue, smoky-jade, warm-earth, warning-yellow.
              Standard: Design System Token Governance, Nielsen #4 (Consistency). -->
-        <span class="ms-auto bg-smoky-jade/20 text-smoky-jade text-[10px] font-bold px-1.5 py-0.5 rounded-full" id="pending-count">0</span>
+        <span class="ms-auto bg-smoky-jade/20 text-smoky-jade text-3xs font-bold px-1.5 py-0.5 rounded-full" id="pending-count">0</span>
       </button>
       <button type="button" role="tab" id="tab-assignments" aria-selected="false" aria-controls="section-assignments" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
         <i class="ph ph-clipboard-text" aria-hidden="true"></i>
@@ -118,15 +118,15 @@
     <div class="p-4 border-t border-slate-200 space-y-2">
       <!-- I18N-AUD-F01 FIX: "Availability" was hardcoded English — added data-i18n.
            Standard: RTL i18n parity — all user-facing strings must use data-i18n. -->
-      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_availability">Availability</p>
+      <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_availability">Availability</p>
       <!-- A11Y-AUD-E02 FIX: Added aria-pressed to availability buttons.
            Previous: no ARIA state — screen readers couldn't identify active status.
            Standard: WAI-ARIA button toggle pattern (aria-pressed). -->
       <!-- I18N-AUD-F01 FIX: All three status labels now have data-i18n attributes. -->
       <div class="flex gap-1" id="availability-btns" role="group" aria-label="Availability status">
-        <button data-status="available" aria-pressed="true" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-smoky-jade/30 bg-smoky-jade/10 text-smoky-jade" data-i18n="tradesperson_available">Available</button>
-        <button data-status="busy" aria-pressed="false" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_busy">Busy</button>
-        <button data-status="offline" aria-pressed="false" class="flex-1 px-2 py-1.5 text-[10px] font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_offline">Offline</button>
+        <button data-status="available" aria-pressed="true" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-smoky-jade/30 bg-smoky-jade/10 text-smoky-jade" data-i18n="tradesperson_available">Available</button>
+        <button data-status="busy" aria-pressed="false" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_busy">Busy</button>
+        <button data-status="offline" aria-pressed="false" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_offline">Offline</button>
       </div>
     </div>
     <!-- Logout -->
@@ -159,7 +159,7 @@
         <div id="role-switcher-mount-header"></div>
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-requests" title="Jump to requests">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-[10px] font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
         </button>
       </div>
       </div>
@@ -178,7 +178,7 @@
           <p class="text-sm text-slate-500" data-i18n="tradesperson_subtitle">Find jobs, manage assignments, and track your earnings</p>
         </div>
         <div class="flex items-center gap-3">
-          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase" id="availability-badge">—</span>
+          <span class="px-2.5 py-1 rounded-full text-3xs font-bold uppercase" id="availability-badge">—</span>
           <span class="text-xs text-slate-400" id="trade-badge">—</span>
         </div>
       </div>
@@ -192,7 +192,7 @@
               <i class="ph ph-wrench text-trust-blue text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_active_jobs">Active Jobs</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_active_jobs">Active Jobs</p>
           <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-active">
@@ -205,7 +205,7 @@
               <i class="ph ph-check-circle text-smoky-jade text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_completed">Completed</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_completed">Completed</p>
           <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-completed">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -216,7 +216,7 @@
               <i class="ph ph-currency-dollar text-trust-blue text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_total_earnings">Total Earnings</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_total_earnings">Total Earnings</p>
           <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-earnings">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -227,7 +227,7 @@
               <i class="ph ph-star text-warning-yellow text-xl"  aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_rating">Rating</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="tradesperson_rating">Rating</p>
           <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-rating">
             <span class="inline-block h-7 w-14 bg-slate-200 rounded animate-pulse"></span>
           </p>
@@ -249,7 +249,7 @@
           <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <table class="w-full text-sm nm-donation-table">
               <thead>
-                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_job">Job</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_type">Type</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_source">Source</th>
@@ -294,7 +294,7 @@
           <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <table class="w-full text-sm nm-donation-table">
               <thead>
-                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_project">Project</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_trade">Trade</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_scope">Scope</th>
@@ -325,7 +325,7 @@
           <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
             <table class="w-full text-sm nm-donation-table">
               <thead>
-                <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_job">Job</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_source">Source</th>
                   <th scope="col" class="px-5 py-3 text-start" data-i18n="th_amount">Amount</th>

@@ -181,7 +181,7 @@ async function loadOrders(): Promise<void> {
                 <td class="px-5 py-3">${item.quantity} ${esc(item.unit)}</td>
                 <td class="px-5 py-3 font-mono">$${(item.amount / 100).toLocaleString()}</td>
                 <td class="px-5 py-3">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor(item.status)}">
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${statusColor(item.status)}">
                         ${esc(item.status)}
                     </span>
                 </td>
@@ -228,10 +228,10 @@ async function loadCatalog(): Promise<void> {
         container.innerHTML = items.map((item) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''}">
                 <div class="flex justify-between items-start mb-3">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${item.is_active
                 ? '<span class="size-2 rounded-full bg-smoky-jade"></span>'
-                : `<span class="text-[10px] text-slate-400">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
+                : `<span class="text-3xs text-slate-400">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
                 </div>
                 <h3 class="font-bold text-sm mb-2">${esc(item.material_name)}</h3>
                 <div class="space-y-1 text-xs text-slate-500">
@@ -240,7 +240,7 @@ async function loadCatalog(): Promise<void> {
                     <p><span class="font-semibold text-slate-700">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${item.lead_time_days} ${t('supplier_days', 'days')}</p>
                 </div>
                 ${item.is_active ? `
-                <button class="mt-3 text-[10px] font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
+                <button class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
                     <i class="ph ph-trash" aria-hidden="true"></i> ${t('supplier_remove', 'Remove')}
                 </button>` : ''}
             </div>
@@ -451,7 +451,7 @@ function renderActions(item: SupplierOrder): string {
                 <i class="ph ph-package" aria-hidden="true"></i> ${t('supplier_mark_delivered', 'Mark Delivered')}
             </button>`;
         default:
-            return '<span class="text-[10px] text-slate-400">—</span>';
+            return '<span class="text-3xs text-slate-400">—</span>';
     }
 }
 
