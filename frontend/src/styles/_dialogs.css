@@ -170,7 +170,8 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
     justify-content: flex-end;
 }
 .search-kbd-mini {
-    font-size: 0.5625rem;
+    /* INC-002 FIX: Was 0.5625rem (9px) — governance minimum is 10px (0.625rem). */
+    font-size: 0.625rem;
     font-weight: 600;
     background: #f1f5f9;
     color: #94a3b8;

@@ -69,6 +69,31 @@
     }
 }
 
+/* ============================================================================
+   SST-NOSCRIPT FIX: Noscript Fallback — CSS Single Source of Truth
+   Previous: 32 HTML files had identical inline styles on <noscript> content:
+     style="padding:2rem;text-align:center;font-family:system-ui;direction:rtl;"
+     style="font-size:1.25rem;font-weight:700;"
+     style="margin-top:0.5rem;color:#64748b;"
+   Now: CSS classes replace all inline styles. <link> tags load without JS,
+   so CSS classes work inside <noscript>.
+   Standard: P1-SST-001 CSS Single Source of Truth. Zero inline styles.
+   ============================================================================ */
+.nm-noscript {
+    padding: 2rem;
+    text-align: center;
+    font-family: system-ui, sans-serif;
+    direction: rtl;
+}
+.nm-noscript-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.nm-noscript-desc {
+    margin-top: 0.5rem;
+    color: #64748b;
+}
+
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */
 :root {
   /* Brand Colors */
@@ -2685,7 +2710,8 @@ html[data-theme="dark"] .map-container-loading {
     color: var(--trust-blue);
 }
 .nm-legal-footer .nm-copyright {
-    font-size: 0.5625rem;
+    /* INC-002 FIX: Was 0.5625rem (9px) — governance minimum is 10px (0.625rem). */
+    font-size: 0.625rem;
     color: #cbd5e1;
     margin-top: 0.5rem;
 }
@@ -2789,7 +2815,8 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
        Standard: Design System Token Governance — no hardcoded colors in components. */
     background: var(--dark-tech, #1e293b);
     color: #f8fafc;
-    font-size: 9px;
+    /* INC-002 FIX: Was 9px — governance minimum is 10px. */
+    font-size: 10px;
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 4px;
@@ -2994,7 +3021,8 @@ html[data-theme="dark"] a.text-warning-yellow {
         position: absolute;
         bottom: 8px;
         inset-inline-end: 12px;
-        font-size: 9px;
+        /* INC-002 FIX: Was 9px — governance minimum is 10px. */
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.06em;

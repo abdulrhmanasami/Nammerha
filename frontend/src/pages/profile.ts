@@ -533,7 +533,10 @@ function init(): void {
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 // Focus the element if it's focusable (input, button, etc.)
                 if (target instanceof HTMLInputElement || target instanceof HTMLButtonElement || target instanceof HTMLSelectElement) {
-                    setTimeout(() => target.focus(), 400); // After scroll animation completes
+                    // PTR-FOCUS FIX: Replaced setTimeout(400) timing hack with immediate focus.
+                    // preventScroll avoids interfering with the ongoing smooth scrollIntoView.
+                    // Standard: CSS-driven scroll, no arbitrary delays.
+                    target.focus({ preventScroll: true });
                 }
             }
         });

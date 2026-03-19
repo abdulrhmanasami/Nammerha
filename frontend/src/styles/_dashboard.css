@@ -141,7 +141,8 @@
 .dashboard-sidebar [role="tablist"] + div::before {
   content: attr(data-section-label);
   display: block;
-  font-size: 9px;
+  /* INC-002 FIX: Was 9px — governance minimum is 10px. */
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;

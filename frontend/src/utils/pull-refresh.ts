@@ -75,7 +75,16 @@ function handleTouchEnd(): void {
     if (indicator) {
         if (distance >= THRESHOLD_PX) {
             indicator.classList.add('pull-refresh-loading');
-            setTimeout(() => location.reload(), 300);
+            // PLT-PTR-001 FIX: Replaced setTimeout(300) timing hack with animationiteration.
+            // spin-360 is 0.6s linear infinite — fires after one full rotation completes.
+            // Standard: CSS-driven animation lifecycle, no arbitrary delays.
+            const spinner = indicator.querySelector('.pull-refresh-spinner');
+            if (spinner) {
+                spinner.addEventListener('animationiteration', () => location.reload(), { once: true });
+            } else {
+                // Defensive: reload after one animation cycle (600ms = spin-360 duration)
+                setTimeout(() => location.reload(), 600);
+            }
         } else {
             // DEF-UX-004 FIX: CSS custom properties for reset state.
             indicator.style.setProperty('--pull-y', '0px');
