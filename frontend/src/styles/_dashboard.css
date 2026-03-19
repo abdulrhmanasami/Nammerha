@@ -33,7 +33,7 @@
     z-index: 60;
     display: flex;
     flex-direction: column;
-    background: #ffffff;
+    background: var(--surface);
     border-inline-end: 1px solid var(--border-subtle);
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -110,7 +110,7 @@
     border-radius: var(--radius-sm);
     border: none;
     background: transparent;
-    color: #475569;
+    color: var(--text-body);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     -webkit-tap-highlight-color: transparent;
@@ -156,7 +156,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94a3b8;
+  color: var(--text-muted);
   padding: 0 12px 6px;
 }
 /* FRIC-2601 FIX: Replaced inline SVG with Phosphor font glyph (ph-arrow-up-right) */
@@ -164,7 +164,8 @@
 .dashboard-sidebar [role="tablist"] + div > a::after {
   content: "\e092";
   font-family: "Phosphor" !important;
-  speak: never;
+  /* FIX-04: Removed deprecated `speak: never`. Icon elements use aria-hidden="true".
+     Standard: CSS Speech Module (speak is deprecated), WCAG 1.3.1. */
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -174,7 +175,7 @@
   -moz-osx-font-smoothing: grayscale;
   display: inline-block;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-inline-start: auto;
   flex-shrink: 0;
   opacity: 0;

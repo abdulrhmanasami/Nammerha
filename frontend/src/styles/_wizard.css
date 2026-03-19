@@ -39,14 +39,14 @@
     /* INC-002 FIX: Aligned to governed micro-hint tier (10px). Was 11px — banned size. */
     font-size: 10px;
     font-weight: 800;
-    background: #e2e8f0;
-    color: #94a3b8;
+    background: var(--border-subtle);
+    color: var(--text-muted);
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .nm-step-label {
     font-size: 10px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     transition: color 0.3s;
@@ -54,7 +54,7 @@
 .nm-step-line {
     width: 32px;
     height: 2px;
-    background: #e2e8f0;
+    background: var(--border-subtle);
     border-radius: 1px;
     margin-bottom: 20px; /* align with dot center */
     transition: background 0.4s;

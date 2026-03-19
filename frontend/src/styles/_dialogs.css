@@ -58,7 +58,7 @@ html[data-theme="dark"] .breadcrumb-nav a {
     color: var(--trust-blue);
 }
 html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 /* ============================================================================
@@ -118,12 +118,12 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
     border: none;
     background: transparent;
     font-size: 0.9375rem;
-    color: #0f172a;
+    color: var(--text-heading);
     outline: none;
     font-family: inherit;
 }
 .search-input::placeholder {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 .search-kbd {
     font-size: 0.625rem;
@@ -249,7 +249,7 @@ html[data-theme="dark"] .search-footer {
 }
 .nm-error-state .nm-state-icon {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--error-red);
 }
 .nm-empty-state .nm-state-icon {
     background: var(--trust-blue-light);
@@ -258,7 +258,7 @@ html[data-theme="dark"] .search-footer {
 .nm-state-title {
     font-size: 0.9375rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-heading);
 }
 .nm-state-desc {
     font-size: 0.8125rem;
@@ -277,7 +277,7 @@ html[data-theme="dark"] .search-footer {
 }
 .nm-error-state .nm-state-action {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--error-red);
 }
 .nm-empty-state .nm-state-action {
     background: var(--trust-blue-light);
@@ -343,7 +343,7 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
 }
 .nm-confirm-destructive {
     background: transparent;
-    color: #ef4444;
+    color: var(--error-red);
 }
 .nm-confirm-destructive:hover {
     background: rgba(239, 68, 68, 0.05);
