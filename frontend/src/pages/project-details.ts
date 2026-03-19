@@ -165,7 +165,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
              <i class="ph ph-check-circle text-xl"  aria-hidden="true"></i>
              <span data-i18n="funding_complete">${esc(t('funding_complete', 'Funding Complete'))}</span>
            </button>`
-        : `<button class="btn-primary !text-sm !py-3 add-to-cart-btn"
+        : `<button class="btn-primary nm-btn-compact add-to-cart-btn"
              data-item-id="${esc(item.item_id)}"
              data-item-name="${esc(item.material_name)}"
              data-item-price="${totalCost}"

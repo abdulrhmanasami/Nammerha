@@ -8,13 +8,13 @@
     /* PLT-RTL-001 FIX: Was physical 'left: 0; right: 0;' — violates logical property standard.
        Standard: CSS Logical Properties, Apple HIG (RTL Adaptation). */
     inset-inline: 0;
-    z-index: 10000;
+    z-index: var(--z-offline, 9960);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    font-family: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
+    font-family: var(--font-display), var(--font-arabic), system-ui, sans-serif;
     font-size: 0.8125rem;
     font-weight: 500;
     line-height: 1.4;
@@ -113,13 +113,10 @@
 
 /* ─── Syncing Animation ────────────────────────────────────────────────── */
 
+/* P3-001 FIX: Uses canonical spin-360 from main.css (was duplicate nmr-spin).
+   Standard: DRY Principle, CSS Architecture. */
 .network-status--syncing .network-status__icon {
-    animation: nmr-spin 1s linear infinite;
-}
-
-@keyframes nmr-spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    animation: spin-360 1s linear infinite;
 }
 
 /* ─── RTL Support ──────────────────────────────────────────────────────── */

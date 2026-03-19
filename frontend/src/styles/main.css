@@ -1754,6 +1754,41 @@ html[data-theme="dark"] .nm-toast {
     font-size: 0.875rem;
 }
 
+/* DEF-TICKET-001: Button size modifier classes — replace Tailwind !bang-modifiers.
+   Standard: P1-SST-001 governance — no Tailwind !important in HTML. */
+.nm-btn-hero {
+    height: 3.5rem;       /* 56px — !h-14 */
+    font-size: 1.125rem;  /* 18px — !text-lg */
+    padding-block: 1.25rem;
+}
+.nm-btn-form {
+    height: 3rem;         /* 48px — !h-12 */
+    font-size: 1rem;      /* 16px — !text-base */
+}
+.nm-btn-tall {
+    padding-block: 1rem;  /* 16px — !py-4 */
+}
+.nm-btn-inline {
+    width: auto;
+    padding-inline: 1.5rem;  /* 24px — !px-6 / !px-8 */
+}
+.nm-btn-sm {
+    font-size: 0.875rem;  /* 14px — !text-sm */
+}
+
+/* DEF-TICKET-002: Caption typography — 13px between text-xs (12px) and text-sm (14px).
+   Used for escrow banner descriptions and auth escape-hatch links.
+   Standard: INC-002 Typography Governance. */
+.nm-text-caption {
+    font-size: 0.8125rem; /* 13px */
+}
+/* DEF-TICKET-003: Wizard step heading typography — 28px between text-2xl (24px) and text-3xl (30px).
+   Used in homeowner-report.html wizard step titles for visual hierarchy emphasis.
+   Standard: INC-002 Typography Governance. */
+.nm-text-wizard-title {
+    font-size: 1.75rem; /* 28px */
+}
+
 /* P0-SST-R01 FIX: Fieldset reset for auth wizard step panels.
    Previous: inline style="border:none;padding:0;margin:0;" on each <fieldset>.
    Now: .nm-step-panel absorbs the resets via CSS class.
@@ -2407,9 +2442,10 @@ html[data-theme="dark"] .page-header {
    Moved from inline <style> in auth.html to CSS single source of truth.
    On landscape phones (<500px height), theme toggle shifts to bottom-right
    to avoid overlapping the auth tab switcher.
-/* CONF-2026-004 FIX: Aligned to logical properties matching the inline styles on #nm-theme-toggle.
-   Previous: Used physical `top: auto; bottom: 0.75rem` while inline styles used
-   logical `inset-block-start; inset-inline-end` — anti-pattern mixing logical + physical.
+   CONF-2026-004 FIX: Aligned to logical properties matching the inline styles
+   on #nm-theme-toggle. Previous: Used physical `top: auto; bottom: 0.75rem`
+   while inline styles used logical `inset-block-start; inset-inline-end` —
+   anti-pattern mixing logical + physical.
    Standard: CSS Logical Properties, W3C CSS Writing Modes Level 3. */
 @media (max-height: 500px) and (orientation: landscape) {
     #nm-theme-toggle { inset-block-start: auto !important; inset-block-end: 0.75rem !important; }

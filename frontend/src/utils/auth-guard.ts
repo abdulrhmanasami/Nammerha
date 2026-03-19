@@ -79,7 +79,7 @@ function showAuthRequired(): void {
             <p class="text-sm text-slate-500 max-w-xs" data-i18n="auth_required_msg">
                 Please sign in to access this page. Your data is safe and waiting for you.
             </p>
-            <a href="/auth.html?redirect=${returnPath}" class="btn-primary !w-auto !px-8 !py-3 mt-2">
+            <a href="/auth.html?redirect=${returnPath}" class="btn-primary nm-btn-inline mt-2">
                 <i class="ph ph-sign-in" aria-hidden="true"></i>
                 <span data-i18n="sign_in_btn">Sign In</span>
             </a>
