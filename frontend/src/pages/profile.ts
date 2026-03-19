@@ -181,7 +181,7 @@ async function loadUserRoles(): Promise<void> {
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                         <p class="text-sm font-bold">${label}</p>
-                        ${isActive ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">${t('profile_active', 'Active')}</span>` : ''}
+                        ${isActive ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">${t('profile_active', 'Active')}</span>` : ''}
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
                         <i class="ph ph-shield-check text-emerald-500 text-xs"  aria-hidden="true"></i>

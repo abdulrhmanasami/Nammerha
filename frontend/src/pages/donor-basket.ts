@@ -206,7 +206,7 @@ function initDonorBasket(): void {
             <i class="ph ph-plus ph-xs" aria-hidden="true"></i>
           </button>
         </div>
-        <div class="text-right min-w-[60px]">
+        <div class="text-end min-w-[60px]">
           <div class="font-bold text-slate-900">${formatDollars(item.unitPrice * item.quantity)}</div>
           <div class="text-[10px] text-slate-400">${formatDollars(item.unitPrice)}/${t('basket_per_unit', 'ea')}</div>
         </div>

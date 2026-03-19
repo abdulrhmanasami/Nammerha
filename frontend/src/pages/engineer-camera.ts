@@ -367,7 +367,7 @@ function dataURLtoBlob(dataUrl: string): Blob {
 
 function showToast(message: string): void {
     const badge = document.createElement('div');
-    badge.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-smoky-jade text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg';
+    badge.className = 'fixed top-4 start-1/2 -translate-x-1/2 z-50 bg-smoky-jade text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg';
     badge.textContent = message;
     document.body.appendChild(badge);
     setTimeout(() => { badge.remove(); }, 3000);

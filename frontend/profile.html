@@ -45,7 +45,8 @@
 </noscript>
 <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
 <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<main id="main-content" class="mobile-container min-h-screen flex flex-col pb-28">
+<!-- PLT-AUD-PAD FIX: Removed pb-28 — SST-002 main.css L3332 handles via --nm-nav-padding. -->
+<main id="main-content" class="mobile-container min-h-screen flex flex-col">
 
   <!-- INC-NEW-01 FIX: Unified .page-header component.
        Previous: glass-nav sticky + inner div.px-4.h-14.mobile-container — ad-hoc nesting.

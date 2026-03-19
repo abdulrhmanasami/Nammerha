@@ -215,7 +215,7 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
                 ${esc(project.address_text || t('projects_unknown_location', 'Location not specified'))}
             </p>
             <!-- Funding progress -->
-            <div class="flex items-center justify-between text-[11px] mb-1.5">
+            <div class="flex items-center justify-between text-[10px] mb-1.5">
                 <span class="font-bold text-slate-700">${pct}% ${t('projects_funded', 'funded')}</span>
                 <span class="text-slate-400">${formatCents(project.total_funded ?? 0)} / ${formatCents(project.total_cost ?? 0)}</span>
             </div>

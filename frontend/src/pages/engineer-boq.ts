@@ -279,7 +279,7 @@ publishBtn?.addEventListener('click', async () => {
         const message = err instanceof Error ? err.message : t('boq_publish_failed', 'Failed to publish');
         // HIGH-002 FIX: Replace alert() with inline error banner
         const errDiv = document.createElement('div');
-        errDiv.className = 'fixed bottom-20 left-4 right-4 rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 shadow-lg z-50 animate-fade-in-up';
+        errDiv.className = 'fixed bottom-20 start-4 end-4 rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 shadow-lg z-50 animate-fade-in-up';
         errDiv.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${esc(message)}`;
         document.body.appendChild(errDiv);
         setTimeout(() => errDiv.remove(), 5000);

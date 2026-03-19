@@ -516,7 +516,7 @@ if (photoUploadZone && photoInput) {
                 thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
                 thumb.innerHTML = `
           <img src="${esc(compressedUrl)}" class="w-full h-full object-cover" alt="Damage photo" />
-          <div class="absolute top-0.5 right-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
+          <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
             <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
           </div>
         `;
@@ -533,7 +533,7 @@ if (photoUploadZone && photoInput) {
                     thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
                     thumb.innerHTML = `
             <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="Damage photo" />
-            <div class="absolute top-0.5 right-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
+            <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
               <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
             </div>
           `;

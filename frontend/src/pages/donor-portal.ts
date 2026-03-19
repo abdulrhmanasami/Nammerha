@@ -306,7 +306,7 @@ async function loadProofs(): Promise<void> {
                 : `<i class="ph ph-image text-slate-300 nm-icon-40"  aria-hidden="true"></i>`
             }
                     ${proof.gps_lat ? `
-                        <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[8px] px-2 py-1 rounded-full font-mono">
+                        <div class="absolute bottom-2 end-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full font-mono">
                             <i class="ph ph-map-pin" aria-hidden="true"></i> ${proof.gps_lat.toFixed(4)}, ${proof.gps_lng?.toFixed(4) ?? ''}
                         </div>
                     ` : ''}

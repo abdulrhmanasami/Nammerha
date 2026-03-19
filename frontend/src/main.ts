@@ -116,7 +116,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
               <circle class="stroke-smoky-jade" cx="18" cy="18" r="16" fill="none" stroke-width="3"
                 stroke-dasharray="${(pct / 100) * 100.53} ${100.53 - (pct / 100) * 100.53}" stroke-linecap="round"></circle>
             </svg>
-            <span class="absolute inset-0 flex items-center justify-center text-[9px] font-extrabold text-smoky-jade">${Math.round(pct)}%</span>
+            <span class="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-smoky-jade">${Math.round(pct)}%</span>
           </div>
         </div>
         <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100">

@@ -228,7 +228,7 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
             <h4 class="font-bold text-sm text-slate-900 leading-tight">
                 ${escapeHtml(String(props['title'] ?? 'Untitled Project'))}
             </h4>
-            ${props['address_text'] ? `<p class="text-[11px] text-slate-500">${escapeHtml(String(props['address_text']))}</p>` : ''}
+            ${props['address_text'] ? `<p class="text-[10px] text-slate-500">${escapeHtml(String(props['address_text']))}</p>` : ''}
             <div class="flex items-center gap-2">
                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" 
                       style="background: ${statusColor}20; color: ${statusColor}">
@@ -247,7 +247,7 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
                 </div>
             </div>
             <a href="project-details.html?id=${escapeHtml(String(props['project_id'] ?? ''))}" 
-               class="block mt-2 text-center text-[11px] font-bold text-trust-blue bg-trust-blue/10 
+               class="block mt-2 text-center text-[10px] font-bold text-trust-blue bg-trust-blue/10 
                       rounded-lg py-1.5 hover:bg-trust-blue/20 transition-colors">
                 ${t('map_view_project', 'View Project')} <i class="ph ph-arrow-right" style="vertical-align:-1px"></i>
             </a>

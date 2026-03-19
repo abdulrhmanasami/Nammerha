@@ -231,7 +231,7 @@ async function loadCatalog(): Promise<void> {
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${item.is_active
                 ? '<span class="size-2 rounded-full bg-smoky-jade"></span>'
-                : `<span class="text-[9px] text-slate-400">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
+                : `<span class="text-[10px] text-slate-400">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
                 </div>
                 <h3 class="font-bold text-sm mb-2">${esc(item.material_name)}</h3>
                 <div class="space-y-1 text-xs text-slate-500">

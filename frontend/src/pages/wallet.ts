@@ -49,7 +49,11 @@ interface Transaction {
 
 // ─── Load Escrow Summary ────────────────────────────────────────────────────
 async function loadEscrowSummary(): Promise<void> {
-    const balanceEl = document.getElementById('escrow-balance');
+    // PLT-AUD-W01 FIX: ID was 'escrow-balance' — HTML uses 'wallet-balance'.
+    //    Root cause: TS and HTML written independently, IDs never reconciled.
+    //    The skeleton loader stayed on-screen forever because balanceEl was always null.
+    //    Standard: DOM Contract — TS element IDs MUST match HTML IDs.
+    const balanceEl = document.getElementById('wallet-balance');
     const lockedEl = document.getElementById('locked-count');
     const releasedEl = document.getElementById('released-count');
 
@@ -90,9 +94,9 @@ function renderTransaction(tx: Transaction): string {
         <p class="text-sm font-bold truncate">${escapeHtml(tx.material_name ?? tx.project_title ?? t('wallet_transaction', 'Transaction'))}</p>
         <p class="text-[10px] text-slate-400">${formatDate(tx.created_at)}</p>
       </div>
-      <div class="text-right shrink-0">
+      <div class="text-end shrink-0">
         <p class="text-sm font-bold ${config.color}">${formatCents(tx.amount)}</p>
-        <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">${config.label}</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${config.label}</p>
       </div>
     </div>`;
 }
@@ -118,8 +122,11 @@ async function loadTransactions(): Promise<void> {
         }
 
         if (transactions.length === 0) {
+            // PLT-AUD-W04 FIX: Added animate-fade-in-up for smooth skeleton → empty state transition.
+            //    Previous: instant swap — jarring on mobile. Balance card animates but this didn't.
+            //    Standard: Material Design 3 (Staggered Entry), Visual Consistency.
             listEl.innerHTML = `
-            <div class="text-center py-12">
+            <div class="text-center py-12 animate-fade-in-up">
               <i class="ph ph-wallet text-slate-300 nm-icon-48"  aria-hidden="true"></i>
               <p class="text-slate-500 font-bold mt-4">${t('wallet_no_transactions', 'No transactions yet')}</p>
               <p class="text-slate-400 text-sm mt-1">${t('wallet_history_description', 'Your donation and payment history will appear here')}</p>
@@ -135,7 +142,7 @@ async function loadTransactions(): Promise<void> {
         listEl.innerHTML = `
         <div class="text-center py-8">
           <p class="text-slate-500 text-sm">${t('wallet_load_failed', 'Unable to load transactions. Please sign in.')}</p>
-          <a href="auth.html" class="btn-primary !w-auto !px-6 mt-4 inline-flex">${t('wallet_sign_in', 'Sign In')}</a>
+          <a href="auth.html" class="btn-primary w-auto px-6 mt-4 inline-flex">${t('wallet_sign_in', 'Sign In')}</a>
         </div>`;
     }
 }
@@ -174,6 +181,32 @@ function init(): void {
     // INC-NEW-01 FIX: Back button wiring moved to shared page-header.ts.
     // Previous: 8 lines of duplicate code (identical to profile.ts).
     // Now: initPageHeader() called at module top — single source of truth.
+
+    // PLT-AUD-W02 FIX: Wire "Deposit" quick action → deposit dialog.
+    //    Previous: deposit-action button (wallet.html L129) and deposit-dialog (wallet.html L199)
+    //    existed but NO code connected them. Users tapped "Deposit" → nothing happened.
+    //    Standard: Nielsen Heuristic #1 (System Status Visibility), FinTech UX.
+    const depositBtn = document.getElementById('deposit-action');
+    const depositDialog = document.getElementById('deposit-dialog') as HTMLDialogElement | null;
+    if (depositBtn && depositDialog) {
+        depositBtn.addEventListener('click', () => {
+            haptic.medium(); // UX-004: Confirm action feedback
+            depositDialog.showModal();
+        });
+        // Wire dialog cancel button
+        depositDialog.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
+            depositDialog.close();
+        });
+        // Wire "Notify Me" button to show toast and close
+        document.getElementById('deposit-notify-btn')?.addEventListener('click', () => {
+            haptic.light();
+            depositDialog.close();
+            // Dynamic import: toast is only needed on this interaction path
+            import('../utils/toast').then(({ showToast }) => {
+                showToast(t('deposit_notify_confirmed', 'We\'ll notify you when deposits are available!'), 'success');
+            });
+        });
+    }
 
     // GAP-N02 FIX: Wire "Add Funds" button with proper UX feedback.
     // Previous: Dead button — user tapped and nothing happened (Nielsen Heuristic #1 violation).
