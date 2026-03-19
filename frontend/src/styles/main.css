@@ -59,12 +59,12 @@
     animation: nmPageFadeIn 0.18s ease-in;
 }
 @keyframes nmPageFadeOut {
-    from { opacity: 1; }
-    to   { opacity: 0; }
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-8px); }
 }
 @keyframes nmPageFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 /* Respect user's reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
@@ -101,6 +101,14 @@
 
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */
 :root {
+  /* Layout — Bottom navigation bar height.
+     Two tokens exist by design:
+     • --nav-height: Static base height (60px) — compile-time known.
+     • --nm-nav-h: Runtime measured height set by nav.js via rAF (includes safe-area).
+     Components that need runtime accuracy (toast, FAB) use --nm-nav-h with --nav-height fallback.
+     Components in CSS-only context use --nav-height directly. */
+  --nav-height: 60px;
+
   /* Brand Colors */
   --trust-blue: #1a73e8;
   --trust-blue-hover: #1557b0;
@@ -341,6 +349,7 @@ body[dir='rtl'] {
     .nm-nav-item,
     .nm-bottom-nav,
     .glass-card,
+    .card-hover-lift,
     .btn-primary,
     .btn-secondary,
     .btn-jade,
@@ -798,7 +807,10 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     margin: 0 auto;
     min-height: 100dvh;
     position: relative;
-    overflow-x: hidden;
+    /* P0-OVF-001 FIX: clip instead of hidden — same visual effect but preserves
+       position:sticky for descendants. Matches body{overflow-x:clip} at L323.
+       Standard: CSS Overflow Level 3, Mobile Viewport Stability. */
+    overflow-x: clip;
   }
 }
 @media (min-width: 768px) {
@@ -1036,6 +1048,10 @@ html[data-theme="dark"] .nm-textarea::placeholder {
 .overflow-x-auto,
 #checkout-sheet {
     overscroll-behavior: contain;
+    /* P2-MOM-001 FIX: Explicit momentum scrolling for iOS 12 devices.
+       Default in iOS 13+, but Syrian mobile fleet includes older devices.
+       Standard: iOS Safari Compatibility, Defensive CSS. */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ─── Field Engineer: CAPTURE 360 Button (Massive Zero UI target) ──────────── */
@@ -1470,7 +1486,10 @@ html[data-theme="dark"] .text-red-400 {
    ============================================================================ */
 #nm-toast-container {
     position: fixed;
-    bottom: calc(80px + env(safe-area-inset-bottom, 16px));
+    /* P1-NAV-002 FIX: Uses runtime-measured --nm-nav-h (set by nav.js via rAF)
+       with fallback to static --nav-height. Runtime value includes env(safe-area-inset-bottom)
+       so no manual env() addition needed here. */
+    bottom: calc(var(--nm-nav-h, var(--nav-height)) + 20px);
     /* C-004 FIX: Logical property for RTL centering */
     inset-inline-start: 50%;
     transform: translateX(-50%);
@@ -2198,8 +2217,10 @@ html[data-theme="dark"] .dashboard-main > header .sidebar-toggle {
     top: 0;
     /* CON-AUD-04 FIX: Aligned to z-index token. */
     z-index: var(--z-header);
-    /* PLT-UX-AUD-WC FIX: Pre-promote to GPU layer for smooth backdrop-filter scroll. */
-    will-change: transform;
+    /* P1-WC-001 FIX: Removed will-change:transform — page-header is static.
+       GPU compositing for backdrop-filter handled by translate3d(0,0,0) at L3129.
+       Permanent will-change wastes GPU memory on mobile.
+       Standard: Web Performance, CSS will-change Best Practices. */
 }
 @media (min-width: 768px) {
     .page-header {
@@ -3018,7 +3039,9 @@ html[data-theme="dark"] a.text-warning-yellow {
    ============================================================================ */
 .nm-back-to-top {
     position: fixed;
-    bottom: 100px;
+    /* P1-NAV-002 FIX: Uses runtime-measured --nm-nav-h (includes safe-area)
+       with fallback to static --nav-height. */
+    bottom: calc(var(--nm-nav-h, var(--nav-height)) + 40px);
     inset-inline-end: 16px;
     z-index: var(--z-dropdown, 10);
     width: 44px;

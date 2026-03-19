@@ -65,6 +65,28 @@ function handleTouchMove(e: TouchEvent): void {
     }
 }
 
+/**
+ * P0-PTR-001 FIX: Custom event dispatched when pull-to-refresh completes.
+ * Pages should listen to this and refresh their data, NOT the whole page.
+ * Falls back to location.reload() if no listener calls preventDefault().
+ *
+ * Usage in page modules:
+ *   import { REFRESH_EVENT } from '../utils/pull-refresh';
+ *   document.addEventListener(REFRESH_EVENT, (e) => {
+ *       e.preventDefault(); // Signal "I'm handling this"
+ *       refreshDashboardData();
+ *   });
+ */
+export const REFRESH_EVENT = 'nammerha:pull-refresh';
+
+function resetIndicator(): void {
+    if (indicator) {
+        indicator.classList.remove('pull-refresh-loading');
+        indicator.style.setProperty('--pull-y', '0px');
+        indicator.style.setProperty('--pull-opacity', '0');
+    }
+}
+
 function handleTouchEnd(): void {
     if (!pulling) {
         return;
@@ -75,15 +97,23 @@ function handleTouchEnd(): void {
     if (indicator) {
         if (distance >= THRESHOLD_PX) {
             indicator.classList.add('pull-refresh-loading');
-            // PLT-PTR-001 FIX: Replaced setTimeout(300) timing hack with animationiteration.
-            // spin-360 is 0.6s linear infinite — fires after one full rotation completes.
-            // Standard: CSS-driven animation lifecycle, no arbitrary delays.
-            const spinner = indicator.querySelector('.pull-refresh-spinner');
-            if (spinner) {
-                spinner.addEventListener('animationiteration', () => location.reload(), { once: true });
+
+            // P0-PTR-001 FIX: Dispatch custom event — pages handle their own data refresh.
+            // On 2G Syria, location.reload() takes 5-15s. Native apps refresh data, not the page.
+            const event = new CustomEvent(REFRESH_EVENT, { cancelable: true });
+            const handled = !document.dispatchEvent(event);
+
+            if (handled) {
+                // Page handled the refresh — reset indicator after one spin cycle
+                setTimeout(resetIndicator, 600);
             } else {
-                // Defensive: reload after one animation cycle (600ms = spin-360 duration)
-                setTimeout(() => location.reload(), 600);
+                // No listener — fallback to full reload (backwards-compatible)
+                const spinner = indicator.querySelector('.pull-refresh-spinner');
+                if (spinner) {
+                    spinner.addEventListener('animationiteration', () => location.reload(), { once: true });
+                } else {
+                    setTimeout(() => location.reload(), 600);
+                }
             }
         } else {
             // DEF-UX-004 FIX: CSS custom properties for reset state.
@@ -109,3 +139,4 @@ export function initPullToRefresh(): void {
     document.addEventListener('touchmove',  handleTouchMove,  { passive: true });
     document.addEventListener('touchend',   handleTouchEnd,   { passive: true });
 }
+

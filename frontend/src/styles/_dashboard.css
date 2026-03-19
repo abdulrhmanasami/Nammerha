@@ -37,7 +37,10 @@
     border-inline-end: 1px solid var(--border-subtle);
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
+    /* P1-WILL-002 FIX: Removed permanent will-change: transform.
+       On desktop (md+), sidebar is transform:none!important — will-change was pure GPU waste.
+       Promoted to compositing layer only during active animation via .sidebar-open below.
+       Standard: CSS will-change Best Practices, Web Performance. */
   }
   /* RTL support */
   [dir='rtl'] .dashboard-sidebar {
@@ -48,6 +51,7 @@
   .dashboard-sidebar.sidebar-open {
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    will-change: transform; /* P1-WILL-002: GPU promotion only during animation */
   }
   [dir='rtl'] .dashboard-sidebar.sidebar-open {
     transform: translateX(0);

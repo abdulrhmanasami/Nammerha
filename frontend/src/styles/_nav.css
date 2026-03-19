@@ -49,6 +49,9 @@
     padding: 8px 16px;
     max-width: 480px;
     margin: 0 auto;
+    /* P1-SAF-001 FIX: Derive inner height from --nav-height token.
+       60px total - 16px vertical padding = 44px inner content area. */
+    min-height: calc(var(--nav-height, 60px) - 16px);
 }
 
 /* FINE-002 FIX: Added min-height: 44px for WCAG 2.5.5/2.5.8 touch target compliance.

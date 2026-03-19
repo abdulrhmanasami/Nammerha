@@ -8,54 +8,28 @@
  * If no valid session exists, the user sees a clear "Please sign in"
  * message instead of skeleton loaders that persist forever.
  *
- * Architecture:
- *   1. Check for JWT token in localStorage/cookie
- *   2. If absent → show auth-required overlay with redirect CTA
- *   3. If present but expired → attempt silent refresh, fallback to overlay
- *   4. Skeleton guard integration: removes skeletons on auth failure
+ * P0-AUTH-001 FIX: REWRITTEN — Previous implementation checked
+ * localStorage('nm_access_token') for a JWT that NEVER EXISTS.
+ * The login flow (auth.ts → pages/auth.ts) stores user profile data
+ * under 'nammerha_auth', and the JWT lives in an httpOnly cookie
+ * (inaccessible to JavaScript by design — api.ts documents this).
+ * Result: requireAuth() ALWAYS returned false → wallet page showed
+ * "Sign in required" even for authenticated users.
+ *
+ * Now uses the canonical isAuthenticated() from auth.ts which checks
+ * the actual session data in localStorage('nammerha_auth').
+ * Standard: Single Source of Truth, DRY Principle, Zero-Assumption Policy.
  *
  * Usage:
  *   import { requireAuth } from '../utils/auth-guard';
  *   requireAuth(); // Call at top of any protected page module
  *
- * @version 1.0.0
- * @since GAP-004
+ * @version 2.0.0
+ * @since GAP-004, P0-AUTH-001
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-/** Token storage key used by the platform auth system */
-const TOKEN_KEY = 'nm_access_token';
-const REFRESH_KEY = 'nm_refresh_token';
-
-/**
- * Checks if a JWT token is present and not expired.
- */
-function hasValidToken(): boolean {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-        return false;
-    }
-
-    try {
-        // Decode JWT payload (base64url) to check expiry
-        const payloadB64 = token.split('.')[1];
-        if (!payloadB64) {
-            return false;
-        }
-
-        const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
-        const exp = payload.exp;
-        if (!exp) {
-            return true;
-        }
-
-        // Token expired if exp is in the past (with 30s grace period)
-        return (exp * 1000) > (Date.now() - 30_000);
-    } catch {
-        // Malformed token = treat as invalid
-        return false;
-    }
-}
+import { isAuthenticated as checkSession } from '../auth';
 
 /**
  * Shows the "Please sign in" overlay on the current page.
@@ -95,25 +69,18 @@ function showAuthRequired(): void {
  * Enforces authentication on the current page.
  * Call this at the top of any protected page's TS module.
  *
+ * P0-AUTH-001 FIX: Uses canonical checkSession() from auth.ts
+ * which reads localStorage('nammerha_auth') — the ACTUAL session data
+ * stored by the login flow. Previous: checked nm_access_token (never set).
+ *
  * @returns true if authenticated, false if auth overlay was shown
  */
 export function requireAuth(): boolean {
-    if (hasValidToken()) {
+    if (checkSession()) {
         return true;
     }
 
-    // Check for refresh token - if present, user had a session
-    const hasRefresh = !!localStorage.getItem(REFRESH_KEY);
-
-    if (hasRefresh) {
-        // User had a session but token expired.
-        // In a full implementation, we'd attempt a silent refresh here.
-        // For now, show the auth overlay with the sign-in CTA.
-        showAuthRequired();
-        return false;
-    }
-
-    // No tokens at all - first visit or logged out
+    // No valid session — show auth overlay
     showAuthRequired();
     return false;
 }
@@ -121,7 +88,11 @@ export function requireAuth(): boolean {
 /**
  * Checks auth status without blocking the page.
  * Useful for conditionally showing/hiding UI elements.
+ *
+ * P0-AUTH-001 FIX: Delegates to canonical auth.ts instead of
+ * duplicating broken JWT localStorage logic.
  */
 export function isAuthenticated(): boolean {
-    return hasValidToken();
+    return checkSession();
 }
+
