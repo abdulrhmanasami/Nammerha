@@ -96,7 +96,7 @@
 }
 .nm-noscript-desc {
     margin-top: 0.5rem;
-    color: #64748b;
+    color: var(--text-muted, #64748b);
 }
 
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */
@@ -132,6 +132,12 @@
   /* Surfaces */
   --surface: #ffffff;
   --surface-elevated: rgba(255, 255, 255, 0.7);
+  /* PLT-W2-001 FIX: New surface tokens for interactive states.
+     Previously hardcoded as #f1f5f9 (slate-100) and #f8fafc (slate-50) in
+     search kbd, wizard back button, and search result hover.
+     Standard: Design System Token Governance. */
+  --surface-soft: #f1f5f9;
+  --surface-hover: #f8fafc;
   --border-light: rgba(255, 255, 255, 0.3);
   --border-subtle: #e2e8f0;
 
@@ -139,10 +145,16 @@
      Previous: ~45 hardcoded hex values (#94a3b8, #475569, #1e293b, #0f172a) scattered across rules.
      Now: Centralized tokens for CSS rules (Tailwind utility classes remain unchanged).
      Standard: Design System Governance — all author-controlled text colors use tokens.
-     Maps: heading=#0f172a (slate-900), body=#475569 (slate-600), muted=#94a3b8 (slate-400),
+     Maps: heading=#0f172a (slate-900), body=#475569 (slate-600),
+            secondary=#64748b (slate-500), muted=#94a3b8 (slate-400),
             subtle=#cbd5e1 (slate-300). */
   --text-heading: #0f172a;
   --text-body: #475569;
+  /* PLT-W2-001 FIX: New token for readable-but-secondary text (dialogs, cancel buttons,
+     empty state descriptions, nav items). #64748b on white = 5.4:1 contrast (AA pass).
+     Previously hardcoded in 6+ locations across _dialogs.css, _nav.css, _wizard.css.
+     Standard: Design System Token Governance — zero ungoverned hex colors. */
+  --text-secondary: #64748b;
   --text-muted: #94a3b8;
   --text-subtle: #cbd5e1;
 
@@ -236,17 +248,19 @@ html[data-theme="light"] {
     --text-secondary: rgba(26,32,44,0.65);
     --text-tertiary: rgba(26,32,44,0.4);
 }
-html[data-theme="light"] body { background-color: #f5f7fa; color: #1a202c; }
+/* PLT-W7-001 FIX: body/main now consume their OWN defined tokens.
+   Previous: tokens defined at L243-249, then bypassed with hardcoded hex. */
+html[data-theme="light"] body { background-color: var(--bg-primary); color: var(--text-primary); }
 html[data-theme="light"] .glass,
-html[data-theme="light"] [class*="card"] { background: rgba(255,255,255,0.7); border-color: rgba(0,0,0,0.08); }
-html[data-theme="light"] main { background-color: #f5f7fa; color: #1a202c; }
+html[data-theme="light"] [class*="card"] { background: var(--surface-card); border-color: rgba(0,0,0,0.08); }
+html[data-theme="light"] main { background-color: var(--bg-primary); color: var(--text-primary); }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers on all pages).
    Removed !important — specificity of html[data-theme] .class is sufficient. */
 html[data-theme="light"] .top-nav,
 html[data-theme="light"] .page-header { background: rgba(245,247,250,0.9); border-color: rgba(0,0,0,0.06); }
 html[data-theme="light"] input,
 html[data-theme="light"] select,
-html[data-theme="light"] textarea { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.12); color: #1a202c; }
+html[data-theme="light"] textarea { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.12); color: var(--text-primary); }
 
 /* ── Dark Mode Variables (extends existing dark mode rules below) ── */
 html[data-theme="dark"] {
@@ -258,7 +272,7 @@ html[data-theme="dark"] {
     --text-secondary: rgba(226,232,240,0.65);
     --text-tertiary: rgba(226,232,240,0.4);
 }
-html[data-theme="dark"] main { background-color: #0f1117; color: #e2e8f0; }
+html[data-theme="dark"] main { background-color: var(--bg-primary); color: var(--text-primary); }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers) */
 html[data-theme="dark"] .top-nav,
 html[data-theme="dark"] .page-header { background: rgba(15,17,23,0.9); border-color: rgba(255,255,255,0.06); }
@@ -271,9 +285,10 @@ html[data-theme="dark"] .page-header { background: rgba(15,17,23,0.9); border-co
    Adding new brand colors? They just work. No CSS modifications needed.
    Standard: CSS Specificity Architecture — ":where() for defaults, classes for overrides."
    ============================================================================ */
-:where(html[data-theme="dark"]) .font-medium { color: #f1f5f9; }
-:where(html[data-theme="dark"]) .font-bold { color: #f8fafc; }
-:where(html[data-theme="dark"]) .font-black { color: #f8fafc; }
+/* PLT-W8-002 FIX: Migrated hex → tokens. :where() zero-specificity preserved. */
+:where(html[data-theme="dark"]) .font-medium { color: var(--text-heading); }
+:where(html[data-theme="dark"]) .font-bold { color: var(--text-heading); }
+:where(html[data-theme="dark"]) .font-black { color: var(--text-heading); }
 
 /* ── Logo Swap ── */
 .logo-dark { display: none; }
@@ -326,7 +341,8 @@ html {
 body {
   font-family: var(--font-display);
   background-color: var(--cloud-white);
-  color: #1e293b;
+  /* PLT-W9-001 FIX: Migrated #1e293b → var(--text-heading). */
+  color: var(--text-heading);
   /* FIX-02: dvh fallback for browsers without dvh support (Safari < 15.4, Chrome < 108).
      The vh fallback is overridden by dvh in supporting browsers.
      Standard: Progressive Enhancement, Syrian Mobile Fleet Compatibility. */
@@ -406,8 +422,9 @@ th, td {
   outline-offset: 2px;
   border-radius: inherit;
 }
+/* PLT-W9-002 FIX: Migrated #60a5fa → var(--trust-blue). */
 html[data-theme="dark"] :focus-visible {
-  outline-color: #60a5fa;
+  outline-color: var(--trust-blue);
 }
 :focus:not(:focus-visible) {
   outline: none;
@@ -620,7 +637,9 @@ html[data-theme="dark"] :focus-visible {
   .progress-track {
     width: 100%;
     height: 8px;
-    background: #e2e8f0;
+    /* PLT-W3-001 FIX: Migrated #e2e8f0 → var(--border-subtle).
+       Standard: Design System Token Governance. */
+    background: var(--border-subtle);
     border-radius: var(--radius-full);
     overflow: hidden;
   }
@@ -657,12 +676,14 @@ html[data-theme="dark"] :focus-visible {
 .nm-textarea {
     width: 100%;
     background: white;
-    border: 1px solid #e2e8f0;
+    /* PLT-W6-005 FIX: Migrated #e2e8f0 → var(--border-subtle), #0f172a → var(--text-heading).
+       Standard: Design System Token Governance. */
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg, 0.75rem);
     padding: 0.625rem 0.875rem; /* 10px 14px — balanced for mobile & desktop */
     font-size: 0.875rem;
     font-weight: 500;
-    color: #0f172a;
+    color: var(--text-heading);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     -webkit-appearance: none;
     appearance: none;
@@ -680,7 +701,8 @@ html[data-theme="dark"] :focus-visible {
 }
 .nm-input::placeholder,
 .nm-textarea::placeholder {
-    color: #94a3b8;
+    /* PLT-W9-001 FIX: Migrated placeholder #94a3b8 → var(--text-muted). */
+    color: var(--text-muted);
     font-weight: 400;
 }
 /* Icon-prepended input variant: add ps-10 to the input and position icon with start-3 */
@@ -691,17 +713,18 @@ html[data-theme="dark"] :focus-visible {
     resize: vertical;
     min-height: 5rem;
 }
-/* Dark mode adaptation */
+/* PLT-W3-001 FIX: Migrated dark mode input hex → tokens.
+   Standard: Design System Token Governance. */
 html[data-theme="dark"] .nm-input,
 html[data-theme="dark"] .nm-select,
 html[data-theme="dark"] .nm-textarea {
-    background: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
+    background: var(--dark-surface, #1e293b);
+    border-color: var(--dark-border, #334155);
+    color: var(--text-heading);
 }
 html[data-theme="dark"] .nm-input::placeholder,
 html[data-theme="dark"] .nm-textarea::placeholder {
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 /* ============================================================================
@@ -1037,7 +1060,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     border: 1.5px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     background: var(--cloud-white);
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -1305,12 +1328,13 @@ html[data-theme="dark"] .text-red-400 {
 .nm-table-empty .nm-empty-title {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #334155;
+    /* PLT-W10-001 FIX: Migrated #334155 → var(--text-body). */
+    color: var(--text-body);
     margin-bottom: 0.25rem;
 }
 .nm-table-empty .nm-empty-desc {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: var(--text-muted);
     max-width: 20rem;
 }
 
@@ -1325,7 +1349,9 @@ html[data-theme="dark"] .text-red-400 {
     height: 1.75rem;
     width: 5rem;
     border-radius: 0.25rem;
-    background: #e2e8f0;
+    /* PLT-W3-001 FIX: Migrated #e2e8f0 → var(--border-subtle).
+       Standard: Design System Token Governance. */
+    background: var(--border-subtle);
     animation: skeletonPulse 1.5s ease-in-out infinite;
 }
 .nm-skeleton-bar--narrow { width: 3rem; }
@@ -1582,7 +1608,7 @@ html[data-theme="dark"] .text-red-400 {
 }
 /* Type variants */
 .nm-toast-success i { color: var(--smoky-jade); }
-.nm-toast-error   i { color: #ef4444; }
+.nm-toast-error   i { color: var(--error-red); }
 .nm-toast-warning i { color: var(--warning-yellow); }
 .nm-toast-info    i { color: var(--trust-blue); }
 
@@ -1603,7 +1629,7 @@ html[data-theme="dark"] .text-red-400 {
 html[data-theme="dark"] .nm-toast {
     background: rgba(30, 30, 30, 0.9);
     border-color: rgba(255,255,255,0.08);
-    color: #e2e8f0;
+    color: var(--text-heading);
 }
 
 /* ============================================================================
@@ -1770,8 +1796,8 @@ html[data-theme="dark"] .nm-toast {
 
 /* P2-STAR-01 FIX: Star rating icon color utility.
    Previous: inline style="color:#d97706" on star icons.
-   Standard: P1-SST-001 governance, design token adherence. */
-.nm-star-rating { color: #d97706; }
+/* PLT-W9-002 FIX: Migrated #d97706 → var(--warning-yellow). */
+.nm-star-rating { color: var(--warning-yellow); }
 
 /* W2-PANO-01: Panorama Viewer info overlay classes — CSS Single Source of Truth.
    Previous: 3 inline styles in panorama-viewer.ts (font-weight, font-size, opacity).
@@ -1984,8 +2010,9 @@ html[data-theme="dark"] .nm-compare__label {
     background-color: var(--smoky-jade) !important;
     color: white !important;
 }
+/* PLT-W11-001 FIX: Migrated #ef4444 → var(--error-red). */
 .nm-btn-error-flash {
-    background-color: #ef4444 !important;
+    background-color: var(--error-red) !important;
     color: white !important;
 }
 
@@ -2100,16 +2127,13 @@ html[data-theme="dark"] .peer ~ div[class*="bg-slate-300"] {
     scroll-snap-align: start;
 }
 
-/* ============================================================================
-   P2-FORM-NOVALIDATE FIX: CSS-Only Validation Fallback
-   Auth forms use novalidate. If auth.ts fails to load, native browser
-   validation is disabled AND custom validation doesn't exist.
-   These CSS rules provide a visual fallback: invalid required fields
-   show a red border AFTER user interacts (not-placeholder-shown).
-   ============================================================================ */
+/* PLT-W3-002 FIX: Migrated #ef4444 → var(--error-red).
+   !important is JUSTIFIED: CSS-only fallback MUST override Tailwind border utilities
+   when auth.ts fails to load on Syrian 2G networks.
+   Standard: Design System Token Governance. */
 form[novalidate] input:not(:placeholder-shown):invalid {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 1px #ef4444;
+    border-color: var(--error-red) !important;
+    box-shadow: 0 0 0 1px var(--error-red);
 }
 form[novalidate] input:not(:placeholder-shown):valid {
     border-color: var(--smoky-jade) !important;
@@ -2118,8 +2142,8 @@ form[novalidate] input:not(:placeholder-shown):valid {
    Highlights ALL empty required fields on first submit attempt, not just interacted ones.
    Standard: Nielsen Heuristic #9 — "Help users recognize, diagnose, and recover from errors." */
 form[novalidate].submitted input:required:invalid {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 1px #ef4444;
+    border-color: var(--error-red) !important;
+    box-shadow: 0 0 0 1px var(--error-red);
 }
 
 /* ============================================================================
@@ -2266,10 +2290,10 @@ html[data-theme="dark"] .dashboard-main > header {
 }
 html[data-theme="dark"] .dashboard-main > header h2,
 html[data-theme="dark"] .dashboard-main > header .page-header-title {
-    color: #e2e8f0;
+    color: var(--text-heading);
 }
 html[data-theme="dark"] .dashboard-main > header .sidebar-toggle {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 /* ============================================================================
@@ -2470,7 +2494,7 @@ html[data-theme="dark"] .page-header {
     padding: 6px 12px;
     font-size: 10px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     animation: pull-hint-bounce 1.5s ease-in-out 3;
@@ -2524,10 +2548,10 @@ html[data-theme="dark"] .page-header {
    Standard: WCAG 1.4.3 (Contrast Minimum: 4.5:1)
    ============================================================================ */
 html[data-theme="dark"] .auth-tab {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 html[data-theme="dark"] .auth-tab:hover {
-    color: #cbd5e1;
+    color: var(--text-secondary);
 }
 
 /* ============================================================================
@@ -2559,10 +2583,10 @@ html[data-theme="dark"] #form-register .bg-slate-200 {
     background: rgba(51, 65, 85, 0.5);
 }
 
-/* DEF-A05 FIX: Dark Mode Remember-Me Checkbox */
+/* PLT-W3-002 FIX: Migrated hardcoded hex → dark mode tokens. */
 html[data-theme="dark"] #remember-me {
-    border-color: #475569;
-    background: rgba(30, 41, 59, 0.8);
+    border-color: var(--dark-border, #475569);
+    background: var(--dark-surface, rgba(30, 41, 59, 0.8));
 }
 
 /* ============================================================================
@@ -2696,7 +2720,7 @@ html[data-theme="dark"] .nm-radio-indicator {
     content: attr(data-loading-text);
     font-size: 0.75rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -2736,7 +2760,7 @@ html[data-theme="dark"] .map-container-loading {
 .nm-legal-footer a {
     font-size: 0.625rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -2748,20 +2772,20 @@ html[data-theme="dark"] .map-container-loading {
 .nm-legal-footer .nm-copyright {
     /* INC-002 FIX: Was 0.5625rem (9px) — governance minimum is 10px (0.625rem). */
     font-size: 0.625rem;
-    color: #cbd5e1;
+    color: var(--text-secondary);
     margin-top: 0.5rem;
 }
 html[data-theme="dark"] .nm-legal-footer {
     border-color: rgba(255, 255, 255, 0.04);
 }
 html[data-theme="dark"] .nm-legal-footer a {
-    color: #475569;
+    color: var(--dark-border);
 }
 html[data-theme="dark"] .nm-legal-footer a:hover {
     color: var(--trust-blue);
 }
 html[data-theme="dark"] .nm-legal-footer .nm-copyright {
-    color: #334155;
+    color: var(--dark-border);
 }
 /* SRG-08 FIX: Forced-Colors Accessibility — Legal Footer Links.
    Previous: Links used color-only differentiation (no underline).
@@ -2861,7 +2885,7 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     /* P3-002 FIX: Replaced hardcoded #1e293b with design token for consistency.
        Standard: Design System Token Governance — no hardcoded colors in components. */
     background: var(--dark-tech, #1e293b);
-    color: #f8fafc;
+    color: var(--text-heading);
     /* INC-002 FIX: Was 9px — governance minimum is 10px. */
     font-size: 10px;
     font-weight: 600;
@@ -2910,7 +2934,8 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
         background: var(--card-bg, rgba(255,255,255,0.02));
     }
     html[data-theme="light"] .nm-donation-table tbody tr {
-        background: #fff;
+        /* PLT-W13-001 FIX: #fff → white keyword. */
+        background: white;
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .nm-donation-table.nm-donation-table tbody td {
@@ -3198,9 +3223,9 @@ html[data-theme="dark"] a.text-warning-yellow {
 /* SRG-09 FIX: Dark mode icon color for back-to-top FAB.
    Previous: var(--trust-blue) on dark elevated surface lacked visual pop.
    Now: brightened to #60a5fa (blue-400) for 5.1:1 contrast on dark surface.
-   Standard: WCAG 1.4.3 (Contrast Minimum), Apple HIG Dark Mode. */
+/* PLT-W9-002 FIX: Migrated #60a5fa → var(--trust-blue). */
 html[data-theme="dark"] .nm-back-to-top {
-    color: #60a5fa;
+    color: var(--trust-blue);
 }
 /* DEF-BTT-TS FIX: Class-based visibility toggle — replaces inline style.opacity/visibility */
 .nm-back-to-top--visible {
@@ -3653,7 +3678,8 @@ main#main-content {
     background: rgba(255, 255, 255, 0.2);
 }
 html[data-theme="dark"] .nm-pano-wrapper {
-    background: #0f172a;
+    /* PLT-W3-001 FIX: Migrated #0f172a → dark surface token. */
+    background: var(--dark-surface-deep, #0f172a);
 }
 
 /* ============================================================================

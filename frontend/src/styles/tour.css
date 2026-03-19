@@ -123,11 +123,15 @@
 }
 
 .nmr-tour-close {
-    width: 28px;
-    height: 28px;
+    /* NMR-TR-001 FIX: Was 28×28px — below WCAG 2.5.8 minimum (44px).
+       Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size). */
+    width: 36px;
+    height: 36px;
+    min-width: 44px;
+    min-height: 44px;
     border: none;
     background: rgba(148, 163, 184, 0.12);
-    color: #94a3b8;
+    color: var(--text-muted);
     border-radius: 8px;
     font-size: 0.75rem;
     cursor: pointer;
@@ -139,8 +143,17 @@
 
 .nmr-tour-close:hover {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--error-red);
     transform: scale(1.05);
+}
+/* NMR-TR-002 FIX: Missing :active touch state on close button.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .nmr-tour-close:active {
+        transform: scale(0.92);
+        opacity: 0.8;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
 }
 
 /* ─── Progress Bar ─────────────────────────────────────────────────────── */
@@ -163,10 +176,12 @@
 
 /* ─── Content ──────────────────────────────────────────────────────────── */
 
+/* PLT-W2-005 FIX: Migrated 2 hardcoded hex → tokens.
+   Standard: Design System Token Governance. */
 .nmr-tour-title {
     font-size: 1.0625rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-heading);
     margin: 14px 16px 6px;
     line-height: 1.35;
     letter-spacing: -0.01em;
@@ -174,7 +189,7 @@
 
 .nmr-tour-content {
     font-size: 0.8125rem;
-    color: #64748b;
+    color: var(--text-secondary);
     line-height: 1.65;
     margin: 0 16px 16px;
 }
@@ -208,20 +223,21 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* PLT-W2-005 FIX: Migrated 3 hardcoded hex → tokens. */
 .nmr-tour-btn--skip {
     background: transparent;
-    color: #94a3b8;
+    color: var(--text-muted);
     padding: 8px 12px;
 }
 
 .nmr-tour-btn--skip:hover {
-    color: #64748b;
+    color: var(--text-secondary);
     background: rgba(241, 245, 249, 0.8);
 }
 
 .nmr-tour-btn--prev {
     background: rgba(241, 245, 249, 0.8);
-    color: #475569;
+    color: var(--text-body);
 }
 
 .nmr-tour-btn--prev:hover {
@@ -258,6 +274,23 @@
     transform: translateY(0);
 }
 
+/* NMR-TR-002 FIX: Missing :active touch states on tour navigation buttons.
+   On mobile (pointer:coarse), hover never fires — buttons feel dead.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .nmr-tour-btn--skip:active,
+    .nmr-tour-btn--prev:active {
+        transform: scale(0.96);
+        opacity: 0.8;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
+    .nmr-tour-btn--next:active {
+        transform: scale(0.96);
+        opacity: 0.9;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
+}
+
 /* ─── RTL Support ──────────────────────────────────────────────────────── */
 
 [dir="rtl"] .nmr-tour-actions {
@@ -292,11 +325,11 @@ html[data-theme="dark"] .nmr-tour-spotlight {
 }
 
 html[data-theme="dark"] .nmr-tour-title {
-    color: #f1f5f9;
+    color: var(--text-heading);
 }
 
 html[data-theme="dark"] .nmr-tour-content {
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 html[data-theme="dark"] .nmr-tour-step-count {
@@ -305,7 +338,7 @@ html[data-theme="dark"] .nmr-tour-step-count {
 
 html[data-theme="dark"] .nmr-tour-close {
     background: rgba(71, 85, 105, 0.3);
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 html[data-theme="dark"] .nmr-tour-actions {
@@ -313,9 +346,10 @@ html[data-theme="dark"] .nmr-tour-actions {
     border-top-color: rgba(71, 85, 105, 0.3);
 }
 
+/* PLT-W6-003 FIX: Migrated #cbd5e1 → var(--text-secondary). */
 html[data-theme="dark"] .nmr-tour-btn--prev {
     background: rgba(71, 85, 105, 0.3);
-    color: #cbd5e1;
+    color: var(--text-secondary);
 }
 
 /* ─── Mobile Optimizations ─────────────────────────────────────────────── */

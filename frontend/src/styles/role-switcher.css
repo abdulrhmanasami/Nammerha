@@ -32,6 +32,16 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+/* NMR-RS-002 FIX: Missing :active touch state on badge trigger.
+   On mobile (pointer:coarse), hover never fires — button felt dead.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .role-switcher-badge:active {
+        transform: scale(0.96);
+        opacity: 0.8;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
+}
 
 .role-switcher-badge i:first-child {
     font-size: 16px;
@@ -67,7 +77,7 @@
     font-size: 12px;
     font-weight: 700;
     background: rgba(46, 125, 223, 0.1);
-    color: #2e7ddf;
+    color: var(--trust-blue);
     text-decoration: none;
     transition: all 0.2s ease;
     letter-spacing: 0.01em;
@@ -128,6 +138,15 @@
         transform: translateY(0) scale(1);
     }
 }
+/* A11Y-W12-001 FIX: Reduce motion for vestibular disorders.
+   Standard: WCAG 2.3.3 (Animation from Interactions), prefers-reduced-motion L1. */
+/* NMR-RS-001 FIX: Was targeting non-existent `.role-dropdown-menu`.
+   Animation is defined on `.role-switcher-dropdown` (L118). Corrected. */
+@media (prefers-reduced-motion: reduce) {
+    .role-switcher-dropdown {
+        animation: none;
+    }
+}
 
 /* ─── Dropdown Header ────────────────────────────────────────────────────── */
 .role-dropdown-header {
@@ -139,7 +158,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #94a3b8;
+    color: var(--text-muted);
     border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 }
 
@@ -151,8 +170,8 @@
     height: 18px;
     padding: 0 5px;
     border-radius: 9px;
-    background: #e2e8f0;
-    color: #475569;
+    background: var(--border-subtle);
+    color: var(--text-body);
     font-size: 10px;
     font-weight: 800;
     line-height: 1;
@@ -192,6 +211,18 @@
     border-radius: 10px;
     transition: all 0.15s ease;
     font-family: inherit;
+    /* NMR-RS-003 FIX: Was ~36px — below WCAG 2.5.8 minimum (44px).
+       Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size). */
+    min-height: 44px;
+}
+/* NMR-RS-002 FIX: Missing :active touch state on role option buttons.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .role-option:active {
+        transform: scale(0.98);
+        opacity: 0.85;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
 }
 
 .role-option-icon {
@@ -211,7 +242,7 @@
 .role-option-label {
     font-size: 13px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-heading);
     flex: 1;
     text-align: start;
 }
@@ -226,10 +257,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    /* NMR-RS-003 FIX: Was 32×32px — below WCAG 2.5.8 minimum (44px).
+       Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size). */
+    width: 44px;
+    height: 44px;
     border-radius: 8px;
-    color: #94a3b8;
+    color: var(--text-muted);
     transition: all 0.15s ease;
     flex-shrink: 0;
     text-decoration: none;
@@ -237,7 +270,16 @@
 
 .role-dashboard-link:hover {
     background: rgba(148, 163, 184, 0.12);
-    color: #475569;
+    color: var(--text-body);
+}
+/* NMR-RS-002 FIX: Missing :active touch state on dashboard shortcut.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .role-dashboard-link:active {
+        transform: scale(0.92);
+        opacity: 0.8;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
 }
 
 .role-dashboard-link i {
@@ -258,13 +300,25 @@
     font-family: inherit;
     font-size: 12px;
     font-weight: 600;
-    color: #2e7ddf;
+    color: var(--trust-blue);
     transition: all 0.15s ease;
     border-top: 1px solid rgba(148, 163, 184, 0.12);
+    /* NMR-RS-003 FIX: Was ~36px — below WCAG 2.5.8 minimum (44px).
+       Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size). */
+    min-height: 44px;
 }
 
 .role-add-btn:hover {
     background: rgba(46, 125, 223, 0.06);
+}
+/* NMR-RS-002 FIX: Missing :active touch state on add-role button.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .role-add-btn:active {
+        transform: scale(0.98);
+        opacity: 0.8;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
 }
 
 .role-add-btn i {
@@ -293,15 +347,15 @@ html[data-theme="dark"] .role-switcher-dropdown {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 html[data-theme="dark"] .role-dropdown-header {
-    color: #64748b;
+    color: var(--text-muted);
     border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 html[data-theme="dark"] .role-dropdown-count {
     background: rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 html[data-theme="dark"] .role-option-label {
-    color: #e2e8f0;
+    color: var(--text-body);
 }
 html[data-theme="dark"] .role-option-row:hover {
     background: rgba(255, 255, 255, 0.06);
@@ -310,14 +364,15 @@ html[data-theme="dark"] .role-option-active {
     background: rgba(46, 125, 223, 0.08);
 }
 html[data-theme="dark"] .role-dashboard-link {
-    color: #64748b;
+    color: var(--text-muted);
 }
 html[data-theme="dark"] .role-dashboard-link:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
+/* PLT-W6-004 FIX: Migrated #60a5fa → var(--trust-blue). */
 html[data-theme="dark"] .role-add-btn {
-    color: #60a5fa;
+    color: var(--trust-blue);
     border-top-color: rgba(255, 255, 255, 0.06);
 }
 html[data-theme="dark"] .role-add-btn:hover {

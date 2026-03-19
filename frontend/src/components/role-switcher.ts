@@ -206,6 +206,54 @@ function renderSwitcher(): void {
             isDropdownOpen = false;
         });
     });
+
+    // ── NMR-RS-004 FIX: Escape key to close dropdown ──────────────────────
+    // WCAG 2.1 SC 2.1.1 (Keyboard): Dropdown must be dismissible via Escape.
+    // NMR-RS-005 FIX: Arrow key navigation within listbox.
+    // WAI-ARIA Listbox Pattern: ArrowDown/ArrowUp move focus, Home/End jump.
+    const dropdown = mountEl.querySelector<HTMLElement>('.role-switcher-dropdown');
+    if (dropdown) {
+        dropdown.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                isDropdownOpen = false;
+                renderSwitcher();
+                // Return focus to trigger button
+                const triggerBtn = mountEl?.querySelector<HTMLButtonElement>('.role-switcher-trigger');
+                triggerBtn?.focus();
+                return;
+            }
+
+            // Arrow key navigation between role options
+            const options = Array.from(dropdown.querySelectorAll<HTMLButtonElement>('.role-option'));
+            if (options.length === 0) { return; }
+            const currentIdx = options.findIndex(opt => opt === document.activeElement);
+
+            let nextIdx = -1;
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    nextIdx = currentIdx < options.length - 1 ? currentIdx + 1 : 0;
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    nextIdx = currentIdx > 0 ? currentIdx - 1 : options.length - 1;
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    nextIdx = 0;
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    nextIdx = options.length - 1;
+                    break;
+            }
+            if (nextIdx >= 0) {
+                const target = options[nextIdx];
+                if (target) { target.focus(); }
+            }
+        });
+    }
 }
 
 function renderDropdown(roles: UserRole[], activeRole: UserRole): string {

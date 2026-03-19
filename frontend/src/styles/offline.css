@@ -111,6 +111,26 @@
     background: rgba(255, 255, 255, 0.4);
 }
 
+/* NMR-OL-001 FIX: Missing prefers-reduced-motion for syncing spinner.
+   spin-360 is a continuous infinite animation — must be killed for vestibular users.
+   Standard: WCAG 2.3.3 (Animation from Interactions), prefers-reduced-motion L1. */
+@media (prefers-reduced-motion: reduce) {
+    .network-status--syncing .network-status__icon {
+        animation: none;
+    }
+}
+
+/* NMR-OL-002 FIX: Touch target compliance on action button.
+   min-height: 44px ensures WCAG 2.5.8 compliance on mobile.
+   Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size). */
+@media (pointer: coarse) {
+    .network-status__action {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
 /* ─── Syncing Animation ────────────────────────────────────────────────── */
 
 /* P3-001 FIX: Uses canonical spin-360 from main.css (was duplicate nmr-spin).

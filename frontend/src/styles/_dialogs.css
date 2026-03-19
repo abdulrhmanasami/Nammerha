@@ -35,7 +35,9 @@ html[data-theme="dark"] .kpi-skeleton.kpi-skeleton span {
    ============================================================================ */
 .breadcrumb-nav {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    /* NMR-DG-001 FIX: Removed deprecated `-webkit-overflow-scrolling: touch`.
+       All iOS Safari 12.1+ use momentum scrolling by default on overflow:auto.
+       Standard: CSS Overflow L3 — deprecated vendor-prefix property. */
     scrollbar-width: none;
 }
 .breadcrumb-nav::-webkit-scrollbar {
@@ -125,14 +127,16 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
 .search-input::placeholder {
     color: var(--text-muted);
 }
+/* PLT-W2-002 FIX: Migrated 3 hardcoded hex → design tokens.
+   Standard: Design System Token Governance — zero ungoverned hex colors. */
 .search-kbd {
     font-size: 0.625rem;
     font-weight: 600;
-    background: #f1f5f9;
-    color: #64748b;
+    background: var(--surface-soft);
+    color: var(--text-secondary);
     padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-subtle);
     font-family: inherit;
     line-height: 1.4;
 }
@@ -152,7 +156,7 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
     transition: background 0.1s ease;
 }
 .search-result-item:hover {
-    background: #f8fafc;
+    background: var(--surface-hover);
 }
 .search-result-icon {
     width: 2.25rem;
@@ -172,15 +176,16 @@ html[data-theme="dark"] .breadcrumb-nav span[aria-current="page"] {
     display: flex;
     justify-content: flex-end;
 }
+/* PLT-W2-002 FIX: Migrated 2 hardcoded hex → design tokens. */
 .search-kbd-mini {
     /* INC-002 FIX: Was 0.5625rem (9px) — governance minimum is 10px (0.625rem). */
     font-size: 0.625rem;
     font-weight: 600;
-    background: #f1f5f9;
-    color: #94a3b8;
+    background: var(--surface-soft);
+    color: var(--text-muted);
     padding: 0.0625rem 0.25rem;
     border-radius: 0.1875rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-subtle);
     font-family: monospace;
 }
 /* Search Dark Mode */
@@ -188,8 +193,9 @@ html[data-theme="dark"] .search-overlay-content {
     background: rgba(30, 41, 59, 0.98);
     border-color: var(--dark-border);
 }
+/* PLT-W6-002 FIX: Migrated #e2e8f0 → var(--text-heading). */
 html[data-theme="dark"] .search-input {
-    color: #e2e8f0;
+    color: var(--text-heading);
 }
 html[data-theme="dark"] .search-input-wrapper {
     border-color: var(--dark-border-subtle);
@@ -198,10 +204,10 @@ html[data-theme="dark"] .search-kbd,
 html[data-theme="dark"] .search-kbd-mini {
     background: var(--dark-border-subtle);
     border-color: var(--dark-border);
-    color: #64748b;
+    color: var(--text-muted);
 }
 html[data-theme="dark"] .search-result-item:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--surface-hover);
 }
 html[data-theme="dark"] .search-footer {
     border-color: var(--dark-border-subtle);
@@ -219,6 +225,13 @@ html[data-theme="dark"] .search-footer {
 }
 .sidebar-toggle[data-hint="true"] {
     animation: hamburger-pulse 1.5s ease-in-out 3;
+}
+/* A11Y-W12-002 FIX: Disable pulse animation for motion-sensitive users.
+   Standard: WCAG 2.3.3 (Animation from Interactions), prefers-reduced-motion L1. */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-toggle[data-hint="true"] {
+        animation: none;
+    }
 }
 
 /* ============================================================================
@@ -262,7 +275,7 @@ html[data-theme="dark"] .search-footer {
 }
 .nm-state-desc {
     font-size: 0.8125rem;
-    color: #64748b;
+    color: var(--text-secondary);
     max-width: 280px;
 }
 .nm-state-action {
@@ -283,8 +296,8 @@ html[data-theme="dark"] .search-footer {
     background: var(--trust-blue-light);
     color: var(--trust-blue);
 }
-html[data-theme="dark"] .nm-state-title { color: #f1f5f9; }
-html[data-theme="dark"] .nm-state-desc { color: #94a3b8; }
+html[data-theme="dark"] .nm-state-title { color: var(--text-heading); }
+html[data-theme="dark"] .nm-state-desc { color: var(--text-secondary); }
 html[data-theme="dark"] .nm-error-state .nm-state-icon { background: rgba(239, 68, 68, 0.15); }
 html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 115, 232, 0.15); }
 
@@ -319,7 +332,7 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
 }
 .nm-confirm-body p {
     font-size: 0.8125rem;
-    color: #64748b;
+    color: var(--text-secondary);
 }
 .nm-confirm-actions {
     display: flex;
@@ -336,7 +349,7 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
 }
 .nm-confirm-cancel {
     background: transparent;
-    color: #64748b;
+    color: var(--text-secondary);
 }
 .nm-confirm-cancel:hover {
     background: rgba(0, 0, 0, 0.03);
@@ -359,14 +372,16 @@ html[data-theme="dark"] .nm-empty-state .nm-state-icon { background: rgba(26, 11
 .nm-confirm-primary:hover {
     background: var(--trust-blue-hover, #1557b0);
 }
+/* PLT-W2-002b FIX: Migrated dark mode hardcoded hex → tokens.
+   Standard: Design System Token Governance. */
 html[data-theme="dark"] .nm-confirm-dialog {
     background: var(--dark-surface);
 }
-html[data-theme="dark"] .nm-confirm-body h3 { color: #f1f5f9; }
-html[data-theme="dark"] .nm-confirm-body p { color: #94a3b8; }
-html[data-theme="dark"] .nm-confirm-actions { border-color: rgba(255,255,255,0.08); }
-html[data-theme="dark"] .nm-confirm-cancel { color: #94a3b8; }
-html[data-theme="dark"] .nm-confirm-cancel:hover { background: rgba(255,255,255,0.04); }
+html[data-theme="dark"] .nm-confirm-body h3 { color: var(--text-heading); }
+html[data-theme="dark"] .nm-confirm-body p { color: var(--text-secondary); }
+html[data-theme="dark"] .nm-confirm-actions { border-color: var(--dark-border); }
+html[data-theme="dark"] .nm-confirm-cancel { color: var(--text-secondary); }
+html[data-theme="dark"] .nm-confirm-cancel:hover { background: var(--surface-hover); }
 html[data-theme="dark"] .nm-confirm-destructive:hover { background: rgba(239,68,68,0.1); }
 html[data-theme="dark"] .nm-confirm-primary { background: var(--trust-blue); }
 html[data-theme="dark"] .nm-confirm-primary:hover { background: var(--trust-blue-hover, #1e5fbb); }

@@ -50,9 +50,10 @@ html[data-theme="light"] body.about-page {
   --about-text-secondary: rgba(26,32,44,0.6);
   --about-text-tertiary: rgba(26,32,44,0.35);
 }
+/* PLT-W7-002 FIX: body now consumes its OWN scoped tokens. */
 html[data-theme="light"] body.about-page {
-  background: #f8f9fc;
-  color: #1a202c;
+  background: var(--about-bg-primary);
+  color: var(--about-text-primary);
 }
 
 /* Nav */
@@ -118,8 +119,9 @@ html[data-theme="light"] body.about-page .bento-large {
   border-color: rgba(26,115,232,0.08);
 }
 /* Section titles */
+/* PLT-W8-001 FIX: Migrated #1a202c → var(--about-text-primary). */
 html[data-theme="light"] .section-title {
-  color: #1a202c;
+  color: var(--about-text-primary);
 }
 html[data-theme="light"] .section-subtitle {
   color: rgba(26,32,44,0.55);
@@ -153,11 +155,11 @@ html[data-theme="light"] body.about-page .leader-card {
 }
 html[data-theme="light"] .leader-card h3,
 html[data-theme="light"] .leader-card p {
-  color: #2d3748;
+  color: var(--about-text-primary);
 }
 /* Footer */
 html[data-theme="light"] .site-footer {
-  background: #f0f2f7;
+  background: var(--about-bg-secondary);
   border-top-color: rgba(0,0,0,0.05);
 }
 html[data-theme="light"] .footer-logo img {
@@ -168,7 +170,7 @@ html[data-theme="light"] .footer-links a {
   color: rgba(26,32,44,0.55);
 }
 html[data-theme="light"] .footer-links a:hover {
-  color: #1a202c;
+  color: var(--about-text-primary);
 }
 html[data-theme="light"] .footer-copy {
   color: rgba(26,32,44,0.4);
@@ -181,7 +183,7 @@ html[data-theme="light"] .cta-box::before {
   background: none;
 }
 html[data-theme="light"] .cta-box h2 {
-  color: #1a202c;
+  color: var(--about-text-primary);
 }
 html[data-theme="light"] .cta-box p {
   color: rgba(26,32,44,0.6);
@@ -198,7 +200,7 @@ html[data-theme="light"] .cta-links a {
   color: rgba(26,32,44,0.5);
 }
 html[data-theme="light"] .cta-links a:hover {
-  color: #1a202c;
+  color: var(--about-text-primary);
 }
 /* Buttons */
 html[data-theme="light"] .nav-back,
@@ -210,7 +212,7 @@ html[data-theme="light"] .nav-lang {
 html[data-theme="light"] .nav-back:hover,
 html[data-theme="light"] .nav-lang:hover {
   background: rgba(0,0,0,0.08);
-  color: #1a202c;
+  color: var(--about-text-primary);
 }
 
 /* ─── Theme Transition ────────────────────────────────────────── */

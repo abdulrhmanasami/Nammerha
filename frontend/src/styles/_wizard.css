@@ -125,13 +125,14 @@
     to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Dark mode adaptation for stepper */
+/* PLT-W2-004 FIX: Migrated hardcoded hex → dark mode tokens.
+   Standard: Design System Token Governance. */
 html[data-theme="dark"] .nm-step-num {
-    background: #334155; /* slate-700 */
-    color: #64748b;
+    background: var(--dark-border, #334155);
+    color: var(--text-muted);
 }
 html[data-theme="dark"] .nm-step-line {
-    background: #334155; /* slate-700 */
+    background: var(--dark-border, #334155);
 }
 html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
     background: var(--trust-blue);
@@ -149,6 +150,8 @@ html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
    justify-center gap-2) — no dark mode, no single source of truth.
    Standard: Design System Governance (DRY), WCAG 1.4.3 (Dark Mode Contrast).
    ============================================================================ */
+/* PLT-W2-004 FIX: Migrated hardcoded hex → tokens.
+   Standard: Design System Token Governance. */
 .nm-step-back {
     display: flex;
     align-items: center;
@@ -158,24 +161,25 @@ html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
     padding: 0.75rem;
     font-size: 0.875rem;
     font-weight: 700;
-    color: #64748b;
-    background: #f1f5f9;
+    color: var(--text-secondary);
+    background: var(--surface-soft);
     border-radius: 0.75rem;
     border: none;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
 }
 .nm-step-back:hover {
-    background: #e2e8f0;
+    background: var(--border-subtle);
 }
 .nm-step-back:active {
     transform: scale(0.97);
 }
+/* PLT-W6-001 FIX: Migrated last 2 hex → tokens. */
 html[data-theme="dark"] .nm-step-back {
     background: rgba(51, 65, 85, 0.5);
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 html[data-theme="dark"] .nm-step-back:hover {
     background: rgba(51, 65, 85, 0.8);
-    color: #cbd5e1;
+    color: var(--text-secondary);
 }

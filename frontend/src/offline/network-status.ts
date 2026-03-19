@@ -88,8 +88,12 @@ function showStatus(type: StatusType, autoHideMs?: number): void {
         bar.innerHTML = `
             <span class="network-status__icon"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i></span>
             <span class="network-status__text">${msg}</span>
-            <button class="network-status__action" onclick="location.reload()">${refreshLabel}</button>
+            <button class="network-status__action" id="nm-sw-refresh-btn">${refreshLabel}</button>
         `;
+        // NMR-NS-001 FIX: Replaced inline onclick="location.reload()" with addEventListener.
+        // Previous: inline handler — blocked by CSP script-src 'self', making refresh button dead.
+        // Standard: CONF-CSP-01 pattern, WHATWG CSP Level 3.
+        bar.querySelector('#nm-sw-refresh-btn')?.addEventListener('click', () => { location.reload(); });
     } else {
         /* PLT-NET-001 FIX: Replaced emoji icons with Phosphor font glyphs.
            Previous: Emoji (⚡🔄✅⚠️) — renders inconsistently across Android/iOS/desktop

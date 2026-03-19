@@ -44,16 +44,21 @@ async function initMapIfNeeded(): Promise<void> {
                 // Map didn't render within 5s — show fallback
                 const overlay = mapContainer.closest('.relative')?.querySelector('.glass-card');
                 if (overlay) {
+                    // NMR-MAIN-001 FIX: Replaced inline onclick="location.reload()" with
+                    // addEventListener for CSP compliance (script-src 'self').
+                    // Previous: inline handler — blocked by CSP, making retry button dead.
+                    // Standard: CONF-CSP-01 pattern, WHATWG CSP Level 3.
                     overlay.innerHTML = `
                         <div class="flex flex-col items-center gap-3 text-center p-4">
                             <i class="ph ph-map-trifold text-slate-400 nm-icon-40"  aria-hidden="true"></i>
                             <p class="text-sm font-bold text-slate-600" data-i18n="map_unavailable">Map unavailable</p>
                             <p class="text-xs text-slate-400" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
-                            <button onclick="location.reload()" class="btn-secondary nm-btn-compact">
+                            <button id="map-retry-btn" class="btn-secondary nm-btn-compact">
                                 <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
                                 <span data-i18n="common_retry">Retry</span>
                             </button>
                         </div>`;
+                    overlay.querySelector('#map-retry-btn')?.addEventListener('click', () => { location.reload(); });
                     applyI18n();
                 }
             }

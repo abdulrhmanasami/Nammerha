@@ -57,6 +57,8 @@
 /* FINE-002 FIX: Added min-height: 44px for WCAG 2.5.5/2.5.8 touch target compliance.
    Previous: rendered height was ~42px (icon 22 + gap 2 + label 10 + padding 8).
    Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size Minimum). */
+/* PLT-W2-003 FIX: Migrated #64748b → var(--text-secondary).
+   Standard: Design System Token Governance. */
 .nm-nav-item {
     display: flex;
     flex-direction: column;
@@ -67,14 +69,18 @@
     padding: 4px 8px;
     min-width: 54px;
     min-height: 44px;
-    color: #64748b;
+    color: var(--text-secondary);
     transition: color 0.2s;
 }
+/* PLT-W4-001 FIX: Migrated #94a3b8 → var(--text-muted).
+   Standard: Design System Token Governance. */
 .nm-bottom-nav[data-nav-theme="light"] .nm-nav-item {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
+/* PLT-W2-003 FIX: Migrated #1A73E8 (capital hex) → var(--trust-blue).
+   Standard: Design System Token Governance. */
 .nm-nav-item[aria-current="page"] {
-    color: #1A73E8;
+    color: var(--trust-blue);
 }
 .nm-nav-icon {
     font-size: 22px;
@@ -130,7 +136,9 @@
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.12);
     background: rgba(17,24,39,0.95);
-    color: #fbbf24;
+    /* PLT-W4-001 FIX: Migrated #fbbf24 → var(--warning-yellow).
+       Standard: Design System Token Governance. */
+    color: var(--warning-yellow);
     font-size: 16px;
     display: flex;
     align-items: center;
@@ -146,6 +154,8 @@
 .nm-bottom-nav[data-nav-theme="light"] .nm-theme-fab {
     border-color: rgba(0,0,0,0.1);
     background: rgba(255,255,255,0.95);
+    /* PLT-W4-001: Indigo accent for light-mode FAB. No semantic token exists.
+       JUSTIFIED: Decorative icon color, not bound to text tier. @wl_exception */
     color: #6366f1;
 }
 

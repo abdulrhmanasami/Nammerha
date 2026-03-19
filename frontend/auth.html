@@ -396,7 +396,9 @@
             aria-describedby="reg-terms-error"
             class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
           <label for="reg-terms" class="text-xs text-slate-500 leading-relaxed cursor-pointer">
-            <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank">Privacy Policy</a></span>
+            <!-- SEC-W11-001 FIX: Added rel="noopener noreferrer" to prevent reverse tabnapping.
+                 Standard: OWASP Reverse Tabnapping, Security Best Practices. -->
+            <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
           </label>
         </div>
         <!-- GAP-2026-B07 FIX: Custom validation error -->
