@@ -1716,6 +1716,20 @@ html[data-theme="dark"] .nm-toast {
    ============================================================================ */
 .nm-hidden { display: none !important; }
 
+/* DEFECT-03 FIX: Compact inline button utilities — replace !w-auto !px-4 !py-2 !text-xs/sm
+   bang-modifiers in main.ts dynamic templates (map fallback retry + Fund Now CTA).
+   Standard: P1-SST-001 governance — no Tailwind !important in dynamic innerHTML. */
+.nm-btn-compact {
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+}
+.nm-cta-inline {
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
 /* P0-SST-R01 FIX: Fieldset reset for auth wizard step panels.
    Previous: inline style="border:none;padding:0;margin:0;" on each <fieldset>.
    Now: .nm-step-panel absorbs the resets via CSS class.
@@ -2280,6 +2294,9 @@ html[data-theme="dark"] .page-header {
 
 /* FRIC-AUD-04: Dialogs & state components extracted to _dialogs.css */
 @import './_dialogs.css';
+
+/* DEFECT-01 FIX: About page styles extracted from internal <style> block */
+@import './_about.css';
 
 /* ============================================================================
    FRC-P02 FIX: Add-to-Cart Visual Feedback Animation
@@ -3441,4 +3458,136 @@ main#main-content {
    ============================================================================ */
 .nm-role-dialog-body {
     padding-bottom: 8px;
+}
+
+/* ============================================================================
+   TICKET-01 FIX: Panorama Viewer — CSS Single Source of Truth
+   Previous: 6 style.cssText blocks in panorama-viewer.ts with hardcoded styles,
+   RTL-unsafe 'right: 16px', and JS-driven hover state management.
+   Now: All static styles via CSS classes, hover via :hover pseudo-class.
+   Standard: P1-SST-001 (CSS Single Source of Truth), CSS Logical Properties.
+   ============================================================================ */
+.nm-pano-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: grab;
+}
+.nm-pano-wrapper--grabbing {
+    cursor: grabbing;
+}
+.nm-pano-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.nm-pano-error {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    color: #ef4444;
+    font-size: 14px;
+    text-align: center;
+}
+.nm-pano-info {
+    position: absolute;
+    top: 16px;
+    inset-inline-start: 16px;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: white;
+    font-size: 12px;
+    border-radius: 8px;
+    z-index: 5;
+    pointer-events: none;
+    max-width: 280px;
+}
+.nm-pano-controls {
+    position: absolute;
+    bottom: 16px;
+    /* TICKET-01 RTL FIX: Was physical 'right: 16px' — violated logical property convention. */
+    inset-inline-end: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+}
+.nm-pano-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    /* Button reset */
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    font-family: inherit;
+}
+.nm-pano-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+html[data-theme="dark"] .nm-pano-wrapper {
+    background: #0f172a;
+}
+
+/* ============================================================================
+   TICKET-02 FIX: Map Route Marker — CSS Single Source of Truth
+   Previous: createMarkerElement() used style.cssText with dynamic color param.
+   Now: Static styles in CSS, dynamic color via --marker-color custom property.
+   Standard: P1-SST-001, CSS Custom Properties for dynamic values.
+   ============================================================================ */
+.nm-route-marker {
+    width: 14px;
+    height: 14px;
+    background: var(--marker-color, #3B82F6);
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   TICKET-03 FIX: Tour Engine Positioning — CSS Custom Properties
+   Previous: positionSpotlight() and positionTooltip() used 12 inline style
+   assignments (style.top/left/width/height/transform).
+   Now: CSS rules consume --tour-* custom properties set by JS.
+   Standard: P1-SST-001, CSS Custom Properties for runtime-computed layouts.
+   ============================================================================ */
+.nmr-tour-spotlight {
+    top: var(--spot-top, 0);
+    left: var(--spot-left, 0);
+    width: var(--spot-w, 0);
+    height: var(--spot-h, 0);
+}
+.nmr-tour-tooltip--positioned {
+    top: var(--tip-top, 50%);
+    left: var(--tip-left, 50%);
+    transform: var(--tip-transform, translate(-50%, -50%));
+}
+
+/* ============================================================================
+   TICKET-04 FIX: Compare Slider Positioning — CSS Custom Properties
+   Previous: slider.style.insetInlineStart and clipDiv.style.width used inline.
+   Now: CSS rules consume --slider-pct custom property set by JS drag handler.
+   Standard: P1-SST-001, CSS Custom Properties for runtime-computed layouts.
+   ============================================================================ */
+.nm-compare-slider {
+    inset-inline-start: var(--slider-pct, 50%);
+}
+.nm-compare-clip {
+    width: var(--slider-pct, 50%);
 }

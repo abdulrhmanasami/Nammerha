@@ -49,7 +49,7 @@ async function initMapIfNeeded(): Promise<void> {
                             <i class="ph ph-map-trifold text-slate-400 nm-icon-40"  aria-hidden="true"></i>
                             <p class="text-sm font-bold text-slate-600" data-i18n="map_unavailable">Map unavailable</p>
                             <p class="text-xs text-slate-400" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
-                            <button onclick="location.reload()" class="btn-secondary !w-auto !px-4 !py-2 !text-xs">
+                            <button onclick="location.reload()" class="btn-secondary nm-btn-compact">
                                 <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
                                 <span data-i18n="common_retry">Retry</span>
                             </button>
@@ -127,7 +127,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
           <!-- FRC-N04 FIX: Fund Now CTA upgraded from text-xs (12px) to text-sm (14px) font-bold.
                This is the primary revenue-critical action on a crowdfunding platform — needs prominence.
                Standard: Fitts's Law, Nielsen Heuristic #6 (Recognition). -->
-          <a href="project-details.html?project=${project.project_id}" class="btn-secondary !w-auto !px-4 !py-2 !text-sm font-bold">
+          <a href="project-details.html?project=${project.project_id}" class="btn-secondary nm-cta-inline font-bold">
             <span data-i18n="fund_now">Fund Now</span>
             <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
           </a>

@@ -229,9 +229,9 @@ function setupSliderInteraction(
         }
         const pct = (x / rect.width) * 100;
 
-        // Only dynamic values — position percentage — are set via JS
-        slider.style.insetInlineStart = `${pct}%`;
-        clipDiv.style.width = `${pct}%`;
+        // TICKET-04 FIX: CSS custom property replaces inline style.insetInlineStart/width — P1-SST-001.
+        slider.style.setProperty('--slider-pct', `${pct}%`);
+        clipDiv.style.setProperty('--slider-pct', `${pct}%`);
     };
 
     const onPointerUp = (): void => {

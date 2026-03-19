@@ -79,23 +79,13 @@ export function initPanoramaViewer(config: PanoramaConfig): void {
 
     // Create wrapper
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = `
-        position: relative;
-        width: 100%;
-        height: 100%;
-        background: #0a0a0a;
-        border-radius: 12px;
-        overflow: hidden;
-        cursor: grab;
-    `;
+    // TICKET-01 FIX: CSS class replaces style.cssText — P1-SST-001.
+    wrapper.className = 'nm-pano-wrapper';
 
     // Canvas for rendering
     const canvas = document.createElement('canvas');
-    canvas.style.cssText = `
-        width: 100%;
-        height: 100%;
-        display: block;
-    `;
+    // TICKET-01 FIX: CSS class replaces style.cssText — P1-SST-001.
+    canvas.className = 'nm-pano-canvas';
     wrapper.appendChild(canvas);
 
     // Info overlay
@@ -133,15 +123,8 @@ export function initPanoramaViewer(config: PanoramaConfig): void {
     img.onerror = () => {
         reportError(new Error(`[Panorama] Failed to load image: ${config.imageUrl}`), { component: 'panorama_viewer', action: 'load_image', imageUrl: config.imageUrl });
         const errorMsg = document.createElement('div');
-        errorMsg.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ef4444;
-            font-size: 14px;
-            text-align: center;
-        `;
+        // TICKET-01 FIX: CSS class replaces style.cssText — P1-SST-001.
+        errorMsg.className = 'nm-pano-error';
         errorMsg.textContent = 'فشل تحميل صورة البانوراما';
         wrapper.appendChild(errorMsg);
     };
@@ -257,7 +240,8 @@ function setupInteraction(element: HTMLElement): void {
         state.isDragging = true;
         state.lastMouseX = e.clientX;
         state.lastMouseY = e.clientY;
-        element.style.cursor = 'grabbing';
+        // TICKET-01 FIX: CSS class replaces inline style.cursor — P1-SST-001.
+        element.classList.add('nm-pano-wrapper--grabbing');
 
         if (state.autoRotateTimer !== null) {
             cancelAnimationFrame(state.autoRotateTimer);
@@ -286,7 +270,8 @@ function setupInteraction(element: HTMLElement): void {
     document.addEventListener('pointerup', () => {
         if (state.isDragging) {
             state.isDragging = false;
-            element.style.cursor = 'grab';
+            // TICKET-01 FIX: CSS class replaces inline style.cursor — P1-SST-001.
+            element.classList.remove('nm-pano-wrapper--grabbing');
         }
     });
 
@@ -329,20 +314,9 @@ function createInfoOverlay(config: PanoramaConfig): HTMLDivElement | null {
     }
 
     const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        padding: 8px 14px;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(4px);
-        color: white;
-        font-size: 12px;
-        border-radius: 8px;
-        z-index: 5;
-        pointer-events: none;
-        max-width: 280px;
-    `;
+    // TICKET-01 FIX: CSS class replaces style.cssText — P1-SST-001.
+    // RTL FIX: Was physical 'left: 16px' — now logical inset-inline-start in CSS.
+    overlay.className = 'nm-pano-info';
 
     let html = '';
 
@@ -364,14 +338,9 @@ function createInfoOverlay(config: PanoramaConfig): HTMLDivElement | null {
 
 function createControlsOverlay(): HTMLDivElement {
     const controls = document.createElement('div');
-    controls.style.cssText = `
-        position: absolute;
-        bottom: 16px;
-        right: 16px;
-        display: flex;
-        gap: 8px;
-        z-index: 5;
-    `;
+    // TICKET-01 FIX: CSS class replaces style.cssText — P1-SST-001.
+    // RTL FIX: Was physical 'right: 16px' — now logical inset-inline-end in CSS.
+    controls.className = 'nm-pano-controls';
 
     // Zoom in button
     const zoomIn = createControlButton('+', () => {
@@ -403,27 +372,9 @@ function createControlsOverlay(): HTMLDivElement {
 function createControlButton(label: string, onClick: () => void): HTMLButtonElement {
     const btn = document.createElement('button');
     btn.textContent = label;
-    btn.style.cssText = `
-        width: 36px;
-        height: 36px;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        font-size: 18px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s;
-    `;
-    btn.addEventListener('mouseenter', () => {
-        btn.style.background = 'rgba(255, 255, 255, 0.2)';
-    });
-    btn.addEventListener('mouseleave', () => {
-        btn.style.background = 'rgba(0, 0, 0, 0.6)';
-    });
+    // TICKET-01 FIX: CSS class replaces style.cssText + mouseenter/mouseleave handlers — P1-SST-001.
+    // Hover state now handled by CSS :hover pseudo-class in .nm-pano-btn:hover.
+    btn.className = 'nm-pano-btn';
     btn.addEventListener('click', onClick);
     return btn;
 }

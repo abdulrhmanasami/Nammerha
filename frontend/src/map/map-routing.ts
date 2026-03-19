@@ -193,14 +193,9 @@ export function hasRoute(map: maplibregl.Map): boolean {
 
 function createMarkerElement(className: string, color: string): HTMLDivElement {
     const el = document.createElement('div');
-    el.className = className;
-    el.style.cssText = `
-        width: 14px;
-        height: 14px;
-        background: ${color};
-        border: 2px solid white;
-        border-radius: 50%;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    `;
+    el.className = `${className} nm-route-marker`;
+    // TICKET-02 FIX: CSS class replaces style.cssText — P1-SST-001.
+    // Dynamic color via CSS custom property instead of inline background.
+    el.style.setProperty('--marker-color', color);
     return el;
 }

@@ -150,9 +150,11 @@ function showStep(index: number): void {
         // DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.
         // Standard: CSS Single Source of Truth.
         spotlight.classList.remove('nmr-tour-spotlight--visible');
-        tooltip.style.top = '50%';
-        tooltip.style.left = '50%';
-        tooltip.style.transform = 'translate(-50%, -50%)';
+        // TICKET-03 FIX: CSS custom properties replace inline style.top/left/transform — P1-SST-001.
+        tooltip.style.setProperty('--tip-top', '50%');
+        tooltip.style.setProperty('--tip-left', '50%');
+        tooltip.style.setProperty('--tip-transform', 'translate(-50%, -50%)');
+        tooltip.classList.add('nmr-tour-tooltip--positioned');
     }
 
     // Render tooltip content
@@ -218,10 +220,11 @@ function showStep(index: number): void {
 
 function positionSpotlight(spotlight: HTMLElement, target: HTMLElement): void {
     const rect = target.getBoundingClientRect();
-    spotlight.style.top    = `${rect.top - SPOTLIGHT_PADDING + window.scrollY}px`;
-    spotlight.style.left   = `${rect.left - SPOTLIGHT_PADDING}px`;
-    spotlight.style.width  = `${rect.width + SPOTLIGHT_PADDING * 2}px`;
-    spotlight.style.height = `${rect.height + SPOTLIGHT_PADDING * 2}px`;
+    // TICKET-03 FIX: CSS custom properties replace inline style.top/left/width/height — P1-SST-001.
+    spotlight.style.setProperty('--spot-top', `${rect.top - SPOTLIGHT_PADDING + window.scrollY}px`);
+    spotlight.style.setProperty('--spot-left', `${rect.left - SPOTLIGHT_PADDING}px`);
+    spotlight.style.setProperty('--spot-w', `${rect.width + SPOTLIGHT_PADDING * 2}px`);
+    spotlight.style.setProperty('--spot-h', `${rect.height + SPOTLIGHT_PADDING * 2}px`);
     // DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.
     spotlight.classList.add('nmr-tour-spotlight--visible');
 }
@@ -237,7 +240,9 @@ function positionTooltip(
     const viewportW = window.innerWidth;
 
     // Reset transform
-    tooltip.style.transform = '';
+    // TICKET-03 FIX: CSS custom properties replace inline style.top/left/transform — P1-SST-001.
+    tooltip.style.setProperty('--tip-transform', '');
+    tooltip.classList.add('nmr-tour-tooltip--positioned');
 
     // Auto-detect best position if not specified
     const position = preferredPosition ?? (rect.bottom + tooltipRect.height + 20 < viewportH ? 'bottom' : 'top');
@@ -246,20 +251,20 @@ function positionTooltip(
 
     switch (position) {
         case 'bottom':
-            tooltip.style.top = `${rect.bottom + MARGIN + window.scrollY}px`;
-            tooltip.style.left = `${Math.max(MARGIN, Math.min(rect.left + rect.width / 2 - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN))}px`;
+            tooltip.style.setProperty('--tip-top', `${rect.bottom + MARGIN + window.scrollY}px`);
+            tooltip.style.setProperty('--tip-left', `${Math.max(MARGIN, Math.min(rect.left + rect.width / 2 - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN))}px`);
             break;
         case 'top':
-            tooltip.style.top = `${rect.top - tooltipRect.height - MARGIN + window.scrollY}px`;
-            tooltip.style.left = `${Math.max(MARGIN, Math.min(rect.left + rect.width / 2 - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN))}px`;
+            tooltip.style.setProperty('--tip-top', `${rect.top - tooltipRect.height - MARGIN + window.scrollY}px`);
+            tooltip.style.setProperty('--tip-left', `${Math.max(MARGIN, Math.min(rect.left + rect.width / 2 - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN))}px`);
             break;
         case 'left':
-            tooltip.style.top = `${rect.top + rect.height / 2 - tooltipRect.height / 2 + window.scrollY}px`;
-            tooltip.style.left = `${rect.left - tooltipRect.width - MARGIN}px`;
+            tooltip.style.setProperty('--tip-top', `${rect.top + rect.height / 2 - tooltipRect.height / 2 + window.scrollY}px`);
+            tooltip.style.setProperty('--tip-left', `${rect.left - tooltipRect.width - MARGIN}px`);
             break;
         case 'right':
-            tooltip.style.top = `${rect.top + rect.height / 2 - tooltipRect.height / 2 + window.scrollY}px`;
-            tooltip.style.left = `${rect.right + MARGIN}px`;
+            tooltip.style.setProperty('--tip-top', `${rect.top + rect.height / 2 - tooltipRect.height / 2 + window.scrollY}px`);
+            tooltip.style.setProperty('--tip-left', `${rect.right + MARGIN}px`);
             break;
     }
 }
