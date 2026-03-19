@@ -8,7 +8,11 @@
    ============================================================================ */
 
 /* ─── About Page: Design Tokens (scoped overrides) ─────────────── */
-:root {
+/* PLT-ABOUT-003 FIX: Scoped from :root to body.about-page.
+   Previous: tokens defined on :root leaked into ALL pages globally.
+   These tokens are ONLY consumed by about.html (via body.about-page class).
+   Standard: CSS Architecture — Token Scoping, Namespace Isolation. */
+body.about-page {
   --about-bg-primary: #0a0e1a;
   --about-bg-secondary: #111827;
   --about-bg-card: rgba(255,255,255,0.04);
@@ -33,6 +37,7 @@ body.about-page *, body.about-page *::before, body.about-page *::after {
 }
 
 /* ─── Light Mode Overrides ────────────────────────────────────── */
+/* PLT-ABOUT-003: Light mode token overrides — also scoped to body.about-page */
 html[data-theme="light"] body.about-page {
   --about-bg-primary: #f8f9fc;
   --about-bg-secondary: #eef1f6;
@@ -278,8 +283,12 @@ body.about-page a { text-decoration: none; color: inherit; }
 }
 .nav-logo { display: flex; align-items: center; gap: 10px; }
 .nav-logo img { height: 32px; width: auto; }
+/* PLT-ABOUT-002 FIX: Touch target hardened from 40×40 → 44×44px minimum.
+   Previous: 40×40px — below Apple HIG 44pt and WCAG 2.5.8 mandates.
+   Standard: Apple HIG (44pt Minimum Touch Target), WCAG 2.5.8. */
 .nav-back {
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
+  min-width: 44px; min-height: 44px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
   background: rgba(255,255,255,0.06);
@@ -318,8 +327,14 @@ body.about-page a { text-decoration: none; color: inherit; }
 /* ═══════════════════════════════════════════════════════════════════
    HERO SECTION — Full Viewport Immersive
    ═══════════════════════════════════════════════════════════════════ */
+/* PLT-ABOUT-001 FIX: 100vh → 100dvh with fallback.
+   Previous: 100vh on iOS Safari included the collapsed URL bar height
+   (~80px overcounted), causing the hero to be cut off when the bar is visible.
+   dvh (Dynamic Viewport Height) adjusts as the address bar shows/hides.
+   Standard: CSS Values L4 (dvh), Apple HIG (Full-Screen Immersive). */
 .hero {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1155,6 +1170,11 @@ html[data-theme="light"] .logo-light { display: none; }
   }
   .nm-toc-label { display: inline; }
 }
+/* PLT-ABOUT-004 FIX: prefers-reduced-motion for ALL about page animations.
+   Previous: Only TOC slideUp was covered. The hero section had 4 decorative
+   animations (meshShift, logoFloat, scrollBounce, scrollDot) running unchecked
+   — causing vestibular discomfort for users with motion sensitivity.
+   Standard: WCAG 2.3.3 (Animation from Interactions), Apple HIG (Accessibility). */
 @media (prefers-reduced-motion: reduce) {
   .nm-toc, .nm-toc-item, .nm-toc-toggle {
     transition: none;
@@ -1162,5 +1182,20 @@ html[data-theme="light"] .logo-light { display: none; }
   @keyframes tocSlideUp {
     from { opacity: 0; }
     to   { opacity: 1; }
+  }
+  .hero::before {
+    animation: none;
+  }
+  .hero-logo img {
+    animation: none;
+  }
+  .scroll-hint {
+    animation: none;
+  }
+  .scroll-hint .mouse::after {
+    animation: none;
+  }
+  .glass, .badge, .bento-card, .leader-card, .timeline-card {
+    transition: none;
   }
 }

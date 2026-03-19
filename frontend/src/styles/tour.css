@@ -268,50 +268,54 @@
     flex-direction: row-reverse;
 }
 
-/* ─── Dark Mode (optional) ─────────────────────────────────────────────── */
+/* ─── Dark Mode ────────────────────────────────────────────────────── */
+/* PLT-TOUR-001 FIX: Migrated from @media (prefers-color-scheme: dark)
+   to html[data-theme="dark"].
+   Previous: Tour dark mode followed OS preference — disconnected from
+   the app's user-controlled theme toggle (data-theme attribute set by
+   theme-boot.js). Every other CSS file uses html[data-theme="dark"].
+   Standard: Platform Dark Mode Governance, CSS Architecture Consistency. */
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --tour-glass-bg: rgba(30, 41, 59, 0.92);
-        --tour-glass-border: rgba(71, 85, 105, 0.3);
-        --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.35),
-                       0 8px 20px rgba(0, 0, 0, 0.2);
-    }
+html[data-theme="dark"] {
+    --tour-glass-bg: rgba(30, 41, 59, 0.92);
+    --tour-glass-border: rgba(71, 85, 105, 0.3);
+    --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.35),
+                   0 8px 20px rgba(0, 0, 0, 0.2);
+}
 
-    .nmr-tour-overlay {
-        background: rgba(0, 0, 0, 0.75);
-    }
+html[data-theme="dark"] .nmr-tour-overlay {
+    background: rgba(0, 0, 0, 0.75);
+}
 
-    .nmr-tour-spotlight {
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
-    }
+html[data-theme="dark"] .nmr-tour-spotlight {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+}
 
-    .nmr-tour-title {
-        color: #f1f5f9;
-    }
+html[data-theme="dark"] .nmr-tour-title {
+    color: #f1f5f9;
+}
 
-    .nmr-tour-content {
-        color: #94a3b8;
-    }
+html[data-theme="dark"] .nmr-tour-content {
+    color: #94a3b8;
+}
 
-    .nmr-tour-step-count {
-        background: rgba(180, 83, 9, 0.15);
-    }
+html[data-theme="dark"] .nmr-tour-step-count {
+    background: rgba(180, 83, 9, 0.15);
+}
 
-    .nmr-tour-close {
-        background: rgba(71, 85, 105, 0.3);
-        color: #94a3b8;
-    }
+html[data-theme="dark"] .nmr-tour-close {
+    background: rgba(71, 85, 105, 0.3);
+    color: #94a3b8;
+}
 
-    .nmr-tour-actions {
-        background: rgba(15, 23, 42, 0.5);
-        border-top-color: rgba(71, 85, 105, 0.3);
-    }
+html[data-theme="dark"] .nmr-tour-actions {
+    background: rgba(15, 23, 42, 0.5);
+    border-top-color: rgba(71, 85, 105, 0.3);
+}
 
-    .nmr-tour-btn--prev {
-        background: rgba(71, 85, 105, 0.3);
-        color: #cbd5e1;
-    }
+html[data-theme="dark"] .nmr-tour-btn--prev {
+    background: rgba(71, 85, 105, 0.3);
+    color: #cbd5e1;
 }
 
 /* ─── Mobile Optimizations ─────────────────────────────────────────────── */

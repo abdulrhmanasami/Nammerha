@@ -86,18 +86,22 @@ function showStatus(type: StatusType, autoHideMs?: number): void {
         const msg = MESSAGES.swUpdate[locale];
         const refreshLabel = MESSAGES.refresh[locale];
         bar.innerHTML = `
-            <span class="network-status__icon">🔄</span>
+            <span class="network-status__icon"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i></span>
             <span class="network-status__text">${msg}</span>
             <button class="network-status__action" onclick="location.reload()">${refreshLabel}</button>
         `;
     } else {
+        /* PLT-NET-001 FIX: Replaced emoji icons with Phosphor font glyphs.
+           Previous: Emoji (⚡🔄✅⚠️) — renders inconsistently across Android/iOS/desktop
+           and breaks the platform's professional visual identity.
+           Standard: Platform Icon Governance — Phosphor icons exclusively. */
         const icons: Record<StatusType, string> = {
-            offline: '⚡',
-            syncing: '🔄',
-            online: '✅',
-            syncSuccess: '✅',
-            syncFailed: '⚠️',
-            swUpdate: '🔄',
+            offline: '<i class="ph ph-wifi-slash" aria-hidden="true"></i>',
+            syncing: '<i class="ph ph-arrows-clockwise ph-spin" aria-hidden="true"></i>',
+            online: '<i class="ph ph-wifi-high" aria-hidden="true"></i>',
+            syncSuccess: '<i class="ph ph-check-circle" aria-hidden="true"></i>',
+            syncFailed: '<i class="ph ph-warning" aria-hidden="true"></i>',
+            swUpdate: '<i class="ph ph-arrows-clockwise" aria-hidden="true"></i>',
         };
         bar.innerHTML = `
             <span class="network-status__icon">${icons[type]}</span>

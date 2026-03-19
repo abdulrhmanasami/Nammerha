@@ -11,9 +11,14 @@
    Kufam remains as a system-level fallback in font-family stacks (not loaded). */
 
 /* Plus Jakarta Sans — Latin (Display Font) */
-@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 300; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-300-latin.woff2') format('woff2'); }
+/* PLT-FONT-001 FIX: font-display:optional for non-critical weights.
+   Weight 300 is used for light body text only — not above-fold content.
+   `optional` eliminates CLS: if font isn't cached, system font is kept permanently.
+   Standard: Core Web Vitals (CLS), Google Fonts Best Practices. */
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 300; font-display: optional; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-300-latin.woff2') format('woff2'); }
 @font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-400-latin.woff2') format('woff2'); }
-@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-500-latin.woff2') format('woff2'); }
+/* PLT-FONT-001: Weight 500 — secondary labels/badges. Same rationale as 300. */
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 500; font-display: optional; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-500-latin.woff2') format('woff2'); }
 @font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-600-latin.woff2') format('woff2'); }
 @font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-700-latin.woff2') format('woff2'); }
 @font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/plus-jakarta-sans/plus-jakarta-sans-800-latin.woff2') format('woff2'); }
@@ -930,10 +935,15 @@ html[data-theme="dark"] .nm-textarea::placeholder {
 }
 
 /* ─── Card Hover Lift (Discovery) ──────────────────────────────────────────── */
+/* PLT-SPRING-001 FIX: Spring easing replaces linear ease.
+   cubic-bezier(0.34, 1.56, 0.64, 1) is a slight overshoot spring — cards
+   feel physically grounded when lifting. The shadow uses standard decelerate
+   to avoid the overshoot affecting the shadow spread unnaturally.
+   Standard: Material Design 3 (Emphasized Decelerate), Apple HIG (Fluid Motion). */
 .card-hover-lift {
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .card-hover-lift:hover {
   transform: translateY(-4px);
@@ -1003,6 +1013,29 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     color: white;
     border-color: var(--trust-blue);
   }
+}
+
+/* PLT-TOUCH-001 FIX: Filter pill :active feedback.
+   FRC-004 active state system exempted filter pills from touch-target sizing
+   (compact by design), but they still need tactile press feedback.
+   Standard: Apple HIG — "Provide feedback for every interaction." */
+@media (pointer: coarse) {
+    .filter-pill:active {
+        transform: scale(0.95);
+        transition: transform 50ms ease;
+    }
+}
+
+/* ============================================================================
+   PLT-SCROLL-001 FIX: Overscroll Containment on Nested Scroll Containers
+   Previous: Only body had overscroll-behavior:none (L317). Nested horizontal
+   scroll containers (.overflow-x-auto, #checkout-sheet) could trigger iOS
+   Safari's back-swipe navigation gesture during horizontal scrolling.
+   Standard: CSS Overscroll Behavior L1, Apple HIG (Gesture Disambiguation).
+   ============================================================================ */
+.overflow-x-auto,
+#checkout-sheet {
+    overscroll-behavior: contain;
 }
 
 /* ─── Field Engineer: CAPTURE 360 Button (Massive Zero UI target) ──────────── */
@@ -2956,8 +2989,13 @@ html[data-theme="dark"] a.text-warning-yellow {
 .dashboard-main table {
     contain: layout style;
 }
+/* PLT-PERF-001 FIX: Upgraded to contain:content (layout + style + paint).
+   Dashboard sections are toggled via display:none/block — with paint containment
+   the browser skips painting hidden sections entirely, reducing GPU workload.
+   Verified: no sections have overflow-visible positioned children.
+   Standard: CSS Containment Level 2, Web Performance (Layout Thrashing). */
 [id^="section-"] {
-    contain: layout style;
+    contain: content;
 }
 
 /* ============================================================================
