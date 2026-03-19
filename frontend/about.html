@@ -63,10 +63,10 @@
   <nav class="top-nav" id="topNav">
     <div class="nav-logo">
       <img src="/brand/Nammerha_logo_icon.svg?v=2" alt="نعمّرها" />
-      <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light" style="height:20px" />
-      <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark" style="height:20px" />
+      <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light nav-logo-text" />
+      <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark nav-logo-text" />
     </div>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div class="nav-actions">
       <!-- CONF-2026-004 FIX: Unified theme engine via data attributes (was inline JS) -->
       <button class="nav-back" id="themeToggle" title="تبديل السمة" data-nm-theme-toggle>
         <i id="themeIcon" data-nm-theme-icon aria-hidden="true"></i>
@@ -88,9 +88,10 @@
   <section class="hero" id="hero" tabindex="-1">
     <!-- Ambient orbs -->
     <!-- P2-AUD3-002 FIX: Inline right/left → inset-inline-end/start for RTL parity. -->
-    <div class="orb" style="width:400px;height:400px;top:-100px;inset-inline-end:-100px;background:rgba(26,115,232,0.06);"></div>
-    <div class="orb" style="width:350px;height:350px;bottom:-50px;inset-inline-start:-80px;background:rgba(16,145,115,0.05);"></div>
-    <div class="orb" style="width:250px;height:250px;top:40%;inset-inline-end:20%;background:rgba(194,149,107,0.04);"></div>
+    <!-- P1-SST-002 FIX: Inline styles → CSS classes (hero-orb-1/2/3 in _about.css). -->
+    <div class="orb hero-orb-1"></div>
+    <div class="orb hero-orb-2"></div>
+    <div class="orb hero-orb-3"></div>
 
     <div class="hero-logo">
       <img src="/brand/Nammerha_logo_Full.svg?v=2" alt="نعمّرها" id="heroLogo" class="logo-light" />
@@ -166,13 +167,13 @@
   <!-- ═══ STORY SECTION — Timeline ══════════════════════════════════════════ -->
   <section class="section" id="storySection">
     <div class="container">
-      <div style="text-align:center;margin-bottom:64px">
+      <div class="section-header">
         <span class="section-label section-label-blue" data-anim>
           <i class="ph ph-book-open"></i>
           الرحلة التي أوصلتنا إلى هنا
         </span>
         <h2 class="section-title" data-anim>قصتنا</h2>
-        <p class="section-desc" data-anim style="margin:0 auto">
+        <p class="section-desc" data-anim>
           من مراقبة الفجوة الإنسانية إلى بناء نظام بيئي متكامل لإعادة الإعمار
         </p>
       </div>
@@ -221,7 +222,7 @@
   <!-- ═══ LEADERSHIP ════════════════════════════════════════════════════════ -->
   <section class="section" id="leadershipSection">
     <div class="container">
-      <div style="text-align:center;margin-bottom:64px">
+      <div class="section-header">
         <span class="section-label section-label-jade" data-anim>
           <i class="ph ph-users-three"></i>
           حوكمة مؤسسية، لا سلطة شخصية
@@ -231,8 +232,8 @@
 
       <div class="leaders-grid">
         <div class="leader-card glass leader-blue" data-anim>
-          <div class="leader-avatar leader-avatar-blue" style="overflow:hidden;padding:0">
-            <img src="/brand/founder-badreddine.png?v=1" alt="بدر الدين" style="width:100%;height:100%;object-fit:cover;border-radius:20px" />
+          <div class="leader-avatar leader-avatar-blue leader-avatar-photo">
+            <img src="/brand/founder-badreddine.png?v=1" alt="بدر الدين" />
           </div>
           <h3>المؤسس والرئيس التنفيذي</h3>
           <div class="leader-role leader-role-blue">التوجيه الاستراتيجي والحوكمة</div>
@@ -245,8 +246,8 @@
         </div>
 
         <div class="leader-card glass leader-jade" data-anim>
-          <div class="leader-avatar leader-avatar-jade" style="overflow:hidden;padding:0">
-            <img src="/brand/cofounder-abdulrahman.jpg?v=1" alt="عبد الرحمن" style="width:100%;height:100%;object-fit:cover;border-radius:20px" />
+          <div class="leader-avatar leader-avatar-jade leader-avatar-photo">
+            <img src="/brand/cofounder-abdulrahman.jpg?v=1" alt="عبد الرحمن" />
           </div>
           <h3>الشريك المؤسس والمدير التقني</h3>
           <div class="leader-role leader-role-jade">التنفيذ التقني وهندسة المنتجات</div>
@@ -266,7 +267,7 @@
   <!-- ═══ APPROACH — Bento Grid ═════════════════════════════════════════════ -->
   <section class="section" id="approachSection">
     <div class="container">
-      <div style="text-align:center;margin-bottom:64px">
+      <div class="section-header">
         <span class="section-label section-label-earth" data-anim>
           <i class="ph ph-strategy"></i>
           الشفافية الجذرية وهندسة الأثر
@@ -303,7 +304,7 @@
         </div>
 
         <!-- MEAL -->
-        <div class="bento-card glass" data-anim style="grid-column: span 2">
+        <div class="bento-card glass bento-span-2" data-anim>
           <div class="bento-icon bento-icon-blue">
             <i class="ph ph-chart-bar"></i>
           </div>
@@ -320,9 +321,9 @@
   <section class="section" id="trustSection">
     <div class="container">
       <div class="stats-section" data-anim>
-        <div style="text-align:center;margin-bottom:48px;position:relative;z-index:2">
-          <h2 class="section-title" style="display:flex;align-items:center;justify-content:center;gap:12px">
-            <i class="ph ph-shield-check nm-icon-32" style="color:var(--smoky-jade)"></i>
+        <div class="section-header-elevated">
+          <h2 class="section-title section-title-inline">
+            <i class="ph ph-shield-check nm-icon-32 text-smoky-jade"></i>
             الثقة والامتثال
           </h2>
         </div>

@@ -61,8 +61,13 @@ function updateAllPrices(): void {
             el.textContent = formatCents(price);
             el.classList.remove('nm-price-exit');
             el.classList.add('nm-price-enter');
-            // Clean up entry class after animation completes
-            setTimeout(() => el.classList.remove('nm-price-enter'), 200);
+            // PLT-ANIM-001 FIX: Was setTimeout(200) timing hack that assumed
+            // CSS animation duration. Now uses animationend for reliable cleanup.
+            // Standard: Event-driven animation lifecycle, no magic numbers.
+            el.addEventListener('animationend', function cleanup() {
+                el.classList.remove('nm-price-enter');
+                el.removeEventListener('animationend', cleanup);
+            }, { once: true });
         }, 150);
     });
 

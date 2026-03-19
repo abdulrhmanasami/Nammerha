@@ -508,6 +508,81 @@ body.about-page a { text-decoration: none; color: inherit; }
   color: var(--about-text-secondary);
   max-width: 600px;
   line-height: 1.9;
+  /* P1-SST-002 FIX: Absorbs style="margin:0 auto" from about.html L175.
+     Standard: CSS Single Source of Truth. */
+  margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   P1-SST-002 FIX: Inline Style Elimination — CSS Single Source of Truth
+   Previous: 15 inline style="" attributes in about.html.
+   Now: All static styling via CSS classes. Zero inline styles remain.
+   Standard: P1-001 precedent, CSS Architecture, Design System Governance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Nav: Logo text height (was style="height:20px" on L66-67) */
+.nav-logo-text { height: 20px; }
+
+/* Nav: Actions wrapper (was style="display:flex;align-items:center;gap:12px" on L69) */
+.nav-actions { display: flex; align-items: center; gap: 12px; }
+
+/* Hero: Named orb variants (were fully inline on L91-93) */
+.hero-orb-1 {
+  width: 400px; height: 400px;
+  top: -100px; inset-inline-end: -100px;
+  background: rgba(26,115,232,0.06);
+}
+.hero-orb-2 {
+  width: 350px; height: 350px;
+  bottom: -50px; inset-inline-start: -80px;
+  background: rgba(16,145,115,0.05);
+}
+.hero-orb-3 {
+  width: 250px; height: 250px;
+  top: 40%; inset-inline-end: 20%;
+  background: rgba(194,149,107,0.04);
+}
+
+/* Section: Centered header wrapper (was style="text-align:center;margin-bottom:64px" ×3) */
+.section-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+/* Section: Elevated header wrapper — Trust & Compliance stats section */
+.section-header-elevated {
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Section: Inline title with icon (was style="display:flex;..." on h2) */
+.section-title-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Leader: Avatar with photo (was style="overflow:hidden;padding:0" + img inline styles) */
+.leader-avatar-photo {
+  overflow: hidden;
+  padding: 0;
+}
+.leader-avatar-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+/* Bento: 2-column span utility (was style="grid-column: span 2") */
+.bento-span-2 {
+  grid-column: span 2;
+}
+@media (max-width: 768px) {
+  .bento-span-2 { grid-column: span 1; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════

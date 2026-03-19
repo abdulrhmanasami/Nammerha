@@ -1828,6 +1828,11 @@ html[data-theme="dark"] .nm-toast {
    Standard: P1-SST-001 governance. */
 .nm-icon-va { vertical-align: -1px; }
 
+/* P1-SST-002: Back-arrow icon alignment + spacing.
+   Previous: style="vertical-align:-1px;margin-inline-end:4px" on reset-password.html L137.
+   Standard: P1-SST-001 governance. */
+.nm-icon-back-arrow { vertical-align: -1px; margin-inline-end: 4px; }
+
 /* W2-ROLE-01: Role-switcher and profile dynamic color utilities.
    Previous: inline style="background: ${color}15; color: ${color}" across 7 instances.
    Now: CSS custom property --role-color consumed by these classes.

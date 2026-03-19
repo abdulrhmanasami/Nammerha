@@ -5,8 +5,9 @@
 .network-status-bar {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
+    /* PLT-RTL-001 FIX: Was physical 'left: 0; right: 0;' — violates logical property standard.
+       Standard: CSS Logical Properties, Apple HIG (RTL Adaptation). */
+    inset-inline: 0;
     z-index: 10000;
     display: flex;
     align-items: center;

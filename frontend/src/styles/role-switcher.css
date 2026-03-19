@@ -86,7 +86,10 @@
 .role-switcher-dropdown {
     position: absolute;
     top: calc(100% + 8px);
-    right: 0;
+    /* PLT-RTL-002 FIX: Was physical 'right: 0' + [dir="rtl"] left: 0 override.
+       Single logical property handles both LTR and RTL automatically.
+       Standard: CSS Logical Properties, Platform RTL Governance. */
+    inset-inline-end: 0;
     min-width: 240px;
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px);
@@ -97,12 +100,6 @@
     z-index: 100;
     overflow: hidden;
     animation: roleSwitcherFadeIn 0.15s ease-out;
-}
-
-/* RTL: flip dropdown to left */
-[dir="rtl"] .role-switcher-dropdown {
-    right: auto;
-    left: 0;
 }
 
 @keyframes roleSwitcherFadeIn {

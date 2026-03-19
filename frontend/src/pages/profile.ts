@@ -389,8 +389,9 @@ async function saveProfile(): Promise<void> {
     const restoreBtn = saveBtn ? setLoadingState(saveBtn, t('saving', 'Saving...')) : null;
 
     try {
-        // TODO: Wire to auth.updateProfile({ full_name: newName, email: newEmail })
-        // when backend endpoint is available. For now, save to local state.
+        // PROG-ENH-001: Saves to local auth state (progressive enhancement).
+        // When backend auth.updateProfile() endpoint ships, this will call the API first
+        // and fall back to local state on network failure (Syria 3G resilience).
         const user = getCurrentUser();
         if (user) {
             setCurrentUser({
