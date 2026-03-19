@@ -88,6 +88,12 @@
     overflow: hidden;
     width: 100%;
     min-width: 0;
+    /* SRG-07 FIX: Prevent iOS Safari back-swipe during vertical content scroll.
+       Vertical overscroll in dashboard content area can trigger iOS navigation
+       gestures (back/forward swipe). overscroll-behavior-y:contain prevents
+       scroll chain propagation to the browser chrome.
+       Standard: CSS Overscroll Behavior L1, Apple HIG (Modal Scroll). */
+    overscroll-behavior-y: contain;
   }
 
   /* CONF-004 FIX: Touch target increased to 44×44px minimum (was 40×40px).

@@ -243,7 +243,7 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
                 </div>
                 <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div class="h-full rounded-full transition-all nm-progress-bar" 
-                         style="--progress: ${Math.min(fundedPct, 100)}%; background: ${statusColor}"></div>
+                         style="--progress: ${Math.min(fundedPct, 100)}%; --status-color: ${statusColor}"></div>
                 </div>
             </div>
             <a href="project-details.html?id=${escapeHtml(String(props['project_id'] ?? ''))}" 

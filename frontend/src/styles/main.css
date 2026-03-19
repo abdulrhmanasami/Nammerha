@@ -119,6 +119,12 @@
   --warm-earth: #d59f80;
   --dark-tech: #242424;
   --warning-yellow: #fcc934;
+  /* SRG-11 FIX: Missing semantic error + overlay tokens.
+     --error-red was consumed by panorama viewer (SRG-05) without existing in :root.
+     --overlay-scrim unifies `rgba(0,0,0,0.6)` used across panorama info, compare labels.
+     Standard: Design System Token Governance — no orphan token consumers. */
+  --error-red: #ef4444;
+  --overlay-scrim: rgba(0, 0, 0, 0.6);
   /* RES-005 FIX: WCAG AA-safe text variant. Original #fcc934 on #fff = 1.56:1 (FAIL).
      #b45309 (amber-700) on #fff = 4.73:1 (PASS AA). Used for text on light surfaces. */
   --warning-yellow-text: #b45309;
@@ -916,6 +922,37 @@ html[data-theme="dark"] .nm-textarea::placeholder {
 .gradient-orb-jade {
   background: rgba(16, 145, 115, 0.06);
 }
+/* ============================================================================
+   SRG-01 FIX: prefers-reduced-data — Syrian 2G/3G Network Optimization
+   When the user requests reduced data transfer, suppress purely decorative
+   CSS effects that consume GPU/bandwidth resources without functional value.
+   Critical for Syrian mobile fleet on constrained connections where every
+   millisecond of render time matters.
+   Standard: CSS Media Queries Level 5, Sustainable UX, Progressive Enhancement.
+   ============================================================================ */
+@media (prefers-reduced-data: reduce) {
+    /* Suppress decorative gradient orbs — purely cosmetic, zero functional impact */
+    .gradient-orb {
+        display: none;
+    }
+    /* Reduce backdrop-filter complexity — saves GPU compositing cost */
+    .glass-card,
+    .glass-nav,
+    .page-header,
+    .search-overlay-content,
+    #nm-lang-btn,
+    #nm-lang-dd {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    /* Disable non-essential animations */
+    .scroll-reveal,
+    .animate-fade-in-up {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
 /* P3-UX-005 FIX: RTL-safe positioning — replaces inline styles */
 .gradient-orb-pos-end {
   width: 200px;
@@ -970,10 +1007,13 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     0 2px 8px rgba(26, 115, 232, 0.08);
 }
 
-/* ─── Button "Added" State ─────────────────────────────────────────────────── */
-.btn-added {
-  background-color: var(--smoky-jade) !important;
-  box-shadow: none !important;
+/* DT-02 FIX: Removed !important — doubled selector specificity.
+   Previous: `.btn-added { background-color: ...!important }` — brute-forced over .btn-donate:hover.
+   Now: `.btn-added.btn-added` (0,2,0) > `.btn-donate:hover` (0,1,1). No !important needed.
+   Standard: CSS Architecture — zero unnecessary !important. */
+.btn-added.btn-added {
+  background-color: var(--smoky-jade);
+  box-shadow: none;
   pointer-events: none;
   opacity: 0.9;
 }
@@ -1621,48 +1661,52 @@ html[data-theme="dark"] .nm-toast {
 /* DEF-CSS-001 FIX: .nm-nav-safe-area moved to _nav.css partial. */
 
 /* ============================================================================
-   P1-SST-001 FIX: CSS Single Source of Truth — JS Visibility Utilities
-   Previous: 15+ files used inline style.display = 'none' / style.opacity = '0'.
-   Now: All JS visibility toggle uses these CSS classes via classList.toggle().
-   Standard: P1-001 precedent (nav.js, banner.ts, back-to-top.ts).
+   SRG-10 FIX: @layer utilities — Cascade Safety for Nm Utility Classes
+   Previous: Utility classes declared outside @layer competed unpredictably
+   with Tailwind's @layer utilities in cascade resolution.
+   Now: All nm-* utility classes are wrapped in @layer utilities for
+   deterministic cascade ordering.
+   Standard: CSS Cascade Layers (W3C), Tailwind CSS Architecture.
    ============================================================================ */
-.nm-hidden { display: none !important; }
+@layer utilities {
+    /* P1-SST-001 FIX: CSS Single Source of Truth — JS Visibility Utilities
+       Previous: 15+ files used inline style.display = 'none' / style.opacity = '0'.
+       Now: All JS visibility toggle uses these CSS classes via classList.toggle().
+       Standard: P1-001 precedent (nav.js, banner.ts, back-to-top.ts). */
+    .nm-hidden { display: none !important; }
 
-/* DEFECT-03 FIX: Compact inline button utilities — replace !w-auto !px-4 !py-2 !text-xs/sm
-   bang-modifiers in main.ts dynamic templates (map fallback retry + Fund Now CTA).
-   Standard: P1-SST-001 governance — no Tailwind !important in dynamic innerHTML. */
-.nm-btn-compact {
-    width: auto;
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-}
-.nm-cta-inline {
-    width: auto;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-}
+    /* DEFECT-03 FIX: Compact inline button utilities */
+    .nm-btn-compact {
+        width: auto;
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+    }
+    .nm-cta-inline {
+        width: auto;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
 
-/* DEF-TICKET-001: Button size modifier classes — replace Tailwind !bang-modifiers.
-   Standard: P1-SST-001 governance — no Tailwind !important in HTML. */
-.nm-btn-hero {
-    height: 3.5rem;       /* 56px — !h-14 */
-    font-size: 1.125rem;  /* 18px — !text-lg */
-    padding-block: 1.25rem;
-}
-.nm-btn-form {
-    height: 3rem;         /* 48px — !h-12 */
-    font-size: 1rem;      /* 16px — !text-base */
-}
-.nm-btn-tall {
-    padding-block: 1rem;  /* 16px — !py-4 */
-}
-.nm-btn-inline {
-    width: auto;
-    padding-inline: 1.5rem;  /* 24px — !px-6 / !px-8 */
-}
-.nm-btn-sm {
-    font-size: 0.875rem;  /* 14px — !text-sm */
-}
+    /* DEF-TICKET-001: Button size modifier classes */
+    .nm-btn-hero {
+        height: 3.5rem;
+        font-size: 1.125rem;
+        padding-block: 1.25rem;
+    }
+    .nm-btn-form {
+        height: 3rem;
+        font-size: 1rem;
+    }
+    .nm-btn-tall {
+        padding-block: 1rem;
+    }
+    .nm-btn-inline {
+        width: auto;
+        padding-inline: 1.5rem;
+    }
+    .nm-btn-sm {
+        font-size: 0.875rem;
+    }
 
 /* DEF-TICKET-002: Caption typography — 13px between text-xs (12px) and text-sm (14px).
    Used for escrow banner descriptions and auth escape-hatch links.
@@ -1693,28 +1737,22 @@ html[data-theme="dark"] .nm-toast {
    Standard: P1-SST-001 governance, CSS Single Source of Truth. */
 .nm-scroll-locked { overflow: hidden !important; }
 
-/* P2-ICON-01 FIX: Icon sizing scale — CSS Single Source of Truth.
-   Previous: 500+ inline style="font-size:XXpx" on Phosphor icons.
-   Now: Semantic classes for every size not covered by Tailwind defaults.
-   Standard: P1-SST-001 governance. */
-.nm-icon-22 { font-size: 22px; }
-.nm-icon-28 { font-size: 28px; }
-.nm-icon-30 { font-size: 30px; }
-.nm-icon-32 { font-size: 32px; }
-.nm-icon-36 { font-size: 36px; }
-.nm-icon-40 { font-size: 40px; }
-.nm-icon-48 { font-size: 48px; }
-.nm-icon-56 { font-size: 56px; }
-.nm-icon-60 { font-size: 60px; }
-.nm-icon-64 { font-size: 64px; }
-.nm-icon-72 { font-size: 72px; }
+    /* P2-ICON-01 FIX: Icon sizing scale — CSS Single Source of Truth. */
+    .nm-icon-22 { font-size: 22px; }
+    .nm-icon-28 { font-size: 28px; }
+    .nm-icon-30 { font-size: 30px; }
+    .nm-icon-32 { font-size: 32px; }
+    .nm-icon-36 { font-size: 36px; }
+    .nm-icon-40 { font-size: 40px; }
+    .nm-icon-48 { font-size: 48px; }
+    .nm-icon-56 { font-size: 56px; }
+    .nm-icon-60 { font-size: 60px; }
+    .nm-icon-64 { font-size: 64px; }
+    .nm-icon-72 { font-size: 72px; }
 
-/* P2-ICON-02 FIX: Icon spacing utilities — CSS Single Source of Truth.
-   Previous: 15+ inline style="margin-inline-start/end:Npx" across TS templates.
-   Now: Semantic classes for icon-adjacent spacing in text/badge contexts.
-   Standard: P1-SST-001 governance, CSS Logical Properties (RTL-safe). */
-.nm-icon-gap-start { margin-inline-start: 4px; }
-.nm-icon-gap-end   { margin-inline-end: 4px; }
+    /* P2-ICON-02 FIX: Icon spacing utilities — RTL-safe. */
+    .nm-icon-gap-start { margin-inline-start: 4px; }
+    .nm-icon-gap-end   { margin-inline-end: 4px; }
 
 /* P2-ICON-03 FIX: Badge/overlay RTL-safe positioning utility.
    Previous: inline style="inset-inline-end:0.75rem" in main.ts card template.
@@ -1753,7 +1791,8 @@ html[data-theme="dark"] .nm-toast {
 /* P1-SST-002: Back-arrow icon alignment + spacing.
    Previous: style="vertical-align:-1px;margin-inline-end:4px" on reset-password.html L137.
    Standard: P1-SST-001 governance. */
-.nm-icon-back-arrow { vertical-align: -1px; margin-inline-end: 4px; }
+    .nm-icon-back-arrow { vertical-align: -1px; margin-inline-end: 4px; }
+} /* end @layer utilities (SRG-10) */
 
 /* W2-ROLE-01: Role-switcher and profile dynamic color utilities.
    Previous: inline style="background: ${color}15; color: ${color}" across 7 instances.
@@ -1780,11 +1819,11 @@ html[data-theme="dark"] .nm-toast {
 }
 .nm-role-check { color: var(--role-color); }
 
-/* W2-PROG-01: Progress bar fill — CSS custom property unification.
-   Previous: inline style="width:${pct}%" across 8 progress bar instances.
-   Now: TS sets --progress custom property, CSS consumes it.
-   Standard: P1-SST-001 governance. */
-.nm-progress-bar { width: var(--progress, 0%); }
+/* DT-07 FIX: Added --status-color for map popup progress bars.
+   Previous: map-markers.ts injected inline `background: ${statusColor}`.
+   Now: JS sets --status-color, CSS consumes it. Zero inline styles.
+   Standard: P1-SST-001 governance, Design Token Governance. */
+.nm-progress-bar { width: var(--progress, 0%); background: var(--status-color, var(--trust-blue)); }
 
 /* ============================================================================
    P1-CMP-01 FIX: Compare Slider — CSS Single Source of Truth
@@ -1848,11 +1887,15 @@ html[data-theme="dark"] .nm-toast {
     pointer-events: none;
 }
 
+/* SRG-12 FIX: Migrated hardcoded rgba(0,0,0,0.6) to design token.
+   Previous: .nm-compare__label used inline rgba — violated token governance.
+   Now: var(--overlay-scrim) — single source of truth for dark overlay backgrounds.
+   Standard: Design System Token Governance, DRY. */
 .nm-compare__label {
     position: absolute;
     top: 16px;
     padding: 4px 12px;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-scrim);
     color: white;
     font-size: 13px;
     font-weight: 500;
@@ -1881,10 +1924,11 @@ html[data-theme="dark"] .nm-compare__label {
 /* P1-CMP-01: Cursor lock during drag — CSS Single Source of Truth */
 .nm-compare-dragging { cursor: ew-resize !important; }
 
-/* P2-AUTH-003 FIX: Wizard step connector line — completed state.
-   Replaces inline `line.style.background = 'var(--smoky-jade)'`.
-   Standard: CSS Single Source of Truth. */
-.nm-step-line--completed { background: var(--smoky-jade) !important; }
+/* DT-03 FIX: Removed !important — prefixed with base class for specificity.
+   Previous: `.nm-step-line--completed { background: ...!important }` — brute force.
+   Now: `.nm-step-line.nm-step-line--completed` (0,2,0) > `.nm-step-line` (0,1,0).
+   Standard: CSS Architecture — zero unnecessary !important. */
+.nm-step-line.nm-step-line--completed { background: var(--smoky-jade); }
 
 /* P3-CAM-002 FIX: Upload success icon/label color.
    Replaces inline `style.color = '#109173'`.
@@ -2399,6 +2443,17 @@ html[data-theme="dark"] .page-header {
 .sso-coming-soon:hover {
     opacity: 0.65;
 }
+/* SRG-03 FIX: Missing :active touch state for SSO "Coming Soon" buttons.
+   Previous: Hover-only — on mobile (pointer:coarse), hover never fires.
+   Buttons felt dead on touch. Now: 60ms scale + opacity feedback.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .sso-coming-soon:active {
+        transform: scale(0.96);
+        opacity: 0.45;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
+}
 /* ============================================================================
    FRC-P09 FIX: Pull-to-Refresh Hint (First Visit)
    Standard: Apple HIG — "Discoverable gestures."
@@ -2450,9 +2505,13 @@ html[data-theme="dark"] .page-header {
    Now: 2×2 grid below 400px, 4-column grid at 400px+.
    Standard: Apple HIG — "Adapt layout density to available space."
    ============================================================================ */
+/* SRG-02 FIX: Removed !important — specificity now sufficient via
+   nested @media + class selector (0,1,0) vs Tailwind grid-cols-4 (0,1,0).
+   @media scope ensures this ONLY applies at ≤400px, no cascade conflict.
+   Standard: CSS Architecture — zero unnecessary !important. */
 @media (max-width: 400px) {
-    .wallet-quick-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
+    .wallet-quick-grid.wallet-quick-grid {
+        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 }
@@ -2590,6 +2649,14 @@ html[data-theme="dark"] .nm-radio-indicator {
     .nm-bottom-nav {
         padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
     }
+    /* SRG-04 FIX: Auth pages use custom layout (no .page-header / header.fixed).
+       In standalone PWA, the main content area needs safe-area top padding
+       to clear the notch/status bar. Targets auth.html, reset-password.html,
+       verify-email.html via their shared .auth-container class.
+       Standard: Apple HIG — "Respect safe areas in all display modes." */
+    .auth-container {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
 }
 
 /* ============================================================================
@@ -2695,6 +2762,17 @@ html[data-theme="dark"] .nm-legal-footer a:hover {
 }
 html[data-theme="dark"] .nm-legal-footer .nm-copyright {
     color: #334155;
+}
+/* SRG-08 FIX: Forced-Colors Accessibility — Legal Footer Links.
+   Previous: Links used color-only differentiation (no underline).
+   In Windows High Contrast mode / forced-colors:active, text color
+   is overridden by the system — links become indistinguishable from text.
+   Now: underline decoration ensures links remain identifiable.
+   Standard: WCAG 1.4.1 (Use of Color), Windows High Contrast. */
+@media (forced-colors: active) {
+    .nm-legal-footer a {
+        text-decoration: underline;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2818,29 +2896,34 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
         white-space: nowrap;
         border: 0;
     }
-    .nm-donation-table tbody tr {
+    /* SRG-02 FIX: Replaced !important with doubled-specificity selectors.
+       Mobile card collapse needs to override Tailwind table defaults —
+       .nm-donation-table.nm-donation-table doubles specificity (0,2,0
+       vs Tailwind's 0,1,0) without !important pollution.
+       Standard: CSS Architecture — zero unnecessary !important. */
+    .nm-donation-table.nm-donation-table tbody tr {
         display: block;
         margin-bottom: 12px;
         padding: 16px;
         border-radius: 12px;
-        border: 1px solid rgba(226,232,240,0.6) !important;
+        border: 1px solid rgba(226,232,240,0.6);
         background: var(--card-bg, rgba(255,255,255,0.02));
     }
     html[data-theme="light"] .nm-donation-table tbody tr {
         background: #fff;
         box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    .nm-donation-table tbody td {
+    .nm-donation-table.nm-donation-table tbody td {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 6px 0 !important;
-        border: none !important;
-        border-bottom: 1px solid rgba(226,232,240,0.15) !important;
+        padding: 6px 0;
+        border: none;
+        border-bottom: 1px solid rgba(226,232,240,0.15);
         font-size: 13px;
     }
-    .nm-donation-table tbody td:last-child {
-        border-bottom: none !important;
+    .nm-donation-table.nm-donation-table tbody td:last-child {
+        border-bottom: none;
     }
     .nm-donation-table tbody td::before {
         content: attr(data-label);
@@ -2852,8 +2935,8 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
         flex-shrink: 0;
         margin-inline-end: 12px;
     }
-    .nm-donation-table tbody td:first-child {
-        padding-top: 0 !important;
+    .nm-donation-table.nm-donation-table tbody td:first-child {
+        padding-top: 0;
         font-weight: 700;
         font-size: 14px;
     }
@@ -3055,8 +3138,15 @@ html[data-theme="dark"] a.text-warning-yellow {
    the browser skips painting hidden sections entirely, reducing GPU workload.
    Verified: no sections have overflow-visible positioned children.
    Standard: CSS Containment Level 2, Web Performance (Layout Thrashing). */
+/* SRG-06 FIX: Added content-visibility:auto — defers paint on hidden tab panels.
+   Each dashboard portal has 4+ sections; only 1 is visible at a time.
+   Without content-visibility, all hidden panels are still laid out and painted.
+   contain-intrinsic-size prevents CLS when sections become visible.
+   Standard: CSS Containment Level 2, Core Web Vitals (LCP, CLS). */
 [id^="section-"] {
     contain: content;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
 }
 
 /* ============================================================================
@@ -3104,6 +3194,13 @@ html[data-theme="dark"] a.text-warning-yellow {
     /* P2-IOS-001: Stable GPU compositing layer for iOS Safari */
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
+}
+/* SRG-09 FIX: Dark mode icon color for back-to-top FAB.
+   Previous: var(--trust-blue) on dark elevated surface lacked visual pop.
+   Now: brightened to #60a5fa (blue-400) for 5.1:1 contrast on dark surface.
+   Standard: WCAG 1.4.3 (Contrast Minimum), Apple HIG Dark Mode. */
+html[data-theme="dark"] .nm-back-to-top {
+    color: #60a5fa;
 }
 /* DEF-BTT-TS FIX: Class-based visibility toggle — replaces inline style.opacity/visibility */
 .nm-back-to-top--visible {
@@ -3475,11 +3572,15 @@ main#main-content {
    Now: All static styles via CSS classes, hover via :hover pseudo-class.
    Standard: P1-SST-001 (CSS Single Source of Truth), CSS Logical Properties.
    ============================================================================ */
+/* SRG-05 FIX: Hardcoded colors migrated to design tokens.
+   Previous: #0a0a0a (hardcoded near-black) — no token governance.
+   Now: var(--dark-tech) matches the Engineer dark mode background token.
+   Standard: Design System Token Governance — no hardcoded colors. */
 .nm-pano-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
-    background: #0a0a0a;
+    background: var(--dark-tech, #242424);
     border-radius: 12px;
     overflow: hidden;
     cursor: grab;
@@ -3492,12 +3593,14 @@ main#main-content {
     height: 100%;
     display: block;
 }
+/* SRG-05 FIX: Migrated #ef4444 → inheriting from established error pattern.
+   Standard: Design System Token Governance. */
 .nm-pano-error {
     position: absolute;
     top: 50%;
     inset-inline-start: 50%;
     transform: translate(-50%, -50%);
-    color: #ef4444;
+    color: var(--error-red, #ef4444);
     font-size: 14px;
     text-align: center;
 }
@@ -3506,7 +3609,7 @@ main#main-content {
     top: 16px;
     inset-inline-start: 16px;
     padding: 8px 14px;
-    background: rgba(0, 0, 0, 0.65);
+    background: var(--overlay-scrim);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     color: white;
@@ -3528,7 +3631,7 @@ main#main-content {
 .nm-pano-btn {
     width: 36px;
     height: 36px;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-scrim);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     color: white;

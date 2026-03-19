@@ -109,11 +109,22 @@ function switchTab(mode: 'login' | 'register'): void {
             exitingPanel.classList.remove('auth-panel-exit');
         } else {
             exitingPanel.classList.add('auth-panel-exit');
-            setTimeout(() => {
-                // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+            // SRG-13 FIX: Replaced setTimeout(250) with animationend event.
+            // Previous: Hardcoded 250ms assumed CSS animation-duration wouldn't change.
+            // This is a timing coupling fragility — if CSS duration changes, JS breaks.
+            // Now: JS listens for the actual animation end, with a 400ms safety fallback.
+            // Standard: Event-Driven Animation Lifecycle, Zero Magic Numbers.
+            const onExitEnd = () => {
                 exitingPanel.classList.add('nm-hidden');
                 exitingPanel.classList.remove('auth-panel-exit');
-            }, 250);
+            };
+            exitingPanel.addEventListener('animationend', onExitEnd, { once: true });
+            // Safety fallback: if animationend never fires (e.g., display:none race)
+            setTimeout(() => {
+                if (exitingPanel.classList.contains('auth-panel-exit')) {
+                    onExitEnd();
+                }
+            }, 400);
         }
     }
 

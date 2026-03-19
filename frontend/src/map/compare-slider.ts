@@ -26,6 +26,8 @@ interface CompareState {
     clipDiv: HTMLDivElement | null;
     isActive: boolean;
     isDragging: boolean;
+    /** DT-06: AbortController for document-level listener cleanup */
+    abortController: AbortController | null;
 }
 
 const state: CompareState = {
@@ -36,6 +38,7 @@ const state: CompareState = {
     clipDiv: null,
     isActive: false,
     isDragging: false,
+    abortController: null,
 };
 
 // ─── Public API ─────────────────────────────────────────────────────────────
@@ -187,6 +190,13 @@ export function destroyCompareSlider(): void {
     state.clipDiv = null;
     state.isActive = false;
     state.isDragging = false;
+    // DT-06 FIX: Abort document-level listeners to prevent memory leak.
+    // Previous: pointermove/pointerup on document were never removed.
+    // Standard: DOM Event Lifecycle Hygiene, Memory Leak Prevention.
+    if (state.abortController) {
+        state.abortController.abort();
+        state.abortController = null;
+    }
     // P1-CMP-01: Ensure cursor class is removed on destroy
     document.body.classList.remove('nm-compare-dragging');
 }
@@ -240,9 +250,13 @@ function setupSliderInteraction(
         document.body.classList.remove('nm-compare-dragging');
     };
 
+    // DT-06 FIX: AbortController for document-level listener cleanup.
+    const controller = new AbortController();
+    state.abortController = controller;
+
     slider.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('pointermove', onPointerMove);
-    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointermove', onPointerMove, { signal: controller.signal });
+    document.addEventListener('pointerup', onPointerUp, { signal: controller.signal });
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

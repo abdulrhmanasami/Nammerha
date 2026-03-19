@@ -109,9 +109,13 @@ html[data-theme="light"] .glass:hover {
   box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   border-color: rgba(0,0,0,0.1);
 }
-html[data-theme="light"] .bento-large {
-  background: linear-gradient(135deg, rgba(26,115,232,0.04), rgba(16,145,115,0.02)) !important;
-  border-color: rgba(26,115,232,0.08) !important;
+/* DT-01 FIX: Removed !important — specificity boosted with body.about-page.
+   Previous: `html[data-theme="light"] .bento-large { ...!important }` to override .glass.
+   Now: `html[data-theme="light"] body.about-page .bento-large` (0,3,1) > .glass (0,1,0).
+   Standard: CSS Architecture — zero unnecessary !important. */
+html[data-theme="light"] body.about-page .bento-large {
+  background: linear-gradient(135deg, rgba(26,115,232,0.04), rgba(16,145,115,0.02));
+  border-color: rgba(26,115,232,0.08);
 }
 /* Section titles */
 html[data-theme="light"] .section-title {
@@ -142,8 +146,10 @@ html[data-theme="light"] .divider {
   background: linear-gradient(to right, transparent, rgba(0,0,0,0.06), transparent);
 }
 /* Leader cards */
-html[data-theme="light"] .leader-card {
-  background: rgba(255,255,255,0.9) !important;
+/* DT-01 FIX: Removed !important — specificity boosted with body.about-page.
+   Standard: CSS Architecture — zero unnecessary !important. */
+html[data-theme="light"] body.about-page .leader-card {
+  background: rgba(255,255,255,0.9);
 }
 html[data-theme="light"] .leader-card h3,
 html[data-theme="light"] .leader-card p {
@@ -722,10 +728,13 @@ body.about-page a { text-decoration: none; color: inherit; }
   line-height: 2;
 }
 
-/* Large card special styling */
-.bento-large {
-  background: linear-gradient(135deg, rgba(26,115,232,0.08), rgba(16,145,115,0.05)) !important;
-  border-color: rgba(26,115,232,0.12) !important;
+/* DT-01 FIX: Removed !important — specificity boosted with body.about-page.
+   Previous: `.bento-large { ...!important }` to override `.glass` base background.
+   Now: `body.about-page .bento-large` (0,2,1) > `.glass` (0,1,0).
+   Standard: CSS Architecture — zero unnecessary !important. */
+body.about-page .bento-large {
+  background: linear-gradient(135deg, rgba(26,115,232,0.08), rgba(16,145,115,0.05));
+  border-color: rgba(26,115,232,0.12);
 }
 .bento-large h3 {
   font-size: clamp(1.4rem, 2.2vw, 1.8rem);

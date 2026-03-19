@@ -44,6 +44,8 @@ interface PanoramaState {
     lastMouseY: number;
     autoRotateTimer: ReturnType<typeof requestAnimationFrame> | null;
     image: HTMLImageElement | null;
+    /** DT-05: AbortController for document-level listener cleanup */
+    abortController: AbortController | null;
 }
 
 const state: PanoramaState = {
@@ -59,7 +61,14 @@ const state: PanoramaState = {
     lastMouseY: 0,
     autoRotateTimer: null,
     image: null,
+    abortController: null,
 };
+
+// DT-04: Cached CSS token read — avoids getComputedStyle() on every rAF frame.
+// Falls back to hardcoded value if CSS hasn't loaded yet (SSR, test environment).
+const panoFillColor = typeof document !== 'undefined'
+    ? getComputedStyle(document.documentElement).getPropertyValue('--dark-tech').trim() || '#0a0a0a'
+    : '#0a0a0a';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -142,6 +151,15 @@ export function destroyPanoramaViewer(): void {
         cancelAnimationFrame(state.autoRotateTimer);
         state.autoRotateTimer = null;
     }
+    // DT-05 FIX: Abort document-level listeners to prevent memory leak.
+    // Previous: pointermove/pointerup on document were never removed.
+    // Each init/destroy cycle accumulated orphaned listeners.
+    // Now: single AbortController.abort() removes all at once.
+    // Standard: DOM Event Lifecycle Hygiene, Memory Leak Prevention.
+    if (state.abortController) {
+        state.abortController.abort();
+        state.abortController = null;
+    }
     if (state.container) {
         state.container.remove();
     }
@@ -199,8 +217,11 @@ function render(): void {
     const srcX = (headingRatio * imgW - srcW / 2 + imgW) % imgW;
     const srcY = (1 - pitchRatio) * imgH - srcH / 2;
 
-    // Clear canvas
-    ctx.fillStyle = '#0a0a0a';
+    // DT-04 FIX: Canvas API doesn't support CSS vars — read computed value.
+    // Previous: hardcoded '#0a0a0a' — violated token governance (--dark-tech is the canonical value).
+    // Cached outside hot loop to avoid getComputedStyle per-frame during auto-rotate.
+    // Standard: Design System Token Governance, Canvas 2D Integration.
+    ctx.fillStyle = panoFillColor;
     ctx.fillRect(0, 0, w, h);
 
     // Draw the panorama section
@@ -236,6 +257,10 @@ function render(): void {
 // ─── Interaction ────────────────────────────────────────────────────────────
 
 function setupInteraction(element: HTMLElement): void {
+    // DT-05 FIX: AbortController for document-level listener cleanup.
+    const controller = new AbortController();
+    state.abortController = controller;
+
     element.addEventListener('pointerdown', (e: PointerEvent) => {
         state.isDragging = true;
         state.lastMouseX = e.clientX;
@@ -265,7 +290,7 @@ function setupInteraction(element: HTMLElement): void {
         state.lastMouseY = e.clientY;
 
         render();
-    });
+    }, { signal: controller.signal });
 
     document.addEventListener('pointerup', () => {
         if (state.isDragging) {
@@ -273,7 +298,7 @@ function setupInteraction(element: HTMLElement): void {
             // TICKET-01 FIX: CSS class replaces inline style.cursor — P1-SST-001.
             element.classList.remove('nm-pano-wrapper--grabbing');
         }
-    });
+    }, { signal: controller.signal });
 
     // Mouse wheel zoom
     element.addEventListener('wheel', (e: WheelEvent) => {

@@ -71,11 +71,25 @@
     text-decoration: none;
     transition: all 0.2s ease;
     letter-spacing: 0.01em;
+    min-height: 44px;
 }
 
+/* SRG-09 FIX: Added min-height: 44px — touch target compliance.
+   Previous: rendered at ~32px height — below WCAG 2.5.8 minimum (44px).
+   Standard: Apple HIG (44pt minimum), WCAG 2.5.8 (Target Size). */
 .role-switcher-login:hover {
     background: rgba(46, 125, 223, 0.18);
     transform: translateY(-1px);
+}
+/* SRG-03 FIX: Missing :active touch state for login prompt.
+   On mobile (pointer:coarse), hover never fires — button felt dead.
+   Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
+@media (pointer: coarse) {
+    .role-switcher-login:active {
+        transform: scale(0.96);
+        opacity: 0.8;
+        transition: transform 60ms ease, opacity 60ms ease;
+    }
 }
 
 .role-switcher-login i {
