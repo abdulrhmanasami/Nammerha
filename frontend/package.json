@@ -11,7 +11,8 @@
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.{ts,css,json}'",
-    "format:check": "prettier --check 'src/**/*.{ts,css,json}'"
+    "format:check": "prettier --check 'src/**/*.{ts,css,json}'",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.20.0",

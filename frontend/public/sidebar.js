@@ -41,7 +41,9 @@
             sidebar.classList.remove('hidden');
             sidebar.classList.add('sidebar-open');
             if (overlay) { overlay.classList.add('active'); }
-            document.body.style.overflow = 'hidden';
+            // SST-001 FIX: CSS class replaces inline style.overflow.
+            // .nm-scroll-locked is defined in main.css (P1-SOV-01).
+            document.body.classList.add('nm-scroll-locked');
             trapFocus(true);
         }
 
@@ -57,7 +59,8 @@
                 }, 300);
             }
             if (overlay) { overlay.classList.remove('active'); }
-            document.body.style.overflow = '';
+            // SST-001 FIX: CSS class replaces inline style.overflow.
+            document.body.classList.remove('nm-scroll-locked');
             trapFocus(false);
         }
 
@@ -178,12 +181,13 @@
                         if (ap) {
                             // Show the panel
                             ap.classList.remove('hidden');
-                            // Force CSS animation re-trigger:
-                            // 1. Strip existing animation (browser clears pending animation)
+                            // SST-003 EXCEPTION: Animation retrigger via inline style is the
+                            // canonical DOM pattern. No CSS class alternative exists that
+                            // reliably restarts CSS keyframe animations.
+                            // Pattern: strip → reflow → restore.
+                            // Standard: CSSOM Animation Retrigger, MDN recommended approach.
                             ap.style.animation = 'none';
-                            // 2. Force synchronous reflow so the browser acknowledges the reset
                             void ap.offsetHeight;
-                            // 3. Remove override — main.css [id^="section-"] animation replays
                             ap.style.animation = '';
                         }
                     }

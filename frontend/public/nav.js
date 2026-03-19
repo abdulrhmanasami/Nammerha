@@ -348,10 +348,11 @@
                 if (navH > 140) navH = 140;
                 // Set CSS custom property for global use (toast, checkout sheet, etc.)
                 document.documentElement.style.setProperty('--nm-nav-h', navH + 'px');
-                // Add 16px breathing room beyond the nav
+                // SST-002 FIX: CSS custom property replaces inline style.paddingBottom.
+                // main.css consumes --nm-nav-padding via `main#main-content` rule.
+                // Standard: P1-001 precedent — CSS Single Source of Truth.
                 var totalPadding = navH + 16;
-                var currentPadding = parseInt(window.getComputedStyle(main).paddingBottom, 10) || 0;
-                if (currentPadding < totalPadding) main.style.paddingBottom = totalPadding + 'px';
+                document.documentElement.style.setProperty('--nm-nav-padding', totalPadding + 'px');
             });
         }
 

@@ -3322,3 +3322,59 @@ html[data-theme="dark"] .nm-lang-opt.active {
     transition: transform 0.2s ease-out;
 }
 
+/* ============================================================================
+   SST-002 FIX: Main Content Bottom Padding — CSS Custom Property
+   Previous: nav.js L354 used main.style.paddingBottom = totalPadding + 'px'.
+   Now: JS sets --nm-nav-padding on :root, CSS consumes via var().
+   Fallback 6rem covers pages where nav.js hasn't executed yet.
+   Standard: P1-001 precedent — CSS Single Source of Truth.
+   ============================================================================ */
+main#main-content {
+    padding-bottom: var(--nm-nav-padding, 6rem);
+}
+
+/* ============================================================================
+   SST-004 FIX: Progress Bar Initial State — CSS Class
+   Previous: profile.html L216 used style="width:0%;opacity:0".
+   Now: .nm-progress-init class + --progress CSS custom property.
+   JS sets --progress and removes .nm-progress-init when data loads.
+   Standard: P1-001 precedent — CSS Single Source of Truth.
+   ============================================================================ */
+.nm-progress-init {
+    width: var(--progress, 0%);
+    opacity: 0;
+    transition: width 0.7s ease, opacity 0.4s ease;
+}
+
+/* ============================================================================
+   SST-006 FIX: Role Activation Dialog Sizing — CSS Class
+   Previous: profile.html L283 used style="max-width:400px;width:92%;".
+   Now: .nm-role-dialog class defines sizing in CSS.
+   Standard: P1-001 precedent — CSS Single Source of Truth.
+   ============================================================================ */
+.nm-role-dialog {
+    max-width: 400px;
+    width: 92%;
+}
+
+/* ============================================================================
+   DEF-PROFILE-TS FIX: Progress Bar Active State — CSS Class
+   Previous: profile.ts L127-128 used inline style.setProperty('opacity'/'width').
+   Now: JS swaps .nm-progress-init → .nm-progress-active via classList.
+   Standard: P1-001 — CSS Single Source of Truth. Zero inline styles.
+   ============================================================================ */
+.nm-progress-active {
+    width: var(--progress, 0%);
+    opacity: 1;
+    transition: width 0.7s ease, opacity 0.4s ease;
+}
+
+/* ============================================================================
+   DEF-PROFILE-PB FIX: Role Dialog Body Padding — CSS Class
+   Previous: profile.html L285 used style="padding-bottom:8px;".
+   Now: .nm-role-dialog-body class replaces inline style.
+   Standard: P1-001 — CSS Single Source of Truth.
+   ============================================================================ */
+.nm-role-dialog-body {
+    padding-bottom: 8px;
+}

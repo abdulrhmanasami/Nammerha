@@ -213,7 +213,7 @@
         </div>
         <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar. -->
         <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Profile completion" aria-describedby="profile-completion-pct">
-          <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700" style="width:0%;opacity:0"></div>
+          <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700 nm-progress-init"></div>
         </div>
         <!-- FRC-004 FIX: Actionable completion checklist — shows what's left to complete.
              Without this, users see a progress metric but can't act on it.
@@ -262,7 +262,7 @@
        Now: subtle divider + section heading provides clear visual grouping.
        Standard: Gestalt (Proximity), Nielsen #6 (Recognition over Recall). -->
   <!-- My Roles Section -->
-  <section class="px-4 pt-6 animate-fade-in-up" style="animation-delay:0.1s">
+  <section class="px-4 pt-6 animate-fade-in-up" style="--anim-delay:0.1s">
     <div class="border-t border-slate-200 pt-5 mt-1"></div>
     <!-- INC-2026-C01 FIX: h3→h2 — proper heading hierarchy after h1. -->
     <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="my_roles">My Roles</h2>
@@ -280,8 +280,8 @@
     <!-- INC-002/GAP-006 FIX: Migrated from <div role="dialog"> to native <dialog>.
          Benefits: native ::backdrop, focus trapping, Escape key, WCAG 4.1.2 compliance.
          Standard: WAI-ARIA Authoring Practices — "Prefer native <dialog> over role='dialog'." -->
-    <dialog id="role-activation-modal" class="nm-confirm-dialog" style="max-width:400px;width:92%;" aria-label="Activate a new role">
-      <div class="nm-confirm-body" style="padding-bottom:8px;">
+    <dialog id="role-activation-modal" class="nm-confirm-dialog nm-role-dialog" aria-label="Activate a new role">
+      <div class="nm-confirm-body nm-role-dialog-body">
         <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">Choose a role to activate</h4>
         <div id="available-roles-grid" class="grid grid-cols-2 gap-2">
           <!-- Available roles rendered dynamically -->

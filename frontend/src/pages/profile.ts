@@ -118,7 +118,13 @@ function updateProfileCompletion(user: ReturnType<typeof getCurrentUser>): void 
     const pct = calculateCompletion(user);
     const barEl = document.getElementById('profile-completion-bar');
     const pctEl = document.getElementById('profile-completion-pct');
-    if (barEl) { barEl.style.setProperty('--progress', `${pct}%`); }
+    if (barEl) {
+        // SST-004 FIX: CSS custom property drives width; class swap reveals bar.
+        // .nm-progress-init → .nm-progress-active toggles opacity & width via CSS.
+        barEl.style.setProperty('--progress', `${pct}%`);
+        barEl.classList.remove('nm-progress-init');
+        barEl.classList.add('nm-progress-active');
+    }
     if (pctEl) { pctEl.textContent = `${pct}%`; }
 }
 
