@@ -230,8 +230,8 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
             </h4>
             ${props['address_text'] ? `<p class="text-[10px] text-slate-500">${escapeHtml(String(props['address_text']))}</p>` : ''}
             <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" 
-                      style="background: ${statusColor}20; color: ${statusColor}">
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full nm-role-badge-bg" 
+                      style="--role-color: ${statusColor}">
                     ${statusLabel}
                 </span>
                 <span class="text-[10px] text-slate-400">${String(props['damage_type'] ?? '')}</span>
@@ -242,14 +242,14 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
                     <span class="font-bold text-slate-700">${fundedPct.toFixed(1)}%</span>
                 </div>
                 <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all" 
-                         style="width: ${Math.min(fundedPct, 100)}%; background: ${statusColor}"></div>
+                    <div class="h-full rounded-full transition-all nm-progress-bar" 
+                         style="--progress: ${Math.min(fundedPct, 100)}%; background: ${statusColor}"></div>
                 </div>
             </div>
             <a href="project-details.html?id=${escapeHtml(String(props['project_id'] ?? ''))}" 
                class="block mt-2 text-center text-[10px] font-bold text-trust-blue bg-trust-blue/10 
                       rounded-lg py-1.5 hover:bg-trust-blue/20 transition-colors">
-                ${t('map_view_project', 'View Project')} <i class="ph ph-arrow-right" style="vertical-align:-1px"></i>
+                ${t('map_view_project', 'View Project')} <i class="ph ph-arrow-right nm-icon-va"></i>
             </a>
         </div>
     `;

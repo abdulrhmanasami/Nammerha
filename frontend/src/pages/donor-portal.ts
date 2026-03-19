@@ -149,7 +149,7 @@ async function loadFundedProjects(): Promise<void> {
                         <!-- Funding Progress Bar -->
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full bg-emerald-500 rounded-full transition-all" style="width:${Math.min(p.funded_percentage, 100)}%"></div>
+                                <div class="h-full bg-emerald-500 rounded-full transition-all nm-progress-bar" style="--progress:${Math.min(p.funded_percentage, 100)}%"></div>
                             </div>
                             <span class="text-[10px] font-bold text-emerald-600">${p.funded_percentage}%</span>
                         </div>
@@ -190,7 +190,7 @@ async function loadMarketplace(): Promise<void> {
                         </div>
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all ${p.funded_percentage >= 100 ? 'bg-green-500' : 'bg-emerald-400'}" style="width:${Math.min(p.funded_percentage, 100)}%"></div>
+                                <div class="h-full rounded-full transition-all ${p.funded_percentage >= 100 ? 'bg-green-500' : 'bg-emerald-400'} nm-progress-bar" style="--progress:${Math.min(p.funded_percentage, 100)}%"></div>
                             </div>
                             <span class="text-[10px] font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</span>
                         </div>
@@ -198,7 +198,7 @@ async function loadMarketplace(): Promise<void> {
                             <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
                             ${p.funded_percentage < 100 ? `
                                 <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
-                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded"><i class="ph ph-check-circle" style="margin-inline-end:3px"></i>${esc(t('fully_funded', 'Fully Funded'))}</span>`}
+                            ` : `<span class="text-[10px] font-bold text-green-600" data-i18n="fully_funded"><i class="ph ph-check-circle nm-icon-gap-end"></i>${esc(t('fully_funded', 'Fully Funded'))}</span>`}
                         </div>
                     </div>
                 </div>

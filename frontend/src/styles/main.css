@@ -1748,6 +1748,70 @@ html[data-theme="dark"] .nm-toast {
 .nm-icon-64 { font-size: 64px; }
 .nm-icon-72 { font-size: 72px; }
 
+/* P2-ICON-02 FIX: Icon spacing utilities — CSS Single Source of Truth.
+   Previous: 15+ inline style="margin-inline-start/end:Npx" across TS templates.
+   Now: Semantic classes for icon-adjacent spacing in text/badge contexts.
+   Standard: P1-SST-001 governance, CSS Logical Properties (RTL-safe). */
+.nm-icon-gap-start { margin-inline-start: 4px; }
+.nm-icon-gap-end   { margin-inline-end: 4px; }
+
+/* P2-ICON-03 FIX: Badge/overlay RTL-safe positioning utility.
+   Previous: inline style="inset-inline-end:0.75rem" in main.ts card template.
+   Standard: P1-SST-001 governance. */
+.nm-badge-pos-end { inset-inline-end: 0.75rem; }
+
+/* P2-TOUR-01 FIX: Tour icon helper styles — CSS Single Source of Truth.
+   Previous: ph() helper in tour-definitions.ts used 3 inline styles.
+   Standard: P1-SST-001 governance. */
+.nm-tour-icon {
+    margin-inline-end: 6px;
+    vertical-align: -1px;
+    font-size: 1.1em;
+}
+
+/* P2-STAR-01 FIX: Star rating icon color utility.
+   Previous: inline style="color:#d97706" on star icons.
+   Standard: P1-SST-001 governance, design token adherence. */
+.nm-star-rating { color: #d97706; }
+
+/* W2-PANO-01: Panorama Viewer info overlay classes — CSS Single Source of Truth.
+   Previous: 3 inline styles in panorama-viewer.ts (font-weight, font-size, opacity).
+   Standard: P1-SST-001 governance. */
+.nm-pano-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+.nm-pano-detail { opacity: 0.8; }
+
+/* W2-ARROW-01: Inline vertical-align fix for small inline icons.
+   Previous: style="vertical-align:-1px" on arrow icons.
+   Standard: P1-SST-001 governance. */
+.nm-icon-va { vertical-align: -1px; }
+
+/* W2-ROLE-01: Role-switcher and profile dynamic color utilities.
+   Previous: inline style="background: ${color}15; color: ${color}" across 7 instances.
+   Now: CSS custom property --role-color consumed by these classes.
+   Standard: P1-SST-001 governance, CSS custom property data-binding. */
+.nm-role-icon-bg {
+    background: color-mix(in srgb, var(--role-color) 8%, transparent);
+    color: var(--role-color);
+}
+.nm-role-badge-bg {
+    background: color-mix(in srgb, var(--role-color) 12%, transparent);
+    color: var(--role-color);
+}
+.nm-role-active-border {
+    border-color: color-mix(in srgb, var(--role-color) 19%, transparent);
+}
+.nm-role-check { color: var(--role-color); }
+
+/* W2-PROG-01: Progress bar fill — CSS custom property unification.
+   Previous: inline style="width:${pct}%" across 8 progress bar instances.
+   Now: TS sets --progress custom property, CSS consumes it.
+   Standard: P1-SST-001 governance. */
+.nm-progress-bar { width: var(--progress, 0%); }
+
 /* ============================================================================
    P1-CMP-01 FIX: Compare Slider — CSS Single Source of Truth
    Previous: 6× `style.cssText` in compare-slider.ts — 100+ lines of inline CSS.

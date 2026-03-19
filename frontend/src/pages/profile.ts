@@ -174,9 +174,9 @@ async function loadUserRoles(): Promise<void> {
         const verLabel = escapeHtml(meta.verificationLabel);
 
         return `
-            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2' : 'border'} border-slate-100 transition-all" ${isActive ? `style="border-color: ${color}30"` : ''}>
-                <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background: ${color}15">
-                    <i class="ph ${escapeHtml(meta.icon)} text-xl" style="color: ${color}" aria-hidden="true"></i>
+            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2 nm-role-active-border' : 'border'} border-slate-100 transition-all" style="--role-color: ${color}">
+                <div class="size-10 rounded-lg flex items-center justify-center shrink-0 nm-role-icon-bg">
+                    <i class="ph ${escapeHtml(meta.icon)} text-xl" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
@@ -229,8 +229,8 @@ async function loadAvailableRoles(): Promise<void> {
                 <button class="activate-role-btn flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-2 hover:shadow-sm transition-all text-center"
                         data-role="${escapeHtml(r.role_name)}"
                         style="--role-color: ${color}">
-                    <div class="size-10 rounded-lg flex items-center justify-center" style="background: ${color}15">
-                        <i class="ph ${escapeHtml(meta.icon)} text-xl" style="color: ${color}" aria-hidden="true"></i>
+                    <div class="size-10 rounded-lg flex items-center justify-center nm-role-icon-bg">
+                        <i class="ph ${escapeHtml(meta.icon)} text-xl" aria-hidden="true"></i>
                     </div>
                     <span class="text-xs font-bold text-slate-700">${label}</span>
                 </button>`;

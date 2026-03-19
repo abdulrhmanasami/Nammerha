@@ -94,7 +94,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         mixed: 'wrench',
     };
     const icon = damageIcons[project.damage_type] ?? 'building-office';
-    const delay = `animation-delay:${index * 0.1}s`;
+    const delay = `--anim-delay:${index * 0.1}s`;
 
     return `
     <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml((project as unknown as Record<string, string>).region ?? '')}">
@@ -102,7 +102,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
             : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48"  aria-hidden="true"></i></div>`}
-        <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm" style="inset-inline-end:0.75rem">
+        <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm nm-badge-pos-end">
           <i class="ph ph-seal-check text-smoky-jade text-sm"  aria-hidden="true"></i>
           <span class="text-[10px] font-bold text-smoky-jade" data-i18n="verified_ocds">VERIFIED OCDS</span>
         </div>

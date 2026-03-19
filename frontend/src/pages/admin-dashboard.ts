@@ -196,7 +196,7 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3 font-bold">${cost}</td>
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="${progressColor} h-full" style="width:${progress}%"></div></div>
+                        <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="${progressColor} h-full nm-progress-bar" style="--progress:${progress}%"></div></div>
                         <span class="text-xs ${textColor} font-bold">${progress}%</span>
                     </div>
                 </td>

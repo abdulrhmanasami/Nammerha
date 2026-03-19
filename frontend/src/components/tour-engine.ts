@@ -172,7 +172,7 @@ function showStep(index: number): void {
             <button class="nmr-tour-close" aria-label="Close" data-action="skip"><i class="ph ph-x"></i></button>
         </div>
         <div class="nmr-tour-progress">
-            <div class="nmr-tour-progress-bar" style="width:${((index + 1) / steps.length) * 100}%"></div>
+            <div class="nmr-tour-progress-bar nm-progress-bar" style="--progress:${((index + 1) / steps.length) * 100}%"></div>
         </div>
         <h3 class="nmr-tour-title">${title}</h3>
         <p class="nmr-tour-content">${content}</p>

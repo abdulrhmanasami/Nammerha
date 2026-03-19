@@ -421,9 +421,9 @@ function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
 
     if (status === 'verified') {
         badge.className = 'bg-smoky-jade/10 text-smoky-jade text-[10px] font-bold px-2 py-0.5 rounded-full';
-        badge.innerHTML = `<i class="ph ph-check" style="margin-inline-end:3px"></i>${t('kyc_verified', 'Verified')}`;
+        badge.innerHTML = `<i class="ph ph-check nm-icon-gap-end"></i>${t('kyc_verified', 'Verified')}`;
     } else {
         badge.className = 'bg-rose-50 text-rose-500 text-[10px] font-bold px-2 py-0.5 rounded-full';
-        badge.innerHTML = `<i class="ph ph-x" style="margin-inline-end:3px"></i>${t('kyc_rejected', 'Rejected')}`;
+        badge.innerHTML = `<i class="ph ph-x nm-icon-gap-end"></i>${t('kyc_rejected', 'Rejected')}`;
     }
 }

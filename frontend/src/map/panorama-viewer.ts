@@ -347,15 +347,15 @@ function createInfoOverlay(config: PanoramaConfig): HTMLDivElement | null {
     let html = '';
 
     if (config.title) {
-        html += `<div style="font-weight: 600; font-size: 13px; margin-bottom: 4px;">${escapeHtml(config.title)}</div>`;
+        html += `<div class="nm-pano-title">${escapeHtml(config.title)}</div>`;
     }
 
     if (config.gpsCoords) {
-        html += `<div style="opacity: 0.8;">📍 ${config.gpsCoords.lat.toFixed(6)}, ${config.gpsCoords.lng.toFixed(6)}</div>`;
+        html += `<div class="nm-pano-detail">📍 ${config.gpsCoords.lat.toFixed(6)}, ${config.gpsCoords.lng.toFixed(6)}</div>`;
     }
 
     if (config.capturedAt) {
-        html += `<div style="opacity: 0.8;">📅 ${escapeHtml(config.capturedAt)}</div>`;
+        html += `<div class="nm-pano-detail">📅 ${escapeHtml(config.capturedAt)}</div>`;
     }
 
     overlay.innerHTML = html;

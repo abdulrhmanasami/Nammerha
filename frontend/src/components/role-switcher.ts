@@ -159,8 +159,8 @@ function renderSwitcher(): void {
                 aria-expanded="${isDropdownOpen}" 
                 aria-haspopup="listbox"
                 aria-label="${t('switch_role', 'Switch Role')}"
-                style="--role-accent: ${color}">
-            <span class="role-switcher-badge" style="background: ${color}20; color: ${color}">
+                style="--role-color: ${color}">
+            <span class="role-switcher-badge nm-role-badge-bg">
                 <i class="ph ${icon}" aria-hidden="true"></i>
                 <span class="role-switcher-label">${label}</span>
                 ${hasMultiRoles ? '<i class="ph ph-caret-down role-switcher-caret" aria-hidden="true"></i>' : ''}
@@ -220,11 +220,11 @@ function renderDropdown(roles: UserRole[], activeRole: UserRole): string {
             <div class="role-option-row ${isActive ? 'role-option-active' : ''}">
                 <button class="role-option" data-role="${role}" 
                         role="option" aria-selected="${isActive}">
-                    <span class="role-option-icon" style="background: ${color}15; color: ${color}">
+                    <span class="role-option-icon nm-role-icon-bg" style="--role-color: ${color}">
                         <i class="ph ${icon}" aria-hidden="true"></i>
                     </span>
                     <span class="role-option-label">${label}</span>
-                    ${isActive ? '<i class="ph ph-check-circle role-option-check" aria-hidden="true" style="color: ' + color + '"></i>' : ''}
+                    ${isActive ? '<i class="ph ph-check-circle role-option-check nm-role-check" aria-hidden="true" style="--role-color: ' + color + '"></i>' : ''}
                 </button>
                 <a href="${dashUrl}" class="role-dashboard-link" 
                    title="${t('go_to_dashboard', 'Go to dashboard')}"

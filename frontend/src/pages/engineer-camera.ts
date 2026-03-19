@@ -7,6 +7,9 @@ import { initBreadcrumb } from '../utils/breadcrumb';
 // P2-AUD-FETCH-003 FIX: Use centralized API client instead of raw fetch().
 // Gains: 30s AbortController timeout, automatic CSRF token, centralized error reporting.
 import { engineer, storage } from '../api';
+// CRIT-001 FIX: Use canonical toast system (haptic, ARIA, exit animation, z-index token).
+// Previous: local showToast() created raw divs with hardcoded z-50 and no accessibility.
+import { showToast } from '../utils/toast';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -14,8 +17,9 @@ import { engineer, storage } from '../api';
    Wires to: /api/engineer/camera/spatial-proof, /api/storage/presign
    ═══════════════════════════════════════════════════════════════════════════ */
 
-// Force dark mode for camera UI
-document.documentElement.classList.add('dark');
+// CRIT-003 FIX: Force dark mode for camera UI.
+// Previous: classList.add('dark') — silent no-op. Platform uses data-theme attribute.
+document.documentElement.setAttribute('data-theme', 'dark');
 
 // P2-AUD-FETCH-003 FIX: Removed duplicated getCsrfToken() function and API_BASE constant.
 // CSRF is now handled automatically by the centralized api.ts request() function.
@@ -186,7 +190,7 @@ function setupCapture(): void {
                 iconEl.classList.add('ph-check-circle');
             }
             const textEl = captureBtn.querySelector('span');
-            if (textEl) { textEl.innerHTML = `${t('cam_captured', 'Captured')} #${captureCount} <i class="ph ph-check" style="margin-inline-start:4px"></i>`; }
+            if (textEl) { textEl.innerHTML = `${t('cam_captured', 'Captured')} #${captureCount} <i class="ph ph-check nm-icon-gap-start"></i>`; }
 
             setTimeout(() => {
                 cameraReady.classList.remove('hidden');
@@ -285,7 +289,7 @@ function setupSync(): void {
                 (icon as HTMLElement).classList.add('nm-upload-success');
             }
             if (label) {
-                label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check" style="margin-inline-start:4px"></i>`;
+                label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check nm-icon-gap-start"></i>`;
                 // P3-CAM-002 FIX: CSS class replaces inline style.color.
                 label.classList.add('nm-upload-success');
             }
@@ -365,12 +369,7 @@ function dataURLtoBlob(dataUrl: string): Blob {
     return new Blob([array], { type: mime });
 }
 
-function showToast(message: string): void {
-    const badge = document.createElement('div');
-    badge.className = 'fixed top-4 start-1/2 -translate-x-1/2 z-50 bg-smoky-jade text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg';
-    badge.textContent = message;
-    document.body.appendChild(badge);
-    setTimeout(() => { badge.remove(); }, 3000);
-}
-
+// CRIT-001 FIX: Removed duplicate local showToast().
+// Canonical import from utils/toast.ts provides: haptic feedback, ARIA live region,
+// exit animation, max visible limit, i18n resolution, design-token z-index.
 

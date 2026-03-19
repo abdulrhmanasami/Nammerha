@@ -190,7 +190,7 @@ async function loadProjectTimeline(): Promise<void> {
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
                         <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full ${progressColor} rounded-full" style="width:${progress}%"></div>
+                            <div class="h-full ${progressColor} rounded-full nm-progress-bar" style="--progress:${progress}%"></div>
                         </div>
                         <span class="text-[10px] font-bold text-slate-500">${progress}%</span>
                     </div>

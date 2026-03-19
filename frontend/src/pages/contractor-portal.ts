@@ -178,7 +178,7 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
                         <div class="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-amber-500 rounded-full" style="width:${Math.min(100, Math.max(0, Number(p.progress) || 0))}%"></div>
+                            <div class="h-full bg-amber-500 rounded-full nm-progress-bar" style="--progress:${Math.min(100, Math.max(0, Number(p.progress) || 0))}%"></div>
                         </div>
                         <span class="text-xs text-slate-400">${p.progress}%</span>
                     </div>

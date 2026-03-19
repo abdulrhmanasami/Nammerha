@@ -75,7 +75,7 @@ async function loadComplianceMetrics(): Promise<void> {
         // Audit trail integrity
         const auditIntegrity = document.getElementById('audit-integrity');
         if (auditIntegrity) {
-            auditIntegrity.innerHTML = String(data['audit_integrity'] ?? '<i class="ph ph-check-circle" style="margin-inline-end:4px;color:#109173"></i>Intact');
+            auditIntegrity.innerHTML = String(data['audit_integrity'] ?? '<i class="ph ph-check-circle nm-icon-gap-end text-smoky-jade"></i>Intact');
         }
 
         // Spatial accuracy

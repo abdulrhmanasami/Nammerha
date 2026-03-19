@@ -220,7 +220,7 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
                 <span class="text-slate-400">${formatCents(project.total_funded ?? 0)} / ${formatCents(project.total_cost ?? 0)}</span>
             </div>
             <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div class="h-full ${urgencyClass} rounded-full transition-all duration-700" style="width:${pct}%"></div>
+                <div class="h-full ${urgencyClass} rounded-full transition-all duration-700 nm-progress-bar" style="--progress:${pct}%"></div>
             </div>
             ${pct < 30 ? `<span class="inline-block mt-2 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">${t('projects_most_needed', '⚡ Most Needed')}</span>` : ''}
         </div>

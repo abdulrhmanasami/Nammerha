@@ -200,7 +200,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
             ${badgeHtml}
           </div>
           <div class="progress-track mb-4">
-            <div class="${progressFillClass}" style="width: ${pct}%"></div>
+            <div class="${progressFillClass} nm-progress-bar" style="--progress: ${pct}%"></div>
           </div>
           ${buttonHtml}
         </div>
