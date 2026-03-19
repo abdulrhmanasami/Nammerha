@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>html:not([data-theme]){visibility:hidden}</style>
+  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 3s forwards}</style>
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <!-- PWA-003 FIX: iOS requires PNG apple-touch-icon (ignores SVG). 192px downscaled to 180×180. -->

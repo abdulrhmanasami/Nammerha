@@ -6,6 +6,8 @@
 // skeleton is still visible after the deadline, it gets replaced with a
 // user-friendly "still loading" message + retry button.
 
+import { tryTranslate } from './i18n-apply';
+
 interface SkeletonGuardConfig {
     /** Container element or ID containing the skeleton */
     container: HTMLElement | string;
@@ -43,10 +45,10 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
             return; // Data already loaded — nothing to do
         }
 
-        // i18n-aware message resolution
-        const i18n = (window as unknown as Record<string, unknown>).NammerhaI18n as { t?: (key: string) => string } | undefined;
-        const msg = i18n?.t?.(messageKey) ?? 'Taking longer than usual…';
-        const retryLabel = i18n?.t?.('retry') ?? 'Retry';
+        // PLT-AUD5-002 FIX: Replaced unsafe (window as unknown as Record<string, unknown>)
+        // double-cast with shared type-safe utility.
+        const msg = tryTranslate(messageKey, 'Taking longer than usual…');
+        const retryLabel = tryTranslate('retry', 'Retry');
 
         container.innerHTML = `
             <div class="text-center py-8 animate-fade-in-up">

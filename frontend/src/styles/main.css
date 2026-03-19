@@ -321,6 +321,10 @@ body {
   font-family: var(--font-display);
   background-color: var(--cloud-white);
   color: #1e293b;
+  /* FIX-02: dvh fallback for browsers without dvh support (Safari < 15.4, Chrome < 108).
+     The vh fallback is overridden by dvh in supporting browsers.
+     Standard: Progressive Enhancement, Syrian Mobile Fleet Compatibility. */
+  min-height: 100vh;
   min-height: 100dvh;
   line-height: 1.5;
   overscroll-behavior: contain;
@@ -449,7 +453,9 @@ html[data-theme="dark"] :focus-visible {
 /* ─── Phosphor Icons Base Configuration ────────────────────────────────────── */
 .ph {
   font-family: 'Phosphor' !important;
-  speak: never;
+  /* FIX-04: Removed deprecated `speak: never` property.
+     Icon elements already use aria-hidden="true" for accessibility.
+     Standard: CSS Speech Module (speak is deprecated), WCAG 1.3.1. */
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -1212,11 +1218,11 @@ html[data-theme="dark"] div.p-5:hover {
 }
 /* Cart item names in dark mode (replaces removed dark:text-slate-100) */
 html[data-theme="dark"] h4.text-slate-800 {
-    color: #f1f5f9 !important;
+    color: #f1f5f9;
 }
 /* P1-DARK-INLINE FIX: Error text in dark mode (replaces dead dark:text-red-300) */
 html[data-theme="dark"] .text-red-400 {
-    color: #fca5a5 !important;
+    color: #fca5a5;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1753,15 +1759,23 @@ html[data-theme="dark"] .nm-toast {
    Previous: inline style="background: ${color}15; color: ${color}" across 7 instances.
    Now: CSS custom property --role-color consumed by these classes.
    Standard: P1-SST-001 governance, CSS custom property data-binding. */
+/* FIX-05: color-mix() fallback for browsers without support (pre Safari 16.2 / Chrome 111).
+   Fallback uses trust-blue as a safe default. Supporting browsers override via color-mix().
+   Standard: Progressive Enhancement, Syrian Mobile Fleet Compatibility. */
 .nm-role-icon-bg {
+    background: rgba(26, 115, 232, 0.08);
+    color: var(--trust-blue);
     background: color-mix(in srgb, var(--role-color) 8%, transparent);
     color: var(--role-color);
 }
 .nm-role-badge-bg {
+    background: rgba(26, 115, 232, 0.12);
+    color: var(--trust-blue);
     background: color-mix(in srgb, var(--role-color) 12%, transparent);
     color: var(--role-color);
 }
 .nm-role-active-border {
+    border-color: rgba(26, 115, 232, 0.19);
     border-color: color-mix(in srgb, var(--role-color) 19%, transparent);
 }
 .nm-role-check { color: var(--role-color); }
@@ -1912,6 +1926,26 @@ html[data-theme="dark"] .nm-compare__label {
 }
 
 /* ============================================================================
+   PLT-AUD5-001 FIX: Button Loading State — CSS Single Source of Truth
+   Previous: loading-state.ts used Tailwind !important bang-modifiers
+   (!bg-smoky-jade, !text-white, !bg-red-500) for success/error flash states.
+   Violated P1-SST-001 governance. Also: --nm-btn-lock-w custom property was
+   set by JS but NEVER consumed by CSS — width-lock was silently broken.
+   Standard: P1-SST-001 governance, CSS-driven state management.
+   ============================================================================ */
+.btn-loading {
+    min-width: var(--nm-btn-lock-w, auto);
+}
+.nm-btn-success-flash {
+    background-color: var(--smoky-jade) !important;
+    color: white !important;
+}
+.nm-btn-error-flash {
+    background-color: #ef4444 !important;
+    color: white !important;
+}
+
+/* ============================================================================
    P2-AUD4-001 FIX: Normalized portal header min-height
    Previous: header-normalize.ts L36 set header.style.minHeight = '3rem' inline.
    Standard: P1-001 precedent — CSS Single Source of Truth.
@@ -1968,13 +2002,13 @@ html[data-theme="dark"] .bg-surface {
    ensure readability inside the fixed checkout sheet.
    ============================================================================ */
 html[data-theme="dark"] .glass-sheet .text-slate-900 {
-    color: #f1f5f9 !important;
+    color: #f1f5f9;
 }
 html[data-theme="dark"] .glass-sheet .text-slate-600 {
-    color: #cbd5e1 !important;
+    color: #cbd5e1;
 }
 html[data-theme="dark"] .glass-sheet .text-slate-400 {
-    color: #94a3b8 !important;
+    color: #94a3b8;
 }
 
 /* ============================================================================
@@ -1984,8 +2018,8 @@ html[data-theme="dark"] .glass-sheet .text-slate-400 {
    Standard: WCAG 1.4.3 (Contrast Minimum: 4.5:1)
    ============================================================================ */
 html[data-theme="dark"] .bg-white.rounded-xl {
-    background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
-    border-color: rgba(255, 255, 255, 0.06) !important;
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04));
+    border-color: rgba(255, 255, 255, 0.06);
 }
 /* Toggle track: needs darker background in dark mode for the knob to be visible */
 html[data-theme="dark"] .peer ~ div[class*="bg-slate-300"] {
@@ -2063,10 +2097,10 @@ form[novalidate].submitted input:required:invalid {
    ============================================================================ */
 html[data-theme="dark"] .animate-pulse > div[class*="bg-slate-200"],
 html[data-theme="dark"] .animate-pulse > div[class*="bg-slate-100"] {
-    background-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: rgba(255, 255, 255, 0.08);
 }
 html[data-theme="dark"] .animate-pulse.bg-white {
-    background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04));
 }
 
 /* ============================================================================
@@ -2077,14 +2111,14 @@ html[data-theme="dark"] .animate-pulse.bg-white {
    ============================================================================ */
 /* Trust feature cards (donor-basket grid) */
 html[data-theme="dark"] .glass-card .text-slate-500 {
-    color: #94a3b8 !important;
+    color: #94a3b8;
 }
 /* Empty cart state text */
 html[data-theme="dark"] .empty-cart .text-slate-500 {
-    color: #94a3b8 !important;
+    color: #94a3b8;
 }
 html[data-theme="dark"] .empty-cart .text-slate-300 {
-    color: #475569 !important;
+    color: #475569;
 }
 /* INC-003 FIX: Removed contradictory .badge-verified dark mode override.
    Canonical rule at L668 uses Smoky Jade (rgba(16, 145, 115, 0.15)) — brand-correct.
@@ -2092,11 +2126,11 @@ html[data-theme="dark"] .empty-cart .text-slate-300 {
    conflicted with the brand identity. Single source of truth now governs badges. */
 /* Cart total $ symbol and currency amounts */
 html[data-theme="dark"] #cart-total {
-    color: #f1f5f9 !important;
+    color: #f1f5f9;
 }
 /* BOQ card gradient placeholders */
 html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
-    background-image: linear-gradient(to bottom right, var(--tw-gradient-from, rgba(255,255,255,0.04)), rgba(255,255,255,0.06)) !important;
+    background-image: linear-gradient(to bottom right, var(--tw-gradient-from, rgba(255,255,255,0.04)), rgba(255,255,255,0.06));
 }
 
 /* ============================================================================
@@ -2183,8 +2217,8 @@ html[data-theme="dark"] div[class*="bg-gradient-to-br"][class*="to-slate-200"] {
    This override ensures dashboard headers are dark-mode aware.
    ============================================================================ */
 html[data-theme="dark"] .dashboard-main > header {
-    background-color: var(--bg-card, rgba(255, 255, 255, 0.04)) !important;
-    border-color: rgba(255, 255, 255, 0.06) !important;
+    background-color: var(--bg-card, rgba(255, 255, 255, 0.04));
+    border-color: rgba(255, 255, 255, 0.06);
 }
 html[data-theme="dark"] .dashboard-main > header h2,
 html[data-theme="dark"] .dashboard-main > header .page-header-title {
@@ -2235,14 +2269,20 @@ html[data-theme="dark"] .page-header {
 /* ─── CONF-N06 FIX: RTL Directional Icon Flip ────────────────────────────────
    Caret and arrow icons automatically flip in RTL layouts so they point
    in the correct reading/navigation direction.
+   FIX-03: Changed from `transform: scaleX(-1)` to `scale: -1 1` (CSS Individual
+   Transform Properties L4). The old transform was clobbered by Tailwind's
+   `group-hover:translate-x-1` which compiles to `transform: translateX(0.25rem)`,
+   destroying the scaleX(-1) and making arrows point the wrong direction on hover.
+   `scale` is independent of `transform` — both apply simultaneously.
+   Support: Safari 14.1+, Chrome 104+, Firefox 72+.
    Standard: Apple HIG — "Right-to-left" guidelines, WCAG 1.3.2 Meaningful Sequence. */
 [dir="rtl"] .ph-caret-right,
 [dir="rtl"] .ph-arrow-right {
-    transform: scaleX(-1);
+    scale: -1 1;
 }
 [dir="rtl"] .ph-caret-left,
 [dir="rtl"] .ph-arrow-left {
-    transform: scaleX(-1);
+    scale: -1 1;
 }
 
 /* FRIC-AUD-04: Dialogs & state components extracted to _dialogs.css */
@@ -2439,7 +2479,7 @@ html[data-theme="dark"] .auth-tab:hover {
    Standard: WCAG 1.4.3 (Contrast), Apple HIG Dark Mode Guidelines.
    ============================================================================ */
 html[data-theme="dark"] [role="tablist"] {
-    background: rgba(30, 41, 59, 0.6) !important;
+    background: rgba(30, 41, 59, 0.6);
 }
 
 /* ============================================================================
@@ -2449,15 +2489,15 @@ html[data-theme="dark"] [role="tablist"] {
    Standard: WCAG 1.4.3 (Contrast), Material Design 3 Dark Theme.
    ============================================================================ */
 html[data-theme="dark"] #form-register .bg-slate-50 {
-    background: rgba(30, 41, 59, 0.5) !important;
-    border-color: rgba(51, 65, 85, 0.6) !important;
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(51, 65, 85, 0.6);
 }
 
 /* DEF-A04 FIX: Dark Mode Auth Dividers
    bg-slate-200 horizontal rule lines — too bright on dark backgrounds. */
 html[data-theme="dark"] #form-login .bg-slate-200,
 html[data-theme="dark"] #form-register .bg-slate-200 {
-    background: rgba(51, 65, 85, 0.5) !important;
+    background: rgba(51, 65, 85, 0.5);
 }
 
 /* DEF-A05 FIX: Dark Mode Remember-Me Checkbox */
@@ -2855,7 +2895,7 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
 [data-funded="100"]::after {
     content: "\e182";
     font-family: "Phosphor" !important;
-    speak: never;
+    /* FIX-04: Removed speak:never (deprecated). aria-hidden covers accessibility. */
     font-style: normal;
     font-weight: normal;
     font-variant: normal;
@@ -2934,7 +2974,7 @@ html[data-theme="dark"] p.text-warning-yellow[id^="stat-"],
 html[data-theme="dark"] p.text-warning-yellow[data-kpi],
 html[data-theme="dark"] span.text-warning-yellow:not([class*="rounded-full"]):not([class*="bg-"]):not([aria-hidden]),
 html[data-theme="dark"] a.text-warning-yellow {
-    color: var(--warning-yellow) !important;
+    color: var(--warning-yellow);
 }
 
 /* ============================================================================
@@ -3307,15 +3347,9 @@ html[data-theme="dark"] .nm-lang-opt.active {
     animation: nm-cart-bounce-kf 0.3s ease-out;
 }
 
-/* ============================================================================
-   DEF-UX-006 FIX: Button Width Lock — CSS Custom Property
-   Previous: btn.style.minWidth = `${width}px` — inline style.
-   Now: JS sets --nm-btn-lock-w, CSS consumes via var().
-   Standard: CSS Single Source of Truth, Custom Property-driven layout.
-   ============================================================================ */
-[style*="--nm-btn-lock-w"] {
-    min-width: var(--nm-btn-lock-w);
-}
+/* DEF-UX-006: Attribute selector [style*="--nm-btn-lock-w"] REMOVED.
+   Superseded by PLT-AUD5-001 .btn-loading class at L1924 which consumes
+   --nm-btn-lock-w via proper class-based approach. */
 
 /* ============================================================================
    DEF-UX-007 FIX: Animation Reset Utility — CSS Class Toggle

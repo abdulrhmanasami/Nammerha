@@ -30,6 +30,7 @@
  */
 
 import { isAuthenticated as checkSession } from '../auth';
+import { tryApplyI18n } from './i18n-apply';
 
 /**
  * Shows the "Please sign in" overlay on the current page.
@@ -59,10 +60,9 @@ function showAuthRequired(): void {
             </a>
         </div>`;
 
-    // Apply i18n translations if the engine is loaded
-    if (typeof (window as unknown as Record<string, unknown>).applyI18n === 'function') {
-        ((window as unknown as Record<string, unknown>).applyI18n as () => void)();
-    }
+    // PLT-AUD5-002 FIX: Replaced unsafe (window as unknown as Record<string, unknown>)
+    // double-cast with shared type-safe utility.
+    tryApplyI18n();
 }
 
 /**

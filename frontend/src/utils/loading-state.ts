@@ -13,7 +13,14 @@
  *   restore('success');         // shows success state briefly, then restores
  *
  * Standard: Material Design 3 (Determinate Feedback), Nielsen #1 (System Status Visibility).
+ *
+ * PLT-AUD5-001 FIX: Refactored to eliminate 3 governance violations:
+ *   1. Replaced Tailwind !important bang-modifiers with CSS classes
+ *   2. Replaced private escapeForHTML() with canonical escapeHtml() from xss.ts (DRY + safer)
+ *   3. Added btn-loading class to consume --nm-btn-lock-w custom property
  */
+
+import { escapeHtml } from './xss';
 
 /**
  * Apply a loading spinner + text to a button, disabling it.
@@ -32,23 +39,23 @@ export function setLoadingState(
     const originalHTML = btn.innerHTML;
     const originalDisabled = btn.disabled;
 
-    // DEF-UX-006 FIX: CSS custom property replaces inline style.minWidth.
-    // Previous: btn.style.minWidth = `${rect.width}px` — violated P1-SST-001.
-    // Standard: CSS Single Source of Truth, Custom Property-driven layout.
+    // PLT-AUD5-001 FIX: CSS custom property drives min-width via .btn-loading class.
+    // Previous: --nm-btn-lock-w was set but NO CSS rule consumed it — width-lock was broken.
     const rect = btn.getBoundingClientRect();
     btn.style.setProperty('--nm-btn-lock-w', `${rect.width}px`);
+    btn.classList.add('btn-loading');
 
     // Set loading state
     btn.disabled = true;
     btn.innerHTML = `
         <span class="inline-block size-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
-        <span>${escapeForHTML(text)}</span>`;
+        <span>${escapeHtml(text)}</span>`;
     btn.setAttribute('aria-busy', 'true');
 
     // Return restore function
     return (outcome?: 'success' | 'error') => {
         btn.setAttribute('aria-busy', 'false');
-        // DEF-UX-006 FIX: Clear CSS custom property on restore.
+        btn.classList.remove('btn-loading');
         btn.style.removeProperty('--nm-btn-lock-w');
 
         if (outcome === 'success') {
@@ -56,35 +63,30 @@ export function setLoadingState(
             btn.innerHTML = `
                 <i class="ph ph-check-circle text-lg"  aria-hidden="true"></i>
                 <span>✓</span>`;
-            btn.classList.add('!bg-smoky-jade', '!text-white');
+            // PLT-AUD5-001 FIX: CSS class replaces Tailwind bang-modifiers
+            // Previous: btn.classList.add('!bg-smoky-jade', '!text-white')
+            btn.classList.add('nm-btn-success-flash');
             setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 btn.disabled = originalDisabled;
-                btn.classList.remove('!bg-smoky-jade', '!text-white');
+                btn.classList.remove('nm-btn-success-flash');
             }, 600);
         } else if (outcome === 'error') {
             // Brief error flash (800ms) before restoring
             btn.innerHTML = `
                 <i class="ph ph-warning-circle text-lg"  aria-hidden="true"></i>
                 <span>!</span>`;
-            btn.classList.add('!bg-red-500', '!text-white');
+            // PLT-AUD5-001 FIX: CSS class replaces Tailwind bang-modifiers
+            // Previous: btn.classList.add('!bg-red-500', '!text-white')
+            btn.classList.add('nm-btn-error-flash');
             setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 btn.disabled = originalDisabled;
-                btn.classList.remove('!bg-red-500', '!text-white');
+                btn.classList.remove('nm-btn-error-flash');
             }, 800);
         } else {
             btn.innerHTML = originalHTML;
             btn.disabled = originalDisabled;
         }
     };
-}
-
-/** Minimal HTML escaping for button text */
-function escapeForHTML(str: string): string {
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
 }

@@ -23,9 +23,9 @@
    ║     this file to inline `dark:` utilities.                             ║
    ║  4. Target: shrink this file to 0 lines over time (gradual).           ║
    ║                                                                        ║
-   ║  P1-AUD2-002: MIGRATION PROGRESS METRICS (updated March 18, 2026)       ║
-   ║  • Total lines: 260  │ Target: 0                                      ║
-   ║  • !important count: 46  │ Target: 0                                  ║
+   ║  P1-AUD2-002: MIGRATION PROGRESS METRICS (updated March 19, 2026)       ║
+   ║  • Total lines: 278  │ Target: 0                                      ║
+   ║  • !important count: 0   │ Target: 0  ✅ ACHIEVED (Wave 7)            ║
    ║  • Legacy selectors: ~42  │ Target: 0                                 ║
    ║  • CSS custom props (L61-73): 10 tokens — NOT legacy, keep here.      ║
    ║  • Dark elevation tokens: --dark-base thru --dark-border-subtle        ║
@@ -106,30 +106,30 @@ html[data-theme="dark"] .progress-track {
 /* Backgrounds: bg-white, bg-cloud-white, bg-slate-50 */
 html[data-theme="dark"] .bg-white,
 html[data-theme="dark"] .bg-cloud-white {
-  background-color: var(--dark-surface) !important;
+  background-color: var(--dark-surface);
 }
 html[data-theme="dark"] .bg-slate-50 {
-  background-color: var(--dark-surface-elevated) !important;
+  background-color: var(--dark-surface-elevated);
 }
 
 /* Text colors: slate scale → light equivalents */
-html[data-theme="dark"] .text-slate-900 { color: #f1f5f9 !important; }
-html[data-theme="dark"] .text-slate-800 { color: #e2e8f0 !important; }
-html[data-theme="dark"] .text-slate-700 { color: #cbd5e1 !important; }
-html[data-theme="dark"] .text-slate-600 { color: #94a3b8 !important; }
+html[data-theme="dark"] .text-slate-900 { color: #f1f5f9; }
+html[data-theme="dark"] .text-slate-800 { color: #e2e8f0; }
+html[data-theme="dark"] .text-slate-700 { color: #cbd5e1; }
+html[data-theme="dark"] .text-slate-600 { color: #94a3b8; }
 /* PLAT-P1-003 FIX: Boosted from #94a3b8 (4.2:1) to #a0aec0 (5.1:1) vs #2a2a2a.
    Previous: Failed WCAG AA 4.5:1 for small text on dark bg-slate-50 surfaces.
    Standard: WCAG 1.4.3 (Contrast Minimum 4.5:1). */
-html[data-theme="dark"] .text-slate-500 { color: #a0aec0 !important; }
-html[data-theme="dark"] .text-slate-400 { color: #64748b !important; }
+html[data-theme="dark"] .text-slate-500 { color: #a0aec0; }
+html[data-theme="dark"] .text-slate-400 { color: #64748b; }
 
 /* Borders */
 html[data-theme="dark"] .border-slate-200,
 html[data-theme="dark"] .border-slate-100 {
-  border-color: var(--dark-border) !important;
+  border-color: var(--dark-border);
 }
 html[data-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--dark-border-subtle) !important;
+  border-color: var(--dark-border-subtle);
 }
 
 /* Form inputs */
@@ -194,23 +194,26 @@ html[data-theme="dark"] table tbody tr {
 
 /* Trust badge cards (privacy, terms, refund pages) */
 html[data-theme="dark"] .bg-smoky-jade\/5 {
-  background: rgba(16, 145, 115, 0.08) !important;
+  background: rgba(16, 145, 115, 0.08);
 }
 html[data-theme="dark"] .bg-trust-blue\/5 {
-  background: rgba(26, 115, 232, 0.08) !important;
+  background: rgba(26, 115, 232, 0.08);
 }
 html[data-theme="dark"] .border-smoky-jade\/10 {
-  border-color: rgba(16, 145, 115, 0.15) !important;
+  border-color: rgba(16, 145, 115, 0.15);
 }
 html[data-theme="dark"] .border-trust-blue\/10 {
-  border-color: rgba(26, 115, 232, 0.15) !important;
+  border-color: rgba(26, 115, 232, 0.15);
 }
 
-/* Auth tab active state — P1-002 FIX */
+/* Auth tab active state — P1-002 FIX
+   PLT-AUD5-004: Removed 3× !important — html[data-theme="dark"] .auth-tab-active
+   has higher specificity than .auth-tab-active (defined in main.css).
+   Standard: CSS Specificity, !important elimination. */
 html[data-theme="dark"] .auth-tab-active {
-  background: var(--dark-surface-elevated) !important;
-  color: var(--trust-blue) !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+  background: var(--dark-surface-elevated);
+  color: var(--trust-blue);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Cart badge — already blue, works. Card hover lift shadow fix */
@@ -231,44 +234,44 @@ html[data-theme="dark"] .gradient-orb-jade {
 }
 
 /* Banner colors (error/success) — bg-red-50, bg-emerald-50, etc. */
-html[data-theme="dark"] .bg-red-50 { background-color: rgba(239, 68, 68, 0.1) !important; }
-html[data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; }
-html[data-theme="dark"] .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1) !important; }
-html[data-theme="dark"] .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.15) !important; }
-html[data-theme="dark"] .bg-red-500 { background-color: rgba(239, 68, 68, 0.8) !important; }
-html[data-theme="dark"] .bg-green-100 { background-color: rgba(34, 197, 94, 0.15) !important; }
-html[data-theme="dark"] .border-red-200 { border-color: rgba(239, 68, 68, 0.2) !important; }
-html[data-theme="dark"] .border-emerald-200 { border-color: rgba(16, 185, 129, 0.2) !important; }
-html[data-theme="dark"] .border-amber-200 { border-color: rgba(245, 158, 11, 0.2) !important; }
-html[data-theme="dark"] .text-emerald-700 { color: #6ee7b7 !important; }
-html[data-theme="dark"] .text-red-700 { color: #fca5a5 !important; }
-html[data-theme="dark"] .text-amber-700 { color: #fcd34d !important; }
+html[data-theme="dark"] .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
+html[data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
+html[data-theme="dark"] .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1); }
+html[data-theme="dark"] .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.15); }
+html[data-theme="dark"] .bg-red-500 { background-color: rgba(239, 68, 68, 0.8); }
+html[data-theme="dark"] .bg-green-100 { background-color: rgba(34, 197, 94, 0.15); }
+html[data-theme="dark"] .border-red-200 { border-color: rgba(239, 68, 68, 0.2); }
+html[data-theme="dark"] .border-emerald-200 { border-color: rgba(16, 185, 129, 0.2); }
+html[data-theme="dark"] .border-amber-200 { border-color: rgba(245, 158, 11, 0.2); }
+html[data-theme="dark"] .text-emerald-700 { color: #6ee7b7; }
+html[data-theme="dark"] .text-red-700 { color: #fca5a5; }
+html[data-theme="dark"] .text-amber-700 { color: #fcd34d; }
 /* P1-DM-001 FIX: Amber-600 used on homeowner KPI cards needs contrast boost in dark mode */
-html[data-theme="dark"] .text-amber-600 { color: #fbbf24 !important; }
+html[data-theme="dark"] .text-amber-600 { color: #fbbf24; }
 /* INC-X05 FIX: Smoky jade text (#109173) on dark bg (#1e1e1e) = 3.8:1 contrast — below WCAG AA 4.5:1.
    Override to #34d399 (emerald-400) = ~8.5:1 contrast ratio on dark surfaces.
    Standard: WCAG 1.4.3 (Contrast Minimum: 4.5:1). */
-html[data-theme="dark"] .text-smoky-jade { color: #34d399 !important; }
+html[data-theme="dark"] .text-smoky-jade { color: #34d399; }
 
 /* P2-001 FIX: Blue info banners (donor-basket checkout, homeowner-portal info panels) */
-html[data-theme="dark"] .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; }
-html[data-theme="dark"] .text-blue-700 { color: #93c5fd !important; }
-html[data-theme="dark"] .border-blue-200 { border-color: rgba(59, 130, 246, 0.2) !important; }
-html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15) !important; }
+html[data-theme="dark"] .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1); }
+html[data-theme="dark"] .text-blue-700 { color: #93c5fd; }
+html[data-theme="dark"] .border-blue-200 { border-color: rgba(59, 130, 246, 0.2); }
+html[data-theme="dark"] .border-blue-100 { border-color: rgba(59, 130, 246, 0.15); }
 
 /* P1-D1 FIX: Sidebar active tab text visibility in dark mode */
-html[data-theme="dark"] .text-blue-600 { color: #60a5fa !important; }
-html[data-theme="dark"] .bg-blue-600\/10 { background-color: rgba(59, 130, 246, 0.12) !important; }
-html[data-theme="dark"] .bg-emerald-600\/10 { background-color: rgba(16, 185, 129, 0.12) !important; }
+html[data-theme="dark"] .text-blue-600 { color: #60a5fa; }
+html[data-theme="dark"] .bg-blue-600\/10 { background-color: rgba(59, 130, 246, 0.12); }
+html[data-theme="dark"] .bg-emerald-600\/10 { background-color: rgba(16, 185, 129, 0.12); }
 /* P1-D2 FIX: Missing green border dark mode override for donor portal escrow */
-html[data-theme="dark"] .border-green-100 { border-color: rgba(34, 197, 94, 0.15) !important; }
-html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) !important; }
+html[data-theme="dark"] .border-green-100 { border-color: rgba(34, 197, 94, 0.15); }
+html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.1); }
 
 /* INC-004 FIX: Missing dark mode overrides — these Tailwind utilities appeared
    as bright white patches in dark mode, violating visual cohesion.
    Standard: Design System completeness — 100% dark mode coverage. */
-html[data-theme="dark"] .bg-slate-200\/60 { background-color: var(--dark-border-subtle) !important; }
-html[data-theme="dark"] .bg-slate-200\/50 { background-color: rgba(255, 255, 255, 0.05) !important; }
-html[data-theme="dark"] .bg-trust-blue\/8 { background-color: rgba(26, 115, 232, 0.12) !important; }
-html[data-theme="dark"] .bg-white\/98 { background-color: rgba(30, 30, 30, 0.98) !important; }
-html[data-theme="dark"] .bg-white\/90 { background-color: rgba(30, 30, 30, 0.90) !important; }
+html[data-theme="dark"] .bg-slate-200\/60 { background-color: var(--dark-border-subtle); }
+html[data-theme="dark"] .bg-slate-200\/50 { background-color: rgba(255, 255, 255, 0.05); }
+html[data-theme="dark"] .bg-trust-blue\/8 { background-color: rgba(26, 115, 232, 0.12); }
+html[data-theme="dark"] .bg-white\/98 { background-color: rgba(30, 30, 30, 0.98); }
+html[data-theme="dark"] .bg-white\/90 { background-color: rgba(30, 30, 30, 0.90); }

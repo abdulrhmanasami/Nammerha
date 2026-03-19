@@ -109,23 +109,16 @@ function queueReport(payload: ErrorPayload): void {
 }
 
 // ─── Global Error Handler (synchronous errors) ─────────────────────────────
-function handleGlobalError(
-    message: string | Event,
-    source?: string,
-    lineno?: number,
-    colno?: number,
-    error?: Error
-): void {
-    const errorMessage = typeof message === 'string'
-        ? message
-        : (error?.message ?? 'Unknown error');
-
+// PLT-AUD5-003 FIX: Refactored from window.onerror (5-param signature) to
+// addEventListener('error') which receives ErrorEvent. This prevents
+// overwriting other error handlers (analytics, monitoring, third-party).
+function handleErrorEvent(event: ErrorEvent): void {
     queueReport({
-        message: errorMessage,
-        source,
-        lineno,
-        colno,
-        stack: error?.stack,
+        message: event.message || 'Unknown error',
+        source: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        stack: event.error?.stack,
         url: window.location.href,
         userAgent: navigator.userAgent,
         timestamp: new Date().toISOString(),
@@ -216,9 +209,12 @@ export function reportWarning(
  * Safe to call multiple times (idempotent).
  */
 export function initErrorReporter(): void {
-    // Install global handlers
-    window.onerror = handleGlobalError;
-    window.onunhandledrejection = handleUnhandledRejection;
+    // PLT-AUD5-003 FIX: Use addEventListener instead of assignment.
+    // Previous: window.onerror = handler — silently overwrites any existing
+    // error handlers from analytics, monitoring, or third-party scripts.
+    // Now: addEventListener coexists safely with other handlers.
+    window.addEventListener('error', handleErrorEvent);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
     // Flush any remaining reports when the page unloads
     window.addEventListener('beforeunload', flushReports);
