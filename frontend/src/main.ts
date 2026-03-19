@@ -302,8 +302,13 @@ function initSearchInput(): void {
         const query = searchInput!.value.trim().toLowerCase();
         if (!query) {
             // Empty search — flash the input border to signal "type something"
-            searchInput!.classList.add('ring-2', 'ring-red-400/50');
-            setTimeout(() => searchInput!.classList.remove('ring-2', 'ring-red-400/50'), 800);
+            // DEF-FLASH-001 FIX: Replaced setTimeout + 2 Tailwind ring classes with CSS animation.
+            // Previous: add('ring-2', 'ring-red-400/50') + setTimeout(remove, 800) — timing hack.
+            // Standard: P1-SST-001 governance, CSS-driven animation, zero setTimeout.
+            searchInput!.classList.add('nm-input-flash-error');
+            searchInput!.addEventListener('animationend', () => {
+                searchInput!.classList.remove('nm-input-flash-error');
+            }, { once: true });
             return;
         }
 

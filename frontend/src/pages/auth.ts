@@ -801,8 +801,14 @@ forgotBtn?.addEventListener('click', async (e) => {
         const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
         if (loginEmailInput) {
             loginEmailInput.focus();
-            loginEmailInput.classList.add('ring-2', 'ring-trust-blue/50', 'border-trust-blue');
-            setTimeout(() => loginEmailInput.classList.remove('ring-2', 'ring-trust-blue/50', 'border-trust-blue'), 3000);
+            // DEF-FLASH-001 FIX: Replaced setTimeout + 3 Tailwind classes with CSS animation.
+            // Previous: add('ring-2', 'ring-trust-blue/50', 'border-trust-blue')
+            //   + setTimeout(remove, 3000) — 4 classes + timing hack.
+            // Standard: P1-SST-001 governance, CSS-driven animation, zero setTimeout.
+            loginEmailInput.classList.add('nm-input-flash-focus');
+            loginEmailInput.addEventListener('animationend', () => {
+                loginEmailInput.classList.remove('nm-input-flash-focus');
+            }, { once: true });
         }
         showBanner('error', t('auth_forgot_enter_email', 'Enter your email above, then tap "Forgot your password?" again.'));
         return;

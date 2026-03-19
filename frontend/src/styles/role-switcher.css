@@ -97,7 +97,9 @@
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-    z-index: 100;
+    /* DEF-RS-001 FIX: Was hardcoded 100 — violated INC-X06 z-index token governance.
+       Standard: Design System Token Governance — all z-index values use :root tokens. */
+    z-index: var(--z-sidebar, 50);
     overflow: hidden;
     animation: roleSwitcherFadeIn 0.15s ease-out;
 }
@@ -260,4 +262,50 @@
     position: relative;
     display: flex;
     align-items: center;
+}
+
+/* ============================================================================
+   DEF-RS-002 FIX: Dark Mode Adaptation — Role Switcher Dropdown
+   Previous: ZERO dark mode rules — the dropdown rendered as a jarring bright
+   white glassmorphism panel on dark backgrounds. Every text element, background,
+   border, and hover state was light-mode-only.
+   Now: Full dark mode adaptation matching the i18n widget dark aesthetic
+   (html[data-theme="dark"] #nm-lang-dd in main.css).
+   Standard: WCAG 1.4.3 (Contrast Minimum), Apple HIG Dark Mode Guidelines.
+   ============================================================================ */
+html[data-theme="dark"] .role-switcher-dropdown {
+    background: rgba(24, 17, 33, 0.92);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+html[data-theme="dark"] .role-dropdown-header {
+    color: #64748b;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .role-dropdown-count {
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+}
+html[data-theme="dark"] .role-option-label {
+    color: #e2e8f0;
+}
+html[data-theme="dark"] .role-option-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .role-option-active {
+    background: rgba(46, 125, 223, 0.08);
+}
+html[data-theme="dark"] .role-dashboard-link {
+    color: #64748b;
+}
+html[data-theme="dark"] .role-dashboard-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+}
+html[data-theme="dark"] .role-add-btn {
+    color: #60a5fa;
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .role-add-btn:hover {
+    background: rgba(96, 165, 250, 0.08);
 }

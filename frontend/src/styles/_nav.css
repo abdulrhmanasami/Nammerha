@@ -1,0 +1,180 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Nammerha — Unified Bottom Navigation Bar
+   DEF-CSS-001 FIX: Extracted from main.css for maintainability.
+   Contains: .nm-bottom-nav, .nm-nav-wrap, .nm-nav-item, .nm-nav-label,
+   .nm-nav-icon, .nm-theme-fab, .nm-nav-safe-area, keyboard-visible rules,
+   desktop hide rule, active page dot indicator, and PWA standalone padding.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Nav Container ──────────────────────────────────────────────────── */
+.nm-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    /* PLT-AUD-C006 FIX: Logical properties (was physical left/right) */
+    inset-inline: 0;
+    z-index: var(--z-bottom-nav);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(17,24,39,0.95);
+    transition: background 0.3s ease, border-color 0.3s ease;
+    /* PLT-UX-AUD-WC FIX: Pre-promote to GPU layer — eliminates first-frame jank
+       from backdrop-filter recalculation during scroll. */
+    will-change: transform;
+}
+.nm-bottom-nav[data-nav-theme="light"] {
+    background: rgba(255,255,255,0.92);
+    border-top-color: rgba(226,232,240,0.6);
+}
+/* PLT-UX-AUD-KB FIX: Hide bottom nav when virtual keyboard is open.
+   JS (nav.js) adds .keyboard-visible to <html> via the Visual Viewport API.
+   Without this, the bottom nav physically overlaps the keyboard — #1 sign of a web app.
+   Standard: Visual Viewport API, Apple HIG — "Adjust layout for virtual keyboard." */
+.keyboard-visible .nm-bottom-nav {
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+.keyboard-visible .nm-theme-fab {
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+/* ─── Inner Flex Wrapper ─────────────────────────────────────────────── */
+.nm-nav-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* FINE-002 FIX: Added min-height: 44px for WCAG 2.5.5/2.5.8 touch target compliance.
+   Previous: rendered height was ~42px (icon 22 + gap 2 + label 10 + padding 8).
+   Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size Minimum). */
+.nm-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-decoration: none;
+    padding: 4px 8px;
+    min-width: 54px;
+    min-height: 44px;
+    color: #64748b;
+    transition: color 0.2s;
+}
+.nm-bottom-nav[data-nav-theme="light"] .nm-nav-item {
+    color: #94a3b8;
+}
+.nm-nav-item[aria-current="page"] {
+    color: #1A73E8;
+}
+.nm-nav-icon {
+    font-size: 22px;
+}
+.nm-nav-label {
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+}
+.nm-nav-item[aria-current="page"] .nm-nav-label {
+    font-weight: 700;
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   UX-007 FIX: Active Page Dot Indicator (Material Design 3 / Apple Tab Bar)
+   Previous: Active nav item only changed text color to trust-blue — insufficient
+   visual weight. Users must read labels to identify current page.
+   Now: 4px pill/dot below the icon provides instant spatial recognition.
+   Standard: Material Design 3 (Navigation Bar), Apple HIG (Tab Bar Active Indicator).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.nm-nav-item[aria-current="page"]::after {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 3px;
+    border-radius: var(--radius-full);
+    background: var(--trust-blue);
+    margin-top: 2px;
+    animation: navDotReveal 0.25s ease-out;
+}
+@keyframes navDotReveal {
+    from { transform: scaleX(0); opacity: 0; }
+    to   { transform: scaleX(1); opacity: 1; }
+}
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .nm-nav-item[aria-current="page"]::after {
+        animation: none;
+    }
+}
+
+/* ─── Theme Toggle FAB ───────────────────────────────────────────────── */
+/* DEAD-001 FIX: Consolidated P1-NIT-001 WCAG 2.5.5 touch target compliance.
+   Previous: 36×36px here, overridden to 40×40px + 44px min at L3214.
+   Now: Correct sizes in single definition. */
+.nm-theme-fab {
+    position: absolute;
+    top: -18px;
+    inset-inline-end: 16px;
+    width: 40px;
+    height: 40px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(17,24,39,0.95);
+    color: #fbbf24;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    padding: 0;
+}
+.nm-bottom-nav[data-nav-theme="light"] .nm-theme-fab {
+    border-color: rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.95);
+    color: #6366f1;
+}
+
+/* P2-DUP-001 FIX: Removed duplicate .nm-nav-safe-area (canonical version with max() is below) */
+
+/* ============================================================================
+   CON-01 FIX: Dual Navigation Mutual Exclusion
+   On sm+ (≥640px), the desktop top navbar (`hidden sm:flex` in index.html)
+   becomes visible. The bottom nav MUST hide to prevent duplicate navigation.
+   Standard: Nielsen Heuristic #4 — Consistency & Standards.
+   Apple HIG — "Avoid redundant navigation controls."
+   ============================================================================ */
+@media (min-width: 640px) {
+    .nm-bottom-nav {
+        display: none !important;
+    }
+}
+
+/* ============================================================================
+   P2-UX-002 FIX: Smart Bottom Padding
+   On notch devices, env() returns the actual inset, on non-notch devices 0.
+   We use max() to ensure at least 8px, preventing excessive padding.
+   ============================================================================ */
+.nm-nav-safe-area {
+    height: max(env(safe-area-inset-bottom, 0px), 8px);
+}
+
+/* ── Landscape Nav Compaction ──
+   DEF-NAV-001 FIX: Moved from main.css (was orphaned after nav partial extraction).
+   On landscape phones, compact the nav bar to maximize content viewport. */
+@media (orientation: landscape) and (max-height: 500px) {
+    .nm-bottom-nav { padding: 4px 16px 4px; }
+    .nm-nav-label { display: none; }
+    .nm-nav-safe-area { height: 0; }
+}
