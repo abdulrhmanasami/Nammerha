@@ -529,6 +529,18 @@ function init(): void {
         btn.addEventListener('click', () => {
             const targetId = btn.dataset.focusTarget;
             if (!targetId) { return; }
+
+            // PLAT-UX-006 FIX: If target is inside the hidden edit form, reveal it first.
+            // Previous: Focus silently failed on hidden inputs (edit-name, edit-email, etc.).
+            // Standard: WCAG 2.4.3 (Focus Order), Nielsen #3 (User Control & Freedom).
+            const editForm = document.getElementById('profile-edit-form');
+            if (editForm?.classList.contains('hidden')) {
+                const target = document.getElementById(targetId);
+                if (target && editForm.contains(target)) {
+                    toggleEditMode(true);
+                }
+            }
+
             const target = document.getElementById(targetId);
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -551,14 +563,16 @@ function init(): void {
     const notifToggle = document.getElementById('notif-toggle') as HTMLInputElement | null;
     if (notifToggle) {
         const NOTIF_KEY = 'nmr_notifications_enabled';
-        // Restore saved preference
-        const saved = localStorage.getItem(NOTIF_KEY);
-        if (saved !== null) {
-            notifToggle.checked = saved === '1';
-        }
+        // W16-001 FIX: Wrap in try-catch for Safari private mode.
+        try {
+            const saved = localStorage.getItem(NOTIF_KEY);
+            if (saved !== null) {
+                notifToggle.checked = saved === '1';
+            }
+        } catch { /* Safari private mode */ }
         // Save on change
         notifToggle.addEventListener('change', () => {
-            localStorage.setItem(NOTIF_KEY, notifToggle.checked ? '1' : '0');
+            try { localStorage.setItem(NOTIF_KEY, notifToggle.checked ? '1' : '0'); } catch { /* Safari private mode */ }
         });
     }
 

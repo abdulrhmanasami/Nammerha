@@ -18,6 +18,8 @@ import { reportError } from '../error-reporter';
 import { escapeHtml } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
+// W5-001 FIX: Import shared error-retry utility for user-facing error states.
+import { renderTableErrorWithRetry } from '../utils/error-retry';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,11 @@ async function loadFeeSummary(): Promise<void> {
         reportError(err instanceof Error ? err : new Error('[fintech] Fee summary load failed'), {
             component: 'admin-fintech', action: 'load_fee_summary',
         });
+        // W5-001 FIX: Show user-facing error state on KPI cards.
+        const totalEl = document.getElementById('kpi-escrow-fees');
+        const mtdEl = document.getElementById('kpi-mtd-fees');
+        if (totalEl) { totalEl.textContent = '—'; }
+        if (mtdEl) { mtdEl.textContent = '—'; }
     }
 }
 
@@ -84,6 +91,8 @@ async function loadFeeConfigs(): Promise<void> {
         reportError(err instanceof Error ? err : new Error('[fintech] Fee configs load failed'), {
             component: 'admin-fintech', action: 'load_fee_configs',
         });
+        // W5-001 FIX: Show error-retry UI in fee configs table.
+        if (body) { renderTableErrorWithRetry(body, () => loadFeeConfigs(), 6); }
     }
 }
 
@@ -131,6 +140,8 @@ async function loadOrganizations(): Promise<void> {
         reportError(err instanceof Error ? err : new Error('[fintech] Organizations load failed'), {
             component: 'admin-fintech', action: 'load_organizations',
         });
+        // W5-001 FIX: Show error-retry UI in organizations table.
+        if (body) { renderTableErrorWithRetry(body, () => loadOrganizations(), 5); }
     }
 }
 

@@ -148,6 +148,12 @@ async function loadKPIs(): Promise<void> {
             component: 'contractor-dashboard', action: 'load_kpis',
             error: err instanceof Error ? err.message : String(err),
         });
+        // W7-001 FIX: Show user-facing error state on KPI cards.
+        // Previous: Silent freeze — KPI cards stayed in loading/default state forever.
+        ['assigned-projects', 'active-bids', 'completed-projects', 'total-earnings'].forEach(name => {
+            const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
+            if (el) { el.textContent = '—'; }
+        });
     }
 }
 
@@ -212,6 +218,12 @@ async function loadProjectTimeline(): Promise<void> {
             component: 'contractor-dashboard', action: 'load_timeline',
             error: err instanceof Error ? err.message : String(err),
         });
+        // W7-001 FIX: Show user-facing error in project timeline table.
+        if (tbody) {
+            const loadingRow = document.getElementById('projects-loading-row');
+            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
+            tbody.innerHTML += `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</td></tr>`;
+        }
     }
 }
 
@@ -265,6 +277,12 @@ async function loadBids(): Promise<void> {
             component: 'contractor-dashboard', action: 'load_bids',
             error: err instanceof Error ? err.message : String(err),
         });
+        // W7-001 FIX: Show user-facing error in bids table.
+        if (container) {
+            const loadingRow = document.getElementById('bids-loading-row');
+            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
+            container.innerHTML += `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</td></tr>`;
+        }
     }
 }
 

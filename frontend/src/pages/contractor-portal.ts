@@ -147,7 +147,8 @@ async function loadStats(): Promise<void> {
         setText('kpi-escrow', formatCents(s.total_earnings));
         setText('pending-bids-count', String(s.active_bids));
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — KPIs retain HTML defaults
+        // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
+        ['kpi-active', 'kpi-pending', 'kpi-won', 'kpi-escrow'].forEach(id => setText(id, '—'));
     }
 }
 

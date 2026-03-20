@@ -8,6 +8,7 @@ import { loadProjectMarkers, getProjectStats, applyFilter } from '../map/map-mar
 import { addStandardControls, createFilterControl } from '../map/map-controls';
 import { t, tParams } from '../map/i18n-bridge';
 import { reportWarning } from '../error-reporter';
+import { showToast } from '../utils/toast';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -54,6 +55,8 @@ async function initHomepageMap(): Promise<void> {
                 }
             } catch (err) {
                 reportWarning('Map data load failed', { component: 'homepage_map', action: 'load_markers', error: String(err) });
+                // W13-004 FIX: Show user-facing feedback on marker load failure.
+                showToast(t('map_data_error', 'Failed to load project markers.'));
             }
         });
 
@@ -63,6 +66,13 @@ async function initHomepageMap(): Promise<void> {
         });
     } catch (err) {
         reportWarning('Map initialization failed', { component: 'homepage_map', action: 'init_map', error: String(err) });
+        // W13-004 FIX: Show error in map container when map fails to initialize.
+        if (container) {
+            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 p-8">
+                <i class="ph ph-map-trifold text-3xl" aria-hidden="true"></i>
+                <p class="mt-2 text-sm font-medium">${t('map_init_error', 'Map could not be loaded')}</p>
+            </div>`;
+        }
     }
 }
 

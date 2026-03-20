@@ -6,6 +6,7 @@ import { projects, epaOracle, marketplace } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
+import { showToast } from '../utils/toast';
 import { initBreadcrumb } from '../utils/breadcrumb';
 
 // ============================================================================
@@ -190,6 +191,10 @@ async function loadExistingBOQ(): Promise<void> {
         }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[BOQ] Failed to load existing items'), { component: 'engineer_boq', action: 'load_existing' });
+        // PLAT-UX-004 FIX: Clear skeleton loaders on API failure — show empty state.
+        // Previous: Skeletons froze indefinitely when API failed (catch didn't render).
+        // Standard: Nielsen #1 (System Status Visibility), Material Design 3 (Empty States).
+        renderAllItems();
     }
 }
 
@@ -235,6 +240,8 @@ materialSearch?.addEventListener('input', () => {
             }
         } catch (err) {
             reportError(err instanceof Error ? err : new Error('[BOQ] Oracle search failed'), { component: 'engineer_boq', action: 'oracle_search' });
+            // W13-002 FIX: Show user-facing feedback on oracle search failure.
+            showToast(t('boq_search_error', 'Material search failed. Please try again.'));
         }
     }, 400);
 });

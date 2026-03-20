@@ -141,7 +141,11 @@ async function loadKPIs(): Promise<void> {
             component: 'admin-dashboard', action: 'load_kpis',
             error: err instanceof Error ? err.message : String(err),
         });
-        // Silent degradation — KPIs retain "0" defaults from HTML
+        // W9-002 FIX: Show em-dash on KPI failure — visible error signal.
+        ['kpi-total-funded', 'kpi-active-projects', 'kpi-engineers', 'kpi-pending'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = '—'; }
+        });
     }
 }
 

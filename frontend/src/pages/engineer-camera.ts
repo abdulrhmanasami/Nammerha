@@ -67,7 +67,10 @@ function initTimestamp(): void {
             `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     };
     update();
-    setInterval(update, 1000);
+    // W9-001 FIX: Store interval ID and clear on page unload to prevent
+    // ghost intervals from accumulating during SPA-like navigation.
+    const intervalId = setInterval(update, 1000);
+    window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
 // ─── GPS Acquisition ────────────────────────────────────────────────────────
@@ -129,6 +132,8 @@ async function initCamera(): Promise<void> {
         }
     } catch (err) {
         reportWarning('[EngineerCamera] Camera initialization failed, keeping placeholder', { component: 'engineer_camera', action: 'init_camera', error: err instanceof Error ? err.message : String(err) });
+        // W13-003 FIX: Show user-facing error when camera fails to initialize.
+        showToast(t('cam_init_failed', 'Camera could not be started. Check permissions and try again.'));
     }
 }
 

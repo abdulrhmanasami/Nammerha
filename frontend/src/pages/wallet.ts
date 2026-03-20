@@ -64,12 +64,16 @@ async function loadEscrowSummary(): Promise<void> {
             const summary = response.data as Partial<EscrowSummary>;
             if (typeof summary.total_locked !== 'number') { return; }
             if (balanceEl) { balanceEl.textContent = formatCents(summary.total_locked); }
-            if (lockedEl) { lockedEl.textContent = `${summary.locked_count ?? 0} ${t('wallet_locked', 'locked')}`; }
-            if (releasedEl) { releasedEl.textContent = `${summary.released_count ?? 0} ${t('wallet_released', 'released')}`; }
+            // PLAT-UX-003 FIX (Part 2): Clear skeleton animation class after hydration.
+            if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `${summary.locked_count ?? 0} ${t('wallet_locked', 'locked')}`; }
+            if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `${summary.released_count ?? 0} ${t('wallet_released', 'released')}`; }
         }
     } catch (err) {
         reportWarning('[Wallet] Escrow summary load failed', { component: 'wallet', action: 'load_escrow', error: err instanceof Error ? err.message : String(err) });
         if (balanceEl) { balanceEl.textContent = '$0.00'; }
+        // PLAT-UX-003 FIX (Part 2): Hydrate locked/released on failure — prevent frozen skeletons.
+        if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `0 ${t('wallet_locked', 'locked')}`; }
+        if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `0 ${t('wallet_released', 'released')}`; }
     }
 }
 

@@ -150,7 +150,11 @@ async function loadKPIs(): Promise<void> {
         const notifCount = document.getElementById('notif-count');
         if (notifCount) { notifCount.textContent = String(data.pending_orders ?? 0); }
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — KPIs retain HTML defaults
+        // W10-001 FIX: Show em-dash on KPI failure — visible error signal.
+        ['kpi-pending-bids', 'kpi-won-contracts', 'kpi-in-transit', 'kpi-total-revenue'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = '—'; }
+        });
     }
 }
 

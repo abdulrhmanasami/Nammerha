@@ -6,6 +6,8 @@ import { donations, spatialProof } from '../api';
 import { formatCents } from '../utils/format';
 import { formatDateTime } from '../utils/locale';
 import { t } from '../utils/i18n';
+import { showToast } from '../utils/toast';
+import { escapeHtml as esc } from '../utils/xss';
 import { initBreadcrumb } from '../utils/breadcrumb';
 
 // ============================================================================
@@ -194,6 +196,8 @@ function initShareButton(): void {
             // User cancelled share — not an error
             if ((err as DOMException)?.name !== 'AbortError') {
                 reportWarning('[DonorProof] Share failed', { component: 'donor_proof', action: 'share', error: err instanceof Error ? err.message : String(err) });
+                // W13-001 FIX: Show user-facing error on share failure.
+                showToast(t('proof_share_failed', 'Failed to share. Please try again.'));
             }
         }
     });
@@ -252,6 +256,17 @@ async function loadProof(): Promise<void> {
         // If no proof found, skeleton loaders remain (graceful degradation)
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[DonorProof] Failed to load proof data'), { component: 'donor_proof', action: 'load_proof' });
+        // W13-001 FIX: Show error in proof container instead of leaving skeleton.
+        // W14-001 FIX: Replaced inline onclick with addEventListener for CSP compliance.
+        const container = document.getElementById('proof-content');
+        if (container) {
+            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+                <i class="ph ph-warning-circle nm-icon-32" aria-hidden="true"></i>
+                <p class="mt-2 text-sm font-medium">${esc(t('proof_load_error', 'Failed to load proof data'))}</p>
+                <button id="proof-retry-btn" class="mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('common_retry', 'Try Again'))}</button>
+            </div>`;
+            document.getElementById('proof-retry-btn')?.addEventListener('click', () => { location.reload(); });
+        }
     }
 }
 

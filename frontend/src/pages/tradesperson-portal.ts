@@ -9,6 +9,7 @@ import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
+import { showSimpleBanner } from '../utils/banner';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
@@ -110,6 +111,8 @@ function setupAvailability(): void {
                 updateAvailabilityUI(status);
             } catch (err) {
                 reportError(err instanceof Error ? err : new Error(String(err)), { component: 'tradesperson', action: 'availability_update' });
+                // W12-001 FIX: Show user-facing error on availability toggle failure.
+                showSimpleBanner('dashboard-banner', 'error', t('tp_availability_error', 'Failed to update availability. Please try again.'));
             }
         });
     });
@@ -160,6 +163,8 @@ async function loadStats(): Promise<void> {
         setText('pending-count', String(s.pending_requests));
     } catch (err) {
         reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
+        // W12-001 FIX: Show em-dash on KPI failure — visible error signal.
+        ['kpi-active', 'kpi-completed', 'kpi-earnings', 'kpi-rating'].forEach(id => setText(id, '—'));
     }
 }
 
@@ -339,6 +344,8 @@ async function loadAssignments(): Promise<void> {
                     loadStats();
                 } catch (err) {
                     reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignment response failed'), { component: 'tradesperson', action: 'respond_assignment' });
+                    // W12-001 FIX: Show user-facing error on assignment response failure.
+                    showSimpleBanner('dashboard-banner', 'error', t('tp_response_error', 'Failed to respond. Please try again.'));
                 }
             });
         });

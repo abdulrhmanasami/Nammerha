@@ -203,7 +203,10 @@
         <div id="role-switcher-mount-mobile" class="md:hidden"></div>
         <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart text-slate-700" aria-hidden="true"></i>
-          <span class="cart-badge hidden" id="mobile-cart-badge">0</span>
+          <!-- PLAT-UX-005 FIX: Removed hardcoded '0' — JS populates count when unhiding.
+               Previous: '0' inside span + hidden class → if JS bug removes hidden, shows '0'.
+               Standard: Honest Affordances, Code Hygiene. -->
+          <span class="cart-badge hidden" id="mobile-cart-badge"></span>
         </a>
       </div>
     </header>
@@ -260,7 +263,7 @@
                    Standard: WCAG 4.1.3 (Status Messages), iOS VoiceOver. -->
               <h2 id="map-active-region" class="font-bold text-sm text-slate-900" data-i18n="detecting_region" aria-live="polite">
                 Detecting active region…
-              </h3>
+              </h2>
               <!-- DEF-010 FIX: Map context for first-time visitors.
                    Previous: no explanation of what the map represents.
                    Standard: Nielsen #6 (Recognition over Recall), First-Impression UX. -->
@@ -351,7 +354,10 @@
                 class="text-smoky-jade text-xs font-bold bg-smoky-jade/20 px-2 py-0.5 rounded-full flex items-center gap-1"
               >
                 <i class="ph ph-trend-up text-sm" aria-hidden="true"></i>
-                <span id="impact-trend">—</span>
+                <!-- PLAT-UX-013 FIX: Skeleton bar replaces ambiguous em-dash.
+                     Previous: '—' was indistinguishable from zero/error/loading.
+                     Standard: Nielsen #1 (System Status), FinTech UX (Financial Data Clarity). -->
+                <span id="impact-trend" class="animate-pulse"><span class="inline-block h-3 w-8 bg-smoky-jade/30 rounded"></span></span>
               </span>
               <span class="text-slate-400 text-3xs" data-i18n="vs_quarter">vs last quarter</span>
             </div>

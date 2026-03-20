@@ -217,7 +217,8 @@ async function loadStats(): Promise<void> {
             notifEl.classList.toggle('nm-hidden', count === 0);
         }
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — KPIs retain HTML defaults
+        // W10-001 FIX: Show em-dash on KPI failure — visible error signal.
+        ['kpi-active', 'kpi-bids', 'kpi-approvals', 'kpi-escrow'].forEach(id => setText(id, '—'));
     }
 }
 

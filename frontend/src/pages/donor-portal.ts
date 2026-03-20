@@ -109,8 +109,8 @@ async function loadStats(): Promise<void> {
         setText('kpi-locked', formatCents(s.escrow_locked));
         setText('kpi-released', formatCents(s.escrow_released));
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // PLT-FE-002: Silently degrade — KPIs retain default HTML values.
-        // Error is already captured by the centralized error-reporter via window.onerror.
+        // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
+        ['kpi-donated', 'kpi-projects', 'kpi-items', 'kpi-score', 'kpi-locked', 'kpi-released'].forEach(id => setText(id, '—'));
     }
 }
 

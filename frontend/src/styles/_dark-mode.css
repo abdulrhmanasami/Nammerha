@@ -281,3 +281,13 @@ html[data-theme="dark"] .bg-slate-200\/50 { background-color: rgba(255, 255, 255
 html[data-theme="dark"] .bg-trust-blue\/8 { background-color: rgba(26, 115, 232, 0.12); }
 html[data-theme="dark"] .bg-white\/98 { background-color: rgba(30, 30, 30, 0.98); }
 html[data-theme="dark"] .bg-white\/90 { background-color: rgba(30, 30, 30, 0.90); }
+
+/* PLAT-UX-014 FIX: Engineer BOQ search bar dark mode contrast.
+   Previous: bg-white(→#1e1e1e) + bg-slate-100(→#2a2a2a) + border-slate-200(→rgba 0.08)
+   created a near-invisible nested box. Search input text placeholder on dark surface
+   had marginal contrast (text-slate-500 = #64748b on #2a2a2a → ~3.6:1, below AA).
+   Now: Boost inner container border for visual separation, lighten placeholder.
+   Standard: WCAG 1.4.3 (Contrast Minimum 4.5:1), Dark Mode Design Completeness. */
+html[data-theme="dark"] #material-search::placeholder {
+  color: #94a3b8;
+}

@@ -848,6 +848,15 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     overflow-x: clip;
   }
 }
+/* PLAT-UX-015 FIX: Intermediate breakpoint at 640px for small tablets.
+   Previous: jumped from 448px → 640px at 768px — 7" tablets (iPad Mini)
+   showed a phone-width column centered in 192px of dead space.
+   Standard: Responsive Design, Material Design 3 (Adaptive Layout). */
+@media (min-width: 640px) {
+  .mobile-container {
+    max-width: 540px;
+  }
+}
 @media (min-width: 768px) {
   .mobile-container {
     max-width: 640px;

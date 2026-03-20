@@ -403,7 +403,8 @@ function initTransparencyToggle(): void {
 
 // ─── GAP-09 FIX: WhatsApp Notification CTA ──────────────────────────────────
 function initWhatsAppCTA(): void {
-    if (sessionStorage.getItem('nmr_whatsapp_dismissed')) { return; }
+    // W16-002 FIX: Wrap sessionStorage in try-catch for Safari private mode.
+    try { if (sessionStorage.getItem('nmr_whatsapp_dismissed')) { return; } } catch { /* Safari private mode */ }
 
     const main = document.querySelector('main');
     if (!main) { return; }
@@ -428,7 +429,7 @@ function initWhatsAppCTA(): void {
 
     document.getElementById('whatsapp-dismiss')?.addEventListener('click', () => {
         ctaBanner.remove();
-        sessionStorage.setItem('nmr_whatsapp_dismissed', '1');
+        try { sessionStorage.setItem('nmr_whatsapp_dismissed', '1'); } catch { /* Safari private mode */ }
     });
 }
 

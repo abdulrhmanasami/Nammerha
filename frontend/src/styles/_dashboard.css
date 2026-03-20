@@ -232,3 +232,32 @@
 .nm-sidebar-theme-btn i {
   font-size: 18px;
 }
+
+/* DUP-UX-001 FIX: INC-UX-003 dark mode header override REMOVED — duplicate.
+   Canonical rule exists at main.css L2308-2318 (CON-005 FIX), which uses
+   var(--bg-card) and maps h2 + .page-header-title + .sidebar-toggle.
+   Standard: CSS Single Definition Rule — no duplicate selectors. */
+
+
+/* ============================================================================
+   FRIC-UX-007 FIX: Tab Panel Fade-In Transition
+   Dashboard tab panel switching (via sidebar.js activateTab) was instant —
+   content appeared/disappeared with no visual transition, creating a jarring
+   experience compared to native apps. This adds a subtle fade-in when panels
+   transition from hidden to visible. The animation retrigger in sidebar.js
+   (L212-214) already strips and re-applies animation, so this works naturally.
+   Standard: Material Design 3 (Container Transform), Apple HIG (Animated Transitions).
+   ============================================================================ */
+[role="tabpanel"]:not(.hidden) {
+    animation: nmTabPanelFadeIn 0.2s ease-out;
+}
+@keyframes nmTabPanelFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    [role="tabpanel"]:not(.hidden) {
+        animation: none;
+    }
+}
+

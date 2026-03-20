@@ -5,6 +5,7 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
 import { t } from '../utils/i18n';
+import { showToast } from '../utils/toast';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Compliance Dashboard — OCDS Audit & Financial Transparency Engine
@@ -35,7 +36,10 @@ function initTimestamp(): void {
         });
     };
     update();
-    setInterval(update, 1000);
+    // W9-001 FIX: Store interval ID and clear on page unload to prevent
+    // ghost intervals from accumulating during SPA-like navigation.
+    const intervalId = setInterval(update, 1000);
+    window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
 /* ─── Load KPIs ─── */
@@ -54,7 +58,11 @@ async function loadKPIs(): Promise<void> {
         const reviewCount = document.getElementById('review-count');
         if (reviewCount) { reviewCount.textContent = String(data['pending_reviews'] ?? 0); }
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — error captured by centralized reporter via api.ts
+        // W8-001 FIX: Show user-facing error state on KPI cards.
+        ['total-audited', 'pending-reviews', 'approved-releases', 'flagged-issues'].forEach(name => {
+            const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
+            if (el) { el.textContent = '—'; }
+        });
     }
 }
 
@@ -84,7 +92,9 @@ async function loadComplianceMetrics(): Promise<void> {
             spatialAccuracy.textContent = `${data['spatial_accuracy'] ?? 0}%`;
         }
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — error captured by centralized reporter
+        // W8-001 FIX: Show user-facing error state on OCDS metrics.
+        const ocdsPercent = document.getElementById('ocds-percent');
+        if (ocdsPercent) { ocdsPercent.textContent = '—'; }
     }
 }
 
@@ -136,7 +146,10 @@ async function loadEscrowReviewQueue(): Promise<void> {
 
         applyI18n();
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — error captured by centralized reporter
+        // W8-001 FIX: Show user-facing error in escrow review table.
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-sm text-red-400">${esc(t('failed_to_load', 'Failed to load'))}</td></tr>`;
+        }
     }
 }
 
@@ -152,7 +165,8 @@ async function handleReviewAction(action: 'approve' | 'flag', reference: string)
             await loadKPIs();
         }
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // Silent degradation — error captured by centralized reporter
+        // W8-001 FIX: Show user-facing error toast for review action.
+        showToast(t('compliance_action_failed', 'Action failed — please try again'), 'error');
     }
 }
 

@@ -119,6 +119,10 @@
         'tradesperson-portal.html',
         // Full-screen wizards/capture (CON-AUD-03: own fixed footer CTA)
         'homeowner-report.html', 'engineer-camera.html',
+        // CONF-UX-001 FIX: BOQ Builder is a tool page with its own sticky CTA.
+        // Unified nav at z-9900 physically blocked the "Publish to Marketplace" button at z-20.
+        // Standard: Apple HIG (Primary Action Accessibility), Fitts's Law.
+        'engineer-boq.html',
     ];
 
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────

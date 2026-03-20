@@ -155,6 +155,15 @@ async function loadDashboard(): Promise<void> {
             component: 'admin-revenue',
             action: 'load_dashboard',
         });
+        // W5-002 FIX: Show user-facing error state across all dashboard sections.
+        // Previous: Silent failure — KPI cards and tables stayed in initial state forever.
+        // Standard: Nielsen #1 (Visibility of System Status), Error Recovery UX.
+        const kpiIds = ['kpi-total-revenue', 'kpi-commissions', 'kpi-commission-count', 'kpi-tips', 'kpi-tip-count', 'kpi-avg-tip', 'kpi-avg-tip-pct'];
+        kpiIds.forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = '—'; } });
+        const tbody = document.getElementById('tier-table-body');
+        if (tbody) { tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</td></tr>`; }
+        const commList = document.getElementById('recent-commissions-list');
+        if (commList) { commList.innerHTML = `<div class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</div>`; }
     }
 
     // Update timestamp
