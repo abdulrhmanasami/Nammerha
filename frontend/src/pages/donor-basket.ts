@@ -198,17 +198,17 @@ function initDonorBasket(): void {
       </div>
       <div class="flex items-center gap-3 shrink-0 ml-3">
         <div class="flex items-center gap-1">
-          <button type="button" class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="${t('basket_decrease_qty', 'Decrease quantity')}">
+          <button type="button" class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="${escapeHtml(t('basket_decrease_qty', 'Decrease quantity'))}">
             <i class="ph ph-minus ph-xs" aria-hidden="true"></i>
           </button>
           <span class="qty-display text-sm font-bold w-6 text-center">${item.quantity}</span>
-          <button type="button" class="qty-btn qty-plus size-7 rounded-full bg-trust-blue/10 hover:bg-trust-blue/20 text-trust-blue flex items-center justify-center transition-colors" aria-label="${t('basket_increase_qty', 'Increase quantity')}">
+          <button type="button" class="qty-btn qty-plus size-7 rounded-full bg-trust-blue/10 hover:bg-trust-blue/20 text-trust-blue flex items-center justify-center transition-colors" aria-label="${escapeHtml(t('basket_increase_qty', 'Increase quantity'))}">
             <i class="ph ph-plus ph-xs" aria-hidden="true"></i>
           </button>
         </div>
         <div class="text-end min-w-[60px]">
           <div class="font-bold text-slate-900">${formatDollars(item.unitPrice * item.quantity)}</div>
-          <div class="text-3xs text-slate-400">${formatDollars(item.unitPrice)}/${t('basket_per_unit', 'ea')}</div>
+          <div class="text-3xs text-slate-400">${formatDollars(item.unitPrice)}/${escapeHtml(t('basket_per_unit', 'ea'))}</div>
         </div>
       </div>
     `;
@@ -287,10 +287,10 @@ function initDonorBasket(): void {
 
                 breakdownEl.innerHTML = `
                     <div class="border-t border-slate-100 pt-3 space-y-1.5">
-                        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="checkout_breakdown">${t('checkout_breakdown', 'Order Summary')}</p>
+                        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="checkout_breakdown">${escapeHtml(t('checkout_breakdown', 'Order Summary'))}</p>
                         ${itemsHtml}
                         <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
-                            <span data-i18n="checkout_subtotal">${t('checkout_subtotal', 'Subtotal')}</span>
+                            <span data-i18n="checkout_subtotal">${escapeHtml(t('checkout_subtotal', 'Subtotal'))}</span>
                             <span>${formatDollars(total)}</span>
                         </div>
                     </div>
@@ -319,10 +319,10 @@ function initDonorBasket(): void {
             confirm.id = 'clear-confirm-banner';
             confirm.className = 'rounded-xl p-3 text-sm font-medium flex items-center justify-between gap-2 bg-amber-50 text-amber-700 border border-amber-200 mt-3 animate-fade-in-up';
             confirm.innerHTML = `
-                <span><i class="ph ph-warning" aria-hidden="true"></i> ${t('basket_clear_confirm', 'Clear all items?')}</span>
+                <span><i class="ph ph-warning" aria-hidden="true"></i> ${escapeHtml(t('basket_clear_confirm', 'Clear all items?'))}</span>
                 <div class="flex gap-2">
-                    <button type="button" id="clear-yes" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">${t('common_yes', 'Yes')}</button>
-                    <button type="button" id="clear-no" class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">${t('common_no', 'No')}</button>
+                    <button type="button" id="clear-yes" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">${escapeHtml(t('common_yes', 'Yes'))}</button>
+                    <button type="button" id="clear-no" class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">${escapeHtml(t('common_no', 'No'))}</button>
                 </div>`;
             container!.prepend(confirm);
             confirm.querySelector('#clear-yes')?.addEventListener('click', () => {
@@ -358,10 +358,10 @@ function initDonorBasket(): void {
         banner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 mt-3 animate-fade-in-up';
 
         const tipText = tipAmount > 0
-            ? ` + ${formatDollars(tipAmount)} ${t('tip_label', 'tip')}`
+            ? ` + ${formatDollars(tipAmount)} ${escapeHtml(t('tip_label', 'tip'))}`
             : '';
 
-        banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${t('basket_checkout_msg', 'Proceeding to secure checkout')}: ${count} ${t('basket_items', 'items')} — ${formatDollars(total)}${tipText} = ${formatDollars(grandTotal)}. ${t('basket_gateway_soon', 'Payment gateway coming soon.')}`;
+        banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${escapeHtml(t('basket_checkout_msg', 'Proceeding to secure checkout'))}: ${count} ${escapeHtml(t('basket_items', 'items'))} — ${formatDollars(total)}${tipText} = ${formatDollars(grandTotal)}. ${escapeHtml(t('basket_gateway_soon', 'Payment gateway coming soon.'))}`;
         checkoutSheet?.appendChild(banner);
         setTimeout(() => {
             banner.remove();

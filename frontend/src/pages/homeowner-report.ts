@@ -404,13 +404,16 @@ if (descriptionTextarea && descCharCount) {
         const max = descriptionTextarea.maxLength || 1000;
         descCharCount.textContent = `${len} / ${max}`;
 
-        // Visual warning when approaching limit (>90%)
-        if (len > max * 0.9) {
-            descCharCount.classList.add('text-amber-500');
-            descCharCount.classList.remove('text-slate-400', 'text-red-500');
-        } else if (len >= max) {
+        // PLT-001 FIX: Condition order corrected — check `>= max` (red) BEFORE `> 90%` (amber).
+        // Previous: `len > max * 0.9` caught all values >= max — making the red branch
+        // unreachable dead code. At 1000/1000 chars, users saw amber instead of red.
+        // Standard: Correct boolean predicate ordering (most specific first).
+        if (len >= max) {
             descCharCount.classList.add('text-red-500');
             descCharCount.classList.remove('text-slate-400', 'text-amber-500');
+        } else if (len > max * 0.9) {
+            descCharCount.classList.add('text-amber-500');
+            descCharCount.classList.remove('text-slate-400', 'text-red-500');
         } else {
             descCharCount.classList.add('text-slate-400');
             descCharCount.classList.remove('text-amber-500', 'text-red-500');

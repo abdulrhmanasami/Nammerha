@@ -433,7 +433,9 @@ function openBidModal(projectId: string): void {
                 errorEl.classList.remove('hidden');
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = t('btn_submit', 'Submit');
+            // PLT-005 FIX: Use innerHTML consistently — textContent would drop any
+            // icon structure if the template ever changes. Match loading state format.
+            submitBtn.innerHTML = esc(t('btn_submit', 'Submit'));
         }
     });
 }

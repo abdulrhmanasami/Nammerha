@@ -20,9 +20,16 @@ const form = document.getElementById('contact-form') as HTMLFormElement | null;
 const submitBtn = document.getElementById('contact-submit') as HTMLButtonElement | null;
 const resultBox = document.getElementById('contact-result') as HTMLElement | null;
 
+// PLT-002 FIX: Double-submit guard — matches auth.ts / reset-password.ts pattern.
+// Previous: Only submitBtn.disabled was used, which doesn't prevent race conditions
+// from fast double-clicks (both events fire before first handler reaches disable line).
+// Standard: Mutex flag pattern for async form submission.
+let isSubmitting = false;
+
 form?.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
-    if (!form || !submitBtn) { return; }
+    if (!form || !submitBtn || isSubmitting) { return; }
+    isSubmitting = true;
 
     // Gather form values
     const formData = new FormData(form);
@@ -59,6 +66,7 @@ form?.addEventListener('submit', async (e: Event) => {
         const msg = err instanceof Error ? err.message : t('contact_network_error', 'Network error. Please check your connection and try again.');
         showResult('error', msg);
     } finally {
+        isSubmitting = false;
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }

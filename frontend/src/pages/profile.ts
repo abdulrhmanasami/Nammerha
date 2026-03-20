@@ -255,7 +255,13 @@ async function loadAvailableRoles(): Promise<void> {
 }
 
 // SEC-001 FIX: Uses centralized api.ts instead of duplicated ensureCsrfToken + raw fetch
+// PLT-W2-001 FIX: Double-submit guard prevents parallel rolesApi.activate() calls
+// on Syria 2G/3G networks (5-30s response). Same pattern as isSavingProfile (PLT-003).
+let isActivatingRole = false;
+
 async function activateRole(role: UserRole): Promise<void> {
+    if (isActivatingRole) { return; }
+    isActivatingRole = true;
     try {
         const result = await rolesApi.activate(role);
 
@@ -286,6 +292,8 @@ async function activateRole(role: UserRole): Promise<void> {
         // showToast() already handles positioning, animation, dark mode, haptics, auto-dismiss.
         // Standard: DRY Principle, Design System Component Unity.
         showToast(t('role_activation_failed', 'Role activation failed. Please try again.'), 'error');
+    } finally {
+        isActivatingRole = false;
     }
 }
 
@@ -365,7 +373,16 @@ function hideEditBanner(): void {
     if (banner) { banner.classList.add('hidden'); }
 }
 
+// PLT-003 FIX: Double-submit guard — prevents re-entry on slow 3G double-tap.
+// Previous: setLoadingState() provided visual feedback but no mutex. User could
+// trigger 2+ saves before the first completes, corrupting local state.
+// Standard: Mutex flag pattern for async form submission.
+let isSavingProfile = false;
+
 async function saveProfile(): Promise<void> {
+    if (isSavingProfile) { return; }
+    isSavingProfile = true;
+
     const nameInput = document.getElementById('edit-name') as HTMLInputElement | null;
     const emailInput = document.getElementById('edit-email') as HTMLInputElement | null;
     const saveBtn = document.getElementById('save-profile-btn') as HTMLButtonElement | null;
@@ -416,6 +433,8 @@ async function saveProfile(): Promise<void> {
         restoreBtn?.('error');
         reportWarning('[Profile] Edit save failed', { error: err instanceof Error ? err.message : String(err) });
         showEditBanner('error', t('profile_save_failed', 'Failed to save. Please try again.'));
+    } finally {
+        isSavingProfile = false;
     }
 }
 
@@ -477,9 +496,18 @@ function initPhotoPreview(): void {
                 previewWrap.classList.remove('hidden');
 
                 // Also update the main avatar circle for immediate in-page feedback
+                // PLT-004 FIX: DOM API replaces innerHTML for avatar preview.
+                // Previous: `avatarEl.innerHTML = \`<img src="${result}"...\``
+                // — unescaped FileReader result violated zero-trust XSS policy.
+                // Standard: Use DOM createElement/setAttribute for dynamic content.
                 const avatarEl = document.getElementById('profile-avatar');
                 if (avatarEl) {
-                    avatarEl.innerHTML = `<img src="${result}" alt="Profile photo preview" class="w-full h-full rounded-full object-cover" />`;
+                    const img = document.createElement('img');
+                    img.src = result;
+                    img.alt = 'Profile photo preview';
+                    img.className = 'w-full h-full rounded-full object-cover';
+                    avatarEl.innerHTML = '';
+                    avatarEl.appendChild(img);
                 }
             }
         };

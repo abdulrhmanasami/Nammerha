@@ -311,6 +311,10 @@ async function loadRequests(): Promise<void> {
                 btn.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
                 loadStats();
             } catch (err) {
+                // PLT-006 FIX: Re-enable button on error — user must be able to retry.
+                // Previous: btn.disabled stayed true on error — dead-end on flaky 3G.
+                // Standard: Nielsen #5 (Error Prevention), retry-friendly error recovery.
+                btn.disabled = false;
                 btn.textContent = err instanceof Error ? err.message : 'Failed';
                 btn.removeAttribute('data-i18n');
                 btn.className = 'px-4 py-2 bg-red-100 text-red-600 text-xs font-bold rounded-lg shrink-0';
