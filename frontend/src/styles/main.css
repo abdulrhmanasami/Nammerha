@@ -3754,3 +3754,179 @@ html[data-theme="dark"] .nm-pano-wrapper {
 .nm-input-flash-focus {
     animation: nm-input-flash-focus-kf 3s ease-out forwards;
 }
+
+/* ============================================================================
+   P0-001 FIX: Notification Toast — Lightweight Fallback
+   Used by nav.js bell handler when global showToast() is not available.
+   Standard: Material Design 3 (Snackbar), Nielsen #1 (System Status Visibility).
+   ============================================================================ */
+.nm-notif-toast {
+    position: fixed;
+    bottom: calc(var(--nm-nav-h, 76px) + 16px);
+    inset-inline: 16px;
+    max-width: 400px;
+    margin: 0 auto;
+    background: var(--dark-tech, #242424);
+    color: #f1f5f9;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-radius: var(--radius-md, 12px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: var(--z-toast, 9950);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    text-align: center;
+    pointer-events: none;
+}
+.nm-notif-toast--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.nm-notif-toast--exit {
+    opacity: 0;
+    transform: translateY(12px);
+}
+html[data-theme="dark"] .nm-notif-toast {
+    background: var(--dark-surface-elevated, #2a2a2a);
+    border: 1px solid var(--dark-border, rgba(255,255,255,0.08));
+}
+
+/* ============================================================================
+   P0-002 FIX: Page Navigation Loading Bar
+   Branded gradient bar (trust-blue → smoky-jade) shown during page navigation.
+   Triggered by nav.js on link clicks, removed on pagehide/pageshow.
+   Standard: Nielsen #1 (System Status Visibility), Core Web Vitals (INP).
+   ============================================================================ */
+.nm-page-loading-bar {
+    position: fixed;
+    top: 0;
+    inset-inline: 0;
+    height: 3px;
+    z-index: var(--z-overlay, 9970);
+    background: linear-gradient(90deg, var(--trust-blue, #1a73e8), var(--smoky-jade, #109173));
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: nm-loading-bar 8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    pointer-events: none;
+}
+[dir="rtl"] .nm-page-loading-bar {
+    transform-origin: right;
+}
+@keyframes nm-loading-bar {
+    0%   { transform: scaleX(0); }
+    30%  { transform: scaleX(0.6); }
+    60%  { transform: scaleX(0.8); }
+    100% { transform: scaleX(0.95); }
+}
+/* Completion state — set by pageshow/pagehide handler */
+.nm-page-loading-bar--done {
+    transform: scaleX(1) !important;
+    animation: none;
+    transition: opacity 0.3s ease 0.15s;
+    opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .nm-page-loading-bar {
+        animation: none;
+        transform: scaleX(0.95);
+    }
+}
+@media (prefers-reduced-data: reduce) {
+    .nm-page-loading-bar {
+        background: var(--trust-blue, #1a73e8);
+    }
+}
+
+/* ============================================================================
+   P1-002 FIX: Dashboard Home Escape Link
+   Visible on mobile only — on lg+ the sidebar is always visible with home navigation.
+   Standard: Apple HIG — "Always provide a way to return home."
+   ============================================================================ */
+.nm-dashboard-home-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    color: var(--trust-blue, #1a73e8);
+    transition: background-color 0.15s ease;
+}
+.nm-dashboard-home-link:hover {
+    background: rgba(26, 115, 232, 0.08);
+}
+@media (min-width: 1024px) {
+    .nm-dashboard-home-link {
+        display: none;
+    }
+}
+html[data-theme="dark"] .nm-dashboard-home-link {
+    color: var(--dark-text-primary, #e2e8f0);
+}
+
+/* ============================================================================
+   P2-001 FIX: Animation Delay Token Standardization
+   Replaces ad-hoc --anim-delay usage with a standardized design system token.
+   JS sets --nm-stagger-delay on elements; CSS consumes it consistently.
+   Standard: Design System Token Governance, P1-SST-001.
+   ============================================================================ */
+.nm-stagger {
+    animation-delay: var(--nm-stagger-delay, 0s);
+}
+
+/* ============================================================================
+   P2-004 FIX: Registration Stepper Completion Indicator
+   Adds a visible checkmark overlay on completed wizard steps using ::after.
+   Requires JS to add .step-done class to the step indicator element.
+   Standard: Material Design 3 (Stepper), Nielsen #1 (System Status Visibility).
+   ============================================================================ */
+.nm-wizard-step.step-done::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    background: var(--smoky-jade, #109173);
+    border-radius: 50%;
+    animation: nm-step-done-pop 0.3s ease-out;
+}
+@keyframes nm-step-done-pop {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nm-wizard-step.step-done::after {
+        animation: none;
+    }
+}
+
+/* ============================================================================
+   P2-003 FIX: Hero Map Region Overlay — Small Viewport
+   On devices <375px wide (iPhone 5/SE), the glass-card region overlay
+   takes too much map space. Hide it so the map remains usable.
+   Standard: Mobile-First UX, Apple HIG (Content Accessibility).
+   ============================================================================ */
+@media (max-width: 374px) {
+    #main-map + * + * .glass-card,
+    [id="main-map"] ~ .glass-card {
+        display: none;
+    }
+}
+
+/* ============================================================================
+   SWEEP-006: WhatsApp CTA Banner
+   Third-party brand color #25D366 (WhatsApp official green).
+   Replaces Tailwind arbitrary bg-[#25D366] for design system governance.
+   ============================================================================ */
+.nm-whatsapp-cta {
+    background-color: #25D366;
+}
+

@@ -99,7 +99,7 @@
     <div class="p-4 border-t border-slate-200">
       <div class="flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-warm-earth/20 flex items-center justify-center">
-          <i class="ph ph-user text-sm"  aria-hidden="true"></i>
+          <i class="ph ph-user text-sm" aria-hidden="true"></i>
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="supplier_portal">Supplier Portal</p>
@@ -125,7 +125,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <span class="font-bold text-lg page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</span>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
@@ -136,8 +136,9 @@
              All other 5 portals use: no padding, font-size:20px, class="relative".
              Standard: Nielsen #4 (Design System Component Unity). -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-orders" title="Jump to orders">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
+          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -165,25 +166,26 @@
             <!-- CONF-C01 FIX: Was rounded-lg — all other 5 portals use rounded-xl.
                  Standard: Design System Component Unity. -->
             <div class="size-10 bg-warning-yellow/10 rounded-xl flex items-center justify-center">
-              <i class="ph ph-clock-countdown text-warning-yellow text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-clock-countdown text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_pending_bids">Pending Orders</p>
           <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
           <!-- LOW-002 FIX: Normalized from data-kpi to id pattern matching all other portals. -->
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-pending-bids">
+          <!-- SWEEP-W5-001: Removed individual aria-live — consolidated below grid. -->
+          <p class="text-2xl font-black mt-1" id="kpi-pending-bids">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 bg-smoky-jade/10 rounded-xl flex items-center justify-center">
-              <i class="ph ph-handshake text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-handshake text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_won_contracts">Won Contracts</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-won-contracts">
+          <p class="text-2xl font-black mt-1" id="kpi-won-contracts">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -194,28 +196,28 @@
                  Platform palette: trust-blue, smoky-jade, warm-earth, warning-yellow.
                  Standard: Design System Token Governance. -->
             <div class="size-10 bg-warm-earth/10 rounded-xl flex items-center justify-center">
-              <i class="ph ph-truck text-warm-earth text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-truck text-warm-earth text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_in_transit">In Transit</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-in-transit">
+          <p class="text-2xl font-black mt-1" id="kpi-in-transit">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 bg-trust-blue/10 rounded-xl flex items-center justify-center">
-              <i class="ph ph-currency-dollar text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-currency-dollar text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="supplier_total_revenue">Total Revenue</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-total-revenue" data-prefix="$">
+          <p class="text-2xl font-black mt-1" id="kpi-total-revenue" data-prefix="$">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
       </div>
-
-      <!-- ═══════ Orders Section ═══════ -->
+      <!-- SWEEP-W7-001: Consolidated aria-live summary for all KPI announcements. -->
+      <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
       <!-- CRIT-004 FIX: Added role="tabpanel" and aria-labelledby — were completely missing.
            All other 4 portals with tabs have proper ARIA panel semantics.
            Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
@@ -283,7 +285,7 @@
                Standard: Material Design — Empty states should guide action. -->
           <div id="catalog-empty" class="col-span-full text-center py-12 hidden">
             <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
-              <i class="ph ph-package text-warm-earth nm-icon-32"  aria-hidden="true"></i>
+              <i class="ph ph-package text-warm-earth nm-icon-32" aria-hidden="true"></i>
             </div>
             <h3 class="text-sm font-bold text-slate-700 mb-1" data-i18n="supplier_empty_title">Your catalog is empty</h3>
             <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4" data-i18n="supplier_empty_desc">Add your construction materials so engineers can find and order from you when building BOQs for reconstruction projects.</p>
@@ -307,6 +309,10 @@
        All consumer pages include Terms, Privacy, Refund Policy. Dashboard pages
        handle financial data (purchase orders, payments) — legal links are mandatory.
        Standard: Legal compliance, Nielsen #4 (Consistency). -->
+  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
   <footer class="nm-legal-footer">
     <nav aria-label="Legal navigation">
       <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -316,104 +322,6 @@
     <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
   </footer>
 
-<!-- INC-A01 FIX: Migrated from <div style="display:none"> to native <dialog>.
-     Native <dialog> provides: built-in focus trap, Escape key dismissal, ::backdrop
-     pseudo-element, proper ARIA semantics, and top-layer stacking.
-     Previous: <div> with manual display:none toggling — no keyboard accessibility.
-     Standard: WAI-ARIA Authoring Practices, WCAG 4.1.2 (Name, Role, Value). -->
-<!-- CONF-NEW-01 FIX: All form labels changed from Arabic to English fallback text.
-     Platform convention: English is the innerHTML/fallback. Arabic is provided via i18n dictionary.
-     Previous: Arabic labels caused FUTC (Flash of Untranslated Content) for English users.
-     Standard: Platform i18n convention, Nielsen #4 (Consistency). -->
-<dialog id="modal-add-material" class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-0 backdrop:bg-black/40">
-  <div class="bg-white rounded-2xl w-full">
-    <div class="p-6 border-b border-slate-100">
-      <h3 class="text-sm font-bold" data-i18n="supplier_add_material">Add Material to Catalog</h3>
-      <p class="text-3xs text-slate-400 mt-1" data-i18n="supplier_modal_guide_price_info">Guide prices — actual PO amounts use BOQ rates</p>
-    </div>
-    <!-- FRC-NEW-07 FIX: Added novalidate — forces custom styled validation feedback
-         instead of inconsistent browser-native tooltips.
-         Standard: Design System Consistency, Cross-browser uniformity. -->
-    <form id="form-add-material" class="p-6 space-y-4" method="dialog" novalidate>
-      <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_material_name">Material Name *</label>
-        <!-- GAP-003 FIX: Migrated from ad-hoc Tailwind to canonical .nm-input class.
-             Previous: 87-char inline class duplicating .nm-input definition.
-             Standard: Design System Single Source of Truth (DEF-004), DRY. -->
-        <input type="text" name="material_name" required class="nm-input" data-i18n-placeholder="supplier_material_placeholder" placeholder="e.g. Portland Cement Type II" />
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_category_label">Category *</label>
-          <select name="material_category" required class="nm-select">
-            <!-- PLT-AUD2-F003 FIX: Was bare "..." with no i18n — not descriptive.
-                 Standard: i18n Completeness, Nielsen #2. -->
-            <option value="" data-i18n="common_select_category">Select category...</option>
-            <option value="cement" data-i18n="cat_cement">Cement</option>
-            <option value="steel" data-i18n="cat_steel_rebar">Steel &amp; Rebar</option>
-            <option value="concrete" data-i18n="cat_concrete">Concrete</option>
-            <option value="blocks" data-i18n="cat_blocks_bricks">Blocks &amp; Bricks</option>
-            <option value="wood" data-i18n="cat_wood_timber">Wood &amp; Timber</option>
-            <option value="pipes" data-i18n="cat_pipes_plumbing">Pipes &amp; Plumbing</option>
-            <option value="electrical" data-i18n="cat_electrical">Electrical</option>
-            <option value="insulation" data-i18n="cat_insulation">Insulation</option>
-            <option value="roofing" data-i18n="cat_roofing">Roofing</option>
-            <option value="paint" data-i18n="cat_paint_finishing">Paint &amp; Finishing</option>
-            <option value="aggregate" data-i18n="cat_sand_aggregate">Sand &amp; Aggregate</option>
-            <option value="glass" data-i18n="cat_glass_windows">Glass &amp; Windows</option>
-            <option value="other" data-i18n="cat_other">Other</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_unit_label">Unit *</label>
-          <select name="unit" required class="nm-select">
-            <option value="" data-i18n="common_select_unit">Select unit...</option>
-            <option value="kg" data-i18n="unit_kg">Kilogram (kg)</option>
-            <option value="ton" data-i18n="unit_ton">Ton</option>
-            <option value="bag" data-i18n="unit_bag">Bag (50kg)</option>
-            <option value="m³" data-i18n="unit_m3">Cubic Meter (m³)</option>
-            <option value="m²" data-i18n="unit_m2">Square Meter (m²)</option>
-            <option value="m" data-i18n="unit_m">Linear Meter (m)</option>
-            <option value="piece" data-i18n="unit_piece">Piece</option>
-            <option value="box" data-i18n="unit_box">Box</option>
-            <option value="roll" data-i18n="unit_roll">Roll</option>
-            <option value="liter" data-i18n="unit_liter">Liter</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_guide_price">Guide Price ($) *</label>
-          <input type="number" name="unit_price_guide" required min="0.01" step="0.01" class="nm-input" placeholder="0.00" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_min_order">Minimum Order</label>
-          <input type="number" name="min_order_qty" min="1" step="1" value="1" class="nm-input" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_lead_time">Lead Time (days)</label>
-          <input type="number" name="lead_time_days" min="0" step="1" value="7" class="nm-input" />
-        </div>
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="supplier_desc_optional">Description (optional)</label>
-        <textarea name="description" rows="2" class="nm-textarea" data-i18n-placeholder="supplier_desc_placeholder" placeholder="Additional details about this material..."></textarea>
-      </div>
-      <div class="flex gap-3 pt-2">
-        <button type="button" id="modal-cancel" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" data-i18n="cancel">Cancel</button>
-        <button type="submit" class="flex-1 px-4 py-2 bg-trust-blue text-white rounded-lg text-sm font-semibold hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
-          <i class="ph ph-plus-circle" aria-hidden="true"></i> <span data-i18n="supplier_add_to_catalog">Add to Catalog</span>
-        </button>
-      </div>
-    </form>
-  </div>
-</dialog>
-
-  <!-- RES-G02 FIX: Gradient orbs — were missing from supplier-dashboard.
-       Every other page has them.
-       Standard: Design System Visual Cohesion. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <!-- ARCH-C04 FIX: Empty-state template — was missing from supplier-dashboard.
      All other 4 portals (donor, homeowner, tradesperson, contractor-portal) have it.

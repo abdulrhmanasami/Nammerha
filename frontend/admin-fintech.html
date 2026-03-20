@@ -96,7 +96,7 @@
       </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <i class="ph ph-user-circle text-trust-blue text-base"  aria-hidden="true"></i>
+          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
@@ -122,7 +122,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <span class="font-bold text-lg page-header-title" data-i18n="fintech_title">FinTech & Enterprise</span>
       </div>
@@ -147,45 +147,46 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-bank text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-bank text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_escrow_fees">Escrow Fees</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-escrow-fees">$0</p>
+          <!-- SWEEP-W5-001: Removed individual aria-live. -->
+          <p class="text-2xl font-black mt-1" id="kpi-escrow-fees">$0</p>
           <p class="text-3xs text-slate-400 mt-1" data-i18n="fintech_all_time">All time</p>
         </div>
 
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-buildings text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-buildings text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full" data-i18n="badge_active">Active</span>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_enterprise_orgs">Enterprise Orgs</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-enterprise-orgs">0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-enterprise-orgs">0</p>
           <p class="text-3xs text-slate-400 mt-1" data-i18n="fintech_active">Active</p>
         </div>
 
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
-              <i class="ph ph-chart-line-up text-warm-earth text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-chart-line-up text-warm-earth text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_mtd_fees">MTD Fees</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-mtd-fees">$0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-mtd-fees">$0</p>
           <p class="text-3xs text-slate-400 mt-1" data-i18n="fintech_this_month">This month</p>
         </div>
 
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-slate-100 flex items-center justify-center">
-              <i class="ph ph-key text-slate-600 text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-key text-slate-600 text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="fintech_api_calls">API Calls</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-api-calls">0</p>
+          <p class="text-2xl font-black mt-1" id="kpi-api-calls">0</p>
           <p class="text-3xs text-slate-400 mt-1" data-i18n="fintech_this_month">This month</p>
         </div>
       </div>
@@ -255,6 +256,10 @@
     </div>
   </main>
 </div>
+  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
 <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
 <footer class="nm-legal-footer">
   <nav aria-label="Legal navigation">
@@ -265,9 +270,6 @@
   <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
 </footer>
 
-  <!-- Gradient orbs -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <template id="tpl-table-empty">
   <tr>

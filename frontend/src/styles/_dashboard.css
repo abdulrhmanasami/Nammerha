@@ -195,3 +195,40 @@
     overflow: auto;
   }
 }
+
+/* ============================================================================
+   UXD-002 FIX: Sidebar Theme Toggle Row
+   Dashboard pages suppress bottom nav (and its theme FAB). sidebar.js now
+   injects a theme toggle button at the sidebar bottom. These styles position
+   and style it consistently with the sidebar navigation items.
+   Standard: Nielsen #3 (User Control), Apple HIG (System-level controls).
+   ============================================================================ */
+.nm-sidebar-theme-row {
+  margin-top: auto;
+  padding: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.nm-sidebar-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+.nm-sidebar-theme-btn:hover {
+  background: var(--trust-blue-light);
+  color: var(--trust-blue);
+}
+.nm-sidebar-theme-btn i {
+  font-size: 18px;
+}

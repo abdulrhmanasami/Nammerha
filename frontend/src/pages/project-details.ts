@@ -412,7 +412,7 @@ function initWhatsAppCTA(): void {
     ctaBanner.id = 'whatsapp-cta';
     ctaBanner.className = 'fixed bottom-36 start-4 end-4 z-30 max-w-md mx-auto animate-fade-in-up';
     ctaBanner.innerHTML = `
-        <div class="bg-[#25D366] text-white p-4 rounded-xl shadow-2xl flex items-center gap-3">
+        <div class="nm-whatsapp-cta text-white p-4 rounded-xl shadow-2xl flex items-center gap-3">
             <div class="size-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
                 <i class="ph ph-whatsapp-logo text-2xl"  aria-hidden="true"></i>
             </div>

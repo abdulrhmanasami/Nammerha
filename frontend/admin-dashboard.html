@@ -109,7 +109,7 @@
       </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <i class="ph ph-user-circle text-trust-blue text-base"  aria-hidden="true"></i>
+          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
@@ -138,7 +138,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <span class="font-bold text-lg page-header-title" data-i18n="admin_command_center">Command Center</span>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
@@ -150,8 +150,9 @@
              Count badge shows pending verification count (updated by TS).
              Standard: Nielsen #4 (Consistency), WCAG 4.1.2. -->
         <button class="relative" id="notification-bell" aria-label="Jump to audit trail" data-i18n-aria="aria_jump_audit" data-scroll-target="section-audit-trail" title="Jump to audit trail">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
+          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -171,29 +172,30 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-currency-dollar text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-currency-dollar text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <i class="ph ph-trend-up text-3xs"  aria-hidden="true"></i> <span aria-live="polite" id="kpi-impact-trend">—</span>
+              <i class="ph ph-trend-up text-3xs" aria-hidden="true"></i> <span id="kpi-impact-trend">—</span>
             </span>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="total_impact_funded">Total Impact Funded</p>
-          <p class="text-2xl font-black mt-1 kpi-skeleton" aria-live="polite" id="kpi-total-funded" data-kpi="0" data-prefix="$"><span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span></p>
+          <!-- SWEEP-W5-001: Removed individual aria-live — prevents announcement fatigue. -->
+          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-total-funded" data-kpi="0" data-prefix="$"><span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-buildings text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-buildings text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full" data-i18n="badge_active">Active</span>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_active_projects">Active Projects</p>
-          <p class="text-2xl font-black mt-1 kpi-skeleton" aria-live="polite" id="kpi-active-projects" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
+          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-active-projects" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
-              <i class="ph ph-hard-hat text-warm-earth text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-hard-hat text-warm-earth text-xl" aria-hidden="true"></i>
             </div>
             <!-- FRIC-ADM-007 FIX: KPI #3 was missing a badge/trend indicator.
                  All other KPI cards (1, 2, 4) have badges. This creates visual asymmetry.
@@ -201,12 +203,12 @@
             <span class="text-xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-0.5 rounded-full" data-i18n="badge_verified">Verified</span>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="admin_registered_eng">Registered Engineers</p>
-          <p class="text-2xl font-black mt-1 kpi-skeleton" aria-live="polite" id="kpi-engineers" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
+          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-engineers" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-clock-countdown text-warning-yellow text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-clock-countdown text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
           </div>
@@ -214,7 +216,7 @@
           <!-- FRIC-ADM-001 FIX: text-warning-yellow (#FCC934) on white is 1.56:1 contrast.
                WCAG AA requires 4.5:1. Using CSS variable --warning-yellow-text (#b45309, 4.73:1).
                Standard: WCAG 1.4.3 (Contrast Minimum). -->
-          <p class="text-2xl font-black mt-1 kpi-skeleton text-warning-yellow" aria-live="polite" id="kpi-pending" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
+          <p class="text-2xl font-black mt-1 kpi-skeleton text-warning-yellow" id="kpi-pending" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
         </div>
       </div>
 
@@ -222,7 +224,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <a href="admin-escrow.html" class="group bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-trust-blue/30 transition-all flex items-center gap-4">
           <div class="size-12 rounded-xl bg-trust-blue/10 flex items-center justify-center group-hover:bg-trust-blue group-hover:text-white transition-colors">
-            <i class="ph ph-shield-check text-trust-blue group-hover:text-white text-2xl"  aria-hidden="true"></i>
+            <i class="ph ph-shield-check text-trust-blue group-hover:text-white text-2xl" aria-hidden="true"></i>
           </div>
           <div class="flex-1">
             <!-- INC-ADM-001 FIX: h3→h2 for proper heading hierarchy (h1→h2→h3).
@@ -237,7 +239,7 @@
         </a>
         <a href="admin-oracle.html" class="group bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-smoky-jade/30 transition-all flex items-center gap-4">
           <div class="size-12 rounded-xl bg-smoky-jade/10 flex items-center justify-center group-hover:bg-smoky-jade group-hover:text-white transition-colors">
-            <i class="ph ph-chart-line-up text-smoky-jade group-hover:text-white text-2xl"  aria-hidden="true"></i>
+            <i class="ph ph-chart-line-up text-smoky-jade group-hover:text-white text-2xl" aria-hidden="true"></i>
           </div>
           <div class="flex-1">
             <h2 class="font-bold text-sm" data-i18n="admin_pricing_oracle_epa">Pricing Oracle & EPA Engine</h2>
@@ -262,7 +264,7 @@
                Disabled with Coming Soon badge (same pattern as Settings link).
                Standard: Nielsen #2 (No dead controls). -->
           <span class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true">
-            <i class="ph ph-funnel text-xs"  aria-hidden="true"></i> <span data-i18n="common_filter">Filter</span>
+            <i class="ph ph-funnel text-xs" aria-hidden="true"></i> <span data-i18n="common_filter">Filter</span>
             <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
           </span>
         </div>
@@ -297,7 +299,7 @@
              Added "View All" link to project-details.html.
              Standard: Nielsen #7 (Flexibility and efficiency of use). -->
         <div class="p-4 border-t border-slate-100 text-center">
-          <a href="project-details.html" class="text-xs font-semibold text-trust-blue hover:underline inline-flex items-center gap-1" data-i18n="admin_view_all_projects">View All Projects <i class="ph ph-arrow-right text-xs"  aria-hidden="true"></i></a>
+          <a href="project-details.html" class="text-xs font-semibold text-trust-blue hover:underline inline-flex items-center gap-1" data-i18n="admin_view_all_projects">View All Projects <i class="ph ph-arrow-right text-xs" aria-hidden="true"></i></a>
         </div>
       </div>
 
@@ -330,7 +332,7 @@
       <!-- OCDS Compliance Footer -->
       <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
         <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center shrink-0">
-          <i class="ph ph-shield-check text-smoky-jade text-xl"  aria-hidden="true"></i>
+          <i class="ph ph-shield-check text-smoky-jade text-xl" aria-hidden="true"></i>
         </div>
         <div>
           <!-- HH-003 FIX: Was <h4> — skipped <h3> after <h2> sections above.
@@ -345,6 +347,10 @@
     </div>
   </main>
 </div>
+  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
 <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
 <footer class="nm-legal-footer">
   <nav aria-label="Legal navigation">
@@ -355,11 +361,6 @@
   <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
 </footer>
 
-  <!-- DEFECT-004 FIX: Gradient orbs — were missing from admin-dashboard.
-       Every other page (32/33) has them.
-       Standard: Design System Visual Cohesion. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <!-- DEFECT-006 FIX: Reusable empty state template for data tables.
      All other portals have this template. TS modules clone it into empty tbody.

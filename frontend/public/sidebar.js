@@ -266,6 +266,116 @@
                 });
             }
         }
+
+        // ── UXD-002 FIX: Inject Theme Toggle into Dashboard Sidebar ────────
+        // Dashboard pages suppress bottom nav (and its theme FAB). Without this,
+        // users in long dashboard sessions have NO theme toggle visible.
+        // Injects a compact toggle at the sidebar bottom using the same
+        // [data-nm-theme-toggle] attribute — theme-toggle.js auto-discovers it.
+        // Standard: Nielsen #3 (User Control & Freedom), Apple HIG (System Controls).
+        // ────────────────────────────────────────────────────────────────────────
+        var sidebarNav = sidebar.querySelector('[role="tablist"]');
+        var themeToggleExists = sidebar.querySelector('[data-nm-theme-toggle]');
+        if (sidebarNav && !themeToggleExists) {
+            var isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+            var themeRow = document.createElement('div');
+            themeRow.className = 'nm-sidebar-theme-row';
+            var themeBtn = document.createElement('button');
+            themeBtn.setAttribute('data-nm-theme-toggle', '');
+            themeBtn.setAttribute('data-haptic', 'tap');
+            var themeLabel = isDark
+                ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
+                : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
+            themeBtn.title = themeLabel;
+            themeBtn.setAttribute('aria-label', themeLabel);
+            themeBtn.className = 'nm-sidebar-theme-btn';
+
+            var themeIcon = document.createElement('i');
+            themeIcon.setAttribute('data-nm-theme-icon', '');
+            themeIcon.className = isDark ? 'ph ph-sun-dim' : 'ph ph-moon-stars';
+            themeBtn.appendChild(themeIcon);
+
+            var themeBtnText = document.createElement('span');
+            themeBtnText.textContent = themeLabel;
+            themeBtnText.setAttribute('data-i18n', isDark ? 'nav_theme_light' : 'nav_theme_dark');
+            themeBtn.appendChild(themeBtnText);
+
+            themeRow.appendChild(themeBtn);
+            // Insert after the tablist navigation
+            sidebarNav.parentNode.insertBefore(themeRow, sidebarNav.nextSibling);
+
+            // Listen for theme changes to update icon/label
+            document.addEventListener('nm-theme-changed', function (e) {
+                var next = e.detail && e.detail.theme;
+                if (!next) { return; }
+                var newLabel = next === 'dark'
+                    ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
+                    : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
+                themeBtn.title = newLabel;
+                themeBtn.setAttribute('aria-label', newLabel);
+                themeBtnText.textContent = newLabel;
+            });
+
+            // Load theme-toggle.js if not already present
+            if (!window.NammerhaTheme) {
+                var themeScript = document.createElement('script');
+                themeScript.src = '/theme-toggle.js?v=2';
+                document.head.appendChild(themeScript);
+            } else if (window.NammerhaTheme.syncAllIcons) {
+                window.NammerhaTheme.syncAllIcons();
+            }
+        }
+
+        // ── UXD-003 FIX: Swipe-to-Dismiss Sidebar ─────────────────────────
+        // iOS/Android users instinctively swipe to dismiss drawers. Overlay
+        // click and Escape key exist, but the swipe gesture was missing —
+        // the #1 giveaway of a web app on mobile.
+        // RTL-aware: swipe-to-close direction is END→START (right in LTR, left in RTL).
+        // Standard: Apple HIG ("Support standard gestures"),
+        //           Material Design 3 (Navigation Drawer — swipe dismiss).
+        // ────────────────────────────────────────────────────────────────────
+        var swipeStartX = 0;
+        var swipeStartY = 0;
+        var swipeTracking = false;
+        var SWIPE_THRESHOLD = 80; // px minimum for a valid dismiss gesture
+
+        sidebar.addEventListener('touchstart', function (e) {
+            if (!sidebar.classList.contains('sidebar-open')) { return; }
+            var touch = e.touches[0];
+            if (!touch) { return; }
+            swipeStartX = touch.clientX;
+            swipeStartY = touch.clientY;
+            swipeTracking = true;
+        }, { passive: true });
+
+        sidebar.addEventListener('touchend', function (e) {
+            if (!swipeTracking) { return; }
+            swipeTracking = false;
+            var touch = e.changedTouches[0];
+            if (!touch) { return; }
+
+            var deltaX = touch.clientX - swipeStartX;
+            var deltaY = Math.abs(touch.clientY - swipeStartY);
+
+            // Ignore if vertical scroll was dominant
+            if (deltaY > Math.abs(deltaX)) { return; }
+
+            // RTL-aware: "close" direction is positive-X in LTR, negative-X in RTL
+            var isRTL = document.dir === 'rtl' ||
+                document.documentElement.getAttribute('dir') === 'rtl';
+            var closeDelta = isRTL ? -deltaX : deltaX;
+
+            // If swiped past threshold in the "close" direction
+            if (closeDelta > SWIPE_THRESHOLD) {
+                closeSidebar();
+                // Haptic feedback
+                if (window.NammerhaHaptic && window.NammerhaHaptic.light) {
+                    window.NammerhaHaptic.light();
+                } else if (navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+            }
+        }, { passive: true });
     }
 
     // ─── Bootstrap ──────────────────────────────────────────────────────

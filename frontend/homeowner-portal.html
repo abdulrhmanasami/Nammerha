@@ -133,7 +133,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
              echoing page context, NOT a structural heading. The real <h1> is in content below.
@@ -146,8 +146,9 @@
         <div id="role-switcher-mount-header"></div>
         <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
+          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -174,57 +175,64 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-buildings text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-buildings text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_active">Active Projects</p>
           <!-- INC-2026-C03 FIX: Skeleton loader replaces hardcoded "0".
                Previous: Static "0" shown before API → false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-active">
+          <!-- UXD-022 FIX: Removed individual aria-live="polite" — 4 KPIs updating simultaneously
+               caused screen reader "announcement fatigue". A single summary region below the grid
+               announces once. Standard: WCAG 4.1.3 (Status Messages). -->
+          <p class="text-2xl font-black mt-1" id="kpi-active">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-flag-banner text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-flag-banner text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_bids_received">Bids Received</p>
-          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-bids">
+          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-bids">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-clock text-warning-yellow text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-clock text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_pending_approvals">Pending Approvals</p>
           <!-- CRIT-001d FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-approvals">
+          <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-approvals">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-vault text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-vault text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="homeowner_escrow">In Escrow</p>
           <!-- FRIC-2602 FIX: Plain-language escrow subtitle for homeowner KPI card.
                Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
           <p class="text-3xs text-slate-400/70 -mt-0.5" data-i18n="homeowner_escrow_kpi_hint">Funds held until milestones verified</p>
-          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-escrow">
+          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-escrow">
             <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
       </div>
+      <!-- UXD-022 FIX: Single consolidated aria-live region for KPI announcements.
+           JS updates this element's textContent ONCE after all KPIs load.
+           Standard: WCAG 4.1.3 — single summary announcement vs 4 rapid-fire updates. -->
+      <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
 
       <!-- ═══════ Dashboard ═══════ -->
       <div id="section-dashboard" class="space-y-4" role="tabpanel" aria-labelledby="tab-dashboard">
@@ -460,6 +468,10 @@
   <!-- GAP-NEW-01 FIX: Legal footer was missing. All other portals have it.
        Dashboard pages handle financial data (escrow) — legal links are mandatory.
        Standard: Legal compliance, Nielsen #4 (Consistency). -->
+  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
   <footer class="nm-legal-footer">
     <nav aria-label="Legal navigation">
       <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -469,11 +481,6 @@
     <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
   </footer>
 
-  <!-- GAP-NEW-05 FIX: Gradient orbs — were missing from homeowner-portal.
-       Every other consumer page has them (INC-N03 standard).
-       Standard: Design System Visual Cohesion. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 <!-- MED-005 FIX: Reusable empty state template for data tables. -->
 <template id="tpl-table-empty">
   <tr>

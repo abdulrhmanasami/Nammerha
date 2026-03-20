@@ -113,7 +113,7 @@
     <div class="p-4 border-t border-slate-200">
       <div class="flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-smoky-jade/20 flex items-center justify-center">
-          <i class="ph ph-user text-smoky-jade text-sm"  aria-hidden="true"></i>
+          <i class="ph ph-user text-smoky-jade text-sm" aria-hidden="true"></i>
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="auditor_portal">Auditor Portal</p>
@@ -141,7 +141,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <span class="font-bold text-lg page-header-title" data-i18n="auditor_dashboard_title">Compliance Dashboard</span>
         <span class="text-xs text-slate-400" id="live-timestamp"></span>
@@ -155,12 +155,13 @@
              All other 6 portals have both attributes on notification bell.
              Standard: Nielsen #4 (Consistency), WCAG 4.1.2 (Name, Role, Value). -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
           <!-- P2-AUD-003 FIX: Changed bg-warning-yellow → bg-trust-blue.
                All other portals use bg-trust-blue for notification count badge.
                Compliance was the sole outlier using bg-warning-yellow.
                Standard: Nielsen #4 (Consistency), Design System Color Token. -->
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -186,18 +187,19 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-currency-dollar text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-currency-dollar text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_total_audited">Total Funds Audited</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="total-audited" data-prefix="$">
+          <!-- SWEEP-W5-001: Removed individual aria-live. -->
+          <p class="text-2xl font-black mt-1" data-kpi="total-audited" data-prefix="$">
             <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-hourglass-medium text-warning-yellow text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-hourglass-medium text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_pending">Pending</span>
           </div>
@@ -205,18 +207,18 @@
           <!-- CRIT-001a FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" data-kpi="pending-reviews">
+          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="pending-reviews">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-check-circle text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-check-circle text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_approved_releases">Approved Releases</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" data-kpi="approved-releases">
+          <p class="text-2xl font-black mt-1" data-kpi="approved-releases">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -227,11 +229,11 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <i class="ph ph-warning text-red-500 text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-warning text-red-500 text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="auditor_flagged">Flagged Issues</p>
-          <p class="text-2xl font-black mt-1 text-red-500" aria-live="polite" data-kpi="flagged-issues">
+          <p class="text-2xl font-black mt-1 text-red-500" data-kpi="flagged-issues">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -241,7 +243,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
-            <i class="ph ph-shield-check text-smoky-jade text-xl"  aria-hidden="true"></i>
+            <i class="ph ph-shield-check text-smoky-jade text-xl" aria-hidden="true"></i>
             <!-- CRIT-004 FIX: h3→h2 — bridges h1 (L176) → h2 heading hierarchy gap.
                  Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy). -->
             <h2 class="font-bold text-sm" data-i18n="auditor_ocds_status">OCDS Compliance</h2>
@@ -258,7 +260,7 @@
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
-            <i class="ph ph-database text-trust-blue text-xl"  aria-hidden="true"></i>
+            <i class="ph ph-database text-trust-blue text-xl" aria-hidden="true"></i>
             <h2 class="font-bold text-sm" data-i18n="auditor_audit_integrity">Audit Trail Integrity</h2>
           </div>
           <div class="flex items-center gap-2">
@@ -271,7 +273,7 @@
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <div class="flex items-center gap-3 mb-3">
-            <i class="ph ph-map-pin text-warm-earth text-xl"  aria-hidden="true"></i>
+            <i class="ph ph-map-pin text-warm-earth text-xl" aria-hidden="true"></i>
             <h2 class="font-bold text-sm" data-i18n="auditor_spatial_accuracy">Spatial Verification</h2>
           </div>
           <div class="flex items-center gap-2">
@@ -297,7 +299,7 @@
             <p class="text-xs text-slate-500 mt-0.5" data-i18n="auditor_review_desc">Escrow releases awaiting auditor sign-off</p>
           </div>
           <button class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50 transition-colors">
-            <i class="ph ph-download text-xs"  aria-hidden="true"></i> <span data-i18n="auditor_export">Export Report</span>
+            <i class="ph ph-download text-xs" aria-hidden="true"></i> <span data-i18n="auditor_export">Export Report</span>
           </button>
         </div>
         <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
@@ -331,7 +333,7 @@
       <!-- OCDS Footer -->
       <div class="bg-slate-50 rounded-xl p-4 flex items-center gap-4">
         <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center shrink-0">
-          <i class="ph ph-shield-check text-smoky-jade text-xl"  aria-hidden="true"></i>
+          <i class="ph ph-shield-check text-smoky-jade text-xl" aria-hidden="true"></i>
         </div>
         <div>
           <!-- PLAT-P3-001 FIX: Downgraded from h2→p. This is a decorative trust banner,

@@ -101,7 +101,7 @@
       </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <i class="ph ph-user-circle text-trust-blue text-base"  aria-hidden="true"></i>
+          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
@@ -124,7 +124,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
              echoing page context, NOT a structural heading. The real <h1> is in content below.
@@ -154,50 +154,51 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-currency-dollar text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-currency-dollar text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <i class="ph ph-trend-up text-3xs"  aria-hidden="true"></i> Phase 1
+              <i class="ph ph-trend-up text-3xs" aria-hidden="true"></i> Phase 1
             </span>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_total_revenue">Total Revenue</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-total-revenue">$0.00</p>
+          <!-- SWEEP-W5-001: Removed individual aria-live. -->
+          <p class="text-2xl font-black mt-1" id="kpi-total-revenue">$0.00</p>
         </div>
 
         <!-- Commission Revenue -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-receipt text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-receipt text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_commissions">Commissions</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-commissions">$0.00</p>
-          <p class="text-3xs text-slate-400 mt-1"><span aria-live="polite" id="kpi-commission-count">0</span> transactions</p>
+          <p class="text-2xl font-black mt-1" id="kpi-commissions">$0.00</p>
+          <p class="text-3xs text-slate-400 mt-1"><span id="kpi-commission-count">0</span> transactions</p>
         </div>
 
         <!-- Tip Revenue -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
-              <i class="ph ph-heart text-warm-earth text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-heart text-warm-earth text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_tips">Tips</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-tips">$0.00</p>
-          <p class="text-3xs text-slate-400 mt-1"><span aria-live="polite" id="kpi-tip-count">0</span> donations</p>
+          <p class="text-2xl font-black mt-1" id="kpi-tips">$0.00</p>
+          <p class="text-3xs text-slate-400 mt-1"><span id="kpi-tip-count">0</span> donations</p>
         </div>
 
         <!-- Average Tip -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-chart-bar text-warning-yellow text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-chart-bar text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rev_avg_tip">Average Tip</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-avg-tip">$0.00</p>
-          <p class="text-3xs text-slate-400 mt-1" aria-live="polite" id="kpi-avg-tip-pct">0%</p>
+          <p class="text-2xl font-black mt-1" id="kpi-avg-tip">$0.00</p>
+          <p class="text-3xs text-slate-400 mt-1" id="kpi-avg-tip-pct">0%</p>
         </div>
       </div>
 
@@ -257,7 +258,7 @@
       <!-- OCDS Compliance Footer -->
       <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
         <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center shrink-0">
-          <i class="ph ph-shield-check text-smoky-jade text-xl"  aria-hidden="true"></i>
+          <i class="ph ph-shield-check text-smoky-jade text-xl" aria-hidden="true"></i>
         </div>
         <div>
           <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h3>
@@ -270,6 +271,10 @@
     </div>
   </main>
 </div>
+  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
 <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
 <footer class="nm-legal-footer">
   <nav aria-label="Legal navigation">
@@ -280,9 +285,6 @@
   <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
 </footer>
 
-  <!-- CONF-ADM-007 FIX: Gradient orbs + empty state template. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
 <template id="tpl-table-empty">
   <tr>

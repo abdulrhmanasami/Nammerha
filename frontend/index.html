@@ -122,10 +122,11 @@
     <!-- P0-A1 FIX: Skip-to-content link for keyboard accessibility (WCAG 2.4.1) -->
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
     <!-- ─── Top Navbar (Glassmorphism) ──────────────────────────────────────── -->
-    <!-- C-001 FIX: Hidden on mobile (< 640px) — bottom nav handles navigation.
-         On sm+, full navbar with search, cart, and profile. Native-app feel on mobile. -->
+    <!-- C-001 FIX: Hidden on mobile (< 768px) — bottom nav handles navigation.
+         On md+, full navbar with search, cart, and profile. Native-app feel on mobile.
+         UXD-001 FIX: Raised from sm (640px) to md (768px) to close tablet dead zone. -->
     <nav
-      class="glass-nav fixed top-0 start-0 end-0 z-50 px-4 py-3 hidden sm:flex items-center justify-between gap-3"
+      class="glass-nav fixed top-0 start-0 end-0 z-50 px-4 py-3 hidden md:flex items-center justify-between gap-3"
     >
       <a href="/" class="flex items-center gap-2">
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
@@ -155,8 +156,8 @@
            but couldn't see them from the main consumer surface.
            Standard: Nielsen #1 (Visibility of System Status), Apple HIG (Navigation Bar). -->
       <button type="button" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-notification-btn" aria-label="Notifications" data-i18n-aria="aria_notifications">
-        <i class="ph ph-bell text-slate-700 text-xl"  aria-hidden="true"></i>
-        <span class="cart-badge hidden" id="nav-notif-badge">0</span>
+        <i class="ph ph-bell text-slate-700 text-xl" aria-hidden="true"></i>
+        <span class="cart-badge hidden" id="nav-notif-badge"></span>
       </button>
       <!-- Multi-Role Architecture: Role Switcher Mount Point -->
       <div id="role-switcher-mount"></div>
@@ -164,27 +165,30 @@
         class="w-11 h-11 rounded-full border-2 border-trust-blue/20 overflow-hidden shrink-0 bg-trust-blue/10 flex items-center justify-center"
         aria-label="Profile" data-i18n-aria="aria_profile"
       >
-        <i class="ph ph-user text-trust-blue text-lg"  aria-hidden="true"></i>
+        <i class="ph ph-user text-trust-blue text-lg" aria-hidden="true"></i>
       </a>
     </nav>
 
     <!-- CONF-N03 FIX: Mobile search trigger (hidden on sm+ where full nav has inline search). -->
     <!-- CONF-P04 FIX: Was <div> — mobile header must be <header> element (HTML5 §4.4.1) -->
-    <header class="sm:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14">
+    <!-- UXD-001 FIX: Raised from sm:hidden to md:hidden to match desktop nav breakpoint -->
+    <header class="md:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14">
       <a href="/" class="flex items-center gap-2">
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       </a>
       <div class="flex items-center gap-1">
         <button data-search-trigger class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Search projects" data-i18n-aria="aria_search_projects">
-          <i class="ph ph-magnifying-glass text-slate-700 text-xl"  aria-hidden="true"></i>
+          <i class="ph ph-magnifying-glass text-slate-700 text-xl" aria-hidden="true"></i>
         </button>
         <!-- C-AUD-005 FIX: Notification bell added for mobile parity with desktop nav.
              Previous: Desktop nav had bell (L157-160) but mobile header did not.
              Syrian mobile-first users had no notification access from homepage.
              Standard: Nielsen #4 (Consistency), Feature Parity, Apple HIG. -->
         <button class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="mobile-notif-bell" aria-label="Notifications" data-i18n-aria="aria_notifications">
-          <i class="ph ph-bell text-slate-700 text-xl"  aria-hidden="true"></i>
-          <span class="cart-badge hidden" id="mobile-notif-badge">0</span>
+          <i class="ph ph-bell text-slate-700 text-xl" aria-hidden="true"></i>
+          <!-- UXD-004 FIX: Removed misleading '0' — numeric count implies functional notification
+               system. Empty badge with hidden class is honest. -->
+          <span class="cart-badge hidden" id="mobile-notif-badge"></span>
         </button>
         <!-- DEF-002 FIX (Wave 4): Removed inline mobile header theme toggle.
              Previous: 5 controls in 343px at 375px — touch target density exceeded Apple HIG spacing.
@@ -193,7 +197,7 @@
              Standard: Fitts's Law, Apple HIG (Touch Target Spacing). -->
         <!-- CONF-004 FIX: Role-switcher mount for mobile. Was only on desktop nav (sm:flex).
              Standard: Apple HIG — "Controls must be accessible at every breakpoint." -->
-        <div id="role-switcher-mount-mobile" class="sm:hidden"></div>
+        <div id="role-switcher-mount-mobile" class="md:hidden"></div>
         <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart text-slate-700" aria-hidden="true"></i>
           <span class="cart-badge hidden" id="mobile-cart-badge">0</span>
@@ -202,9 +206,10 @@
     </header>
 
     <!-- ─── Main Content ────────────────────────────────────────────────────── -->
-    <!-- C-001: pt-16 on mobile (below new fixed mobile nav h-14), pt-20 on sm+ (below desktop fixed nav) -->
+    <!-- C-001: pt-16 on mobile (below mobile nav h-14), pt-20 on md+ (below desktop nav) -->
     <!-- CONF-006 FIX: mobile-container added for width consistency with all consumer pages -->
-    <main id="main-content" class="mobile-container pt-16 sm:pt-20 pb-24">
+    <!-- UXD-001 FIX: sm:pt-20 → md:pt-20 to match navbreakpoint realignment -->
+    <main id="main-content" class="mobile-container pt-16 md:pt-20 pb-24">
       <!-- DEFER-P0-003 FIX: Homepage had ZERO h1 — the MOST critical page for SEO.
            Search engines weight h1 heavily for topic relevance. Screen readers had no primary heading.
            Visually hidden because the map hero is the visual anchor, not a text heading.
@@ -228,7 +233,7 @@
           <!-- GAP-001 FIX: Fallback state when MapLibre GL JS fails to load (Syrian 2G/3G) -->
           <!-- A11Y-003 FIX: Descriptive fallback content for screen readers (WCAG 1.1.1) -->
           <div id="map-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl" role="img" aria-label="Interactive map showing reconstruction project locations across Syria">
-            <i class="ph ph-map-trifold text-slate-300 dark:text-slate-500 nm-icon-48"  aria-hidden="true"></i>
+            <i class="ph ph-map-trifold text-slate-300 dark:text-slate-500 nm-icon-48" aria-hidden="true"></i>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-3" data-i18n="map_load_failed">Map unavailable</p>
             <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px] text-center" data-i18n="map_fallback_desc">Interactive map of reconstruction projects across regions</p>
             <button id="map-retry-btn" class="btn-secondary nm-btn-compact mt-2" data-i18n="retry">Retry</button>
@@ -285,7 +290,7 @@
             href="projects.html"
           >
             <span data-i18n="view_all">View all</span>
-            <i class="ph ph-caret-right text-lg"  aria-hidden="true"></i>
+            <i class="ph ph-caret-right text-lg" aria-hidden="true"></i>
           </a>
         </div>
         <div id="projects-carousel" class="flex overflow-x-auto gap-4 px-4 pb-4 no-scrollbar" tabindex="0" role="region" aria-label="Featured projects" data-i18n-aria="aria_featured_projects">
@@ -313,7 +318,7 @@
           </div>
           <!-- Empty state (shown when no projects) -->
           <div id="projects-empty" class="hidden w-full py-8 text-center">
-            <i class="ph ph-buildings text-slate-300 nm-icon-48"  aria-hidden="true"></i>
+            <i class="ph ph-buildings text-slate-300 nm-icon-48" aria-hidden="true"></i>
             <p class="text-slate-400 text-sm mt-2" data-i18n="no_projects_yet">No projects published yet</p>
           </div>
         </div>
@@ -337,7 +342,7 @@
               <span
                 class="text-smoky-jade text-xs font-bold bg-smoky-jade/20 px-2 py-0.5 rounded-full flex items-center gap-1"
               >
-                <i class="ph ph-trend-up text-sm"  aria-hidden="true"></i>
+                <i class="ph ph-trend-up text-sm" aria-hidden="true"></i>
                 <span id="impact-trend">—</span>
               </span>
               <span class="text-slate-400 text-3xs" data-i18n="vs_quarter">vs last quarter</span>
@@ -346,7 +351,7 @@
           <div
             class="size-14 bg-warm-earth/20 rounded-full flex items-center justify-center relative z-10"
           >
-            <i class="ph ph-globe text-warm-earth nm-icon-32"  aria-hidden="true"></i>
+            <i class="ph ph-globe text-warm-earth nm-icon-32" aria-hidden="true"></i>
           </div>
           <div
             class="absolute -end-4 -bottom-4 size-32 bg-trust-blue/10 rounded-full blur-3xl"
@@ -368,7 +373,7 @@
               <div
                 class="size-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10"
               >
-                <i class="ph ph-buildings text-white nm-icon-28"  aria-hidden="true"></i>
+                <i class="ph ph-buildings text-white nm-icon-28" aria-hidden="true"></i>
               </div>
               <div class="flex-1">
                 <h3 class="font-bold text-base mb-1" data-i18n="about_nammerha">About Nammerha</h3>
@@ -379,21 +384,21 @@
                 </p>
                 <div class="flex flex-wrap items-center gap-2 mt-3">
                   <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
-                    <i class="ph ph-shield-check text-xs"  aria-hidden="true"></i>
+                    <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                     OCDS
                   </span>
                   <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
-                    <i class="ph ph-map-pin text-xs"  aria-hidden="true"></i>
+                    <i class="ph ph-map-pin text-xs" aria-hidden="true"></i>
                     GPS
                   </span>
                   <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
-                    <i class="ph ph-lock-key text-xs"  aria-hidden="true"></i>
+                    <i class="ph ph-lock-key text-xs" aria-hidden="true"></i>
                     Escrow
                   </span>
                 </div>
                 <div class="flex items-center gap-1.5 mt-4 text-xs font-bold text-smoky-jade group-hover:text-white transition-colors">
                   <span data-i18n="about_learn_more">Learn more about us</span>
-                  <i class="ph ph-arrow-right transition-transform group-hover:translate-x-1 text-sm"  aria-hidden="true"></i>
+                  <i class="ph ph-arrow-right transition-transform group-hover:translate-x-1 text-sm" aria-hidden="true"></i>
                 </div>
               </div>
             </div>
@@ -483,9 +488,12 @@
 
     </main>
 
-    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> for correct WCAG 1.3.1 landmark semantics.
-         Previous: <footer> was a child of <main> — screen readers announced legal links as "main content".
-         Standard: HTML5 §4.4.2 — "The footer element is not sectioning content; it doesn't introduce a new section." -->
+    <!-- P1-004 FIX: Decorative orbs placed BEFORE footer landmark.
+         Standard: WCAG 1.3.1 — decorative aria-hidden elements before landmark. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
+    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> for correct WCAG 1.3.1 landmark semantics. -->
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -496,10 +504,6 @@
     </footer>
 
     <!-- Bottom Navigation: injected by nav.js (canonical source) -->
-
-    <!-- Decorative Gradient Orbs — P3-UX-005 FIX: CSS classes replace inline physical positioning -->
-    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 <script src="/i18n.js?v=7" defer></script>
 <script src="/i18n/index.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.

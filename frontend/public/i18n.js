@@ -275,7 +275,7 @@
         'about_cta_btn': { ar: 'موّل مشروعاً الآن', de: 'Jetzt ein Projekt finanzieren', fr: 'Financer un projet maintenant', tr: 'Şimdi bir proje finanse edin' },
         'about_cta_contact': { ar: 'تواصل معنا', de: 'Kontakt', fr: 'Contactez-nous', tr: 'Bize Ulaşın' },
         'about_cta_pricing': { ar: 'خطط الشراكة', de: 'Partnerschaftspläne', fr: 'Plans de partenariat', tr: 'Ortaklık Planları' },
-        'about_footer_copy': { ar: '© ٢٠٢٥ نعمِّرها. منصة إعادة إعمار متوافقة مع OCDS.', de: '© 2025 Nammerha. OCDS-konforme Wiederaufbauplattform.', fr: '© 2025 Nammerha. Plateforme de reconstruction conforme OCDS.', tr: '© 2025 Nammerha. OCDS uyumlu yeniden yapım platformu.' },
+        'about_footer_copy': { ar: '© ٢٠٢٦ نعمِّرها. منصة إعادة إعمار متوافقة مع OCDS.', de: '© 2026 Nammerha. OCDS-konforme Wiederaufbauplattform.', fr: '© 2026 Nammerha. Plateforme de reconstruction conforme OCDS.', tr: '© 2026 Nammerha. OCDS uyumlu yeniden yapım platformu.' },
 
         'cat_cement': { ar: 'أسمنت', de: 'Zement', fr: 'Ciment', tr: 'Çimento' },
         'cat_steel_rebar': { ar: 'حديد تسليح', de: 'Bewehrungsstahl', fr: 'Acier d\'armature', tr: 'İnşaat Demiri' },

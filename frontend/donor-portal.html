@@ -143,7 +143,7 @@
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22"  aria-hidden="true"></i>
+          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
              echoing page context, NOT a structural heading. The real <h1> is in content below.
@@ -159,8 +159,9 @@
         <div id="role-switcher-mount-header"></div>
         <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
         <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl"  aria-hidden="true"></i>
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center" id="notif-count">0</span>
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
+          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -184,47 +185,48 @@
         <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-hand-heart text-smoky-jade text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-hand-heart text-smoky-jade text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_total">Total Donated</p>
-          <p class="text-2xl font-black mt-1 text-smoky-jade" aria-live="polite" id="kpi-donated">
+          <!-- UXD-022 FIX: Removed individual aria-live — consolidated below grid. -->
+          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-donated">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-buildings text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-buildings text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_projects">Projects Supported</p>
-          <p class="text-2xl font-black mt-1" aria-live="polite" id="kpi-projects">
+          <p class="text-2xl font-black mt-1" id="kpi-projects">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-package text-trust-blue text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-package text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_items">Items Funded</p>
-          <p class="text-2xl font-black mt-1 text-trust-blue" aria-live="polite" id="kpi-items">
+          <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-items">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
         <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-chart-line-up text-warning-yellow text-xl"  aria-hidden="true"></i>
+              <i class="ph ph-chart-line-up text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
           </div>
           <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_score">Impact Score</p>
           <!-- CRIT-001c FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
-          <p class="text-2xl font-black mt-1 text-warning-yellow" aria-live="polite" id="kpi-score">
+          <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-score">
             <span class="inline-block h-7 w-14 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -239,7 +241,7 @@
                wallet.html explains this but donor portal KPI cards did not.
                Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
           <p class="text-3xs text-smoky-jade/70 -mt-0.5" data-i18n="donor_escrow_hint">Held securely until milestones verified</p>
-          <p class="text-lg font-black text-smoky-jade mt-1" aria-live="polite" id="kpi-locked">
+          <p class="text-lg font-black text-smoky-jade mt-1" id="kpi-locked">
             <span class="inline-block h-6 w-16 bg-smoky-jade/20 rounded animate-pulse"></span>
           </p>
         </div>
@@ -247,11 +249,13 @@
           <p class="text-3xs font-bold text-trust-blue uppercase" data-i18n="donor_released">Released to Suppliers</p>
           <!-- FRIC-2602 FIX: Plain-language subtitle for released funds. -->
           <p class="text-3xs text-trust-blue/70 -mt-0.5" data-i18n="donor_released_hint">Paid to verified suppliers</p>
-          <p class="text-lg font-black text-trust-blue mt-1" aria-live="polite" id="kpi-released">
+          <p class="text-lg font-black text-trust-blue mt-1" id="kpi-released">
             <span class="inline-block h-6 w-16 bg-trust-blue/20 rounded animate-pulse"></span>
           </p>
         </div>
       </div>
+      <!-- UXD-022 FIX: Single consolidated aria-live region for all KPI announcements. -->
+      <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
 
       <!-- ═══════ Dashboard — Funded Projects ═══════ -->
       <!-- INC-TAB-01 FIX: Added role="tabpanel" + aria-labelledby to complete WAI-ARIA tab pattern. -->
@@ -292,7 +296,7 @@
                Standard: Nielsen #1 (System Status Visibility), Design Pattern Consistency. -->
           <template id="tpl-marketplace-empty">
             <div class="p-10 text-center">
-              <i class="ph ph-buildings text-slate-300 nm-icon-48"  aria-hidden="true"></i>
+              <i class="ph ph-buildings text-slate-300 nm-icon-48" aria-hidden="true"></i>
               <p class="font-bold text-slate-500 mt-3" data-i18n="marketplace_empty_title">No projects available right now</p>
               <p class="text-sm text-slate-400 mt-1" data-i18n="marketplace_empty_hint">Check back soon — new reconstruction projects are added regularly.</p>
               <a href="/projects.html" class="inline-flex items-center gap-1 text-sm font-semibold text-trust-blue hover:underline mt-3">
@@ -371,6 +375,10 @@
   <!-- RES-C01 FIX: Legal footer was missing — donor-portal was the only dashboard without it.
        All other portals (homeowner, contractor, supplier, tradesperson) include it.
        Standard: Legal compliance, Nielsen #4 (Consistency). -->
+  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+
   <footer class="nm-legal-footer">
     <nav aria-label="Legal navigation">
       <a href="/terms.html" data-i18n="footer_terms">Terms</a>
@@ -380,11 +388,6 @@
     <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
   </footer>
 
-  <!-- GAP-NEW-04 FIX: Gradient orbs — were missing from donor-portal.
-       Every other consumer page has them (INC-N03 standard).
-       Standard: Design System Visual Cohesion. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 <!-- MED-005 FIX: Reusable empty state template for data tables. -->
 <template id="tpl-table-empty">
   <tr>

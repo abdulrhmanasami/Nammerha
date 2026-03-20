@@ -163,12 +163,15 @@
 
 /* ============================================================================
    CON-01 FIX: Dual Navigation Mutual Exclusion
-   On sm+ (≥640px), the desktop top navbar (`hidden sm:flex` in index.html)
-   becomes visible. The bottom nav MUST hide to prevent duplicate navigation.
+   UXD-001 FIX: Breakpoint raised from 640px → 768px.
+   Previous: Bottom nav hid at sm (640px) but desktop top nav at that width
+   lacked Projects/Impact/Wallet links — creating a tablet dead zone (640-768px)
+   where users lost access to 3/5 canonical navigation targets.
+   Now: 768px matches sidebar.js desktop/mobile breakpoint (window.innerWidth < 768).
    Standard: Nielsen Heuristic #4 — Consistency & Standards.
-   Apple HIG — "Avoid redundant navigation controls."
+   Apple HIG — "Navigation must be complete at every size class."
    ============================================================================ */
-@media (min-width: 640px) {
+@media (min-width: 768px) {
     .nm-bottom-nav {
         display: none !important;
     }
@@ -190,4 +193,29 @@
     .nm-bottom-nav { padding: 4px 16px 4px; }
     .nm-nav-label { display: none; }
     .nm-nav-safe-area { height: 0; }
+}
+
+/* ============================================================================
+   UXD-021 FIX: Bottom Nav Instant Tap Feedback
+   Previous: Tapping a non-active nav tab showed ZERO visual feedback until
+   the next page loaded and a new nav was injected. On 2G Syria networks
+   (3-15s navigation), users assumed their tap didn't register.
+   Now: :active pseudo-class provides immediate scale + opacity feedback.
+   Standard: Apple HIG ("Provide immediate feedback"), INP optimization,
+   Fitts's Law (feedback confirms motor action).
+   ============================================================================ */
+.nm-nav-item:active {
+    transform: scale(0.88);
+    opacity: 0.7;
+    transition: transform 0.08s ease, opacity 0.08s ease;
+}
+/* Reset transition for smooth return after release */
+.nm-nav-item {
+    transition: color 0.2s, transform 0.15s ease, opacity 0.15s ease;
+}
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .nm-nav-item:active {
+        transform: none;
+    }
 }

@@ -48,6 +48,14 @@ function handleTouchMove(e: TouchEvent): void {
         return;
     }
 
+    // P0-003 FIX: Prevent Chrome Android's built-in pull-to-refresh from competing
+    // with the custom spinner. Only called when ACTIVELY pulling (distance > 0),
+    // preserving normal scroll performance for all other touch interactions.
+    // Standard: Web API spec — preventDefault() requires non-passive listener.
+    if (distance > 0) {
+        e.preventDefault();
+    }
+
     if (!indicator) {
         indicator = createIndicator();
     }
@@ -130,13 +138,22 @@ function handleTouchEnd(): void {
  * Initialize pull-to-refresh gesture on the current page.
  * Safe to call multiple times — only attaches once.
  */
+let _initialized = false;
 export function initPullToRefresh(): void {
-    if (!('ontouchstart' in window)) {
+    if (!('ontouchstart' in window) || _initialized) {
         return;
     }
+    _initialized = true;
 
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove',  handleTouchMove,  { passive: true });
+    // P0-003 FIX: Changed from { passive: true } to { passive: false }.
+    // Previous: passive:true prevented e.preventDefault() from being called.
+    // This meant Chrome Android's built-in pull-to-refresh fired SIMULTANEOUSLY
+    // with the custom spinner — causing double-refresh on every pull-down gesture.
+    // Now: Only calls preventDefault() when actively pulling (scrollTop === 0 && distance > 0),
+    // preserving normal scrolling performance for all other touch interactions.
+    // Standard: Web API specification (passive listeners cannot call preventDefault).
+    document.addEventListener('touchmove',  handleTouchMove,  { passive: false });
     document.addEventListener('touchend',   handleTouchEnd,   { passive: true });
 }
 

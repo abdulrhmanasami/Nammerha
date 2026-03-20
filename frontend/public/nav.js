@@ -283,7 +283,34 @@
 
         // P2-NAV-001 FIX: Hide nav on auth flow pages (login, register,
         // verify-email, reset-password) — these are full-page layouts.
-        if (shouldHideNav()) return;
+        if (shouldHideNav()) {
+            // ─── P1-002 FIX: Dashboard Home Escape Link ─────────────────────
+            // Previous: Portal pages hid bottom nav (sidebar-only). On mobile,
+            // users who missed the hamburger pulse had NO way to navigate home.
+            // Now: Inject a small home-arrow link next to the sidebar-toggle.
+            // Only on dashboard layout pages (not auth/wizard pages).
+            // Standard: Apple HIG — "Always provide a way to return home."
+            // ─────────────────────────────────────────────────────────────────
+            var dashLayout = document.querySelector('.dashboard-layout');
+            if (dashLayout) {
+                var sidebarToggle = dashLayout.querySelector('.sidebar-toggle');
+                if (sidebarToggle) {
+                    var homeLink = document.createElement('a');
+                    homeLink.href = '/index.html';
+                    homeLink.className = 'nm-dashboard-home-link';
+                    homeLink.setAttribute('aria-label',
+                        (window.NammerhaI18n && window.NammerhaI18n.t)
+                            ? window.NammerhaI18n.t('nav_home')
+                            : 'Home'
+                    );
+                    homeLink.setAttribute('data-i18n-aria', 'nav_home');
+                    homeLink.innerHTML = '<i class="ph ph-house text-lg" aria-hidden="true"></i>';
+                    // Insert AFTER the sidebar toggle
+                    sidebarToggle.parentNode.insertBefore(homeLink, sidebarToggle.nextSibling);
+                }
+            }
+            return;
+        }
 
         document.body.appendChild(buildNavBar());
 
@@ -331,6 +358,47 @@
             document.head.appendChild(bttScript);
         }
 
+        // ─── P0-001 FIX: Notification Bell "Coming Soon" Handler ────────────
+        // Previous: Bell icon existed on 11 HTML pages with ZERO JS handler.
+        // Users tapped and got no response — silent dead end.
+        // Now: Informational toast (consistent with SSO "coming soon" in auth.ts)
+        // + haptic feedback. Uses event delegation on shared CSS class.
+        // Standard: Nielsen #1 (System Status Visibility), Honest Affordances.
+        // ─────────────────────────────────────────────────────────────────────
+        document.querySelectorAll('#nav-notification-btn, #mobile-notif-bell, [data-notif-bell]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                // Show toast if showToast is available (loaded by page modules)
+                var msg = window.NammerhaI18n && window.NammerhaI18n.t
+                    ? window.NammerhaI18n.t('notif_coming_soon')
+                    : 'Notifications are coming soon. Stay tuned!';
+                // Use global showToast if available, otherwise create inline toast
+                if (window._nmShowToast) {
+                    window._nmShowToast(msg, 'info');
+                } else {
+                    // Lightweight fallback — inject a transient banner
+                    var toast = document.createElement('div');
+                    toast.className = 'nm-notif-toast';
+                    toast.setAttribute('role', 'status');
+                    toast.textContent = msg;
+                    document.body.appendChild(toast);
+                    // Trigger enter animation
+                    requestAnimationFrame(function () {
+                        toast.classList.add('nm-notif-toast--visible');
+                    });
+                    setTimeout(function () {
+                        toast.classList.add('nm-notif-toast--exit');
+                        toast.addEventListener('transitionend', function () { toast.remove(); });
+                    }, 3500);
+                }
+                // Haptic feedback
+                if (window.NammerhaHaptic && window.NammerhaHaptic.light) {
+                    window.NammerhaHaptic.light();
+                } else if (navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+            });
+        });
+
         // CONF-2026-001 FIX: Dynamic bottom padding based on actual nav height.
         // Previous: hardcoded 96px — failed on iPhone 14+ (34px safe area caused
         // content cutoff) and wasted space on non-notch devices.
@@ -374,6 +442,43 @@
                 }
             }, { passive: true });
         }
+
+        // ─── P0-002 FIX: Page Navigation Loading Bar ────────────────────────
+        // Previous: View transitions API only activates when the new page starts
+        // painting. On Syrian 2G (50-100kbps), navigation takes 3-15 seconds.
+        // Users saw NOTHING during this window → assumed app froze → tapped repeatedly.
+        // Now: Branded gradient bar appears instantly on link click.
+        // Standard: Nielsen #1 (System Status Visibility), Core Web Vitals (INP).
+        // ─────────────────────────────────────────────────────────────────────
+        var _loadingBar = null;
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest('a[href]');
+            if (!link) return;
+            var href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:')) return;
+            // Only intercept same-origin navigations
+            try {
+                var url = new URL(href, window.location.origin);
+                if (url.origin !== window.location.origin) return;
+            } catch (_) { return; }
+            // Skip if modifier keys are held (new tab, etc.)
+            if (e.ctrlKey || e.metaKey || e.shiftKey || link.target === '_blank') return;
+            // Don't show for same-page links
+            if (href === window.location.pathname) return;
+            // Inject loading bar
+            if (_loadingBar) _loadingBar.remove();
+            _loadingBar = document.createElement('div');
+            _loadingBar.className = 'nm-page-loading-bar';
+            _loadingBar.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(_loadingBar);
+        });
+        // Clean up on back/forward cache restore
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted && _loadingBar) {
+                _loadingBar.classList.add('nm-page-loading-bar--done');
+                setTimeout(function () { if (_loadingBar) { _loadingBar.remove(); _loadingBar = null; } }, 500);
+            }
+        });
 
         // ─── DEF-014 FIX: Service Worker Update Prompt ──────────────────────
         // Previous: SW registered but no update UI. Users on cached versions
