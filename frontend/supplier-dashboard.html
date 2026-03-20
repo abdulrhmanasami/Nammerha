@@ -64,7 +64,7 @@
       <span class="font-bold text-sm" data-i18n="supplier_portal">Supplier Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>
     </div>
-    <!-- RES-C02 FIX: Converted from <a href="#"> to <button role="tab"> with full WAI-ARIA semantics.
+    <!-- RES-C02 FIX: Converted from <a href="#"> to <button type="button" role="tab"> with full WAI-ARIA semantics.
          Previous: <a> elements caused unwanted history entries and announced as 'link' to screen readers.
          Wallet/Profile links separated outside tablist — they navigate to other pages.
          Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
@@ -109,7 +109,7 @@
       <!-- GAP-004 FIX: Logout button was missing from supplier-dashboard sidebar.
            All other portal sidebars (homeowner, contractor, tradesperson) have it.
            Standard: Nielsen #3 — User control and freedom. -->
-      <button id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+      <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
         <i class="ph ph-sign-out" aria-hidden="true"></i>
         <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
       </button>
@@ -124,7 +124,7 @@
     <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
-        <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
+        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <span class="font-bold text-lg page-header-title" data-i18n="supplier_dashboard">Supplier Dashboard</span>
@@ -135,7 +135,7 @@
         <!-- PLT-AUD2-C003 FIX: Was `p-2 text-slate-400 hover:text-slate-700 font-size:18px`.
              All other 5 portals use: no padding, font-size:20px, class="relative".
              Standard: Nielsen #4 (Design System Component Unity). -->
-        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-orders" title="Jump to orders">
+        <button type="button" class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-orders" title="Jump to orders">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
           <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
@@ -268,7 +268,7 @@
                  Standard: Platform convention — English fallback, Arabic via dictionary. -->
             <p class="text-3xs text-slate-400 mt-0.5" data-i18n="supplier_catalog_desc">Engineers browse your catalog when selecting suppliers for BOQ items</p>
           </div>
-          <button id="btn-add-material" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center gap-2">
+          <button type="button" id="btn-add-material" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center gap-2">
             <i class="ph ph-plus-circle" aria-hidden="true"></i>
             <span data-i18n="supplier_add_material">Add Material</span>
           </button>
@@ -292,7 +292,7 @@
             <!-- INC-A02 FIX: Removed inline onclick handler — violates CSP script-src 'self'.
                  Now uses data-add-first-material attribute, wired in supplier-dashboard.ts.
                  Standard: CSP Level 2, separation of concerns. -->
-            <button class="text-xs font-semibold bg-trust-blue text-white px-4 py-2.5 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2" data-add-first-material>
+            <button type="button" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2.5 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2" data-add-first-material>
               <i class="ph ph-plus-circle" aria-hidden="true"></i>
               <span data-i18n="supplier_add_first_material">Add Your First Material</span>
             </button>

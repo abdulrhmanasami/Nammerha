@@ -50,16 +50,16 @@
        Standard: Apple HIG §44pt Touch Targets, WCAG 2.5.5, Nielsen Heuristic #4 — Consistency. -->
   <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
   <header class="page-header">
-      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center page-header-title" data-i18n="project_details">Project Details</h2>
       <div class="flex items-center gap-1">
-        <a href="donor-basket.html" id="header-cart-btn" class="relative flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
+        <a href="donor-basket.html" id="header-cart-btn" class="relative flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart" aria-hidden="true"></i>
           <span class="cart-badge hidden" id="header-cart-badge">0</span>
         </a>
-        <button id="share-project-btn" class="flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Share project" data-i18n-aria="aria_share_project">
+        <button type="button" id="share-project-btn" class="flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Share project" data-i18n-aria="aria_share_project">
           <i class="ph ph-share-network" aria-hidden="true"></i>
         </button>
       </div>
@@ -220,7 +220,7 @@
         <!-- CONF-CSP-01 FIX: Removed inline onclick="location.reload()" — violated CSP script-src 'self'.
              Handler now wired via addEventListener in project-details.ts.
              Standard: CSP Level 2 §4.1, OWASP XSS Prevention. -->
-        <button id="boq-retry-btn" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
+        <button type="button" id="boq-retry-btn" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
           <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
           <span data-i18n="retry">Retry</span>
         </button>
@@ -257,7 +257,7 @@
           <p class="text-sm font-bold text-slate-800 truncate" id="cart-toast-text" data-i18n="added_to_cart">Added to cart</p>
           <a href="donor-basket.html" class="text-3xs font-semibold text-trust-blue hover:underline" data-i18n="view_basket">View basket →</a>
         </div>
-        <button id="cart-toast-dismiss" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors shrink-0" aria-label="Dismiss">
+        <button type="button" id="cart-toast-dismiss" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors shrink-0" aria-label="Dismiss">
           <i class="ph ph-x text-slate-400 text-sm" aria-hidden="true"></i>
         </button>
       </div>

@@ -133,7 +133,86 @@
         'rev_no_data': { ar: 'لا بيانات متاحة', de: 'Keine Daten verfügbar', fr: 'Aucune donnée disponible', tr: 'Veri yok' },
 
         // ═══ KYC ═══
-        'kyc_select_title': { ar: 'اختر طلباً للمراجعة', de: 'Antrag zur Prüfung auswählen', fr: 'Sélectionner une demande à examiner', tr: 'İncelenecek başvuru seçin' }
+        'kyc_select_title': { ar: 'اختر طلباً للمراجعة', de: 'Antrag zur Prüfung auswählen', fr: 'Sélectionner une demande à examiner', tr: 'İncelenecek başvuru seçin' },
+
+        // ═══ PLT-W8: admin TS t() keys — KYC workflows ═══
+        'kyc_verify_btn': { ar: 'اعتمد', de: 'Verifizieren', fr: 'Vérifier', tr: 'Doğrula' },
+        'kyc_verifying': { ar: 'جاري الاعتماد…', de: 'Wird verifiziert…', fr: 'Vérification…', tr: 'Doğrulanıyor…' },
+        'kyc_verify_error': { ar: 'فشل الاعتماد', de: 'Verifizierung fehlgeschlagen', fr: 'Échec de la vérification', tr: 'Doğrulama başarısız' },
+        'kyc_verified_toast': { ar: 'تم اعتماد الطلب', de: 'Antrag verifiziert', fr: 'Demande vérifiée', tr: 'Başvuru doğrulandı' },
+        'kyc_verified_granted': { ar: 'تم منح الاعتماد', de: 'Verifizierung gewährt', fr: 'Vérification accordée', tr: 'Doğrulama verildi' },
+        'kyc_reject_btn': { ar: 'رفض', de: 'Ablehnen', fr: 'Rejeter', tr: 'Reddet' },
+        'kyc_rejecting': { ar: 'جاري الرفض…', de: 'Wird abgelehnt…', fr: 'Rejet en cours…', tr: 'Reddediliyor…' },
+        'kyc_reject_error': { ar: 'فشل الرفض', de: 'Ablehnung fehlgeschlagen', fr: 'Échec du rejet', tr: 'Reddetme başarısız' },
+        'kyc_rejected_toast': { ar: 'تم رفض الطلب', de: 'Antrag abgelehnt', fr: 'Demande rejetée', tr: 'Başvuru reddedildi' },
+        'kyc_reject_placeholder': { ar: 'اكتب سبب الرفض…', de: 'Ablehnungsgrund eingeben…', fr: 'Saisissez la raison du rejet…', tr: 'Red nedenini yazın…' },
+        'kyc_reason_required': { ar: 'السبب مطلوب', de: 'Begründung erforderlich', fr: 'Raison requise', tr: 'Neden gerekli' },
+        'kyc_submit_rejection': { ar: 'تأكيد الرفض', de: 'Ablehnung bestätigen', fr: 'Confirmer le rejet', tr: 'Reddi onayla' },
+        'kyc_resubmission': { ar: 'إعادة التقديم مطلوبة', de: 'Wiedereinreichung erforderlich', fr: 'Nouvelle soumission requise', tr: 'Yeniden gönderim gerekli' },
+        'kyc_confirm_verify': { ar: 'هل ترغب في اعتماد هذا الطلب؟', de: 'Möchten Sie diesen Antrag verifizieren?', fr: 'Souhaitez-vous vérifier cette demande ?', tr: 'Bu başvuruyu doğrulamak istiyor musunuz?' },
+        'kyc_load_error': { ar: 'فشل تحميل البيانات', de: 'Daten konnten nicht geladen werden', fr: 'Échec du chargement des données', tr: 'Veri yüklenemedi' },
+        'kyc_stats_error': { ar: 'فشل تحميل الإحصائيات', de: 'Statistiken konnten nicht geladen werden', fr: 'Échec du chargement des statistiques', tr: 'İstatistikler yüklenemedi' },
+        'kyc_no_pending': { ar: 'لا توجد طلبات معلقة', de: 'Keine ausstehenden Anträge', fr: 'Aucune demande en attente', tr: 'Bekleyen başvuru yok' },
+        'kyc_queue_empty': { ar: 'قائمة الانتظار فارغة', de: 'Warteschlange leer', fr: 'File d\'attente vide', tr: 'Kuyruk boş' },
+        'kyc_no_credentials': { ar: 'لا توجد وثائق', de: 'Keine Dokumente', fr: 'Aucun document', tr: 'Belge yok' },
+        'kyc_status_submitted': { ar: 'تم التقديم', de: 'Eingereicht', fr: 'Soumis', tr: 'Gönderildi' },
+        'kyc_doc_uploaded': { ar: 'تم رفع الوثيقة', de: 'Dokument hochgeladen', fr: 'Document téléchargé', tr: 'Belge yüklendi' },
+        'kyc_uploaded_doc': { ar: 'وثيقة مرفوعة', de: 'Hochgeladenes Dokument', fr: 'Document téléchargé', tr: 'Yüklenen belge' },
+        'kyc_view_doc': { ar: 'عرض الوثيقة', de: 'Dokument anzeigen', fr: 'Voir le document', tr: 'Belgeyi görüntüle' },
+        'kyc_role_engineer': { ar: 'مهندس', de: 'Ingenieur', fr: 'Ingénieur', tr: 'Mühendis' },
+        'kyc_role_supplier': { ar: 'مورّد', de: 'Lieferant', fr: 'Fournisseur', tr: 'Tedarikçi' },
+        'kyc_eng_license': { ar: 'رخصة مهندس', de: 'Ingenieurlizenz', fr: 'Licence d\'ingénieur', tr: 'Mühendis lisansı' },
+        'kyc_commercial_reg': { ar: 'سجل تجاري', de: 'Handelsregister', fr: 'Registre du commerce', tr: 'Ticaret sicili' },
+        'kyc_guild_membership': { ar: 'عضوية النقابة', de: 'Gildenmitgliedschaft', fr: 'Adhésion à la guilde', tr: 'Esnaf odası üyeliği' },
+
+        // ═══ PLT-W8: Escrow TS keys ═══
+        'esc_confirm_release': { ar: 'تأكيد الإفراج عن الأموال', de: 'Freigabe bestätigen', fr: 'Confirmer la libération', tr: 'Serbest bırakmayı onayla' },
+        'esc_released_toast': { ar: 'تم إفراج الأموال', de: 'Gelder freigegeben', fr: 'Fonds libérés', tr: 'Fonlar serbest bırakıldı' },
+        'esc_submit_flag': { ar: 'إبلاغ', de: 'Melden', fr: 'Signaler', tr: 'Bildir' },
+        'esc_flag_placeholder': { ar: 'اكتب سبب الإبلاغ…', de: 'Grund der Meldung eingeben…', fr: 'Saisissez la raison du signalement…', tr: 'Bildirim nedenini yazın…' },
+        'esc_reason_required': { ar: 'السبب مطلوب', de: 'Begründung erforderlich', fr: 'Raison requise', tr: 'Neden gerekli' },
+        'esc_flagged_toast': { ar: 'تم الإبلاغ عن المعاملة', de: 'Transaktion markiert', fr: 'Transaction signalée', tr: 'İşlem bildirildi' },
+        'esc_under_investigation': { ar: 'قيد التحقيق', de: 'Wird untersucht', fr: 'En cours d\'enquête', tr: 'Soruşturma altında' },
+
+        // ═══ PLT-W8: Oracle TS keys ═══
+        'oracle_approve_btn': { ar: 'اعتماد السعر', de: 'Preis genehmigen', fr: 'Approuver le prix', tr: 'Fiyatı onayla' },
+        'oracle_approved_btn': { ar: 'تم الاعتماد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' },
+        'oracle_approval_toast': { ar: 'تم اعتماد السعر', de: 'Preis genehmigt', fr: 'Prix approuvé', tr: 'Fiyat onaylandı' },
+        'oracle_confirm_prompt': { ar: 'هل تريد اعتماد هذا السعر؟', de: 'Möchten Sie diesen Preis genehmigen?', fr: 'Souhaitez-vous approuver ce prix ?', tr: 'Bu fiyatı onaylamak istiyor musunuz?' },
+        'oracle_no_prices': { ar: 'لا توجد بيانات أسعار', de: 'Keine Preisdaten', fr: 'Aucune donnée de prix', tr: 'Fiyat verisi yok' },
+        'oracle_price_error': { ar: 'فشل تحميل الأسعار', de: 'Preise konnten nicht geladen werden', fr: 'Échec du chargement des prix', tr: 'Fiyatlar yüklenemedi' },
+
+        // ═══ PLT-W8: Revenue TS keys ═══
+        'rev_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'rev_inactive': { ar: 'غير نشط', de: 'Inaktiv', fr: 'Inactif', tr: 'Pasif' },
+        'rev_no_commissions': { ar: 'لا توجد عمولات', de: 'Keine Provisionen', fr: 'Aucune commission', tr: 'Komisyon yok' },
+        'rev_no_tips': { ar: 'لا توجد إكراميات', de: 'Keine Trinkgelder', fr: 'Aucun pourboire', tr: 'Bahşiş yok' },
+        'rev_no_tiers': { ar: 'لا توجد مستويات', de: 'Keine Stufen', fr: 'Aucun niveau', tr: 'Kademe yok' },
+        'rev_donation_label': { ar: 'التبرع', de: 'Spende', fr: 'Don', tr: 'Bağış' },
+        'rev_donor_label': { ar: 'المانح', de: 'Spender', fr: 'Donateur', tr: 'Bağışçı' },
+        'rev_po_label': { ar: 'أمر الشراء', de: 'Bestellung', fr: 'Bon de commande', tr: 'Satın alma emri' },
+        'rev_rate_label': { ar: 'النسبة', de: 'Satz', fr: 'Taux', tr: 'Oran' },
+
+        // ═══ PLT-W8: Fintech empty states ═══
+        'fintech_no_configs': { ar: 'لا توجد تهيئات', de: 'Keine Konfigurationen', fr: 'Aucune configuration', tr: 'Yapılandırma yok' },
+        'fintech_no_orgs': { ar: 'لا توجد منظمات', de: 'Keine Organisationen', fr: 'Aucune organisation', tr: 'Kurum yok' },
+        'fintech_inactive': { ar: 'غير نشط', de: 'Inaktiv', fr: 'Inactif', tr: 'Pasif' },
+
+        // ═══ PLT-W8: Compliance TS keys ═══
+        'compliance_pending': { ar: 'معلّق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
+        'compliance_verified': { ar: 'تم التحقق', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulandı' },
+        'compliance_approve': { ar: 'اعتماد', de: 'Genehmigen', fr: 'Approuver', tr: 'Onayla' },
+        'compliance_flag': { ar: 'إبلاغ', de: 'Melden', fr: 'Signaler', tr: 'Bildir' },
+        'compliance_anonymous': { ar: 'مجهول', de: 'Anonym', fr: 'Anonyme', tr: 'Anonim' },
+        'compliance_all_reviewed': { ar: 'تمت مراجعة الكل', de: 'Alle überprüft', fr: 'Tout examiné', tr: 'Tümü incelendi' },
+
+        // ═══ PLT-W8: Contractor bid label keys ═══
+        'ct_submit_bid': { ar: 'تقديم عرض', de: 'Angebot einreichen', fr: 'Soumettre une offre', tr: 'Teklif ver' },
+        'ct_label_cost': { ar: 'التكلفة', de: 'Kosten', fr: 'Coût', tr: 'Maliyet' },
+        'ct_label_days': { ar: 'الأيام', de: 'Tage', fr: 'Jours', tr: 'Gün' },
+        'ct_label_letter': { ar: 'خطاب التقديم', de: 'Anschreiben', fr: 'Lettre de motivation', tr: 'Ön yazı' },
+        'ct_placeholder_letter': { ar: 'اشرح لماذا أنت مناسب لهذا المشروع…', de: 'Erklären Sie, warum Sie für dieses Projekt geeignet sind…', fr: 'Expliquez pourquoi vous êtes adapté à ce projet…', tr: 'Bu proje için neden uygun olduğunuzu açıklayın…' },
+        'ct_submission_failed': { ar: 'فشل تقديم العرض', de: 'Angebotseinreichung fehlgeschlagen', fr: 'Échec de la soumission de l\'offre', tr: 'Teklif gönderim başarısız' }
         });
     }
 })();

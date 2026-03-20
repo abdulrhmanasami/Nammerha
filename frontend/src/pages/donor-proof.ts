@@ -3,7 +3,6 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { reportError, reportWarning } from '../error-reporter';
 import { donations, spatialProof } from '../api';
-import { escapeHtml as esc } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { formatDateTime } from '../utils/locale';
 import { t } from '../utils/i18n';
@@ -35,15 +34,27 @@ interface ProofData {
     image_hash?: string;
 }
 
-// ─── DOM References ─────────────────────────────────────────────────────────
+// ─── DOM References (PLT-G001: Updated to id-based selectors) ───────────────
+// Previous: fragile class-based querySelector chains that broke on Tailwind changes.
+// Now: id-based selectors matching the G-001 HTML overhaul skeleton structure.
 const proofTitle = document.querySelector('h2.text-2xl') as HTMLElement | null;
-const projectTitle = document.querySelector('h3.font-bold.text-lg') as HTMLElement | null;
-const verifiedBy = document.querySelector('.text-sm.text-slate-500') as HTMLElement | null;
-const statusBadge = document.querySelector('.badge-primary') as HTMLElement | null;
-const descriptionPara = document.querySelector('.text-slate-600.leading-relaxed') as HTMLElement | null;
-const timestampBadge = document.querySelector('.bg-black\\/60') as HTMLElement | null;
-const blockchainHash = document.querySelector('.text-xs.text-slate-500') as HTMLElement | null;
-const photoContainer = document.querySelector('.relative.aspect-video') as HTMLElement | null;
+const projectTitle = document.getElementById('proof-project-name');
+const verifierEl = document.getElementById('proof-verifier');
+const statusBadge = document.getElementById('proof-status-badge');
+const descriptionEl = document.getElementById('proof-description');
+const timestampEl = document.getElementById('proof-timestamp');
+const txHashEl = document.getElementById('proof-tx-hash');
+const photoContainer = document.getElementById('proof-photo-container');
+const projectLink = document.getElementById('proof-project-link') as HTMLAnchorElement | null;
+const shareBtn = document.getElementById('share-proof-btn');
+const verifyBtn = document.getElementById('verify-hash-btn');
+
+// ─── Skeleton Removal Helper ────────────────────────────────────────────────
+// PLT-G001: Remove [data-skeleton] elements inside a container after hydration
+function removeSkeleton(container: HTMLElement | null): void {
+    if (!container) { return; }
+    container.querySelectorAll('[data-skeleton]').forEach((el) => el.remove());
+}
 
 // ─── Parse Parameters ───────────────────────────────────────────────────────
 function getParams(): { proofId: string | null; projectId: string | null } {
@@ -87,6 +98,7 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
 
     if (proofTitle) { proofTitle.textContent = status.title; }
     if (statusBadge) {
+        removeSkeleton(statusBadge);
         statusBadge.textContent = status.badge;
         if (proof.verification_status === 'rejected') {
             statusBadge.className = 'badge-warning';
@@ -101,33 +113,31 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
 
     // Project info
     if (projectTitle) {
+        removeSkeleton(projectTitle);
         projectTitle.textContent = donation?.project_title ?? `${t('proof_project_label', 'Project')} ${proof.proof_id.slice(0, 8)}`;
     }
-    if (verifiedBy && proof.verified_by_name) {
-        verifiedBy.innerHTML = `
-            <i class="ph ph-shield-check text-trust-blue ph-sm" aria-hidden="true"></i>
-            ${esc(t('proof_verified_by', 'Verified by'))} ${esc(proof.verified_by_name)}
-        `;
+    if (verifierEl && proof.verified_by_name) {
+        removeSkeleton(verifierEl);
+        verifierEl.textContent = `${t('proof_verified_by', 'Verified by')} ${proof.verified_by_name}`;
     }
 
     // Description
-    if (descriptionPara) {
+    if (descriptionEl) {
+        removeSkeleton(descriptionEl);
         if (donation) {
             const materialName = donation.material_name ?? t('proof_materials', 'materials');
             const amount = formatCents(donation.amount_locked);
             const verifiedText = proof.verification_status === 'verified'
                 ? t('proof_received_verified', 'received and verified on-site')
                 : t('proof_submitted_for_verification', 'submitted for verification');
-            descriptionPara.textContent = `${t('proof_your_contribution', 'Your')} ${amount} ${t('proof_contribution_of', 'contribution of')} ${materialName} ${t('proof_for_project', 'for Project')} ${donation.project_id} ${t('proof_has_been', 'has been')} ${verifiedText}.`;
+            descriptionEl.textContent = `${t('proof_your_contribution', 'Your')} ${amount} ${t('proof_contribution_of', 'contribution of')} ${materialName} ${t('proof_for_project', 'for Project')} ${donation.project_id} ${t('proof_has_been', 'has been')} ${verifiedText}.`;
         }
     }
 
     // Timestamp
-    if (timestampBadge) {
-        timestampBadge.innerHTML = `
-            <i class="ph ph-clock text-xs"  aria-hidden="true"></i>
-            ${formatDateTime(proof.captured_at)}
-        `;
+    if (timestampEl) {
+        removeSkeleton(timestampEl);
+        timestampEl.textContent = formatDateTime(proof.captured_at);
     }
 
     // Proof image
@@ -136,16 +146,74 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
         img.src = proof.image_url;
         img.alt = t('proof_delivery_photo', 'Delivery proof photo');
         img.className = 'absolute inset-0 w-full h-full object-cover';
+        img.loading = 'lazy';
         // Replace placeholder icon
-        const placeholder = photoContainer.querySelector('.flex.items-center.justify-center');
+        const placeholder = photoContainer.querySelector('[data-skeleton]');
         if (placeholder) { placeholder.replaceWith(img); }
     }
 
-    // Image hash (blockchain)
-    if (blockchainHash && proof.image_hash) {
+    // Blockchain hash
+    if (txHashEl && proof.image_hash) {
+        removeSkeleton(txHashEl);
         const shortHash = proof.image_hash.slice(0, 6) + '...' + proof.image_hash.slice(-4);
-        blockchainHash.textContent = `SHA-256: ${shortHash}`;
+        txHashEl.textContent = shortHash;
+        // Store full hash for verify button
+        txHashEl.dataset.fullHash = proof.image_hash;
     }
+
+    // Update project link with query context
+    if (projectLink && donation?.project_id) {
+        projectLink.href = `project-details.html?id=${encodeURIComponent(donation.project_id)}`;
+    }
+}
+
+// ─── Share Button Handler (PLT-G003) ────────────────────────────────────────
+function initShareButton(): void {
+    if (!shareBtn) { return; }
+    shareBtn.addEventListener('click', async () => {
+        const shareData: ShareData = {
+            title: t('proof_share_title', 'My Impact — Nammerha'),
+            text: t('proof_share_text', 'I verified my contribution was delivered on-site via GPS proof. Transparent reconstruction!'),
+            url: window.location.href,
+        };
+
+        try {
+            if (navigator.share && navigator.canShare?.(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback: copy URL to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+                // Brief visual feedback
+                const icon = shareBtn.querySelector('i');
+                if (icon) {
+                    icon.className = 'ph ph-check';
+                    setTimeout(() => { icon.className = 'ph ph-share-network'; }, 1500);
+                }
+            }
+        } catch (err) {
+            // User cancelled share — not an error
+            if ((err as DOMException)?.name !== 'AbortError') {
+                reportWarning('[DonorProof] Share failed', { component: 'donor_proof', action: 'share', error: err instanceof Error ? err.message : String(err) });
+            }
+        }
+    });
+}
+
+// ─── Verify Button Handler (PLT-G002) ───────────────────────────────────────
+function initVerifyButton(): void {
+    if (!verifyBtn) { return; }
+    verifyBtn.addEventListener('click', () => {
+        const hashEl = document.getElementById('proof-tx-hash');
+        const fullHash = hashEl?.dataset.fullHash;
+        if (fullHash) {
+            // Open blockchain explorer in new tab
+            window.open(`https://etherscan.io/tx/${fullHash}`, '_blank', 'noopener,noreferrer');
+        } else {
+            // No hash available yet — visual feedback
+            verifyBtn.textContent = t('proof_no_hash', 'Pending…');
+            setTimeout(() => { verifyBtn.textContent = t('verify_btn', 'Verify'); }, 2000);
+        }
+    });
 }
 
 // ─── Load Proof Data from API ───────────────────────────────────────────────
@@ -181,7 +249,7 @@ async function loadProof(): Promise<void> {
             }
         }
 
-        // If no proof found, show static content (already in HTML)
+        // If no proof found, skeleton loaders remain (graceful degradation)
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[DonorProof] Failed to load proof data'), { component: 'donor_proof', action: 'load_proof' });
     }
@@ -190,6 +258,8 @@ async function loadProof(): Promise<void> {
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
+    initShareButton(); // PLT-G003: Web Share API
+    initVerifyButton(); // PLT-G002: Blockchain explorer redirect
     loadProof();
 }
 
@@ -198,3 +268,4 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+

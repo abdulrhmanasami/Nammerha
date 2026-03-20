@@ -113,7 +113,7 @@
     </div>
     <!-- Logout -->
     <div class="p-4 border-t border-slate-200">
-      <button id="portal-logout-btn" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+      <button type="button" id="portal-logout-btn" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
         <i class="ph ph-sign-out" aria-hidden="true"></i>
         <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
       </button>
@@ -132,7 +132,7 @@
     <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
-        <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
+        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
@@ -145,7 +145,7 @@
       <div class="flex items-center gap-4">
         <div id="role-switcher-mount-header"></div>
         <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
-        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
+        <button type="button" class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
           <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
@@ -324,7 +324,7 @@
               </div>
               <div>
                 <label for="sr-title" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_title">Title</label>
-                <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="nm-input mt-1" />
+                <input id="sr-title" type="text" placeholder="e.g., Fix leaking kitchen pipe" data-i18n-placeholder="ho_sr_title_placeholder" class="nm-input mt-1" enterkeyhint="next" />
               </div>
             </div>
 
@@ -342,7 +342,7 @@
                 </div>
                 <div>
                   <label for="sr-address" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_location">Location</label>
-                  <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="nm-input mt-1" />
+                  <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="nm-input mt-1" enterkeyhint="next" />
                 </div>
               </div>
               <div>
@@ -351,7 +351,7 @@
               </div>
               <div>
                 <label for="sr-budget" class="text-3xs font-bold text-slate-400 uppercase" data-i18n="ho_lbl_max_budget">Max Budget ($)</label>
-                <input id="sr-budget" type="number" placeholder="Optional" data-i18n-placeholder="common_optional" class="nm-input mt-1" />
+                <input id="sr-budget" type="number" inputmode="decimal" placeholder="Optional" data-i18n-placeholder="common_optional" class="nm-input mt-1" enterkeyhint="done" />
               </div>
               <!-- M-AUD-008 FIX: Photo upload for damage evidence.
                    Previous: Form collected trade, title, urgency, address, description, budget
@@ -391,7 +391,7 @@
                 <span data-i18n="ho_add_details">Add Details</span>
                 <span class="text-slate-400 font-normal" data-i18n="sr_optional_fields_count">(4 optional fields)</span>
               </button>
-              <button id="submit-sr-btn" class="w-full py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
+              <button type="button" id="submit-sr-btn" class="w-full py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
                 <i class="ph ph-megaphone" aria-hidden="true"></i> <span data-i18n="homeowner_submit_request">Submit Request</span>
               </button>
             </div>

@@ -54,7 +54,13 @@
         'pricing_f_sla': { ar: 'اتفاقية مستوى خدمة', de: 'SLA', fr: 'SLA', tr: 'SLA' },
         'pricing_f_whitelabel': { ar: 'واجهة مخصصة', de: 'White-Label', fr: 'Marque blanche', tr: 'Beyaz Etiket' },
         'pricing_f_onboarding': { ar: 'تأهيل مخصص', de: 'Individuelles Onboarding', fr: 'Intégration personnalisée', tr: 'Özel Oryantasyon' },
-        'pricing_f_priority_support': { ar: 'دعم أولوي', de: 'Prioritäts-Support', fr: 'Support prioritaire', tr: 'Öncelikli Destek' }
+        'pricing_f_priority_support': { ar: 'دعم أولوي', de: 'Prioritäts-Support', fr: 'Support prioritaire', tr: 'Öncelikli Destek' },
+
+        // ═══ PLT-W8: pricing.ts t() keys ═══
+        'pricing_error': { ar: 'فشل تحميل الأسعار', de: 'Preise konnten nicht geladen werden', fr: 'Échec du chargement des prix', tr: 'Fiyatlar yüklenemedi' },
+        'pricing_per_month_yearly': { ar: '/شهر (سنوي)', de: '/Monat (jährlich)', fr: '/mois (annuel)', tr: '/ay (yıllık)' },
+        'pricing_subscribed': { ar: 'تم الاشتراك', de: 'Abonniert', fr: 'Abonné', tr: 'Abone olundu' },
+        'pricing_try_again': { ar: 'حاول مرة أخرى', de: 'Erneut versuchen', fr: 'Réessayer', tr: 'Tekrar deneyin' }
         });
     }
 })();

@@ -63,13 +63,14 @@
     <header class="page-header">
       <!-- GAP-P02 FIX: Was href='project-details.html' — dead-end without query context.
            Fallback to index.html; data-back-btn JS will use history.back() first. -->
-      <a href="index.html" data-back-btn class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <!-- PLT-I002 FIX: Standardized to canonical Pattern B (flex w-11 h-11 shrink-0 + transition-colors). -->
+      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h1 class="text-lg font-bold flex-1 text-center" data-i18n="construction_basket">Construction Basket</h1>
       <!-- FRC-005 FIX: Visible text label added. Icon-only was ambiguous for sighted users.
            Standard: Nielsen Heuristic #6 — "Recognition rather than recall." -->
-      <button id="clear-cart-btn" class="flex items-center gap-1.5 h-11 px-2 sm:px-3 rounded-full hover:bg-red-50 text-red-400 hover:text-red-500 transition-colors" aria-label="Clear cart" data-i18n-aria="aria_clear_cart">
+      <button type="button" id="clear-cart-btn" class="flex items-center gap-1.5 h-11 px-2 sm:px-3 rounded-full hover:bg-red-50 text-red-400 hover:text-red-500 transition-colors" aria-label="Clear cart" data-i18n-aria="aria_clear_cart">
         <i class="ph ph-trash text-lg" aria-hidden="true"></i>
         <span class="hidden sm:inline text-xs font-semibold" data-i18n="clear">Clear</span>
       </button>
@@ -78,7 +79,7 @@
     <!-- GAP-P04 FIX: Confirmation dialog for destructive 'Clear Cart' action (Nielsen Heuristic #5) -->
     <dialog id="confirm-clear-cart" class="nm-confirm-dialog">
       <div class="nm-confirm-body">
-        <h3 data-i18n="confirm_clear_title">Clear Cart?</h3>
+        <h2 data-i18n="confirm_clear_title">Clear Cart?</h2>
         <p data-i18n="confirm_clear_desc">All items will be removed. This action cannot be undone.</p>
       </div>
       <div class="nm-confirm-actions">
@@ -190,11 +191,11 @@
           <!-- PLT-AUD3-D01 FIX: Added data-i18n for Arabic-Indic numeral rendering (٠٪, ٣٪, ٥٪, ١٠٪).
                Previous: Hardcoded Western numerals — inconsistent with Arabic locale.
                Standard: i18n completeness, Unicode CLDR numeral systems. -->
-          <button class="tip-btn tip-btn-active" data-tip="0" data-i18n="tip_0_pct">0%</button>
-          <button class="tip-btn" data-tip="3" data-i18n="tip_3_pct">3%</button>
-          <button class="tip-btn" data-tip="5" data-i18n="tip_5_pct">5%</button>
-          <button class="tip-btn" data-tip="10" data-i18n="tip_10_pct">10%</button>
-          <button class="tip-btn tip-btn-custom" data-tip="custom" id="tip-custom-btn">
+          <button type="button" class="tip-btn tip-btn-active" data-tip="0" data-i18n="tip_0_pct">0%</button>
+          <button type="button" class="tip-btn" data-tip="3" data-i18n="tip_3_pct">3%</button>
+          <button type="button" class="tip-btn" data-tip="5" data-i18n="tip_5_pct">5%</button>
+          <button type="button" class="tip-btn" data-tip="10" data-i18n="tip_10_pct">10%</button>
+          <button type="button" class="tip-btn tip-btn-custom" data-tip="custom" id="tip-custom-btn">
             <i class="ph ph-pencil-simple ph-xs" aria-hidden="true"></i>
           </button>
         </div>
@@ -204,7 +205,7 @@
             <!-- FRC-X05 FIX: max='9999' prevents unreasonable tip amounts.
                  Previous: no max — user could enter $1,000,000 as a tip.
                  Standard: Nielsen #5 (Error Prevention), Defensive Design. -->
-            <input type="number" id="tip-custom-input" min="0" max="9999" step="0.01" placeholder="0.00"
+            <input type="number" id="tip-custom-input" min="0" max="9999" step="0.01" inputmode="decimal" placeholder="0.00"
               class="bg-transparent text-slate-900 text-sm font-semibold w-full outline-none"
               aria-label="Custom support amount" data-i18n-aria="aria_custom_amount" />
           </div>
@@ -266,7 +267,7 @@
 
       <!-- FRC-P06 FIX: data-loading-text for immediate feedback; btn-loading wired via JS disabled state -->
       <!-- FRC-006 FIX: #confirm-total span allows JS to inject dynamic total including tip -->
-      <button class="btn-primary" id="confirm-funding-btn" data-loading-text="Processing...">
+      <button type="button" class="btn-primary" id="confirm-funding-btn" data-loading-text="Processing...">
         <i class="ph ph-lock" aria-hidden="true"></i>
         <span data-i18n="confirm_funding">Confirm Funding</span>
         <span id="confirm-total" class="ms-1 font-normal opacity-80"></span>

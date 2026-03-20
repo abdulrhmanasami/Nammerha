@@ -75,11 +75,11 @@
     </div>
     <!-- Filter pills -->
     <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden" id="filter-pills">
-      <button class="filter-pill filter-pill-active shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors" data-filter="all" data-i18n="projects_filter_all">All</button>
-      <button class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="structural" data-i18n="projects_filter_structural">Structural</button>
-      <button class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="plumbing" data-i18n="projects_filter_plumbing">Plumbing</button>
-      <button class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="electrical" data-i18n="projects_filter_electrical">Electrical</button>
-      <button class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="mixed" data-i18n="projects_filter_mixed">Mixed</button>
+      <button type="button" class="filter-pill filter-pill-active shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors" data-filter="all" data-i18n="projects_filter_all">All</button>
+      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="structural" data-i18n="projects_filter_structural">Structural</button>
+      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="plumbing" data-i18n="projects_filter_plumbing">Plumbing</button>
+      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="electrical" data-i18n="projects_filter_electrical">Electrical</button>
+      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors" data-filter="mixed" data-i18n="projects_filter_mixed">Mixed</button>
     </div>
     <!-- Sort & count -->
     <!-- Sort & count -->
@@ -124,7 +124,7 @@
       </div>
       <h2 class="text-sm font-bold text-slate-700 mb-1" data-i18n="projects_error_title">Could not load projects</h2>
       <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4" data-i18n="projects_error_desc">Please check your connection and try again.</p>
-      <button id="projects-retry" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
+      <button type="button" id="projects-retry" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
         <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
         <span data-i18n="projects_retry">Retry</span>
       </button>
@@ -133,7 +133,7 @@
     <!-- GAP-NEW-07 FIX: Added visible progress indicator above load-more button. -->
     <div id="load-more-container" class="text-center py-6 hidden">
       <p class="text-3xs text-slate-400 mb-2" id="load-more-context"></p>
-      <button id="load-more-btn" class="text-xs font-semibold text-trust-blue border border-trust-blue/30 px-6 py-2.5 rounded-lg hover:bg-trust-blue/5 transition-colors inline-flex items-center gap-2">
+      <button type="button" id="load-more-btn" class="text-xs font-semibold text-trust-blue border border-trust-blue/30 px-6 py-2.5 rounded-lg hover:bg-trust-blue/5 transition-colors inline-flex items-center gap-2">
         <i class="ph ph-arrow-down" aria-hidden="true"></i>
         <span data-i18n="projects_load_more">Load More</span>
       </button>

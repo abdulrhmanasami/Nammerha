@@ -40,7 +40,26 @@
         /* FRC-007 FIX: Supplier catalog empty state i18n keys */
         'supplier_empty_title': { ar: 'كتالوجك فارغ', de: 'Ihr Katalog ist leer', fr: 'Votre catalogue est vide', tr: 'Katalogunuz boş' },
         'supplier_empty_desc': { ar: 'أضف مواد البناء الخاصة بك ليتمكن المهندسون من العثور عليها والطلب منك', de: 'Fügen Sie Ihre Baumaterialien hinzu, damit Ingenieure Sie finden und bestellen können', fr: 'Ajoutez vos matériaux pour que les ingénieurs puissent les trouver et commander', tr: 'İnşaat malzemelerinizi ekleyin, mühendisler sizi bulup sipariş verebilsin' },
-        'supplier_add_first_material': { ar: 'أضف أول مادة', de: 'Erstes Material hinzufügen', fr: 'Ajouter votre premier matériau', tr: 'İlk Malzemenizi Ekleyin' }
+        'supplier_add_first_material': { ar: 'أضف أول مادة', de: 'Erstes Material hinzufügen', fr: 'Ajouter votre premier matériau', tr: 'İlk Malzemenizi Ekleyin' },
+
+        // ═══ PLT-W8: supplier-dashboard.ts t() keys ═══
+        'supplier_material_added': { ar: 'تمت إضافة المادة', de: 'Material hinzugefügt', fr: 'Matériau ajouté', tr: 'Malzeme eklendi' },
+        'supplier_material_removed': { ar: 'تم حذف المادة', de: 'Material entfernt', fr: 'Matériau supprimé', tr: 'Malzeme kaldırıldı' },
+        'supplier_add_failed': { ar: 'فشلت الإضافة', de: 'Hinzufügen fehlgeschlagen', fr: 'Échec de l\'ajout', tr: 'Ekleme başarısız' },
+        'supplier_remove': { ar: 'حذف', de: 'Entfernen', fr: 'Supprimer', tr: 'Kaldır' },
+        'supplier_remove_failed': { ar: 'فشل الحذف', de: 'Entfernen fehlgeschlagen', fr: 'Échec de la suppression', tr: 'Kaldırma başarısız' },
+        'supplier_confirm_remove': { ar: 'هل تريد حذف هذه المادة؟', de: 'Dieses Material entfernen?', fr: 'Supprimer ce matériau ?', tr: 'Bu malzemeyi kaldırmak istiyor musunuz?' },
+        'supplier_catalog_empty': { ar: 'الكاتالوج فارغ', de: 'Katalog leer', fr: 'Catalogue vide', tr: 'Katalog boş' },
+        'supplier_catalog_hint': { ar: 'أضف مواد لتظهر في البحث', de: 'Materialien hinzufügen, um in der Suche zu erscheinen', fr: 'Ajoutez des matériaux pour apparaître dans la recherche', tr: 'Aramada görünmek için malzeme ekleyin' },
+        'supplier_acknowledge': { ar: 'قبول الطلب', de: 'Bestellung bestätigen', fr: 'Accepter la commande', tr: 'Siparişi onayla' },
+        'supplier_mark_shipped': { ar: 'وضع علامة شُحن', de: 'Als versendet markieren', fr: 'Marquer comme expédié', tr: 'Gönderildi olarak işaretle' },
+        'supplier_mark_delivered': { ar: 'وضع علامة تم التسليم', de: 'Als geliefert markieren', fr: 'Marquer comme livré', tr: 'Teslim edildi olarak işaretle' },
+        'supplier_status_updated': { ar: 'تم تحديث الحالة', de: 'Status aktualisiert', fr: 'Statut mis à jour', tr: 'Durum güncellendi' },
+        'supplier_update_failed': { ar: 'فشل التحديث', de: 'Aktualisierung fehlgeschlagen', fr: 'Échec de la mise à jour', tr: 'Güncelleme başarısız' },
+        'supplier_no_orders': { ar: 'لا توجد طلبات', de: 'Keine Bestellungen', fr: 'Aucune commande', tr: 'Sipariş yok' },
+        'supplier_inactive': { ar: 'غير نشط', de: 'Inaktiv', fr: 'Inactif', tr: 'Pasif' },
+        'supplier_days': { ar: 'أيام', de: 'Tage', fr: 'jours', tr: 'gün' },
+        'supplier_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' }
         });
     }
 })();

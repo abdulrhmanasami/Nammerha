@@ -5,7 +5,7 @@
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
   <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
   <script src="/theme-boot.js"></script>
-    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <!-- CONF-P01 FIX: Enforceable CSP directives -->
@@ -21,10 +21,10 @@
   <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href="https://nammerha.com/donor-proof" />
+  <!-- PLT-G005 FIX: Removed <link rel="canonical"> — contradicts noindex directive.
+       Standard: Google SEO §4.2 — canonical on noindex page creates conflicting signals. -->
   <meta property="og:title" content="Nammerha — Proof of Delivery | إثبات التسليم" />
   <meta property="og:description" content="Your contribution has been verified on-site with GPS-stamped photographic proof." />
-  <meta property="og:url" content="https://nammerha.com/donor-proof" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
   <meta name="twitter:card" content="summary" />
@@ -57,7 +57,10 @@
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </a>
       <h1 class="text-lg font-bold tracking-tight flex-1 text-center page-header-title" data-i18n="proof_of_delivery">Proof of Delivery</h1>
-      <button class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Share" data-i18n-aria="aria_share_project">
+      <!-- PLT-G003 FIX: Share button wired with id for Web Share API handler in donor-proof.ts.
+           Previous: No id, no JS wiring — silent dead end.
+           Standard: Nielsen #1 (System Status Visibility), Web Share API W3C Spec. -->
+      <button type="button" id="share-proof-btn" class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Share" data-i18n-aria="aria_share_project">
         <i class="ph ph-share-network" aria-hidden="true"></i>
       </button>
   </header>
@@ -73,39 +76,58 @@
       </h2>
     </div>
 
+    <!-- PLT-G001 FIX: RADICAL OVERHAUL — Replaced all hardcoded static data with
+         skeleton loaders and id-addressed elements for dynamic hydration by donor-proof.ts.
+         Previous: 5 hardcoded values (timestamp, project ID, verifier name, description,
+         blockchain hash) rendered identical fake data on every visit.
+         Now: Skeleton loaders show loading state; donor-proof.ts hydrates from API.
+         Standard: Nielsen #1 (System Status Visibility), FinTech UX, Data-Driven UI. -->
+
     <!-- Verification Card -->
     <div class="bg-white rounded-xl overflow-hidden shadow-xl shadow-trust-blue/5 border border-trust-blue/5 mb-6 animate-fade-in-up" style="--anim-delay:0.1s">
-      <!-- Delivery Photo Placeholder -->
-      <div class="relative aspect-video bg-gradient-to-br from-warm-earth/20 to-slate-200">
-        <div class="absolute inset-0 flex items-center justify-center">
+      <!-- Delivery Photo -->
+      <div id="proof-photo-container" class="relative aspect-video bg-gradient-to-br from-warm-earth/20 to-slate-200">
+        <div class="absolute inset-0 flex items-center justify-center" data-skeleton>
           <i class="ph ph-images text-warm-earth/40 nm-icon-60" aria-hidden="true"></i>
         </div>
         <!-- Map Overlay -->
-        <div class="absolute bottom-3 end-3 w-24 h-24 rounded-lg border-2 border-white shadow-lg overflow-hidden bg-gradient-to-br from-trust-blue/20 to-smoky-jade/20 flex items-center justify-center">
+        <div id="proof-map-overlay" class="absolute bottom-3 end-3 w-24 h-24 rounded-lg border-2 border-white shadow-lg overflow-hidden bg-gradient-to-br from-trust-blue/20 to-smoky-jade/20 flex items-center justify-center">
           <i class="ph ph-map-pin text-trust-blue text-xl" aria-hidden="true"></i>
         </div>
-        <!-- Timestamp Badge -->
+        <!-- Timestamp Badge (skeleton until hydrated) -->
         <div class="absolute top-3 start-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
           <i class="ph ph-clock text-xs" aria-hidden="true"></i>
-          Mar 7, 2026 • 10:45 AM
+          <span id="proof-timestamp">
+            <span class="inline-block h-3 w-28 bg-white/20 rounded animate-pulse" data-skeleton></span>
+          </span>
         </div>
       </div>
       <!-- Card Details -->
       <div class="p-5">
         <div class="flex items-start justify-between mb-3">
           <div>
-            <h3 class="font-bold text-lg text-slate-900">Project OCDS-SYR-001</h3>
+            <h3 id="proof-project-name" class="font-bold text-lg text-slate-900">
+              <span class="inline-block h-5 w-40 bg-slate-200 rounded animate-pulse" data-skeleton></span>
+            </h3>
             <p class="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
               <i class="ph ph-shield-check text-trust-blue ph-sm" aria-hidden="true"></i>
-              <span data-i18n="verified_by_engineer">Verified by Engineer Khalid</span>
+              <span id="proof-verifier" data-i18n="verified_by_engineer">
+                <span class="inline-block h-3 w-32 bg-slate-200 rounded animate-pulse" data-skeleton></span>
+              </span>
             </p>
           </div>
-          <span class="badge-primary" data-i18n="verified_status">Verified</span>
+          <span id="proof-status-badge" class="badge-primary">
+            <span class="inline-block h-3 w-14 bg-slate-200 rounded animate-pulse" data-skeleton></span>
+          </span>
         </div>
-        <p class="text-slate-600 leading-relaxed text-sm mb-6" data-i18n="proof_delivery_desc">
-          Your 50 bags of cement for Project OCDS-SYR-001 have been received and verified on-site. This contribution allows the foundation phase to proceed on schedule.
-        </p>
-        <a href="project-details.html" class="btn-primary nm-btn-sm">
+        <div id="proof-description" class="text-slate-600 leading-relaxed text-sm mb-6">
+          <div class="space-y-2 animate-pulse" data-skeleton>
+            <div class="h-3 bg-slate-200 rounded w-full"></div>
+            <div class="h-3 bg-slate-200 rounded w-4/5"></div>
+            <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+          </div>
+        </div>
+        <a id="proof-project-link" href="project-details.html" class="btn-primary nm-btn-sm">
           <span data-i18n="view_project_progress">View Project Progress</span>
           <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
         </a>
@@ -119,9 +141,18 @@
       </div>
       <div class="flex-1">
         <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="blockchain_verified">Blockchain Verified</h4>
-        <p class="text-xs text-slate-500">Transaction hash: 0x1A73...E8a2</p>
+        <!-- PLT-G002 FIX: Transaction hash now uses id for dynamic hydration.
+             Previous: Hardcoded "0x1A73...E8a2" — never changed. -->
+        <p class="text-xs text-slate-500">
+          <span data-i18n="tx_hash_label">Transaction hash:</span>
+          <code id="proof-tx-hash" class="font-mono text-3xs">
+            <span class="inline-block h-3 w-24 bg-slate-200 rounded animate-pulse" data-skeleton></span>
+          </code>
+        </p>
       </div>
-      <button class="text-trust-blue text-xs font-bold hover:underline" data-i18n="verify_btn">Verify</button>
+      <!-- PLT-G002 FIX: Verify button wired with id for blockchain explorer redirect.
+           Previous: No id, no handler — dead button violating Nielsen #1. -->
+      <button type="button" id="verify-hash-btn" class="text-trust-blue text-xs font-bold hover:underline transition-colors" data-i18n="verify_btn">Verify</button>
     </div>
   </main>
 

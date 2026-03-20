@@ -1,7 +1,8 @@
 /**
  * Nammerha i18n — auth dictionary chunk
  * PLAT-P0-002 FIX: Orphan keys purged (13 dead/misplaced keys removed).
- * Keys: 38
+ * PLT-F005: Added remember_me_duration key.
+ * Keys: 61
  */
 (function () {
     'use strict';
@@ -56,6 +57,10 @@
         'auth_security_details': { ar: 'تفاصيل الأمان', de: 'Sicherheitsdetails', fr: 'Détails de sécurité', tr: 'Güvenlik Detayları' },
         'auth_terms_required': { ar: 'يجب الموافقة على الشروط', de: 'Zustimmung zu den Bedingungen erforderlich', fr: 'Acceptation des conditions requise', tr: 'Şartların kabul edilmesi gerekli' },
         'remember_me': { ar: 'تذكرني', de: 'Angemeldet bleiben', fr: 'Se souvenir de moi', tr: 'Beni Hatırla' },
+        /* PLT-F005 FIX: Session duration context for "Remember Me" checkbox.
+           Previous: Key missing — Arabic users saw English "30 days" fallback.
+           Standard: WCAG 3.3.2 (Labels or Instructions), i18n completeness. */
+        'remember_me_duration': { ar: '٣٠ يوم', de: '30 Tage', fr: '30 jours', tr: '30 gün' },
         'reg_back': { ar: 'رجوع', de: 'Zurück', fr: 'Retour', tr: 'Geri' },
         'reg_next': { ar: 'التالي', de: 'Weiter', fr: 'Suivant', tr: 'İleri' },
         'reg_step_identity': { ar: 'الهوية', de: 'Identität', fr: 'Identité', tr: 'Kimlik' },
@@ -71,7 +76,68 @@
         /* GAP-2026-003 FIX: auth_terms_agree i18n key was MISSING.
            Non-English users saw English-only legal consent text during Step 3.
            Standard: GDPR Art. 7 (Informed Consent), WCAG 3.1.2 (Language of Parts). */
-        'auth_terms_agree': { ar: 'أوافق على <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">شروط الخدمة</a> و<a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">سياسة الخصوصية</a>', de: 'Ich akzeptiere die <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Nutzungsbedingungen</a> und die <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Datenschutzrichtlinie</a>', fr: 'J\'accepte les <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Conditions d\'utilisation</a> et la <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Politique de confidentialité</a>', tr: '<a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Kullanım Şartlarını</a> ve <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Gizlilik Politikasını</a> kabul ediyorum' }
+        'auth_terms_agree': { ar: 'أوافق على <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">شروط الخدمة</a> و<a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">سياسة الخصوصية</a>', de: 'Ich akzeptiere die <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Nutzungsbedingungen</a> und die <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Datenschutzrichtlinie</a>', fr: 'J\'accepte les <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Conditions d\'utilisation</a> et la <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Politique de confidentialité</a>', tr: '<a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Kullanım Şartlarını</a> ve <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Gizlilik Politikasını</a> kabul ediyorum' },
+
+        /* PLT-W6: Final 2 orphan keys — auth tab buttons (auth.html L89-90).
+           HTML uses data-i18n="sign_in" / "create_account" but dictionary only had
+           tab_login / tab_register under different key names. Non-English users
+           saw English "Sign In" and "Create Account" on the most critical UI element. */
+        'sign_in': { ar: 'تسجيل الدخول', de: 'Anmelden', fr: 'Connexion', tr: 'Giriş Yap' },
+        'create_account': { ar: 'إنشاء حساب', de: 'Konto erstellen', fr: 'Créer un compte', tr: 'Hesap Oluştur' },
+
+        // ═══ PLT-W7: auth.ts t() dynamic keys — validation, feedback, flows ═══
+        'auth_email_required': { ar: 'البريد الإلكتروني مطلوب', de: 'E-Mail erforderlich', fr: 'E-mail requis', tr: 'E-posta gerekli' },
+        'auth_email_invalid': { ar: 'البريد الإلكتروني غير صالح', de: 'Ungültige E-Mail', fr: 'E-mail invalide', tr: 'Geçersiz e-posta' },
+        'auth_name_required': { ar: 'الاسم مطلوب', de: 'Name erforderlich', fr: 'Nom requis', tr: 'Ad gerekli' },
+        'auth_password_weak': { ar: 'كلمة المرور ضعيفة', de: 'Passwort zu schwach', fr: 'Mot de passe faible', tr: 'Şifre zayıf' },
+        'auth_password_complexity': { ar: 'كلمة المرور لا تستوفي المتطلبات', de: 'Passwort erfüllt die Anforderungen nicht', fr: 'Le mot de passe ne remplit pas les exigences', tr: 'Şifre gereksinimleri karşılamıyor' },
+        'auth_fill_all_fields': { ar: 'يرجى ملء جميع الحقول', de: 'Bitte alle Felder ausfüllen', fr: 'Veuillez remplir tous les champs', tr: 'Lütfen tüm alanları doldurun' },
+        'auth_enter_email_password': { ar: 'أدخل البريد الإلكتروني وكلمة المرور', de: 'E-Mail und Passwort eingeben', fr: 'Saisissez e-mail et mot de passe', tr: 'E-posta ve şifre girin' },
+        'auth_signing_in': { ar: 'جاري تسجيل الدخول…', de: 'Anmeldung läuft…', fr: 'Connexion en cours…', tr: 'Giriş yapılıyor…' },
+        'auth_creating_account': { ar: 'جاري إنشاء الحساب…', de: 'Konto wird erstellt…', fr: 'Création du compte…', tr: 'Hesap oluşturuluyor…' },
+        'auth_login_failed': { ar: 'فشل تسجيل الدخول', de: 'Anmeldung fehlgeschlagen', fr: 'Échec de la connexion', tr: 'Giriş başarısız' },
+        'auth_reg_failed': { ar: 'فشل إنشاء الحساب', de: 'Registrierung fehlgeschlagen', fr: 'Échec de l\'inscription', tr: 'Kayıt başarısız' },
+        'auth_reg_success': { ar: 'تم إنشاء حسابك بنجاح!', de: 'Konto erfolgreich erstellt!', fr: 'Compte créé avec succès !', tr: 'Hesap başarıyla oluşturuldu!' },
+        'auth_welcome_back': { ar: 'أهلاً بعودتك!', de: 'Willkommen zurück!', fr: 'Bon retour !', tr: 'Tekrar hoş geldiniz!' },
+        'auth_network_error': { ar: 'خطأ في الشبكة. حاول مرة أخرى.', de: 'Netzwerkfehler. Bitte erneut versuchen.', fr: 'Erreur réseau. Veuillez réessayer.', tr: 'Ağ hatası. Tekrar deneyin.' },
+        'auth_forgot_enter_email': { ar: 'أدخل بريدك الإلكتروني', de: 'Geben Sie Ihre E-Mail ein', fr: 'Saisissez votre e-mail', tr: 'E-postanızı girin' },
+        'auth_forgot_sending': { ar: 'جاري الإرسال…', de: 'Wird gesendet…', fr: 'Envoi en cours…', tr: 'Gönderiliyor…' },
+        'auth_forgot_sent': { ar: 'تم إرسال رابط إعادة التعيين!', de: 'Link zum Zurücksetzen gesendet!', fr: 'Lien de réinitialisation envoyé !', tr: 'Sıfırlama bağlantısı gönderildi!' },
+        'auth_forgot_error': { ar: 'فشل الإرسال. حاول مرة أخرى.', de: 'Senden fehlgeschlagen. Bitte erneut versuchen.', fr: 'Échec de l\'envoi. Veuillez réessayer.', tr: 'Gönderim başarısız. Tekrar deneyin.' },
+        'auth_forgot_link_text': { ar: 'إرسال رابط إعادة التعيين', de: 'Link zum Zurücksetzen senden', fr: 'Envoyer le lien de réinitialisation', tr: 'Sıfırlama bağlantısı gönder' },
+        'auth_sso_coming_soon': { ar: 'قريباً — لم يتم تفعيله بعد', de: 'Demnächst — noch nicht aktiviert', fr: 'Bientôt — pas encore activé', tr: 'Yakında — henüz etkinleştirilmedi' },
+
+        // ═══ PLT-W8: verify-email.ts t() keys ═══
+        'verify_success_title': { ar: 'تم التحقق!', de: 'Verifiziert!', fr: 'Vérifié !', tr: 'Doğrulandı!' },
+        'verify_success_body': { ar: 'تم تأكيد بريدك الإلكتروني بنجاح', de: 'Ihre E-Mail wurde erfolgreich bestätigt', fr: 'Votre e-mail a été confirmé', tr: 'E-postanız başarıyla onaylandı' },
+        'verify_expired_title': { ar: 'انتهت صلاحية الرابط', de: 'Link abgelaufen', fr: 'Lien expiré', tr: 'Bağlantı süresi doldu' },
+        'verify_expired_body': { ar: 'يرجى طلب رابط تحقق جديد', de: 'Bitte fordern Sie einen neuen Link an', fr: 'Veuillez demander un nouveau lien', tr: 'Lütfen yeni bir doğrulama bağlantısı isteyin' },
+        'verify_failed_title': { ar: 'فشل التحقق', de: 'Verifizierung fehlgeschlagen', fr: 'Vérification échouée', tr: 'Doğrulama başarısız' },
+        'verify_failed_body': { ar: 'لم نتمكن من التحقق من بريدك', de: 'Ihre E-Mail konnte nicht verifiziert werden', fr: 'Impossible de vérifier votre e-mail', tr: 'E-postanız doğrulanamadı' },
+        'verify_not_found_title': { ar: 'الحساب غير موجود', de: 'Konto nicht gefunden', fr: 'Compte introuvable', tr: 'Hesap bulunamadı' },
+        'verify_not_found_body': { ar: 'لم نعثر على حساب بهذا البريد', de: 'Kein Konto mit dieser E-Mail gefunden', fr: 'Aucun compte trouvé avec cet e-mail', tr: 'Bu e-posta ile hesap bulunamadı' },
+        'verify_timeout_title': { ar: 'انقطع الاتصال', de: 'Zeitüberschreitung', fr: 'Délai expiré', tr: 'Zaman aşımı' },
+        'verify_timeout_body': { ar: 'حاول مرة أخرى لاحقاً', de: 'Bitte versuchen Sie es später erneut', fr: 'Veuillez réessayer plus tard', tr: 'Lütfen daha sonra tekrar deneyin' },
+        'verify_invalid_link': { ar: 'رابط تحقق غير صالح', de: 'Ungültiger Verifizierungslink', fr: 'Lien de vérification invalide', tr: 'Geçersiz doğrulama bağlantısı' },
+        'verify_no_token': { ar: 'الرمز مفقود', de: 'Token fehlt', fr: 'Jeton manquant', tr: 'Token eksik' },
+        'verify_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
+        'verify_server_unreachable': { ar: 'لا يمكن الوصول للخادم', de: 'Server nicht erreichbar', fr: 'Serveur inaccessible', tr: 'Sunucuya ulaşılamıyor' },
+        'verify_resend_enter_email': { ar: 'أدخل بريدك لإعادة الإرسال', de: 'E-Mail eingeben zum erneuten Senden', fr: 'Saisissez votre e-mail pour renvoyer', tr: 'Yeniden göndermek için e-postanızı girin' },
+        'verify_resend_sending': { ar: 'جاري إعادة الإرسال…', de: 'Wird erneut gesendet…', fr: 'Renvoi en cours…', tr: 'Yeniden gönderiliyor…' },
+        'verify_resend_success': { ar: 'تم إعادة إرسال رابط التحقق', de: 'Verifizierungslink erneut gesendet', fr: 'Lien de vérification renvoyé', tr: 'Doğrulama bağlantısı yeniden gönderildi' },
+        'verify_resend_failed': { ar: 'فشلت إعادة الإرسال', de: 'Erneutes Senden fehlgeschlagen', fr: 'Échec du renvoi', tr: 'Yeniden gönderim başarısız' },
+        'verify_resend_network_error': { ar: 'خطأ في الشبكة أثناء الإرسال', de: 'Netzwerkfehler beim Senden', fr: 'Erreur réseau lors de l\'envoi', tr: 'Gönderim sırasında ağ hatası' },
+
+        // ═══ PLT-W8: reset-password.ts t() keys ═══
+        'reset_submit_btn': { ar: 'إعادة تعيين', de: 'Zurücksetzen', fr: 'Réinitialiser', tr: 'Sıfırla' },
+        'reset_resetting': { ar: 'جاري إعادة التعيين…', de: 'Wird zurückgesetzt…', fr: 'Réinitialisation…', tr: 'Sıfırlanıyor…' },
+        'reset_success': { ar: 'تم تغيير كلمة المرور بنجاح', de: 'Passwort erfolgreich geändert', fr: 'Mot de passe modifié avec succès', tr: 'Şifre başarıyla değiştirildi' },
+        'reset_failed': { ar: 'فشلت إعادة التعيين', de: 'Zurücksetzen fehlgeschlagen', fr: 'Échec de la réinitialisation', tr: 'Sıfırlama başarısız' },
+        'reset_invalid_token': { ar: 'الرمز غير صالح أو منتهٍ', de: 'Token ungültig oder abgelaufen', fr: 'Jeton invalide ou expiré', tr: 'Token geçersiz veya süresi dolmuş' },
+        'reset_timeout': { ar: 'انقطع الاتصال', de: 'Zeitüberschreitung', fr: 'Délai expiré', tr: 'Zaman aşımı' },
+        'reset_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
+        'reset_password_mismatch': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' },
+        'reset_password_weak': { ar: 'كلمة المرور ضعيفة جداً', de: 'Passwort zu schwach', fr: 'Mot de passe trop faible', tr: 'Şifre çok zayıf' }
         });
     }
 })();

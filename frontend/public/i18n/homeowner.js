@@ -113,7 +113,46 @@
         'ho_damage_desc_placeholder': { ar: 'صف الأضرار بالتفصيل...', de: 'Beschreiben Sie die Schäden im Detail...', fr: 'Décrivez les dégâts en détail...', tr: 'Hasarı detaylı olarak açıklayın...' },
         'ho_neighborhood_placeholder': { ar: 'الحي أو المنطقة', de: 'Stadtviertel oder Gebiet', fr: 'Quartier ou zone', tr: 'Mahalle veya bölge' },
         'supplier_desc_placeholder': { ar: 'صف المادة أو المنتج...', de: 'Material oder Produkt beschreiben...', fr: 'Décrivez le matériau ou produit...', tr: 'Malzeme veya ürünü açıklayın...' },
-        'supplier_material_placeholder': { ar: 'بحث عن المواد...', de: 'Materialien suchen...', fr: 'Rechercher des matériaux...', tr: 'Malzeme ara...' }
+        'supplier_material_placeholder': { ar: 'بحث عن المواد...', de: 'Materialien suchen...', fr: 'Rechercher des matériaux...', tr: 'Malzeme ara...' },
+
+        // ═══ PLT-W8: homeowner-portal.ts / homeowner-report.ts t() keys ═══
+        'ho_projects': { ar: 'المشاريع', de: 'Projekte', fr: 'Projets', tr: 'Projeler' },
+        'ho_bids': { ar: 'العروض', de: 'Angebote', fr: 'Offres', tr: 'Teklifler' },
+        'ho_boq_total': { ar: 'إجمالي الكميات', de: 'BOQ Gesamt', fr: 'Total BOQ', tr: 'BOQ Toplamı' },
+        'ho_total_deposited': { ar: 'إجمالي المودع', de: 'Gesamt eingezahlt', fr: 'Total déposé', tr: 'Toplam yatırılan' },
+        'ho_held_in_escrow': { ar: 'محتجز في الضمان', de: 'Im Treuhandkonto', fr: 'Sous séquestre', tr: 'Emanette' },
+        'ho_released': { ar: 'تم الإفراج', de: 'Freigegeben', fr: 'Libéré', tr: 'Serbest bırakıldı' },
+        'ho_escrow_guarantee': { ar: 'ضمان الأمانة', de: 'Treuhandgarantie', fr: 'Garantie d\'entiercement', tr: 'Emanet garantisi' },
+        'ho_approve': { ar: 'موافقة', de: 'Genehmigen', fr: 'Approuver', tr: 'Onayla' },
+        'ho_approving': { ar: 'جاري الموافقة…', de: 'Wird genehmigt…', fr: 'Approbation…', tr: 'Onaylanıyor…' },
+        'ho_reject': { ar: 'رفض', de: 'Ablehnen', fr: 'Rejeter', tr: 'Reddet' },
+        'ho_rejecting': { ar: 'جاري الرفض…', de: 'Wird abgelehnt…', fr: 'Rejet en cours…', tr: 'Reddediliyor…' },
+        'ho_cancel': { ar: 'إلغاء', de: 'Abbrechen', fr: 'Annuler', tr: 'İptal' },
+        'ho_cancelling': { ar: 'جاري الإلغاء…', de: 'Wird abgebrochen…', fr: 'Annulation…', tr: 'İptal ediliyor…' },
+        'ho_failed': { ar: 'فشلت العملية', de: 'Vorgang fehlgeschlagen', fr: 'Opération échouée', tr: 'İşlem başarısız' },
+        'ho_submitting': { ar: 'جاري الإرسال…', de: 'Wird eingereicht…', fr: 'Envoi…', tr: 'Gönderiliyor…' },
+        'ho_confirm_cancel_title': { ar: 'تأكيد الإلغاء', de: 'Abbruch bestätigen', fr: 'Confirmer l\'annulation', tr: 'İptali onayla' },
+        'ho_confirm_cancel_msg': { ar: 'هل أنت متأكد من إلغاء هذا الطلب؟', de: 'Sind Sie sicher, dass Sie diese Anfrage abbrechen möchten?', fr: 'Êtes-vous sûr de vouloir annuler cette demande ?', tr: 'Bu talebi iptal etmek istediğinizden emin misiniz?' },
+        'ho_confirm_reject_title': { ar: 'تأكيد الرفض', de: 'Ablehnung bestätigen', fr: 'Confirmer le rejet', tr: 'Reddetmeyi onayla' },
+        'ho_confirm_reject_msg': { ar: 'هل أنت متأكد من رفض هذا العرض؟', de: 'Sind Sie sicher, dass Sie dieses Angebot ablehnen möchten?', fr: 'Êtes-vous sûr de vouloir rejeter cette offre ?', tr: 'Bu teklifi reddetmek istediğinizden emin misiniz?' },
+        'ho_no_active_projects': { ar: 'لا توجد مشاريع نشطة', de: 'Keine aktiven Projekte', fr: 'Aucun projet actif', tr: 'Aktif proje yok' },
+        'ho_no_projects_yet': { ar: 'لا توجد مشاريع بعد', de: 'Noch keine Projekte', fr: 'Aucun projet pour le moment', tr: 'Henüz proje yok' },
+        'ho_no_pending_approvals': { ar: 'لا توجد موافقات معلقة', de: 'Keine ausstehenden Genehmigungen', fr: 'Aucune approbation en attente', tr: 'Bekleyen onay yok' },
+        'ho_no_requests_yet': { ar: 'لا توجد طلبات بعد', de: 'Noch keine Anfragen', fr: 'Aucune demande pour le moment', tr: 'Henüz talep yok' },
+        'ho_post_first_request': { ar: 'قدّم أول طلب إصلاح', de: 'Erste Reparaturanfrage einreichen', fr: 'Soumettez votre première demande', tr: 'İlk onarım talebinizi gönderin' },
+        'ho_report_damage': { ar: 'الإبلاغ عن ضرر', de: 'Schaden melden', fr: 'Signaler un dommage', tr: 'Hasar bildir' },
+        'ho_report_to_start': { ar: 'أبلغ عن ضرر للبدء', de: 'Schaden melden, um zu starten', fr: 'Signalez un dommage pour commencer', tr: 'Başlamak için hasar bildirin' },
+        'ho_no_description': { ar: 'لا يوجد وصف', de: 'Keine Beschreibung', fr: 'Aucune description', tr: 'Açıklama yok' },
+        'ho_sr_title_required': { ar: 'العنوان مطلوب', de: 'Titel erforderlich', fr: 'Titre requis', tr: 'Başlık gerekli' },
+        'ho_sr_trade_required': { ar: 'اختيار المهنة مطلوب', de: 'Gewerksauswahl erforderlich', fr: 'Sélection du métier requise', tr: 'Meslek seçimi gerekli' },
+
+        // ═══ PLT-W8: Misc shared keys ═══
+        'whatsapp_cta_title': { ar: 'تحدث معنا عبر واتساب', de: 'Kontaktieren Sie uns über WhatsApp', fr: 'Contactez-nous via WhatsApp', tr: 'WhatsApp ile iletişime geçin' },
+        'whatsapp_cta_desc': { ar: 'فريقنا جاهز لمساعدتك', de: 'Unser Team ist bereit, Ihnen zu helfen', fr: 'Notre équipe est prête à vous aider', tr: 'Ekibimiz size yardıma hazır' },
+        'photo_invalid_type': { ar: 'نوع الملف غير صالح', de: 'Ungültiger Dateityp', fr: 'Type de fichier invalide', tr: 'Geçersiz dosya türü' },
+        'photo_too_large': { ar: 'حجم الصورة كبير جداً', de: 'Bild zu groß', fr: 'Image trop volumineuse', tr: 'Görsel çok büyük' },
+        'role_activation_failed': { ar: 'فشل تفعيل الدور', de: 'Rollenaktivierung fehlgeschlagen', fr: 'Échec de l\'activation du rôle', tr: 'Rol etkinleştirme başarısız' },
+        'expired': { ar: 'منتهي الصلاحية', de: 'Abgelaufen', fr: 'Expiré', tr: 'Süresi dolmuş' }
         });
     }
 })();

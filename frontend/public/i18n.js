@@ -454,11 +454,81 @@
         'aria_search_projects': { ar: 'البحث في المشاريع', de: 'Projekte durchsuchen', fr: 'Rechercher des projets', tr: 'Projeleri ara' },
         'aria_share_project': { ar: 'مشاركة المشروع', de: 'Projekt teilen', fr: 'Partager le projet', tr: 'Projeyi paylaş' },
         'aria_toggle_theme': { ar: 'تبديل المظهر', de: 'Design wechseln', fr: 'Changer le thème', tr: 'Temayı değiştir' },
+        'aria_more_options': { ar: 'خيارات إضافية', de: 'Weitere Optionen', fr: 'Plus d\'options', tr: 'Daha fazla seçenek' },
 
         // ═══ SHARED PLACEHOLDERS (data-i18n-placeholder) ═══
         'search_placeholder': { ar: 'بحث...', de: 'Suche...', fr: 'Recherche...', tr: 'Ara...' },
         'projects_search_placeholder': { ar: 'البحث في المشاريع...', de: 'Projekte durchsuchen...', fr: 'Rechercher des projets...', tr: 'Proje ara...' },
         'phone_placeholder': { ar: '+963 XXX XXX XXXX', de: '+49 XXX XXXXXXX', fr: '+33 X XX XX XX XX', tr: '+90 XXX XXX XXXX' },
+
+        // ═══ PLT-W7: TS t() DYNAMIC KEYS — HIGH-PRIORITY USER-FACING ═══
+        // Common/Shared
+        'common_yes': { ar: 'نعم', de: 'Ja', fr: 'Oui', tr: 'Evet' },
+        'common_no': { ar: 'لا', de: 'Nein', fr: 'Non', tr: 'Hayır' },
+        'common_retry': { ar: 'إعادة المحاولة', de: 'Erneut versuchen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'btn_submit': { ar: 'إرسال', de: 'Einreichen', fr: 'Soumettre', tr: 'Gönder' },
+        'btn_submitting': { ar: 'جاري الإرسال…', de: 'Wird eingereicht…', fr: 'Envoi en cours…', tr: 'Gönderiliyor…' },
+        'copy_link_prompt': { ar: 'تم نسخ الرابط!', de: 'Link kopiert!', fr: 'Lien copié !', tr: 'Bağlantı kopyalandı!' },
+        'link_copied': { ar: 'تم النسخ', de: 'Kopiert', fr: 'Copié', tr: 'Kopyalandı' },
+        'share_project_text': { ar: 'شاهد هذا المشروع على نعمّرها', de: 'Sehen Sie dieses Projekt auf Nammerha', fr: 'Voir ce projet sur Nammerha', tr: 'Bu projeyi Nammerha\'da görün' },
+        'not_available': { ar: 'غير متوفر', de: 'Nicht verfügbar', fr: 'Non disponible', tr: 'Mevcut değil' },
+        'uncategorized': { ar: 'غير مصنف', de: 'Nicht kategorisiert', fr: 'Non catégorisé', tr: 'Kategorize edilmemiş' },
+
+        // Donor Portal
+        'donor_my_contribution': { ar: 'مساهمتي', de: 'Mein Beitrag', fr: 'Ma contribution', tr: 'Katkım' },
+        'donor_items_funded': { ar: 'بنود ممولة', de: 'Finanzierte Posten', fr: 'Articles financés', tr: 'Finanse edilen kalemler' },
+        'donor_items_label': { ar: 'بنود', de: 'Posten', fr: 'Articles', tr: 'Kalemler' },
+        'donor_donated_label': { ar: 'تبرعت بـ', de: 'Gespendet', fr: 'Don de', tr: 'Bağışlanan' },
+        'donor_progress_label': { ar: 'التقدم', de: 'Fortschritt', fr: 'Progrès', tr: 'İlerleme' },
+        'donor_fund_this': { ar: 'موّل هذا', de: 'Finanzieren', fr: 'Financer', tr: 'Finanse Et' },
+        'donor_no_donations': { ar: 'لم تقم بأي تبرعات بعد', de: 'Noch keine Spenden', fr: 'Aucun don pour le moment', tr: 'Henüz bağış yok' },
+        'donor_no_impact': { ar: 'لا يوجد أثر مسجّل بعد', de: 'Noch keine Wirkung verzeichnet', fr: 'Aucun impact enregistré', tr: 'Henüz etki kaydedilmedi' },
+        'donor_no_funded_projects': { ar: 'لا توجد مشاريع مموّلة', de: 'Keine finanzierten Projekte', fr: 'Aucun projet financé', tr: 'Finanse edilen proje yok' },
+        'donor_no_proofs': { ar: 'لا توجد إثباتات بعد', de: 'Noch keine Nachweise', fr: 'Aucune preuve pour le moment', tr: 'Henüz kanıt yok' },
+        'donor_proofs_hint': { ar: 'ستظهر هنا بعد تسليم المواد', de: 'Erscheint nach Materiallieferung', fr: 'Apparaîtra après livraison', tr: 'Malzeme tesliminden sonra görünecek' },
+        'donor_browse_start_impact': { ar: 'تصفح المشاريع وابدأ أثرك', de: 'Projekte durchsuchen und Wirkung erzielen', fr: 'Parcourir les projets et créer un impact', tr: 'Projelere göz atın ve etki yaratın' },
+        'donor_site_proof': { ar: 'إثبات التسليم', de: 'Liefernachweis', fr: 'Preuve de livraison', tr: 'Teslimat kanıtı' },
+        'donor_no_marketplace_projects': { ar: 'لا توجد مشاريع في السوق حالياً', de: 'Derzeit keine Projekte im Marktplatz', fr: 'Aucun projet sur le marché actuellement', tr: 'Pazar yerinde şu an proje yok' },
+
+        // Basket/Checkout
+        'basket_clear_confirm': { ar: 'هل تريد إفراغ السلة؟', de: 'Warenkorb leeren?', fr: 'Vider le panier ?', tr: 'Sepeti boşaltmak istiyor musunuz?' },
+        'basket_project_items': { ar: 'بنود المشروع', de: 'Projektartikel', fr: 'Articles du projet', tr: 'Proje kalemleri' },
+        'basket_various_projects': { ar: 'مشاريع متعددة', de: 'Verschiedene Projekte', fr: 'Projets divers', tr: 'Çeşitli projeler' },
+        'checkout_subtotal': { ar: 'المجموع الفرعي', de: 'Zwischensumme', fr: 'Sous-total', tr: 'Ara toplam' },
+        'checkout_breakdown': { ar: 'تفاصيل الدفع', de: 'Aufschlüsselung', fr: 'Détails du paiement', tr: 'Ödeme detayları' },
+
+        // Profile
+        'profile_saved': { ar: 'تم حفظ الملف الشخصي', de: 'Profil gespeichert', fr: 'Profil enregistré', tr: 'Profil kaydedildi' },
+        'profile_save_failed': { ar: 'فشل حفظ الملف الشخصي', de: 'Profil speichern fehlgeschlagen', fr: 'Échec de l\'enregistrement du profil', tr: 'Profil kaydetme başarısız' },
+        'profile_name_required': { ar: 'الاسم مطلوب', de: 'Name erforderlich', fr: 'Nom requis', tr: 'Ad gerekli' },
+        'profile_email_invalid': { ar: 'البريد الإلكتروني غير صالح', de: 'Ungültige E-Mail', fr: 'E-mail invalide', tr: 'Geçersiz e-posta' },
+        'profile_guest': { ar: 'زائر', de: 'Gast', fr: 'Invité', tr: 'Misafir' },
+        'profile_user': { ar: 'مستخدم', de: 'Benutzer', fr: 'Utilisateur', tr: 'Kullanıcı' },
+        'profile_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'profile_no_roles': { ar: 'لا توجد أدوار', de: 'Keine Rollen', fr: 'Aucun rôle', tr: 'Rol yok' },
+        'profile_all_roles_active': { ar: 'جميع الأدوار نشطة', de: 'Alle Rollen aktiv', fr: 'Tous les rôles actifs', tr: 'Tüm roller aktif' },
+        'profile_sign_in_prompt': { ar: 'سجّل الدخول لعرض ملفك', de: 'Anmelden, um Ihr Profil zu sehen', fr: 'Connectez-vous pour voir votre profil', tr: 'Profilinizi görmek için giriş yapın' },
+        'profile_sign_in_roles': { ar: 'سجّل لإدارة أدوارك', de: 'Anmelden, um Rollen zu verwalten', fr: 'Connectez-vous pour gérer vos rôles', tr: 'Rollerinizi yönetmek için giriş yapın' },
+
+        // Project/Cart feedback
+        'project_added_to_cart': { ar: 'أُضيف للسلة', de: 'Zum Warenkorb hinzugefügt', fr: 'Ajouté au panier', tr: 'Sepete eklendi' },
+        'projects_active': { ar: 'مشاريع نشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif projeler' },
+        'projects_most_needed': { ar: 'الأكثر احتياجاً', de: 'Am dringendsten', fr: 'Les plus nécessaires', tr: 'En çok ihtiyaç duyulan' },
+        'projects_unknown_location': { ar: 'موقع غير محدد', de: 'Unbekannter Standort', fr: 'Emplacement inconnu', tr: 'Bilinmeyen konum' },
+        'projects_count': { ar: 'مشاريع', de: 'Projekte', fr: 'projets', tr: 'proje' },
+        'projects_funded': { ar: 'مشاريع مموّلة', de: 'Finanzierte Projekte', fr: 'Projets financés', tr: 'Finanse edilen projeler' },
+        'funded_suffix': { ar: 'مموّل', de: 'finanziert', fr: 'financé', tr: 'finanse edildi' },
+        'raised_suffix': { ar: 'تم جمعه', de: 'gesammelt', fr: 'collecté', tr: 'toplandı' },
+        'of_total': { ar: 'من إجمالي', de: 'von insgesamt', fr: 'du total', tr: 'toplamın' },
+        'add_funds_coming_soon': { ar: 'إيداع الأموال — قريباً', de: 'Einzahlung — Demnächst', fr: 'Dépôt — Bientôt', tr: 'Para yatırma — Yakında' },
+        'deposit_notify_confirmed': { ar: 'تم تأكيد الإيداع', de: 'Einzahlung bestätigt', fr: 'Dépôt confirmé', tr: 'Para yatırma onaylandı' },
+
+        // Contact
+        'contact_sending': { ar: 'جاري الإرسال…', de: 'Wird gesendet…', fr: 'Envoi en cours…', tr: 'Gönderiliyor…' },
+        'contact_success': { ar: 'تم إرسال رسالتك بنجاح!', de: 'Nachricht erfolgreich gesendet!', fr: 'Message envoyé avec succès !', tr: 'Mesaj başarıyla gönderildi!' },
+        'contact_failed': { ar: 'فشل الإرسال', de: 'Senden fehlgeschlagen', fr: 'Échec de l\'envoi', tr: 'Gönderim başarısız' },
+        'contact_fill_required': { ar: 'يرجى ملء الحقول المطلوبة', de: 'Bitte Pflichtfelder ausfüllen', fr: 'Veuillez remplir les champs requis', tr: 'Lütfen gerekli alanları doldurun' },
+        'contact_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
 
     };
 

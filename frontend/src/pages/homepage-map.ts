@@ -27,35 +27,43 @@ async function initHomepageMap(): Promise<void> {
         return;
     }
 
-    // ─── Initialize Map ─────────────────────────────────────────────────
-    const map = await initMap({
-        container: 'main-map',
-        interactive: true,
-        attribution: false,
-    });
-
-    // ─── Add Controls ───────────────────────────────────────────────────
-    addStandardControls(map);
-
-    // ─── Load Data on Map Ready ─────────────────────────────────────────
-    map.on('load', async () => {
-        await loadProjectMarkers(map);
-        updateStatsOverlay(map);
-
-        // ─── Filter Control ─────────────────────────────────────────────
-        const filterEl = createFilterControl((filter) => {
-            applyFilter(map, filter);
+    try {
+        // ─── Initialize Map ─────────────────────────────────────────────────
+        const map = await initMap({
+            container: 'main-map',
+            interactive: true,
+            attribution: false,
         });
-        const filterMountPoint = document.getElementById('map-filter-container');
-        if (filterMountPoint) {
-            filterMountPoint.appendChild(filterEl);
-        }
-    });
 
-    // ─── Update stats when map moves ────────────────────────────────────
-    map.on('moveend', () => {
-        updateStatsOverlay(map);
-    });
+        // ─── Add Controls ───────────────────────────────────────────────────
+        addStandardControls(map);
+
+        // ─── Load Data on Map Ready ─────────────────────────────────────────
+        map.on('load', async () => {
+            try {
+                await loadProjectMarkers(map);
+                updateStatsOverlay(map);
+
+                // ─── Filter Control ─────────────────────────────────────────────
+                const filterEl = createFilterControl((filter) => {
+                    applyFilter(map, filter);
+                });
+                const filterMountPoint = document.getElementById('map-filter-container');
+                if (filterMountPoint) {
+                    filterMountPoint.appendChild(filterEl);
+                }
+            } catch (err) {
+                reportWarning('Map data load failed', { component: 'homepage_map', action: 'load_markers', error: String(err) });
+            }
+        });
+
+        // ─── Update stats when map moves ────────────────────────────────────
+        map.on('moveend', () => {
+            updateStatsOverlay(map);
+        });
+    } catch (err) {
+        reportWarning('Map initialization failed', { component: 'homepage_map', action: 'init_map', error: String(err) });
+    }
 }
 
 /**

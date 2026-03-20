@@ -70,7 +70,7 @@
       <div id="role-switcher-mount" class="ms-auto"></div>
     </div>
     <!-- INC-AUD-C02 FIX: Removed non-standard pt-3 from nav. Matches other dashboards. -->
-    <!-- GAP-A11Y-02 FIX: Migrated from <a href="#"> to <button role="tab"> with
+    <!-- GAP-A11Y-02 FIX: Migrated from <a href="#"> to <button type="button" role="tab"> with
          full WAI-ARIA semantics (aria-selected, aria-controls).
          Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
     <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Tradesperson portal navigation">
@@ -124,14 +124,14 @@
            Standard: WAI-ARIA button toggle pattern (aria-pressed). -->
       <!-- I18N-AUD-F01 FIX: All three status labels now have data-i18n attributes. -->
       <div class="flex gap-1" id="availability-btns" role="group" aria-label="Availability status">
-        <button data-status="available" aria-pressed="true" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-smoky-jade/30 bg-smoky-jade/10 text-smoky-jade" data-i18n="tradesperson_available">Available</button>
-        <button data-status="busy" aria-pressed="false" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_busy">Busy</button>
-        <button data-status="offline" aria-pressed="false" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_offline">Offline</button>
+        <button type="button" data-status="available" aria-pressed="true" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-smoky-jade/30 bg-smoky-jade/10 text-smoky-jade" data-i18n="tradesperson_available">Available</button>
+        <button type="button" data-status="busy" aria-pressed="false" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_busy">Busy</button>
+        <button type="button" data-status="offline" aria-pressed="false" class="flex-1 px-2 py-1.5 text-3xs font-bold rounded-lg border border-slate-200 text-slate-500" data-i18n="tradesperson_offline">Offline</button>
       </div>
     </div>
     <!-- Logout -->
     <div class="p-4 border-t border-slate-200">
-      <button id="portal-logout-btn" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
+      <button type="button" id="portal-logout-btn" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
         <i class="ph ph-sign-out" aria-hidden="true"></i>
         <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
       </button>
@@ -149,7 +149,7 @@
     <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
-        <button class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
+        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
           <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
         </button>
         <span class="font-bold text-lg page-header-title" data-i18n="tradesperson_dashboard_title">Tradesperson Dashboard</span>
@@ -157,7 +157,7 @@
       </div>
       <div class="flex items-center gap-4">
         <div id="role-switcher-mount-header"></div>
-        <button class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-requests" title="Jump to requests">
+        <button type="button" class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-requests" title="Jump to requests">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
           <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
