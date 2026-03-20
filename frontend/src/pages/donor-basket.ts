@@ -16,6 +16,9 @@ import { t } from '../utils/i18n';
 import { initSearch } from '../utils/search-overlay';
 // UX-004 FIX: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// PLT-CART-001 FIX: Wire checkout to actual donations API
+import { donations } from '../api';
+import { setLoadingState } from '../utils/loading-state';
 initSearch();
 
 // FRC-003 FIX: Default tip 0% (was 3%). Humanitarian platform — opt-in tipping only.
@@ -340,33 +343,91 @@ function initDonorBasket(): void {
         }
     });
 
-    // P0-003 FIX: Confirm funding button with double-click guard and disabled state
-    confirmBtn?.addEventListener('click', () => {
+    // PLT-CART-001 FIX: Wire checkout to donations.create() API.
+    // Previous: Dead-end placeholder showing "Payment gateway coming soon."
+    // Now: Calls centralized donations.create() with Idempotency-Key protection,
+    // loading state via setLoadingState(), and success/error feedback.
+    // Standard: Core revenue path — donors MUST be able to complete donations.
+    confirmBtn?.addEventListener('click', async () => {
         haptic.success(); // UX-004: Confirm funding celebration feedback
-        if (CartStore.getItems().length === 0 || (confirmBtn as HTMLButtonElement).disabled) {
+        const btn = confirmBtn as HTMLButtonElement;
+        if (CartStore.getItems().length === 0 || btn.disabled) {
             return;
         }
-        // Guard: disable button during processing
-        (confirmBtn as HTMLButtonElement).disabled = true;
 
-        const total = CartStore.getTotal();
-        const count = CartStore.getCount();
+        const items = CartStore.getItems();
         const tipAmount = getTipAmount();
-        const grandTotal = total + tipAmount;
 
-        const banner = document.createElement('div');
-        banner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 mt-3 animate-fade-in-up';
+        // Map CartStore items to API format.
+        // CartStore stores unitPrice in dollars; escrow API expects cents (BIGINT).
+        const donationItems: Array<{ item_id: string; amount: number }> = items.map(item => ({
+            item_id: item.id,
+            amount: Math.round(item.unitPrice * item.quantity * 100),
+        }));
 
-        const tipText = tipAmount > 0
-            ? ` + ${formatDollars(tipAmount)} ${escapeHtml(t('tip_label', 'tip'))}`
-            : '';
+        // PLT-CART-002: Include platform tip as a dedicated line item (if any).
+        // The backend accepts a special `platform-tip` item_id for platform support.
+        if (tipAmount > 0) {
+            donationItems.push({
+                item_id: 'platform-tip',
+                amount: Math.round(tipAmount * 100),
+            });
+        }
 
-        banner.innerHTML = `<i class="ph ph-lock-simple" aria-hidden="true"></i> ${escapeHtml(t('basket_checkout_msg', 'Proceeding to secure checkout'))}: ${count} ${escapeHtml(t('basket_items', 'items'))} — ${formatDollars(total)}${tipText} = ${formatDollars(grandTotal)}. ${escapeHtml(t('basket_gateway_soon', 'Payment gateway coming soon.'))}`;
-        checkoutSheet?.appendChild(banner);
-        setTimeout(() => {
-            banner.remove();
-            (confirmBtn as HTMLButtonElement).disabled = false;
-        }, 5000);
+        const restore = setLoadingState(btn, t('basket_processing', 'Processing...'));
+
+        try {
+            const response = await donations.create({
+                items: donationItems,
+                return_url: `${window.location.origin}/donor-portal.html?donation=success`,
+            });
+
+            if (response.success) {
+                haptic.success();
+                restore('success');
+
+                // Clear cart after successful donation
+                CartStore.clear();
+
+                // Show success banner
+                const successBanner = document.createElement('div');
+                successBanner.className = 'rounded-xl p-4 text-sm font-medium flex items-center gap-3 bg-emerald-50 text-emerald-700 border border-emerald-200 mt-3 animate-fade-in-up';
+                successBanner.innerHTML = `<i class="ph ph-check-circle text-xl" aria-hidden="true"></i> ${escapeHtml(t('basket_donation_success', 'Thank you! Your donation has been submitted successfully. You will be redirected shortly.'))}`;
+                checkoutSheet?.appendChild(successBanner);
+
+                // Re-render to show empty cart
+                render();
+
+                // Redirect to donor portal after brief delay
+                const redirectUrl = (response.data as { redirect_url?: string })?.redirect_url;
+                if (redirectUrl) {
+                    // Payment gateway redirect (Stripe/Fatora)
+                    setTimeout(() => { window.location.href = redirectUrl; }, 1200);
+                } else {
+                    // Direct donation (no external payment) → donor portal
+                    setTimeout(() => {
+                        window.location.href = '/donor-portal.html?donation=success';
+                    }, 2000);
+                }
+            } else {
+                haptic.heavy();
+                restore('error');
+                const errorBanner = document.createElement('div');
+                errorBanner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mt-3 animate-fade-in-up';
+                errorBanner.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${escapeHtml(response.error ?? t('basket_donation_error', 'Something went wrong. Please try again.'))}`;
+                checkoutSheet?.appendChild(errorBanner);
+                setTimeout(() => errorBanner.remove(), 6000);
+            }
+        } catch (err) {
+            haptic.heavy();
+            restore('error');
+            const message = err instanceof Error ? err.message : t('basket_network_error', 'Network error. Please check your connection and try again.');
+            const errorBanner = document.createElement('div');
+            errorBanner.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mt-3 animate-fade-in-up';
+            errorBanner.innerHTML = `<i class="ph ph-wifi-slash" aria-hidden="true"></i> ${escapeHtml(message)}`;
+            checkoutSheet?.appendChild(errorBanner);
+            setTimeout(() => errorBanner.remove(), 6000);
+        }
     });
 
     // Listen for external cart updates

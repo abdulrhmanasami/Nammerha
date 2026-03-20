@@ -115,7 +115,7 @@ async function request<T>(
 export const projects = {
     create: (data: {
         title: string;
-        damage_type: 'structural' | 'plumbing' | 'electrical' | 'mixed';
+        damage_type: 'structural' | 'plumbing' | 'electrical' | 'mixed' | 'general';
         damage_severity?: 'minor' | 'moderate' | 'severe' | 'total_destruction';
         description?: string;
         gps_lat: number;
@@ -940,10 +940,13 @@ export const donor = {
     },
 
     /** POST /api/donor/refunds — Request a refund (ENH-2) */
+    // BLOCKER-3 FIX: Idempotency-Key prevents duplicate refund requests on
+    // Syria 2G/3G double-taps. Financial state-change — duplication is critical.
     requestRefund: (data: { escrow_id: string; reason: string }) =>
         request('/donor/refunds', {
             method: 'POST',
             body: JSON.stringify(data),
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
         }),
 
     /** GET /api/donor/receipts/:escrowId — Download donation receipt PDF (ENH-3) */
@@ -962,6 +965,8 @@ interface SupplierStats {
 
 export const supplier = {
     /** POST /api/supplier/catalog — Add material to catalog */
+    // BLOCKER-3 FIX: Idempotency-Key prevents duplicate catalog items on
+    // Syria 2G/3G double-taps.
     addCatalogItem: (data: {
         material_name: string;
         material_category: string;
@@ -972,6 +977,7 @@ export const supplier = {
     }) => request<CatalogItem>('/supplier/catalog', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 
     /** GET /api/supplier/catalog — View my catalog */
@@ -1078,6 +1084,8 @@ export const engineer = {
     },
 
     /** POST /api/engineer/camera/capture — Submit reality capture */
+    // BLOCKER-3 FIX: Idempotency-Key prevents duplicate capture submissions on
+    // Syria 2G/3G double-taps.
     submitCapture: (data: {
         project_id: string;
         file_url: string;
@@ -1092,9 +1100,11 @@ export const engineer = {
     }) => request('/engineer/camera/capture', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 
     /** POST /api/engineer/camera/spatial-proof — Submit GPS spatial proof */
+    // BLOCKER-3 FIX: Idempotency-Key prevents duplicate spatial proof submissions.
     submitSpatialProof: (data: {
         item_id: string;
         project_id: string;
@@ -1106,6 +1116,7 @@ export const engineer = {
     }) => request('/engineer/camera/spatial-proof', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 };
 
@@ -1189,6 +1200,8 @@ export const contractor = {
     },
 
     /** POST /api/contractor/bids — Submit a competitive bid */
+    // BLOCKER-3 FIX: Idempotency-Key prevents duplicate bid submissions on
+    // Syria 2G/3G double-taps.
     submitBid: (data: {
         project_id: string;
         proposed_cost: number;
@@ -1198,6 +1211,7 @@ export const contractor = {
     }) => request('/contractor/bids', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 };
 

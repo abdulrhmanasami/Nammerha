@@ -10,6 +10,7 @@ import { getLocale } from '../utils/locale';
 import { showToast } from '../utils/toast';
 // TICK-033: Import shared type-safe i18n apply utility.
 import { tryApplyI18n } from '../utils/i18n-apply';
+import { requireAuth } from '../utils/auth-guard';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Compliance Dashboard — OCDS Audit & Financial Transparency Engine
@@ -23,6 +24,9 @@ import { tryApplyI18n } from '../utils/i18n-apply';
 const actionsInFlight = new Set<string>();
 
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     initTimestamp();
     loadKPIs();
     loadComplianceMetrics();

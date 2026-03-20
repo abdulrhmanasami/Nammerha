@@ -3,6 +3,7 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
+import { requireAuth } from '../utils/auth-guard';
 import { supplier } from '../api';
 import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
@@ -59,6 +60,9 @@ const delegationWired = { orders: false, catalog: false } as Record<string, bool
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     initTimestamp();
     loadKPIs();
     loadOrders();

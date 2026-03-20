@@ -4,6 +4,7 @@ import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { auth, roles as rolesApi } from '../api';
+import { requireAuth } from '../utils/auth-guard';
 // DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
 // instead of maintaining a duplicate copy.
 import { ROLE_META, getRoleLabel, getRoleColor } from '../components/role-switcher';
@@ -535,6 +536,9 @@ function initPhotoPreview(): void {
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     loadUserInfo();
     loadUserRoles();
     initPhotoPreview(); // GAP-X02 FIX: Wire photo preview engine

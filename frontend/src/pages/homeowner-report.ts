@@ -220,7 +220,7 @@ if (nextBtn) {
 
                 const response = await projects.create({
                     title: `${state.damageType} damage — ${state.neighborhood}, ${state.governorate}`,
-                    damage_type: (state.damageType as 'structural' | 'plumbing' | 'electrical' | 'mixed') ?? 'mixed',
+                    damage_type: (state.damageType as 'structural' | 'plumbing' | 'electrical' | 'mixed' | 'general') ?? 'mixed',
                     description: state.description || undefined,
                     gps_lat,
                     gps_lng,
@@ -578,6 +578,7 @@ function populateSummary(): void {
         plumbing: t('damage_type_plumbing', 'Plumbing'),
         electrical: t('damage_type_electrical', 'Electrical'),
         general: t('damage_type_general', 'General Repair'),
+        mixed: t('damage_type_mixed', 'Mixed Damage'),
     };
 
     const summaryType = document.getElementById('summary-type');

@@ -6,6 +6,7 @@ import { t } from '../utils/i18n';
 /* INC-P3-001 FIX: Use shared toast utility instead of inline duplicate.
    Standard: DRY, Code Hygiene. */
 import { showToast } from '../utils/toast';
+import { requireAuth } from '../utils/auth-guard';
 
 /* ─── Concierge Escrow — Interactive Controller ─── */
 
@@ -73,6 +74,9 @@ let currentCaseIndex = 0;
 const resolvedCases: Set<number> = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     renderCase(currentCaseIndex);
     initNavigation();
     initActionButtons();

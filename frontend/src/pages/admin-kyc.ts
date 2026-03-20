@@ -7,6 +7,7 @@ import { showToast } from '../utils/toast';
 /* GAP-P3-009 FIX: Wire KYC queue to live admin.getKycQueue() API.
    Standard: No hardcoded data, API-Driven Rendering. */
 import { admin } from '../api';
+import { requireAuth } from '../utils/auth-guard';
 // TICK-036: Import shared locale-aware time formatter instead of local hardcoded-English version.
 import { relativeTimeAgo } from '../utils/format';
 
@@ -35,6 +36,9 @@ let rejectInputVisible = false;
 let rejectInput: HTMLInputElement | null = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     loadKycStats();
     loadKycQueue();
     initDropZone();

@@ -7,10 +7,14 @@ import { showToast } from '../utils/toast';
 /* GAP-P3-008 FIX: Wire oracle ticker to live API data.
    Standard: No hardcoded data, API-Driven Rendering. */
 import { epaOracle } from '../api';
+import { requireAuth } from '../utils/auth-guard';
 
 /* ─── Pricing Oracle & EPA Engine — Interactive Controller ─── */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     loadTickerData();
     initApproveButton();
     initTabSwitching();

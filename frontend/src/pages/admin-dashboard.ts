@@ -7,6 +7,7 @@ import { admin, openData } from '../api';
 import { getLocale, applyI18n } from '../utils/locale';
 import { relativeTimeAgo } from '../utils/format';
 import { renderTableErrorWithRetry, renderErrorWithRetry } from '../utils/error-retry';
+import { requireAuth } from '../utils/auth-guard';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin Dashboard — Platform Command Center
@@ -16,6 +17,9 @@ import { renderTableErrorWithRetry, renderErrorWithRetry } from '../utils/error-
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     initTimestamp();
     initNotificationBell();
     loadKPIs();

@@ -3,6 +3,7 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
+import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
@@ -86,6 +87,9 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     setupTabs();
     setupServiceRequestForm();
     setupToggleDetails();  // CONF-N04 FIX

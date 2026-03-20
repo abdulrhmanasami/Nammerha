@@ -677,13 +677,25 @@ formLogin?.addEventListener('submit', async (e) => {
             const activeRole = userData.activeRole ?? userData.role;
             const target = ROLE_DASHBOARD[activeRole] ?? '/';
 
+            // BLOCKER-2 FIX: Respect ?redirect= query param from auth guard.
+            // When requireAuth() bounces a user to /auth.html?redirect=/original-page,
+            // successful login should return them to that page, not the generic dashboard.
+            const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+            let finalTarget = redirectParam
+                ? decodeURIComponent(redirectParam)
+                : target;
+
+            // Security: Only allow relative paths (prevent open redirect vulnerability)
+            if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
+                finalTarget = target;
+            }
+
             // GAP-002 FIX: Detect first login after registration → append onboarding param.
             // Each portal reads ?onboarding=1 to trigger its guided tour.
-            let finalTarget = target;
             try {
                 if (localStorage.getItem('nmh_onboarding_pending') === '1') {
                     localStorage.removeItem('nmh_onboarding_pending');
-                    finalTarget += (target.includes('?') ? '&' : '?') + 'onboarding=1';
+                    finalTarget += (finalTarget.includes('?') ? '&' : '?') + 'onboarding=1';
                 }
             } catch { /* Safari private mode */ }
 

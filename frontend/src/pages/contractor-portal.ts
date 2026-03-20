@@ -8,6 +8,9 @@ import { phaseColor, bidColor, escrowColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
+// BLOCKER-1 FIX: Auth guard — unauthenticated visitors see "Sign in required" overlay
+// instead of broken skeleton loaders with cryptic API errors.
+import { requireAuth } from '../utils/auth-guard';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -70,6 +73,9 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
 // ─── DOM Init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     setupTabs();
     const initialTab = hashRouter.getInitialTab();
     switchTab(initialTab);

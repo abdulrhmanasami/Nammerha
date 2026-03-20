@@ -3,6 +3,7 @@ import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
+import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
 import { tradesperson } from '../api';
@@ -47,6 +48,9 @@ const delegationWired = { requests: false, assignments: false } as Record<string
 
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
+
     setupTabs();
     setupAvailability();
     const initialTab = hashRouter.getInitialTab();
