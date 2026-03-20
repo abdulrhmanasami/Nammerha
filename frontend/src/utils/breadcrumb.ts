@@ -15,6 +15,9 @@
  *   ]);
  */
 
+// TICK-033: Import shared type-safe i18n apply utility.
+import { tryApplyI18n } from '../utils/i18n-apply';
+
 interface BreadcrumbItem {
     /** Display label (English fallback) */
     label: string;
@@ -150,10 +153,9 @@ export function renderBreadcrumb(containerId: string, crumbs?: BreadcrumbItem[])
     const firstChild = container.firstElementChild;
     container.insertBefore(nav, firstChild);
 
-    // Apply i18n if engine is loaded
-    if (typeof (window as unknown as Record<string, unknown>).applyI18n === 'function') {
-        ((window as unknown as Record<string, unknown>).applyI18n as () => void)();
-    }
+    // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
+    // Previous: (window as unknown as Record<string, unknown>).applyI18n — PLT-AUD5-002 pattern.
+    tryApplyI18n();
 }
 
 /**

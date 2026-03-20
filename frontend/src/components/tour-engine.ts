@@ -15,6 +15,10 @@
 // ============================================================================
 
 import { TOUR_DEFINITIONS, type TourDefinition } from './tour-definitions';
+// TICK-032: Import shared isRTL from utils/i18n instead of local duplicate.
+// Local getLocale() is kept — it returns 'en'|'ar' (bilingual selector),
+// different from utils/locale.ts getLocale() which returns a full locale string.
+import { isRTL } from '../utils/i18n';
 
 const STORAGE_KEY_PREFIX = 'nammerha-tour-';
 const OVERLAY_ID         = 'nmr-tour-overlay';
@@ -26,9 +30,7 @@ function getLocale(): 'en' | 'ar' {
     return lang.startsWith('ar') ? 'ar' : 'en';
 }
 
-function isRtl(): boolean {
-    return document.documentElement.dir === 'rtl' || getLocale() === 'ar';
-}
+// TICK-032: Local isRtl() removed — now imported as isRTL from ../utils/i18n.
 
 // ─── Tour State ─────────────────────────────────────────────────────────────
 
@@ -131,7 +133,7 @@ function showStep(index: number): void {
     activeTour.currentStep = index;
     const step = steps[index]!;
     const locale = getLocale();
-    const rtl = isRtl();
+    const rtl = isRTL();
 
     // Find target element
     const target = document.querySelector(step.selector) as HTMLElement | null;

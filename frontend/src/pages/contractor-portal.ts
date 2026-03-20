@@ -19,6 +19,8 @@ import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// TICK-018: Haptic feedback for native-app tactile response
+import { haptic } from '../utils/haptic';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -226,12 +228,18 @@ async function loadMarketplace(): Promise<void> {
             </tr>
         `).join('');
 
-        // Attach bid button handlers
-        tbody.querySelectorAll('.bid-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const projectId = (btn as HTMLElement).dataset['project'];
-                if (projectId) { openBidModal(projectId); }
-            });
+        // TICK-006: Event delegation for bid buttons.
+        // Previous: querySelectorAll('.bid-btn').forEach() attached O(N) listeners per render.
+        // Now: Single delegated listener on tbody — O(1) regardless of row count.
+        // Standard: Event Delegation, Performance.
+        tbody.addEventListener('click', (e: MouseEvent) => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('.bid-btn');
+            if (!btn) { return; }
+            const projectId = btn.dataset['project'];
+            if (projectId) {
+                haptic.medium(); // TICK-018: Haptic on bid button click
+                openBidModal(projectId);
+            }
         });
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderTableErrorWithRetry(tbody, loadMarketplace, 7);
@@ -387,7 +395,11 @@ function openBidModal(projectId: string): void {
 
         const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
         submitBtn.disabled = true;
-        submitBtn.textContent = t('btn_submitting', 'Submitting...');
+        // TICK-013: Spinner icon on bid submit loading state.
+        // Previous: Plain text 'Submitting...' — no visual loading indicator.
+        // Now: Spinner icon matches engineer-boq publish pattern.
+        // Standard: Design System Component Unity, Nielsen #1 (System Status Visibility).
+        submitBtn.innerHTML = `<i class="ph ph-spinner ph-lg animate-spin" aria-hidden="true"></i> ${t('btn_submitting', 'Submitting...')}`;
 
         try {
             const res = await contractor.submitBid({

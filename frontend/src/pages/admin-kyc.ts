@@ -7,6 +7,8 @@ import { showToast } from '../utils/toast';
 /* GAP-P3-009 FIX: Wire KYC queue to live admin.getKycQueue() API.
    Standard: No hardcoded data, API-Driven Rendering. */
 import { admin } from '../api';
+// TICK-036: Import shared locale-aware time formatter instead of local hardcoded-English version.
+import { relativeTimeAgo } from '../utils/format';
 
 /* ─── KYC Verification Portal — API-Driven Controller ─── */
 
@@ -85,7 +87,7 @@ async function loadKycQueue(): Promise<void> {
             const roleLabel = isEngineer
                 ? t('kyc_role_engineer', 'Engineer')
                 : t('kyc_role_supplier', 'Supplier');
-            const timeAgo = formatTimeAgo(entry.updated_at);
+            const timeAgo = relativeTimeAgo(entry.updated_at);
             const statusLabel = entry.kyc_verification_status === 'submitted'
                 ? t('kyc_status_submitted', 'Submitted')
                 : t('kyc_status_pending', 'Pending');
@@ -110,7 +112,8 @@ async function loadKycQueue(): Promise<void> {
             `;
         }).join('');
 
-        initRowSelection();
+        // TICK-035: Event delegation replaces O(N) per-row listeners.
+        initRowSelection(container);
     } catch {
         container.innerHTML = `
             <div class="p-6 text-center">
@@ -123,48 +126,47 @@ async function loadKycQueue(): Promise<void> {
     }
 }
 
-/* ─── Time Ago Formatter ─── */
-function formatTimeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60_000);
-    if (mins < 60) { return `${mins}m ago`; }
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) { return `${hours}h ago`; }
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-}
+// TICK-036: Local formatTimeAgo() removed — now imported as relativeTimeAgo from utils/format.ts.
+// The shared version uses Intl.RelativeTimeFormat for proper Arabic/RTL support.
 
-/* ─── Row Selection ─── */
-function initRowSelection(): void {
-    const rows = document.querySelectorAll<HTMLElement>('.kyc-row');
+/* ─── Row Selection (Event Delegation) ─── */
+// TICK-035: Replaced O(N) per-element click+keydown listeners with single delegated
+// listener on container. O(1) regardless of queue size.
+function initRowSelection(container: HTMLElement): void {
+    container.addEventListener('click', (e: MouseEvent) => {
+        const row = (e.target as HTMLElement).closest<HTMLElement>('.kyc-row');
+        if (!row) { return; }
+        selectRow(row);
+    });
 
-    rows.forEach((row) => {
-        row.addEventListener('click', () => selectRow(row, rows));
+    container.addEventListener('keydown', (e: KeyboardEvent) => {
+        const row = (e.target as HTMLElement).closest<HTMLElement>('.kyc-row');
+        if (!row) { return; }
 
-        row.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                selectRow(row, rows);
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                const next = row.nextElementSibling as HTMLElement | null;
-                if (next?.classList.contains('kyc-row')) { next.focus(); }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                const prev = row.previousElementSibling as HTMLElement | null;
-                if (prev?.classList.contains('kyc-row')) { prev.focus(); }
-            }
-        });
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectRow(row);
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const next = row.nextElementSibling as HTMLElement | null;
+            if (next?.classList.contains('kyc-row')) { next.focus(); }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prev = row.previousElementSibling as HTMLElement | null;
+            if (prev?.classList.contains('kyc-row')) { prev.focus(); }
+        }
     });
 }
 
 /* ─── Select Row Helper ─── */
-function selectRow(row: HTMLElement, rows: NodeListOf<HTMLElement>): void {
+function selectRow(row: HTMLElement): void {
     const index = parseInt(row.dataset.index ?? '-1', 10);
     if (index < 0 || index >= applicants.length) { return; }
 
     selectedIndex = index;
 
+    // TICK-035: Use querySelectorAll only for visual state reset (not listener attachment).
+    const rows = document.querySelectorAll<HTMLElement>('.kyc-row');
     rows.forEach((r) => {
         r.classList.remove('bg-trust-blue/5', 'border-s-2', 'border-trust-blue');
         r.setAttribute('aria-selected', 'false');

@@ -6,6 +6,8 @@ import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
 import { t } from '../utils/i18n';
 import { showToast } from '../utils/toast';
+// TICK-033: Import shared type-safe i18n apply utility.
+import { tryApplyI18n } from '../utils/i18n-apply';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Compliance Dashboard — OCDS Audit & Financial Transparency Engine
@@ -136,15 +138,18 @@ async function loadEscrowReviewQueue(): Promise<void> {
             </tr>
         `).join('');
 
-        // Attach action handlers
-        tbody.querySelectorAll<HTMLButtonElement>('[data-action]').forEach((btn) => {
-            btn.addEventListener('click', () => handleReviewAction(
-                btn.dataset['action'] as 'approve' | 'flag',
-                btn.dataset['ref'] ?? ''
-            ));
+        // TICK-034: Event delegation for review action buttons.
+        // Previous: querySelectorAll('[data-action]').forEach() attached O(N) listeners.
+        // Now: Single delegated listener on tbody — O(1).
+        tbody.addEventListener('click', (e: MouseEvent) => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+            if (!btn) { return; }
+            const action = btn.dataset['action'] as 'approve' | 'flag';
+            const ref = btn.dataset['ref'] ?? '';
+            if (action && ref) { handleReviewAction(action, ref); }
         });
 
-        applyI18n();
+        tryApplyI18n();
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-001 FIX: Show user-facing error in escrow review table.
         if (tbody) {
@@ -189,8 +194,4 @@ function setKPI(name: string, value: number, prefix = ''): void {
     requestAnimationFrame(tick);
 }
 
-function applyI18n(): void {
-    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
-    }
-}
+// TICK-033: Local applyI18n() removed — replaced by shared tryApplyI18n() import.

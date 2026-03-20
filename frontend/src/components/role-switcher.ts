@@ -7,6 +7,11 @@ import { getCurrentUser, switchActiveRole, type UserRole } from '../auth';
 import { reportError } from '../error-reporter';
 import { roles as rolesApi } from '../api';
 import '../styles/role-switcher.css';
+// TICK-027: Import shared i18n utilities instead of local duplicates.
+// Previous: Local t() and isRTL() at L90-99 — identical to utils/i18n.ts.
+// donor-portal, contractor-portal, tradesperson-portal already use shared versions.
+// Standard: DRY Principle.
+import { t, isRTL } from '../utils/i18n';
 
 // ─── Role Metadata ──────────────────────────────────────────────────────────
 interface RoleMeta {
@@ -86,17 +91,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
 };
 
-// ─── i18n Helper ────────────────────────────────────────────────────────────
-function t(key: string, fallback: string): string {
-    // Use global i18n bridge if available
-    const bridge = (window as unknown as { __i18n_t?: (k: string, f: string) => string }).__i18n_t;
-    if (bridge) { return bridge(key, fallback); }
-    return fallback;
-}
-
-function isRTL(): boolean {
-    return document.documentElement.dir === 'rtl' || document.documentElement.lang === 'ar';
-}
+// TICK-027: Local t() and isRTL() removed — now imported from ../utils/i18n (line 12).
+// Previous: Duplicate implementations violating DRY principle.
 
 // ─── Component State ────────────────────────────────────────────────────────
 let isDropdownOpen = false;

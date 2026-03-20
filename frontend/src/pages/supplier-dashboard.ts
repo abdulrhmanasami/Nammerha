@@ -8,6 +8,8 @@ import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// TICK-024: Haptic feedback for native-app tactile response
+import { haptic } from '../utils/haptic';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
@@ -193,14 +195,18 @@ async function loadOrders(): Promise<void> {
             </tr>
         `).join('');
 
-        // Wire action buttons
-        tbody.querySelectorAll('[data-action]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const poId = btn.getAttribute('data-po-id');
-                const action = btn.getAttribute('data-action');
-                if (!poId || !action) { return; }
-                await updatePOStatus(poId, action as 'acknowledged' | 'shipped' | 'delivered');
-            });
+        // TICK-019: Event delegation for PO action buttons.
+        // Previous: querySelectorAll('[data-action]').forEach() attached O(N) listeners per render.
+        // Now: Single delegated listener on tbody — O(1) regardless of row count.
+        // Standard: Event Delegation, Performance.
+        tbody.addEventListener('click', async (e: MouseEvent) => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+            if (!btn) { return; }
+            const poId = btn.getAttribute('data-po-id');
+            const action = btn.getAttribute('data-action');
+            if (!poId || !action) { return; }
+            haptic.light(); // TICK-024: Haptic on PO action
+            await updatePOStatus(poId, action as 'acknowledged' | 'shipped' | 'delivered');
         });
 
         applyI18n();
@@ -250,13 +256,16 @@ async function loadCatalog(): Promise<void> {
             </div>
         `).join('');
 
-        // Wire deactivate buttons
-        container.querySelectorAll('[data-deactivate]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-deactivate');
-                if (!id) { return; }
-                await deactivateItem(id);
-            });
+        // TICK-020: Event delegation for deactivate buttons.
+        // Previous: querySelectorAll('[data-deactivate]').forEach() attached O(N) listeners.
+        // Now: Single delegated listener on container — O(1).
+        container.addEventListener('click', async (e: MouseEvent) => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-deactivate]');
+            if (!btn) { return; }
+            const id = btn.getAttribute('data-deactivate');
+            if (!id) { return; }
+            haptic.light(); // TICK-024: Haptic on catalog deactivate
+            await deactivateItem(id);
         });
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)

@@ -25,21 +25,16 @@ import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 
-// ─── HIGH-002 FIX: Inline banner replaces native alert() ────────────────────
-let srBannerTimeout: ReturnType<typeof setTimeout> | null = null;
+// FIX-005: Banner Pattern Consolidation.
+// Previous: Custom showSrBanner() manually created DOM elements, managed timeouts,
+// and applied inline CSS classes — the third different error feedback pattern
+// on the platform (alongside showStructuredBanner and showToast).
+// Now: Uses shared showToast() which already handles positioning, auto-dismiss,
+// animation, dark mode, haptic feedback, and screen reader announcements.
+// Standard: DRY Principle, Design System Component Unity.
+import { showToast } from '../utils/toast';
 function showSrBanner(type: 'error' | 'success', message: string): void {
-    const existing = document.getElementById('sr-inline-banner');
-    if (existing) { existing.remove(); }
-    if (srBannerTimeout) { clearTimeout(srBannerTimeout); }
-    const div = document.createElement('div');
-    div.id = 'sr-inline-banner';
-    div.className = type === 'error'
-        ? 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mb-3 animate-fade-in-up'
-        : 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 animate-fade-in-up';
-    div.innerHTML = `<i class="ph ph-${type === 'error' ? 'warning-circle' : 'check-circle'}" aria-hidden="true"></i> ${esc(message)}`;
-    const form = document.getElementById('sr-form') ?? document.getElementById('submit-sr-btn')?.parentElement;
-    if (form) { form.prepend(div); }
-    srBannerTimeout = setTimeout(() => div.remove(), 5000);
+    showToast(message, type);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

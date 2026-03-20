@@ -131,35 +131,37 @@ function renderAllItems(): void {
     }
 
     itemsContainer.innerHTML = state.items.map((item, i) => renderItem(item, i)).join('');
-    bindQuantityControls();
+    // FIX-001: Listeners are delegated — no per-element binding needed.
     updateSummary();
 }
 
-// ─── Bind Quantity +/- Buttons ──────────────────────────────────────────────
-function bindQuantityControls(): void {
-    document.querySelectorAll('.qty-plus').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const idx = parseInt((btn as HTMLElement).dataset.index ?? '0', 10);
-            if (state.items[idx]) {
-                state.items[idx].required_quantity += 1;
-                renderAllItems();
-            }
-        });
-    });
+// ─── FIX-001: Delegated Quantity Controls ───────────────────────────────────
+// Previous: bindQuantityControls() attached N×2 fresh listeners on every
+// renderAllItems() call. innerHTML= destroys old DOM (no true leak), but
+// O(N) listener creation per render is wasteful on large BOQ lists.
+// Now: Single delegated listener on container — O(1) regardless of item count.
+// Standard: Event Delegation, Performance (O(1) vs O(N) per render).
+// ────────────────────────────────────────────────────────────────────────────
+itemsContainer?.addEventListener('click', (e: MouseEvent) => {
+    const target = (e.target as HTMLElement).closest<HTMLElement>('.qty-plus, .qty-minus');
+    if (!target) { return; }
+    const idx = parseInt(target.dataset.index ?? '-1', 10);
+    if (idx < 0 || !state.items[idx]) { return; }
 
-    document.querySelectorAll('.qty-minus').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const idx = parseInt((btn as HTMLElement).dataset.index ?? '0', 10);
-            if (state.items[idx] && state.items[idx].required_quantity > 1) {
-                state.items[idx].required_quantity -= 1;
-                renderAllItems();
-            } else if (state.items[idx] && state.items[idx].required_quantity === 1) {
-                state.items.splice(idx, 1);
-                renderAllItems();
-            }
-        });
-    });
-}
+    if (target.classList.contains('qty-plus')) {
+        state.items[idx].required_quantity += 1;
+        renderAllItems();
+    } else if (target.classList.contains('qty-minus')) {
+        if (state.items[idx].required_quantity > 1) {
+            state.items[idx].required_quantity -= 1;
+            renderAllItems();
+        } else {
+            // Quantity is 1 and user tapped minus → remove item
+            state.items.splice(idx, 1);
+            renderAllItems();
+        }
+    }
+});
 
 // ─── Load Existing BOQ from API (if project specified) ──────────────────────
 async function loadExistingBOQ(): Promise<void> {
@@ -257,17 +259,36 @@ publishBtn?.addEventListener('click', async () => {
     }
 
     try {
-        // Submit each BOQ item to backend
-        for (const item of state.items) {
-            await projects.addBOQItem(state.projectId, {
-                material_name: item.material_name,
-                material_category: item.material_category,
-                unit: item.unit,
-                unit_price: item.unit_price,
-                required_quantity: item.required_quantity,
-                image_url: item.image_url || undefined,
-                preferred_supplier_id: item.preferred_supplier_id,
-            });
+        // FIX-002: Parallel BOQ item submission via Promise.allSettled().
+        // Previous: Sequential for...of await loop — 20 items = 20 serial HTTP
+        // requests = minutes on Syrian 2G/3G connections.
+        // Now: All items submitted in parallel. Partial failures are reported.
+        // Standard: Network Performance, Promise.allSettled() (ES2020).
+        const results = await Promise.allSettled(
+            state.items.map(item =>
+                projects.addBOQItem(state.projectId!, {
+                    material_name: item.material_name,
+                    material_category: item.material_category,
+                    unit: item.unit,
+                    unit_price: item.unit_price,
+                    required_quantity: item.required_quantity,
+                    image_url: item.image_url || undefined,
+                    preferred_supplier_id: item.preferred_supplier_id,
+                })
+            )
+        );
+
+        const failures = results.filter(r => r.status === 'rejected');
+        if (failures.length > 0) {
+            // Partial failure — some items didn't save. Report but continue publishing.
+            reportError(
+                new Error(`[BOQ] ${failures.length}/${state.items.length} items failed to submit`),
+                { component: 'engineer_boq', action: 'publish_items' }
+            );
+            if (failures.length === state.items.length) {
+                // Total failure — abort publish
+                throw new Error(t('boq_all_items_failed', 'All items failed to submit. Please check your connection and try again.'));
+            }
         }
 
         // Publish project to marketplace
@@ -284,12 +305,12 @@ publishBtn?.addEventListener('click', async () => {
         }, 1200);
     } catch (err) {
         const message = err instanceof Error ? err.message : t('boq_publish_failed', 'Failed to publish');
-        // HIGH-002 FIX: Replace alert() with inline error banner
-        const errDiv = document.createElement('div');
-        errDiv.className = 'fixed bottom-20 start-4 end-4 rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 shadow-lg z-50 animate-fade-in-up';
-        errDiv.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${esc(message)}`;
-        document.body.appendChild(errDiv);
-        setTimeout(() => errDiv.remove(), 5000);
+        // FIX-002B: Replaced inline DOM error banner with shared showToast().
+        // Previous: Manual DOM creation (createElement + className + innerHTML + appendChild
+        // + setTimeout removal) — third error feedback pattern on the platform.
+        // Now: Uses canonical showToast() for platform-wide consistency.
+        // Standard: DRY Principle, Design System Component Unity.
+        showToast(message, 'error');
         if (publishBtn) {
             publishBtn.disabled = false;
             publishBtn.innerHTML = `<i class="ph ph-upload" aria-hidden="true"></i> ${t('boq_publish_to_marketplace', 'Publish to Marketplace')}`;

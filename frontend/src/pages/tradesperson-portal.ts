@@ -12,6 +12,11 @@ import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// TICK-016: Import shared setText from utils/dom.ts.
+// Previous: Local duplicate at L429 — identical to utils/dom.ts version.
+// donor-portal.ts and contractor-portal.ts already use the shared version.
+// Standard: DRY Principle.
+import { setText } from '../utils/dom';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -261,31 +266,33 @@ async function loadRequests(): Promise<void> {
             </div>
         `).join('');
 
-        // Attach accept handlers
-        container.querySelectorAll('.accept-req-btn').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const requestId = (btn as HTMLElement).dataset['request'];
-                if (!requestId) {return;}
-                const b = btn as HTMLButtonElement;
-                b.disabled = true;
-                b.textContent = t('tp_accepting', 'Accepting...');
-                b.setAttribute('data-i18n', 'tp_accepting');
+        // TICK-017: Event delegation for accept buttons.
+        // Previous: querySelectorAll('.accept-req-btn').forEach() attached O(N) listeners.
+        // Now: Single delegated listener on container — O(1).
+        container.addEventListener('click', async (e: MouseEvent) => {
+            const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.accept-req-btn');
+            if (!btn) { return; }
+            const requestId = btn.dataset['request'];
+            if (!requestId) { return; }
 
-                try {
-                    const res2 = await tradesperson.acceptRequest(requestId);
-                    if (!res2.success) {
-                        throw new Error(res2.error ?? 'Failed');
-                    }
-                    b.innerHTML = `<i class="ph ph-check nm-icon-gap-end"></i>${t('tp_accepted', 'Accepted')}`;
-                    b.setAttribute('data-i18n', 'tp_accepted');
-                    b.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
-                    loadStats();
-                } catch (err) {
-                    b.textContent = err instanceof Error ? err.message : 'Failed';
-                    b.removeAttribute('data-i18n');
-                    b.className = 'px-4 py-2 bg-red-100 text-red-600 text-xs font-bold rounded-lg shrink-0';
+            btn.disabled = true;
+            btn.textContent = t('tp_accepting', 'Accepting...');
+            btn.setAttribute('data-i18n', 'tp_accepting');
+
+            try {
+                const res2 = await tradesperson.acceptRequest(requestId);
+                if (!res2.success) {
+                    throw new Error(res2.error ?? 'Failed');
                 }
-            });
+                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end"></i>${t('tp_accepted', 'Accepted')}`;
+                btn.setAttribute('data-i18n', 'tp_accepted');
+                btn.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
+                loadStats();
+            } catch (err) {
+                btn.textContent = err instanceof Error ? err.message : 'Failed';
+                btn.removeAttribute('data-i18n');
+                btn.className = 'px-4 py-2 bg-red-100 text-red-600 text-xs font-bold rounded-lg shrink-0';
+            }
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Requests load failed'), { component: 'tradesperson', action: 'load_requests' });
@@ -331,23 +338,24 @@ async function loadAssignments(): Promise<void> {
             </tr>
         `).join('');
 
-        // Attach respond handlers
-        tbody.querySelectorAll('.respond-btn').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const id = (btn as HTMLElement).dataset['id'];
-                const accept = (btn as HTMLElement).dataset['accept'] === 'true';
-                if (!id) {return;}
+        // TICK-017: Event delegation for respond buttons.
+        // Previous: querySelectorAll('.respond-btn').forEach() attached O(N) listeners.
+        // Now: Single delegated listener on tbody — O(1).
+        tbody.addEventListener('click', async (e: MouseEvent) => {
+            const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.respond-btn');
+            if (!btn) { return; }
+            const id = btn.dataset['id'];
+            const accept = btn.dataset['accept'] === 'true';
+            if (!id) { return; }
 
-                try {
-                    await tradesperson.respondToAssignment(id, accept);
-                    loadAssignments();
-                    loadStats();
-                } catch (err) {
-                    reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignment response failed'), { component: 'tradesperson', action: 'respond_assignment' });
-                    // W12-001 FIX: Show user-facing error on assignment response failure.
-                    showSimpleBanner('dashboard-banner', 'error', t('tp_response_error', 'Failed to respond. Please try again.'));
-                }
-            });
+            try {
+                await tradesperson.respondToAssignment(id, accept);
+                loadAssignments();
+                loadStats();
+            } catch (err) {
+                reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignment response failed'), { component: 'tradesperson', action: 'respond_assignment' });
+                showSimpleBanner('dashboard-banner', 'error', t('tp_response_error', 'Failed to respond. Please try again.'));
+            }
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignments load failed'), { component: 'tradesperson', action: 'load_assignments' });
@@ -425,13 +433,9 @@ async function loadProfile(): Promise<void> {
     }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function setText(id: string, text: string): void {
-    const el = document.getElementById(id);
-    if (el) {el.textContent = text;}
-}
-
-// P0-NEW-001 FIX: Local esc() replaced by shared escapeHtml from utils/xss.ts
+// TICK-016: Local setText() removed — now imported from ../utils/dom (line 19).
+// Previous: Duplicate of shared utility, violating DRY principle.
+// donor-portal.ts and contractor-portal.ts already use the shared version.
 
 
 /**

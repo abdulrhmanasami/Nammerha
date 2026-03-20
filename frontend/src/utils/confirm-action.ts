@@ -62,6 +62,9 @@ interface ConfirmActionOptions {
     onCancel?: () => void;
 }
 
+// TICK-033: Import shared type-safe i18n apply utility.
+import { tryApplyI18n } from './i18n-apply';
+
 /**
  * Shows a confirmation dialog for destructive/irreversible actions.
  * Returns a Promise that resolves true if confirmed, false if cancelled.
@@ -108,10 +111,8 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
 
         document.body.appendChild(dialog);
 
-        // Apply i18n if available
-        if (typeof (window as unknown as Record<string, unknown>).applyI18n === 'function') {
-            ((window as unknown as Record<string, unknown>).applyI18n as () => void)();
-        }
+        // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
+        tryApplyI18n();
 
         // ── Event Handlers ────────────────────────────────────────────────
         function close(confirmed: boolean): void {

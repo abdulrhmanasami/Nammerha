@@ -3,6 +3,8 @@
 // PLAT-AUD-005 FIX: Centralized locale detection to eliminate boilerplate
 // duplication across 5+ dashboard pages.
 // ============================================================================
+// TICK-033: Import shared type-safe i18n apply utility.
+import { tryApplyI18n } from './i18n-apply';
 
 /**
  * Returns the ICU locale string derived from the current page language.
@@ -65,7 +67,6 @@ export { formatCents } from './format';
  * Checks for the global `applyI18n` function injected by the i18n bridge.
  */
 export function applyI18n(): void {
-    if (typeof (window as unknown as Record<string, unknown>)['applyI18n'] === 'function') {
-        ((window as unknown as Record<string, unknown>)['applyI18n'] as () => void)();
-    }
+    // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
+    tryApplyI18n();
 }

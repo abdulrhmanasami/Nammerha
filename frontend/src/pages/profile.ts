@@ -10,6 +10,8 @@ import { ROLE_META, getRoleLabel } from '../components/role-switcher';
 import { t, isRTL } from '../utils/i18n';
 // FRC-NEW-06: Loading state feedback for save buttons
 import { setLoadingState } from '../utils/loading-state';
+// TICK-015: showToast for consistent error feedback
+import { showToast } from '../utils/toast';
 // GAP-002 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { initBackToTop } from '../components/back-to-top';
@@ -64,7 +66,10 @@ function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
 
 // ─── P2-UX-002 FIX: Avatar Initials (personalized, not generic icon) ────────
 function renderAvatarInitials(fullName?: string | null): void {
-    const avatarEl = document.querySelector('.size-20.bg-trust-blue');
+    // TICK-014: Stable ID-based selector for avatar.
+    // Previous: querySelector('.size-20.bg-trust-blue') — fragile class-based selector.
+    // Standard: DOM Contract — use IDs for programmatic element references.
+    const avatarEl = document.getElementById('profile-avatar');
     if (!avatarEl) { return; }
     if (!fullName || fullName.trim().length === 0) { return; } // keep icon for guests
 
@@ -276,16 +281,11 @@ async function activateRole(role: UserRole): Promise<void> {
             context: 'activate_role',
             targetRole: role,
         });
-        // P1-F6 FIX: Show user-visible error banner in the modal.
-        // Previous: error was only sent to telemetry — user saw nothing.
-        const gridEl = document.getElementById('available-roles-grid');
-        if (gridEl) {
-            const errorBanner = document.createElement('div');
-            errorBanner.className = 'col-span-2 rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 animate-fade-in-up';
-            errorBanner.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${t('role_activation_failed', 'Role activation failed. Please try again.')}`;
-            gridEl.prepend(errorBanner);
-            setTimeout(() => errorBanner.remove(), 5000);
-        }
+        // TICK-015: Role activation error — use showToast() instead of inline banner.
+        // Previous: 6 lines of manual DOM creation, className, innerHTML, setTimeout.
+        // showToast() already handles positioning, animation, dark mode, haptics, auto-dismiss.
+        // Standard: DRY Principle, Design System Component Unity.
+        showToast(t('role_activation_failed', 'Role activation failed. Please try again.'), 'error');
     }
 }
 
@@ -477,7 +477,7 @@ function initPhotoPreview(): void {
                 previewWrap.classList.remove('hidden');
 
                 // Also update the main avatar circle for immediate in-page feedback
-                const avatarEl = document.querySelector('.size-20.bg-trust-blue');
+                const avatarEl = document.getElementById('profile-avatar');
                 if (avatarEl) {
                     avatarEl.innerHTML = `<img src="${result}" alt="Profile photo preview" class="w-full h-full rounded-full object-cover" />`;
                 }

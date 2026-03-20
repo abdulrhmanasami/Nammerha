@@ -39,7 +39,7 @@ interface ProofData {
 // ─── DOM References (PLT-G001: Updated to id-based selectors) ───────────────
 // Previous: fragile class-based querySelector chains that broke on Tailwind changes.
 // Now: id-based selectors matching the G-001 HTML overhaul skeleton structure.
-const proofTitle = document.querySelector('h2.text-2xl') as HTMLElement | null;
+const proofTitle = document.getElementById('proof-page-title');
 const projectTitle = document.getElementById('proof-project-name');
 const verifierEl = document.getElementById('proof-verifier');
 const statusBadge = document.getElementById('proof-status-badge');
@@ -56,6 +56,42 @@ const verifyBtn = document.getElementById('verify-hash-btn');
 function removeSkeleton(container: HTMLElement | null): void {
     if (!container) { return; }
     container.querySelectorAll('[data-skeleton]').forEach((el) => el.remove());
+}
+
+// ─── FIX-003: Empty Proof State ─────────────────────────────────────────────
+// Replaces skeleton loaders when no proof data is available.
+// Previous: Skeletons remained forever — infinite loading with no recovery path.
+// Standard: Nielsen #1 (System Status Visibility), Material Design 3 (Empty States).
+// ─────────────────────────────────────────────────────────────────────────────
+function renderEmptyProofState(): void {
+    // Clear page title to reflect empty state
+    if (proofTitle) {
+        proofTitle.textContent = t('proof_not_found_title', 'No Proof Available');
+    }
+
+    // Replace skeleton loaders across all dynamic elements
+    [projectTitle, verifierEl, statusBadge, descriptionEl, timestampEl, txHashEl].forEach(el => {
+        removeSkeleton(el);
+    });
+
+    // Replace description area with informative empty state
+    if (descriptionEl) {
+        descriptionEl.innerHTML = `
+            <div class="text-center py-4">
+                <i class="ph ph-binoculars text-slate-300 nm-icon-40" aria-hidden="true"></i>
+                <p class="text-slate-500 text-sm font-medium mt-3">${esc(t('proof_not_found', 'No proof of delivery found for this project.'))}</p>
+                <p class="text-slate-400 text-xs mt-1">${esc(t('proof_not_found_hint', 'The proof may not have been submitted yet, or the link is incorrect.'))}</p>
+                <a href="/donor-portal.html" class="inline-block mt-4 btn-primary nm-btn-sm">
+                    <span>${esc(t('proof_back_to_portal', 'Back to Portal'))}</span>
+                </a>
+            </div>`;
+    }
+
+    // Clear stale skeleton content
+    if (projectTitle) { projectTitle.textContent = '—'; }
+    if (timestampEl) { timestampEl.textContent = '—'; }
+    if (txHashEl) { txHashEl.textContent = '—'; }
+    if (statusBadge) { statusBadge.textContent = t('proof_badge_none', 'N/A'); }
 }
 
 // ─── Parse Parameters ───────────────────────────────────────────────────────
@@ -253,7 +289,12 @@ async function loadProof(): Promise<void> {
             }
         }
 
-        // If no proof found, skeleton loaders remain (graceful degradation)
+        // FIX-003: Infinite Skeleton Resolution.
+        // Previous: "skeleton loaders remain (graceful degradation)" — infinite loading
+        // with no timeout is NOT graceful. It's a silent dead end.
+        // Now: Explicit empty state replaces skeletons so the user knows no proof exists.
+        // Standard: Nielsen #1 (System Status Visibility), Material Design 3 (Empty States).
+        renderEmptyProofState();
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[DonorProof] Failed to load proof data'), { component: 'donor_proof', action: 'load_proof' });
         // W13-001 FIX: Show error in proof container instead of leaving skeleton.

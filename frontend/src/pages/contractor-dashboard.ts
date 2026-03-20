@@ -1,6 +1,8 @@
 import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { reportWarning } from '../error-reporter';
+// TICK-026: Import shared error-retry utility for consistent error recovery.
+import { renderTableErrorWithRetry } from '../utils/error-retry';
 import { phaseColor, phaseIcon, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { getLocale, formatDate, applyI18n } from '../utils/locale';
@@ -218,12 +220,11 @@ async function loadProjectTimeline(): Promise<void> {
             component: 'contractor-dashboard', action: 'load_timeline',
             error: err instanceof Error ? err.message : String(err),
         });
-        // W7-001 FIX: Show user-facing error in project timeline table.
-        if (tbody) {
-            const loadingRow = document.getElementById('projects-loading-row');
-            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
-            tbody.innerHTML += `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</td></tr>`;
-        }
+        // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
+        // Previous: innerHTML += appended error row alongside hidden loading/empty rows.
+        // renderTableErrorWithRetry provides consistent error display with retry button.
+        // Standard: Design System Component Unity, Nielsen #9 (Error Recovery).
+        renderTableErrorWithRetry(tbody, loadProjectTimeline, 5);
     }
 }
 
@@ -277,12 +278,8 @@ async function loadBids(): Promise<void> {
             component: 'contractor-dashboard', action: 'load_bids',
             error: err instanceof Error ? err.message : String(err),
         });
-        // W7-001 FIX: Show user-facing error in bids table.
-        if (container) {
-            const loadingRow = document.getElementById('bids-loading-row');
-            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
-            container.innerHTML += `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</td></tr>`;
-        }
+        // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
+        renderTableErrorWithRetry(container, loadBids, 5);
     }
 }
 
