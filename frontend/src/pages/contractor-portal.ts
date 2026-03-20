@@ -59,6 +59,8 @@ interface Payment {
 
 // ─── State ──────────────────────────────────────────────────────────────────
 type TabName = 'dashboard' | 'marketplace' | 'bids' | 'payments';
+// PLT-AUD-E001: Guards prevent duplicate event delegation on re-render.
+const delegationWired = { marketplace: false } as Record<string, boolean>;
 
 // PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
 const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
@@ -165,7 +167,7 @@ async function loadProjects(): Promise<void> {
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-clipboard-text nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_assigned_projects', 'No assigned projects yet')}</p>
                 <p class="text-xs mt-1">${t('ct_browse_marketplace', 'Browse the marketplace and submit bids')}</p>
             </td></tr>`;
@@ -204,7 +206,7 @@ async function loadMarketplace(): Promise<void> {
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-magnifying-glass nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_projects_available', 'No projects available')}</p>
                 <p class="text-xs mt-1">${t('ct_new_projects_appear', 'New projects will appear here when published')}</p>
             </td></tr>`;
@@ -220,7 +222,7 @@ async function loadMarketplace(): Promise<void> {
                 <td class="px-5 py-3 text-center">${p.boq_count}</td>
                 <td class="px-5 py-3 text-center">${p.bid_count}</td>
                 <td class="px-5 py-3">
-                    <button class="bid-btn px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
+                    <button type="button" class="bid-btn px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
                             data-project="${esc(p.project_id)}">
                         <span data-i18n="submit_bid">Submit Bid</span>
                     </button>
@@ -229,18 +231,19 @@ async function loadMarketplace(): Promise<void> {
         `).join('');
 
         // TICK-006: Event delegation for bid buttons.
-        // Previous: querySelectorAll('.bid-btn').forEach() attached O(N) listeners per render.
-        // Now: Single delegated listener on tbody — O(1) regardless of row count.
-        // Standard: Event Delegation, Performance.
-        tbody.addEventListener('click', (e: MouseEvent) => {
-            const btn = (e.target as HTMLElement).closest<HTMLElement>('.bid-btn');
-            if (!btn) { return; }
-            const projectId = btn.dataset['project'];
-            if (projectId) {
-                haptic.medium(); // TICK-018: Haptic on bid button click
-                openBidModal(projectId);
-            }
-        });
+        // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
+        if (!delegationWired.marketplace) {
+            delegationWired.marketplace = true;
+            tbody.addEventListener('click', (e: MouseEvent) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('.bid-btn');
+                if (!btn) { return; }
+                const projectId = btn.dataset['project'];
+                if (projectId) {
+                    haptic.medium(); // TICK-018: Haptic on bid button click
+                    openBidModal(projectId);
+                }
+            });
+        }
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderTableErrorWithRetry(tbody, loadMarketplace, 7);
     }
@@ -257,7 +260,7 @@ async function loadBids(): Promise<void> {
 
         if (bids.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-flag-banner nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-flag-banner nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_bids_yet', 'No bids submitted yet')}</p>
             </td></tr>`;
             return;
@@ -288,7 +291,7 @@ async function loadPayments(): Promise<void> {
 
         if (payments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-wallet nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-wallet nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${t('ct_no_payments_yet', 'No payments yet')}</p>
             </td></tr>`;
             return;
@@ -315,9 +318,15 @@ function openBidModal(projectId: string): void {
     const modal = document.createElement('div');
     modal.id = 'bid-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
+    // PLT-A11Y-004: ARIA semantics for div-based modal (WCAG 4.1.2).
+    // Native <dialog> is the canonical pattern (confirm-action.ts), but this
+    // modal uses div-based rendering with JS focus trap for historical reasons.
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'bid-modal-title');
     modal.innerHTML = `
         <div class="bg-surface rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <h3 class="font-bold text-lg" data-i18n="submit_bid">${t('ct_submit_bid', 'Submit Bid')}</h3>
+            <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="submit_bid">${t('ct_submit_bid', 'Submit Bid')}</h3>
             <div>
                 <label class="text-xs font-bold text-slate-500 uppercase">${t('ct_label_cost', 'Proposed Cost (USD)')}</label>
                 <input id="bid-cost" type="number" min="1" placeholder="25000" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
@@ -331,8 +340,8 @@ function openBidModal(projectId: string): void {
                 <textarea id="bid-letter" rows="3" placeholder="${t('ct_placeholder_letter', 'Why you\'re the best fit...')}" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none"></textarea>
             </div>
             <div class="flex gap-3">
-                <button id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200" data-i18n="btn_cancel">Cancel</button>
-                <button id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
+                <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200" data-i18n="btn_cancel">Cancel</button>
+                <button type="button" id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
             </div>
             <p id="bid-error" class="text-red-500 text-xs hidden"></p>
         </div>

@@ -53,6 +53,9 @@ interface CatalogItem {
     is_active: boolean;
 }
 
+// PLT-AUD-E001: Guards prevent duplicate event delegation on re-render.
+const delegationWired = { orders: false, catalog: false } as Record<string, boolean>;
+
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     initTimestamp();
@@ -172,7 +175,7 @@ async function loadOrders(): Promise<void> {
         if (!items || items.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-package text-2xl"  aria-hidden="true"></i>
+                    <i class="ph ph-package text-2xl" aria-hidden="true"></i>
                     <p class="mt-2 text-xs">${esc(t('supplier_no_orders', 'No purchase orders yet'))}</p>
                 </td>
             </tr>`;
@@ -196,18 +199,19 @@ async function loadOrders(): Promise<void> {
         `).join('');
 
         // TICK-019: Event delegation for PO action buttons.
-        // Previous: querySelectorAll('[data-action]').forEach() attached O(N) listeners per render.
-        // Now: Single delegated listener on tbody — O(1) regardless of row count.
-        // Standard: Event Delegation, Performance.
-        tbody.addEventListener('click', async (e: MouseEvent) => {
-            const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
-            if (!btn) { return; }
-            const poId = btn.getAttribute('data-po-id');
-            const action = btn.getAttribute('data-action');
-            if (!poId || !action) { return; }
-            haptic.light(); // TICK-024: Haptic on PO action
-            await updatePOStatus(poId, action as 'acknowledged' | 'shipped' | 'delivered');
-        });
+        // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
+        if (!delegationWired.orders) {
+            delegationWired.orders = true;
+            tbody.addEventListener('click', async (e: MouseEvent) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+                if (!btn) { return; }
+                const poId = btn.getAttribute('data-po-id');
+                const action = btn.getAttribute('data-action');
+                if (!poId || !action) { return; }
+                haptic.light(); // TICK-024: Haptic on PO action
+                await updatePOStatus(poId, action as 'acknowledged' | 'shipped' | 'delivered');
+            });
+        }
 
         applyI18n();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -228,7 +232,7 @@ async function loadCatalog(): Promise<void> {
         if (!items || items.length === 0) {
             container.innerHTML = `
                 <div class="col-span-full text-center py-12 text-slate-400">
-                    <i class="ph ph-storefront nm-icon-32"  aria-hidden="true"></i>
+                    <i class="ph ph-storefront nm-icon-32" aria-hidden="true"></i>
                     <p class="mt-3 text-sm">${esc(t('supplier_catalog_empty', 'Your catalog is empty'))}</p>
                     <p class="text-xs mt-1">${esc(t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'))}</p>
                 </div>`;
@@ -250,23 +254,25 @@ async function loadCatalog(): Promise<void> {
                     <p><span class="font-semibold text-slate-700">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${item.lead_time_days} ${t('supplier_days', 'days')}</p>
                 </div>
                 ${item.is_active ? `
-                <button class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
+                <button type="button" class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
                     <i class="ph ph-trash" aria-hidden="true"></i> ${t('supplier_remove', 'Remove')}
                 </button>` : ''}
             </div>
         `).join('');
 
         // TICK-020: Event delegation for deactivate buttons.
-        // Previous: querySelectorAll('[data-deactivate]').forEach() attached O(N) listeners.
-        // Now: Single delegated listener on container — O(1).
-        container.addEventListener('click', async (e: MouseEvent) => {
-            const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-deactivate]');
-            if (!btn) { return; }
-            const id = btn.getAttribute('data-deactivate');
-            if (!id) { return; }
-            haptic.light(); // TICK-024: Haptic on catalog deactivate
-            await deactivateItem(id);
-        });
+        // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
+        if (!delegationWired.catalog) {
+            delegationWired.catalog = true;
+            container.addEventListener('click', async (e: MouseEvent) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-deactivate]');
+                if (!btn) { return; }
+                const id = btn.getAttribute('data-deactivate');
+                if (!id) { return; }
+                haptic.light(); // TICK-024: Haptic on catalog deactivate
+                await deactivateItem(id);
+            });
+        }
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)
         renderErrorWithRetry(container, loadCatalog);
@@ -452,15 +458,15 @@ function renderActions(item: SupplierOrder): string {
     switch (item.status) {
         case 'generated':
         case 'sent_to_supplier':
-            return `<button class="text-xs font-semibold text-trust-blue hover:underline" data-action="acknowledged" data-po-id="${item.po_id}">
+            return `<button type="button" class="text-xs font-semibold text-trust-blue hover:underline" data-action="acknowledged" data-po-id="${item.po_id}">
                 <i class="ph ph-check-circle" aria-hidden="true"></i> ${t('supplier_acknowledge', 'Acknowledge')}
             </button>`;
         case 'acknowledged':
-            return `<button class="text-xs font-semibold text-purple-600 hover:underline" data-action="shipped" data-po-id="${item.po_id}">
+            return `<button type="button" class="text-xs font-semibold text-purple-600 hover:underline" data-action="shipped" data-po-id="${item.po_id}">
                 <i class="ph ph-truck" aria-hidden="true"></i> ${t('supplier_mark_shipped', 'Mark Shipped')}
             </button>`;
         case 'shipped':
-            return `<button class="text-xs font-semibold text-smoky-jade hover:underline" data-action="delivered" data-po-id="${item.po_id}">
+            return `<button type="button" class="text-xs font-semibold text-smoky-jade hover:underline" data-action="delivered" data-po-id="${item.po_id}">
                 <i class="ph ph-package" aria-hidden="true"></i> ${t('supplier_mark_delivered', 'Mark Delivered')}
             </button>`;
         default:

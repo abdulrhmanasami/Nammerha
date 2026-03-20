@@ -50,10 +50,10 @@ async function initMapIfNeeded(): Promise<void> {
                     // Standard: CONF-CSP-01 pattern, WHATWG CSP Level 3.
                     overlay.innerHTML = `
                         <div class="flex flex-col items-center gap-3 text-center p-4">
-                            <i class="ph ph-map-trifold text-slate-400 nm-icon-40"  aria-hidden="true"></i>
+                            <i class="ph ph-map-trifold text-slate-400 nm-icon-40" aria-hidden="true"></i>
                             <p class="text-sm font-bold text-slate-600" data-i18n="map_unavailable">Map unavailable</p>
                             <p class="text-xs text-slate-400" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
-                            <button id="map-retry-btn" class="btn-secondary nm-btn-compact">
+                            <button type="button" id="map-retry-btn" class="btn-secondary nm-btn-compact">
                                 <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
                                 <span data-i18n="common_retry">Retry</span>
                             </button>
@@ -107,9 +107,9 @@ function buildProjectCard(project: ProjectCard, index: number): string {
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
-            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48"  aria-hidden="true"></i></div>`}
+            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48" aria-hidden="true"></i></div>`}
         <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm nm-badge-pos-end">
-          <i class="ph ph-seal-check text-smoky-jade text-sm"  aria-hidden="true"></i>
+          <i class="ph ph-seal-check text-smoky-jade text-sm" aria-hidden="true"></i>
           <span class="text-3xs font-bold text-smoky-jade" data-i18n="verified_ocds">VERIFIED OCDS</span>
         </div>
       </div>
@@ -176,7 +176,7 @@ async function loadFeaturedProjects(): Promise<void> {
                 <i class="ph ph-cloud-slash text-slate-300 nm-icon-40" aria-hidden="true"></i>
                 <p class="text-slate-400 text-sm mt-2 font-medium" data-i18n="projects_load_failed">Couldn't load projects</p>
                 <p class="text-slate-400/60 text-xs mt-1" data-i18n="projects_load_retry_hint">Check your connection and try again</p>
-                <button id="projects-retry-btn" class="btn-secondary nm-btn-compact mt-3">
+                <button type="button" id="projects-retry-btn" class="btn-secondary nm-btn-compact mt-3">
                     <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
                     <span data-i18n="common_retry">Retry</span>
                 </button>
@@ -368,7 +368,7 @@ function initSearchInput(): void {
                 noResults = document.createElement('div');
                 noResults.className = 'search-no-results text-center py-8 text-slate-400 w-full';
                 noResults.innerHTML = `
-                    <i class="ph ph-magnifying-glass nm-icon-32"  aria-hidden="true"></i>
+                    <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
                     <p class="mt-2 text-sm font-medium" data-i18n="search_no_results">No projects match your search</p>`;
                 carousel.appendChild(noResults);
             }

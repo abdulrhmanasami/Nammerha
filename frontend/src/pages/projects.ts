@@ -130,6 +130,8 @@ async function fetchProjects(append = false): Promise<void> {
             if (!append) { showView('empty'); }
         }
     } catch {
+        /* Intentional: API client already logs via reportWarning.
+           Show user-facing error view — no duplicate logging needed. */
         if (!append) { showView('error'); }
     } finally {
         state.loading = false;
@@ -195,7 +197,7 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
         <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
             ${project.cover_image_url
                 ? `<img src="${esc(project.cover_image_url)}" class="w-full h-full object-cover" alt="" loading="lazy" />`
-                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48"  aria-hidden="true"></i></div>`
+                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48" aria-hidden="true"></i></div>`
             }
             <!-- Damage type badge -->
             <span class="absolute top-2 start-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full ${esc(config.color)}">

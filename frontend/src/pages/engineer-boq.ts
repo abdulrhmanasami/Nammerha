@@ -88,7 +88,7 @@ function renderItem(item: BOQItem, index: number): string {
     return `
     <div class="flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 animate-fade-in-up" data-index="${index}">
       <div class="bg-gradient-to-br from-warm-earth/20 to-slate-200 rounded-lg size-20 shrink-0 flex items-center justify-center">
-        <i class="ph ph-${esc(icon)} text-warm-earth nm-icon-30"  aria-hidden="true"></i>
+        <i class="ph ph-${esc(icon)} text-warm-earth nm-icon-30" aria-hidden="true"></i>
       </div>
       <div class="flex flex-1 flex-col justify-between">
         <div>
@@ -104,11 +104,11 @@ function renderItem(item: BOQItem, index: number): string {
             <p class="text-trust-blue text-base font-bold">${esc(formatCents(totalCostCents))}</p>
           </div>
           <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
-            <button class="qty-minus flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900 shadow-sm" data-index="${index}">
+            <button type="button" class="qty-minus flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900 shadow-sm" data-index="${index}">
               <i class="ph ph-minus ph-sm" aria-hidden="true"></i>
             </button>
             <span class="text-sm font-bold w-8 text-center">${item.required_quantity}</span>
-            <button class="qty-plus flex h-7 w-7 items-center justify-center rounded-md bg-trust-blue text-white shadow-sm" data-index="${index}">
+            <button type="button" class="qty-plus flex h-7 w-7 items-center justify-center rounded-md bg-trust-blue text-white shadow-sm" data-index="${index}">
               <i class="ph ph-plus ph-sm" aria-hidden="true"></i>
             </button>
           </div>
@@ -123,7 +123,7 @@ function renderAllItems(): void {
     if (state.items.length === 0) {
         itemsContainer.innerHTML = `
         <div class="text-center py-16">
-          <i class="ph ph-clipboard-text text-slate-300 nm-icon-64"  aria-hidden="true"></i>
+          <i class="ph ph-clipboard-text text-slate-300 nm-icon-64" aria-hidden="true"></i>
           <p class="text-slate-500 font-bold mt-4">${t('boq_no_materials', 'No materials added yet')}</p>
           <p class="text-slate-400 text-sm mt-1">${t('boq_search_hint', 'Search for materials above to build your BOQ')}</p>
         </div>`;

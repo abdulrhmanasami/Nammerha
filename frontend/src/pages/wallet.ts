@@ -131,7 +131,7 @@ async function loadTransactions(): Promise<void> {
             //    Standard: Material Design 3 (Staggered Entry), Visual Consistency.
             listEl.innerHTML = `
             <div class="text-center py-12 animate-fade-in-up">
-              <i class="ph ph-wallet text-slate-300 nm-icon-48"  aria-hidden="true"></i>
+              <i class="ph ph-wallet text-slate-300 nm-icon-48" aria-hidden="true"></i>
               <p class="text-slate-500 font-bold mt-4">${t('wallet_no_transactions', 'No transactions yet')}</p>
               <p class="text-slate-400 text-sm mt-1">${t('wallet_history_description', 'Your donation and payment history will appear here')}</p>
             </div>`;
@@ -208,6 +208,9 @@ function init(): void {
             // Dynamic import: toast is only needed on this interaction path
             import('../utils/toast').then(({ showToast }) => {
                 showToast(t('deposit_notify_confirmed', 'We\'ll notify you when deposits are available!'), 'success');
+            }).catch(() => {
+                /* Intentional: Toast module failed to load (network). Non-critical UX —
+                   the deposit dialog already closed, user action was acknowledged. */
             });
         });
     }
@@ -233,7 +236,7 @@ function init(): void {
             banner.id = 'add-funds-banner';
             banner.className = 'mt-3 rounded-xl p-3 text-xs font-medium flex items-center gap-2 bg-white/20 text-white backdrop-blur-sm animate-fade-in-up';
             banner.innerHTML = `
-                <i class="ph ph-info shrink-0 text-base"  aria-hidden="true"></i>
+                <i class="ph ph-info shrink-0 text-base" aria-hidden="true"></i>
                 <span>${t('add_funds_coming_soon', 'Direct deposits are coming soon. For now, fund projects directly from the project page.')}</span>
             `;
             parent.appendChild(banner);

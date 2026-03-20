@@ -65,6 +65,8 @@ function getEnvVar(key: string): string | undefined {
         const meta = import.meta as unknown as { env?: Record<string, string> };
         return meta.env?.[key];
     } catch {
+        /* Intentional: import.meta.env may not exist in all build contexts
+           (e.g. test runners, SSR). Return undefined to fall back to defaults. */
         return undefined;
     }
 }

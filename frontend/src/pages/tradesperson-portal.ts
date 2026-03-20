@@ -164,7 +164,7 @@ async function loadStats(): Promise<void> {
         setText('kpi-completed', String(s.completed_jobs));
         setText('kpi-earnings', formatCents(s.total_earnings));
         const ratingEl = document.getElementById('kpi-rating');
-        if (ratingEl) { ratingEl.innerHTML = s.average_rating ? `${s.average_rating.toFixed(1)} <i class="ph ph-star nm-star-rating nm-icon-gap-start"></i>` : '—'; }
+        if (ratingEl) { ratingEl.innerHTML = s.average_rating ? `${s.average_rating.toFixed(1)} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '—'; }
         setText('pending-count', String(s.pending_requests));
     } catch (err) {
         reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
@@ -179,17 +179,28 @@ async function loadActiveJobs(): Promise<void> {
     if (!tbody) {return;}
 
     try {
-        const [reqRes, assRes] = await Promise.all([
+        // PLT-AUD-P001 FIX: Was Promise.all — one timeout killed all job types.
+        // Promise.allSettled shows partial data (requests OR assignments) on partial failure.
+        // Standard: Resilient Data Loading, Syria 2G tolerance.
+        const [reqSettled, assSettled] = await Promise.allSettled([
             tradesperson.getRequests(),
             tradesperson.getAssignments('in_progress'),
         ]);
 
-        const requests = reqRes.data ?? [];
-        const assignments = assRes.data ?? [];
+        const requests = reqSettled.status === 'fulfilled' ? (reqSettled.value.data ?? []) : [];
+        const assignments = assSettled.status === 'fulfilled' ? (assSettled.value.data ?? []) : [];
+
+        // Log individual failures without killing the whole view
+        if (reqSettled.status === 'rejected') {
+            reportWarning('[Tradesperson] Requests API failed', { error: String(reqSettled.reason) });
+        }
+        if (assSettled.status === 'rejected') {
+            reportWarning('[Tradesperson] Assignments API failed', { error: String(assSettled.reason) });
+        }
 
         if (requests.length === 0 && assignments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-sun-dim nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-sun-dim nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_active_work">No active work</p>
                 <p class="text-xs mt-1" data-i18n="tp_check_available">Check Available Jobs for new opportunities</p>
             </td></tr>`;
@@ -235,7 +246,7 @@ async function loadRequests(): Promise<void> {
 
         if (requests.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <i class="ph ph-magnifying-glass nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_requests">No requests matching your trade</p>
                 <p class="text-xs mt-1" data-i18n="tp_new_requests_auto">New requests will appear here automatically</p>
             </div>`;
@@ -258,7 +269,7 @@ async function loadRequests(): Promise<void> {
                             <span><i class="ph ph-clock" aria-hidden="true"></i> ${relativeTimeAgo(r.created_at)}</span>
                         </div>
                     </div>
-                    <button class="accept-req-btn px-4 py-2 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-colors shrink-0"
+                    <button type="button" class="accept-req-btn px-4 py-2 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-colors shrink-0"
                             data-request="${esc(r.request_id)}" data-i18n="tp_accept_job">
                         Accept Job
                     </button>
@@ -284,7 +295,7 @@ async function loadRequests(): Promise<void> {
                 if (!res2.success) {
                     throw new Error(res2.error ?? 'Failed');
                 }
-                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end"></i>${t('tp_accepted', 'Accepted')}`;
+                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end" aria-hidden="true"></i>${t('tp_accepted', 'Accepted')}`;
                 btn.setAttribute('data-i18n', 'tp_accepted');
                 btn.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
                 loadStats();
@@ -311,7 +322,7 @@ async function loadAssignments(): Promise<void> {
 
         if (assignments.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-clipboard-text nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_assignments">No contractor assignments</p>
             </td></tr>`;
             return;
@@ -330,8 +341,8 @@ async function loadAssignments(): Promise<void> {
                 <td class="px-5 py-3">
                     ${a.status === 'pending' ? `
                         <div class="flex gap-1.5">
-                            <button class="respond-btn px-2.5 py-1 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
-                            <button class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
+                            <button type="button" class="respond-btn px-2.5 py-1 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
+                            <button type="button" class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
                         </div>
                     ` : '—'}
                 </td>
@@ -374,7 +385,7 @@ async function loadEarnings(): Promise<void> {
 
         if (earnings.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-coins nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-coins nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_earnings">No earnings yet</p>
             </td></tr>`;
             return;
@@ -423,7 +434,7 @@ async function loadProfile(): Promise<void> {
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${t('tp_per_day', '/day')}` : '—'}</p></div>
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} <i class="ph ph-star nm-star-rating nm-icon-gap-start"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
             </div>
         `;

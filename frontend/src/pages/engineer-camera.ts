@@ -195,7 +195,7 @@ function setupCapture(): void {
                 iconEl.classList.add('ph-check-circle');
             }
             const textEl = captureBtn.querySelector('span');
-            if (textEl) { textEl.innerHTML = `${t('cam_captured', 'Captured')} #${captureCount} <i class="ph ph-check nm-icon-gap-start"></i>`; }
+            if (textEl) { textEl.innerHTML = `${t('cam_captured', 'Captured')} #${captureCount} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`; }
 
             setTimeout(() => {
                 cameraReady.classList.remove('hidden');
@@ -294,7 +294,7 @@ function setupSync(): void {
                 (icon as HTMLElement).classList.add('nm-upload-success');
             }
             if (label) {
-                label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check nm-icon-gap-start"></i>`;
+                label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
                 // P3-CAM-002 FIX: CSS class replaces inline style.color.
                 label.classList.add('nm-upload-success');
             }

@@ -198,11 +198,11 @@ function initDonorBasket(): void {
       </div>
       <div class="flex items-center gap-3 shrink-0 ml-3">
         <div class="flex items-center gap-1">
-          <button class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="${t('basket_decrease_qty', 'Decrease quantity')}">
+          <button type="button" class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="${t('basket_decrease_qty', 'Decrease quantity')}">
             <i class="ph ph-minus ph-xs" aria-hidden="true"></i>
           </button>
           <span class="qty-display text-sm font-bold w-6 text-center">${item.quantity}</span>
-          <button class="qty-btn qty-plus size-7 rounded-full bg-trust-blue/10 hover:bg-trust-blue/20 text-trust-blue flex items-center justify-center transition-colors" aria-label="${t('basket_increase_qty', 'Increase quantity')}">
+          <button type="button" class="qty-btn qty-plus size-7 rounded-full bg-trust-blue/10 hover:bg-trust-blue/20 text-trust-blue flex items-center justify-center transition-colors" aria-label="${t('basket_increase_qty', 'Increase quantity')}">
             <i class="ph ph-plus ph-xs" aria-hidden="true"></i>
           </button>
         </div>
@@ -321,8 +321,8 @@ function initDonorBasket(): void {
             confirm.innerHTML = `
                 <span><i class="ph ph-warning" aria-hidden="true"></i> ${t('basket_clear_confirm', 'Clear all items?')}</span>
                 <div class="flex gap-2">
-                    <button id="clear-yes" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">${t('common_yes', 'Yes')}</button>
-                    <button id="clear-no" class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">${t('common_no', 'No')}</button>
+                    <button type="button" id="clear-yes" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">${t('common_yes', 'Yes')}</button>
+                    <button type="button" id="clear-no" class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">${t('common_no', 'No')}</button>
                 </div>`;
             container!.prepend(confirm);
             confirm.querySelector('#clear-yes')?.addEventListener('click', () => {

@@ -14,7 +14,7 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { revenueAdmin } from '../api';
 import type { CommissionTier, CommissionEntry, TipEntry, RevenueAdminSummary } from '../api';
-import { reportError } from '../error-reporter';
+import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml } from '../utils/xss';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
@@ -91,7 +91,7 @@ function renderRecentCommissions(commissions: CommissionEntry[]): void {
     list.innerHTML = commissions.slice(0, 8).map((c) => `
         <div class="px-5 py-3 flex items-center gap-4">
             <div class="size-8 rounded-full bg-smoky-jade/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-receipt text-smoky-jade text-sm"  aria-hidden="true"></i>
+                <i class="ph ph-receipt text-smoky-jade text-sm" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${t('rev_po_label', 'PO')} ${escapeHtml(c.po_id)} — ${formatCents(c.commission_amount_cents)}</p>
@@ -115,7 +115,7 @@ export function renderRecentTips(tips: TipEntry[]): void {
         return `
         <div class="px-5 py-3 flex items-center gap-4">
             <div class="size-8 rounded-full bg-warm-earth/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-heart text-warm-earth text-sm"  aria-hidden="true"></i>
+                <i class="ph ph-heart text-warm-earth text-sm" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${t('rev_donation_label', 'Donation')} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
@@ -133,22 +133,33 @@ async function loadDashboard(): Promise<void> {
 
     try {
         // FIX-01: Uses centralized API client with httpOnly cookies, CSRF, 30s timeout
-        const [summaryRes, tiersRes, commissionsRes] = await Promise.all([
+        // PLT-AUD-P001 FIX: Was Promise.all — one timeout killed the entire revenue dashboard.
+        // Promise.allSettled renders each section independently on partial failure.
+        // Standard: Resilient Data Loading, Syria 2G tolerance.
+        const [summarySettled, tiersSettled, commissionsSettled] = await Promise.allSettled([
             revenueAdmin.getSummary(),
             revenueAdmin.getTiers(),
             revenueAdmin.getCommissions(8),
         ]);
 
-        if (summaryRes.success && summaryRes.data) {
-            renderKpis(summaryRes.data);
+        if (summarySettled.status === 'fulfilled' && summarySettled.value.success && summarySettled.value.data) {
+            renderKpis(summarySettled.value.data);
+        } else if (summarySettled.status === 'rejected') {
+            reportWarning('[Revenue] Summary API failed', { error: String(summarySettled.reason) });
+            const kpiIds = ['kpi-total-revenue', 'kpi-commissions', 'kpi-commission-count', 'kpi-tips', 'kpi-tip-count', 'kpi-avg-tip', 'kpi-avg-tip-pct'];
+            kpiIds.forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = '—'; } });
         }
 
-        if (tiersRes.success && tiersRes.data) {
-            renderTiers(Array.isArray(tiersRes.data) ? tiersRes.data : []);
+        if (tiersSettled.status === 'fulfilled' && tiersSettled.value.success && tiersSettled.value.data) {
+            renderTiers(Array.isArray(tiersSettled.value.data) ? tiersSettled.value.data : []);
+        } else if (tiersSettled.status === 'rejected') {
+            reportWarning('[Revenue] Tiers API failed', { error: String(tiersSettled.reason) });
         }
 
-        if (commissionsRes.success && commissionsRes.data && 'rows' in commissionsRes.data) {
-            renderRecentCommissions(commissionsRes.data.rows);
+        if (commissionsSettled.status === 'fulfilled' && commissionsSettled.value.success && commissionsSettled.value.data && 'rows' in commissionsSettled.value.data) {
+            renderRecentCommissions(commissionsSettled.value.data.rows);
+        } else if (commissionsSettled.status === 'rejected') {
+            reportWarning('[Revenue] Commissions API failed', { error: String(commissionsSettled.reason) });
         }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[revenue] Dashboard load failed'), {

@@ -13,7 +13,7 @@ import { reportWarning } from '../error-reporter';
  */
 export async function registerServiceWorker(): Promise<void> {
     if (!('serviceWorker' in navigator)) {
-        console.warn('[SW] Service Workers not supported in this browser');
+        reportWarning('[SW] Service Workers not supported in this browser', { component: 'sw_register' });
         return;
     }
 
@@ -37,12 +37,15 @@ export async function registerServiceWorker(): Promise<void> {
             });
         });
 
-        // Check for updates periodically (every 60 minutes)
-        setInterval(() => {
+        // W9-001 FIX: Store interval ID and clear on page unload to prevent
+        // ghost intervals from accumulating during SPA-like navigation.
+        const swUpdateCheckId = setInterval(() => {
             registration.update().catch(() => {
-                // Silent fail — network may be unavailable
+                /* Intentional silent catch: update() fails when network is unavailable.
+                   This is expected offline behavior — retry happens on next interval tick. */
             });
         }, 60 * 60 * 1000);
+        window.addEventListener('beforeunload', () => clearInterval(swUpdateCheckId));
 
         // MED-002 FIX: Demoted from console.log to dev-only debug.
         if (import.meta.env.DEV) { console.debug('[SW] Registered, scope:', registration.scope); }

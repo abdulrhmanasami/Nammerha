@@ -31,7 +31,7 @@ export interface TourDefinition {
 // ─── Phosphor Icon Inline Helper ────────────────────────────────────────
 // Unified with the project's `<i class="ph ph-{name}">` pattern.
 // Self-hosted at /fonts/phosphor/phosphor.css — zero CDN dependency.
-const ph = (name: string): string => `<i class="ph ph-${name} nm-tour-icon"></i>`;
+const ph = (name: string): string => `<i class="ph ph-${name} nm-tour-icon" aria-hidden="true"></i>`;
 
 export const TOUR_DEFINITIONS: Record<string, TourDefinition> = {
 

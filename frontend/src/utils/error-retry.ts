@@ -34,7 +34,7 @@ export function renderErrorWithRetry(
         <div class="p-8 text-center" role="alert" aria-live="polite">
             <i class="ph ph-warning-circle text-red-400 text-3xl" aria-hidden="true"></i>
             <p class="mt-2 text-sm text-red-400" data-i18n="${i18nKey}">${fallbackText}</p>
-            <button class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
+            <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
                 Retry
             </button>
         </div>
@@ -47,6 +47,8 @@ export function renderErrorWithRetry(
             try {
                 await retryFn();
             } catch {
+                /* Intentional: Retry also failed → re-render error state.
+                   This is the terminal recovery path — user can retry again. */
                 // If retry also fails, re-render the error state
                 renderErrorWithRetry(container, retryFn, i18nKey, fallbackText);
             }
@@ -76,7 +78,7 @@ export function renderTableErrorWithRetry(
             <td colspan="${colspan}" class="px-5 py-8 text-center" role="alert" aria-live="polite">
                 <i class="ph ph-warning-circle text-red-400 text-2xl" aria-hidden="true"></i>
                 <p class="mt-2 text-sm text-red-400" data-i18n="${i18nKey}">${fallbackText}</p>
-                <button class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
+                <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
                     Retry
                 </button>
             </td>
@@ -90,6 +92,8 @@ export function renderTableErrorWithRetry(
             try {
                 await retryFn();
             } catch {
+                /* Intentional: Retry also failed → re-render error state.
+                   This is the terminal recovery path — user can retry again. */
                 renderTableErrorWithRetry(tbody, retryFn, colspan, i18nKey, fallbackText);
             }
         });

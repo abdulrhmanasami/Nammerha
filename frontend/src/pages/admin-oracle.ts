@@ -52,7 +52,7 @@ async function loadTickerData(): Promise<void> {
                     <span class="font-medium text-slate-700">${esc(entry.material_name)}:</span>
                     <span class="font-bold">${displayPrice}/${esc(entry.unit)}</span>
                     <span class="${colorClass} flex items-center font-semibold">
-                        <i class="ph ${icon} nm-icon-gap-end"></i>(${sign}${entry.price_change_pct.toFixed(1)}%)
+                        <i class="ph ${icon} nm-icon-gap-end" aria-hidden="true"></i>(${sign}${entry.price_change_pct.toFixed(1)}%)
                     </span>
                 </div>
             `;

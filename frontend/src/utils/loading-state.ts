@@ -61,7 +61,7 @@ export function setLoadingState(
         if (outcome === 'success') {
             // Brief success flash (600ms) before restoring
             btn.innerHTML = `
-                <i class="ph ph-check-circle text-lg"  aria-hidden="true"></i>
+                <i class="ph ph-check-circle text-lg" aria-hidden="true"></i>
                 <span>✓</span>`;
             // PLT-AUD5-001 FIX: CSS class replaces Tailwind bang-modifiers
             // Previous: btn.classList.add('!bg-smoky-jade', '!text-white')
@@ -74,7 +74,7 @@ export function setLoadingState(
         } else if (outcome === 'error') {
             // Brief error flash (800ms) before restoring
             btn.innerHTML = `
-                <i class="ph ph-warning-circle text-lg"  aria-hidden="true"></i>
+                <i class="ph ph-warning-circle text-lg" aria-hidden="true"></i>
                 <span>!</span>`;
             // PLT-AUD5-001 FIX: CSS class replaces Tailwind bang-modifiers
             // Previous: btn.classList.add('!bg-red-500', '!text-white')

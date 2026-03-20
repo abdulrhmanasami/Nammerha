@@ -304,7 +304,7 @@ async function loadProof(): Promise<void> {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
                 <i class="ph ph-warning-circle nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${esc(t('proof_load_error', 'Failed to load proof data'))}</p>
-                <button id="proof-retry-btn" class="mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('common_retry', 'Try Again'))}</button>
+                <button type="button" id="proof-retry-btn" class="mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('common_retry', 'Try Again'))}</button>
             </div>`;
             document.getElementById('proof-retry-btn')?.addEventListener('click', () => { location.reload(); });
         }

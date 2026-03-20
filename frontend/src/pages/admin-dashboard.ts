@@ -65,13 +65,28 @@ function initTimestamp(): void {
 // admin.getPendingVerifications(), replacing hardcoded values.
 async function loadKPIs(): Promise<void> {
     try {
-        const [statsRes, pendingRes] = await Promise.all([
+        // PLT-AUD-P001 FIX: Was Promise.all — one timeout killed both KPI sources.
+        // Promise.allSettled ensures partial data renders even if one API fails.
+        // Standard: Resilient Data Loading, Syria 2G tolerance.
+        const [statsSettled, pendingSettled] = await Promise.allSettled([
             openData.getStats(),
             admin.getPendingVerifications({ limit: 1 }),
         ]);
 
-        const stats = statsRes.data as Record<string, number> | undefined;
-        const pendingData = pendingRes.data as Record<string, unknown> | undefined;
+        const stats = statsSettled.status === 'fulfilled'
+            ? statsSettled.value.data as Record<string, number> | undefined
+            : undefined;
+        const pendingData = pendingSettled.status === 'fulfilled'
+            ? pendingSettled.value.data as Record<string, unknown> | undefined
+            : undefined;
+
+        // Log individual failures without killing the dashboard
+        if (statsSettled.status === 'rejected') {
+            reportWarning('[AdminDashboard] Stats API failed', { error: String(statsSettled.reason) });
+        }
+        if (pendingSettled.status === 'rejected') {
+            reportWarning('[AdminDashboard] Pending API failed', { error: String(pendingSettled.reason) });
+        }
 
         if (stats) {
             animateKPI('kpi-total-funded', stats['total_funded'] ?? 0, '$');
@@ -161,7 +176,7 @@ async function loadProjects(): Promise<void> {
 
         if (projects.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-buildings text-2xl"  aria-hidden="true"></i>
+                <i class="ph ph-buildings text-2xl" aria-hidden="true"></i>
                 <p class="mt-2 text-xs" data-i18n="admin_no_projects">No projects found</p>
             </td></tr>`;
             applyI18n();
@@ -256,7 +271,7 @@ async function loadAuditTrail(): Promise<void> {
 
         if (items.length === 0) {
             container.innerHTML = `<div class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-note-blank text-2xl"  aria-hidden="true"></i>
+                <i class="ph ph-note-blank text-2xl" aria-hidden="true"></i>
                 <p class="mt-2 text-xs" data-i18n="admin_no_audit">No recent audit entries</p>
             </div>`;
             applyI18n();
@@ -273,7 +288,7 @@ async function loadAuditTrail(): Promise<void> {
             return `
             <div class="px-5 py-3 flex items-center gap-4">
                 <div class="size-8 rounded-full ${iconBg} flex items-center justify-center shrink-0">
-                    <i class="ph ${icon} ${iconColor} text-sm"  aria-hidden="true"></i>
+                    <i class="ph ${icon} ${iconColor} text-sm" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium truncate">${esc(description)}</p>

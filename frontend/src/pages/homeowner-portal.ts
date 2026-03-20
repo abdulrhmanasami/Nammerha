@@ -229,7 +229,7 @@ async function loadDashboardProjects(): Promise<void> {
 
         if (projects.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <i class="ph ph-house nm-icon-40"  aria-hidden="true"></i>
+                <i class="ph ph-house nm-icon-40" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('ho_no_active_projects', 'No active projects'))}</p>
                 <p class="text-xs mt-1">${esc(t('ho_report_to_start', 'Report damage to get started'))}</p>
                 <a href="/homeowner-report.html" class="inline-block mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('ho_report_damage', 'Report Damage'))}</a>
@@ -393,7 +393,7 @@ async function loadServiceRequests(): Promise<void> {
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span></td>
                 <td class="px-5 py-3">
                     ${['open', 'matched'].includes(r.status) ? `
-                        <button class="cancel-sr-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(r.request_id)}">${esc(t('ho_cancel', 'Cancel'))}</button>
+                        <button type="button" class="cancel-sr-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(r.request_id)}">${esc(t('ho_cancel', 'Cancel'))}</button>
                     ` : '—'}
                 </td>
             </tr>
@@ -446,7 +446,7 @@ async function loadApprovals(): Promise<void> {
 
         if (approvals.length === 0) {
             container.innerHTML = `<div class="p-8 text-center text-slate-400">
-                <i class="ph ph-check-square nm-icon-32"  aria-hidden="true"></i>
+                <i class="ph ph-check-square nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${esc(t('ho_no_pending_approvals', 'No pending approvals'))}</p>
             </div>`;
             return;
@@ -469,9 +469,9 @@ async function loadApprovals(): Promise<void> {
                     </div>
                     ${a.status === 'pending' ? `
                         <div class="flex gap-1.5 shrink-0">
-                            <button class="approval-btn px-3 py-1.5 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700"
+                            <button type="button" class="approval-btn px-3 py-1.5 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700"
                                     data-id="${esc(a.approval_id)}" data-decision="approved">${esc(t('ho_approve', 'Approve'))}</button>
-                            <button class="approval-btn px-3 py-1.5 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200"
+                            <button type="button" class="approval-btn px-3 py-1.5 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200"
                                     data-id="${esc(a.approval_id)}" data-decision="rejected">${esc(t('ho_reject', 'Reject'))}</button>
                         </div>
                     ` : ''}
@@ -558,7 +558,7 @@ async function loadEscrow(): Promise<void> {
             ${(e.held_in_escrow ?? 0) > 0 ? `
                 <div class="mt-4 p-4 bg-trust-blue/5 rounded-xl border border-trust-blue/10">
                     <div class="flex items-center gap-2 text-trust-blue">
-                        <i class="ph ph-shield-check text-xl"  aria-hidden="true"></i>
+                        <i class="ph ph-shield-check text-xl" aria-hidden="true"></i>
                         <p class="text-sm font-medium">${esc(t('ho_escrow_guarantee', 'Your funds are secured in escrow and will be released upon approved construction milestones.'))}</p>
                     </div>
                 </div>

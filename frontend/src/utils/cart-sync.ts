@@ -39,6 +39,8 @@ function getCartCount(): number {
         const items: CartItem[] = JSON.parse(raw);
         return Array.isArray(items) ? items.reduce((sum, i) => sum + (i.qty || 1), 0) : 0;
     } catch {
+        /* Intentional: Corrupted localStorage or Safari private mode → return 0.
+           Cart badge is non-critical — must degrade silently. */
         return 0;
     }
 }

@@ -88,7 +88,7 @@ function showStatus(type: StatusType, autoHideMs?: number): void {
         bar.innerHTML = `
             <span class="network-status__icon"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i></span>
             <span class="network-status__text">${msg}</span>
-            <button class="network-status__action" id="nm-sw-refresh-btn">${refreshLabel}</button>
+            <button type="button" class="network-status__action" id="nm-sw-refresh-btn">${refreshLabel}</button>
         `;
         // NMR-NS-001 FIX: Replaced inline onclick="location.reload()" with addEventListener.
         // Previous: inline handler — blocked by CSP script-src 'self', making refresh button dead.
@@ -178,8 +178,9 @@ function init(): void {
         showStatus('swUpdate');
     });
 
-    // Periodic pending count check (update badge if bar is visible)
-    setInterval(async () => {
+    // W9-001 FIX: Store interval ID and clear on page unload to prevent
+    // ghost intervals from accumulating during SPA-like navigation.
+    const pendingCheckId = setInterval(async () => {
         if (!isOnline()) {
             const count = await getPendingCount();
             if (count > 0) {
@@ -200,6 +201,7 @@ function init(): void {
             }
         }
     }, 10_000);
+    window.addEventListener('beforeunload', () => clearInterval(pendingCheckId));
 }
 
 // Self-inject on DOM ready

@@ -13,12 +13,31 @@ import '../styles/role-switcher.css';
 // Standard: DRY Principle.
 import { t, isRTL } from '../utils/i18n';
 
+// ─── Design Token Bridge ────────────────────────────────────────────────────
+// PLT-AUD-DT001 FIX: Hardcoded hex values had DRIFTED from canonical Tailwind
+// config (e.g. trust-blue: #2e7ddf vs canonical #1A73E8). Now reads live CSS
+// custom properties at runtime. Hex fallbacks match tailwind.config.js exactly.
+// Standard: Single Source of Truth, Design Token Governance.
+const TOKEN_CACHE = new Map<string, string>();
+
+function cssVar(name: string, fallback: string): string {
+    const cached = TOKEN_CACHE.get(name);
+    if (cached) { return cached; }
+    if (typeof document === 'undefined') { return fallback; }
+    const value = getComputedStyle(document.documentElement)
+        .getPropertyValue(name).trim();
+    const resolved = value || fallback;
+    TOKEN_CACHE.set(name, resolved);
+    return resolved;
+}
+
 // ─── Role Metadata ──────────────────────────────────────────────────────────
 interface RoleMeta {
     icon: string;       // Phosphor icon name
     labelEn: string;
     labelAr: string;
-    accentColor: string; // CSS custom property value
+    colorToken: string;    // CSS custom property name (e.g. '--trust-blue')
+    colorFallback: string; // Hex fallback matching tailwind.config.js
     dashboardUrl: string;
     verificationLabel: string; // DUP-001: Merged from profile.ts duplicate
 }
@@ -28,7 +47,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-hand-heart',
         labelEn: 'Donor',
         labelAr: 'مانح',
-        accentColor: '#c0956c',  // warm-earth
+        colorToken: '--warm-earth',
+        colorFallback: '#D59F80',
         dashboardUrl: '/donor-portal.html',
         verificationLabel: 'Email Verified',
     },
@@ -36,7 +56,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-house',
         labelEn: 'Homeowner',
         labelAr: 'صاحب منزل',
-        accentColor: '#2e7ddf',  // trust-blue
+        colorToken: '--trust-blue',
+        colorFallback: '#1A73E8',
         dashboardUrl: '/homeowner-portal.html',
         verificationLabel: 'Property Proof',
     },
@@ -44,7 +65,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-hard-hat',
         labelEn: 'Engineer',
         labelAr: 'مهندس',
-        accentColor: '#5a8a7a',  // smoky-jade
+        colorToken: '--smoky-jade',
+        colorFallback: '#109173',
         // LOW-001 FIX: Was incorrectly pointing to contractor-portal.html
         dashboardUrl: '/engineer-boq.html',
         verificationLabel: 'License Verified',
@@ -53,7 +75,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-truck',
         labelEn: 'Supplier',
         labelAr: 'مورّد',
-        accentColor: '#d4a72c',  // warning-yellow
+        colorToken: '--warning-yellow',
+        colorFallback: '#FCC934',
         dashboardUrl: '/supplier-dashboard.html',
         verificationLabel: 'Business KYB',
     },
@@ -61,7 +84,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-buildings',
         labelEn: 'Contractor',
         labelAr: 'مقاول',
-        accentColor: '#2e7ddf',  // trust-blue
+        colorToken: '--trust-blue',
+        colorFallback: '#1A73E8',
         dashboardUrl: '/contractor-dashboard.html',
         verificationLabel: 'Licensed',
     },
@@ -69,7 +93,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-wrench',
         labelEn: 'Tradesperson',
         labelAr: 'حرفي',
-        accentColor: '#5a8a7a',  // smoky-jade
+        colorToken: '--smoky-jade',
+        colorFallback: '#109173',
         dashboardUrl: '/tradesperson-portal.html',
         verificationLabel: 'Certified',
     },
@@ -77,7 +102,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-shield-check',
         labelEn: 'Admin',
         labelAr: 'مدير',
-        accentColor: '#ef4444',  // red
+        colorToken: '--red-500',
+        colorFallback: '#ef4444',
         dashboardUrl: '/admin-dashboard.html',
         verificationLabel: 'System Admin',
     },
@@ -85,7 +111,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-detective',
         labelEn: 'Auditor',
         labelAr: 'مدقق',
-        accentColor: '#8b5cf6',  // purple
+        colorToken: '--violet-500',
+        colorFallback: '#8b5cf6',
         dashboardUrl: '/compliance-dashboard.html',
         verificationLabel: 'Auditor',
     },
@@ -118,7 +145,9 @@ function getRoleIcon(role: string): string {
  * Get accent color for a role.
  */
 function getRoleColor(role: string): string {
-    return ROLE_META[role]?.accentColor ?? '#64748b';
+    const meta = ROLE_META[role];
+    if (!meta) { return cssVar('--slate-500', '#64748b'); }
+    return cssVar(meta.colorToken, meta.colorFallback);
 }
 
 /**
@@ -145,13 +174,13 @@ function renderSwitcher(): void {
 
     const activeRole = user.activeRole ?? user.role;
     const meta = ROLE_META[activeRole];
-    const color = meta?.accentColor ?? '#64748b';
+    const color = meta ? cssVar(meta.colorToken, meta.colorFallback) : cssVar('--slate-500', '#64748b');
     const icon = getRoleIcon(activeRole);
     const label = getRoleLabel(activeRole);
     const hasMultiRoles = user.roles.length > 1;
 
     mountEl.innerHTML = `
-        <button class="role-switcher-trigger" 
+        <button type="button" class="role-switcher-trigger" 
                 aria-expanded="${isDropdownOpen}" 
                 aria-haspopup="listbox"
                 aria-label="${t('switch_role', 'Switch Role')}"
@@ -262,7 +291,7 @@ function renderDropdown(roles: UserRole[], activeRole: UserRole): string {
 
         return `
             <div class="role-option-row ${isActive ? 'role-option-active' : ''}">
-                <button class="role-option" data-role="${role}" 
+                <button type="button" class="role-option" data-role="${role}" 
                         role="option" aria-selected="${isActive}">
                     <span class="role-option-icon nm-role-icon-bg" style="--role-color: ${color}">
                         <i class="ph ${icon}" aria-hidden="true"></i>
@@ -287,7 +316,7 @@ function renderDropdown(roles: UserRole[], activeRole: UserRole): string {
             <div class="role-dropdown-list">
                 ${roleItems}
             </div>
-            <button class="role-add-btn">
+            <button type="button" class="role-add-btn">
                 <i class="ph ph-plus-circle" aria-hidden="true"></i>
                 <span>${t('add_role', 'Add a new role')}</span>
             </button>

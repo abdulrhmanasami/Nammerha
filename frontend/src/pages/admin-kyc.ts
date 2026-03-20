@@ -28,6 +28,11 @@ interface KycEntry {
 
 let applicants: KycEntry[] = [];
 let selectedIndex = -1;
+// TICKET-002: Module-scoped timer for verify confirmation auto-revert.
+let verifyRevertTimer: ReturnType<typeof setTimeout> | null = null;
+// TICKET-003: Module-scoped reject state to enable cross-applicant reset.
+let rejectInputVisible = false;
+let rejectInput: HTMLInputElement | null = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadKycStats();
@@ -70,7 +75,7 @@ async function loadKycQueue(): Promise<void> {
             container.innerHTML = `
                 <div class="p-8 flex flex-col items-center justify-center text-center">
                     <div class="size-12 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-3">
-                        <i class="ph ph-check-circle text-smoky-jade text-2xl"  aria-hidden="true"></i>
+                        <i class="ph ph-check-circle text-smoky-jade text-2xl" aria-hidden="true"></i>
                     </div>
                     <p class="text-sm font-bold text-slate-600">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
                     <p class="text-xs text-slate-400 mt-1">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
@@ -97,7 +102,7 @@ async function loadKycQueue(): Promise<void> {
                      data-index="${index}" data-user-id="${esc(entry.user_id)}"
                      role="option" tabindex="0" aria-selected="false">
                     <div class="size-10 rounded-full ${bgClass} flex items-center justify-center shrink-0">
-                        <i class="ph ${iconClass} ${textClass} text-lg"  aria-hidden="true"></i>
+                        <i class="ph ${iconClass} ${textClass} text-lg" aria-hidden="true"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-bold truncate">${esc(entry.full_name)}</p>
@@ -118,7 +123,7 @@ async function loadKycQueue(): Promise<void> {
         container.innerHTML = `
             <div class="p-6 text-center">
                 <p class="text-sm text-slate-400">${esc(t('kyc_load_error', 'Unable to load KYC queue'))}</p>
-                <button id="kyc-retry-btn" class="mt-2 text-xs text-trust-blue font-bold hover:underline">${esc(t('common_retry', 'Retry'))}</button>
+                <button type="button" id="kyc-retry-btn" class="mt-2 text-xs text-trust-blue font-bold hover:underline">${esc(t('common_retry', 'Retry'))}</button>
             </div>
         `;
         const retryBtn = document.getElementById('kyc-retry-btn');
@@ -242,7 +247,7 @@ function renderDocumentViewer(index: number): void {
             docList.innerHTML = credentials.map((cred) => `
                 <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <div class="size-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                        <i class="${cred.icon} text-trust-blue text-lg"  aria-hidden="true"></i>
+                        <i class="${cred.icon} text-trust-blue text-lg" aria-hidden="true"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium truncate">${esc(cred.name)}</p>
@@ -260,30 +265,44 @@ function renderDocumentViewer(index: number): void {
         const verifyBtn = document.getElementById('verify-btn') as HTMLButtonElement | null;
         const rejectBtn = document.getElementById('reject-btn') as HTMLButtonElement | null;
 
+        // TICKET-002: Clear dangling verify confirmation timer on applicant change.
+        if (verifyRevertTimer !== null) {
+            clearTimeout(verifyRevertTimer);
+            verifyRevertTimer = null;
+        }
+
+        // TICKET-003: Reset reject state to prevent cross-applicant data contamination.
+        if (rejectInputVisible) {
+            rejectInputVisible = false;
+            rejectInput?.remove();
+            rejectInput = null;
+        }
+
         if (entry.kyc_verification_status === 'verified' || entry.kyc_verification_status === 'rejected') {
             /* Already processed — disable buttons */
             if (verifyBtn) {
                 verifyBtn.disabled = true;
                 verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 verifyBtn.innerHTML = entry.kyc_verification_status === 'verified'
-                    ? `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`
-                    : `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                    ? `<i class="ph ph-seal-check text-lg" aria-hidden="true"></i> ${t('kyc_verified_granted', 'Verified Badge Granted')}`
+                    : `<i class="ph ph-seal-check text-lg" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
             }
             if (rejectBtn) {
                 rejectBtn.disabled = true;
                 rejectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg" aria-hidden="true"></i> ${t('kyc_reject_btn', 'Reject & Request Resubmission')}`;
             }
         } else {
             /* Pending — enable buttons */
             if (verifyBtn) {
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
             }
             if (rejectBtn) {
                 rejectBtn.disabled = false;
                 rejectBtn.classList.remove('opacity-50', 'opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg"  aria-hidden="true"></i> ${t('kyc_reject_btn', 'Reject & Request Resubmission')}`;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg" aria-hidden="true"></i> ${t('kyc_reject_btn', 'Reject & Request Resubmission')}`;
             }
         }
     }
@@ -327,22 +346,29 @@ function initActionButtons(): void {
                 verifyPending = true;
                 verifyBtn.classList.add('bg-amber-500', 'text-white');
                 verifyBtn.classList.remove('bg-smoky-jade/10', 'text-smoky-jade');
-                verifyBtn.innerHTML = `<i class="ph ph-warning text-lg"  aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(entry.full_name)}`;
-                setTimeout(() => {
+                verifyBtn.innerHTML = `<i class="ph ph-warning text-lg" aria-hidden="true"></i> ${t('kyc_confirm_verify', 'Click again to grant badge to')} ${esc(entry.full_name)}`;
+                // TICKET-002: Store timer ID so it can be cleared on applicant change.
+                verifyRevertTimer = setTimeout(() => {
                     if (verifyPending) {
                         verifyPending = false;
                         verifyBtn.classList.remove('bg-amber-500', 'text-white');
                         verifyBtn.classList.add('bg-smoky-jade/10', 'text-smoky-jade');
-                        verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                        verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
                     }
+                    verifyRevertTimer = null;
                 }, 5000);
                 return;
             }
 
             /* Second click: API call */
             verifyPending = false;
+            // TICKET-002: Clear timer on confirmed action.
+            if (verifyRevertTimer !== null) {
+                clearTimeout(verifyRevertTimer);
+                verifyRevertTimer = null;
+            }
             verifyBtn.disabled = true;
-            verifyBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"  aria-hidden="true"></i> ${t('kyc_verifying', 'Verifying...')}`;
+            verifyBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> ${t('kyc_verifying', 'Verifying...')}`;
 
             try {
                 await admin.updateKycStatus(entry.user_id, { decision: 'verified' });
@@ -356,16 +382,15 @@ function initActionButtons(): void {
                 verifyBtn.disabled = false;
                 verifyBtn.classList.remove('bg-amber-500', 'text-white');
                 verifyBtn.classList.add('bg-smoky-jade/10', 'text-smoky-jade');
-                verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg"  aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
+                verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg" aria-hidden="true"></i> ${t('kyc_verify_btn', 'Grant Verified Badge')}`;
                 showToast(t('kyc_verify_error', 'Failed to verify — please try again'), 'error');
             }
         });
     }
 
+    // TICKET-003: Reject state (rejectInputVisible, rejectInput) is now module-scoped
+    // so renderDocumentViewer() can reset it on applicant change.
     if (rejectBtn) {
-        let rejectInputVisible = false;
-        let rejectInput: HTMLInputElement | null = null;
-
         rejectBtn.addEventListener('click', async () => {
             if (selectedIndex < 0) { return; }
             const entry = applicants[selectedIndex];
@@ -379,7 +404,7 @@ function initActionButtons(): void {
                 rejectInput.className = 'w-full mt-2 px-3 py-2 text-sm rounded-lg border border-rose-200 bg-rose-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300';
                 rejectBtn.parentElement?.insertBefore(rejectInput, rejectBtn.nextSibling);
                 rejectInput.focus();
-                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg"  aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg" aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
                 rejectBtn.classList.add('border-rose-300', 'text-rose-600');
                 return;
             }
@@ -393,12 +418,13 @@ function initActionButtons(): void {
             }
 
             rejectBtn.disabled = true;
-            rejectBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"  aria-hidden="true"></i> ${t('kyc_rejecting', 'Rejecting...')}`;
+            rejectBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> ${t('kyc_rejecting', 'Rejecting...')}`;
 
             try {
                 await admin.updateKycStatus(entry.user_id, { decision: 'rejected', reason });
                 rejectInputVisible = false;
                 rejectInput?.remove();
+                rejectInput = null;
                 entry.kyc_verification_status = 'rejected';
                 updateRowBadge(selectedIndex, 'rejected');
                 renderDocumentViewer(selectedIndex);
@@ -406,7 +432,7 @@ function initActionButtons(): void {
                 loadKycStats();
             } catch {
                 rejectBtn.disabled = false;
-                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg"  aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
+                rejectBtn.innerHTML = `<i class="ph ph-x-circle text-lg" aria-hidden="true"></i> ${t('kyc_submit_rejection', 'Submit Rejection')}`;
                 showToast(t('kyc_reject_error', 'Failed to reject — please try again'), 'error');
             }
         });
@@ -421,11 +447,12 @@ function updateRowBadge(index: number, status: 'verified' | 'rejected'): void {
     const badge = row.querySelector('.rounded-full') as HTMLElement | null;
     if (!badge) { return; }
 
+    // TICKET-001: Added missing aria-hidden="true" on badge icons.
     if (status === 'verified') {
         badge.className = 'bg-smoky-jade/10 text-smoky-jade text-3xs font-bold px-2 py-0.5 rounded-full';
-        badge.innerHTML = `<i class="ph ph-check nm-icon-gap-end"></i>${t('kyc_verified', 'Verified')}`;
+        badge.innerHTML = `<i class="ph ph-check nm-icon-gap-end" aria-hidden="true"></i>${t('kyc_verified', 'Verified')}`;
     } else {
         badge.className = 'bg-rose-50 text-rose-500 text-3xs font-bold px-2 py-0.5 rounded-full';
-        badge.innerHTML = `<i class="ph ph-x nm-icon-gap-end"></i>${t('kyc_rejected', 'Rejected')}`;
+        badge.innerHTML = `<i class="ph ph-x nm-icon-gap-end" aria-hidden="true"></i>${t('kyc_rejected', 'Rejected')}`;
     }
 }

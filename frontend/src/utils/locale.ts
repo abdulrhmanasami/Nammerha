@@ -33,6 +33,8 @@ export function formatDate(iso: string | null | undefined): string {
             month: 'short', day: 'numeric', year: 'numeric',
         });
     } catch {
+        /* Intentional: Invalid ISO string → show em-dash fallback.
+           Date constructor may throw on malformed input from API. */
         return '—';
     }
 }
@@ -51,6 +53,8 @@ export function formatDateTime(iso: string | null | undefined): string {
             hour: '2-digit', minute: '2-digit',
         });
     } catch {
+        /* Intentional: Invalid ISO string → show em-dash fallback.
+           Date constructor may throw on malformed input from API. */
         return '—';
     }
 }

@@ -85,7 +85,7 @@ async function loadComplianceMetrics(): Promise<void> {
         // Audit trail integrity
         const auditIntegrity = document.getElementById('audit-integrity');
         if (auditIntegrity) {
-            auditIntegrity.innerHTML = String(data['audit_integrity'] ?? '<i class="ph ph-check-circle nm-icon-gap-end text-smoky-jade"></i>Intact');
+            auditIntegrity.innerHTML = String(data['audit_integrity'] ?? '<i class="ph ph-check-circle nm-icon-gap-end text-smoky-jade" aria-hidden="true"></i>Intact');
         }
 
         // Spatial accuracy
@@ -112,7 +112,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
         if (reviews.length === 0) {
             tbody.innerHTML = `<tr class="border-t border-slate-100">
                 <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-check-circle text-2xl"  aria-hidden="true"></i>
+                    <i class="ph ph-check-circle text-2xl" aria-hidden="true"></i>
                     <p class="mt-2 text-xs">${esc(t('compliance_all_reviewed', 'All escrow releases reviewed'))}</p>
                 </td>
             </tr>`;
@@ -132,8 +132,8 @@ async function loadEscrowReviewQueue(): Promise<void> {
                 </td>
                 <td class="px-5 py-3 text-slate-500 text-xs">${esc(String(r['submitted_at'] ?? '—'))}</td>
                 <td class="px-5 py-3 flex gap-2">
-                    <button class="text-xs font-semibold text-smoky-jade hover:underline" data-action="approve" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_approve', 'Approve'))}</button>
-                    <button class="text-xs font-semibold text-danger-red hover:underline" data-action="flag" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_flag', 'Flag'))}</button>
+                    <button type="button" class="text-xs font-semibold text-smoky-jade hover:underline" data-action="approve" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_approve', 'Approve'))}</button>
+                    <button type="button" class="text-xs font-semibold text-danger-red hover:underline" data-action="flag" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_flag', 'Flag'))}</button>
                 </td>
             </tr>
         `).join('');

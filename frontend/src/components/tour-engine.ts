@@ -173,7 +173,7 @@ function showStep(index: number): void {
     tooltip.innerHTML = `
         <div class="nmr-tour-header">
             <span class="nmr-tour-step-count">${index + 1} / ${steps.length}</span>
-            <button class="nmr-tour-close" aria-label="Close" data-action="skip"><i class="ph ph-x"></i></button>
+            <button type="button" class="nmr-tour-close" aria-label="Close" data-action="skip"><i class="ph ph-x" aria-hidden="true"></i></button>
         </div>
         <div class="nmr-tour-progress">
             <div class="nmr-tour-progress-bar nm-progress-bar" style="--progress:${((index + 1) / steps.length) * 100}%"></div>
@@ -181,10 +181,10 @@ function showStep(index: number): void {
         <h3 class="nmr-tour-title">${title}</h3>
         <p class="nmr-tour-content">${content}</p>
         <div class="nmr-tour-actions">
-            <button class="nmr-tour-btn nmr-tour-btn--skip" data-action="skip">${skipLabel}</button>
+            <button type="button" class="nmr-tour-btn nmr-tour-btn--skip" data-action="skip">${skipLabel}</button>
             <div class="nmr-tour-nav">
-                ${!isFirst ? `<button class="nmr-tour-btn nmr-tour-btn--prev" data-action="prev">${prevLabel}</button>` : ''}
-                <button class="nmr-tour-btn nmr-tour-btn--next" data-action="${isLast ? 'done' : 'next'}">
+                ${!isFirst ? `<button type="button" class="nmr-tour-btn nmr-tour-btn--prev" data-action="prev">${prevLabel}</button>` : ''}
+                <button type="button" class="nmr-tour-btn nmr-tour-btn--next" data-action="${isLast ? 'done' : 'next'}">
                     ${isLast ? doneLabel : nextLabel}
                 </button>
             </div>

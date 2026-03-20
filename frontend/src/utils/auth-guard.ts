@@ -48,7 +48,7 @@ function showAuthRequired(): void {
     mainContent.innerHTML = `
         <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
             <div class="size-20 rounded-full bg-trust-blue/10 flex items-center justify-center">
-                <i class="ph ph-lock text-trust-blue nm-icon-40"  aria-hidden="true"></i>
+                <i class="ph ph-lock text-trust-blue nm-icon-40" aria-hidden="true"></i>
             </div>
             <h2 class="text-lg font-bold" data-i18n="auth_required">Sign in required</h2>
             <p class="text-sm text-slate-500 max-w-xs" data-i18n="auth_required_msg">

@@ -6,7 +6,7 @@ import { renderErrorWithRetry } from '../utils/error-retry';
 import { auth, roles as rolesApi } from '../api';
 // DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
 // instead of maintaining a duplicate copy.
-import { ROLE_META, getRoleLabel } from '../components/role-switcher';
+import { ROLE_META, getRoleLabel, getRoleColor } from '../components/role-switcher';
 import { t, isRTL } from '../utils/i18n';
 // FRC-NEW-06: Loading state feedback for save buttons
 import { setLoadingState } from '../utils/loading-state';
@@ -142,7 +142,7 @@ async function loadUserRoles(): Promise<void> {
     if (!user) {
         rolesListEl.innerHTML = `
             <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
-                <i class="ph ph-sign-in text-2xl"  aria-hidden="true"></i>
+                <i class="ph ph-sign-in text-2xl" aria-hidden="true"></i>
                 <p class="mt-2">${t('profile_sign_in_roles', 'Sign in to manage your roles')}</p>
             </div>`;
         return;
@@ -175,7 +175,7 @@ async function loadUserRoles(): Promise<void> {
         if (!meta) { return ''; }
         const isActive = role === (user.activeRole ?? user.role);
         const label = escapeHtml(getRoleLabel(role));
-        const color = meta.accentColor;
+        const color = getRoleColor(role);
         const verLabel = escapeHtml(meta.verificationLabel);
 
         return `
@@ -189,7 +189,7 @@ async function loadUserRoles(): Promise<void> {
                         ${isActive ? `<span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">${t('profile_active', 'Active')}</span>` : ''}
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
-                        <i class="ph ph-shield-check text-emerald-500 text-xs"  aria-hidden="true"></i>
+                        <i class="ph ph-shield-check text-emerald-500 text-xs" aria-hidden="true"></i>
                         <span class="text-3xs text-slate-400">${verLabel}</span>
                     </div>
                 </div>
@@ -228,10 +228,10 @@ async function loadAvailableRoles(): Promise<void> {
             const meta = ROLE_META[r.role_name];
             if (!meta) { return ''; }
             const label = escapeHtml(isRTL() ? r.display_name_ar : r.display_name_en);
-            const color = meta.accentColor;
+            const color = getRoleColor(r.role_name);
 
             return `
-                <button class="activate-role-btn flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-2 hover:shadow-sm transition-all text-center"
+                <button type="button" class="activate-role-btn flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-2 hover:shadow-sm transition-all text-center"
                         data-role="${escapeHtml(r.role_name)}"
                         style="--role-color: ${color}">
                     <div class="size-10 rounded-lg flex items-center justify-center nm-role-icon-bg">
