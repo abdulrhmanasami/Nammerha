@@ -269,7 +269,7 @@ async function loadRequests(): Promise<void> {
                             <h4 class="font-medium">${esc(r.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">${esc(r.description ?? 'No description')}</p>
+                        <p class="text-xs text-slate-500 mt-1">${esc(r.description ?? t('tp_no_description', 'No description'))}</p>
                         <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
                             <span><i class="ph ph-user" aria-hidden="true"></i> ${esc(r.homeowner_name)}</span>
                             ${r.address_text ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(r.address_text)}</span>` : ''}

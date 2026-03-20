@@ -490,7 +490,16 @@ function compressImage(file: File, maxDimension = 1200, quality = 0.75): Promise
             resolve(dataUrl);
         };
         img.onerror = () => reject(new Error('Image load failed'));
-        img.src = URL.createObjectURL(file);
+        // TICKET-002 FIX: Revoke blob URL after image loads to prevent memory leak.
+        // Previous: URL.createObjectURL(file) created a blob reference that was never
+        // released — accumulating with each photo upload. On Syrian mobile devices with
+        // limited RAM, 5 unreleased blobs can cause the browser tab to crash.
+        // Standard: MDN Web API — "Call URL.revokeObjectURL() once the URL is no longer needed."
+        const objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+        const revokeUrl = (): void => { URL.revokeObjectURL(objectUrl); };
+        img.addEventListener('load', revokeUrl, { once: true });
+        img.addEventListener('error', revokeUrl, { once: true });
     });
 }
 
@@ -557,11 +566,15 @@ if (photoUploadZone && photoInput) {
 // STEP 4 — POPULATE CONFIRMATION SUMMARY
 // ═══════════════════════════════════════════════════════════════════════════
 function populateSummary(): void {
+    // TICKET-003 FIX: Wrapped hardcoded English labels with i18n t() calls.
+    // Previous: 'Structural Damage', 'Plumbing', etc. — displayed in English
+    // for Arabic-speaking Syrian homeowners on the confirmation screen.
+    // Standard: i18n Completeness — zero hardcoded user-facing strings.
     const typeMap: Record<string, string> = {
-        structural: 'Structural Damage',
-        plumbing: 'Plumbing',
-        electrical: 'Electrical',
-        general: 'General Repair',
+        structural: t('damage_type_structural', 'Structural Damage'),
+        plumbing: t('damage_type_plumbing', 'Plumbing'),
+        electrical: t('damage_type_electrical', 'Electrical'),
+        general: t('damage_type_general', 'General Repair'),
     };
 
     const summaryType = document.getElementById('summary-type');
@@ -571,10 +584,15 @@ function populateSummary(): void {
 
     if (summaryType) { summaryType.textContent = typeMap[state.damageType || ''] || '—'; }
     if (summaryLocation) { summaryLocation.textContent = state.neighborhood || state.governorate || '—'; }
-    if (summaryPhotos) { summaryPhotos.textContent = state.photoCount > 0 ? `${state.photoCount} uploaded` : 'None'; }
+    // TICKET-003 FIX: "uploaded" and "Pending..." wrapped with t().
+    if (summaryPhotos) {
+        summaryPhotos.textContent = state.photoCount > 0
+            ? `${state.photoCount} ${t('hr_photos_uploaded', 'uploaded')}`
+            : t('hr_photos_none', 'None');
+    }
     if (summaryId) {
         // P1-002 FIX: Use real project ID from API response
-        summaryId.textContent = state.projectId ?? 'Pending...';
+        summaryId.textContent = state.projectId ?? t('hr_id_pending', 'Pending...');
     }
 }
 

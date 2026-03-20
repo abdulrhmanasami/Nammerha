@@ -141,6 +141,9 @@ export const projects = {
     }) => request(`/projects/${projectId}/boq`, {
         method: 'POST',
         body: JSON.stringify(data),
+        // TICKET-011 FIX: Idempotency-Key prevents duplicate BOQ items on
+        // degraded-network retry during parallel Promise.allSettled submission.
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 
     publish: (projectId: string) =>
@@ -261,10 +264,13 @@ export const admin = {
     getKycStats: () =>
         request<{ pending: number; verified: number; rejected: number; total: number }>('/admin/kyc/stats'),
 
+    // TICKET-010 FIX: Idempotency-Key prevents double KYC verify/reject on
+    // mobile double-tap. KYC decisions are critical admin actions.
     updateKycStatus: (userId: string, data: { decision: 'verified' | 'rejected'; reason?: string }) =>
         request(`/admin/kyc/${userId}/decision`, {
             method: 'POST',
             body: JSON.stringify(data),
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
         }),
 };
 
@@ -453,6 +459,8 @@ export const matchmaking = {
     matchProject: (projectId: string) =>
         request(`/matchmaking/match/${projectId}`),
 
+    // TICKET-006 FIX: Idempotency-Key prevents duplicate bid creation on
+    // mobile double-tap or degraded-network retry. Bid creates a financial proposal.
     submitBid: (projectId: string, data: {
         proposed_cost: number;
         estimated_days: number;
@@ -461,13 +469,19 @@ export const matchmaking = {
     }) => request(`/matchmaking/projects/${projectId}/bid`, {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 
     getProjectBids: (projectId: string) =>
         request(`/matchmaking/projects/${projectId}/bids`),
 
+    // TICKET-009 FIX: Idempotency-Key prevents duplicate bid acceptance on
+    // mobile double-tap. Accepting a bid creates a financial commitment.
     acceptBid: (bidId: string) =>
-        request(`/matchmaking/bids/${bidId}/accept`, { method: 'POST' }),
+        request(`/matchmaking/bids/${bidId}/accept`, {
+            method: 'POST',
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
+        }),
 
     getScoreBreakdown: (engineerId: string) =>
         request(`/matchmaking/engineers/${engineerId}/score`),
@@ -642,11 +656,19 @@ export const compliance = {
     getEscrowReviews: () =>
         request('/compliance/escrow-reviews'),
 
+    // TICKET-001 FIX: Idempotency-Key prevents duplicate escrow mutations on
+    // mobile double-tap or degraded-network retry. Matches donations.create pattern.
     approveReview: (reference: string) =>
-        request(`/compliance/escrow-reviews/${reference}/approve`, { method: 'POST' }),
+        request(`/compliance/escrow-reviews/${reference}/approve`, {
+            method: 'POST',
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
+        }),
 
     flagReview: (reference: string) =>
-        request(`/compliance/escrow-reviews/${reference}/flag`, { method: 'POST' }),
+        request(`/compliance/escrow-reviews/${reference}/flag`, {
+            method: 'POST',
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
+        }),
 };
 
 // ─── Translation ────────────────────────────────────────────────────────────
@@ -750,8 +772,13 @@ export const tradesperson = {
         request<ServiceRequest[]>('/tradesperson/requests'),
 
     /** POST /api/tradesperson/requests/:id/accept — Accept a direct request */
+    // TICKET-005 FIX: Idempotency-Key prevents duplicate acceptance on
+    // mobile double-tap. Accepting creates a binding commitment.
     acceptRequest: (requestId: string) =>
-        request(`/tradesperson/requests/${requestId}/accept`, { method: 'POST' }),
+        request(`/tradesperson/requests/${requestId}/accept`, {
+            method: 'POST',
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
+        }),
 
     /** GET /api/tradesperson/assignments — Contractor assignments (Subcontractor mode) */
     getAssignments: (status?: string) => {
@@ -760,10 +787,13 @@ export const tradesperson = {
     },
 
     /** POST /api/tradesperson/assignments/:id/respond — Accept or decline assignment */
+    // TICKET-008 FIX: Idempotency-Key prevents duplicate accept/decline on
+    // mobile double-tap. Responding creates a binding commitment.
     respondToAssignment: (assignmentId: string, accept: boolean) =>
         request(`/tradesperson/assignments/${assignmentId}/respond`, {
             method: 'POST',
             body: JSON.stringify({ accept }),
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
         }),
 
     /** GET /api/tradesperson/earnings — Payment history */
@@ -1235,6 +1265,8 @@ export const homeowner = {
         request(`/homeowner/projects/${projectId}/bids`),
 
     /** POST /api/homeowner/service-requests — Create Thumbtack request */
+    // TICKET-007 FIX: Idempotency-Key prevents duplicate service request creation
+    // on mobile double-tap or degraded-network retry.
     createServiceRequest: (data: {
         trade_needed: string;
         title: string;
@@ -1246,6 +1278,7 @@ export const homeowner = {
     }) => request<HomeownerServiceRequest>('/homeowner/service-requests', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
     }),
 
     /** GET /api/homeowner/service-requests — My service requests */

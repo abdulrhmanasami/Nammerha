@@ -18,6 +18,10 @@ import { tryApplyI18n } from '../utils/i18n-apply';
    wrapper — including 30s AbortController timeout for Syria's network conditions.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+// TICKET-001 FIX: In-flight guard prevents double-submit on review actions.
+// Keyed by reference ID — blocks duplicate clicks while API call is pending.
+const actionsInFlight = new Set<string>();
+
 document.addEventListener('DOMContentLoaded', () => {
     initTimestamp();
     loadKPIs();
@@ -171,7 +175,25 @@ async function loadEscrowReviewQueue(): Promise<void> {
 }
 
 /* ─── Review Action Handler ─── */
+// TICKET-001 FIX: Double-submit guard + visual feedback on review action buttons.
+// Previous: No guard — rapid clicks or network retry could fire duplicate POST
+// requests, corrupting escrow audit state.
+// Standard: Nielsen #5 (Error Prevention), Idempotent State Mutations.
 async function handleReviewAction(action: 'approve' | 'flag', reference: string): Promise<void> {
+    // Guard: skip if this reference is already being processed
+    if (actionsInFlight.has(reference)) { return; }
+    actionsInFlight.add(reference);
+
+    // Visual feedback: disable the clicked button and show spinner
+    const actionBtn = document.querySelector<HTMLButtonElement>(
+        `[data-action="${action}"][data-ref="${reference}"]`
+    );
+    const originalHTML = actionBtn?.innerHTML ?? '';
+    if (actionBtn) {
+        actionBtn.disabled = true;
+        actionBtn.innerHTML = `<i class="ph ph-spinner-gap animate-spin text-xs" aria-hidden="true"></i>`;
+    }
+
     try {
         const res = action === 'approve'
             ? await compliance.approveReview(reference)
@@ -184,6 +206,13 @@ async function handleReviewAction(action: 'approve' | 'flag', reference: string)
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-001 FIX: Show user-facing error toast for review action.
         showToast(t('compliance_action_failed', 'Action failed — please try again'), 'error');
+        // Restore button on error (success path reloads the entire table)
+        if (actionBtn) {
+            actionBtn.disabled = false;
+            actionBtn.innerHTML = originalHTML;
+        }
+    } finally {
+        actionsInFlight.delete(reference);
     }
 }
 
