@@ -52,7 +52,7 @@ function renderTiers(tiers: CommissionTier[]): void {
     if (!tbody) { return; }
 
     if (tiers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-slate-400">${t('rev_no_tiers', 'No tiers configured')}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-slate-400">${escapeHtml(t('rev_no_tiers', 'No tiers configured'))}</td></tr>`;
         return;
     }
 
@@ -84,7 +84,7 @@ function renderRecentCommissions(commissions: CommissionEntry[]): void {
     if (!list) { return; }
 
     if (commissions.length === 0) {
-        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400">${t('rev_no_commissions', 'No commissions recorded yet')}</div>`;
+        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400">${escapeHtml(t('rev_no_commissions', 'No commissions recorded yet'))}</div>`;
         return;
     }
 
@@ -94,8 +94,8 @@ function renderRecentCommissions(commissions: CommissionEntry[]): void {
                 <i class="ph ph-receipt text-smoky-jade text-sm" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">${t('rev_po_label', 'PO')} ${escapeHtml(c.po_id)} — ${formatCents(c.commission_amount_cents)}</p>
-                <p class="text-3xs text-slate-400 mt-0.5">${t('rev_rate_label', 'Rate')}: ${bpsToPercent(c.rate_bps)} • ${t('rev_po_label', 'PO')}: ${formatCents(c.po_amount_cents)}</p>
+                <p class="text-sm font-medium truncate">${escapeHtml(t('rev_po_label', 'PO'))} ${escapeHtml(c.po_id)} — ${formatCents(c.commission_amount_cents)}</p>
+                <p class="text-3xs text-slate-400 mt-0.5">${escapeHtml(t('rev_rate_label', 'Rate'))}: ${bpsToPercent(c.rate_bps)} • ${escapeHtml(t('rev_po_label', 'PO'))}: ${formatCents(c.po_amount_cents)}</p>
             </div>
             <span class="text-3xs text-slate-400 shrink-0">${relativeTimeAgo(c.created_at)}</span>
         </div>`).join('');
@@ -106,7 +106,7 @@ export function renderRecentTips(tips: TipEntry[]): void {
     if (!list) { return; }
 
     if (tips.length === 0) {
-        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400">${t('rev_no_tips', 'No tips recorded yet')}</div>`;
+        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400">${escapeHtml(t('rev_no_tips', 'No tips recorded yet'))}</div>`;
         return;
     }
 
@@ -118,8 +118,8 @@ export function renderRecentTips(tips: TipEntry[]): void {
                 <i class="ph ph-heart text-warm-earth text-sm" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">${t('rev_donation_label', 'Donation')} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
-                <p class="text-3xs text-slate-400 mt-0.5">${t('rev_donor_label', 'Donor')}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
+                <p class="text-sm font-medium truncate">${escapeHtml(t('rev_donation_label', 'Donation'))} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
+                <p class="text-3xs text-slate-400 mt-0.5">${escapeHtml(t('rev_donor_label', 'Donor'))}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
             </div>
             <span class="text-3xs text-slate-400 shrink-0">${relativeTimeAgo(tip.created_at)}</span>
         </div>`;
@@ -172,9 +172,9 @@ async function loadDashboard(): Promise<void> {
         const kpiIds = ['kpi-total-revenue', 'kpi-commissions', 'kpi-commission-count', 'kpi-tips', 'kpi-tip-count', 'kpi-avg-tip', 'kpi-avg-tip-pct'];
         kpiIds.forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = '—'; } });
         const tbody = document.getElementById('tier-table-body');
-        if (tbody) { tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</td></tr>`; }
+        if (tbody) { tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${escapeHtml(t('failed_to_load', 'Failed to load'))}</td></tr>`; }
         const commList = document.getElementById('recent-commissions-list');
-        if (commList) { commList.innerHTML = `<div class="px-5 py-8 text-center text-sm text-red-400">${t('failed_to_load', 'Failed to load')}</div>`; }
+        if (commList) { commList.innerHTML = `<div class="px-5 py-8 text-center text-sm text-red-400">${escapeHtml(t('failed_to_load', 'Failed to load'))}</div>`; }
     }
 
     // Update timestamp

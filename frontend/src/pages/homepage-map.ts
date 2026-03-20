@@ -9,6 +9,7 @@ import { addStandardControls, createFilterControl } from '../map/map-controls';
 import { t, tParams } from '../map/i18n-bridge';
 import { reportWarning } from '../error-reporter';
 import { showToast } from '../utils/toast';
+import { escapeHtml as esc } from '../utils/xss';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -70,7 +71,7 @@ async function initHomepageMap(): Promise<void> {
         if (container) {
             container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 p-8">
                 <i class="ph ph-map-trifold text-3xl" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">${t('map_init_error', 'Map could not be loaded')}</p>
+                <p class="mt-2 text-sm font-medium">${esc(t('map_init_error', 'Map could not be loaded'))}</p>
             </div>`;
         }
     }

@@ -5,6 +5,8 @@ import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
 import { t } from '../utils/i18n';
+import { formatCents } from '../utils/format';
+import { getLocale } from '../utils/locale';
 import { showToast } from '../utils/toast';
 // TICK-033: Import shared type-safe i18n apply utility.
 import { tryApplyI18n } from '../utils/i18n-apply';
@@ -30,9 +32,7 @@ function initTimestamp(): void {
 
     const update = (): void => {
         const now = new Date();
-        const lang = document.documentElement.lang || 'en';
-        const locale = lang === 'ar' ? 'ar-SY' : lang === 'tr' ? 'tr-TR' : 'en-US';
-        el.textContent = now.toLocaleString(locale, {
+        el.textContent = now.toLocaleString(getLocale(), {
             weekday: 'short', month: 'short', day: 'numeric',
             year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
         });
@@ -85,7 +85,14 @@ async function loadComplianceMetrics(): Promise<void> {
         // Audit trail integrity
         const auditIntegrity = document.getElementById('audit-integrity');
         if (auditIntegrity) {
-            auditIntegrity.innerHTML = String(data['audit_integrity'] ?? '<i class="ph ph-check-circle nm-icon-gap-end text-smoky-jade" aria-hidden="true"></i>Intact');
+            // W2-001 FIX: Previous: innerHTML = String(data[...]) — XSS from API response.
+            // Now: Safe textContent set with icon added via DOM API, not string interpolation.
+            auditIntegrity.textContent = '';
+            const icon = document.createElement('i');
+            icon.className = 'ph ph-check-circle nm-icon-gap-end text-smoky-jade';
+            icon.setAttribute('aria-hidden', 'true');
+            auditIntegrity.appendChild(icon);
+            auditIntegrity.appendChild(document.createTextNode(esc(String(data['audit_integrity'] ?? t('compliance_intact', 'Intact')))));
         }
 
         // Spatial accuracy
@@ -123,7 +130,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                 <td class="px-5 py-3 font-mono text-xs">${esc(String(r['reference'] ?? ''))}</td>
                 <td class="px-5 py-3 font-medium">${esc(String(r['project_title'] ?? ''))}</td>
-                <td class="px-5 py-3 font-mono">$${Number(r['amount'] ?? 0).toLocaleString()}</td>
+                <td class="px-5 py-3 font-mono">${formatCents(Number(r['amount'] ?? 0))}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(String(r['donor_name'] ?? t('compliance_anonymous', 'Anonymous')))}</td>
                 <td class="px-5 py-3">
                     ${r['has_spatial_proof']
@@ -141,13 +148,18 @@ async function loadEscrowReviewQueue(): Promise<void> {
         // TICK-034: Event delegation for review action buttons.
         // Previous: querySelectorAll('[data-action]').forEach() attached O(N) listeners.
         // Now: Single delegated listener on tbody — O(1).
-        tbody.addEventListener('click', (e: MouseEvent) => {
-            const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
-            if (!btn) { return; }
-            const action = btn.dataset['action'] as 'approve' | 'flag';
-            const ref = btn.dataset['ref'] ?? '';
-            if (action && ref) { handleReviewAction(action, ref); }
-        });
+        // W2-009 FIX: Added delegation guard — loadData() is called on DOMContentLoaded
+        // AND could be called on refresh. Without the guard, each call stacks a new listener.
+        if (!tbody.dataset.delegated) {
+            tbody.dataset.delegated = '1';
+            tbody.addEventListener('click', (e: MouseEvent) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+                if (!btn) { return; }
+                const action = btn.dataset['action'] as 'approve' | 'flag';
+                const ref = btn.dataset['ref'] ?? '';
+                if (action && ref) { handleReviewAction(action, ref); }
+            });
+        }
 
         tryApplyI18n();
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -182,13 +194,15 @@ function setKPI(name: string, value: number, prefix = ''): void {
 
     const duration = 1200;
     const start = performance.now();
+    const locale = getLocale();
     const tick = (now: number): void => {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
         const current = Math.round(value * eased);
+        // LB-004 FIX: Use Intl.NumberFormat instead of hardcoded $ prefix
         el.textContent = prefix === '$'
-            ? `$${current.toLocaleString()}`
-            : current.toLocaleString();
+            ? new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(current)
+            : current.toLocaleString(locale);
         if (progress < 1) { requestAnimationFrame(tick); }
     };
     requestAnimationFrame(tick);

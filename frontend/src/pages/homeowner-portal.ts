@@ -249,7 +249,7 @@ async function loadDashboardProjects(): Promise<void> {
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.engineer_name ? `<span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(p.engineer_name)}</span>` : ''}
                             ${p.contractor_name ? `<span><i class="ph ph-crane" aria-hidden="true"></i> ${esc(p.contractor_name)}</span>` : ''}
-                            ${p.bid_count > 0 ? `<span class="text-trust-blue font-bold"><i class="ph ph-file-text" aria-hidden="true"></i> ${p.bid_count} ${esc(t('ho_bids', 'bids'))}</span>` : ''}
+                            ${p.bid_count > 0 ? `<span class="text-trust-blue font-bold"><i class="ph ph-file-text" aria-hidden="true"></i> ${esc(String(p.bid_count))} ${esc(t('ho_bids', 'bids'))}</span>` : ''}
                         </div>
                         ${p.total_boq_cost > 0 ? `<p class="text-xs text-slate-500 mt-1">${esc(t('ho_boq_total', 'BOQ Total'))}: <span class="font-mono font-bold">${formatCents(p.total_boq_cost)}</span></p>` : ''}
                     </div>
@@ -289,7 +289,7 @@ async function loadProjects(): Promise<void> {
                 <td class="px-5 py-3">${esc(p.damage_type)}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.engineer_name ?? '—')}</td>
                 <td class="px-5 py-3 text-xs">${esc(p.contractor_name ?? '—')}</td>
-                <td class="px-5 py-3"><span class="text-trust-blue font-bold text-xs">${p.bid_count}</span></td>
+                <td class="px-5 py-3"><span class="text-trust-blue font-bold text-xs">${esc(String(p.bid_count))}</span></td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
             </tr>
         `).join('');
@@ -552,7 +552,7 @@ async function loadEscrow(): Promise<void> {
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4">
                     <p class="text-3xs font-bold text-slate-400 uppercase">${esc(t('ho_projects', 'Projects'))}</p>
-                    <p class="text-xl font-black mt-1">${e.projects_with_escrow ?? 0}</p>
+                    <p class="text-xl font-black mt-1">${esc(String(e.projects_with_escrow ?? 0))}</p>
                 </div>
             </div>
             ${(e.held_in_escrow ?? 0) > 0 ? `

@@ -110,6 +110,9 @@ function switchDashTab(tab: ContractorDashTab): void {
         tabProjects?.classList.remove('text-slate-600');
         tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabBids?.classList.add('text-slate-600');
+        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+        tabProjects?.setAttribute('aria-selected', 'true');
+        tabBids?.setAttribute('aria-selected', 'false');
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         if (sectionProjects) { sectionProjects.classList.remove('nm-hidden'); }
         if (sectionBids) { sectionBids.classList.add('nm-hidden'); }
@@ -118,6 +121,9 @@ function switchDashTab(tab: ContractorDashTab): void {
         tabBids?.classList.remove('text-slate-600');
         tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabProjects?.classList.add('text-slate-600');
+        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+        tabBids?.setAttribute('aria-selected', 'true');
+        tabProjects?.setAttribute('aria-selected', 'false');
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         if (sectionBids) { sectionBids.classList.remove('nm-hidden'); }
         if (sectionProjects) { sectionProjects.classList.add('nm-hidden'); }
@@ -200,7 +206,7 @@ async function loadProjectTimeline(): Promise<void> {
                         <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full ${progressColor} rounded-full nm-progress-bar" style="--progress:${progress}%"></div>
                         </div>
-                        <span class="text-3xs font-bold text-slate-500">${progress}%</span>
+                        <span class="text-3xs font-bold text-slate-500">${esc(String(progress))}%</span>
                     </div>
                 </td>
                 <td class="px-5 py-3">
@@ -261,7 +267,7 @@ async function loadBids(): Promise<void> {
             <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                 <td class="px-5 py-3 font-medium">${esc(String(b['project_title'] ?? ''))}</td>
                 <td class="px-5 py-3 font-mono">${costFormatted}</td>
-                <td class="px-5 py-3 text-slate-500">${b['estimated_days']} ${daysLabel}</td>
+                <td class="px-5 py-3 text-slate-500">${esc(String(b['estimated_days']))} ${daysLabel}</td>
                 <td class="px-5 py-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${bidColor(String(b['status'] ?? ''))}">
                         ${esc(String(b['status'] ?? ''))}

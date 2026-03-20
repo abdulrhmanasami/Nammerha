@@ -40,6 +40,11 @@ const ALL_TABS: TabName[] = ['dashboard', 'requests', 'assignments', 'earnings',
 // P1-003 FIX: Hash-based tab routing
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
+// LB-003 FIX: Guards prevent duplicate event delegation on re-render.
+// Previous: loadRequests() and loadAssignments() added a NEW event listener
+// on every tab switch — exponential handler explosion.
+const delegationWired = { requests: false, assignments: false } as Record<string, boolean>;
+
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
@@ -86,8 +91,11 @@ function switchTab(tab: TabName): void {
         const el = document.getElementById(`tab-${tabId}`);
         if (!el) {continue;}
         el.className = tabId === tab
-            ? 'flex items-center gap-3 px-3 py-2 bg-teal-600/10 text-teal-700 rounded-lg cursor-pointer'
-            : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
+            ? 'flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start'
+            : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start';
+
+        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+        el.setAttribute('aria-selected', String(tabId === tab));
 
         const section = document.getElementById(`section-${tabId}`);
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
@@ -280,6 +288,9 @@ async function loadRequests(): Promise<void> {
         // TICK-017: Event delegation for accept buttons.
         // Previous: querySelectorAll('.accept-req-btn').forEach() attached O(N) listeners.
         // Now: Single delegated listener on container — O(1).
+        // LB-003 FIX: Guard prevents re-attaching on every tab switch.
+        if (!delegationWired.requests) {
+            delegationWired.requests = true;
         container.addEventListener('click', async (e: MouseEvent) => {
             const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.accept-req-btn');
             if (!btn) { return; }
@@ -295,7 +306,7 @@ async function loadRequests(): Promise<void> {
                 if (!res2.success) {
                     throw new Error(res2.error ?? 'Failed');
                 }
-                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end" aria-hidden="true"></i>${t('tp_accepted', 'Accepted')}`;
+                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end" aria-hidden="true"></i>${esc(t('tp_accepted', 'Accepted'))}`;
                 btn.setAttribute('data-i18n', 'tp_accepted');
                 btn.className = 'px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-lg shrink-0';
                 loadStats();
@@ -305,6 +316,7 @@ async function loadRequests(): Promise<void> {
                 btn.className = 'px-4 py-2 bg-red-100 text-red-600 text-xs font-bold rounded-lg shrink-0';
             }
         });
+        }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Requests load failed'), { component: 'tradesperson', action: 'load_requests' });
         renderErrorWithRetry(container, loadRequests);
@@ -336,7 +348,7 @@ async function loadAssignments(): Promise<void> {
                 </td>
                 <td class="px-5 py-3">${tradeLabel(a.trade_required)}</td>
                 <td class="px-5 py-3 text-xs text-slate-500 max-w-[200px] truncate">${esc(a.scope_description)}</td>
-                <td class="px-5 py-3 font-mono text-sm">${formatCents(a.agreed_rate)}/${a.rate_type}</td>
+                <td class="px-5 py-3 font-mono text-sm">${formatCents(a.agreed_rate)}/${esc(a.rate_type)}</td>
                 <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
                 <td class="px-5 py-3">
                     ${a.status === 'pending' ? `
@@ -352,6 +364,9 @@ async function loadAssignments(): Promise<void> {
         // TICK-017: Event delegation for respond buttons.
         // Previous: querySelectorAll('.respond-btn').forEach() attached O(N) listeners.
         // Now: Single delegated listener on tbody — O(1).
+        // LB-003 FIX: Guard prevents re-attaching on every tab switch.
+        if (!delegationWired.assignments) {
+            delegationWired.assignments = true;
         tbody.addEventListener('click', async (e: MouseEvent) => {
             const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.respond-btn');
             if (!btn) { return; }
@@ -368,6 +383,7 @@ async function loadAssignments(): Promise<void> {
                 showSimpleBanner('dashboard-banner', 'error', t('tp_response_error', 'Failed to respond. Please try again.'));
             }
         });
+        }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignments load failed'), { component: 'tradesperson', action: 'load_assignments' });
         renderTableErrorWithRetry(tbody, loadAssignments, 6);
@@ -429,12 +445,12 @@ async function loadProfile(): Promise<void> {
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${p.years_experience ?? '—'} ${t('tp_years', 'years')}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${t('tp_per_hour', '/hr')}` : '—'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${t('tp_per_day', '/day')}` : '—'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${p.dynamic_score}/100</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${p.completed_jobs_count}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${p.average_rating} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${esc(String(p.years_experience ?? '—'))} ${esc(t('tp_years', 'years'))}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${esc(t('tp_per_hour', '/hr'))}` : '—'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${esc(t('tp_per_day', '/day'))}` : '—'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${esc(String(p.dynamic_score))}/100</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${esc(String(p.completed_jobs_count))}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${esc(String(p.average_rating))} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
                 <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
             </div>
         `;

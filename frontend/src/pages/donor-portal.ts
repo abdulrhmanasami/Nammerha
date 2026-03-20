@@ -80,8 +80,11 @@ function switchTab(tab: TabName): void {
         const el = document.getElementById(`tab-${tabId}`);
         if (!el) { continue; }
         el.className = tabId === tab
-            ? 'flex items-center gap-3 px-3 py-2 bg-emerald-600/10 text-emerald-700 rounded-lg cursor-pointer'
-            : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer';
+            ? 'flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start'
+            : 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start';
+
+        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+        el.setAttribute('aria-selected', String(tabId === tab));
 
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         const section = document.getElementById(`section-${tabId}`);
@@ -144,14 +147,14 @@ async function loadFundedProjects(): Promise<void> {
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
                             <span class="text-emerald-600 font-bold">${esc(t('donor_my_contribution', 'My contribution'))}: ${formatCents(p.my_total_donated)}</span>
-                            <span>${p.items_i_funded} ${esc(t('donor_items_label', 'items'))}</span>
+                            <span>${esc(String(p.items_i_funded))} ${esc(t('donor_items_label', 'items'))}</span>
                         </div>
                         <!-- Funding Progress Bar -->
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div class="h-full bg-emerald-500 rounded-full transition-all nm-progress-bar" style="--progress:${Math.min(p.funded_percentage, 100)}%"></div>
                             </div>
-                            <span class="text-3xs font-bold text-emerald-600">${p.funded_percentage}%</span>
+                            <span class="text-3xs font-bold text-emerald-600">${esc(String(p.funded_percentage))}%</span>
                         </div>
                     </div>
                 </div>
@@ -186,13 +189,13 @@ async function loadMarketplace(): Promise<void> {
                         <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
-                            <span>${p.items_count} ${esc(t('donor_items_label', 'items'))}</span>
+                            <span>${esc(String(p.items_count))} ${esc(t('donor_items_label', 'items'))}</span>
                         </div>
                         <div class="mt-3 flex items-center gap-3">
                             <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div class="h-full rounded-full transition-all ${p.funded_percentage >= 100 ? 'bg-green-500' : 'bg-emerald-400'} nm-progress-bar" style="--progress:${Math.min(p.funded_percentage, 100)}%"></div>
                             </div>
-                            <span class="text-3xs font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</span>
+                            <span class="text-3xs font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${esc(String(p.funded_percentage))}%</span>
                         </div>
                         <div class="flex items-center justify-between mt-2">
                             <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
@@ -268,8 +271,8 @@ async function loadImpact(): Promise<void> {
                         </div>
                         <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400">
                             <span>${esc(t('donor_donated_label', 'Donated'))}: <strong class="text-emerald-600">${formatCents(p.my_total_donated)}</strong></span>
-                            <span>${p.items_i_funded} ${esc(t('donor_items_funded', 'items funded'))}</span>
-                            <span>${esc(t('donor_progress_label', 'Progress'))}: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${p.funded_percentage}%</strong></span>
+                            <span>${esc(String(p.items_i_funded))} ${esc(t('donor_items_funded', 'items funded'))}</span>
+                            <span>${esc(t('donor_progress_label', 'Progress'))}: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${esc(String(p.funded_percentage))}%</strong></span>
                         </div>
                     </div>
                 </div>

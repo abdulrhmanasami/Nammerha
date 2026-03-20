@@ -12,6 +12,7 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { haptic } from '../utils/haptic';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
+import { formatCents } from '../utils/format';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -122,6 +123,9 @@ function switchSupplierTab(tab: SupplierTab): void {
         tabOrders?.classList.remove('text-slate-600');
         tabCatalog?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog?.classList.add('text-slate-600');
+        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+        tabOrders?.setAttribute('aria-selected', 'true');
+        tabCatalog?.setAttribute('aria-selected', 'false');
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         if (sectionOrders) { sectionOrders.classList.remove('nm-hidden'); }
         if (sectionCatalog) { sectionCatalog.classList.add('nm-hidden'); }
@@ -130,6 +134,9 @@ function switchSupplierTab(tab: SupplierTab): void {
         tabCatalog?.classList.remove('text-slate-600');
         tabOrders?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
         tabOrders?.classList.add('text-slate-600');
+        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+        tabCatalog?.setAttribute('aria-selected', 'true');
+        tabOrders?.setAttribute('aria-selected', 'false');
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         if (sectionCatalog) { sectionCatalog.classList.remove('nm-hidden'); }
         if (sectionOrders) { sectionOrders.classList.add('nm-hidden'); }
@@ -187,8 +194,8 @@ async function loadOrders(): Promise<void> {
                 <td class="px-5 py-3 font-mono text-xs text-slate-500">${esc(item.po_number)}</td>
                 <td class="px-5 py-3 font-medium">${esc(item.material_name)}</td>
                 <td class="px-5 py-3 text-slate-500">${esc(item.project_title ?? '')}</td>
-                <td class="px-5 py-3">${item.quantity} ${esc(item.unit)}</td>
-                <td class="px-5 py-3 font-mono">$${(item.amount / 100).toLocaleString()}</td>
+                <td class="px-5 py-3">${esc(String(item.quantity))} ${esc(item.unit)}</td>
+                <td class="px-5 py-3 font-mono">${formatCents(item.amount)}</td>
                 <td class="px-5 py-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${statusColor(item.status)}">
                         ${esc(item.status)}
@@ -249,9 +256,9 @@ async function loadCatalog(): Promise<void> {
                 </div>
                 <h3 class="font-bold text-sm mb-2">${esc(item.material_name)}</h3>
                 <div class="space-y-1 text-xs text-slate-500">
-                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_guide_price', 'Guide Price'))}:</span> $${(item.unit_price_guide / 100).toLocaleString()} / ${esc(item.unit)}</p>
-                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_min_order', 'Min Order'))}:</span> ${item.min_order_qty} ${esc(item.unit)}</p>
-                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${item.lead_time_days} ${t('supplier_days', 'days')}</p>
+                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_guide_price', 'Guide Price'))}:</span> ${formatCents(item.unit_price_guide)} / ${esc(item.unit)}</p>
+                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_min_order', 'Min Order'))}:</span> ${esc(String(item.min_order_qty))} ${esc(item.unit)}</p>
+                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${esc(String(item.lead_time_days))} ${esc(t('supplier_days', 'days'))}</p>
                 </div>
                 ${item.is_active ? `
                 <button type="button" class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
