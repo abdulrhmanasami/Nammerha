@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 3s forwards}</style>
+  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
   <script src="/theme-boot.js"></script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
   <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
@@ -116,6 +116,12 @@
        Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy), Apple HIG (Accessibility). -->
   <h2 class="sr-only" data-i18n="camera_section_viewfinder">Camera Viewfinder</h2>
 
+  <!-- UXA-002 FIX: camera-viewport-wrapper constrains camera UI to phone-like
+       max-width (480px→420px) on md+/lg+ screens. On mobile, no effect (full-width).
+       The dark bg-neutral-900 fills the entire main area behind the wrapper.
+       Standard: Responsive Design, Apple HIG ("Adapt to device size"). -->
+  <div class="camera-viewport-wrapper">
+
   <!-- ═══════════════════════════════════════════════════════════════════════
        CAMERA VIEWFINDER — Full-screen dark viewport with crosshair overlay
        ═══════════════════════════════════════════════════════════════════════ -->
@@ -144,27 +150,31 @@
       </div>
 
       <!-- Crosshair overlay -->
+      <!-- UXA-001 FIX: Physical left/right → logical start/end for RTL field engineers.
+           Center lines (left-1/2, inset-x-0) remain physical — centering is direction-agnostic.
+           Corner brackets use start/end → they flip correctly in RTL mode.
+           Standard: CSS Logical Properties, Platform RTL-First Architecture. -->
       <div class="absolute inset-0 pointer-events-none select-none">
         <div class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8"></div>
-        <div class="absolute top-1/2 left-0 right-0 h-px bg-trust-blue/8"></div>
-        <!-- Corner brackets -->
-        <div class="absolute top-6 left-6 w-8 h-8 border-l-2 border-t-2 border-trust-blue/25 rounded-tl-md"></div>
-        <div class="absolute top-6 right-6 w-8 h-8 border-r-2 border-t-2 border-trust-blue/25 rounded-tr-md"></div>
-        <div class="absolute bottom-6 left-6 w-8 h-8 border-l-2 border-b-2 border-trust-blue/25 rounded-bl-md"></div>
-        <div class="absolute bottom-6 right-6 w-8 h-8 border-r-2 border-b-2 border-trust-blue/25 rounded-br-md"></div>
+        <div class="absolute top-1/2 inset-x-0 h-px bg-trust-blue/8"></div>
+        <!-- Corner brackets (logical positioning for RTL) -->
+        <div class="absolute top-6 start-6 w-8 h-8 border-s-2 border-t-2 border-trust-blue/25 rounded-ss-md"></div>
+        <div class="absolute top-6 end-6 w-8 h-8 border-e-2 border-t-2 border-trust-blue/25 rounded-se-md"></div>
+        <div class="absolute bottom-6 start-6 w-8 h-8 border-s-2 border-b-2 border-trust-blue/25 rounded-es-md"></div>
+        <div class="absolute bottom-6 end-6 w-8 h-8 border-e-2 border-b-2 border-trust-blue/25 rounded-ee-md"></div>
       </div>
     </div>
 
-    <!-- Timestamp Overlay (bottom-left) -->
-    <div class="absolute bottom-4 left-4 z-10">
+    <!-- UXA-001 FIX: Timestamp Overlay — left-4 → start-4 for RTL mirror -->
+    <div class="absolute bottom-4 start-4 z-10">
       <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
         <i class="ph ph-clock text-trust-blue ph-sm" aria-hidden="true"></i>
         <span class="text-white text-xs font-mono" id="live-timestamp">2026-03-07 23:12</span>
       </div>
     </div>
 
-    <!-- Photo Count Overlay (bottom-right) -->
-    <div class="absolute bottom-4 right-4 z-10">
+    <!-- UXA-001 FIX: Photo Count Overlay — right-4 → end-4 for RTL mirror -->
+    <div class="absolute bottom-4 end-4 z-10">
       <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
         <i class="ph ph-image-square text-slate-400 ph-sm" aria-hidden="true"></i>
         <span class="text-white text-xs font-mono" id="photo-count">0 / 8</span>
@@ -230,6 +240,8 @@
       </button>
     </div>
   </div>
+
+  </div><!-- /.camera-viewport-wrapper (UXA-002) -->
 
   <!-- Voice Snagging Active Overlay (hidden by default) -->
   <!-- SWEEP-W8-002: bg-[#242424]/98 → bg-slate-900/98. -->

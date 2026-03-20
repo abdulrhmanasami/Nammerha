@@ -116,6 +116,29 @@
                 if (isHidden) { openSidebar(); }
                 else { closeSidebar(); }
             });
+
+            // ── UXA-003 FIX: First-Visit Hamburger Discovery Affordance ─────
+            // CSS pulse animation exists (_dialogs.css: hamburger-pulse) but was
+            // never triggered. On first visit, pulse the hamburger 3 times to draw
+            // attention. Cleared after first click or animation completion.
+            // Standard: Apple HIG ("Navigation must be immediately discoverable"),
+            //           Nielsen #6 (Recognition rather than recall).
+            try {
+                var HINT_KEY = 'nm-sidebar-hint-shown';
+                if (!sessionStorage.getItem(HINT_KEY)) {
+                    toggleBtn.setAttribute('data-hint', 'true');
+                    sessionStorage.setItem(HINT_KEY, '1');
+                    // Clear hint after animation completes (3 pulses × 1.5s = 4.5s)
+                    setTimeout(function () {
+                        toggleBtn.removeAttribute('data-hint');
+                    }, 4600);
+                    // Also clear on first click
+                    toggleBtn.addEventListener('click', function clearHint() {
+                        toggleBtn.removeAttribute('data-hint');
+                        toggleBtn.removeEventListener('click', clearHint);
+                    });
+                }
+            } catch (e) { /* sessionStorage unavailable — graceful degradation */ }
         }
 
         // Overlay click

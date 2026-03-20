@@ -101,8 +101,9 @@ function buildProjectCard(project: ProjectCard, index: number): string {
     const icon = damageIcons[project.damage_type] ?? 'building-office';
     const delay = `--anim-delay:${index * 0.1}s`;
 
+    // UXA-027 FIX: snap-start snap-always → magnetic card snapping during swipe.
     return `
-    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml((project as unknown as Record<string, string>).region ?? '')}">
+    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up snap-start snap-always" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml((project as unknown as Record<string, string>).region ?? '')}">
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
@@ -165,6 +166,31 @@ async function loadFeaturedProjects(): Promise<void> {
         }
     } catch (err) {
         reportWarning('[Dashboard] Featured projects load failed, keeping static fallback', { component: 'main', action: 'load_featured', error: err instanceof Error ? err.message : String(err) });
+        // UXA-013 FIX: Show user-visible error state instead of infinite skeleton pulse.
+        // Previous: skeleton looped forever — user sees permanent "loading" with no escape.
+        // Standard: Nielsen #1 (System Status), Error Recovery, Sustainable UX (2G/3G).
+        const skeleton = document.getElementById('projects-skeleton');
+        if (skeleton) { skeleton.remove(); }
+        carousel.innerHTML = `
+            <div class="w-full py-8 text-center snap-start">
+                <i class="ph ph-cloud-slash text-slate-300 nm-icon-40" aria-hidden="true"></i>
+                <p class="text-slate-400 text-sm mt-2 font-medium" data-i18n="projects_load_failed">Couldn't load projects</p>
+                <p class="text-slate-400/60 text-xs mt-1" data-i18n="projects_load_retry_hint">Check your connection and try again</p>
+                <button id="projects-retry-btn" class="btn-secondary nm-btn-compact mt-3">
+                    <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
+                    <span data-i18n="common_retry">Retry</span>
+                </button>
+            </div>`;
+        document.getElementById('projects-retry-btn')?.addEventListener('click', () => {
+            carousel.innerHTML = ''; // Clear error state
+            const newSkeleton = document.createElement('div');
+            newSkeleton.id = 'projects-skeleton';
+            newSkeleton.className = 'flex gap-4';
+            newSkeleton.innerHTML = '<div class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"><div class="h-44 bg-slate-200"></div><div class="p-4 space-y-3"><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-3 bg-slate-200 rounded w-full"></div></div></div>';
+            carousel.appendChild(newSkeleton);
+            loadFeaturedProjects();
+        });
+        applyI18n();
     }
 }
 

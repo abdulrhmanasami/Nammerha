@@ -1157,6 +1157,27 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   }
 }
 
+/* ─── Field Engineer: Camera Desktop Adaptation ────────────────────────────── */
+/* UXA-002 FIX: On tablet/desktop, the camera viewfinder should feel like a
+   centered phone viewport — not stretch to full 1440px+ width. The dark
+   neutral-900 background fills the entire viewport, and the camera controls
+   center within a max-width container. This preserves the immersive mobile-first
+   camera experience while being usable when an engineer reviews captured photos
+   on a desktop browser.
+   Standard: Responsive Design, Apple HIG ("Adapt to device size"),
+   Material Design 3 (Adaptive Layout). */
+@media (min-width: 768px) {
+  .camera-viewport-wrapper {
+    max-width: 480px;
+    margin-inline: auto;
+  }
+}
+@media (min-width: 1024px) {
+  .camera-viewport-wrapper {
+    max-width: 420px;
+  }
+}
+
 /* ─── Field Engineer: Voice Snag Recording Pulse ───────────────────────────── */
 @keyframes voicePulse {
   0%,
@@ -2786,6 +2807,19 @@ html[data-theme="dark"] .nm-legal-footer a:hover {
 }
 html[data-theme="dark"] .nm-legal-footer .nm-copyright {
     color: var(--dark-border);
+}
+/* UXA-020 FIX: Camera page has bg-neutral-900 regardless of theme.
+   Footer tokens (--text-muted, --text-secondary) are light-bg-only.
+   Force dark-variant colors when footer is inside the camera page body.
+   Standard: WCAG 1.4.3 (Minimum Contrast 4.5:1), Platform Consistency. */
+body:not(.bg-cloud-white) .nm-legal-footer {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+body:not(.bg-cloud-white) .nm-legal-footer a {
+    color: rgba(148, 163, 184, 0.7); /* slate-400/70 */
+}
+body:not(.bg-cloud-white) .nm-legal-footer .nm-copyright {
+    color: rgba(148, 163, 184, 0.5); /* slate-400/50 */
 }
 /* SRG-08 FIX: Forced-Colors Accessibility — Legal Footer Links.
    Previous: Links used color-only differentiation (no underline).

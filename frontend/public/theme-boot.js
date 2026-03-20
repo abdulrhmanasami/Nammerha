@@ -8,6 +8,6 @@
   // P2-002 FIX: Respect OS preference for first-time visitors
   var fallback = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   var t = fallback;
-  try { t = localStorage.getItem('nm-theme') || fallback; } catch(e) {}
+  try { t = localStorage.getItem('nm-theme') || fallback; } catch(e) { /* localStorage unavailable (incognito/quota) — use OS preference */ }
   document.documentElement.setAttribute('data-theme', t);
 })();

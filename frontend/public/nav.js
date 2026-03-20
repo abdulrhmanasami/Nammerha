@@ -80,7 +80,10 @@
         'donor-portal.html': 'impact',
         'wallet.html': 'wallet',
         'profile.html': 'profile',
-        'about.html': 'profile',
+        /* UXA-011 FIX: about.html moved from 'profile' → 'home'.
+           About is company information, not user-specific profile content.
+           Standard: Nielsen #2 (Match System ↔ Real World). */
+        'about.html': 'home',
         'pricing.html': 'profile',
         'contact.html': 'profile',
         'tradesperson-portal.html': 'projects',
@@ -122,7 +125,11 @@
     var TABS = [
         { id: 'home', label: 'Home', i18n: 'nav_home', icon: 'ph-house', href: '/index.html' },
         { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/projects.html' },
-        { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-bar', href: '/donor-basket.html' },
+        /* UXA-010 FIX: Impact tab → donor-proof.html (impact tracking page).
+           Previous: donor-basket.html — a shopping cart, not impact viewing.
+           'Impact' implies reviewing contributions & outcomes, not adding items.
+           Standard: Nielsen #2 (Match System ↔ Real World), IA Best Practice. */
+        { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-bar', href: '/donor-proof.html' },
         { id: 'wallet', label: 'Wallet', i18n: 'nav_wallet', icon: 'ph-wallet', href: '/wallet.html' },
         { id: 'profile', label: 'Profile', i18n: 'nav_profile', icon: 'ph-user', href: '/profile.html' },
     ];
