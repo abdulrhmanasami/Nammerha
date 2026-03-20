@@ -16,6 +16,8 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
+// W6-001 FIX: Auth guard — was missing on this contractor page.
+import { requireAuth } from '../utils/auth-guard';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -30,6 +32,8 @@ autoTriggerTour();
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // W6-001 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
     initTimestamp();
     loadKPIs();
     loadProjectTimeline();

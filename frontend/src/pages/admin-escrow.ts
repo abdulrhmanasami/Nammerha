@@ -7,108 +7,138 @@ import { t } from '../utils/i18n';
    Standard: DRY, Code Hygiene. */
 import { showToast } from '../utils/toast';
 import { requireAuth } from '../utils/auth-guard';
+// BLOCKER-C FIX: Wire escrow page to live admin API endpoints.
+// Previous: Hardcoded CASES[] array with fake PO numbers, vendor names, GPS coords.
+// Now: Dynamic data from admin.getPendingVerifications(), actions via
+// admin.releaseEscrow() and admin.flagDiscrepancy().
+import { admin } from '../api';
+// BLOCKER-E FIX: Import shared setText from utils/dom.ts — was duplicated locally.
+import { setText } from '../utils/dom';
+import { formatCents, relativeTimeAgo } from '../utils/format';
+import { renderErrorWithRetry } from '../utils/error-retry';
 
-/* ─── Concierge Escrow — Interactive Controller ─── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Concierge Escrow — API-Driven Controller
+   BLOCKER-C FIX: All data sourced from admin.getPendingVerifications().
+   Release/Flag actions wired to admin.releaseEscrow() / admin.flagDiscrepancy().
+   ═══════════════════════════════════════════════════════════════════════════ */
 
+// ─── API-Driven State ───────────────────────────────────────────────────────
 interface EscrowCase {
-    poNumber: string;
-    amount: string;
-    itemDesc: string;
-    vendorId: string;
-    vendorName: string;
-    vendorAddress: string;
-    invoiceNumber: string;
-    gpsCoords: string;
-    gpsAccuracy: string;
-    timestamp: string;
-    engineerName: string;
-    engineerLicense: string;
+    proof_id: string;
+    item_id: string;
+    po_number: string;
+    amount: number;
+    item_description: string;
+    vendor_id: string;
+    vendor_name: string;
+    vendor_address: string;
+    invoice_number: string;
+    gps_lat: number;
+    gps_lng: number;
+    gps_accuracy_meters: number;
+    created_at: string;
+    engineer_name: string;
+    engineer_license: string;
+    status: string;
 }
 
-const CASES: EscrowCase[] = [
-    {
-        poNumber: 'PO #PO-8821',
-        amount: '$500.00',
-        itemDesc: '50 Bags of Cement (Portland Type I)',
-        vendorId: 'ALM-MAJID-CON-99',
-        vendorName: 'Al-Majid Construction Materials',
-        vendorAddress: 'Street 12, Industrial Area, Aleppo',
-        invoiceNumber: '#INV-99022-A',
-        gpsCoords: '33.8938° N, 35.5018° E',
-        gpsAccuracy: 'Signal strength: High (Accuracy 1.2m)',
-        timestamp: 'March 8, 2026 — 10:45 AST',
-        engineerName: 'Khalid Al-Ahmad',
-        engineerLicense: 'License: SYR-ENG-88221',
-    },
-    {
-        poNumber: 'PO #PO-8834',
-        amount: '$920.00',
-        itemDesc: '8 Flush Doors (Standard 80×200cm)',
-        vendorId: 'DMS-WOOD-SYR-12',
-        vendorName: 'Damascus Woodworks Co.',
-        vendorAddress: 'Al-Midan District, Damascus',
-        invoiceNumber: '#INV-99035-B',
-        gpsCoords: '33.5024° N, 36.2874° E',
-        gpsAccuracy: 'Signal strength: High (Accuracy 0.8m)',
-        timestamp: 'March 7, 2026 — 14:30 AST',
-        engineerName: 'Fatima Nouri',
-        engineerLicense: 'License: SYR-ENG-71104',
-    },
-    {
-        poNumber: 'PO #PO-8901',
-        amount: '$1,340.00',
-        itemDesc: '20 Steel Reinforcement Bars (Ø12mm × 12m)',
-        vendorId: 'ALP-STEEL-07',
-        vendorName: 'Aleppo Steel Trading',
-        vendorAddress: 'Sheikh Najjar Industrial City, Aleppo',
-        invoiceNumber: '#INV-99041-C',
-        gpsCoords: '36.2021° N, 37.1343° E',
-        gpsAccuracy: 'Signal strength: Medium (Accuracy 3.5m)',
-        timestamp: 'March 6, 2026 — 09:15 AST',
-        engineerName: 'Omar Darwish',
-        engineerLicense: 'License: SYR-ENG-55092',
-    },
-];
-
+let cases: EscrowCase[] = [];
 let currentCaseIndex = 0;
 const resolvedCases: Set<number> = new Set();
 
+// ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
 
-    renderCase(currentCaseIndex);
     initNavigation();
     initActionButtons();
+    loadEscrowCases();
 });
+
+/* ─── Load Escrow Cases from API ─── */
+async function loadEscrowCases(): Promise<void> {
+    const panel = document.getElementById('verification-panel');
+    try {
+        const res = await admin.getPendingVerifications();
+        cases = (res.data ?? []) as unknown as EscrowCase[];
+
+        // Update sidebar badge
+        const countEl = document.getElementById('sidebar-escrow-count');
+        if (countEl) {
+            if (cases.length > 0) {
+                countEl.textContent = String(cases.length);
+            } else {
+                countEl.textContent = '';
+                countEl.classList.add('nm-hidden');
+            }
+        }
+
+        // Update total cases count in navigator
+        setText('total-cases', String(cases.length));
+
+        if (cases.length === 0) {
+            // Show empty state
+            if (panel) {
+                panel.innerHTML = `
+                    <div class="col-span-2 flex flex-col items-center justify-center py-16 text-center">
+                        <div class="size-16 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-4">
+                            <i class="ph ph-shield-check text-smoky-jade text-3xl" aria-hidden="true"></i>
+                        </div>
+                        <p class="text-lg font-bold text-slate-600">${esc(t('esc_all_cleared', 'All Cleared'))}</p>
+                        <p class="text-sm text-slate-400 mt-1">${esc(t('esc_no_pending', 'No pending escrow verifications.'))}</p>
+                    </div>
+                `;
+            }
+            // Disable nav buttons
+            const prevBtn = document.getElementById('prev-case') as HTMLButtonElement | null;
+            const nextBtn = document.getElementById('next-case') as HTMLButtonElement | null;
+            if (prevBtn) { prevBtn.disabled = true; }
+            if (nextBtn) { nextBtn.disabled = true; }
+            return;
+        }
+
+        currentCaseIndex = 0;
+        renderCase(currentCaseIndex);
+        updateNav();
+    } catch (err) {
+        if (panel) {
+            renderErrorWithRetry(panel, loadEscrowCases, 'esc_load_error', 'Failed to load escrow cases');
+        }
+        const errorObj = err instanceof Error ? err : new Error('[AdminEscrow] Load failed');
+        // Silently log — renderErrorWithRetry provides visual UX
+        void errorObj;
+    }
+}
 
 /* ─── Render Case Data ─── */
 function renderCase(index: number): void {
-    const c = CASES[index];
+    const c = cases[index];
     if (!c) {
         return;
     }
 
-    setText('po-number', c.poNumber);
-    setText('po-amount', c.amount);
-    setText('item-desc', c.itemDesc);
-    setText('vendor-id', c.vendorId);
-    setText('vendor-name', c.vendorName);
-    setText('vendor-address', c.vendorAddress);
-    setText('invoice-number', c.invoiceNumber);
-    setText('invoice-total', `Total: ${c.amount}`);
-    setText('gps-coords', c.gpsCoords);
-    setText('gps-accuracy', c.gpsAccuracy);
-    setText('timestamp', c.timestamp);
-    setText('engineer-name', c.engineerName);
-    setText('engineer-license', c.engineerLicense);
+    setText('po-number', `PO #${esc(c.po_number)}`);
+    setText('po-amount', formatCents(c.amount));
+    setText('item-desc', c.item_description);
+    setText('vendor-id', c.vendor_id);
+    setText('vendor-name', c.vendor_name);
+    setText('vendor-address', c.vendor_address);
+    setText('invoice-number', `#${esc(c.invoice_number)}`);
+    setText('invoice-total', `Total: ${formatCents(c.amount)}`);
+    setText('gps-coords', `${c.gps_lat.toFixed(4)}° N, ${c.gps_lng.toFixed(4)}° E`);
+    setText('gps-accuracy', gpsAccuracyLabel(c.gps_accuracy_meters));
+    setText('timestamp', relativeTimeAgo(c.created_at));
+    setText('engineer-name', c.engineer_name);
+    setText('engineer-license', c.engineer_license);
     setText('current-case', String(index + 1));
 
     /* Reset or disable buttons based on resolved state */
     const releaseBtn = document.getElementById('release-btn') as HTMLButtonElement | null;
     const flagBtn = document.getElementById('flag-btn') as HTMLButtonElement | null;
 
-    if (resolvedCases.has(index)) {
+    if (resolvedCases.has(index) || c.status === 'released' || c.status === 'flagged') {
         if (releaseBtn) {
             releaseBtn.disabled = true;
             releaseBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
@@ -135,12 +165,14 @@ function renderCase(index: number): void {
     }
 }
 
-function setText(id: string, value: string): void {
-    const el = document.getElementById(id);
-    if (el) {
-        el.textContent = value;
-    }
+/** GPS accuracy → human-readable label */
+function gpsAccuracyLabel(meters: number): string {
+    if (meters <= 2) { return `${t('esc_signal_high', 'Signal strength: High')} (${t('esc_accuracy', 'Accuracy')} ${meters.toFixed(1)}m)`; }
+    if (meters <= 5) { return `${t('esc_signal_medium', 'Signal strength: Medium')} (${t('esc_accuracy', 'Accuracy')} ${meters.toFixed(1)}m)`; }
+    return `${t('esc_signal_low', 'Signal strength: Low')} (${t('esc_accuracy', 'Accuracy')} ${meters.toFixed(1)}m)`;
 }
+
+// BLOCKER-E FIX: Local setText() removed — now imported from ../utils/dom.
 
 /* ─── Case Navigation ─── */
 function initNavigation(): void {
@@ -151,11 +183,6 @@ function initNavigation(): void {
         return;
     }
 
-    const updateNav = (): void => {
-        prevBtn.disabled = currentCaseIndex === 0;
-        nextBtn.disabled = currentCaseIndex === CASES.length - 1;
-    };
-
     prevBtn.addEventListener('click', () => {
         if (currentCaseIndex > 0) {
             currentCaseIndex--;
@@ -165,27 +192,34 @@ function initNavigation(): void {
     });
 
     nextBtn.addEventListener('click', () => {
-        if (currentCaseIndex < CASES.length - 1) {
+        if (currentCaseIndex < cases.length - 1) {
             currentCaseIndex++;
             renderCase(currentCaseIndex);
             updateNav();
         }
     });
-
-    updateNav();
 }
 
-/* ─── Action Buttons ─── */
+function updateNav(): void {
+    const prevBtn = document.getElementById('prev-case') as HTMLButtonElement | null;
+    const nextBtn = document.getElementById('next-case') as HTMLButtonElement | null;
+    if (prevBtn) { prevBtn.disabled = currentCaseIndex === 0; }
+    if (nextBtn) { nextBtn.disabled = currentCaseIndex === cases.length - 1; }
+}
+
+/* ─── Action Buttons (API-Driven) ─── */
 function initActionButtons(): void {
     const releaseBtn = document.getElementById('release-btn') as HTMLButtonElement | null;
     const flagBtn = document.getElementById('flag-btn') as HTMLButtonElement | null;
 
     // FIX-03: Click-twice-to-confirm replaces blocking confirm() for release.
     let releasePending = false;
+    // Module-scoped timer for release confirmation auto-revert.
+    let releaseRevertTimer: ReturnType<typeof setTimeout> | null = null;
 
     if (releaseBtn) {
-        releaseBtn.addEventListener('click', () => {
-            const c = CASES[currentCaseIndex];
+        releaseBtn.addEventListener('click', async () => {
+            const c = cases[currentCaseIndex];
             if (!c) { return; }
 
             if (!releasePending) {
@@ -193,33 +227,54 @@ function initActionButtons(): void {
                 releasePending = true;
                 releaseBtn.classList.remove('bg-trust-blue');
                 releaseBtn.classList.add('bg-amber-500');
-                releaseBtn.innerHTML = `<i class="ph ph-warning text-lg" aria-hidden="true"></i> ${esc(t('esc_confirm_release', 'Click again to release'))} ${esc(c.amount)}`;
+                releaseBtn.innerHTML = `<i class="ph ph-warning text-lg" aria-hidden="true"></i> ${esc(t('esc_confirm_release', 'Click again to release'))} ${formatCents(c.amount)}`;
                 // Auto-reset after 5s
-                setTimeout(() => {
+                releaseRevertTimer = setTimeout(() => {
                     if (releasePending) {
                         releasePending = false;
                         releaseBtn.classList.remove('bg-amber-500');
                         releaseBtn.classList.add('bg-trust-blue');
                         releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg" aria-hidden="true"></i> ${esc(t('esc_release_funds', 'Match Verified: Release Funds to Vendor'))}`;
                     }
+                    releaseRevertTimer = null;
                 }, 5000);
                 return;
             }
 
-            // Second click: execute release
+            // Second click: execute release via API
             releasePending = false;
-            resolvedCases.add(currentCaseIndex);
-            releaseBtn.disabled = true;
-            releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
-            releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
-            releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg" aria-hidden="true"></i> ${esc(t('esc_funds_released', 'Funds Released — Audit Trail Updated'))}`;
-
-            if (flagBtn) {
-                flagBtn.disabled = true;
-                flagBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+            if (releaseRevertTimer !== null) {
+                clearTimeout(releaseRevertTimer);
+                releaseRevertTimer = null;
             }
 
-            showToast(`${t('esc_released_toast', 'Escrow released')}: ${c.amount} → ${c.vendorName}`, 'success');
+            // Loading state
+            releaseBtn.disabled = true;
+            releaseBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> ${esc(t('esc_releasing', 'Releasing...'))}`;
+
+            try {
+                await admin.releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id });
+                resolvedCases.add(currentCaseIndex);
+                c.status = 'released';
+                releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
+                releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
+                releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg" aria-hidden="true"></i> ${esc(t('esc_funds_released', 'Funds Released — Audit Trail Updated'))}`;
+
+                if (flagBtn) {
+                    flagBtn.disabled = true;
+                    flagBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+                }
+
+                showToast(`${t('esc_released_toast', 'Escrow released')}: ${formatCents(c.amount)} → ${esc(c.vendor_name)}`, 'success');
+            } catch (err) {
+                // Re-enable on failure — admin must be able to retry.
+                releaseBtn.disabled = false;
+                releaseBtn.classList.remove('bg-amber-500');
+                releaseBtn.classList.add('bg-trust-blue');
+                releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg" aria-hidden="true"></i> ${esc(t('esc_release_funds', 'Match Verified: Release Funds to Vendor'))}`;
+                const msg = err instanceof Error ? err.message : t('esc_release_error', 'Failed to release — please try again');
+                showToast(msg, 'error');
+            }
         });
     }
 
@@ -228,8 +283,8 @@ function initActionButtons(): void {
         let flagInputVisible = false;
         let flagInput: HTMLInputElement | null = null;
 
-        flagBtn.addEventListener('click', () => {
-            const c = CASES[currentCaseIndex];
+        flagBtn.addEventListener('click', async () => {
+            const c = cases[currentCaseIndex];
             if (!c) { return; }
 
             if (!flagInputVisible) {
@@ -246,7 +301,7 @@ function initActionButtons(): void {
                 return;
             }
 
-            // Second click: submit flag
+            // Second click: submit flag via API
             const reason = flagInput?.value.trim() ?? '';
             if (reason === '') {
                 showToast(t('esc_reason_required', 'A reason is required to flag a discrepancy.'));
@@ -254,22 +309,34 @@ function initActionButtons(): void {
                 return;
             }
 
-            flagInputVisible = false;
-            flagInput?.remove();
-            resolvedCases.add(currentCaseIndex);
+            // Loading state
             flagBtn.disabled = true;
-            flagBtn.classList.remove('border-slate-200', 'text-slate-700');
-            flagBtn.classList.add('border-rose-300', 'text-rose-600', 'bg-rose-50', 'cursor-not-allowed');
-            flagBtn.innerHTML = `<i class="ph ph-flag text-lg" aria-hidden="true"></i> ${esc(t('esc_discrepancy_flagged', '⚠ Discrepancy Flagged'))}`;
+            flagBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> ${esc(t('esc_flagging', 'Flagging...'))}`;
 
-            if (releaseBtn) {
-                releaseBtn.disabled = true;
-                releaseBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+            try {
+                await admin.flagDiscrepancy({ proof_id: c.proof_id, reason });
+                flagInputVisible = false;
+                flagInput?.remove();
+                flagInput = null;
+                resolvedCases.add(currentCaseIndex);
+                c.status = 'flagged';
+                flagBtn.classList.remove('border-slate-200', 'text-slate-700');
+                flagBtn.classList.add('border-rose-300', 'text-rose-600', 'bg-rose-50', 'cursor-not-allowed');
+                flagBtn.innerHTML = `<i class="ph ph-flag text-lg" aria-hidden="true"></i> ${esc(t('esc_discrepancy_flagged', '⚠ Discrepancy Flagged'))}`;
+
+                if (releaseBtn) {
+                    releaseBtn.disabled = true;
+                    releaseBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+                }
+
+                showToast(`${esc(t('esc_flagged_toast', 'Flagged'))}: "${esc(reason)}" — ${esc(t('esc_under_investigation', 'Under investigation'))}`, 'success');
+            } catch (err) {
+                // Re-enable on failure — admin must be able to retry.
+                flagBtn.disabled = false;
+                flagBtn.innerHTML = `<i class="ph ph-flag text-lg" aria-hidden="true"></i> ${esc(t('esc_submit_flag', 'Submit Flag'))}`;
+                const msg = err instanceof Error ? err.message : t('esc_flag_error', 'Failed to flag — please try again');
+                showToast(msg, 'error');
             }
-
-            showToast(`${esc(t('esc_flagged_toast', 'Flagged'))}: "${esc(reason)}" — ${esc(t('esc_under_investigation', 'Under investigation'))}`);
         });
     }
 }
-
-/* INC-P3-001: Inline showToast() removed — using shared import from utils/toast.ts */

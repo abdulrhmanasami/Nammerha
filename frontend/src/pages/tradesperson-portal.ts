@@ -382,11 +382,24 @@ async function loadAssignments(): Promise<void> {
             const accept = btn.dataset['accept'] === 'true';
             if (!id) { return; }
 
+            // BLOCKER-B FIX: Disable button + show loading state during API call.
+            // Previous: No disabled state — double-tap on flaky 3G created race conditions.
+            // Standard: Nielsen #1 (System Status Visibility), retry-friendly UX.
+            const originalText = btn.textContent ?? '';
+            const originalClass = btn.className;
+            btn.disabled = true;
+            btn.textContent = accept ? t('tp_accepting', 'Accepting...') : t('tp_declining', 'Declining...');
+            btn.className = 'px-2.5 py-1 bg-slate-100 text-slate-400 text-3xs font-bold rounded-lg cursor-not-allowed';
+
             try {
                 await tradesperson.respondToAssignment(id, accept);
                 loadAssignments();
                 loadStats();
             } catch (err) {
+                // Re-enable button on failure — user must be able to retry.
+                btn.disabled = false;
+                btn.textContent = originalText;
+                btn.className = originalClass;
                 reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignment response failed'), { component: 'tradesperson', action: 'respond_assignment' });
                 showSimpleBanner('dashboard-banner', 'error', t('tp_response_error', 'Failed to respond. Please try again.'));
             }

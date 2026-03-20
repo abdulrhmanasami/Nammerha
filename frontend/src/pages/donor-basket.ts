@@ -19,6 +19,9 @@ import { haptic } from '../utils/haptic';
 // PLT-CART-001 FIX: Wire checkout to actual donations API
 import { donations } from '../api';
 import { setLoadingState } from '../utils/loading-state';
+// BLOCKER-A FIX: Auth guard — unauthenticated visitors see "Sign in required" overlay
+// instead of broken checkout with cryptic 401 API errors.
+import { requireAuth } from '../utils/auth-guard';
 initSearch();
 
 // FRC-003 FIX: Default tip 0% (was 3%). Humanitarian platform — opt-in tipping only.
@@ -442,11 +445,20 @@ function initDonorBasket(): void {
     render();
 }
 
+// BLOCKER-A FIX: Guard all protected content behind auth check.
+// Previous: No auth guard — checkoutSheet accepted input from unauthenticated users,
+// resulting in confusing 401 errors on submit. Every other portal has this guard.
+function guardedInit(): void {
+    if (!requireAuth()) { return; }
+    initDonorBasket();
+    initKeyboardHandler();
+}
+
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDonorBasket);
+    document.addEventListener('DOMContentLoaded', guardedInit);
 } else {
-    initDonorBasket();
+    guardedInit();
 }
 
 // ─── CONF-003 FIX: Virtual Keyboard Viewport Handler ────────────────────────
@@ -481,9 +493,5 @@ function initKeyboardHandler(): void {
     viewport.addEventListener('resize', adjustForKeyboard);
 }
 
-// Initialize keyboard handler
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initKeyboardHandler);
-} else {
-    initKeyboardHandler();
-}
+// BLOCKER-A FIX: Keyboard handler is now initialized inside guardedInit() above
+// to ensure it only runs after auth verification passes.

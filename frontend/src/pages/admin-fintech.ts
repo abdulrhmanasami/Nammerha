@@ -20,6 +20,8 @@ import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
 // W5-001 FIX: Import shared error-retry utility for user-facing error states.
 import { renderTableErrorWithRetry } from '../utils/error-retry';
+// TICK-W4-001 FIX: Auth guard — was the only admin page without it.
+import { requireAuth } from '../utils/auth-guard';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -62,7 +64,7 @@ async function loadFeeConfigs(): Promise<void> {
         const configs: FeeConfig[] = Array.isArray(res.data) ? res.data : [];
 
         if (configs.length === 0) {
-            body.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-300">${t('fintech_no_configs', 'No fee configurations')}</td></tr>`;
+            body.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-300">${escapeHtml(t('fintech_no_configs', 'No fee configurations'))}</td></tr>`;
             return;
         }
 
@@ -82,7 +84,7 @@ async function loadFeeConfigs(): Promise<void> {
                 <td class="py-3 px-4">
                     <span class="inline-flex items-center gap-1 text-xs font-semibold ${c.is_active ? 'text-smoky-jade' : 'text-slate-400'}">
                         <span class="w-2 h-2 rounded-full ${c.is_active ? 'bg-smoky-jade' : 'bg-slate-300'}"></span>
-                        ${c.is_active ? t('fintech_active', 'Active') : t('fintech_inactive', 'Inactive')}
+                        ${c.is_active ? escapeHtml(t('fintech_active', 'Active')) : escapeHtml(t('fintech_inactive', 'Inactive'))}
                     </span>
                 </td>
             </tr>
@@ -111,7 +113,7 @@ async function loadOrganizations(): Promise<void> {
         }
 
         if (orgs.length === 0) {
-            body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-300">${t('fintech_no_orgs', 'No organizations yet')}</td></tr>`;
+            body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-300">${escapeHtml(t('fintech_no_orgs', 'No organizations yet'))}</td></tr>`;
             return;
         }
 
@@ -131,7 +133,7 @@ async function loadOrganizations(): Promise<void> {
                 <td class="py-3 px-4">
                     <span class="inline-flex items-center gap-1 text-xs font-semibold ${o.is_active ? 'text-smoky-jade' : 'text-slate-400'}">
                         <span class="w-2 h-2 rounded-full ${o.is_active ? 'bg-smoky-jade' : 'bg-slate-300'}"></span>
-                        ${o.is_active ? t('fintech_active', 'Active') : t('fintech_inactive', 'Inactive')}
+                        ${o.is_active ? escapeHtml(t('fintech_active', 'Active')) : escapeHtml(t('fintech_inactive', 'Inactive'))}
                     </span>
                 </td>
             </tr>
@@ -148,6 +150,8 @@ async function loadOrganizations(): Promise<void> {
 // ─── Initialization ─────────────────────────────────────────────────────────
 
 function initFintech(): void {
+    // TICK-W4-001 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
     loadFeeSummary();
     loadFeeConfigs();
     loadOrganizations();

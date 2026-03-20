@@ -266,7 +266,7 @@ async function loadCatalog(): Promise<void> {
                 </div>
                 ${item.is_active ? `
                 <button type="button" class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
-                    <i class="ph ph-trash" aria-hidden="true"></i> ${t('supplier_remove', 'Remove')}
+                    <i class="ph ph-trash" aria-hidden="true"></i> ${esc(t('supplier_remove', 'Remove'))}
                 </button>` : ''}
             </div>
         `).join('');
@@ -395,7 +395,7 @@ async function deactivateItem(catalogId: string): Promise<void> {
     if (btn && !btn.dataset.confirmed) {
         const originalHTML = btn.innerHTML;
         btn.dataset.confirmed = 'pending';
-        btn.innerHTML = `<i class="ph ph-warning" aria-hidden="true"></i> ${t('supplier_confirm_remove', 'Confirm?')}`;
+        btn.innerHTML = `<i class="ph ph-warning" aria-hidden="true"></i> ${esc(t('supplier_confirm_remove', 'Confirm?'))}`;
         btn.classList.add('text-red-600', 'font-bold');
 
         // Auto-revert after 3 seconds if user doesn't confirm

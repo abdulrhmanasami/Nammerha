@@ -8,6 +8,11 @@ import { t } from '../utils/i18n';
 import { setLoadingState } from '../utils/loading-state';
 // DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
 import { haptic } from '../utils/haptic';
+// W6-003 FIX: Auth guard — was missing on this homeowner page.
+import { requireAuth } from '../utils/auth-guard';
+
+// W6-003 FIX: Module-level guard — prevent wizard from initializing for unauthenticated users.
+if (!requireAuth()) { throw new Error('Auth required'); }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE

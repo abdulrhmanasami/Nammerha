@@ -48,7 +48,7 @@ form?.addEventListener('submit', async (e: Event) => {
     // Set loading state
     submitBtn.disabled = true;
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = `<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> ${t('contact_sending', 'Sending...')}`;
+    submitBtn.innerHTML = `<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> ${escapeHtml(t('contact_sending', 'Sending...'))}`;
 
     try {
         // SEC-003 FIX: Uses centralized API client.

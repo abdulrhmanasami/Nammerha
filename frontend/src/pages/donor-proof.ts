@@ -9,6 +9,8 @@ import { t } from '../utils/i18n';
 import { showToast } from '../utils/toast';
 import { escapeHtml as esc } from '../utils/xss';
 import { initBreadcrumb } from '../utils/breadcrumb';
+// W6-002 FIX: Auth guard — was missing on this donor page.
+import { requireAuth } from '../utils/auth-guard';
 
 // ============================================================================
 // Nammerha — Donor Proof of Delivery Page Engine
@@ -313,6 +315,8 @@ async function loadProof(): Promise<void> {
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
+    // W6-002 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
     initShareButton(); // PLT-G003: Web Share API
     initVerifyButton(); // PLT-G002: Blockchain explorer redirect

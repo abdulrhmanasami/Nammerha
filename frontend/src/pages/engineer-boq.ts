@@ -8,6 +8,8 @@ import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
 import { showToast } from '../utils/toast';
 import { initBreadcrumb } from '../utils/breadcrumb';
+// W5-001 FIX: Auth guard — was missing on this engineer page.
+import { requireAuth } from '../utils/auth-guard';
 
 // ============================================================================
 // Nammerha — Engineer BOQ Builder Page Engine
@@ -100,7 +102,7 @@ function renderItem(item: BOQItem, index: number): string {
         </div>
         <div class="flex items-center justify-between mt-2">
           <div class="flex flex-col">
-            <p class="text-slate-400 text-3xs uppercase font-bold tracking-tighter">${t('boq_estimated', 'Estimated')}</p>
+            <p class="text-slate-400 text-3xs uppercase font-bold tracking-tighter">${esc(t('boq_estimated', 'Estimated'))}</p>
             <p class="text-trust-blue text-base font-bold">${esc(formatCents(totalCostCents))}</p>
           </div>
           <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-1">
@@ -124,8 +126,8 @@ function renderAllItems(): void {
         itemsContainer.innerHTML = `
         <div class="text-center py-16">
           <i class="ph ph-clipboard-text text-slate-300 nm-icon-64" aria-hidden="true"></i>
-          <p class="text-slate-500 font-bold mt-4">${t('boq_no_materials', 'No materials added yet')}</p>
-          <p class="text-slate-400 text-sm mt-1">${t('boq_search_hint', 'Search for materials above to build your BOQ')}</p>
+          <p class="text-slate-500 font-bold mt-4">${esc(t('boq_no_materials', 'No materials added yet'))}</p>
+          <p class="text-slate-400 text-sm mt-1">${esc(t('boq_search_hint', 'Search for materials above to build your BOQ'))}</p>
         </div>`;
         return;
     }
@@ -255,7 +257,7 @@ publishBtn?.addEventListener('click', async () => {
     state.isPublishing = true;
     if (publishBtn) {
         publishBtn.disabled = true;
-        publishBtn.innerHTML = `<i class="ph ph-spinner ph-lg animate-spin" aria-hidden="true"></i> ${t('boq_publishing', 'Publishing...')}`;
+        publishBtn.innerHTML = `<i class="ph ph-spinner ph-lg animate-spin" aria-hidden="true"></i> ${esc(t('boq_publishing', 'Publishing...'))}`;
     }
 
     try {
@@ -295,7 +297,7 @@ publishBtn?.addEventListener('click', async () => {
         await projects.publish(state.projectId);
 
         if (publishBtn) {
-            publishBtn.innerHTML = `<i class="ph ph-check-circle" aria-hidden="true"></i> ${t('boq_published', 'Published!')}`;
+            publishBtn.innerHTML = `<i class="ph ph-check-circle" aria-hidden="true"></i> ${esc(t('boq_published', 'Published!'))}`;
             publishBtn.classList.remove('btn-primary');
             publishBtn.classList.add('btn-jade');
         }
@@ -313,7 +315,7 @@ publishBtn?.addEventListener('click', async () => {
         showToast(message, 'error');
         if (publishBtn) {
             publishBtn.disabled = false;
-            publishBtn.innerHTML = `<i class="ph ph-upload" aria-hidden="true"></i> ${t('boq_publish_to_marketplace', 'Publish to Marketplace')}`;
+            publishBtn.innerHTML = `<i class="ph ph-upload" aria-hidden="true"></i> ${esc(t('boq_publish_to_marketplace', 'Publish to Marketplace'))}`;
         }
     } finally {
         state.isPublishing = false;
@@ -322,6 +324,8 @@ publishBtn?.addEventListener('click', async () => {
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
+    // W5-001 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
     state.projectId = getProjectId();
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
     if (state.projectId) {

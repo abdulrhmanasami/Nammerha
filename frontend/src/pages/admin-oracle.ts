@@ -139,9 +139,11 @@ function initTabSwitching(): void {
     const tabs = tabContainer.querySelectorAll('button');
     tabs.forEach((tab) => {
         tab.addEventListener('click', () => {
-            tabs.forEach((t) => {
-                t.classList.remove('bg-white', 'shadow-sm');
-                t.classList.add('text-slate-500');
+            // TICK-W4-005 FIX: Callback used `t` as parameter name, shadowing
+            // the imported i18n `t()` function. Renamed to `tab` for clarity.
+            tabs.forEach((otherTab) => {
+                otherTab.classList.remove('bg-white', 'shadow-sm');
+                otherTab.classList.add('text-slate-500');
             });
             tab.classList.add('bg-white', 'shadow-sm');
             tab.classList.remove('text-slate-500');

@@ -18,6 +18,8 @@ import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml } from '../utils/xss';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
+// TICK-W4-003 FIX: Auth guard — was missing on this admin page.
+import { requireAuth } from '../utils/auth-guard';
 
 // ─── Formatters (non-duplicated helpers) ────────────────────────────────────
 
@@ -63,8 +65,8 @@ function renderTiers(tiers: CommissionTier[]): void {
             ? 'text-smoky-jade bg-smoky-jade/10'
             : 'text-slate-400 bg-slate-100';
         const statusText = tier.is_active
-            ? t('rev_active', 'Active')
-            : t('rev_inactive', 'Inactive');
+            ? escapeHtml(t('rev_active', 'Active'))
+            : escapeHtml(t('rev_inactive', 'Inactive'));
 
         return `
             <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -187,6 +189,8 @@ async function loadDashboard(): Promise<void> {
 // FIX-01: Removed duplicate sidebar toggle — nav.js handles this globally.
 
 function initRevenueDashboard(): void {
+    // TICK-W4-003 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
     // Refresh button
     const refreshBtn = document.getElementById('rev-refresh-btn');
     refreshBtn?.addEventListener('click', () => {

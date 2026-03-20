@@ -17,6 +17,8 @@ import { reportError } from '../error-reporter';
 import { getCurrentUser } from '../auth';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
+// W6-005 FIX: Import escapeHtml for defense-in-depth XSS protection on innerHTML.
+import { escapeHtml } from '../utils/xss';
 
 // ─── Price Constants (all in cents) ─────────────────────────────────────────
 
@@ -123,7 +125,7 @@ async function handleSubscribe(planSlug: string): Promise<void> {
         if (body.success) {
             const btn = document.getElementById(`btn-plan-${planSlug}`);
             if (btn) {
-                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end" aria-hidden="true"></i>${t('pricing_subscribed', 'Subscribed!')}`;
+                btn.innerHTML = `<i class="ph ph-check nm-icon-gap-end" aria-hidden="true"></i>${escapeHtml(t('pricing_subscribed', 'Subscribed!'))}`;
                 btn.classList.add('bg-smoky-jade');
                 btn.classList.remove('bg-trust-blue');
             }

@@ -10,6 +10,9 @@ import { engineer, storage } from '../api';
 // CRIT-001 FIX: Use canonical toast system (haptic, ARIA, exit animation, z-index token).
 // Previous: local showToast() created raw divs with hardcoded z-50 and no accessibility.
 import { showToast } from '../utils/toast';
+// W5-003 FIX: Auth guard — was missing on this engineer page.
+import { requireAuth } from '../utils/auth-guard';
+import { escapeHtml as esc } from '../utils/xss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -47,6 +50,8 @@ const syncBtn = document.getElementById('sync-btn');
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // W5-003 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) { return; }
     projectId = new URLSearchParams(window.location.search).get('project');
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
     initTimestamp();
@@ -195,7 +200,7 @@ function setupCapture(): void {
                 iconEl.classList.add('ph-check-circle');
             }
             const textEl = captureBtn.querySelector('span');
-            if (textEl) { textEl.innerHTML = `${t('cam_captured', 'Captured')} #${captureCount} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`; }
+            if (textEl) { textEl.innerHTML = `${esc(t('cam_captured', 'Captured'))} #${captureCount} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`; }
 
             setTimeout(() => {
                 cameraReady.classList.remove('hidden');
@@ -294,7 +299,7 @@ function setupSync(): void {
                 (icon as HTMLElement).classList.add('nm-upload-success');
             }
             if (label) {
-                label.innerHTML = `${uploaded} ${t('cam_proofs_synced', 'Proof(s) Synced')} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
+                label.innerHTML = `${uploaded} ${esc(t('cam_proofs_synced', 'Proof(s) Synced'))} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
                 // P3-CAM-002 FIX: CSS class replaces inline style.color.
                 label.classList.add('nm-upload-success');
             }
