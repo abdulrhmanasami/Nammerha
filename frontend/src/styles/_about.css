@@ -87,11 +87,13 @@ html[data-theme="light"] .hero-subtitle {
 html[data-theme="light"] .hero-logo img {
   filter: drop-shadow(0 4px 20px rgba(26,115,232,0.12));
 }
+/* FIX-5: Badge contrast boost in light mode — rgba(255,255,255,0.8) on
+   #f8f9fc was near-zero separation. Now uses solid tinted backgrounds. */
 html[data-theme="light"] .badge {
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(0,0,0,0.08);
-  color: #4a5568;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.10);
+  color: #2d3748;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 html[data-theme="light"] .scroll-hint .mouse {
   border-color: rgba(0,0,0,0.12);
@@ -692,11 +694,14 @@ body.about-page a { text-decoration: none; color: inherit; }
 /* ═══════════════════════════════════════════════════════════════════
    BENTO GRID — Approach / Pillars
    ═══════════════════════════════════════════════════════════════════ */
+/* FIX-6: Equalized bento row heights — auto auto → 1fr 1fr for consistent
+   card sizes. align-items: stretch fills all cells uniformly. */
 .bento {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: auto auto;
+  grid-template-rows: 1fr 1fr;
   gap: 16px;
+  align-items: stretch;
 }
 .bento-large {
   grid-column: span 2;
@@ -806,10 +811,11 @@ body.about-page .bento-large {
 .leader-role-blue { color: var(--trust-blue); }
 .leader-role-jade { color: var(--smoky-jade); }
 
+/* FIX-8: Improved bio readability — 0.88rem → 0.95rem for Arabic density relief. */
 .leader-card .bio {
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: var(--about-text-secondary);
-  line-height: 2;
+  line-height: 2.1;
   margin-bottom: 20px;
 }
 .leader-tags {
@@ -991,11 +997,12 @@ body.about-page .bento-large {
   justify-content: center;
   margin-bottom: 20px;
 }
+/* FIX-9: Removed brightness(10) filter hack — proper logo-light/logo-dark
+   swap now handles both themes correctly. Filter was overriding the swap. */
 .footer-logo img {
   height: 24px;
   width: auto;
   opacity: 0.7;
-  filter: brightness(10);
 }
 .footer-links {
   display: flex;
@@ -1041,6 +1048,21 @@ body.about-page .bento-large {
    about.html has its own nav-lang button; the global i18n widget creates
    a duplicate language selector. Intentional suppression. */
 body.about-page #nm-lang-widget { display: none !important; }
+
+/* FIX-3: Suppress global floating theme toggle — about.html has its own
+   #themeToggle in the custom top-nav. The global FAB creates a duplicate.
+   Standard: DRY, Nielsen #4 (Consistency). */
+body.about-page #nm-global-theme-toggle { display: none !important; }
+
+/* FIX-2: Suppress platform bottom navigation bar on the About page.
+   The About page is an informational/marketing page with its own nav.
+   The portal-style bottom nav (Startseite/Projects/etc.) is for logged-in
+   portal users — showing it here creates a jarring language mismatch
+   (nav uses stored i18n locale while content is hardcoded Arabic).
+   Standard: Nielsen #4 (Consistency), Content-Context Coherence. */
+body.about-page .nm-bottom-nav {
+  display: none !important;
+}
 
 /* Theme-aware logo swapping */
 .logo-dark { display: none; }

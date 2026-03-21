@@ -601,20 +601,13 @@
   });
   </script>
 
-  <!-- i18n & nav (existing) -->
-<!-- COS-003 FIX: Decorative gradient orbs — visual consistency with consumer pages -->
-<div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-<div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+  <!-- FIX-4: Duplicate global legal footer REMOVED.
+       The About page already has its own artisan footer (lines 379-393)
+       with Terms, Privacy, Contact, and Refund links.
+       The global nm-legal-footer created redundant visual clutter.
+       FIX-COS: Gradient orbs REMOVED — the About page has its own
+       hero-orb-1/2/3 system; the global orbs are for portal pages.
+       Standard: DRY, Nielsen #4 (Consistency), Zero Redundancy. -->
 
   <!-- CONF-2026-004 FIX: Unified theme engine (auto-wires [data-nm-theme-toggle] buttons) -->
   <script src="/theme-toggle.js?v=2" defer></script>
