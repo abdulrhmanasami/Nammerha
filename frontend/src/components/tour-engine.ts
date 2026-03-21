@@ -18,7 +18,7 @@ import { TOUR_DEFINITIONS, type TourDefinition } from './tour-definitions';
 // TICK-032: Import shared isRTL from utils/i18n instead of local duplicate.
 // Local getLocale() is kept — it returns 'en'|'ar' (bilingual selector),
 // different from utils/locale.ts getLocale() which returns a full locale string.
-import { isRTL } from '../utils/i18n';
+import { isRTL, t } from '../utils/i18n';
 
 const STORAGE_KEY_PREFIX = 'nammerha-tour-';
 const OVERLAY_ID         = 'nmr-tour-overlay';
@@ -162,10 +162,10 @@ function showStep(index: number): void {
     // Render tooltip content
     const title = locale === 'ar' ? step.title_ar : step.title_en;
     const content = locale === 'ar' ? step.content_ar : step.content_en;
-    const prevLabel = locale === 'ar' ? 'السابق' : 'Previous';
-    const nextLabel = locale === 'ar' ? 'التالي' : 'Next';
-    const skipLabel = locale === 'ar' ? 'تخطي' : 'Skip';
-    const doneLabel = locale === 'ar' ? 'تم!' : 'Done!';
+    const prevLabel = t('tour_prev', 'Previous');
+    const nextLabel = t('tour_next', 'Next');
+    const skipLabel = t('tour_skip', 'Skip');
+    const doneLabel = t('tour_done', 'Done!');
     const isFirst = index === 0;
     const isLast = index === steps.length - 1;
 

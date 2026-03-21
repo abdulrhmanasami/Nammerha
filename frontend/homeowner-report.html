@@ -37,7 +37,7 @@
   <meta name="twitter:title" content="Report Damage — Nammerha" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- GAP-A02 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
      Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible.
      Standard: Progressive Enhancement — "Content must be accessible without JavaScript." -->
@@ -62,7 +62,7 @@
            use <a data-back-btn> or <button type="button" data-back-btn>. The data-back-btn
            attribute is the platform-wide convention for CSS :active feedback.
            Standard: Single data attribute convention per UI pattern. -->
-      <button type="button" id="back-btn" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform" aria-label="Go back" data-i18n-aria="aria_go_back">
+      <button type="button" id="back-btn" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 active:scale-95 transition-transform dark:bg-dark-surface dark:border-dark-border" aria-label="Go back" data-i18n-aria="aria_go_back">
         <i class="ph ph-arrow-left" aria-hidden="true"></i>
       </button>
       <div class="flex-1 flex flex-col items-center">
@@ -83,9 +83,9 @@
        STEP 1 — What kind of damage? (One question per screen)
        ═══════════════════════════════════════════════════════════════════════ -->
   <section id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
-    <h1 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="what_kind_of_damage">What kind of damage<br>needs repair?
+    <h1 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100" data-i18n="what_kind_of_damage">What kind of damage<br>needs repair?
     </h1>
-    <p class="text-slate-500 text-sm text-center mb-8" data-i18n="select_the_type_that_best_describes_your">Select the type that best describes your situation</p>
+    <p class="text-slate-500 text-sm text-center mb-8 dark:text-slate-400" data-i18n="select_the_type_that_best_describes_your">Select the type that best describes your situation</p>
 
     <div class="space-y-3" id="damage-type-list">
       <!-- Structural -->
@@ -94,8 +94,8 @@
           <i class="ph ph-house-line nm-icon-32" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="structural_damage">Structural Damage</h3>
-          <p class="text-slate-500 text-xs mt-0.5" data-i18n="foundations_walls_ceilings_roofing">Foundations, walls, ceilings, roofing</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight dark:text-slate-100" data-i18n="structural_damage">Structural Damage</h3>
+          <p class="text-slate-500 text-xs mt-0.5 dark:text-slate-400" data-i18n="foundations_walls_ceilings_roofing">Foundations, walls, ceilings, roofing</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -104,12 +104,12 @@
 
       <!-- Plumbing -->
       <button type="button" class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="plumbing">
-        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0 dark:text-slate-400">
           <i class="ph ph-drop nm-icon-32" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="plumbing">Plumbing</h3>
-          <p class="text-slate-500 text-xs mt-0.5" data-i18n="pipes_leaks_water_and_drainage_systems">Pipes, leaks, water and drainage systems</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight dark:text-slate-100" data-i18n="plumbing">Plumbing</h3>
+          <p class="text-slate-500 text-xs mt-0.5 dark:text-slate-400" data-i18n="pipes_leaks_water_and_drainage_systems">Pipes, leaks, water and drainage systems</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -118,12 +118,12 @@
 
       <!-- Electrical -->
       <button type="button" class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="electrical">
-        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0 dark:text-slate-400">
           <i class="ph ph-plug nm-icon-32" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="electrical">Electrical</h3>
-          <p class="text-slate-500 text-xs mt-0.5" data-i18n="wiring_outlets_panels_and_generators">Wiring, outlets, panels, and generators</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight dark:text-slate-100" data-i18n="electrical">Electrical</h3>
+          <p class="text-slate-500 text-xs mt-0.5 dark:text-slate-400" data-i18n="wiring_outlets_panels_and_generators">Wiring, outlets, panels, and generators</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -132,12 +132,12 @@
 
       <!-- General / Other -->
       <button type="button" class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]" data-type="general">
-        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+        <div class="size-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0 dark:text-slate-400">
           <i class="ph ph-wrench nm-icon-32" aria-hidden="true"></i>
         </div>
         <div class="flex-1">
-          <h3 class="text-lg font-bold text-slate-900 leading-tight" data-i18n="general_repair">General Repair</h3>
-          <p class="text-slate-500 text-xs mt-0.5" data-i18n="doors_windows_finishing_or_other">Doors, windows, finishing, or other</p>
+          <h3 class="text-lg font-bold text-slate-900 leading-tight dark:text-slate-100" data-i18n="general_repair">General Repair</h3>
+          <p class="text-slate-500 text-xs mt-0.5 dark:text-slate-400" data-i18n="doors_windows_finishing_or_other">Doors, windows, finishing, or other</p>
         </div>
         <div class="damage-check text-slate-300">
           <i class="ph ph-circle" aria-hidden="true"></i>
@@ -153,9 +153,9 @@
     <!-- INC-AUD-01 FIX: Changed from <h1> to <h2>. Only one <h1> per page (step-1).
          Screen readers enumerate ALL headings regardless of CSS visibility.
          Standard: WCAG 1.3.1 — single <h1> per page. -->
-    <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="where_is_your">Where is your<br>property located?
+    <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100" data-i18n="where_is_your">Where is your<br>property located?
     </h2>
-    <p class="text-slate-500 text-sm text-center mb-8" data-i18n="we_need_this_to_connect_you_with_nearby">We need this to connect you with nearby engineers</p>
+    <p class="text-slate-500 text-sm text-center mb-8 dark:text-slate-400" data-i18n="we_need_this_to_connect_you_with_nearby">We need this to connect you with nearby engineers</p>
 
     <!-- Governorate Selection -->
     <!-- GAP-AUD-01 FIX: Programmatic label association (WCAG 1.3.1).
@@ -163,9 +163,9 @@
          associate the label text with the <select> control.
          Standard: WCAG 1.3.1 (Info and Relationships) — labels MUST be
          programmatically associated with their form controls. -->
-    <label for="governorate" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="governorate">Governorate</label>
+    <label for="governorate" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400" data-i18n="governorate">Governorate</label>
     <div class="relative mb-5">
-      <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm">
+      <select id="governorate" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm dark:bg-dark-surface dark:border-dark-border dark:text-slate-100">
         <!-- GAP-003 FIX: All governorate options have data-i18n for full i18n coverage.
              Previous: Arabic-only hardcoded text — English users saw untranslated dropdown.
              Standard: Platform i18n mandate — 100% data-i18n coverage. -->
@@ -185,15 +185,15 @@
         <option value="suwayda" data-i18n="gov_suwayda">Suwayda</option>
         <option value="quneitra" data-i18n="gov_quneitra">Quneitra</option>
       </select>
-      <div class="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+      <div class="absolute end-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none dark:text-slate-500">
         <i class="ph ph-caret-down" aria-hidden="true"></i>
       </div>
     </div>
 
     <!-- Neighborhood / Area -->
     <!-- GAP-AUD-01 FIX: Programmatic label association (WCAG 1.3.1). -->
-    <label for="neighborhood" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="neighborhood_or_area_name">Neighborhood or area name</label>
-    <input id="neighborhood" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm mb-5" placeholder="e.g. Al-Majidiya, Old City..." data-i18n-placeholder="ho_neighborhood_placeholder" enterkeyhint="done" />
+    <label for="neighborhood" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400" data-i18n="neighborhood_or_area_name">Neighborhood or area name</label>
+    <input id="neighborhood" class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm mb-5 dark:bg-dark-surface dark:border-dark-border dark:text-slate-100" placeholder="e.g. Al-Majidiya, Old City..." data-i18n-placeholder="ho_neighborhood_placeholder" enterkeyhint="done" />
 
     <!-- Detect Location Button -->
     <button type="button" id="detect-location-btn" class="btn-secondary w-full nm-btn-tall mb-4">
@@ -204,11 +204,11 @@
     <!-- GPS Result (hidden until detected) -->
     <div id="gps-result" class="hidden bg-smoky-jade/10 border border-smoky-jade/20 rounded-xl p-4 flex items-center gap-3">
       <div class="size-10 rounded-full bg-smoky-jade/20 flex items-center justify-center shrink-0">
-        <i class="ph ph-map-pin text-smoky-jade ph-md" aria-hidden="true"></i>
+        <i class="ph ph-map-pin text-smoky-jade ph-md dark:text-emerald-400" aria-hidden="true"></i>
       </div>
       <div>
-        <p class="text-xs font-bold text-smoky-jade uppercase tracking-wider" data-i18n="location_detected">Location Detected</p>
-        <p class="text-slate-700 text-sm font-mono" id="gps-display">—</p>
+        <p class="text-xs font-bold text-smoky-jade uppercase tracking-wider dark:text-emerald-400" data-i18n="location_detected">Location Detected</p>
+        <p class="text-slate-700 text-sm font-mono dark:text-slate-300" id="gps-display">—</p>
       </div>
     </div>
 
@@ -216,7 +216,7 @@
          Previous: No visible error feedback when geolocation fails (permission denied,
          timeout, unavailable). User tapped the button and saw nothing.
          Standard: Nielsen #1 (System Status Visibility), Apple HIG (Error Feedback). -->
-    <div id="gps-error" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3" role="alert">
+    <div id="gps-error" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 dark:bg-red-500/10 dark:border-red-500/20" role="alert">
       <div class="size-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
         <i class="ph ph-map-pin-slash text-red-500 ph-md" aria-hidden="true"></i>
       </div>
@@ -232,23 +232,23 @@
        ═══════════════════════════════════════════════════════════════════════ -->
   <section id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
     <!-- INC-AUD-01 FIX: h2 — single h1 is on step-1 (WCAG 1.3.1). -->
-    <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center" data-i18n="describe_the_damage">Describe the damage</h2>
-    <p class="text-slate-500 text-sm text-center mb-6" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
+    <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100" data-i18n="describe_the_damage">Describe the damage</h2>
+    <p class="text-slate-500 text-sm text-center mb-6 dark:text-slate-400" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
 
     <!-- Description Textarea -->
     <div class="relative mb-4">
       <!-- FRIC-AUD-02 FIX: Added maxlength and character counter.
            Previous: No character limit or guidance — users had no sense of expected length.
            Standard: Material Design 3 — "Text fields with character counts." -->
-      <textarea id="damage-description" class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none" placeholder="Describe the damage in your own words..." data-i18n-placeholder="ho_damage_desc_placeholder" maxlength="1000"></textarea>
+      <textarea id="damage-description" class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none dark:bg-dark-surface dark:border-dark-border dark:text-slate-100" placeholder="Describe the damage in your own words..." data-i18n-placeholder="ho_damage_desc_placeholder" maxlength="1000"></textarea>
       <div class="flex justify-end mt-1">
         <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (char counter). -->
-        <span class="text-3xs text-slate-400" id="desc-char-count">0 / 1000</span>
+        <span class="text-3xs text-slate-400 dark:text-slate-500" id="desc-char-count">0 / 1000</span>
       </div>
     </div>
 
     <!-- Voice Input Button (Large for accessibility) -->
-    <button type="button" id="voice-describe-btn" class="w-full py-4 rounded-xl bg-trust-blue/8 border-2 border-dashed border-trust-blue/25 flex items-center justify-center gap-3 text-trust-blue font-semibold active:scale-[0.97] transition-all mb-6">
+    <button type="button" id="voice-describe-btn" class="w-full py-4 rounded-xl bg-trust-blue/8 border-2 border-dashed border-trust-blue/25 flex items-center justify-center gap-3 text-trust-blue font-semibold active:scale-[0.97] transition-all mb-6 dark:bg-trust-blue/10">
       <div class="size-10 rounded-full bg-trust-blue/15 flex items-center justify-center">
         <i class="ph ph-microphone nm-icon-22" aria-hidden="true"></i>
       </div>
@@ -257,17 +257,17 @@
 
     <!-- Photo Upload Area -->
     <!-- GAP-AUD-01 FIX: Added for attribute (WCAG 1.3.1). -->
-    <label for="photo-input" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2" data-i18n="upload_photos_of_damage_optional">Upload photos of damage (optional)</label>
-    <div id="photo-upload-zone" class="w-full min-h-[120px] bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer active:border-trust-blue/40 transition-colors mb-3">
+    <label for="photo-input" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400" data-i18n="upload_photos_of_damage_optional">Upload photos of damage (optional)</label>
+    <div id="photo-upload-zone" class="w-full min-h-[120px] bg-white border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer active:border-trust-blue/40 transition-colors mb-3 dark:bg-dark-surface dark:border-dark-border">
       <div class="size-12 rounded-full bg-slate-100 flex items-center justify-center">
-        <i class="ph ph-camera-plus text-slate-400 nm-icon-28" aria-hidden="true"></i>
+        <i class="ph ph-camera-plus text-slate-400 nm-icon-28 dark:text-slate-500" aria-hidden="true"></i>
       </div>
-      <p class="text-slate-500 text-sm font-medium" data-i18n="tap_to_upload_photos">Tap to upload photos</p>
+      <p class="text-slate-500 text-sm font-medium dark:text-slate-400" data-i18n="tap_to_upload_photos">Tap to upload photos</p>
       <!-- GAP-AUD-06 FIX: Dynamic photo upload counter.
            Previous: Static text "Maximum 5 photos" — no feedback as photos are added.
            Standard: Nielsen #1 (System Status Visibility). -->
       <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (photo counter). -->
-      <p class="text-slate-400 text-3xs"><span id="photo-count">0</span>/5 • <span data-i18n="photos_jpg_or_png">JPG or PNG</span></p>
+      <p class="text-slate-400 text-3xs dark:text-slate-500"><span id="photo-count">0</span>/5 • <span data-i18n="photos_jpg_or_png">JPG or PNG</span></p>
       <input id="photo-input" type="file" accept="image/*" multiple class="hidden" />
     </div>
 
@@ -281,25 +281,25 @@
   <section id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
     <div class="text-center">
       <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
-        <i class="ph ph-check-circle text-smoky-jade nm-icon-60" aria-hidden="true"></i>
+        <i class="ph ph-check-circle text-smoky-jade nm-icon-60 dark:text-emerald-400" aria-hidden="true"></i>
       </div>
       <!-- INC-AUD-01 FIX: h2 — single h1 is on step-1 (WCAG 1.3.1). -->
-      <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mb-3" data-i18n="request_submitted">Request Submitted!</h2>
-      <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6" data-i18n="your_damage_report_has_been_registered">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
+      <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mb-3 dark:text-slate-100" data-i18n="request_submitted">Request Submitted!</h2>
+      <p class="text-slate-500 text-sm max-w-[300px] mx-auto mb-6 dark:text-slate-400" data-i18n="your_damage_report_has_been_registered">Your damage report has been registered. We're matching you with verified engineers in your area.</p>
 
-      <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-start">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 shadow-sm text-start dark:bg-dark-surface dark:border-dark-border">
         <p class="text-3xs font-bold uppercase tracking-widest text-trust-blue mb-2" data-i18n="request_summary">Request Summary</p>
         <div class="space-y-2 text-sm">
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="type">Type:</span><span class="font-bold" id="summary-type">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="location">Location:</span><span class="font-bold" id="summary-location">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="photos">Photos:</span><span class="font-bold" id="summary-photos">—</span></div>
-          <div class="flex justify-between"><span class="text-slate-500" data-i18n="request_id">Request ID:</span><span class="font-mono text-trust-blue font-bold" id="summary-id">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400" data-i18n="type">Type:</span><span class="font-bold" id="summary-type">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400" data-i18n="location">Location:</span><span class="font-bold" id="summary-location">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400" data-i18n="photos">Photos:</span><span class="font-bold" id="summary-photos">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400" data-i18n="request_id">Request ID:</span><span class="font-mono text-trust-blue font-bold" id="summary-id">—</span></div>
         </div>
       </div>
 
-      <div class="bg-trust-blue/8 rounded-xl p-4 flex items-center gap-3 border border-trust-blue/15">
+      <div class="bg-trust-blue/8 rounded-xl p-4 flex items-center gap-3 border border-trust-blue/15 dark:bg-trust-blue/10">
         <i class="ph ph-clock text-trust-blue ph-md" aria-hidden="true"></i>
-        <p class="text-sm text-slate-700"><span class="font-bold text-trust-blue" data-i18n="expected_response">Expected response:</span> Within 24–48 hours</p>
+        <p class="text-sm text-slate-700 dark:text-slate-300"><span class="font-bold text-trust-blue" data-i18n="expected_response">Expected response:</span> Within 24–48 hours</p>
       </div>
 
       <!-- GAP-FLOW-01 FIX: Forward-navigation CTAs — user was stranded on success screen.
@@ -335,16 +335,16 @@
   </footer>
 
   <!-- Voice Recording Overlay -->
-  <div id="voice-overlay" class="hidden fixed inset-0 z-50 bg-white/98 backdrop-blur-sm flex flex-col items-center justify-center">
+  <div id="voice-overlay" class="hidden fixed inset-0 z-50 bg-white/98 backdrop-blur-sm flex flex-col items-center justify-center dark:bg-[#1e1e1e]/95">
     <div class="text-center">
       <div class="size-28 rounded-full bg-trust-blue/10 flex items-center justify-center mb-6 voice-recording">
         <div class="size-20 rounded-full bg-trust-blue/20 flex items-center justify-center">
           <i class="ph ph-microphone text-trust-blue nm-icon-48" aria-hidden="true"></i>
         </div>
       </div>
-      <p class="text-slate-900 text-xl font-bold mb-2" data-i18n="listening">Listening...</p>
-      <p class="text-slate-500 text-sm" id="voice-timer">00:00</p>
-      <p class="text-slate-400 text-xs mt-4 max-w-[260px]" data-i18n="describe_the_damage_clearly_we_ll_conve">Describe the damage clearly. We'll convert your speech to text.</p>
+      <p class="text-slate-900 text-xl font-bold mb-2 dark:text-slate-100" data-i18n="listening">Listening...</p>
+      <p class="text-slate-500 text-sm dark:text-slate-400" id="voice-timer">00:00</p>
+      <p class="text-slate-400 text-xs mt-4 max-w-[260px] dark:text-slate-500" data-i18n="describe_the_damage_clearly_we_ll_conve">Describe the damage clearly. We'll convert your speech to text.</p>
     </div>
     <!-- INC-001 FIX: Added data-i18n for "Done" text (was hardcoded English) -->
     <button type="button" id="voice-stop-btn" class="mt-8 px-8 py-4 rounded-full bg-trust-blue text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">

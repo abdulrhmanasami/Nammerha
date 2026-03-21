@@ -36,7 +36,7 @@ async function loadTickerData(): Promise<void> {
 
         if (entries.length === 0) {
             tickerContainer.innerHTML = `
-                <span class="text-sm text-slate-400 italic">${esc(t('oracle_no_prices', 'No price data available'))}</span>
+                <span class="text-sm text-slate-400 italic dark:text-slate-500">${esc(t('oracle_no_prices', 'No price data available'))}</span>
             `;
             return;
         }
@@ -53,7 +53,7 @@ async function loadTickerData(): Promise<void> {
 
             return `
                 <div class="flex items-center gap-4 text-sm">
-                    <span class="font-medium text-slate-700">${esc(entry.material_name)}:</span>
+                    <span class="font-medium text-slate-700 dark:text-slate-300">${esc(entry.material_name)}:</span>
                     <span class="font-bold">${displayPrice}/${esc(entry.unit)}</span>
                     <span class="${colorClass} flex items-center font-semibold">
                         <i class="ph ${icon} nm-icon-gap-end" aria-hidden="true"></i>(${sign}${entry.price_change_pct.toFixed(1)}%)
@@ -66,7 +66,7 @@ async function loadTickerData(): Promise<void> {
         initTickerAnimation();
     } catch {
         tickerContainer.innerHTML = `
-            <span class="text-sm text-slate-400 italic">${esc(t('oracle_price_error', 'Unable to load prices'))}</span>
+            <span class="text-sm text-slate-400 italic dark:text-slate-500">${esc(t('oracle_price_error', 'Unable to load prices'))}</span>
         `;
         showToast(t('oracle_price_error', 'Unable to load market prices'), 'error');
     }

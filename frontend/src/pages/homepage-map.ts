@@ -69,7 +69,7 @@ async function initHomepageMap(): Promise<void> {
         reportWarning('Map initialization failed', { component: 'homepage_map', action: 'init_map', error: String(err) });
         // W13-004 FIX: Show error in map container when map fails to initialize.
         if (container) {
-            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 p-8">
+            container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 p-8 dark:text-slate-500">
                 <i class="ph ph-map-trifold text-3xl" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${esc(t('map_init_error', 'Map could not be loaded'))}</p>
             </div>`;

@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadKycStats();
     loadKycQueue();
-    initDropZone();
     initActionButtons();
 });
 
@@ -79,10 +78,10 @@ async function loadKycQueue(): Promise<void> {
             container.innerHTML = `
                 <div class="p-8 flex flex-col items-center justify-center text-center">
                     <div class="size-12 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-3">
-                        <i class="ph ph-check-circle text-smoky-jade text-2xl" aria-hidden="true"></i>
+                        <i class="ph ph-check-circle text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
                     </div>
-                    <p class="text-sm font-bold text-slate-600">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
-                    <p class="text-xs text-slate-400 mt-1">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
+                    <p class="text-sm font-bold text-slate-600 dark:text-slate-400">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
+                    <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
                 </div>
             `;
             return;
@@ -110,7 +109,7 @@ async function loadKycQueue(): Promise<void> {
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-bold truncate">${esc(entry.full_name)}</p>
-                        <p class="text-3xs text-slate-400">${esc(roleLabel)} • ${esc(timeAgo)}</p>
+                        <p class="text-3xs text-slate-400 dark:text-slate-500">${esc(roleLabel)} • ${esc(timeAgo)}</p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <span class="bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-2 py-0.5 rounded-full">
@@ -126,7 +125,7 @@ async function loadKycQueue(): Promise<void> {
     } catch {
         container.innerHTML = `
             <div class="p-6 text-center">
-                <p class="text-sm text-slate-400">${esc(t('kyc_load_error', 'Unable to load KYC queue'))}</p>
+                <p class="text-sm text-slate-400 dark:text-slate-500">${esc(t('kyc_load_error', 'Unable to load KYC queue'))}</p>
                 <button type="button" id="kyc-retry-btn" class="mt-2 text-xs text-trust-blue font-bold hover:underline">${esc(t('common_retry', 'Retry'))}</button>
             </div>
         `;
@@ -210,7 +209,7 @@ function renderDocumentViewer(index: number): void {
 
     /* Render credential details */
     if (docList) {
-        const credentials: Array<{ name: string; value: string | null; icon: string }> = [];
+        const credentials: Array<{ name: string; value: string | null; icon: string; url?: string }> = [];
 
         if (entry.engineering_license_number) {
             credentials.push({
@@ -235,30 +234,37 @@ function renderDocumentViewer(index: number): void {
         }
         if (entry.kyc_document_url) {
             credentials.push({
-                name: t('kyc_uploaded_doc', 'Uploaded Document'),
-                value: t('kyc_view_doc', 'View Document'),
+                name: t('kyc_uploaded_doc', 'Identity Document'),
+                value: t('kyc_view_doc_action', 'Open Document ↗'),
                 icon: 'ph ph-file-pdf',
+                url: entry.kyc_document_url, // PLATINUM FIX: Passing the actual S3/presigned URL
             });
         }
 
         if (credentials.length === 0) {
             docList.innerHTML = `
-                <div class="p-4 text-center text-sm text-slate-400 italic">
+                <div class="p-4 text-center text-sm text-slate-400 italic dark:text-slate-500">
                     ${esc(t('kyc_no_credentials', 'No credentials submitted yet.'))}
                 </div>
             `;
         } else {
-            docList.innerHTML = credentials.map((cred) => `
-                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <div class="size-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+            docList.innerHTML = credentials.map((cred) => {
+                const valueHtml = cred.url 
+                    ? `<a href="${esc(cred.url)}" target="_blank" rel="noopener noreferrer" class="text-trust-blue hover:underline font-bold flex items-center gap-1">${esc(cred.value ?? '')}</a>`
+                    : esc(cred.value ?? '—');
+                
+                return `
+                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 dark:bg-dark-elevated dark:border-dark-border">
+                    <div class="size-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 dark:bg-dark-surface dark:border-dark-border">
                         <i class="${cred.icon} text-trust-blue text-lg" aria-hidden="true"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium truncate">${esc(cred.name)}</p>
-                        <p class="text-3xs text-slate-400">${esc(cred.value ?? '—')}</p>
+                        <p class="text-3xs text-slate-400 dark:text-slate-500">${valueHtml}</p>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
     }
 
@@ -312,26 +318,7 @@ function renderDocumentViewer(index: number): void {
     }
 }
 
-/* ─── Drag & Drop Zone ─── */
-function initDropZone(): void {
-    const zone = document.getElementById('drop-zone');
-    if (!zone) { return; }
-
-    zone.addEventListener('dragover', (e: DragEvent) => {
-        e.preventDefault();
-        zone.classList.add('border-trust-blue', 'bg-trust-blue/5');
-    });
-
-    zone.addEventListener('dragleave', () => {
-        zone.classList.remove('border-trust-blue', 'bg-trust-blue/5');
-    });
-
-    zone.addEventListener('drop', (e: DragEvent) => {
-        e.preventDefault();
-        zone.classList.remove('border-trust-blue', 'bg-trust-blue/5');
-        showToast(t('kyc_doc_uploaded', 'Document uploaded successfully'));
-    });
-}
+/* ─── Drag & Drop Zone Purged (Ghost Feature Removed) ─── */
 
 /* ─── Action Buttons (API-Driven) ─── */
 function initActionButtons(): void {

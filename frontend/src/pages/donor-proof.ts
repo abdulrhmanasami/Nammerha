@@ -81,8 +81,8 @@ function renderEmptyProofState(): void {
         descriptionEl.innerHTML = `
             <div class="text-center py-4">
                 <i class="ph ph-binoculars text-slate-300 nm-icon-40" aria-hidden="true"></i>
-                <p class="text-slate-500 text-sm font-medium mt-3">${esc(t('proof_not_found', 'No proof of delivery found for this project.'))}</p>
-                <p class="text-slate-400 text-xs mt-1">${esc(t('proof_not_found_hint', 'The proof may not have been submitted yet, or the link is incorrect.'))}</p>
+                <p class="text-slate-500 text-sm font-medium mt-3 dark:text-slate-400">${esc(t('proof_not_found', 'No proof of delivery found for this project.'))}</p>
+                <p class="text-slate-400 text-xs mt-1 dark:text-slate-500">${esc(t('proof_not_found_hint', 'The proof may not have been submitted yet, or the link is incorrect.'))}</p>
                 <a href="/donor-portal.html" class="inline-block mt-4 btn-primary nm-btn-sm">
                     <span>${esc(t('proof_back_to_portal', 'Back to Portal'))}</span>
                 </a>
@@ -303,7 +303,7 @@ async function loadProof(): Promise<void> {
         // W14-001 FIX: Replaced inline onclick with addEventListener for CSP compliance.
         const container = document.getElementById('proof-content');
         if (container) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-warning-circle nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${esc(t('proof_load_error', 'Failed to load proof data'))}</p>
                 <button type="button" id="proof-retry-btn" class="mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('common_retry', 'Try Again'))}</button>

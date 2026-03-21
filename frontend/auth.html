@@ -30,7 +30,7 @@
   <script type="module" src="/src/pages/auth.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- GAP-010 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -63,7 +63,7 @@
            pushed the form below the fold, increasing scroll-to-interact friction.
            Standard: Apple HIG ("Adapt to device size"), Responsive Design. -->
       <img src="/brand/Nammerha_logo_Full.svg" alt="Nammerha — نعمّرها" class="h-20 sm:h-28 w-auto mx-auto mb-2" />
-      <p class="text-sm text-slate-500 mt-1" data-i18n="auth_subtitle">Rebuild Syria Together</p>
+      <p class="text-sm text-slate-500 mt-1 dark:text-slate-400" data-i18n="auth_subtitle">Rebuild Syria Together</p>
       <!-- C-AUD-006 FIX: Language switcher mount point for i18n.js.
            Previous: No visible language toggle on auth page. Non-Arabic-speaking users
            (international donors, NGO partners, diaspora) were locked out of the registration flow.
@@ -78,16 +78,16 @@
       <!-- P3-PLT-005 FIX: Improved contrast from text-slate-500 to text-slate-600.
            Previous: nearly invisible on light backgrounds, especially under sunlight.
            Standard: WCAG 1.4.3 (Minimum Contrast), Apple HIG. -->
-      <a href="index.html" class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3" data-i18n="auth_back_home">
+      <a href="index.html" class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400" data-i18n="auth_back_home">
         <i class="ph ph-arrow-left text-sm" aria-hidden="true"></i> Back to Home
       </a>
     </header>
 
     <!-- INC-P04 FIX: WAI-ARIA Tabs pattern for screen reader accessibility (WCAG 4.1.2) -->
     <div class="px-6 mb-6 relative z-10">
-      <div class="flex bg-slate-200/60 rounded-full p-1" role="tablist" aria-label="Authentication method">
+      <div class="flex bg-slate-200/60 rounded-full p-1 dark:bg-dark-border-subtle" role="tablist" aria-label="Authentication method">
         <button type="button" id="tab-login" role="tab" aria-selected="true" aria-controls="form-login" class="auth-tab auth-tab-active flex-1 py-2.5 rounded-full text-sm font-bold transition-all" data-i18n="sign_in">Sign In</button>
-        <button type="button" id="tab-register" role="tab" aria-selected="false" aria-controls="form-register" class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500" data-i18n="create_account">Create Account</button>
+        <button type="button" id="tab-register" role="tab" aria-selected="false" aria-controls="form-register" class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500 dark:text-slate-400" data-i18n="create_account">Create Account</button>
       </div>
     </div>
     <!-- PLT-AUD-C005 FIX: Theme toggle — fixed position to avoid landscape overlap with tab container -->
@@ -98,7 +98,7 @@
     <!-- CONF-2026-004 FIX: data-nm-theme-toggle + data-nm-theme-icon for canonical engine auto-wiring -->
     <!-- DEF-THEME-001 FIX: Replaced inline `style="inset-block-start:...; inset-inline-end:..."` with CSS class.
          Standard: P1-001 CSS Single Source of Truth. -->
-    <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+    <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe dark:border-dark-border dark:bg-[#1e1e1e]/90" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
       <i id="nm-theme-toggle-icon" class="text-lg" data-nm-theme-icon aria-hidden="true"></i>
     </button>
 
@@ -123,9 +123,9 @@
     <form id="form-login" role="tabpanel" aria-labelledby="tab-login" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate>
       <!-- Email -->
       <div>
-        <label for="login-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
+        <label for="login-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="email_label">Email Address</label>
         <div class="relative">
-          <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+          <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
           <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard context -->
           <!-- AUD-P0-002 FIX: Migrated to .nm-input design system class.
                Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
@@ -138,13 +138,13 @@
       </div>
       <!-- Password -->
       <div>
-        <label for="login-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
+        <label for="login-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="password_label">Password</label>
         <div class="relative">
-          <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+          <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
           <input id="login-password" name="password" type="password" required autocomplete="current-password" minlength="8" enterkeyhint="go"
             class="nm-input ps-12 pe-12"
             placeholder="••••••••" data-i18n-placeholder="auth_pw_dots" />
-          <button type="button" id="login-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
+          <button type="button" id="login-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
             <i class="ph ph-eye text-xl" aria-hidden="true"></i>
           </button>
         </div>
@@ -155,11 +155,11 @@
       <div class="flex items-center justify-between">
         <label for="remember-me" class="flex items-center gap-2 cursor-pointer select-none">
           <input id="remember-me" name="remember" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-trust-blue focus:ring-trust-blue/50 cursor-pointer" />
-          <span class="text-sm text-slate-500" data-i18n="remember_me">Remember me</span>
+          <span class="text-sm text-slate-500 dark:text-slate-400" data-i18n="remember_me">Remember me</span>
         </label>
         <!-- PLT-F005 FIX: Session duration context — users didn't know what "Remember me" meant.
              Standard: Security UX Best Practices, WCAG 3.3.2 (Labels or Instructions). -->
-        <span class="text-3xs text-slate-400" data-i18n="remember_me_duration">30 days</span>
+        <span class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="remember_me_duration">30 days</span>
       </div>
       <!-- Submit -->
       <button type="submit" id="login-submit" class="btn-primary mt-2">
@@ -187,7 +187,7 @@
       <div role="group" aria-label="Social sign-in options">
       <div class="relative flex items-center gap-3 my-4">
         <div class="flex-1 h-px bg-slate-200"></div>
-        <span class="text-xs font-bold text-slate-400 uppercase" data-i18n="auth_or_divider">or</span>
+        <span class="text-xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="auth_or_divider">or</span>
         <div class="flex-1 h-px bg-slate-200"></div>
       </div>
         <!-- FRC-P07 FIX: SSO marked 'Coming Soon' — prevents dead-end trust violations (Nielsen Heuristic #2) -->
@@ -198,7 +198,7 @@
         <!-- PLT-I003 FIX: Removed redundant data-sso-provider — disabled attribute already blocks
              interaction, and no JS handler is wired. Added aria-disabled for ARIA parity.
              Standard: WAI-ARIA 1.2 (aria-disabled), Honest Affordances. -->
-        <button type="button" id="google-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 transition-colors opacity-60 cursor-not-allowed" data-coming-soon="Soon" disabled aria-disabled="true">
+        <button type="button" id="google-sso-btn" class="sso-coming-soon w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 transition-colors opacity-60 cursor-not-allowed dark:border-dark-border dark:bg-dark-surface dark:text-slate-300" data-coming-soon="Soon" disabled aria-disabled="true">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -207,7 +207,7 @@
           </svg>
           <span class="flex flex-col items-start">
             <span data-i18n="auth_google_sso">Continue with Google</span>
-            <span class="text-3xs font-normal text-slate-400" data-i18n="coming_soon">Coming Soon</span>
+            <span class="text-3xs font-normal text-slate-400 dark:text-slate-500" data-i18n="coming_soon">Coming Soon</span>
           </span>
         </button>
         <!-- PLAT-P02 FIX: Added mt-2 gap between SSO buttons — touch targets were visually merged.
@@ -264,9 +264,9 @@
         <legend class="sr-only" data-i18n="reg_legend_identity">Step 1: Your Identity</legend>
         <!-- Full Name -->
         <div class="mb-4">
-          <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="full_name_label">Full Name</label>
+          <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="full_name_label">Full Name</label>
           <div class="relative">
-            <i class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <i class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
             <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
                  Standard: Apple HIG (Keyboard Management), Android Material Design. -->
             <input id="reg-name" name="full_name" type="text" required autocomplete="name" enterkeyhint="next"
@@ -276,9 +276,9 @@
         </div>
         <!-- Email -->
         <div class="mb-4">
-          <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="email_label">Email Address</label>
+          <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="email_label">Email Address</label>
           <div class="relative">
-            <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
             <input id="reg-email" name="email" type="email" required autocomplete="email" inputmode="email" enterkeyhint="next"
               class="nm-input ps-12"
               placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
@@ -296,13 +296,13 @@
         <legend class="sr-only" data-i18n="reg_legend_security">Step 2: Create a Password</legend>
         <!-- Password -->
         <div class="mb-4">
-          <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="password_label">Password</label>
+          <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="password_label">Password</label>
           <div class="relative">
-            <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
             <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="next"
               class="nm-input ps-12 pe-12"
               placeholder="Min 8 chars: upper, lower, number & symbol" data-i18n-placeholder="auth_pw_placeholder" />
-            <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
+            <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
               <i class="ph ph-eye text-xl" aria-hidden="true"></i>
             </button>
           </div>
@@ -319,13 +319,13 @@
                Previous: "8+ chars, 1 uppercase, 1 number" — omitted lowercase and symbol requirements.
                Users crafted compliant-looking passwords that were rejected, destroying trust.
                Standard: Nielsen #2 (Match System ↔ Real World), WCAG 3.3.2. -->
-          <p class="text-3xs text-slate-400 mt-1" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
+          <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
         </div>
         <!-- FRC-002 FIX: Confirm Password field -->
         <div class="mb-4">
-          <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="confirm_password_label">Confirm Password</label>
+          <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="confirm_password_label">Confirm Password</label>
           <div class="relative">
-            <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
+            <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
             <!-- P1-UXA-008 FIX: enterkeyhint="next" — Step 3 follows, not end of form.
                  Previous: "done" dismissed keyboard, requiring manual tap on Next.
                  Standard: Apple HIG (Custom Keyboard Actions). -->
@@ -336,7 +336,7 @@
                  Previous: reg-password had toggle (L275) but confirm did NOT.
                  Users typing complex passwords could not verify their confirm input.
                  Standard: Password UX Best Practices, WCAG 1.3.1. -->
-            <button type="button" id="reg-toggle-pw-confirm" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
+            <button type="button" id="reg-toggle-pw-confirm" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
               <i class="ph ph-eye text-xl" aria-hidden="true"></i>
             </button>
           </div>
@@ -368,9 +368,9 @@
         <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
 
         <!-- Summary card: show what user entered -->
-        <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+        <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200 dark:bg-dark-elevated dark:border-dark-border">
           <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="reg_review_info">Review Your Info</p>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="reg_review_info">Review Your Info</p>
             <!-- DEF-008 FIX: Direct edit shortcut from review card.
                  Previous: Users had to click "Back" twice to edit name/email.
                  Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
@@ -385,12 +385,12 @@
             </div>
             <div class="min-w-0">
               <p id="reg-review-name" class="text-sm font-bold truncate">—</p>
-              <p id="reg-review-email" class="text-xs text-slate-500 truncate">—</p>
+              <p id="reg-review-email" class="text-xs text-slate-500 truncate dark:text-slate-400">—</p>
               <!-- FRIC-2026-003 FIX: Password strength indicator in review card.
                    Previous: Only name + email shown — no confirmation that password met requirements.
                    Reduces user anxiety about password acceptance at final step.
                    Standard: Nielsen #1 (System Status Visibility), Material Design 3. -->
-              <p id="reg-review-pw-strength" class="text-xs text-smoky-jade font-semibold mt-0.5 hidden">
+              <p id="reg-review-pw-strength" class="text-xs text-smoky-jade font-semibold mt-0.5 hidden dark:text-emerald-400">
                 <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                 <span data-i18n="pw_strength_strong">Strong</span> ✓
               </p>
@@ -404,7 +404,7 @@
           <input id="reg-terms" name="terms" type="checkbox" required
             aria-describedby="reg-terms-error"
             class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
-          <label for="reg-terms" class="text-xs text-slate-500 leading-relaxed cursor-pointer">
+          <label for="reg-terms" class="text-xs text-slate-500 leading-relaxed cursor-pointer dark:text-slate-400">
             <!-- SEC-W11-001 FIX: Added rel="noopener noreferrer" to prevent reverse tabnapping.
                  Standard: OWASP Reverse Tabnapping, Security Best Practices. -->
             <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
@@ -439,16 +439,16 @@
          Standard: Nielsen #8 — "Aesthetic and minimalist design." -->
     <div class="mt-auto px-6 py-8 text-center relative z-10">
       <details class="mb-3">
-        <summary class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px]">
+        <summary class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px] dark:text-slate-500">
           <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
           <span data-i18n="auth_security_details">Security Details</span>
         </summary>
         <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
-          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium">
-            <i class="ph ph-shield-check text-smoky-jade text-sm" aria-hidden="true"></i>
+          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500">
+            <i class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="auth_trust_1">OCDS Verified</span>
           </div>
-          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium">
+          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500">
             <i class="ph ph-lock text-trust-blue text-sm" aria-hidden="true"></i>
             <span data-i18n="auth_trust_2">256-bit Encrypted</span>
           </div>

@@ -1,7 +1,7 @@
 import '../styles/main.css';
 import { reportError, reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
-import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
@@ -11,6 +11,7 @@ import { formatCents, relativeTimeAgo } from '../utils/format';
 import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
+import { haptic } from '../utils/haptic';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // TICK-016: Import shared setText from utils/dom.ts.
@@ -211,39 +212,58 @@ async function loadActiveJobs(): Promise<void> {
         }
 
         if (requests.length === 0 && assignments.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-sun-dim nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium" data-i18n="tp_no_active_work">No active work</p>
-                <p class="text-xs mt-1" data-i18n="tp_check_available">Check Available Jobs for new opportunities</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full mt-4 dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-sun-dim nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300" data-i18n="tp_no_active_work">No active work</p>
+                <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto dark:text-slate-500" data-i18n="tp_check_available">Check Available Jobs for new opportunities</p>
+            </div>`;
             return;
         }
 
         let html = '';
 
-        // P1-FE-001 FIX: Render direct requests (Thumbtack mode) — previously dropped
+        // P1-FE-001 FIX: Render direct requests (Thumbtack mode)
         for (const r of requests) {
-            html += `<tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(r.title)}</td>
-                <td class="px-5 py-3">${tradeLabel(r.trade_needed)}</td>
-                <td class="px-5 py-3 text-xs text-slate-500"><span data-i18n="tp_homeowner">Homeowner</span>: ${esc(r.homeowner_name)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-teal-100 text-teal-700" data-i18n="tp_direct">direct</span></td>
-            </tr>`;
+            html += `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-teal-100 text-teal-700" data-i18n="tp_direct">direct</span>
+                </div>
+                <div class="flex justify-between items-center mt-3">
+                    <div class="text-xs text-slate-500 flex items-center gap-1.5 dark:text-slate-400">
+                        <i class="ph ph-user text-sm" aria-hidden="true"></i>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">${esc(r.homeowner_name)}</span>
+                    </div>
+                    ${tradeLabel(r.trade_needed)}
+                </div>
+            </div>`;
         }
 
         // Render contractor assignments (Subcontractor mode)
         for (const a of assignments) {
-            html += `<tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(a.project_title)}</td>
-                <td class="px-5 py-3">${tradeLabel(a.trade_required)}</td>
-                <td class="px-5 py-3 text-xs text-slate-500"><span data-i18n="tp_contractor">Contractor</span>: ${esc(a.contractor_name)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
-            </tr>`;
+            html += `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
+                </div>
+                <div class="flex justify-between items-center mt-3">
+                    <div class="text-xs text-slate-500 flex items-center gap-1.5 dark:text-slate-400">
+                        <i class="ph ph-buildings text-sm" aria-hidden="true"></i>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">${esc(a.contractor_name)}</span>
+                    </div>
+                    ${tradeLabel(a.trade_required)}
+                </div>
+            </div>`;
         }
-        tbody.innerHTML = html || `<tr><td colspan="4" class="px-5 py-4 text-center text-slate-400 text-sm" data-i18n="tp_no_active_work">No active work</td></tr>`;
+        tbody.innerHTML = html || `<div class="text-center text-slate-400 text-sm py-8 dark:text-slate-500" data-i18n="tp_no_active_work">No active work</div>`;
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Active jobs load failed'), { component: 'tradesperson', action: 'load_active_jobs' });
-        renderTableErrorWithRetry(tbody, loadActiveJobs, 4, 'failed_to_load');
+        renderErrorWithRetry(tbody, loadActiveJobs, 'failed_to_load');
     }
 }
 
@@ -257,7 +277,7 @@ async function loadRequests(): Promise<void> {
         const requests = res.data ?? [];
 
         if (requests.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium" data-i18n="tp_no_requests">No requests matching your trade</p>
                 <p class="text-xs mt-1" data-i18n="tp_new_requests_auto">New requests will appear here automatically</p>
@@ -273,8 +293,8 @@ async function loadRequests(): Promise<void> {
                             <h4 class="font-medium">${esc(r.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">${esc(r.description ?? t('tp_no_description', 'No description'))}</p>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
+                        <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(r.description ?? t('tp_no_description', 'No description'))}</p>
+                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-user" aria-hidden="true"></i> ${esc(r.homeowner_name)}</span>
                             ${r.address_text ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(r.address_text)}</span>` : ''}
                             ${r.budget_max ? `<span><i class="ph ph-coins" aria-hidden="true"></i> <span data-i18n="tp_budget">Budget</span>: ${formatCents(r.budget_max)}</span>` : ''}
@@ -341,32 +361,43 @@ async function loadAssignments(): Promise<void> {
         const assignments = res.data ?? [];
 
         if (assignments.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium" data-i18n="tp_no_assignments">No contractor assignments</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full mt-4 dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300" data-i18n="tp_no_assignments">No contractor assignments</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = assignments.map((a) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3">
-                    <p class="font-medium">${esc(a.project_title)}</p>
-                    <p class="text-3xs text-slate-400 mt-0.5"><span data-i18n="tp_contractor">Contractor</span>: ${esc(a.contractor_name)}</p>
-                </td>
-                <td class="px-5 py-3">${tradeLabel(a.trade_required)}</td>
-                <td class="px-5 py-3 text-xs text-slate-500 max-w-[200px] truncate">${esc(a.scope_description)}</td>
-                <td class="px-5 py-3 font-mono text-sm">${formatCents(a.agreed_rate)}/${esc(a.rate_type)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span></td>
-                <td class="px-5 py-3">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-1">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-3 dark:text-slate-400">
+                    <i class="ph ph-buildings text-sm" aria-hidden="true"></i>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">${esc(a.contractor_name)}</span>
+                    <span class="mx-1 text-slate-300">•</span>
+                    ${tradeLabel(a.trade_required)}
+                </div>
+                <p class="text-xs text-slate-600 mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100 dark:text-slate-400 dark:bg-dark-elevated dark:border-dark-border">${esc(a.scope_description)}</p>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="tp_agreed_rate">Agreed Rate</p>
+                        <p class="font-mono font-bold text-smoky-jade text-sm dark:text-emerald-400">${formatCents(a.agreed_rate)}<span class="text-xs font-normal text-slate-400 dark:text-slate-500">/${esc(a.rate_type)}</span></p>
+                    </div>
                     ${a.status === 'pending' ? `
-                        <div class="flex gap-1.5">
-                            <button type="button" class="respond-btn px-2.5 py-1 bg-green-600 text-white text-3xs font-bold rounded-lg hover:bg-green-700" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
-                            <button type="button" class="respond-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
-                        </div>
-                    ` : '—'}
-                </td>
-            </tr>
+                    <div class="flex gap-2">
+                        <button type="button" class="respond-btn flex-1 px-4 py-2 min-w-[80px] bg-red-50 text-red-600 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors dark:bg-red-500/10" data-id="${esc(a.assignment_id)}" data-accept="false" data-i18n="tp_decline">Decline</button>
+                        <button type="button" class="respond-btn flex-1 px-4 py-2 min-w-[80px] bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center justify-center gap-2" data-id="${esc(a.assignment_id)}" data-accept="true" data-i18n="tp_accept">Accept</button>
+                    </div>
+                    ` : '<span class="text-3xs text-slate-300 font-bold px-2 py-1">—</span>'}
+                </div>
+            </div>
         `).join('');
 
         // TICK-017: Event delegation for respond buttons.
@@ -383,23 +414,21 @@ async function loadAssignments(): Promise<void> {
             if (!id) { return; }
 
             // BLOCKER-B FIX: Disable button + show loading state during API call.
-            // Previous: No disabled state — double-tap on flaky 3G created race conditions.
-            // Standard: Nielsen #1 (System Status Visibility), retry-friendly UX.
-            const originalText = btn.textContent ?? '';
-            const originalClass = btn.className;
+            // Previous: Mutating textContent stretched button width horizontally, causing Cumulative Layout Shift (CLS).
+            // Standard: Nielsen #1 (System Status Visibility), 0 CLS via `.btn-loading`, Haptic physical feedback.
             btn.disabled = true;
-            btn.textContent = accept ? t('tp_accepting', 'Accepting...') : t('tp_declining', 'Declining...');
-            btn.className = 'px-2.5 py-1 bg-slate-100 text-slate-400 text-3xs font-bold rounded-lg cursor-not-allowed';
+            btn.classList.add('btn-loading', 'cursor-not-allowed');
+            haptic.light();
 
             try {
                 await tradesperson.respondToAssignment(id, accept);
+                haptic.success();
                 loadAssignments();
                 loadStats();
             } catch (err) {
                 // Re-enable button on failure — user must be able to retry.
                 btn.disabled = false;
-                btn.textContent = originalText;
-                btn.className = originalClass;
+                btn.classList.remove('btn-loading', 'cursor-not-allowed');
                 reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignment response failed'), { component: 'tradesperson', action: 'respond_assignment' });
                 showSimpleBanner('dashboard-banner', 'error', t('tp_response_error', 'Failed to respond. Please try again.'));
             }
@@ -407,7 +436,7 @@ async function loadAssignments(): Promise<void> {
         }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignments load failed'), { component: 'tradesperson', action: 'load_assignments' });
-        renderTableErrorWithRetry(tbody, loadAssignments, 6);
+        renderErrorWithRetry(tbody, loadAssignments);
     }
 }
 
@@ -421,24 +450,33 @@ async function loadEarnings(): Promise<void> {
         const earnings = res.data ?? [];
 
         if (earnings.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-coins nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium" data-i18n="tp_no_earnings">No earnings yet</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full mt-4 dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-coins nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300" data-i18n="tp_no_earnings">No earnings yet</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = earnings.map((e) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(e.title)}</td>
-                <td class="px-5 py-3 text-xs"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${e.source_type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-teal-100 text-teal-600'}" data-i18n="${e.source_type === 'assignment' ? 'tp_contractor_type' : 'tp_direct_type'}">${e.source_type === 'assignment' ? 'Contractor' : 'Direct'}</span></td>
-                <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(e.amount)}</td>
-                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(e.completed_at)}</td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between dark:bg-dark-surface dark:border-dark-border">
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 mb-1 dark:text-slate-100">${esc(e.title)}</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${e.source_type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-teal-100 text-teal-600'}" data-i18n="${e.source_type === 'assignment' ? 'tp_contractor_type' : 'tp_direct_type'}">${e.source_type === 'assignment' ? 'Contractor' : 'Direct'}</span>
+                        <span class="text-xs text-slate-400 dark:text-slate-500">&bull; ${formatDate(e.completed_at)}</span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <p class="font-mono font-black text-smoky-jade text-lg border-b border-transparent dark:text-emerald-400">${formatCents(e.amount)}</p>
+                </div>
+            </div>
         `).join('');
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Earnings load failed'), { component: 'tradesperson', action: 'load_earnings' });
-        renderTableErrorWithRetry(tbody, loadEarnings, 4);
+        renderErrorWithRetry(tbody, loadEarnings);
     }
 }
 
@@ -464,15 +502,15 @@ async function loadProfile(): Promise<void> {
 
         container.innerHTML = `
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${esc(String(p.years_experience ?? '—'))} ${esc(t('tp_years', 'years'))}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${esc(t('tp_per_hour', '/hr'))}` : '—'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${esc(t('tp_per_day', '/day'))}` : '—'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${esc(String(p.dynamic_score))}/100</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${esc(String(p.completed_jobs_count))}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${esc(String(p.average_rating))} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${esc(String(p.years_experience ?? '—'))} ${esc(t('tp_years', 'years'))}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${esc(t('tp_per_hour', '/hr'))}` : '—'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${esc(t('tp_per_day', '/day'))}` : '—'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${esc(String(p.dynamic_score))}/100</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${esc(String(p.completed_jobs_count))}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${esc(String(p.average_rating))} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
+                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
             </div>
         `;
     } catch (err) {

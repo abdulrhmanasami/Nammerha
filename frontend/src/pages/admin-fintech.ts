@@ -19,7 +19,7 @@ import { escapeHtml } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
 // W5-001 FIX: Import shared error-retry utility for user-facing error states.
-import { renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 // TICK-W4-001 FIX: Auth guard — was the only admin page without it.
 import { requireAuth } from '../utils/auth-guard';
 
@@ -64,37 +64,43 @@ async function loadFeeConfigs(): Promise<void> {
         const configs: FeeConfig[] = Array.isArray(res.data) ? res.data : [];
 
         if (configs.length === 0) {
-            body.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-300">${escapeHtml(t('fintech_no_configs', 'No fee configurations'))}</td></tr>`;
+            body.innerHTML = `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-gear nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${escapeHtml(t('fintech_no_configs', 'No fee configurations'))}</p>
+            </div>`;
             return;
         }
 
         body.innerHTML = configs.map(c => `
-            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td class="py-3 px-4 font-medium">${escapeHtml(c.fee_name)}</td>
-                <td class="py-3 px-4">
-                    <span class="inline-flex items-center bg-smoky-jade/10 text-smoky-jade text-xs font-bold px-2 py-0.5 rounded-full">
-                        ${bpsToPercent(c.fee_rate_bps)}
-                    </span>
-                </td>
-                <td class="py-3 px-4 text-slate-600">${formatCents(c.min_fee_cents)}</td>
-                <td class="py-3 px-4 text-slate-600">${c.max_fee_cents ? formatCents(c.max_fee_cents) : '—'}</td>
-                <td class="py-3 px-4">
-                    <span class="capitalize text-xs bg-slate-100 px-2 py-0.5 rounded-full">${escapeHtml(c.applies_to)}</span>
-                </td>
-                <td class="py-3 px-4">
-                    <span class="inline-flex items-center gap-1 text-xs font-semibold ${c.is_active ? 'text-smoky-jade' : 'text-slate-400'}">
-                        <span class="w-2 h-2 rounded-full ${c.is_active ? 'bg-smoky-jade' : 'bg-slate-300'}"></span>
-                        ${c.is_active ? escapeHtml(t('fintech_active', 'Active')) : escapeHtml(t('fintech_inactive', 'Inactive'))}
-                    </span>
-                </td>
-            </tr>
+            <div class="p-4 hover:bg-slate-50/50 transition-colors group">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${escapeHtml(c.fee_name)}</h3>
+                            <span class="inline-flex items-center gap-1 text-3xs font-semibold ${c.is_active ? 'text-smoky-jade' : 'text-slate-400'}">
+                                <span class="w-2 h-2 rounded-full ${c.is_active ? 'bg-smoky-jade' : 'bg-slate-300'}"></span>
+                                ${c.is_active ? escapeHtml(t('fintech_active', 'Active')) : escapeHtml(t('fintech_inactive', 'Inactive'))}
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500" data-i18n="fintech_fee_rate">Rate</span> <span class="bg-smoky-jade/10 text-smoky-jade text-xs font-bold px-2 py-0.5 rounded-full dark:text-emerald-400">${bpsToPercent(c.fee_rate_bps)}</span></p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500">Min</span> <span class="font-mono text-emerald-600">${formatCents(c.min_fee_cents)}</span></p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500">Max</span> <span class="font-mono text-emerald-600">${c.max_fee_cents ? formatCents(c.max_fee_cents) : '—'}</span></p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500">Applies To</span> <span class="capitalize bg-slate-100 px-2 py-0.5 rounded-full">${escapeHtml(c.applies_to)}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[fintech] Fee configs load failed'), {
             component: 'admin-fintech', action: 'load_fee_configs',
         });
         // W5-001 FIX: Show error-retry UI in fee configs table.
-        if (body) { renderTableErrorWithRetry(body, () => loadFeeConfigs(), 6); }
+        if (body) { renderErrorWithRetry(body, () => loadFeeConfigs()); }
     }
 }
 
@@ -113,37 +119,51 @@ async function loadOrganizations(): Promise<void> {
         }
 
         if (orgs.length === 0) {
-            body.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-300">${escapeHtml(t('fintech_no_orgs', 'No organizations yet'))}</td></tr>`;
+            body.innerHTML = `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${escapeHtml(t('fintech_no_orgs', 'No organizations yet'))}</p>
+            </div>`;
             return;
         }
 
         body.innerHTML = orgs.map(o => `
-            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td class="py-3 px-4 font-medium">${escapeHtml(o.org_name)}</td>
-                <td class="py-3 px-4">
-                    <span class="capitalize text-xs bg-slate-100 px-2 py-0.5 rounded-full">${escapeHtml(o.org_type)}</span>
-                </td>
-                <td class="py-3 px-4">
-                    <span class="text-xs font-bold uppercase ${
-                        o.tier === 'enterprise' ? 'text-trust-blue' :
-                        o.tier === 'pro' ? 'text-smoky-jade' : 'text-slate-500'
-                    }">${escapeHtml(o.tier)}</span>
-                </td>
-                <td class="py-3 px-4 text-slate-500 text-xs">${escapeHtml(o.contact_email)}</td>
-                <td class="py-3 px-4">
-                    <span class="inline-flex items-center gap-1 text-xs font-semibold ${o.is_active ? 'text-smoky-jade' : 'text-slate-400'}">
-                        <span class="w-2 h-2 rounded-full ${o.is_active ? 'bg-smoky-jade' : 'bg-slate-300'}"></span>
-                        ${o.is_active ? escapeHtml(t('fintech_active', 'Active')) : escapeHtml(t('fintech_inactive', 'Inactive'))}
-                    </span>
-                </td>
-            </tr>
+            <div class="p-4 hover:bg-slate-50/50 transition-colors group">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border">
+                            <i class="ph ph-buildings text-slate-400 text-lg dark:text-slate-500" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${escapeHtml(o.org_name)}</h3>
+                                <span class="inline-flex items-center gap-1 text-3xs font-semibold ${o.is_active ? 'text-smoky-jade' : 'text-slate-400'}">
+                                    <span class="w-2 h-2 rounded-full ${o.is_active ? 'bg-smoky-jade' : 'bg-slate-300'}"></span>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="capitalize text-3xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full dark:text-slate-400">${escapeHtml(o.org_type)}</span>
+                                <span class="text-3xs font-bold uppercase ${
+                                    o.tier === 'enterprise' ? 'text-trust-blue' :
+                                    o.tier === 'pro' ? 'text-smoky-jade' : 'text-slate-500'
+                                }">${escapeHtml(o.tier)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtml(o.contact_email)}</p>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[fintech] Organizations load failed'), {
             component: 'admin-fintech', action: 'load_organizations',
         });
         // W5-001 FIX: Show error-retry UI in organizations table.
-        if (body) { renderTableErrorWithRetry(body, () => loadOrganizations(), 5); }
+        if (body) { renderErrorWithRetry(body, () => loadOrganizations()); }
     }
 }
 

@@ -31,7 +31,7 @@
   <link href="/i18n.css?v=7" rel="stylesheet"/>
   <script type="module">import './src/styles/main.css';</script>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- PE-001 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -48,7 +48,7 @@
   <header class="glass-nav sticky top-0 z-50">
     <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
       <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
-        <i class="ph ph-arrow-left text-slate-700" aria-hidden="true"></i>
+        <i class="ph ph-arrow-left text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
       </a>
       <h1 class="text-lg font-bold tracking-tight page-header-title" data-i18n="refund_title">Refund & Dispute Policy</h1>
       <div class="w-10"></div>
@@ -56,13 +56,13 @@
   </header>
 
   <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto">
-    <p class="text-xs text-slate-400 mb-6" data-i18n="refund_last_updated">Last updated: March 2026</p>
+    <p class="text-xs text-slate-400 mb-6 dark:text-slate-500" data-i18n="refund_last_updated">Last updated: March 2026</p>
 
     <!-- Escrow Protection Overview -->
     <section class="mb-8">
       <div class="flex items-center gap-3 p-4 rounded-xl bg-smoky-jade/5 border border-smoky-jade/10 mb-6">
-        <i class="ph ph-lock-key text-smoky-jade nm-icon-28" aria-hidden="true"></i>
-        <p class="text-sm text-slate-600" data-i18n="refund_escrow_intro">
+        <i class="ph ph-lock-key text-smoky-jade nm-icon-28 dark:text-emerald-400" aria-hidden="true"></i>
+        <p class="text-sm text-slate-600 dark:text-slate-400" data-i18n="refund_escrow_intro">
           All donations on Nammerha are held in escrow and only released upon GPS-verified delivery of materials. Your funds are protected at every step.
         </p>
       </div>
@@ -70,10 +70,10 @@
 
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="refund_how_escrow">1. How Escrow Protection Works</h2>
-      <p class="text-sm text-slate-600 leading-relaxed mb-3" data-i18n="refund_escrow_detail">
+      <p class="text-sm text-slate-600 leading-relaxed mb-3 dark:text-slate-400" data-i18n="refund_escrow_detail">
         When you donate to a reconstruction project, your funds are not immediately transferred to the supplier or contractor. Instead, they are held in a secure escrow account managed by the Platform.
       </p>
-      <p class="text-sm text-slate-600 leading-relaxed" data-i18n="refund_escrow_release">
+      <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400" data-i18n="refund_escrow_release">
         Funds are only released when: (a) the assigned engineer submits GPS-verified spatial proof of material delivery, (b) photographic evidence is reviewed and approved, and (c) the homeowner confirms receipt. This triple-verification ensures your donation reaches its intended purpose.
       </p>
     </section>
@@ -81,27 +81,27 @@
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="refund_eligibility">2. Refund Eligibility</h2>
       <div class="space-y-3">
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200">
-          <i class="ph ph-check-circle text-smoky-jade mt-0.5 text-lg" aria-hidden="true"></i>
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
+          <i class="ph ph-check-circle text-smoky-jade mt-0.5 text-lg dark:text-emerald-400" aria-hidden="true"></i>
           <div>
             <p class="text-sm font-medium" data-i18n="refund_elig_pending">Pending Donations</p>
-            <p class="text-xs text-slate-400" data-i18n="refund_elig_pending_detail">Full refund available before escrow release. Cancel anytime from your donor portal.</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_elig_pending_detail">Full refund available before escrow release. Cancel anytime from your donor portal.</p>
           </div>
         </div>
 
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200">
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
           <i class="ph ph-warning-circle text-warm-earth mt-0.5 text-lg" aria-hidden="true"></i>
           <div>
             <p class="text-sm font-medium" data-i18n="refund_elig_released">Released Donations</p>
-            <p class="text-xs text-slate-400" data-i18n="refund_elig_released_detail">Once funds are released after verified delivery, refunds are not available. Disputes must be filed within 14 days.</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_elig_released_detail">Once funds are released after verified delivery, refunds are not available. Disputes must be filed within 14 days.</p>
           </div>
         </div>
 
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200">
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
           <i class="ph ph-clock text-trust-blue mt-0.5 text-lg" aria-hidden="true"></i>
           <div>
             <p class="text-sm font-medium" data-i18n="refund_elig_stalled">Stalled Projects</p>
-            <p class="text-xs text-slate-400" data-i18n="refund_elig_stalled_detail">If a project shows no progress for 90+ days, donors may request a full refund from escrow.</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_elig_stalled_detail">If a project shows no progress for 90+ days, donors may request a full refund from escrow.</p>
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@
 
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="refund_dispute">3. Dispute Resolution</h2>
-      <p class="text-sm text-slate-600 leading-relaxed mb-3" data-i18n="refund_dispute_intro">
+      <p class="text-sm text-slate-600 leading-relaxed mb-3 dark:text-slate-400" data-i18n="refund_dispute_intro">
         We take disputes seriously and provide a structured resolution process:
       </p>
       <div class="space-y-2 mb-3">
@@ -134,46 +134,42 @@
 
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="refund_processing">4. Processing Times</h2>
-      <div class="overflow-hidden rounded-xl border border-slate-200">
-        <table class="w-full text-sm">
-          <thead class="bg-slate-50">
-            <tr>
-              <th class="text-start px-4 py-2 text-xs font-bold text-slate-500 uppercase" data-i18n="refund_col_type">Type</th>
-              <th class="text-end px-4 py-2 text-xs font-bold text-slate-500 uppercase" data-i18n="refund_col_time">Timeframe</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr>
-              <td class="px-4 py-3" data-i18n="refund_time_pending">Pending donation cancellation</td>
-              <td class="px-4 py-3 text-end font-mono text-smoky-jade font-bold" data-i18n="refund_time_instant">Instant</td>
-            </tr>
-            <tr>
-              <td class="px-4 py-3" data-i18n="refund_time_approved">Approved refund processing</td>
-              <td class="px-4 py-3 text-end font-mono text-warm-earth font-bold" data-i18n="refund_time_5_10">5–10 days</td>
-            </tr>
-            <tr>
-              <td class="px-4 py-3" data-i18n="refund_time_dispute">Dispute resolution</td>
-              <td class="px-4 py-3 text-end font-mono text-trust-blue font-bold" data-i18n="refund_time_7d">7 days</td>
-            </tr>
-            <tr>
-              <td class="px-4 py-3" data-i18n="refund_time_stalled">Stalled project refund</td>
-              <td class="px-4 py-3 text-end font-mono text-slate-600 font-bold" data-i18n="refund_time_14d">14 days</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-dark-border">
+        <div class="bg-slate-50 flex items-center justify-between px-4 py-2 dark:bg-dark-elevated">
+          <span class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="refund_col_type">Type</span>
+          <span class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="refund_col_time">Timeframe</span>
+        </div>
+        <div class="divide-y divide-slate-100 text-sm dark:divide-dark-border-subtle">
+          <div class="flex items-center justify-between px-4 py-3">
+            <span data-i18n="refund_time_pending">Pending donation cancellation</span>
+            <span class="font-mono text-smoky-jade font-bold dark:text-emerald-400" data-i18n="refund_time_instant">Instant</span>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3">
+            <span data-i18n="refund_time_approved">Approved refund processing</span>
+            <span class="font-mono text-warm-earth font-bold" data-i18n="refund_time_5_10">5–10 days</span>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3">
+            <span data-i18n="refund_time_dispute">Dispute resolution</span>
+            <span class="font-mono text-trust-blue font-bold" data-i18n="refund_time_7d">7 days</span>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3">
+            <span data-i18n="refund_time_stalled">Stalled project refund</span>
+            <span class="font-mono text-slate-600 font-bold dark:text-slate-400" data-i18n="refund_time_14d">14 days</span>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="refund_antifraud">5. Anti-Fraud Commitment</h2>
-      <p class="text-sm text-slate-600 leading-relaxed" data-i18n="refund_antifraud_detail">
+      <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400" data-i18n="refund_antifraud_detail">
         Nammerha employs GPS-timestamped spatial proofs, image hash verification, SDN/sanctions screening, and real-time escrow monitoring to prevent fraudulent activity. Any evidence of manipulation results in immediate account suspension and escalation to relevant authorities.
       </p>
     </section>
 
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="refund_contact">6. Contact for Refund Requests</h2>
-      <p class="text-sm text-slate-600 leading-relaxed">
+      <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
         <span data-i18n="refund_contact_detail">For refund inquiries, contact us at</span>
         <a href="mailto:support@nammerha.com" class="text-trust-blue font-semibold hover:underline">support@nammerha.com</a>
         <span data-i18n="refund_contact_or">or visit our</span>
@@ -184,7 +180,7 @@
     <!-- Trust Badge -->
     <div class="flex items-center gap-3 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 mt-4">
       <i class="ph ph-shield-check text-trust-blue text-2xl" aria-hidden="true"></i>
-      <p class="text-xs text-slate-500" data-i18n="refund_trust">Your donations are protected by escrow from the moment of payment until GPS-verified delivery is confirmed.</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="refund_trust">Your donations are protected by escrow from the moment of payment until GPS-verified delivery is confirmed.</p>
     </div>
   </main>
 

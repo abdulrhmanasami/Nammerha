@@ -31,7 +31,7 @@
   <script type="module" src="/src/pages/pricing.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- PE-001 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -51,20 +51,20 @@
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-12 mx-auto" />
       </a>
       <h1 class="text-4xl font-bold tracking-tight mb-3" data-i18n="pricing_title">Simple, Transparent Pricing</h1>
-      <p class="text-lg text-slate-500 max-w-xl mx-auto" data-i18n="pricing_subtitle">
+      <p class="text-lg text-slate-500 max-w-xl mx-auto dark:text-slate-400" data-i18n="pricing_subtitle">
         Choose the right plan for your construction business. Upgrade anytime.
       </p>
 
       <!-- Billing Toggle -->
       <div class="flex items-center justify-center gap-3 mt-8" id="billing-toggle">
-        <span class="text-sm font-semibold text-slate-600" data-i18n="pricing_monthly">Monthly</span>
+        <span class="text-sm font-semibold text-slate-600 dark:text-slate-400" data-i18n="pricing_monthly">Monthly</span>
         <button type="button" id="billing-switch"
           class="relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-200 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-trust-blue"
           role="switch" aria-checked="false" aria-label="Toggle yearly billing" data-i18n-aria="aria_toggle_billing">
-          <span class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+          <span class="pointer-events-none relative inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:bg-dark-surface"></span>
         </button>
-        <span class="text-sm font-semibold text-slate-600" data-i18n="pricing_yearly">Yearly</span>
-        <span class="inline-flex items-center gap-1 bg-smoky-jade/10 text-smoky-jade text-xs font-bold px-2 py-0.5 rounded-full" data-i18n="pricing_save">
+        <span class="text-sm font-semibold text-slate-600 dark:text-slate-400" data-i18n="pricing_yearly">Yearly</span>
+        <span class="inline-flex items-center gap-1 bg-smoky-jade/10 text-smoky-jade text-xs font-bold px-2 py-0.5 rounded-full dark:text-emerald-400" data-i18n="pricing_save">
           Save 20%
         </span>
       </div>
@@ -74,32 +74,32 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
 
       <!-- ═══ FREE ═══ -->
-      <div class="relative bg-white rounded-2xl border border-slate-200 p-7 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+      <div class="relative bg-white rounded-2xl border border-slate-200 p-7 flex flex-col shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
         <div class="mb-5">
           <h2 class="text-lg font-bold" data-i18n="pricing_free_name">Free</h2>
-          <p class="text-xs text-slate-500 mt-1" data-i18n="pricing_free_desc">Essential tools to get started</p>
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400" data-i18n="pricing_free_desc">Essential tools to get started</p>
         </div>
 
         <div class="mb-6">
           <span class="text-4xl font-black tracking-tight">$0</span>
-          <span class="text-xs text-slate-400 ms-1" data-i18n="pricing_forever">/forever</span>
+          <span class="text-xs text-slate-400 ms-1 dark:text-slate-500" data-i18n="pricing_forever">/forever</span>
         </div>
 
         <ul class="space-y-2.5 mb-7 flex-1 text-xs">
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_boq_3">3 BOQ exports/mo</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_alerts_5">5 project alerts/mo</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_oracle_basic">Basic Price Oracle</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_profile">Professional profile</span>
           </li>
           <li class="flex items-center gap-2 text-slate-300">
@@ -116,42 +116,42 @@
           </li>
         </ul>
 
-        <button type="button" id="btn-plan-free" class="w-full py-3 px-4 rounded-xl border-2 border-slate-200 font-bold text-sm text-slate-600 hover:bg-slate-50 transition-colors" data-i18n="pricing_current_plan">
+        <button type="button" id="btn-plan-free" class="w-full py-3 px-4 rounded-xl border-2 border-slate-200 font-bold text-sm text-slate-600 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-i18n="pricing_current_plan">
           Current Plan
         </button>
       </div>
 
       <!-- ═══ PRO — $15/mo ═══ -->
-      <div class="relative bg-white rounded-2xl border-2 border-smoky-jade/30 p-7 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+      <div class="relative bg-white rounded-2xl border-2 border-smoky-jade/30 p-7 flex flex-col shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface">
         <div class="mb-5">
-          <h2 class="text-lg font-bold text-smoky-jade" data-i18n="pricing_pro_name">Pro</h2>
-          <p class="text-xs text-slate-500 mt-1" data-i18n="pricing_pro_desc">For local contractors</p>
+          <h2 class="text-lg font-bold text-smoky-jade dark:text-emerald-400" data-i18n="pricing_pro_name">Pro</h2>
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400" data-i18n="pricing_pro_desc">For local contractors</p>
         </div>
 
         <div class="mb-6">
           <span class="text-4xl font-black tracking-tight tier-price" data-tier="pro">$15</span>
-          <span class="text-xs text-slate-400 ms-1 tier-interval" data-i18n="pricing_per_month">/month</span>
+          <span class="text-xs text-slate-400 ms-1 tier-interval dark:text-slate-500" data-i18n="pricing_per_month">/month</span>
         </div>
 
         <ul class="space-y-2.5 mb-7 flex-1 text-xs">
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_boq_15">15 BOQ exports/mo</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_alerts_25">25 project alerts/mo</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_oracle_basic">Basic Price Oracle</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_invoices">Invoice management</span>
           </li>
           <li class="flex items-center gap-2">
-            <i class="ph ph-check-circle text-smoky-jade" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="pricing_f_bids_unlimited">Unlimited bidding</span>
           </li>
           <li class="flex items-center gap-2 text-slate-300">
@@ -180,12 +180,12 @@
 
         <div class="mb-5 mt-2">
           <h2 class="text-lg font-bold" data-i18n="pricing_business_name">Business</h2>
-          <p class="text-xs text-slate-400 mt-1" data-i18n="pricing_business_desc">For growing firms</p>
+          <p class="text-xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="pricing_business_desc">For growing firms</p>
         </div>
 
         <div class="mb-6">
           <span class="text-4xl font-black tracking-tight tier-price" data-tier="business">$49</span>
-          <span class="text-xs text-slate-400 ms-1 tier-interval" data-i18n="pricing_per_month">/month</span>
+          <span class="text-xs text-slate-400 ms-1 tier-interval dark:text-slate-500" data-i18n="pricing_per_month">/month</span>
         </div>
 
         <ul class="space-y-2.5 mb-7 flex-1 text-xs">
@@ -225,15 +225,15 @@
       </div>
 
       <!-- ═══ ENTERPRISE — $99/mo ═══ -->
-      <div class="relative bg-white rounded-2xl border border-slate-200 p-7 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+      <div class="relative bg-white rounded-2xl border border-slate-200 p-7 flex flex-col shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
         <div class="mb-5">
           <h2 class="text-lg font-bold text-warm-earth" data-i18n="pricing_enterprise_name">Enterprise</h2>
-          <p class="text-xs text-slate-500 mt-1" data-i18n="pricing_enterprise_desc">For international organizations</p>
+          <p class="text-xs text-slate-500 mt-1 dark:text-slate-400" data-i18n="pricing_enterprise_desc">For international organizations</p>
         </div>
 
         <div class="mb-6">
           <span class="text-4xl font-black tracking-tight tier-price" data-tier="enterprise">$99</span>
-          <span class="text-xs text-slate-400 ms-1 tier-interval" data-i18n="pricing_per_month">/month</span>
+          <span class="text-xs text-slate-400 ms-1 tier-interval dark:text-slate-500" data-i18n="pricing_per_month">/month</span>
         </div>
 
         <ul class="space-y-2.5 mb-7 flex-1 text-xs">
@@ -275,12 +275,12 @@
 
     <!-- FAQ / Trust Section -->
     <div class="mt-16 text-center max-w-2xl mx-auto">
-      <p class="text-sm text-slate-400" data-i18n="pricing_cancel_anytime">
+      <p class="text-sm text-slate-400 dark:text-slate-500" data-i18n="pricing_cancel_anytime">
         Cancel anytime. No questions asked. Your data stays safe.
       </p>
-      <div class="flex items-center justify-center gap-6 mt-6 text-xs text-slate-400">
+      <div class="flex items-center justify-center gap-6 mt-6 text-xs text-slate-400 dark:text-slate-500">
         <span class="flex items-center gap-1">
-          <i class="ph ph-shield-check text-smoky-jade" aria-hidden="true"></i>
+          <i class="ph ph-shield-check text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
           <span data-i18n="pricing_secure">Secure payments</span>
         </span>
         <span class="flex items-center gap-1">

@@ -342,6 +342,12 @@ export const auth = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+    // GAP-002 FIX: Stubbed updatePassword endpoint for authenticated profile settings
+    updatePassword: (data: { current_password: string; new_password: string }) =>
+        request('/auth/change-password', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
 
     // PLT-AUTH-002 FIX: No longer requires auth — accepts email in body.
     // Unverified users can't login, so the previous auth-gated endpoint

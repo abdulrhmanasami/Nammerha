@@ -50,9 +50,9 @@ async function initMapIfNeeded(): Promise<void> {
                     // Standard: CONF-CSP-01 pattern, WHATWG CSP Level 3.
                     overlay.innerHTML = `
                         <div class="flex flex-col items-center gap-3 text-center p-4">
-                            <i class="ph ph-map-trifold text-slate-400 nm-icon-40" aria-hidden="true"></i>
-                            <p class="text-sm font-bold text-slate-600" data-i18n="map_unavailable">Map unavailable</p>
-                            <p class="text-xs text-slate-400" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
+                            <i class="ph ph-map-trifold text-slate-400 nm-icon-40 dark:text-slate-500" aria-hidden="true"></i>
+                            <p class="text-sm font-bold text-slate-600 dark:text-slate-400" data-i18n="map_unavailable">Map unavailable</p>
+                            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="map_network_issue">Network issues prevented the map from loading</p>
                             <button type="button" id="map-retry-btn" class="btn-secondary nm-btn-compact">
                                 <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
                                 <span data-i18n="common_retry">Retry</span>
@@ -108,9 +108,9 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
             : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48" aria-hidden="true"></i></div>`}
-        <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm nm-badge-pos-end">
-          <i class="ph ph-seal-check text-smoky-jade text-sm" aria-hidden="true"></i>
-          <span class="text-3xs font-bold text-smoky-jade" data-i18n="verified_ocds">VERIFIED OCDS</span>
+        <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm nm-badge-pos-end dark:bg-[#1e1e1e]/90">
+          <i class="ph ph-seal-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
+          <span class="text-3xs font-bold text-smoky-jade dark:text-emerald-400" data-i18n="verified_ocds">VERIFIED OCDS</span>
         </div>
       </div>
       <div class="p-4 flex flex-col flex-1">
@@ -122,12 +122,12 @@ function buildProjectCard(project: ProjectCard, index: number): string {
               <circle class="stroke-smoky-jade" cx="18" cy="18" r="16" fill="none" stroke-width="3"
                 stroke-dasharray="${(pct / 100) * 100.53} ${100.53 - (pct / 100) * 100.53}" stroke-linecap="round"></circle>
             </svg>
-            <span class="absolute inset-0 flex items-center justify-center text-3xs font-extrabold text-smoky-jade">${Math.round(pct)}%</span>
+            <span class="absolute inset-0 flex items-center justify-center text-3xs font-extrabold text-smoky-jade dark:text-emerald-400">${Math.round(pct)}%</span>
           </div>
         </div>
-        <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100">
+        <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100 dark:border-dark-border">
           <div>
-            <p class="text-3xs text-slate-400 font-bold uppercase" data-i18n="card_funded">Funded</p>
+            <p class="text-3xs text-slate-400 font-bold uppercase dark:text-slate-500" data-i18n="card_funded">Funded</p>
             <p class="text-sm font-bold text-trust-blue">${formatCents(project.funded_amount)}</p>
           </div>
           <!-- FRC-N04 FIX: Fund Now CTA upgraded from text-xs (12px) to text-sm (14px) font-bold.
@@ -174,7 +174,7 @@ async function loadFeaturedProjects(): Promise<void> {
         carousel.innerHTML = `
             <div class="w-full py-8 text-center snap-start">
                 <i class="ph ph-cloud-slash text-slate-300 nm-icon-40" aria-hidden="true"></i>
-                <p class="text-slate-400 text-sm mt-2 font-medium" data-i18n="projects_load_failed">Couldn't load projects</p>
+                <p class="text-slate-400 text-sm mt-2 font-medium dark:text-slate-500" data-i18n="projects_load_failed">Couldn't load projects</p>
                 <p class="text-slate-400/60 text-xs mt-1" data-i18n="projects_load_retry_hint">Check your connection and try again</p>
                 <button type="button" id="projects-retry-btn" class="btn-secondary nm-btn-compact mt-3">
                     <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>

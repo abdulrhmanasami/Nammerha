@@ -1,7 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
-import { renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { auth as authApi } from '../api';
 import { phaseColor, bidColor, escrowColor } from '../utils/status-colors';
@@ -174,32 +174,44 @@ async function loadProjects(): Promise<void> {
         const projects = (res.data ?? []) as unknown as Project[];
 
         if (projects.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">${esc(t('ct_no_assigned_projects', 'No assigned projects yet'))}</p>
-                <p class="text-xs mt-1">${esc(t('ct_browse_marketplace', 'Browse the marketplace and submit bids'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_assigned_projects', 'No assigned projects yet'))}</p>
+                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ct_browse_marketplace', 'Browse the marketplace and submit bids'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span></td>
-                <td class="px-5 py-3 text-slate-500">${esc(p.engineer_name ?? '—')}</td>
-                <td class="px-5 py-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-4 dark:text-slate-400">
+                    <i class="ph ph-map-pin text-sm" aria-hidden="true"></i>
+                    <span>${esc(p.region)}</span>
+                    <span class="mx-1 text-slate-300">•</span>
+                    <i class="ph ph-hard-hat text-sm" aria-hidden="true"></i>
+                    <span>${esc(p.engineer_name ?? '—')}</span>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
+                    <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="th_progress">Progress</span>
+                    <div class="flex items-center gap-2 flex-grow max-w-[60%] justify-end">
+                        <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                             <div class="h-full bg-amber-500 rounded-full nm-progress-bar" style="--progress:${Math.min(100, Math.max(0, Number(p.progress) || 0))}%"></div>
                         </div>
-                        <span class="text-xs text-slate-400">${esc(String(p.progress))}%</span>
+                        <span class="text-xs font-bold text-slate-600 w-8 text-end dark:text-slate-400">${esc(String(p.progress))}%</span>
                     </div>
-                </td>
-            </tr>
+                </div>
+            </div>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadProjects, 5);
+        renderErrorWithRetry(tbody, loadProjects);
     }
 }
 
@@ -213,29 +225,55 @@ async function loadMarketplace(): Promise<void> {
         const projects = (res.data ?? []) as unknown as MarketProject[];
 
         if (projects.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">${esc(t('ct_no_projects_available', 'No projects available'))}</p>
-                <p class="text-xs mt-1">${esc(t('ct_new_projects_appear', 'New projects will appear here when published'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_projects_available', 'No projects available'))}</p>
+                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ct_new_projects_appear', 'New projects will appear here when published'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(p.title)}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(p.region)}</td>
-                <td class="px-5 py-3 text-xs">${esc(p.damage_type)}</td>
-                <td class="px-5 py-3 font-mono text-sm">${formatCents(p.total_estimated_cost)}</td>
-                <td class="px-5 py-3 text-center">${esc(String(p.boq_count))}</td>
-                <td class="px-5 py-3 text-center">${esc(String(p.bid_count))}</td>
-                <td class="px-5 py-3">
-                    <button type="button" class="bid-btn px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pr-12 dark:text-slate-100">${esc(p.title)}</h3>
+                    <div class="text-end">
+                        <p class="font-mono font-bold text-trust-blue">${formatCents(p.total_estimated_cost)}</p>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mt-0.5 dark:text-slate-500" data-i18n="th_est_cost">Est. Cost</p>
+                    </div>
+                </div>
+                
+                <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4 flex flex-wrap gap-x-4 gap-y-2 dark:text-slate-400 dark:bg-dark-elevated dark:border-dark-border">
+                    <div class="flex items-center gap-1.5">
+                        <i class="ph ph-map-pin text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+                        <span>${esc(p.region)}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <i class="ph ph-wrench text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+                        <span>${esc(p.damage_type)}</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-dark-border">
+                    <div class="flex gap-4">
+                        <div>
+                            <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_boq_items">BOQ Items</p>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">${esc(String(p.boq_count))}</p>
+                        </div>
+                        <div>
+                            <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_bids">Bids</p>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">${esc(String(p.bid_count))}</p>
+                        </div>
+                    </div>
+                    <button type="button" class="bid-btn px-4 py-2 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors shadow-sm"
                             data-project="${esc(p.project_id)}">
                         <span data-i18n="submit_bid">Submit Bid</span>
                     </button>
-                </td>
-            </tr>
+                </div>
+            </div>
         `).join('');
 
         // TICK-006: Event delegation for bid buttons.
@@ -253,7 +291,7 @@ async function loadMarketplace(): Promise<void> {
             });
         }
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadMarketplace, 7);
+        renderErrorWithRetry(tbody, loadMarketplace);
     }
 }
 
@@ -267,24 +305,41 @@ async function loadBids(): Promise<void> {
         const bids = res.data ?? [];
 
         if (bids.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-flag-banner nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">${esc(t('ct_no_bids_yet', 'No bids submitted yet'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-flag-banner nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_bids_yet', 'No bids submitted yet'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = bids.map((b) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(b.project_title)}</td>
-                <td class="px-5 py-3 font-mono text-sm">${formatCents(b.proposed_cost)}</td>
-                <td class="px-5 py-3">${esc(String(b.estimated_days))} ${esc(t('ct_days_short', 'd'))}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(b.created_at)}</td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_proposed_cost">Proposed Cost</p>
+                        <p class="font-mono font-bold text-slate-700 text-sm dark:text-slate-300">${formatCents(b.proposed_cost)}</p>
+                    </div>
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_timeline">Timeline</p>
+                        <p class="text-xs font-bold text-slate-700 text-center dark:text-slate-300">${esc(String(b.estimated_days))} ${esc(t('ct_days_short', 'd'))}</p>
+                    </div>
+                    <div class="text-end">
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_submitted">Submitted</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(b.created_at)}</p>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadBids, 5);
+        renderErrorWithRetry(tbody, loadBids);
     }
 }
 
@@ -298,23 +353,37 @@ async function loadPayments(): Promise<void> {
         const payments = (res.data ?? []) as unknown as Payment[];
 
         if (payments.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-wallet nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">${esc(t('ct_no_payments_yet', 'No payments yet'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-wallet nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_payments_yet', 'No payments yet'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = payments.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(p.project_title)}</td>
-                <td class="px-5 py-3 font-mono text-sm text-smoky-jade">${formatCents(p.amount)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(p.transaction_type)}">${esc(p.transaction_type)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400">${formatDate(p.created_at)}</td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.project_title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(p.transaction_type)}">${esc(p.transaction_type)}</span>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_amount">Amount</p>
+                        <p class="font-mono font-bold text-smoky-jade text-lg dark:text-emerald-400">${formatCents(p.amount)}</p>
+                    </div>
+                    <div class="text-end">
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_date">Date</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(p.created_at)}</p>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadPayments, 4);
+        renderErrorWithRetry(tbody, loadPayments);
     }
 }
 
@@ -336,19 +405,19 @@ function openBidModal(projectId: string): void {
         <div class="bg-surface rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
             <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="submit_bid">${esc(t('ct_submit_bid', 'Submit Bid'))}</h3>
             <div>
-                <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase">${esc(t('ct_label_cost', 'Proposed Cost (USD)'))}</label>
-                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'Proposed Cost (USD)'))}</label>
+                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base" />
             </div>
             <div>
-                <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase">${esc(t('ct_label_days', 'Estimated Days'))}</label>
-                <input id="bid-days" type="number" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'Estimated Days'))}</label>
+                <input id="bid-days" type="number" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base" />
             </div>
             <div>
-                <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase">${esc(t('ct_label_letter', 'Cover Letter'))}</label>
-                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', 'Why you\'re the best fit...'))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm resize-none"></textarea>
+                <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'Cover Letter'))}</label>
+                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', 'Why you\'re the best fit...'))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none"></textarea>
             </div>
             <div class="flex gap-3">
-                <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200" data-i18n="btn_cancel">Cancel</button>
+                <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:text-slate-400" data-i18n="btn_cancel">Cancel</button>
                 <button type="button" id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
             </div>
             <p id="bid-error" class="text-red-500 text-xs hidden"></p>
@@ -412,11 +481,8 @@ function openBidModal(projectId: string): void {
 
         const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
         submitBtn.disabled = true;
-        // TICK-013: Spinner icon on bid submit loading state.
-        // Previous: Plain text 'Submitting...' — no visual loading indicator.
-        // Now: Spinner icon matches engineer-boq publish pattern.
-        // Standard: Design System Component Unity, Nielsen #1 (System Status Visibility).
-        submitBtn.innerHTML = `<i class="ph ph-spinner ph-lg animate-spin" aria-hidden="true"></i> ${esc(t('btn_submitting', 'Submitting...'))}`;
+        // TICK-013: Spinner icon seamlessly mapped without CLS string mutation.
+        submitBtn.classList.add('btn-loading', 'cursor-not-allowed');
 
         try {
             const res = await contractor.submitBid({
@@ -439,9 +505,7 @@ function openBidModal(projectId: string): void {
                 errorEl.classList.remove('hidden');
             }
             submitBtn.disabled = false;
-            // PLT-005 FIX: Use innerHTML consistently — textContent would drop any
-            // icon structure if the template ever changes. Match loading state format.
-            submitBtn.innerHTML = esc(t('btn_submit', 'Submit'));
+            submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
         }
     });
 }

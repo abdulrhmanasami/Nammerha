@@ -34,7 +34,7 @@
   <script type="module" src="/src/components/role-switcher.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- GAP-010 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -76,7 +76,7 @@
       <!-- GAP-003: Display mode -->
       <div id="profile-display-mode">
         <h2 id="user-name" class="text-xl font-bold">—</h2>
-        <p id="user-email" class="text-sm text-slate-500 mt-0.5">—</p>
+        <p id="user-email" class="text-sm text-slate-500 mt-0.5 dark:text-slate-400">—</p>
         <div class="flex items-center gap-2 mt-3">
           <span id="user-role" class="badge-primary">—</span>
           <span id="kyc-status" class="badge-verified">
@@ -96,7 +96,7 @@
                text-xs text-slate-500 mb-2 — matches auth.html design system pattern.
                Root cause: Two engineers styled forms independently with no shared component.
                Standard: Nielsen #4 (Consistency), Design System Typography Scale. -->
-          <label for="edit-name" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="full_name">Full Name</label>
+          <label for="edit-name" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="full_name">Full Name</label>
           <!-- P2-AUD2-001 FIX: Migrated from inline Tailwind to canonical .nm-input class.
                Previous: 87-char ad-hoc class string duplicating .nm-input definition.
                Standard: Design System Single Source of Truth, DRY. -->
@@ -105,26 +105,26 @@
           <input id="edit-name" type="text" autocomplete="name" enterkeyhint="next" class="nm-input" />
         </div>
         <div>
-          <label for="edit-email" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="email_label">Email</label>
+          <label for="edit-email" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="email_label">Email</label>
           <input id="edit-email" type="email" inputmode="email" enterkeyhint="next" autocomplete="email" class="nm-input" />
         </div>
         <!-- GAP-005 FIX: Phone number field — fulfills completion checklist data-completion="phone".
              Standard: Apple HIG — "Use appropriate keyboard types for input fields."
              type="tel" triggers numeric dialpad on mobile. -->
         <div>
-          <label for="edit-phone" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="phone_label">Phone Number</label>
+          <label for="edit-phone" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="phone_label">Phone Number</label>
           <div class="relative">
-            <i class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-base" aria-hidden="true"></i>
+            <i class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-base dark:text-slate-500" aria-hidden="true"></i>
             <input id="edit-phone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done" placeholder="+963 XXX XXX XXXX" data-i18n-placeholder="phone_placeholder" class="nm-input nm-input-icon" />
           </div>
         </div>
         <!-- GAP-005 FIX: Profile photo upload — fulfills completion checklist data-completion="photo".
              Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
         <div>
-          <label for="edit-photo" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="profile_photo_label">Profile Photo</label>
+          <label for="edit-photo" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="profile_photo_label">Profile Photo</label>
           <label for="edit-photo" class="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-dashed border-slate-300 bg-surface text-sm cursor-pointer hover:border-trust-blue/50 hover:bg-trust-blue/5 transition-colors">
-            <i class="ph ph-camera text-slate-400 text-xl" aria-hidden="true"></i>
-            <span id="photo-filename" class="text-slate-400 font-medium truncate" data-i18n="choose_photo">Choose a photo...</span>
+            <i class="ph ph-camera text-slate-400 text-xl dark:text-slate-500" aria-hidden="true"></i>
+            <span id="photo-filename" class="text-slate-400 font-medium truncate dark:text-slate-500" data-i18n="choose_photo">Choose a photo...</span>
           </label>
           <input id="edit-photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
           <!-- GAP-X02 FIX: Live photo preview after file selection.
@@ -139,9 +139,9 @@
               </button>
             </div>
             <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-3xs (hints) + text-xs (labels/status). -->
-            <span class="text-xs text-smoky-jade font-semibold" data-i18n="photo_selected">Photo selected ✓</span>
+            <span class="text-xs text-smoky-jade font-semibold dark:text-emerald-400" data-i18n="photo_selected">Photo selected ✓</span>
           </div>
-          <p class="text-3xs text-slate-400 mt-1" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
+          <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
         </div>
         <div id="profile-edit-banner" class="hidden text-xs font-bold p-3 rounded-xl"></div>
         <div class="flex gap-2 pt-1">
@@ -149,7 +149,7 @@
             <i class="ph ph-check" aria-hidden="true"></i>
             <span data-i18n="save_changes">Save Changes</span>
           </button>
-          <button type="button" id="cancel-edit-btn" class="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
+          <button type="button" id="cancel-edit-btn" class="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors dark:text-slate-400">
             <span data-i18n="cancel">Cancel</span>
           </button>
         </div>
@@ -157,21 +157,21 @@
       <!-- GAP-N02 FIX: Password Change Section (collapsible progressive disclosure).
            Previous: users had to log out → Forgot Password to change their password.
            Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
-      <div class="mt-4 border-t border-slate-100 pt-4">
-        <button type="button" id="toggle-password-change" class="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-600 hover:text-trust-blue transition-colors">
+      <div class="mt-4 border-t border-slate-100 pt-4 dark:border-dark-border">
+        <button type="button" id="toggle-password-change" class="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-600 hover:text-trust-blue transition-colors dark:text-slate-400">
           <span class="flex items-center gap-2">
             <i class="ph ph-lock-key text-base" aria-hidden="true"></i>
             <span data-i18n="change_password">Change Password</span>
           </span>
-          <i class="ph ph-caret-down text-slate-400 transition-transform" id="password-caret" aria-hidden="true"></i>
+          <i class="ph ph-caret-down text-slate-400 transition-transform dark:text-slate-500" id="password-caret" aria-hidden="true"></i>
         </button>
         <div id="password-change-form" class="hidden mt-3 space-y-3">
           <div>
-            <label for="current-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="current_password">Current Password</label>
+            <label for="current-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="current_password">Current Password</label>
             <input id="current-password" type="password" autocomplete="current-password" enterkeyhint="next" class="nm-input mt-1" />
           </div>
           <div>
-            <label for="new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="new_password">New Password</label>
+            <label for="new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="new_password">New Password</label>
             <input id="new-password" type="password" autocomplete="new-password" enterkeyhint="next" class="nm-input mt-1" />
             <!-- FRC-NEW-03 FIX: Password strength indicator — was missing from profile change form.
                  Auth registration has this (#pw-strength-bars) but password changes had no feedback.
@@ -186,10 +186,10 @@
             </div>
             <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (password guidance).
                  Standard: Design System Typography Scale Governance. -->
-            <p class="text-3xs text-slate-400 mt-1" id="pw-change-strength-text" data-i18n="password_strength_hint">Min 8 characters, uppercase, lowercase, number, symbol</p>
+            <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" id="pw-change-strength-text" data-i18n="password_strength_hint">Min 8 characters, uppercase, lowercase, number, symbol</p>
           </div>
           <div>
-            <label for="confirm-new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2" data-i18n="confirm_new_password">Confirm New Password</label>
+            <label for="confirm-new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="confirm_new_password">Confirm New Password</label>
             <input id="confirm-new-password" type="password" autocomplete="new-password" enterkeyhint="done" class="nm-input mt-1" />
           </div>
           <div id="password-change-banner" class="hidden text-xs font-bold p-3 rounded-xl"></div>
@@ -207,7 +207,7 @@
            Standard: Nielsen #1 (System Status Visibility), Consistent Loading States. -->
       <div class="w-full mt-4" id="profile-completion-container">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="profile_completion">Profile Completion</span>
+          <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="profile_completion">Profile Completion</span>
           <!-- FRIC-2604 FIX: Skeleton loader replaces hardcoded "0%" before API data loads.
                Previous: showed "0%" → misleading flash for users who may have 60% completion.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
@@ -234,7 +234,7 @@
                Standard: Functional correctness, WCAG 2.4.3 (Focus Order). -->
           <!-- INC-002 FIX: text-[11px] → text-xs — label tier (interactive checklist buttons).
                Standard: Design System Typography Scale Governance. -->
-          <ul id="completion-items" class="mt-1.5 space-y-1 text-xs text-slate-500">
+          <ul id="completion-items" class="mt-1.5 space-y-1 text-xs text-slate-500 dark:text-slate-400">
             <li class="flex items-center gap-1.5" data-completion="name">
               <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
               <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-name" data-i18n="profile_add_name">Add your full name</button>
@@ -267,12 +267,12 @@
        Standard: Gestalt (Proximity), Nielsen #6 (Recognition over Recall). -->
   <!-- My Roles Section -->
   <section class="px-4 pt-6 animate-fade-in-up" style="--anim-delay:0.1s">
-    <div class="border-t border-slate-200 pt-5 mt-1"></div>
+    <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
     <!-- INC-2026-C01 FIX: h3→h2 — proper heading hierarchy after h1. -->
-    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="my_roles">My Roles</h2>
+    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100" data-i18n="my_roles">My Roles</h2>
     <div id="roles-list" class="flex flex-col gap-2">
       <!-- Roles rendered dynamically by profile.ts -->
-      <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200">
+      <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
         <i class="ph ph-spinner-gap ph-spin text-slate-300 text-xl" aria-hidden="true"></i>
       </div>
     </div>
@@ -284,7 +284,7 @@
     <!-- INC-002/GAP-006 FIX: Migrated from <div role="dialog"> to native <dialog>.
          Benefits: native ::backdrop, focus trapping, Escape key, WCAG 4.1.2 compliance.
          Standard: WAI-ARIA Authoring Practices — "Prefer native <dialog> over role='dialog'." -->
-    <dialog id="role-activation-modal" class="nm-confirm-dialog nm-role-dialog" aria-label="Activate a new role">
+    <dialog id="role-activation-modal" class="nm-confirm-dialog nm-role-dialog" aria-label="Activate a new role" data-i18n-aria="activate_role">
       <div class="nm-confirm-body nm-role-dialog-body">
         <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">Choose a role to activate</h4>
         <div id="available-roles-grid" class="grid grid-cols-2 gap-2">
@@ -300,69 +300,70 @@
   <!-- Settings Menu -->
   <section class="px-4 pt-6">
     <!-- FRIC-2026-D01 FIX: Visual divider between My Roles and Settings -->
-    <div class="border-t border-slate-200 pt-5 mt-1"></div>
-    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3" data-i18n="settings">Settings</h2>
+    <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
+    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100" data-i18n="settings">Settings</h2>
     <div class="flex flex-col gap-2">
       <!-- Notifications -->
-      <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200">
+      <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
         <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-bell text-smoky-jade" aria-hidden="true"></i>
+          <i class="ph ph-bell text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="notification_setting">Notifications</p>
-          <p class="text-3xs text-slate-400" data-i18n="notification_desc">Push and email alerts</p>
+          <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="notification_desc">Push and email alerts</p>
         </div>
         <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="notif-toggle" class="sr-only peer" checked>
+          <input type="checkbox" id="notif-toggle" class="sr-only peer">
           <!-- P2-RTL-001 FIX: Uses logical after:start-0.5 and RTL-aware translate direction -->
           <div class="w-9 h-5 bg-slate-300 peer-checked:bg-smoky-jade rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:size-4 after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"></div>
         </label>
       </div>
       <!-- KYC Verification -->
       <!-- INC-NEW-04 FIX: Added id="kyc-section" so completion checklist data-focus-target works. -->
-      <div id="kyc-section" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200">
+      <!-- PLATINUM FIX: Upgraded from static <div> to actionable <button> to resolve UX Dead End -->
+      <button type="button" id="kyc-section" class="w-full bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors text-start dark:bg-dark-surface dark:border-dark-border dark:hover:bg-dark-elevated">
         <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-identification-card text-warm-earth" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="kyc_verification">KYC Verification</p>
-          <p id="kyc-detail" class="text-3xs text-slate-400" data-i18n="kyc_detail">Verify your identity</p>
+          <p id="kyc-detail" class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="kyc_detail">Verify your identity</p>
         </div>
-        <i id="kyc-status-icon" class="ph ph-clock text-slate-400" aria-hidden="true"></i>
-      </div>
+        <i id="kyc-status-icon" class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+      </button>
       <!-- GAP-007 FIX: Wallet shortcut in profile settings.
            Standard: FinTech UX — "Financial info must be ≤1 tap from profile." -->
-      <a href="wallet.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
+      <a href="wallet.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
         <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-wallet text-trust-blue" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="my_wallet">My Wallet</p>
-          <p class="text-3xs text-slate-400" data-i18n="wallet_desc">Balance, transactions & deposits</p>
+          <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="wallet_desc">Balance, transactions & deposits</p>
         </div>
-        <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
+        <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
       </a>
       <!-- GAP-008 FIX: Admin Portal link — visible only for admin-role users.
            Standard: Nielsen Heuristic #7 — "Flexibility and efficiency of use." -->
-      <a href="admin-dashboard.html" data-requires-role="admin" class="hidden bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
+      <a href="admin-dashboard.html" data-requires-role="admin" class="hidden bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
         <div class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-shield-check text-warning-yellow" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-400" data-i18n="admin_portal_desc">Dashboard & management</p>
+          <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="admin_portal_desc">Dashboard & management</p>
         </div>
-        <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
+        <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
       </a>
-      <a href="about.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors">
+      <a href="about.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
         <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-info text-slate-500" aria-hidden="true"></i>
+          <i class="ph ph-info text-slate-500 dark:text-slate-400" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold" data-i18n="about_nammerha">About Nammerha</p>
-          <p class="text-3xs text-slate-400">v1.0.0 — <span data-i18n="ocds_certified">OCDS Certified</span></p>
+          <p class="text-3xs text-slate-400 dark:text-slate-500">v1.0.0 — <span data-i18n="ocds_certified">OCDS Certified</span></p>
         </div>
-        <i class="ph ph-caret-right text-slate-400" aria-hidden="true"></i>
+        <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
       </a>
     </div>
   </section>
@@ -371,7 +372,7 @@
   <!-- FRIC-2026-D01 FIX: Visual divider before Danger Zone -->
   <section class="px-4 pt-8 mt-auto">
     <div class="border-t border-red-100 pt-5 mt-1"></div>
-    <button type="button" id="logout-action" class="w-full py-3 text-sm font-bold text-red-500 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition-colors">
+    <button type="button" id="logout-action" class="w-full py-3 text-sm font-bold text-red-500 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition-colors dark:bg-red-500/10">
       <i class="ph ph-sign-out text-base" aria-hidden="true"></i>
       <span data-i18n="sign_out">Sign Out</span>
     </button>

@@ -32,7 +32,7 @@
   <script type="module" src="/src/pages/admin-kyc.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- PE-001 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -52,29 +52,29 @@
   <aside class="dashboard-sidebar">
     <!-- CONF-ADM-001/002/005 FIX: Standardized sidebar header.
          Standard: Nielsen #4 (Consistency), WCAG 1.3.1. -->
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="text-xl font-bold tracking-tight">Nammerha</span>
       <div id="role-switcher-mount" class="ms-auto"></div>
     </div>
     <nav class="flex-1 px-4 space-y-1">
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-dashboard.html">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-dashboard.html">
         <i class="ph ph-squares-four" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
       </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-revenue.html">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-revenue.html">
         <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="rev_dashboard">Revenue</span>
       </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-fintech.html">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-fintech.html">
         <i class="ph ph-bank" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="fintech_title">FinTech</span>
       </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-oracle.html">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-oracle.html">
         <i class="ph ph-chart-line-up" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
       </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="admin-escrow.html">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-escrow.html">
         <i class="ph ph-shield-check" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
         <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
@@ -85,17 +85,17 @@
         <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
         <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
       </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors" href="project-details.html">
+      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="project-details.html">
         <i class="ph ph-package" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="nav_projects">Projects</span>
       </a>
     </nav>
-    <div class="p-4 border-t border-slate-200">
+    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
       <!-- CONF-ADM-006 FIX: Settings disabled + logout button added. -->
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60" aria-disabled="true" title="Coming Soon">
+      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true" title="Coming Soon">
         <i class="ph ph-gear" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
       </span>
       <div class="mt-4 flex items-center gap-3 px-3 py-2">
         <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
@@ -103,7 +103,7 @@
         </div>
         <div>
           <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-500" data-i18n="admin_institutional">Institutional Access</p>
+          <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="admin_institutional">Institutional Access</p>
         </div>
       </div>
       <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
@@ -120,7 +120,7 @@
          Previous: px-4 md:px-6 justify-between on header — content stretches on >1920px.
          Now: justify-center + inner max-w-6xl — matches admin-dashboard reference.
          Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
@@ -151,18 +151,18 @@
           <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
                Standard: WCAG 1.3.1 (Heading Hierarchy). -->
           <h1 class="text-2xl font-bold" data-i18n="identity_verification_queue">Identity Verification Queue</h1>
-          <p class="text-slate-500 text-sm mt-0.5" data-i18n="kyc_review_subtitle">Review professional licenses and trade registrations before granting verified status.</p>
+          <p class="text-slate-500 text-sm mt-0.5 dark:text-slate-400" data-i18n="kyc_review_subtitle">Review professional licenses and trade registrations before granting verified status.</p>
         </div>
         <!-- GAP-P3-003 FIX: Filter & Export had no JS handler — disabled with Coming Soon.
              Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
         <div class="flex gap-2 shrink-0">
-          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true">
+          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border" aria-disabled="true">
             <i class="ph ph-funnel text-sm" aria-hidden="true"></i> <span data-i18n="kyc_filter">Filter</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
           </span>
-          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true">
+          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border" aria-disabled="true">
             <i class="ph ph-download text-sm" aria-hidden="true"></i> <span data-i18n="kyc_export">Export</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full" data-i18n="coming_soon">Soon</span>
+            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
           </span>
         </div>
       </div>
@@ -171,49 +171,49 @@
            p-4→p-5, added icon containers, text-xl→text-2xl font-black, hover:shadow-md.
            Standard: Nielsen #4 (Consistency), Gestalt (Similarity). -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
               <i class="ph ph-clock-countdown text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="kyc_pending_review">Pending Review</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="kyc_pending_review">Pending Review</p>
           <!-- SWEEP-W5-001: Removed individual aria-live. -->
           <p class="text-2xl font-black mt-1 text-warning-yellow" id="stat-pending">
             <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-seal-check text-smoky-jade text-xl" aria-hidden="true"></i>
+              <i class="ph ph-seal-check text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
-          <p class="text-2xl font-black text-smoky-jade mt-1" id="stat-verified">
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
+          <p class="text-2xl font-black text-smoky-jade mt-1 dark:text-emerald-400" id="stat-verified">
             <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-rose-50 flex items-center justify-center">
               <i class="ph ph-x-circle text-rose-500 text-xl" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="rejected">Rejected</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="rejected">Rejected</p>
           <p class="text-2xl font-black text-rose-500 mt-1" id="stat-rejected">
             <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
               <i class="ph ph-users text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="total_users">Total Users</p>
-          <p class="text-2xl font-black text-slate-900 mt-1" id="stat-total">
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="total_users">Total Users</p>
+          <p class="text-2xl font-black text-slate-900 mt-1 dark:text-slate-100" id="stat-total">
             <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
@@ -222,8 +222,8 @@
       <!-- Queue + Document Viewer -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Left: Review Queue Table -->
-        <div class="col-span-12 lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100">
+        <div class="col-span-12 lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden dark:bg-dark-surface dark:border-dark-border">
+          <div class="p-4 border-b border-slate-100 dark:border-dark-border">
             <h3 class="font-bold text-sm" data-i18n="applications_pending_review">Applications Pending Review</h3>
           </div>
           <!-- FRIC-P3-003 FIX: Added role="listbox" for keyboard accessibility.
@@ -262,10 +262,10 @@
         <!-- Right: Document Viewer -->
         <div class="col-span-12 lg:col-span-5 space-y-4">
           <!-- Document Preview -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" id="doc-viewer">
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden dark:bg-dark-surface dark:border-dark-border" id="doc-viewer">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between dark:border-dark-border">
               <h3 class="font-bold text-sm" id="viewer-title" data-i18n="kyc_select_title">Select an Application</h3>
-              <span class="text-3xs text-slate-400" id="viewer-subtitle" data-i18n="kyc_click_to_review">Click a row to review</span>
+              <span class="text-3xs text-slate-400 dark:text-slate-500" id="viewer-subtitle" data-i18n="kyc_click_to_review">Click a row to review</span>
             </div>
 
             <!-- Empty State -->
@@ -273,21 +273,12 @@
               <div class="size-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
                 <i class="ph ph-identification-card text-slate-300 nm-icon-32" aria-hidden="true"></i>
               </div>
-              <p class="text-sm font-medium text-slate-400" data-i18n="kyc_select_applicant">Select an applicant from the queue</p>
+              <p class="text-sm font-medium text-slate-400 dark:text-slate-500" data-i18n="kyc_select_applicant">Select an applicant from the queue</p>
               <p class="text-xs text-slate-300 mt-1" data-i18n="kyc_docs_appear_here">Documents will appear here for review</p>
             </div>
 
             <!-- Document Content (hidden by default) -->
             <div class="p-5 space-y-4 hidden" id="viewer-content">
-              <!-- Drag & Drop Zone -->
-              <div class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-trust-blue/50 transition-colors" id="drop-zone">
-                <div class="size-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                  <i class="ph ph-upload-simple text-slate-400 text-2xl" aria-hidden="true"></i>
-                </div>
-                <p class="text-sm font-medium text-slate-500" data-i18n="kyc_drag_drop">Drag & drop documents here</p>
-                <p class="text-xs text-slate-400 mt-1" data-i18n="kyc_click_browse">or click to browse files</p>
-              </div>
-
               <!-- Document List -->
               <div class="space-y-2" id="doc-list">
                 <!-- Documents populated by JS -->
@@ -301,7 +292,7 @@
               <i class="ph ph-seal-check text-lg" aria-hidden="true"></i>
               <span data-i18n="kyc_grant_verified">Grant Verified Badge</span>
             </button>
-            <button type="button" id="reject-btn" class="w-full bg-white border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-rose-50 transition-colors">
+            <button type="button" id="reject-btn" class="w-full bg-white border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-rose-50 transition-colors dark:bg-dark-surface">
               <i class="ph ph-x-circle text-lg" aria-hidden="true"></i>
               <span data-i18n="kyc_reject_resubmit">Reject & Request Resubmission</span>
             </button>

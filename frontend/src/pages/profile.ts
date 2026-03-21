@@ -142,9 +142,9 @@ async function loadUserRoles(): Promise<void> {
     const user = getCurrentUser();
     if (!user) {
         rolesListEl.innerHTML = `
-            <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
+            <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100 dark:text-slate-500 dark:border-dark-border">
                 <i class="ph ph-sign-in text-2xl" aria-hidden="true"></i>
-                <p class="mt-2">${t('profile_sign_in_roles', 'Sign in to manage your roles')}</p>
+                <p class="mt-2">${escapeHtml(t('profile_sign_in_roles', 'Sign in to manage your roles'))}</p>
             </div>`;
         return;
     }
@@ -164,8 +164,8 @@ async function loadUserRoles(): Promise<void> {
 
     if (roles.length === 0) {
         rolesListEl.innerHTML = `
-            <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100">
-                <p>${t('profile_no_roles', 'No active roles yet')}</p>
+            <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100 dark:text-slate-500 dark:border-dark-border">
+                <p>${escapeHtml(t('profile_no_roles', 'No active roles yet'))}</p>
             </div>`;
         return;
     }
@@ -180,18 +180,18 @@ async function loadUserRoles(): Promise<void> {
         const verLabel = escapeHtml(meta.verificationLabel);
 
         return `
-            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2 nm-role-active-border' : 'border'} border-slate-100 transition-all" style="--role-color: ${color}">
+            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2 nm-role-active-border' : 'border'} border-slate-100 transition-all dark:border-dark-border" style="--role-color: ${color}">
                 <div class="size-10 rounded-lg flex items-center justify-center shrink-0 nm-role-icon-bg">
                     <i class="ph ${escapeHtml(meta.icon)} text-xl" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                         <p class="text-sm font-bold">${label}</p>
-                        ${isActive ? `<span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" data-i18n="active">${escapeHtml(t('profile_active', 'Active'))}</span>` : ''}
+                        ${isActive ? `<span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" data-i18n="active">${escapeHtml(t('profile_active', 'Active'))}</span>` : ''}
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
                         <i class="ph ph-shield-check text-emerald-500 text-xs" aria-hidden="true"></i>
-                        <span class="text-3xs text-slate-400">${verLabel}</span>
+                        <span class="text-3xs text-slate-400 dark:text-slate-500">${verLabel}</span>
                     </div>
                 </div>
                 <i class="ph ph-caret-right text-slate-300" aria-hidden="true"></i>
@@ -220,7 +220,7 @@ async function loadAvailableRoles(): Promise<void> {
         );
 
         if (available.length === 0) {
-            gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-4">${escapeHtml(t('profile_all_roles_active', 'All roles activated!'))}</p>`;
+            gridEl.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-4 dark:text-slate-500">${escapeHtml(t('profile_all_roles_active', 'All roles activated!'))}</p>`;
             return;
         }
 
@@ -232,13 +232,13 @@ async function loadAvailableRoles(): Promise<void> {
             const color = getRoleColor(r.role_name);
 
             return `
-                <button type="button" class="activate-role-btn flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-2 hover:shadow-sm transition-all text-center"
+                <button type="button" class="activate-role-btn flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-2 hover:shadow-sm transition-all text-center dark:border-dark-border"
                         data-role="${escapeHtml(r.role_name)}"
                         style="--role-color: ${color}">
                     <div class="size-10 rounded-lg flex items-center justify-center nm-role-icon-bg">
                         <i class="ph ${escapeHtml(meta.icon)} text-xl" aria-hidden="true"></i>
                     </div>
-                    <span class="text-xs font-bold text-slate-700">${label}</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${label}</span>
                 </button>`;
         }).join('');
 
@@ -314,8 +314,32 @@ async function logout(): Promise<void> {
     window.location.href = '/auth.html';
 }
 
+// PLATINUM FIX: Wire Destructive Action Confirmation Dialog
+// Previous: Button triggered logout() instantly, bypassing the <dialog> entirely.
+const logoutBtn = document.getElementById('logout-action');
+const logoutDialog = document.getElementById('confirm-logout') as HTMLDialogElement | null;
+
+logoutBtn?.addEventListener('click', () => {
+    if (logoutDialog && typeof logoutDialog.showModal === 'function') {
+        logoutDialog.showModal();
+    } else {
+        // Fallback for browsers without native <dialog> support
+        if (confirm(t('confirm_logout_title', 'Sign Out?'))) {
+            logout();
+        }
+    }
+});
+
+logoutDialog?.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
+    logoutDialog.close();
+});
+
+logoutDialog?.querySelector('[data-action="confirm"]')?.addEventListener('click', () => {
+    logoutDialog.close();
+    logout();
+});
+
 document.getElementById('logout-btn')?.addEventListener('click', logout);
-document.getElementById('logout-action')?.addEventListener('click', logout);
 
 // ─── Add Role Modal ─────────────────────────────────────────────────────────
 document.getElementById('add-role-btn')?.addEventListener('click', () => {
@@ -447,6 +471,94 @@ document.getElementById('profile-edit-form')?.addEventListener('submit', (e) => 
     saveProfile();
 });
 
+// ─── GAP-N02 FIX: Password Change Engine ────────────────────────────────────
+// Hydrates the previously dead #password-change-form ghost feature.
+// Standard: Nielsen #3 (User Control), Progressive Disclosure, Security UX.
+function initPasswordChangeEngine(): void {
+    const toggleBtn = document.getElementById('toggle-password-change');
+    const formPanel = document.getElementById('password-change-form');
+    const caretIcon = document.getElementById('password-caret');
+    const saveBtn = document.getElementById('save-password-btn') as HTMLButtonElement | null;
+    
+    if (!toggleBtn || !formPanel) { return; }
+
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = formPanel.classList.contains('hidden');
+        if (isHidden) {
+            formPanel.classList.remove('hidden');
+            caretIcon?.classList.add('rotate-180');
+        } else {
+            formPanel.classList.add('hidden');
+            caretIcon?.classList.remove('rotate-180');
+        }
+    });
+
+    const currentInput = document.getElementById('current-password') as HTMLInputElement | null;
+    const newPasswordInput = document.getElementById('new-password') as HTMLInputElement | null;
+    const confirmInput = document.getElementById('confirm-new-password') as HTMLInputElement | null;
+
+    let isSavingPassword = false;
+    saveBtn?.addEventListener('click', async () => {
+        if (isSavingPassword) { return; }
+        
+        const current_password = currentInput?.value || '';
+        const new_password = newPasswordInput?.value || '';
+        const confirm_password = confirmInput?.value || '';
+        
+        if (!current_password || !new_password) {
+            showToast(t('password_empty', 'Please fill all password fields.'), 'error');
+            return;
+        }
+        if (new_password !== confirm_password) {
+            showToast(t('password_mismatch', 'New passwords do not match.'), 'error');
+            return;
+        }
+        if (new_password.length < 8) {
+            showToast(t('password_too_short', 'New password must be at least 8 characters.'), 'error');
+            return;
+        }
+
+        isSavingPassword = true;
+        const restoreBtn = setLoadingState(saveBtn, t('updating', 'Updating...'));
+        
+        try {
+            const result = await auth.updatePassword({ current_password, new_password });
+            if (!result.success) {
+                throw new Error(result.error ?? 'Failed to update password');
+            }
+            restoreBtn('success');
+            showToast(t('password_changed_success', 'Password updated successfully.'), 'success');
+            formPanel.classList.add('hidden');
+            caretIcon?.classList.remove('rotate-180');
+            // Clean up fields
+            if (currentInput) { currentInput.value = ''; }
+            if (newPasswordInput) { newPasswordInput.value = ''; }
+            if (confirmInput) { confirmInput.value = ''; }
+        } catch (err) {
+            restoreBtn('error');
+            reportError(err instanceof Error ? err : new Error(String(err)), { context: 'change_password' });
+            showToast(t('password_change_failed', 'Update failed. Check your current password.'), 'error');
+        } finally {
+            isSavingPassword = false;
+        }
+    });
+
+    // FRC-NEW-03 FIX: Live password strength visualizer (UX parity with auth.html)
+    const pwBars = document.getElementById('pw-change-strength-bars')?.children;
+    newPasswordInput?.addEventListener('input', (e: Event) => {
+        const val = (e.target as HTMLInputElement).value;
+        const strength = val.length === 0 ? 0 : val.length < 5 ? 1 : val.length < 8 ? 2 : /[A-Z]/.test(val) && /[0-9]/.test(val) ? 4 : 3;
+        
+        if (pwBars) {
+            Array.from(pwBars).forEach((bar, index) => {
+                bar.className = `h-2 flex-1 rounded-full transition-colors ${
+                    index < strength ? (strength < 2 ? 'bg-red-400' : strength < 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-slate-200 dark:bg-dark-border'
+                }`;
+            });
+        }
+    });
+}
+
 // ─── GAP-X02 FIX: Profile Photo Preview Engine ─────────────────────────────
 // Uses FileReader API for instant client-side preview after file selection.
 // Validates size (5MB) and type before showing circular preview.
@@ -542,6 +654,7 @@ function init(): void {
     loadUserInfo();
     loadUserRoles();
     initPhotoPreview(); // GAP-X02 FIX: Wire photo preview engine
+    initPasswordChangeEngine(); // GAP-N02 FIX: Wire password change system
 
     // Handle ?tab=roles URL param (from role-switcher "Add a new role")
     const params = new URLSearchParams(window.location.search);
@@ -607,6 +720,12 @@ function init(): void {
             try { localStorage.setItem(NOTIF_KEY, notifToggle.checked ? '1' : '0'); } catch { /* Safari private mode */ }
         });
     }
+
+    // GAP-N08 FIX: KYC Checklist Dead End
+    // Previous: Tapping "Complete identity verification" scrolled to a static <div>.
+    document.getElementById('kyc-section')?.addEventListener('click', () => {
+        showToast(t('kyc_flow_coming_soon', 'KYC Verification portal is opening soon.'), 'info');
+    });
 
     // INC-NEW-01 FIX: Back button wiring moved to shared page-header.ts.
     // Previous: 8 lines of duplicate code (identical to wallet.ts).

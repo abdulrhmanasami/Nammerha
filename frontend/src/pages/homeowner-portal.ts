@@ -1,7 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
-import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
@@ -232,7 +232,7 @@ async function loadDashboardProjects(): Promise<void> {
         const projects = allProjects.filter((p) => !['completed', 'cancelled'].includes(p.status));
 
         if (projects.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-house nm-icon-40" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('ho_no_active_projects', 'No active projects'))}</p>
                 <p class="text-xs mt-1">${esc(t('ho_report_to_start', 'Report damage to get started'))}</p>
@@ -249,15 +249,15 @@ async function loadDashboardProjects(): Promise<void> {
                             <h4 class="font-medium">${esc(p.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
+                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.engineer_name ? `<span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(p.engineer_name)}</span>` : ''}
                             ${p.contractor_name ? `<span><i class="ph ph-crane" aria-hidden="true"></i> ${esc(p.contractor_name)}</span>` : ''}
                             ${p.bid_count > 0 ? `<span class="text-trust-blue font-bold"><i class="ph ph-file-text" aria-hidden="true"></i> ${esc(String(p.bid_count))} ${esc(t('ho_bids', 'bids'))}</span>` : ''}
                         </div>
-                        ${p.total_boq_cost > 0 ? `<p class="text-xs text-slate-500 mt-1">${esc(t('ho_boq_total', 'BOQ Total'))}: <span class="font-mono font-bold">${formatCents(p.total_boq_cost)}</span></p>` : ''}
+                        ${p.total_boq_cost > 0 ? `<p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(t('ho_boq_total', 'BOQ Total'))}: <span class="font-mono font-bold">${formatCents(p.total_boq_cost)}</span></p>` : ''}
                     </div>
-                    <span class="text-3xs text-slate-400 shrink-0">${esc(p.project_id)}</span>
+                    <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${esc(p.project_id)}</span>
                 </div>
             </div>
         `).join('');
@@ -276,29 +276,51 @@ async function loadProjects(): Promise<void> {
         const projects = (res.data ?? []) as unknown as Project[];
 
         if (projects.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                <p class="text-sm font-medium">${esc(t('ho_no_projects_yet', 'No projects yet'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-house-line nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_projects_yet', 'No projects yet'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = projects.map((p) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3">
-                    <p class="font-medium">${esc(p.title)}</p>
-                    <!-- LOW-005 FIX: Truncate raw UUID to first 8 chars — reduces cognitive noise.
-                         Homeowners don't need technical IDs; short prefix is enough for support. -->
-                    <p class="text-3xs text-slate-400">${esc(p.project_id.substring(0, 8))}…</p>
-                </td>
-                <td class="px-5 py-3">${esc(p.damage_type)}</td>
-                <td class="px-5 py-3 text-xs">${esc(p.engineer_name ?? '—')}</td>
-                <td class="px-5 py-3 text-xs">${esc(p.contractor_name ?? '—')}</td>
-                <td class="px-5 py-3"><span class="text-trust-blue font-bold text-xs">${esc(String(p.bid_count))}</span></td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span></td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
+                        <p class="text-3xs text-slate-400 font-mono mt-0.5 dark:text-slate-500">${esc(p.project_id.substring(0, 8))}…</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
+                </div>
+                
+                <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4 flex flex-wrap gap-x-4 gap-y-2 mt-3 dark:text-slate-400 dark:bg-dark-elevated dark:border-dark-border">
+                    <div class="flex items-center gap-1.5">
+                        <i class="ph ph-tag text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+                        <span>${esc(p.damage_type)}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 overflow-hidden">
+                        <i class="ph ph-hard-hat text-slate-400 shrink-0 dark:text-slate-500" aria-hidden="true"></i>
+                        <span class="truncate">${esc(p.engineer_name ?? '—')}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 overflow-hidden">
+                        <i class="ph ph-crane text-slate-400 shrink-0 dark:text-slate-500" aria-hidden="true"></i>
+                        <span class="truncate">${esc(p.contractor_name ?? '—')}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
+                    <div class="flex items-center gap-2">
+                        <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="th_bids">Bids</span>
+                        <span class="text-trust-blue font-bold text-xs">${esc(String(p.bid_count))}</span>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadProjects, 6);
+        renderErrorWithRetry(tbody, loadProjects);
     }
 }
 
@@ -381,26 +403,43 @@ async function loadServiceRequests(): Promise<void> {
         const requests = res.data ?? [];
 
         if (requests.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400">
-                <p class="text-sm font-medium">${esc(t('ho_no_requests_yet', 'No service requests yet'))}</p>
-                <p class="text-xs mt-1">${esc(t('ho_post_first_request', 'Use the form above to post your first request'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-wrench nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_requests_yet', 'No service requests yet'))}</p>
+                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ho_post_first_request', 'Use the form above to post your first request'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = requests.map((r) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(r.title)}</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${tradeColor(r.trade_needed)}">${esc(r.trade_needed)}</span></td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${urgencyColor(r.urgency)}">${esc(r.urgency)}</span></td>
-                <td class="px-5 py-3 text-xs">—</td>
-                <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span></td>
-                <td class="px-5 py-3">
-                    ${['open', 'matched'].includes(r.status) ? `
-                        <button type="button" class="cancel-sr-btn px-2.5 py-1 bg-red-100 text-red-600 text-3xs font-bold rounded-lg hover:bg-red-200" data-id="${esc(r.request_id)}">${esc(t('ho_cancel', 'Cancel'))}</button>
-                    ` : '—'}
-                </td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mt-3 mb-4">
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase border border-slate-200 ${tradeColor(r.trade_needed)} dark:border-dark-border">${esc(r.trade_needed)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase border border-slate-200 ${urgencyColor(r.urgency)} dark:border-dark-border">${esc(r.urgency)}</span>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_matched_to">Matched To</p>
+                        <p class="text-xs font-medium text-slate-700 dark:text-slate-300">—</p>
+                    </div>
+                    <div>
+                        ${['open', 'matched'].includes(r.status) ? `
+                            <button type="button" class="cancel-sr-btn px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold rounded-lg transition-colors border border-red-100 shadow-sm dark:bg-red-500/10" data-id="${esc(r.request_id)}">
+                                ${esc(t('ho_cancel', 'Cancel'))}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
         `).join('');
 
         // HIGH-001 FIX: Cancel handlers with confirmation dialog.
@@ -435,7 +474,7 @@ async function loadServiceRequests(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadServiceRequests, 6);
+        renderErrorWithRetry(tbody, loadServiceRequests);
     }
 }
 
@@ -449,7 +488,7 @@ async function loadApprovals(): Promise<void> {
         const approvals = (res.data ?? []) as unknown as Approval[];
 
         if (approvals.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-check-square nm-icon-32" aria-hidden="true"></i>
                 <p class="mt-2 text-sm font-medium">${esc(t('ho_no_pending_approvals', 'No pending approvals'))}</p>
             </div>`;
@@ -464,8 +503,8 @@ async function loadApprovals(): Promise<void> {
                             <h4 class="font-medium">${esc(a.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">${esc(a.description ?? t('ho_no_description', 'No description'))}</p>
-                        <div class="flex items-center gap-3 mt-2 text-3xs text-slate-400">
+                        <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(a.description ?? t('ho_no_description', 'No description'))}</p>
+                        <div class="flex items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-buildings" aria-hidden="true"></i> ${esc(a.project_title)}</span>
                             <span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(a.engineer_name)}</span>
                             <span><i class="ph ph-clock" aria-hidden="true"></i> ${relativeTimeAgo(a.created_at)}</span>
@@ -548,14 +587,14 @@ async function loadEscrow(): Promise<void> {
                 </div>
                 <div class="bg-smoky-jade/5 rounded-xl p-4">
                     <p class="text-3xs font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'Released'))}</p>
-                    <p class="text-xl font-black mt-1 text-smoky-jade">${formatCents(e.total_released ?? 0)}</p>
+                    <p class="text-xl font-black mt-1 text-smoky-jade dark:text-emerald-400">${formatCents(e.total_released ?? 0)}</p>
                 </div>
                 <div class="bg-warning-yellow/5 rounded-xl p-4">
                     <p class="text-3xs font-bold text-warning-yellow/60 uppercase">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
                     <p class="text-xl font-black mt-1 text-warning-yellow">${formatCents(e.held_in_escrow ?? 0)}</p>
                 </div>
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <p class="text-3xs font-bold text-slate-400 uppercase">${esc(t('ho_projects', 'Projects'))}</p>
+                <div class="bg-slate-50 rounded-xl p-4 dark:bg-dark-elevated">
+                    <p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500">${esc(t('ho_projects', 'Projects'))}</p>
                     <p class="text-xl font-black mt-1">${esc(String(e.projects_with_escrow ?? 0))}</p>
                 </div>
             </div>

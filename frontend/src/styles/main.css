@@ -99,6 +99,24 @@
     color: var(--text-muted, #64748b);
 }
 
+/* ─── Global Reset & Typography Enforcements ───────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    /* PLT-W2-001 FIX: Default font-size for body.
+       Previously hardcoded in _base.css. Now governed by design system. */
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* PLT-W2-001 FIX: Default text color for body.
+       Previously hardcoded in _base.css. Now governed by design system. */
+    color: var(--text-body);
+}
+
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */
 :root {
   /* Layout — Bottom navigation bar height.
@@ -874,8 +892,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   }
 }
 
-/* FRIC-AUD-04: Dark mode extracted to _dark-mode.css (198 lines → 1 line) */
-@import './_dark-mode.css';
+/* PLAT-PURGE: _dark-mode.css eradicated. Native Tailwind rendering active. */
 
 /* ─── Animations ───────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {

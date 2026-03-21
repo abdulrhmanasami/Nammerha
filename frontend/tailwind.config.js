@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+    future: { hoverOnlyWhenSupported: true },
     content: [
         './*.html',
         './src/**/*.{ts,js}',
@@ -30,6 +31,14 @@ export default {
                 'background-dark': '#242424',
                 'surface': '#FFFFFF',
                 'surface-dark': '#2A2A2A',
+
+                /* ─── Dark Mode Elevational Tokens ─── */
+                'dark-surface': '#1E1E1E',
+                'dark-elevated': '#2A2A2A',
+                'dark-base': '#242424',
+                'dark-border': 'rgba(255, 255, 255, 0.08)',
+                'dark-border-subtle': 'rgba(255, 255, 255, 0.06)',
+                'dark-track': '#334155',
             },
             fontFamily: {
                 'display': ['"Plus Jakarta Sans"', 'sans-serif'],

@@ -54,7 +54,13 @@ function renderTiers(tiers: CommissionTier[]): void {
     if (!tbody) { return; }
 
     if (tiers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-slate-400">${escapeHtml(t('rev_no_tiers', 'No tiers configured'))}</td></tr>`;
+        tbody.innerHTML = `
+        <div class="bg-white py-8 text-center w-full nm-table-empty dark:bg-dark-surface">
+            <div class="size-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                <i class="ph ph-receipt nm-icon-24" aria-hidden="true"></i>
+            </div>
+            <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300">${escapeHtml(t('rev_no_tiers', 'No tiers configured'))}</p>
+        </div>`;
         return;
     }
 
@@ -69,15 +75,21 @@ function renderTiers(tiers: CommissionTier[]): void {
             : escapeHtml(t('rev_inactive', 'Inactive'));
 
         return `
-            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-semibold">${escapeHtml(tier.tier_name)}</td>
-                <td class="px-5 py-3 text-slate-600 font-mono text-xs">${min} – ${max}</td>
-                <td class="px-5 py-3 font-bold font-mono">${tier.commission_rate_bps}</td>
-                <td class="px-5 py-3 font-bold text-trust-blue">${bpsToPercent(tier.commission_rate_bps)}</td>
-                <td class="px-5 py-3">
-                    <span class="text-xs font-bold ${statusClass} px-2 py-0.5 rounded-full">${statusText}</span>
-                </td>
-            </tr>`;
+            <div class="p-4 hover:bg-slate-50/50 transition-colors group">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${escapeHtml(tier.tier_name)}</h3>
+                            <span class="text-3xs font-bold ${statusClass} px-2 py-0.5 rounded-full uppercase tracking-wider">${statusText}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500" data-i18n="th_revenue_range">Range</span> <span class="font-mono text-emerald-600 font-bold">${min} – ${max}</span></p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500" data-i18n="th_rate_bps">Rate (bps)</span> <span class="font-mono font-bold">${tier.commission_rate_bps}</span></p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><span class="text-slate-400 me-1 uppercase text-3xs font-bold tracking-wider dark:text-slate-500" data-i18n="th_rate_pct">Rate (%)</span> <span class="font-bold text-trust-blue">${bpsToPercent(tier.commission_rate_bps)}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
     }).join('');
 }
 
@@ -86,20 +98,20 @@ function renderRecentCommissions(commissions: CommissionEntry[]): void {
     if (!list) { return; }
 
     if (commissions.length === 0) {
-        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400">${escapeHtml(t('rev_no_commissions', 'No commissions recorded yet'))}</div>`;
+        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400 dark:text-slate-500">${escapeHtml(t('rev_no_commissions', 'No commissions recorded yet'))}</div>`;
         return;
     }
 
     list.innerHTML = commissions.slice(0, 8).map((c) => `
         <div class="px-5 py-3 flex items-center gap-4">
             <div class="size-8 rounded-full bg-smoky-jade/10 flex items-center justify-center shrink-0">
-                <i class="ph ph-receipt text-smoky-jade text-sm" aria-hidden="true"></i>
+                <i class="ph ph-receipt text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${escapeHtml(t('rev_po_label', 'PO'))} ${escapeHtml(c.po_id)} — ${formatCents(c.commission_amount_cents)}</p>
-                <p class="text-3xs text-slate-400 mt-0.5">${escapeHtml(t('rev_rate_label', 'Rate'))}: ${bpsToPercent(c.rate_bps)} • ${escapeHtml(t('rev_po_label', 'PO'))}: ${formatCents(c.po_amount_cents)}</p>
+                <p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${escapeHtml(t('rev_rate_label', 'Rate'))}: ${bpsToPercent(c.rate_bps)} • ${escapeHtml(t('rev_po_label', 'PO'))}: ${formatCents(c.po_amount_cents)}</p>
             </div>
-            <span class="text-3xs text-slate-400 shrink-0">${relativeTimeAgo(c.created_at)}</span>
+            <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${relativeTimeAgo(c.created_at)}</span>
         </div>`).join('');
 }
 
@@ -108,7 +120,7 @@ export function renderRecentTips(tips: TipEntry[]): void {
     if (!list) { return; }
 
     if (tips.length === 0) {
-        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400">${escapeHtml(t('rev_no_tips', 'No tips recorded yet'))}</div>`;
+        list.innerHTML = `<div class="px-5 py-8 text-center text-sm text-slate-400 dark:text-slate-500">${escapeHtml(t('rev_no_tips', 'No tips recorded yet'))}</div>`;
         return;
     }
 
@@ -121,9 +133,9 @@ export function renderRecentTips(tips: TipEntry[]): void {
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">${escapeHtml(t('rev_donation_label', 'Donation'))} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
-                <p class="text-3xs text-slate-400 mt-0.5">${escapeHtml(t('rev_donor_label', 'Donor'))}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
+                <p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${escapeHtml(t('rev_donor_label', 'Donor'))}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
             </div>
-            <span class="text-3xs text-slate-400 shrink-0">${relativeTimeAgo(tip.created_at)}</span>
+            <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${relativeTimeAgo(tip.created_at)}</span>
         </div>`;
     }).join('');
 }
@@ -174,7 +186,7 @@ async function loadDashboard(): Promise<void> {
         const kpiIds = ['kpi-total-revenue', 'kpi-commissions', 'kpi-commission-count', 'kpi-tips', 'kpi-tip-count', 'kpi-avg-tip', 'kpi-avg-tip-pct'];
         kpiIds.forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = '—'; } });
         const tbody = document.getElementById('tier-table-body');
-        if (tbody) { tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-sm text-red-400">${escapeHtml(t('failed_to_load', 'Failed to load'))}</td></tr>`; }
+        if (tbody) { tbody.innerHTML = `<div class="px-5 py-8 text-center text-sm font-bold text-red-500">${escapeHtml(t('failed_to_load', 'Failed to load'))}</div>`; }
         const commList = document.getElementById('recent-commissions-list');
         if (commList) { commList.innerHTML = `<div class="px-5 py-8 text-center text-sm text-red-400">${escapeHtml(t('failed_to_load', 'Failed to load'))}</div>`; }
     }

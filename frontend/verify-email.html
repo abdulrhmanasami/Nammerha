@@ -32,7 +32,7 @@
   <script type="module" src="/src/pages/verify-email.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- PE-001 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -54,14 +54,14 @@
         <i class="ph ph-spinner-gap text-white animate-spin nm-icon-32" aria-hidden="true" id="verify-icon"></i>
       </div>
       <h1 class="text-2xl font-bold tracking-tight" id="verify-title" data-i18n="verify_email_title">Verifying Email…</h1>
-      <p class="text-sm text-slate-500 mt-1" id="verify-subtitle" data-i18n="verify_email_subtitle">Please wait while we verify your email address</p>
+      <p class="text-sm text-slate-500 mt-1 dark:text-slate-400" id="verify-subtitle" data-i18n="verify_email_subtitle">Please wait while we verify your email address</p>
       <!-- PLAT-M06 FIX: Language switcher mount — parity with reset-password.html -->
       <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
     </header>
     <!-- PLAT-M06 FIX: Theme toggle button — parity with auth.html and reset-password.html -->
     <!-- DEF-THEME-001 FIX: Replaced inline positioning with CSS class.
          Standard: P1-001 CSS Single Source of Truth. -->
-    <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+    <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe dark:border-dark-border dark:bg-[#1e1e1e]/90" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
       <i id="nm-theme-toggle-icon" class="text-lg" data-nm-theme-icon aria-hidden="true"></i>
     </button>
 
@@ -90,7 +90,7 @@
       <!-- FIX-07: Resend verification email — shown when token expires -->
       <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
       <div id="verify-resend" class="mt-4 hidden">
-        <p class="text-xs text-slate-500 mb-2 text-center" data-i18n="verify_resend_label">Need a new verification link?</p>
+        <p class="text-xs text-slate-500 mb-2 text-center dark:text-slate-400" data-i18n="verify_resend_label">Need a new verification link?</p>
         <div class="flex gap-2">
           <!-- DEF-VERIFY-001 FIX: Added enterkeyhint, inputmode, autocomplete for mobile keyboard.
                Standard: Apple HIG (Keyboard), WCAG 1.3.5 (Input Purpose). -->
@@ -117,16 +117,16 @@
          Standard: Nielsen #8 (Aesthetic and minimalist design). -->
     <div class="mt-auto px-6 py-8 text-center relative z-10">
       <details class="mb-3">
-        <summary class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1">
+        <summary class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 dark:text-slate-500">
           <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
           <span data-i18n="auth_security_details">Security Details</span>
         </summary>
         <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
-          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium">
-            <i class="ph ph-shield-check text-smoky-jade text-sm" aria-hidden="true"></i>
+          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500">
+            <i class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
             <span data-i18n="auth_trust_1">OCDS Verified</span>
           </div>
-          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium">
+          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500">
             <i class="ph ph-lock text-trust-blue text-sm" aria-hidden="true"></i>
             <span data-i18n="auth_trust_2">256-bit Encrypted</span>
           </div>

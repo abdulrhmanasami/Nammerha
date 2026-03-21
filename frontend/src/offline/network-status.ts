@@ -13,51 +13,21 @@
 
 import { listenToServiceWorker, initNetworkListeners, isOnline } from './sw-register';
 import { getPendingCount, replayQueue } from './offline-queue';
+import { t, isRTL } from '../utils/i18n';
 
 const STATUS_BAR_ID = 'nammerha-network-status';
 
 // Bilingual messages
-const MESSAGES = {
-    offline: {
-        en: 'You are offline — changes will sync when connection returns',
-        ar: 'أنت غير متصل — ستُزامَن التغييرات عند عودة الاتصال',
-    },
-    syncing: {
-        en: 'Syncing offline changes...',
-        ar: 'جارٍ مزامنة التغييرات...',
-    },
-    online: {
-        en: 'Back online',
-        ar: 'متصل مجدداً',
-    },
-    syncSuccess: {
-        en: 'All changes synced successfully',
-        ar: 'تمت مزامنة جميع التغييرات بنجاح',
-    },
-    syncFailed: {
-        en: 'Some changes could not be synced',
-        ar: 'لم يتم مزامنة بعض التغييرات',
-    },
-    swUpdate: {
-        en: 'New version available — ',
-        ar: 'نسخة جديدة متاحة — ',
-    },
-    refresh: {
-        en: 'Refresh',
-        ar: 'تحديث',
-    },
-    pending: {
-        en: 'pending changes',
-        ar: 'تغييرات معلقة',
-    },
-} as const;
-
 type StatusType = 'offline' | 'syncing' | 'online' | 'syncSuccess' | 'syncFailed' | 'swUpdate';
 
-function getLocale(): 'en' | 'ar' {
-    const lang = document.documentElement.lang || 'en';
-    return lang.startsWith('ar') ? 'ar' : 'en';
-}
+const STATUS_KEYS: Record<StatusType, {key: string, fb: string}> = {
+    offline: { key: 'network_offline', fb: 'You are offline — changes will sync when connection returns' },
+    syncing: { key: 'network_syncing', fb: 'Syncing offline changes...' },
+    online: { key: 'network_online', fb: 'Back online' },
+    syncSuccess: { key: 'network_sync_success', fb: 'All changes synced successfully' },
+    syncFailed: { key: 'network_sync_failed', fb: 'Some changes could not be synced' },
+    swUpdate: { key: 'network_sw_update', fb: 'New version available — ' },
+};
 
 function createStatusBar(): HTMLElement {
     const existing = document.getElementById(STATUS_BAR_ID);
@@ -76,15 +46,14 @@ function createStatusBar(): HTMLElement {
 
 function showStatus(type: StatusType, autoHideMs?: number): void {
     const bar = createStatusBar();
-    const locale = getLocale();
-    const isRtl = locale === 'ar';
+    const isRtl = isRTL();
 
     bar.dir = isRtl ? 'rtl' : 'ltr';
     bar.className = `network-status-bar network-status--${type}`;
 
     if (type === 'swUpdate') {
-        const msg = MESSAGES.swUpdate[locale];
-        const refreshLabel = MESSAGES.refresh[locale];
+        const msg = t('network_sw_update', 'New version available — ');
+        const refreshLabel = t('network_refresh', 'Refresh');
         bar.innerHTML = `
             <span class="network-status__icon"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i></span>
             <span class="network-status__text">${msg}</span>
@@ -109,7 +78,7 @@ function showStatus(type: StatusType, autoHideMs?: number): void {
         };
         bar.innerHTML = `
             <span class="network-status__icon">${icons[type]}</span>
-            <span class="network-status__text">${MESSAGES[type][locale]}</span>
+            <span class="network-status__text">${t(STATUS_KEYS[type].key, STATUS_KEYS[type].fb)}</span>
         `;
     }
 
@@ -186,9 +155,8 @@ function init(): void {
             if (count > 0) {
                 const bar = document.getElementById(STATUS_BAR_ID);
                 if (bar) {
-                    const locale = getLocale();
                     const badge = bar.querySelector('.network-status__badge');
-                    const badgeText = `${count} ${MESSAGES.pending[locale]}`;
+                    const badgeText = `${count} ${t('network_pending', 'pending changes')}`;
                     if (badge) {
                         badge.textContent = badgeText;
                     } else {

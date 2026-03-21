@@ -2,7 +2,7 @@ import '../styles/main.css';
 import { escapeHtml as esc } from '../utils/xss';
 import { reportWarning } from '../error-reporter';
 // TICK-026: Import shared error-retry utility for consistent error recovery.
-import { renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { phaseColor, phaseIcon, bidColor } from '../utils/status-colors';
 import { contractor } from '../api';
 import { getLocale, formatDate, applyI18n } from '../utils/locale';
@@ -196,31 +196,34 @@ async function loadProjectTimeline(): Promise<void> {
             const progress = Number(p['progress'] ?? 0);
             const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
             return `
-            <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(String(p['title'] ?? ''))}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(String(p['region'] ?? ''))}</td>
-                <td class="px-5 py-3">
-                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(p['title'] ?? ''))}</h3>
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1 uppercase">
                         <i class="ph ${phaseIcon(String(p['phase'] ?? ''))}" aria-hidden="true"></i>
                         ${esc(String(p['phase'] ?? ''))}
                     </span>
-                </td>
-                <td class="px-5 py-3">
-                    <div class="flex items-center gap-2">
+                </div>
+                <div class="text-xs text-slate-500 mb-4 flex items-center gap-1.5 dark:text-slate-400">
+                    <i class="ph ph-map-pin" aria-hidden="true"></i>
+                    <span>${esc(String(p['region'] ?? ''))}</span>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
+                    <div class="flex items-center gap-2 flex-grow max-w-[60%]">
+                        <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="contractor_th_progress">Progress</span>
                         <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full ${progressColor} rounded-full nm-progress-bar" style="--progress:${progress}%"></div>
                         </div>
-                        <span class="text-3xs font-bold text-slate-500">${esc(String(progress))}%</span>
+                        <span class="text-3xs font-bold text-slate-500 dark:text-slate-400">${esc(String(progress))}%</span>
                     </div>
-                </td>
-                <td class="px-5 py-3">
                     <a href="contractor-portal.html?tab=marketplace"
-                       class="text-xs font-semibold text-trust-blue hover:underline flex items-center gap-1">
+                       class="text-xs font-semibold text-trust-blue hover:bg-trust-blue/5 px-2 py-1 flex items-center gap-1 rounded transition-colors border border-transparent hover:border-trust-blue/10">
                        <i class="ph ph-list-magnifying-glass" aria-hidden="true"></i>
-                       <span data-i18n="browse_marketplace">Browse Marketplace</span>
+                       <span data-i18n="browse_marketplace">Marketplace</span>
                     </a>
-                </td>
-            </tr>`;
+                </div>
+            </div>`;
         }).join('');
 
         applyI18n();
@@ -232,9 +235,9 @@ async function loadProjectTimeline(): Promise<void> {
         });
         // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
         // Previous: innerHTML += appended error row alongside hidden loading/empty rows.
-        // renderTableErrorWithRetry provides consistent error display with retry button.
+        // renderErrorWithRetry provides consistent error display with retry button.
         // Standard: Design System Component Unity, Nielsen #9 (Error Recovery).
-        renderTableErrorWithRetry(tbody, loadProjectTimeline, 5);
+        renderErrorWithRetry(tbody, loadProjectTimeline);
     }
 }
 
@@ -268,18 +271,30 @@ async function loadBids(): Promise<void> {
             const daysLabel = t('unit_days', 'days');
 
             return `
-            <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                <td class="px-5 py-3 font-medium">${esc(String(b['project_title'] ?? ''))}</td>
-                <td class="px-5 py-3 font-mono">${costFormatted}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(String(b['estimated_days']))} ${daysLabel}</td>
-                <td class="px-5 py-3">
-                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${bidColor(String(b['status'] ?? ''))}">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(b['project_title'] ?? ''))}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(String(b['status'] ?? ''))}">
                         ${esc(String(b['status'] ?? ''))}
                     </span>
-                </td>
-                <td class="px-5 py-3 text-slate-500 text-xs">${formatDate(String(b['submitted_at'] ?? ''))}</td>
-            </tr>
-        `}).join('');
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_proposed_cost">Proposed Cost</p>
+                        <p class="font-mono font-bold text-slate-700 text-sm dark:text-slate-300">${costFormatted}</p>
+                    </div>
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_timeline">Timeline</p>
+                        <p class="text-xs font-bold text-slate-700 text-center dark:text-slate-300">${esc(String(b['estimated_days']))} ${daysLabel}</p>
+                    </div>
+                    <div class="text-end">
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_submitted">Submitted</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(String(b['submitted_at'] ?? ''))}</p>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
 
         applyI18n();
     } catch (err) {
@@ -289,7 +304,7 @@ async function loadBids(): Promise<void> {
             error: err instanceof Error ? err.message : String(err),
         });
         // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
-        renderTableErrorWithRetry(container, loadBids, 5);
+        renderErrorWithRetry(container, loadBids);
     }
 }
 

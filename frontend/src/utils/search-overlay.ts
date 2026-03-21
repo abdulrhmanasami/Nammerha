@@ -60,7 +60,7 @@ function createOverlay(): HTMLDivElement {
     overlay.innerHTML = `
         <div class="search-overlay-content">
             <div class="search-input-wrapper">
-                <i class="ph ph-magnifying-glass text-slate-400 text-xl" aria-hidden="true"></i>
+                <i class="ph ph-magnifying-glass text-slate-400 text-xl dark:text-slate-500" aria-hidden="true"></i>
                 <input type="search" id="search-input" class="search-input"
                        placeholder="Search pages, features..." autocomplete="off"
                        data-i18n-placeholder="search_pages" />
@@ -68,7 +68,7 @@ function createOverlay(): HTMLDivElement {
             </div>
             <div id="search-results" class="search-results"></div>
             <div class="search-footer">
-                <span class="text-slate-500 text-xs flex items-center gap-1.5">
+                <span class="text-slate-500 text-xs flex items-center gap-1.5 dark:text-slate-400">
                     <kbd class="search-kbd-mini">↑↓</kbd> navigate
                     <kbd class="search-kbd-mini">↵</kbd> select
                     <kbd class="search-kbd-mini">esc</kbd> close
@@ -87,7 +87,7 @@ function renderResults(query: string): void {
     if (!query.trim()) {
         // Show suggested pages
         resultsEl.innerHTML = `
-            <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Suggestions</div>
+            <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">Suggestions</div>
             ${PAGE_INDEX.slice(0, 6).map(buildResultHTML).join('')}`;
         return;
     }
@@ -102,14 +102,14 @@ function renderResults(query: string): void {
         resultsEl.innerHTML = `
             <div class="flex flex-col items-center py-8 text-center">
                 <i class="ph ph-magnifying-glass text-slate-300 nm-icon-32" aria-hidden="true"></i>
-                <p class="text-sm text-slate-500 mt-2 font-medium">No results found</p>
-                <p class="text-xs text-slate-400 mt-1">Try a different search term</p>
+                <p class="text-sm text-slate-500 mt-2 font-medium dark:text-slate-400">No results found</p>
+                <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">Try a different search term</p>
             </div>`;
         return;
     }
 
     resultsEl.innerHTML = `
-        <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+        <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">
             ${matches.length} result${matches.length > 1 ? 's' : ''}
         </div>
         ${matches.map(buildResultHTML).join('')}`;
@@ -124,9 +124,9 @@ function buildResultHTML(result: SearchResult): string {
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold truncate"${i18nAttr}>${result.title}</p>
-                <p class="text-xs text-slate-500 truncate">${result.subtitle}</p>
+                <p class="text-xs text-slate-500 truncate dark:text-slate-400">${result.subtitle}</p>
             </div>
-            <i class="ph ph-arrow-right text-slate-400 text-sm" aria-hidden="true"></i>
+            <i class="ph ph-arrow-right text-slate-400 text-sm dark:text-slate-500" aria-hidden="true"></i>
         </a>`;
 }
 
@@ -144,6 +144,38 @@ function openSearch(): void {
         // Input handler
         inputEl?.addEventListener('input', () => {
             renderResults(inputEl?.value ?? '');
+        });
+
+        // PLATINUM FIX: Missing Keyboard Engine (Ghost Feature)
+        overlayEl.addEventListener('keydown', (e: KeyboardEvent) => {
+            const results = Array.from(overlayEl?.querySelectorAll<HTMLAnchorElement>('.search-result-item') || []);
+            if (results.length === 0) { return; }
+
+            const activeIdx = results.findIndex(a => a === document.activeElement);
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (activeIdx < results.length - 1) {
+                    results[activeIdx + 1]?.focus();
+                } else {
+                    results[0]?.focus(); // Loop to top
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (activeIdx > 0) {
+                    results[activeIdx - 1]?.focus();
+                } else if (activeIdx === 0) {
+                    inputEl?.focus(); // Return to input
+                } else {
+                    results[results.length - 1]?.focus(); // Loop to bottom
+                }
+            } else if (e.key === 'Enter') {
+                // If input is focused and enter is pressed, navigate to first result
+                if (document.activeElement === inputEl && results.length > 0 && results[0]) {
+                    e.preventDefault();
+                    window.location.href = results[0].href;
+                }
+            }
         });
 
         // Backdrop click = close

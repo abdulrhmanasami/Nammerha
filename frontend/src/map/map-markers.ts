@@ -225,21 +225,21 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
 
     container.innerHTML = `
         <div class="space-y-2">
-            <h4 class="font-bold text-sm text-slate-900 leading-tight">
+            <h4 class="font-bold text-sm text-slate-900 leading-tight dark:text-slate-100">
                 ${escapeHtml(String(props['title'] ?? 'Untitled Project'))}
             </h4>
-            ${props['address_text'] ? `<p class="text-3xs text-slate-500">${escapeHtml(String(props['address_text']))}</p>` : ''}
+            ${props['address_text'] ? `<p class="text-3xs text-slate-500 dark:text-slate-400">${escapeHtml(String(props['address_text']))}</p>` : ''}
             <div class="flex items-center gap-2">
                 <span class="text-3xs font-bold px-1.5 py-0.5 rounded-full nm-role-badge-bg" 
                       style="--role-color: ${statusColor}">
                     ${statusLabel}
                 </span>
-                <span class="text-3xs text-slate-400">${String(props['damage_type'] ?? '')}</span>
+                <span class="text-3xs text-slate-400 dark:text-slate-500">${String(props['damage_type'] ?? '')}</span>
             </div>
             <div class="mt-2">
                 <div class="flex justify-between text-3xs mb-1">
-                    <span class="text-slate-500">${t('map_funded', 'Funded')}</span>
-                    <span class="font-bold text-slate-700">${fundedPct.toFixed(1)}%</span>
+                    <span class="text-slate-500 dark:text-slate-400">${t('map_funded', 'Funded')}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-300">${fundedPct.toFixed(1)}%</span>
                 </div>
                 <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div class="h-full rounded-full transition-all nm-progress-bar" 

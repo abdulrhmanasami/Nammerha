@@ -1,7 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
-import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { requireAuth } from '../utils/auth-guard';
 import { supplier } from '../api';
@@ -184,29 +184,41 @@ async function loadOrders(): Promise<void> {
         const items = (res.data ?? []) as unknown as SupplierOrder[];
 
         if (!items || items.length === 0) {
-            tbody.innerHTML = `<tr class="border-t border-slate-100">
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-package text-2xl" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs">${esc(t('supplier_no_orders', 'No purchase orders yet'))}</p>
-                </td>
-            </tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-package nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300">${esc(t('supplier_no_orders', 'No purchase orders yet'))}</p>
+                <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto dark:text-slate-500">${esc(t('common_no_data_desc', 'Data will appear here once available.'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = items.map((item) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-slate-500">${esc(item.po_number)}</td>
-                <td class="px-5 py-3 font-medium">${esc(item.material_name)}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(item.project_title ?? '')}</td>
-                <td class="px-5 py-3">${esc(String(item.quantity))} ${esc(item.unit)}</td>
-                <td class="px-5 py-3 font-mono">${formatCents(item.amount)}</td>
-                <td class="px-5 py-3">
-                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${statusColor(item.status)}">
-                        ${esc(item.status)}
-                    </span>
-                </td>
-                <td class="px-5 py-3">${renderActions(item)}</td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-mono text-3xs text-slate-500 font-bold dark:text-slate-400">${esc(item.po_number)}</span>
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${statusColor(item.status)}">${esc(item.status)}</span>
+                </div>
+                <h3 class="font-bold text-sm text-slate-900 mb-1 dark:text-slate-100">${esc(item.material_name)}</h3>
+                <p class="text-xs text-slate-500 mb-4 flex items-center gap-1.5 dark:text-slate-400"><i class="ph ph-buildings text-sm" aria-hidden="true"></i> ${esc(item.project_title ?? t('supplier_no_project', 'Direct Request'))}</p>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500">${esc(t('common_qty', 'Quantity'))}</p>
+                        <p class="font-semibold text-sm text-slate-700 dark:text-slate-300">${esc(String(item.quantity))} <span class="text-xs font-normal text-slate-500 dark:text-slate-400">${esc(item.unit)}</span></p>
+                    </div>
+                    <div class="text-end">
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500">${esc(t('common_amount', 'Amount'))}</p>
+                        <p class="font-mono font-bold text-smoky-jade text-sm dark:text-emerald-400">${formatCents(item.amount)}</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex justify-end gap-2 border-t border-slate-50 pt-3">
+                    ${renderActions(item)}
+                </div>
+            </div>
         `).join('');
 
         // TICK-019: Event delegation for PO action buttons.
@@ -227,7 +239,7 @@ async function loadOrders(): Promise<void> {
         applyI18n();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)
-        renderTableErrorWithRetry(tbody, loadOrders, 7);
+        renderErrorWithRetry(tbody, loadOrders);
     }
 }
 
@@ -242,7 +254,7 @@ async function loadCatalog(): Promise<void> {
 
         if (!items || items.length === 0) {
             container.innerHTML = `
-                <div class="col-span-full text-center py-12 text-slate-400">
+                <div class="col-span-full text-center py-12 text-slate-400 dark:text-slate-500">
                     <i class="ph ph-storefront nm-icon-32" aria-hidden="true"></i>
                     <p class="mt-3 text-sm">${esc(t('supplier_catalog_empty', 'Your catalog is empty'))}</p>
                     <p class="text-xs mt-1">${esc(t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'))}</p>
@@ -251,18 +263,18 @@ async function loadCatalog(): Promise<void> {
         }
 
         container.innerHTML = items.map((item) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''}">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${item.is_active
                 ? '<span class="size-2 rounded-full bg-smoky-jade"></span>'
-                : `<span class="text-3xs text-slate-400">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
+                : `<span class="text-3xs text-slate-400 dark:text-slate-500">${esc(t('supplier_inactive', 'Inactive'))}</span>`}
                 </div>
                 <h3 class="font-bold text-sm mb-2">${esc(item.material_name)}</h3>
-                <div class="space-y-1 text-xs text-slate-500">
-                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_guide_price', 'Guide Price'))}:</span> ${formatCents(item.unit_price_guide)} / ${esc(item.unit)}</p>
-                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_min_order', 'Min Order'))}:</span> ${esc(String(item.min_order_qty))} ${esc(item.unit)}</p>
-                    <p><span class="font-semibold text-slate-700">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${esc(String(item.lead_time_days))} ${esc(t('supplier_days', 'days'))}</p>
+                <div class="space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p><span class="font-semibold text-slate-700 dark:text-slate-300">${esc(t('supplier_guide_price', 'Guide Price'))}:</span> ${formatCents(item.unit_price_guide)} / ${esc(item.unit)}</p>
+                    <p><span class="font-semibold text-slate-700 dark:text-slate-300">${esc(t('supplier_min_order', 'Min Order'))}:</span> ${esc(String(item.min_order_qty))} ${esc(item.unit)}</p>
+                    <p><span class="font-semibold text-slate-700 dark:text-slate-300">${esc(t('supplier_lead_time', 'Lead Time'))}:</span> ${esc(String(item.lead_time_days))} ${esc(t('supplier_days', 'days'))}</p>
                 </div>
                 ${item.is_active ? `
                 <button type="button" class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
@@ -390,33 +402,35 @@ function setupCatalogModal(): void {
 // ─── Deactivate Catalog Item ────────────────────────────────────────────────
 // PLT-AUD-F002 FIX: Added inline confirmation before destructive removal
 async function deactivateItem(catalogId: string): Promise<void> {
-    // F-002 FIX: Inline confirmation — swap button to "Confirm?" state
-    const btn = document.querySelector<HTMLButtonElement>(`[data-deactivate="${catalogId}"]`);
-    if (btn && !btn.dataset.confirmed) {
-        const originalHTML = btn.innerHTML;
-        btn.dataset.confirmed = 'pending';
-        btn.innerHTML = `<i class="ph ph-warning" aria-hidden="true"></i> ${esc(t('supplier_confirm_remove', 'Confirm?'))}`;
-        btn.classList.add('text-red-600', 'font-bold');
-
-        // Auto-revert after 3 seconds if user doesn't confirm
-        const revertTimer = setTimeout(() => {
-            delete btn.dataset.confirmed;
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('text-red-600', 'font-bold');
-        }, 3000);
-
-        // On second click (confirmation), proceed with deactivation
-        btn.addEventListener('click', async function confirmHandler() {
-            clearTimeout(revertTimer);
-            btn.removeEventListener('click', confirmHandler);
-            delete btn.dataset.confirmed;
-            await executeDeactivation(catalogId);
-        }, { once: true });
-
-        return;
-    }
-
-    await executeDeactivation(catalogId);
+    const dialog = document.createElement('dialog');
+    // Using standard Tailwind backdrop pseudo-class for native modal dimming
+    dialog.className = 'nm-dialog p-0 w-[90%] max-w-sm rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up';
+    dialog.innerHTML = `
+        <div class="p-6">
+            <div class="size-12 rounded-full bg-red-50 flex items-center justify-center mb-4 text-red-600 dark:bg-red-500/10">
+                <i class="ph ph-warning-circle text-2xl" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2 dark:text-slate-100">${esc(t('supplier_confirm_remove', 'Remove Material?'))}</h3>
+            <p class="text-sm text-slate-500 mb-6 dark:text-slate-400">${esc(t('supplier_remove_desc', 'This material will be removed from your catalog. Engineers will no longer be able to order it. This action cannot be undone.'))}</p>
+            <div class="flex gap-3">
+                <button type="button" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors dark:text-slate-300" id="dialog-cancel">${esc(t('common_cancel', 'Cancel'))}</button>
+                <button type="button" class="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors" id="dialog-confirm">${esc(t('supplier_remove_btn', 'Remove'))}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dialog);
+    
+    dialog.querySelector('#dialog-cancel')?.addEventListener('click', () => {
+        dialog.close();
+    });
+    
+    dialog.querySelector('#dialog-confirm')?.addEventListener('click', async () => {
+        dialog.close();
+        await executeDeactivation(catalogId);
+    });
+    
+    dialog.addEventListener('close', () => dialog.remove());
+    dialog.showModal();
 }
 
 async function executeDeactivation(catalogId: string): Promise<void> {
@@ -466,22 +480,24 @@ function setKPI(name: string, value: number, prefix = ''): void {
 
 
 function renderActions(item: SupplierOrder): string {
+    // Touch-friendly Native App buttons (Minimum 44x44 CSS hit area equivalent)
     switch (item.status) {
         case 'generated':
         case 'sent_to_supplier':
-            return `<button type="button" class="text-xs font-semibold text-trust-blue hover:underline" data-action="acknowledged" data-po-id="${item.po_id}">
-                <i class="ph ph-check-circle" aria-hidden="true"></i> ${t('supplier_acknowledge', 'Acknowledge')}
+            return `<button type="button" class="px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors w-full sm:w-auto inline-flex items-center justify-center gap-2" data-action="acknowledged" data-po-id="${item.po_id}">
+                <i class="ph ph-check-circle" aria-hidden="true"></i> ${esc(t('supplier_acknowledge', 'Acknowledge'))}
             </button>`;
         case 'acknowledged':
-            return `<button type="button" class="text-xs font-semibold text-purple-600 hover:underline" data-action="shipped" data-po-id="${item.po_id}">
-                <i class="ph ph-truck" aria-hidden="true"></i> ${t('supplier_mark_shipped', 'Mark Shipped')}
+            // Using warm-earth for logistics/shipping semantic
+            return `<button type="button" class="px-4 py-2 bg-warm-earth text-white text-xs font-bold rounded-lg hover:bg-warm-earth/90 transition-colors w-full sm:w-auto inline-flex items-center justify-center gap-2" data-action="shipped" data-po-id="${item.po_id}">
+                <i class="ph ph-truck" aria-hidden="true"></i> ${esc(t('supplier_mark_shipped', 'Mark Shipped'))}
             </button>`;
         case 'shipped':
-            return `<button type="button" class="text-xs font-semibold text-smoky-jade hover:underline" data-action="delivered" data-po-id="${item.po_id}">
-                <i class="ph ph-package" aria-hidden="true"></i> ${t('supplier_mark_delivered', 'Mark Delivered')}
+            return `<button type="button" class="px-4 py-2 bg-smoky-jade text-white text-xs font-bold rounded-lg hover:bg-smoky-jade/90 transition-colors w-full sm:w-auto inline-flex items-center justify-center gap-2" data-action="delivered" data-po-id="${item.po_id}">
+                <i class="ph ph-package" aria-hidden="true"></i> ${esc(t('supplier_mark_delivered', 'Mark Delivered'))}
             </button>`;
         default:
-            return '<span class="text-3xs text-slate-400">—</span>';
+            return '<span class="text-3xs text-slate-400 font-bold px-2 py-1 flex-1 text-end dark:text-slate-500">—</span>';
     }
 }
 

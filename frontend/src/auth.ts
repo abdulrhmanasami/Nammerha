@@ -98,7 +98,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
     ? {
         homeowner: {
             user_id: 'dev-homeowner-001',
-            full_name: 'أحمد كريم',
+            full_name: 'Dev Homeowner 001',
             role: 'homeowner',
             roles: ['homeowner'],
             activeRole: 'homeowner',
@@ -107,7 +107,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         },
         engineer: {
             user_id: 'dev-engineer-001',
-            full_name: 'خالد المهندس',
+            full_name: 'Dev Engineer 001',
             role: 'engineer',
             roles: ['engineer'],
             activeRole: 'engineer',
@@ -125,7 +125,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         },
         supplier: {
             user_id: 'dev-supplier-001',
-            full_name: 'محمد التاجر',
+            full_name: 'Dev Supplier 001',
             role: 'supplier',
             roles: ['supplier'],
             activeRole: 'supplier',
@@ -134,7 +134,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         },
         contractor: {
             user_id: 'dev-contractor-001',
-            full_name: 'عمر المقاول',
+            full_name: 'Dev Contractor 001',
             role: 'contractor',
             roles: ['contractor'],
             activeRole: 'contractor',
@@ -143,7 +143,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         },
         tradesperson: {
             user_id: 'dev-tradesperson-001',
-            full_name: 'حسن الحرفي',
+            full_name: 'Dev Tradesperson 001',
             role: 'tradesperson',
             roles: ['tradesperson'],
             activeRole: 'tradesperson',
@@ -152,7 +152,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         },
         admin: {
             user_id: 'dev-admin-001',
-            full_name: 'مدير النظام',
+            full_name: 'Dev Admin 001',
             role: 'admin',
             roles: ['admin'],
             activeRole: 'admin',
@@ -161,7 +161,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         },
         auditor: {
             user_id: 'dev-auditor-001',
-            full_name: 'المدقق الرسمي',
+            full_name: 'Dev Auditor 001',
             role: 'auditor',
             roles: ['auditor'],
             activeRole: 'auditor',

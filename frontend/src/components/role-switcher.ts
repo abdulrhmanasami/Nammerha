@@ -11,7 +11,7 @@ import '../styles/role-switcher.css';
 // Previous: Local t() and isRTL() at L90-99 — identical to utils/i18n.ts.
 // donor-portal, contractor-portal, tradesperson-portal already use shared versions.
 // Standard: DRY Principle.
-import { t, isRTL } from '../utils/i18n';
+import { t } from '../utils/i18n';
 
 // ─── Design Token Bridge ────────────────────────────────────────────────────
 // PLT-AUD-DT001 FIX: Hardcoded hex values had DRIFTED from canonical Tailwind
@@ -34,8 +34,8 @@ function cssVar(name: string, fallback: string): string {
 // ─── Role Metadata ──────────────────────────────────────────────────────────
 interface RoleMeta {
     icon: string;       // Phosphor icon name
-    labelEn: string;
-    labelAr: string;
+    labelKey: string;   // Translation engine key
+    labelFallback: string; // Translation engine fallback
     colorToken: string;    // CSS custom property name (e.g. '--trust-blue')
     colorFallback: string; // Hex fallback matching tailwind.config.js
     dashboardUrl: string;
@@ -45,8 +45,8 @@ interface RoleMeta {
 const ROLE_META: Record<string, RoleMeta> = {
     donor: {
         icon: 'ph-hand-heart',
-        labelEn: 'Donor',
-        labelAr: 'مانح',
+        labelKey: 'role_donor',
+        labelFallback: 'Donor',
         colorToken: '--warm-earth',
         colorFallback: '#D59F80',
         dashboardUrl: '/donor-portal.html',
@@ -54,8 +54,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     homeowner: {
         icon: 'ph-house',
-        labelEn: 'Homeowner',
-        labelAr: 'صاحب منزل',
+        labelKey: 'role_homeowner',
+        labelFallback: 'Homeowner',
         colorToken: '--trust-blue',
         colorFallback: '#1A73E8',
         dashboardUrl: '/homeowner-portal.html',
@@ -63,8 +63,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     engineer: {
         icon: 'ph-hard-hat',
-        labelEn: 'Engineer',
-        labelAr: 'مهندس',
+        labelKey: 'role_engineer',
+        labelFallback: 'Engineer',
         colorToken: '--smoky-jade',
         colorFallback: '#109173',
         // LOW-001 FIX: Was incorrectly pointing to contractor-portal.html
@@ -73,8 +73,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     supplier: {
         icon: 'ph-truck',
-        labelEn: 'Supplier',
-        labelAr: 'مورّد',
+        labelKey: 'role_supplier',
+        labelFallback: 'Supplier',
         colorToken: '--warning-yellow',
         colorFallback: '#FCC934',
         dashboardUrl: '/supplier-dashboard.html',
@@ -82,8 +82,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     contractor: {
         icon: 'ph-buildings',
-        labelEn: 'Contractor',
-        labelAr: 'مقاول',
+        labelKey: 'role_contractor',
+        labelFallback: 'Contractor',
         colorToken: '--trust-blue',
         colorFallback: '#1A73E8',
         dashboardUrl: '/contractor-dashboard.html',
@@ -91,8 +91,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     tradesperson: {
         icon: 'ph-wrench',
-        labelEn: 'Tradesperson',
-        labelAr: 'حرفي',
+        labelKey: 'role_tradesperson',
+        labelFallback: 'Tradesperson',
         colorToken: '--smoky-jade',
         colorFallback: '#109173',
         dashboardUrl: '/tradesperson-portal.html',
@@ -100,8 +100,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     admin: {
         icon: 'ph-shield-check',
-        labelEn: 'Admin',
-        labelAr: 'مدير',
+        labelKey: 'role_admin',
+        labelFallback: 'Admin',
         colorToken: '--red-500',
         colorFallback: '#ef4444',
         dashboardUrl: '/admin-dashboard.html',
@@ -109,8 +109,8 @@ const ROLE_META: Record<string, RoleMeta> = {
     },
     auditor: {
         icon: 'ph-detective',
-        labelEn: 'Auditor',
-        labelAr: 'مدقق',
+        labelKey: 'role_auditor',
+        labelFallback: 'Auditor',
         colorToken: '--violet-500',
         colorFallback: '#8b5cf6',
         dashboardUrl: '/compliance-dashboard.html',
@@ -131,7 +131,7 @@ let mountEl: HTMLElement | null = null;
 function getRoleLabel(role: string): string {
     const meta = ROLE_META[role];
     if (!meta) { return role; }
-    return isRTL() ? meta.labelAr : meta.labelEn;
+    return t(meta.labelKey, meta.labelFallback);
 }
 
 /**
@@ -325,7 +325,10 @@ function renderDropdown(roles: UserRole[], activeRole: UserRole): string {
 
 // ─── API Integration ────────────────────────────────────────────────────────
 
+let isSwitchingTransaction = false;
+
 async function handleRoleSwitch(role: UserRole): Promise<void> {
+    if (isSwitchingTransaction) { return; }
     const user = getCurrentUser();
     if (!user || role === user.activeRole) {
         isDropdownOpen = false;
@@ -340,6 +343,8 @@ async function handleRoleSwitch(role: UserRole): Promise<void> {
     switchActiveRole(role);
     isDropdownOpen = false;
     renderSwitcher();
+
+    isSwitchingTransaction = true;
 
     // Sync with backend
     try {
@@ -364,6 +369,8 @@ async function handleRoleSwitch(role: UserRole): Promise<void> {
         // LOW-004 FIX: Revert to the PREVIOUS role (not the mutated one)
         switchActiveRole(previousRole);
         renderSwitcher();
+    } finally {
+        isSwitchingTransaction = false;
     }
 }
 

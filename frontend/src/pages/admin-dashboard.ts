@@ -6,7 +6,7 @@ import { escapeHtml as esc } from '../utils/xss';
 import { admin, openData } from '../api';
 import { getLocale, applyI18n } from '../utils/locale';
 import { relativeTimeAgo } from '../utils/format';
-import { renderTableErrorWithRetry, renderErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { requireAuth } from '../utils/auth-guard';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -179,10 +179,13 @@ async function loadProjects(): Promise<void> {
         const projects = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
 
         if (projects.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                <i class="ph ph-buildings text-2xl" aria-hidden="true"></i>
-                <p class="mt-2 text-xs" data-i18n="admin_no_projects">No projects found</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300" data-i18n="admin_no_projects">No projects found</p>
+            </div>`;
             applyI18n();
             return;
         }
@@ -211,20 +214,32 @@ async function loadProjects(): Promise<void> {
             const engineer = p['engineer_name'] ?? p['assigned_engineer'];
 
             return `
-            <tr class="border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors">
-                <td class="px-5 py-3 font-mono text-xs text-trust-blue font-bold">${esc(String(p['ocds_id'] ?? p['project_id'] ?? ''))}</td>
-                <td class="px-5 py-3 font-medium">${esc(String(p['title'] ?? ''))}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(String(p['region'] ?? p['location'] ?? ''))}</td>
-                <td class="px-5 py-3 ${engineer ? 'text-slate-600' : 'text-slate-500 italic'}">${engineer ? esc(String(engineer)) : '<span data-i18n="admin_pending_assignment">— Pending</span>'}</td>
-                <td class="px-5 py-3 font-bold">${cost}</td>
-                <td class="px-5 py-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="${progressColor} h-full nm-progress-bar" style="--progress:${progress}%"></div></div>
-                        <span class="text-xs ${textColor} font-bold">${esc(String(progress))}%</span>
+            <div class="p-4 hover:bg-slate-50/50 cursor-pointer transition-colors group project-card" data-project-id="${esc(String(p['ocds_id'] ?? p['project_id'] ?? ''))}">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs text-trust-blue font-bold">${esc(String(p['ocds_id'] ?? p['project_id'] ?? ''))}</span>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${statusBg}" data-i18n="${statusI18nKey}">${esc(statusLabel)}</span>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900 mt-1 dark:text-slate-100">${esc(String(p['title'] ?? ''))}</h3>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><i class="ph ph-map-pin text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${esc(String(p['region'] ?? p['location'] ?? ''))}</p>
+                            <p class="text-xs ${engineer ? 'text-slate-600' : 'text-slate-500 italic'}"><i class="ph ph-hard-hat text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${engineer ? esc(String(engineer)) : '<span data-i18n="admin_pending_assignment">— Pending</span>'}</p>
+                            <p class="text-xs text-slate-600 font-bold dark:text-slate-400"><i class="ph ph-currency-dollar text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${cost}</p>
+                        </div>
                     </div>
-                </td>
-                <td class="px-5 py-3"><span class="text-xs font-bold px-2 py-0.5 rounded-full ${statusBg}" data-i18n="${statusI18nKey}">${esc(statusLabel)}</span></td>
-            </tr>`;
+                    <div class="w-full md:w-32 shrink-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="th_progress">Progress</span>
+                            <span class="text-xs ${textColor} font-bold">${esc(String(progress))}%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="${progressColor} h-full nm-progress-bar" style="--progress:${progress}%"></div></div>
+                    </div>
+                    <div class="hidden md:flex shrink-0">
+                        <i class="ph ph-caret-left text-slate-300 group-hover:text-trust-blue transition-colors text-lg" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>`;
         }).join('');
 
         applyI18n();
@@ -239,21 +254,18 @@ async function loadProjects(): Promise<void> {
             component: 'admin-dashboard', action: 'load_projects',
             error: err instanceof Error ? err.message : String(err),
         });
-        renderTableErrorWithRetry(tbody, loadProjects, 7);
+        renderErrorWithRetry(tbody, loadProjects);
     }
 }
 
-/* GAP-ADM-001 FIX: Project table rows had cursor-pointer but no click handler.
-   Uses event delegation on tbody for O(1) listener count regardless of row count.
-   Reads the project OCDS ID from the first <td> and navigates to project-details.
+/* GAP-ADM-001 FIX: Project cards rely on event delegation on container.
+   Reads the project OCDS ID from data-project-id and navigates to project-details.
    Standard: Nielsen #2 (Match between system and real world), Fitts' Law. */
 function initClickableRows(tbody: HTMLElement): void {
     tbody.addEventListener('click', (e: MouseEvent) => {
-        const row = (e.target as HTMLElement).closest('tr');
-        if (!row) { return; }
-        const firstTd = row.querySelector('td');
-        if (!firstTd) { return; }
-        const projectId = firstTd.textContent?.trim();
+        const card = (e.target as HTMLElement).closest('.project-card');
+        if (!card) { return; }
+        const projectId = card.getAttribute('data-project-id');
         if (projectId) {
             window.location.href = `project-details.html?id=${encodeURIComponent(projectId)}`;
         }
@@ -274,7 +286,7 @@ async function loadAuditTrail(): Promise<void> {
             ?? (Array.isArray(res.data) ? res.data as Array<Record<string, string | number | null>> : []);
 
         if (items.length === 0) {
-            container.innerHTML = `<div class="px-5 py-8 text-center text-slate-400">
+            container.innerHTML = `<div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-note-blank text-2xl" aria-hidden="true"></i>
                 <p class="mt-2 text-xs" data-i18n="admin_no_audit">No recent audit entries</p>
             </div>`;
@@ -296,9 +308,9 @@ async function loadAuditTrail(): Promise<void> {
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium truncate">${esc(description)}</p>
-                    ${detail ? `<p class="text-3xs text-slate-400 mt-0.5">${esc(detail)}</p>` : ''}
+                    ${detail ? `<p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${esc(detail)}</p>` : ''}
                 </div>
-                <span class="text-3xs text-slate-400 shrink-0">${timestamp ? relativeTimeAgo(String(timestamp)) : '—'}</span>
+                <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${timestamp ? relativeTimeAgo(String(timestamp)) : '—'}</span>
             </div>`;
         }).join('');
 
@@ -358,4 +370,4 @@ function animateKPI(id: string, value: number, prefix = ''): void {
 // ─── Utilities (imported) ───────────────────────────────────────────────────
 // PLAT-AUD-005 FIX: formatDate, applyI18n imported from utils/locale.
 // relativeTimeAgo imported from utils/format.
-// renderTableErrorWithRetry, renderErrorWithRetry from utils/error-retry.
+// renderErrorWithRetry from utils/error-retry.

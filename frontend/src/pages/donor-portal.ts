@@ -1,7 +1,7 @@
 import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
-import { renderErrorWithRetry, renderTableErrorWithRetry } from '../utils/error-retry';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
@@ -131,7 +131,7 @@ async function loadFundedProjects(): Promise<void> {
         const projects = res.data ?? [];
 
         if (projects.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-hand-heart nm-icon-40" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('donor_no_funded_projects', 'No funded projects yet'))}</p>
                 <p class="text-xs mt-1">${esc(t('donor_browse_start_impact', 'Browse projects and start making an impact'))}</p>
@@ -147,7 +147,7 @@ async function loadFundedProjects(): Promise<void> {
                             <h4 class="font-medium">${esc(p.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400">
+                        <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
                             <span class="text-emerald-600 font-bold">${esc(t('donor_my_contribution', 'My contribution'))}: ${formatCents(p.my_total_donated)}</span>
@@ -179,7 +179,7 @@ async function loadMarketplace(): Promise<void> {
         const projects = res.data ?? [];
 
         if (projects.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <p class="text-sm font-medium">${esc(t('donor_no_marketplace_projects', 'No projects available at the moment'))}</p>
             </div>`;
             return;
@@ -190,7 +190,7 @@ async function loadMarketplace(): Promise<void> {
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <h4 class="font-medium">${esc(p.title)}</h4>
-                        <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400">
+                        <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.region ? `<span><i class="ph ph-map-pin" aria-hidden="true"></i> ${esc(p.region)}</span>` : ''}
                             <span>${esc(String(p.items_count))} ${esc(t('donor_items_label', 'items'))}</span>
@@ -202,7 +202,7 @@ async function loadMarketplace(): Promise<void> {
                             <span class="text-3xs font-bold ${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${esc(String(p.funded_percentage))}%</span>
                         </div>
                         <div class="flex items-center justify-between mt-2">
-                            <span class="text-xs text-slate-500">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">${formatCents(p.total_funded)} / ${formatCents(p.total_cost)}</span>
                             ${p.funded_percentage < 100 ? `
                                 <a href="/donor-basket.html?project=${esc(p.project_id)}" class="px-3 py-1 bg-emerald-600 text-white text-3xs font-bold rounded-lg hover:bg-emerald-700">${esc(t('donor_fund_this', 'Fund This'))}</a>
                             ` : `<span class="text-3xs font-bold text-green-600" data-i18n="fully_funded"><i class="ph ph-check-circle nm-icon-gap-end" aria-hidden="true"></i>${esc(t('fully_funded', 'Fully Funded'))}</span>`}
@@ -226,23 +226,42 @@ async function loadDonations(): Promise<void> {
         const donations = res.data ?? [];
 
         if (donations.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400">
-                <p class="text-sm font-medium">${esc(t('donor_no_donations', 'No donations yet'))}</p>
-            </td></tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-hand-heart nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('donor_no_donations', 'No donations yet'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = donations.map((d) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
-                <td class="px-5 py-3 font-medium" data-label="${esc(t('th_material', 'Material'))}">${esc(d.material_name)}</td>
-                <td class="px-5 py-3 text-xs" data-label="${esc(t('th_project', 'Project'))}">${esc(d.project_title)}</td>
-                <td class="px-5 py-3 font-mono font-bold text-emerald-600" data-label="${esc(t('th_amount', 'Amount'))}">${formatCents(d.amount_locked)}</td>
-                <td class="px-5 py-3" data-label="${esc(t('th_status', 'Status'))}"><span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span></td>
-                <td class="px-5 py-3 text-xs text-slate-400" data-label="${esc(t('th_date', 'Date'))}">${formatDate(d.locked_at)}</td>
-            </tr>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(d.material_name)}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(d.status)}">${esc(d.status)}</span>
+                </div>
+                
+                <div class="text-xs text-slate-500 mb-4 flex items-center gap-1.5 overflow-hidden dark:text-slate-400">
+                    <i class="ph ph-buildings shrink-0" aria-hidden="true"></i>
+                    <span class="truncate">${esc(d.project_title)}</span>
+                </div>
+                
+                <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
+                    <div>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_amount">Amount</p>
+                        <p class="font-mono font-bold text-emerald-600">${formatCents(d.amount_locked)}</p>
+                    </div>
+                    <div class="text-end">
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_date">Date</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-400">${formatDate(d.locked_at)}</p>
+                    </div>
+                </div>
+            </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderTableErrorWithRetry(tbody, loadDonations, 5);
+        renderErrorWithRetry(tbody, loadDonations);
     }
 }
 
@@ -256,7 +275,7 @@ async function loadImpact(): Promise<void> {
         const projects = res.data ?? [];
 
         if (projects.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
                 <p class="text-sm font-medium">${esc(t('donor_no_impact', 'No impact data yet'))}</p>
             </div>`;
             return;
@@ -273,7 +292,7 @@ async function loadImpact(): Promise<void> {
                             <h4 class="font-medium">${esc(p.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
                         </div>
-                        <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400">
+                        <div class="flex items-center gap-3 mt-1 text-3xs text-slate-400 dark:text-slate-500">
                             <span>${esc(t('donor_donated_label', 'Donated'))}: <strong class="text-emerald-600">${formatCents(p.my_total_donated)}</strong></span>
                             <span>${esc(String(p.items_i_funded))} ${esc(t('donor_items_funded', 'items funded'))}</span>
                             <span>${esc(t('donor_progress_label', 'Progress'))}: <strong class="${p.funded_percentage >= 100 ? 'text-green-600' : 'text-emerald-600'}">${esc(String(p.funded_percentage))}%</strong></span>
@@ -297,7 +316,7 @@ async function loadProofs(): Promise<void> {
         const proofs = res.data ?? [];
 
         if (proofs.length === 0) {
-            container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400">
+            container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400 dark:text-slate-500">
                 <i class="ph ph-camera nm-icon-40" aria-hidden="true"></i>
                 <p class="mt-3 text-sm font-medium">${esc(t('donor_no_proofs', 'No proofs yet'))}</p>
                 <p class="text-xs mt-1">${esc(t('donor_proofs_hint', 'GPS-verified photos appear here after on-site verification'))}</p>
@@ -306,7 +325,7 @@ async function loadProofs(): Promise<void> {
         }
 
         container.innerHTML = proofs.map((proof) => `
-            <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+            <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow dark:border-dark-border">
                 <div class="aspect-video bg-slate-100 flex items-center justify-center relative">
                     ${proof.photo_url
                 ? `<img src="${esc(proof.photo_url)}" alt="${esc(t('donor_site_proof', 'Site proof'))}" class="w-full h-full object-cover" loading="lazy" />`
@@ -320,9 +339,9 @@ async function loadProofs(): Promise<void> {
                 </div>
                 <div class="p-3">
                     <p class="font-medium text-sm">${esc(proof.project_title)}</p>
-                    <p class="text-3xs text-slate-400 mt-0.5">${esc(proof.material_name ?? t('not_available', 'N/A'))}</p>
+                    <p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${esc(proof.material_name ?? t('not_available', 'N/A'))}</p>
                     ${proof.verified_by ? `<p class="text-3xs text-emerald-600 mt-1"><i class="ph ph-shield-check" aria-hidden="true"></i> ${esc(proof.verified_by)}</p>` : ''}
-                    ${proof.verified_at ? `<p class="text-3xs text-slate-400">${formatDate(proof.verified_at)}</p>` : ''}
+                    ${proof.verified_at ? `<p class="text-3xs text-slate-400 dark:text-slate-500">${formatDate(proof.verified_at)}</p>` : ''}
                 </div>
             </div>
         `).join('');

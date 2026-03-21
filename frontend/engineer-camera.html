@@ -96,7 +96,7 @@
           <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i> <span data-i18n="camera_gps_lock">GPS Lock</span>
         </p>
         <p class="text-white text-xs font-mono" id="gps-coords">36.2021° N, 37.1342° E</p>
-        <p class="text-slate-500 text-3xs mt-0.5" id="gps-accuracy">Accuracy: ±3.2m</p>
+        <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" id="gps-accuracy">Accuracy: ±3.2m</p>
       </div>
       <!-- Project ID -->
       <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-end">
@@ -105,7 +105,7 @@
           <i class="ph ph-hash ph-xs" aria-hidden="true"></i> <span data-i18n="camera_project_label">Project</span>
         </p>
         <p class="text-white text-xs font-mono font-bold" data-i18n="nmr_hvr_001">NMR-HVR-001</p>
-        <p class="text-slate-500 text-3xs mt-0.5" data-i18n="harbor_view">Harbor View</p>
+        <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" data-i18n="harbor_view">Harbor View</p>
       </div>
     </div>
   </header>
@@ -134,18 +134,18 @@
         <div class="size-28 mx-auto rounded-full border-2 border-dashed border-trust-blue/30 flex items-center justify-center mb-5 animate-fade-in-up">
           <i class="ph ph-camera-rotate text-trust-blue/50 nm-icon-60" aria-hidden="true"></i>
         </div>
-        <p class="text-slate-400 text-sm font-semibold" data-i18n="point_camera_at_delivery_site">Point camera at delivery site</p>
-        <p class="text-slate-600 text-xs mt-1.5" data-i18n="gps_timestamp_will_be_auto_embedded">GPS + timestamp will be auto-embedded</p>
+        <p class="text-slate-400 text-sm font-semibold dark:text-slate-500" data-i18n="point_camera_at_delivery_site">Point camera at delivery site</p>
+        <p class="text-slate-600 text-xs mt-1.5 dark:text-slate-400" data-i18n="gps_timestamp_will_be_auto_embedded">GPS + timestamp will be auto-embedded</p>
       </div>
 
       <!-- Captured state (hidden by default) -->
       <div id="camera-captured" class="hidden absolute inset-0 bg-neutral-900 flex items-center justify-center">
         <div class="text-center">
           <div class="size-20 mx-auto rounded-full bg-smoky-jade/20 flex items-center justify-center mb-4">
-            <i class="ph ph-check-circle text-smoky-jade nm-icon-48" aria-hidden="true"></i>
+            <i class="ph ph-check-circle text-smoky-jade nm-icon-48 dark:text-emerald-400" aria-hidden="true"></i>
           </div>
-          <p class="text-smoky-jade text-sm font-bold" data-i18n="360_captured">360° Captured</p>
-          <p class="text-slate-500 text-xs mt-1" data-i18n="syncing_to_server">Syncing to server...</p>
+          <p class="text-smoky-jade text-sm font-bold dark:text-emerald-400" data-i18n="360_captured">360° Captured</p>
+          <p class="text-slate-500 text-xs mt-1 dark:text-slate-400" data-i18n="syncing_to_server">Syncing to server...</p>
         </div>
       </div>
 
@@ -155,8 +155,8 @@
            Corner brackets use start/end → they flip correctly in RTL mode.
            Standard: CSS Logical Properties, Platform RTL-First Architecture. -->
       <div class="absolute inset-0 pointer-events-none select-none">
-        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8"></div>
-        <div class="absolute top-1/2 inset-x-0 h-px bg-trust-blue/8"></div>
+        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8 dark:bg-trust-blue/10"></div>
+        <div class="absolute top-1/2 inset-x-0 h-px bg-trust-blue/8 dark:bg-trust-blue/10"></div>
         <!-- Corner brackets (logical positioning for RTL) -->
         <div class="absolute top-6 start-6 w-8 h-8 border-s-2 border-t-2 border-trust-blue/25 rounded-ss-md"></div>
         <div class="absolute top-6 end-6 w-8 h-8 border-e-2 border-t-2 border-trust-blue/25 rounded-se-md"></div>
@@ -176,7 +176,7 @@
     <!-- UXA-001 FIX: Photo Count Overlay — right-4 → end-4 for RTL mirror -->
     <div class="absolute bottom-4 end-4 z-10">
       <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
-        <i class="ph ph-image-square text-slate-400 ph-sm" aria-hidden="true"></i>
+        <i class="ph ph-image-square text-slate-400 ph-sm dark:text-slate-500" aria-hidden="true"></i>
         <span class="text-white text-xs font-mono" id="photo-count">0 / 8</span>
       </div>
     </div>
@@ -195,7 +195,7 @@
       <div class="flex-1 min-w-0">
         <p class="text-white text-sm font-bold truncate" data-i18n="50_bags_opc_cement">50 Bags — OPC Cement</p>
         <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (PO reference). -->
-        <p class="text-slate-500 text-3xs truncate" data-i18n="po_nmr_po_20260001_al_shams_materials">PO #NMR-PO-20260001 • Al-Shams Materials</p>
+        <p class="text-slate-500 text-3xs truncate dark:text-slate-400" data-i18n="po_nmr_po_20260001_al_shams_materials">PO #NMR-PO-20260001 • Al-Shams Materials</p>
       </div>
       <span class="badge-verified text-3xs shrink-0" data-i18n="matched">Matched</span>
     </div>
@@ -218,7 +218,7 @@
       <!-- Voice Snagging Button (Yellow) -->
       <button type="button" id="voice-snag-btn" class="btn-voice-snag flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
         <div class="size-16 rounded-full bg-warning-yellow flex items-center justify-center shadow-[0_0_0_4px_rgba(252,201,52,0.2),0_4px_16px_rgba(252,201,52,0.3)]">
-          <i class="ph ph-microphone text-slate-900 nm-icon-32" aria-hidden="true"></i>
+          <i class="ph ph-microphone text-slate-900 nm-icon-32 dark:text-slate-100" aria-hidden="true"></i>
         </div>
         <span class="text-warning-yellow text-3xs font-bold uppercase tracking-widest" data-i18n="voice_snag">Voice Snag</span>
       </button>
@@ -228,7 +228,7 @@
         <div class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
           <i class="ph ph-images text-slate-300 nm-icon-28" aria-hidden="true"></i>
         </div>
-        <span class="text-slate-500 text-3xs font-bold uppercase tracking-widest" data-i18n="gallery">Gallery</span>
+        <span class="text-slate-500 text-3xs font-bold uppercase tracking-widest dark:text-slate-400" data-i18n="gallery">Gallery</span>
       </button>
 
       <!-- Sync Status Button -->
@@ -236,7 +236,7 @@
         <div class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
           <i class="ph ph-cloud-arrow-up text-slate-300 nm-icon-28" aria-hidden="true"></i>
         </div>
-        <span class="text-slate-500 text-3xs font-bold uppercase tracking-widest" data-i18n="sync">Sync</span>
+        <span class="text-slate-500 text-3xs font-bold uppercase tracking-widest dark:text-slate-400" data-i18n="sync">Sync</span>
       </button>
     </div>
   </div>
@@ -253,8 +253,8 @@
         </div>
       </div>
       <p class="text-white text-xl font-bold mb-2" data-i18n="recording_snag_note">Recording Snag Note...</p>
-      <p class="text-slate-400 text-sm" id="voice-timer">00:00</p>
-      <p class="text-slate-600 text-xs mt-4 max-w-[280px]" data-i18n="describe_the_issue_clearly_your_voice_n">Describe the issue clearly. Your voice note will be attached to the GPS pin.</p>
+      <p class="text-slate-400 text-sm dark:text-slate-500" id="voice-timer">00:00</p>
+      <p class="text-slate-600 text-xs mt-4 max-w-[280px] dark:text-slate-400" data-i18n="describe_the_issue_clearly_your_voice_n">Describe the issue clearly. Your voice note will be attached to the GPS pin.</p>
     </div>
     <button type="button" id="voice-stop-btn" class="mt-10 px-8 py-4 rounded-full bg-red-500/80 text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">
       <i class="ph ph-stop-circle text-2xl" aria-hidden="true"></i>

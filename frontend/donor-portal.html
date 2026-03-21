@@ -40,7 +40,7 @@
   <meta name="twitter:title" content="Donor Portal — Nammerha" />
 
 </head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased">
+<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- CONF-NEW-02 FIX: Noscript fallback — was completely missing from this page.
      Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible
      when JavaScript is disabled. Every other page has this guard.
@@ -61,7 +61,7 @@
 
   <!-- ═══════ Sidebar ═══════ -->
   <aside class="dashboard-sidebar">
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3">
+    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="donor_portal">Donor Portal</span>
       <div id="role-switcher-mount" class="ms-auto"></div>
@@ -81,19 +81,19 @@
         <i class="ph ph-chart-pie" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_impact">Impact Dashboard</span>
       </button>
-      <button type="button" id="tab-marketplace" role="tab" aria-selected="false" aria-controls="section-marketplace" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
+      <button type="button" id="tab-marketplace" role="tab" aria-selected="false" aria-controls="section-marketplace" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start dark:text-slate-400">
         <i class="ph ph-storefront" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_browse">Browse Projects</span>
       </button>
-      <button type="button" id="tab-donations" role="tab" aria-selected="false" aria-controls="section-donations" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
+      <button type="button" id="tab-donations" role="tab" aria-selected="false" aria-controls="section-donations" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start dark:text-slate-400">
         <i class="ph ph-receipt" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_history">Donations</span>
       </button>
-      <button type="button" id="tab-impact" role="tab" aria-selected="false" aria-controls="section-impact" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
+      <button type="button" id="tab-impact" role="tab" aria-selected="false" aria-controls="section-impact" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start dark:text-slate-400">
         <i class="ph ph-trend-up" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_my_impact">My Impact</span>
       </button>
-      <button type="button" id="tab-proofs" role="tab" aria-selected="false" aria-controls="section-proofs" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start">
+      <button type="button" id="tab-proofs" role="tab" aria-selected="false" aria-controls="section-proofs" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start dark:text-slate-400">
         <i class="ph ph-camera" aria-hidden="true"></i>
         <span class="font-medium" data-i18n="donor_proofs">Proof Gallery</span>
       </button>
@@ -102,7 +102,7 @@
          Was the ONLY portal (with homeowner-portal) missing this attribute — 5 of 7 portals had it.
          CSS rule: .dashboard-sidebar [role="tablist"] + div::before { content: attr(data-section-label) }
          Standard: Nielsen #6 (Recognition over Recall), Gestalt (Proximity), FRIC-2601 pattern. -->
-    <div class="p-4 border-t border-slate-200 space-y-2" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
+    <div class="p-4 border-t border-slate-200 space-y-2 dark:border-dark-border" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
       <!-- PLT-AUD2-I003 FIX: Was bg-smoky-jade — homeowner portal uses bg-trust-blue.
            Standardized all primary sidebar CTAs to trust-blue for brand consistency.
            Standard: Nielsen #4 (Consistency), Design System Token Governance. -->
@@ -115,13 +115,13 @@
          contractor-portal, contractor-dashboard, and supplier-dashboard all have this link.
          Donor users had no direct path to profile from the portal.
          Standard: Nielsen #4 (Consistency), Information Architecture. -->
-    <div class="p-4 border-t border-slate-200 space-y-1">
-      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+    <div class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border">
+      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400">
         <i class="ph ph-user-circle" aria-hidden="true"></i>
         <span class="font-medium text-sm" data-i18n="nav_profile">Profile</span>
       </a>
     </div>
-    <div class="p-4 border-t border-slate-200">
+    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
       <button type="button" id="portal-logout-btn" class="flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
         <i class="ph ph-sign-out" aria-hidden="true"></i>
         <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
@@ -139,7 +139,7 @@
          Previous: Header stretched full .dashboard-main width on 1440px+ screens,
          wider than the max-w-6xl content below — visual disconnect.
          Standard: Responsive Design, Visual Hierarchy. -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)]">
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
       <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
       <div class="flex items-center gap-3">
         <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
@@ -153,13 +153,13 @@
              Standard: Nielsen #4 (Consistency), Semantic Accuracy. -->
         <span class="font-bold text-lg page-header-title" data-i18n="donor_portal">Donor Portal</span>
         <!-- MED-007 FIX: Live timestamp added for cross-portal parity. -->
-        <span class="text-xs text-slate-400" id="live-timestamp"></span>
+        <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
         <div id="role-switcher-mount-header"></div>
         <!-- MED-008 FIX: Notification bell added for cross-portal parity. -->
         <button type="button" class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl" aria-hidden="true"></i>
+          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500" aria-hidden="true"></i>
           <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
           <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
         </button>
@@ -172,7 +172,7 @@
       <!-- Header -->
       <div>
         <h1 class="text-xl font-bold" data-i18n="donor_dashboard_heading">Impact Overview</h1>
-        <p class="text-sm text-slate-500 mt-0.5" data-i18n="donor_subtitle">Track your contributions and see the change you're making</p>
+        <p class="text-sm text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="donor_subtitle">Track your contributions and see the change you're making</p>
       </div>
 
       <!-- CRIT-003 FIX: Enriched from COMPACT to RICH KPI card pattern.
@@ -182,47 +182,47 @@
            with design system tokens (smoky-jade, trust-blue, warning-yellow).
            Standard: Design System Component Unity, Nielsen #4 (Consistency). -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-hand-heart text-smoky-jade text-xl" aria-hidden="true"></i>
+              <i class="ph ph-hand-heart text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_total">Total Donated</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="donor_total">Total Donated</p>
           <!-- UXD-022 FIX: Removed individual aria-live — consolidated below grid. -->
-          <p class="text-2xl font-black mt-1 text-smoky-jade" id="kpi-donated">
+          <p class="text-2xl font-black mt-1 text-smoky-jade dark:text-emerald-400" id="kpi-donated">
             <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
               <i class="ph ph-buildings text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_projects">Projects Supported</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="donor_projects">Projects Supported</p>
           <p class="text-2xl font-black mt-1" id="kpi-projects">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-trust-blue/10 flex items-center justify-center">
               <i class="ph ph-package text-trust-blue text-xl" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_items">Items Funded</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="donor_items">Items Funded</p>
           <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-items">
             <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
           </p>
         </div>
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
           <div class="flex items-center justify-between mb-3">
             <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
               <i class="ph ph-chart-line-up text-warning-yellow text-xl" aria-hidden="true"></i>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="donor_score">Impact Score</p>
+          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="donor_score">Impact Score</p>
           <!-- CRIT-001c FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
@@ -236,12 +236,12 @@
       <div class="grid grid-cols-2 gap-4">
         <!-- DK-001 FIX: Raw Tailwind → design tokens (smoky-jade = secured, trust-blue = released) -->
         <div class="bg-smoky-jade/10 rounded-xl p-4 border border-smoky-jade/20">
-          <p class="text-3xs font-bold text-smoky-jade uppercase" data-i18n="donor_in_escrow">In Escrow (Secured)</p>
+          <p class="text-3xs font-bold text-smoky-jade uppercase dark:text-emerald-400" data-i18n="donor_in_escrow">In Escrow (Secured)</p>
           <!-- FRIC-2602 FIX: Plain-language escrow subtitle — Syrian users encountering "escrow" for the first time.
                wallet.html explains this but donor portal KPI cards did not.
                Standard: Nielsen #2 (Match system ↔ real world), Plain Language Act. -->
           <p class="text-3xs text-smoky-jade/70 -mt-0.5" data-i18n="donor_escrow_hint">Held securely until milestones verified</p>
-          <p class="text-lg font-black text-smoky-jade mt-1" id="kpi-locked">
+          <p class="text-lg font-black text-smoky-jade mt-1 dark:text-emerald-400" id="kpi-locked">
             <span class="inline-block h-6 w-16 bg-smoky-jade/20 rounded animate-pulse"></span>
           </p>
         </div>
@@ -260,15 +260,15 @@
       <!-- ═══════ Dashboard — Funded Projects ═══════ -->
       <!-- INC-TAB-01 FIX: Added role="tabpanel" + aria-labelledby to complete WAI-ARIA tab pattern. -->
       <div id="section-dashboard" class="space-y-4" role="tabpanel" aria-labelledby="tab-dashboard">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div class="p-5 border-b border-slate-100">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
+          <div class="p-5 border-b border-slate-100 dark:border-dark-border">
             <!-- DFR-HH-004 FIX: h3→h2 — bridges h1→h3 heading hierarchy gap.
                  Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy). -->
             <h2 class="font-bold" data-i18n="donor_supported_projects">Projects You've Supported</h2>
           </div>
           <!-- DFR-001 FIX: Skeleton loader replaces spinner for known-dimension list.
                Standard: DEF-005 Governance — skeleton for structured data, spinner for indeterminate ops. -->
-          <div id="funded-projects-list" class="divide-y divide-slate-100">
+          <div id="funded-projects-list" class="divide-y divide-slate-100 dark:divide-dark-border-subtle">
             <div class="p-5 space-y-3 animate-pulse">
               <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
               <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-2/3"></div><div class="h-2 bg-slate-200 rounded w-1/3"></div></div></div>
@@ -279,12 +279,12 @@
 
       <!-- ═══════ Marketplace ═══════ -->
       <div id="section-marketplace" class="nm-hidden" role="tabpanel" aria-labelledby="tab-marketplace">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div class="p-5 border-b border-slate-100">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
+          <div class="p-5 border-b border-slate-100 dark:border-dark-border">
             <h2 class="font-bold" data-i18n="donor_marketplace">Browse Projects Needing Funding</h2>
-            <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_marketplace_hint">Select items to fund and add them to your basket</p>
+            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="donor_marketplace_hint">Select items to fund and add them to your basket</p>
           </div>
-          <div id="marketplace-list" class="divide-y divide-slate-100">
+          <div id="marketplace-list" class="divide-y divide-slate-100 dark:divide-dark-border-subtle">
             <div class="p-5 space-y-3 animate-pulse">
               <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div>
               <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-2/3"></div><div class="h-2 bg-slate-200 rounded w-1/3"></div></div></div>
@@ -297,8 +297,8 @@
           <template id="tpl-marketplace-empty">
             <div class="p-10 text-center">
               <i class="ph ph-buildings text-slate-300 nm-icon-48" aria-hidden="true"></i>
-              <p class="font-bold text-slate-500 mt-3" data-i18n="marketplace_empty_title">No projects available right now</p>
-              <p class="text-sm text-slate-400 mt-1" data-i18n="marketplace_empty_hint">Check back soon — new reconstruction projects are added regularly.</p>
+              <p class="font-bold text-slate-500 mt-3 dark:text-slate-400" data-i18n="marketplace_empty_title">No projects available right now</p>
+              <p class="text-sm text-slate-400 mt-1 dark:text-slate-500" data-i18n="marketplace_empty_hint">Check back soon — new reconstruction projects are added regularly.</p>
               <a href="/projects.html" class="inline-flex items-center gap-1 text-sm font-semibold text-trust-blue hover:underline mt-3">
                 <i class="ph ph-compass" aria-hidden="true"></i>
                 <span data-i18n="browse_all_projects">Browse All Projects</span>
@@ -310,41 +310,28 @@
 
       <!-- ═══════ Donations ═══════ -->
       <div id="section-donations" class="nm-hidden" role="tabpanel" aria-labelledby="tab-donations">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div class="p-5 border-b border-slate-100">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
+          <div class="p-5 border-b border-slate-100 dark:border-dark-border">
             <h2 class="font-bold" data-i18n="donor_donation_history">Donation History</h2>
           </div>
-          <div class="overflow-x-auto" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
-            <!-- FRIC-2026-006 FIX: nm-donation-table enables mobile card-collapse via CSS -->
-            <table class="w-full text-sm nm-donation-table">
-              <thead>
-                <tr class="bg-slate-50 text-3xs font-bold text-slate-400 uppercase tracking-wider">
-                  <th scope="col" class="px-5 py-3 text-start" data-i18n="th_material">Material</th>
-                  <th scope="col" class="px-5 py-3 text-start" data-i18n="th_project">Project</th>
-                  <th scope="col" class="px-5 py-3 text-start" data-i18n="th_amount">Amount</th>
-                  <th scope="col" class="px-5 py-3 text-start" data-i18n="th_status">Status</th>
-                  <th scope="col" class="px-5 py-3 text-start" data-i18n="th_date">Date</th>
-                </tr>
-              </thead>
-              <tbody id="donations-body">
-                <!-- DFR-001: Skeleton row matching 5-column table structure -->
-                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
-                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-32"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-14"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-22"></div></td></tr>
-                <tr class="animate-pulse"><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-28"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-18"></div></td><td class="px-5 py-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td></tr>
-              </tbody>
-            </table>
+          <div class="mt-4" data-scroll-hint="← scroll →" data-i18n-attr-data-scroll-hint="scroll_hint">
+            <div id="donations-body" class="flex flex-col gap-3 w-full">
+              <!-- DFR-001: Skeleton cards -->
+              <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"><div class="h-3 bg-slate-200 rounded w-28"></div><div class="h-3 bg-slate-200 rounded w-20"></div></div>
+              <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"><div class="h-3 bg-slate-200 rounded w-24"></div><div class="h-3 bg-slate-200 rounded w-16"></div></div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ═══════ Impact ═══════ -->
       <div id="section-impact" class="nm-hidden" role="tabpanel" aria-labelledby="tab-impact">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div class="p-5 border-b border-slate-100">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
+          <div class="p-5 border-b border-slate-100 dark:border-dark-border">
             <h2 class="font-bold" data-i18n="donor_impact_details">My Impact Details</h2>
-            <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_impact_hint">How your contributions are changing lives</p>
+            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="donor_impact_hint">How your contributions are changing lives</p>
           </div>
-          <div id="impact-list" class="divide-y divide-slate-100">
+          <div id="impact-list" class="divide-y divide-slate-100 dark:divide-dark-border-subtle">
             <div class="p-5 space-y-3 animate-pulse">
               <div class="flex items-center gap-3"><div class="size-10 rounded-xl bg-slate-200"></div><div class="flex-1 space-y-2"><div class="h-3 bg-slate-200 rounded w-3/5"></div><div class="h-2 bg-slate-200 rounded w-2/5"></div></div></div>
             </div>
@@ -354,10 +341,10 @@
 
       <!-- ═══════ Proof Gallery ═══════ -->
       <div id="section-proofs" class="nm-hidden" role="tabpanel" aria-labelledby="tab-proofs">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div class="p-5 border-b border-slate-100">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
+          <div class="p-5 border-b border-slate-100 dark:border-dark-border">
             <h2 class="font-bold" data-i18n="donor_proof_gallery">GPS-Verified Proof Gallery</h2>
-            <p class="text-xs text-slate-500 mt-0.5" data-i18n="donor_proof_hint">On-site photos proving your materials were delivered and used</p>
+            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="donor_proof_hint">On-site photos proving your materials were delivered and used</p>
           </div>
           <div id="proofs-grid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="rounded-xl bg-slate-200 h-40 animate-pulse"></div>
@@ -390,15 +377,13 @@
 
 <!-- MED-005 FIX: Reusable empty state template for data tables. -->
 <template id="tpl-table-empty">
-  <tr>
-    <td colspan="99" class="px-5 py-0">
-      <div class="nm-table-empty">
-        <div class="nm-empty-icon"><i class="ph ph-hand-heart" aria-hidden="true"></i></div>
-        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
-        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
-      </div>
-    </td>
-  </tr>
+  <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full nm-table-empty dark:bg-dark-surface dark:border-dark-border">
+    <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+      <i class="ph ph-hand-heart nm-icon-32" aria-hidden="true"></i>
+    </div>
+    <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300" data-i18n="common_no_data">No data yet</p>
+    <p class="text-xs text-slate-500 mt-1 nm-empty-desc dark:text-slate-400" data-i18n="common_no_data_desc">Data will appear here once available.</p>
+  </div>
 </template>
 
 <script src="/i18n.js?v=7" defer></script>

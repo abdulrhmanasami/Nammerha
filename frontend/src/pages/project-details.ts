@@ -161,7 +161,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
         : 'glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50';
 
     const buttonHtml = isFullyFunded
-        ? `<button type="button" class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed" disabled>
+        ? `<button type="button" class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed dark:text-slate-400" disabled>
              <i class="ph ph-check-circle text-xl" aria-hidden="true"></i>
              <span data-i18n="funding_complete">${esc(t('funding_complete', 'Funding Complete'))}</span>
            </button>`
@@ -178,8 +178,8 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
            </button>`;
 
     const badgeHtml = isFullyFunded
-        ? `<span class="bg-slate-200 text-slate-600 text-3xs font-bold px-2 py-0.5 rounded-full" data-i18n="fully_funded">${esc(t('fully_funded', 'Fully Funded'))}</span>`
-        : `<span class="badge-verified">${pct}% ${t('funded_suffix', 'Funded')}</span>`;
+        ? `<span class="bg-slate-200 text-slate-600 text-3xs font-bold px-2 py-0.5 rounded-full dark:text-slate-400" data-i18n="fully_funded">${esc(t('fully_funded', 'Fully Funded'))}</span>`
+        : `<span class="badge-verified">${pct}% ${esc(t('funded_suffix', 'Funded'))}</span>`;
 
     const progressFillClass = isFullyFunded ? 'h-full bg-slate-400 w-full rounded-full' : 'progress-fill';
 
@@ -195,7 +195,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="text-lg font-bold">${esc(item.material_name)}</h4>
-              <p class="text-sm text-slate-500 font-medium">${t('unit_label', 'Unit')}: $${unitPriceDollars} / ${esc(item.unit)}</p>
+              <p class="text-sm text-slate-500 font-medium dark:text-slate-400">${esc(t('unit_label', 'Unit'))}: $${unitPriceDollars} / ${esc(item.unit)}</p>
             </div>
             ${badgeHtml}
           </div>
@@ -216,7 +216,7 @@ function buildCategoryHeader(category: string): string {
       <div class="size-6 rounded bg-${meta.color}/10 flex items-center justify-center">
         <i class="ph ph-${meta.icon} text-${meta.color} text-sm" aria-hidden="true"></i>
       </div>
-      <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400">${esc(category)}</h4>
+      <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">${esc(category)}</h4>
       <div class="flex-1 h-px bg-slate-100"></div>
     </div>`;
 }

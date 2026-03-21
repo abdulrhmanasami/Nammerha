@@ -198,8 +198,8 @@ function initDonorBasket(): void {
           <i class="ph ${item.iconClass} text-trust-blue" aria-hidden="true"></i>
         </div>
         <div class="min-w-0 flex-1">
-          <h4 class="font-semibold text-slate-800 truncate">${escapeHtml(item.name)}</h4>
-          <p class="text-xs text-slate-500">${escapeHtml(item.category)}</p>
+          <h4 class="font-semibold text-slate-800 truncate dark:text-slate-200">${escapeHtml(item.name)}</h4>
+          <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtml(item.category)}</p>
         </div>
       </div>
       <div class="flex items-center gap-3 shrink-0 ml-3">
@@ -213,8 +213,8 @@ function initDonorBasket(): void {
           </button>
         </div>
         <div class="text-end min-w-[60px]">
-          <div class="font-bold text-slate-900">${formatDollars(item.unitPrice * item.quantity)}</div>
-          <div class="text-3xs text-slate-400">${formatDollars(item.unitPrice)}/${escapeHtml(t('basket_per_unit', 'ea'))}</div>
+          <div class="font-bold text-slate-900 dark:text-slate-100">${formatDollars(item.unitPrice * item.quantity)}</div>
+          <div class="text-3xs text-slate-400 dark:text-slate-500">${formatDollars(item.unitPrice)}/${escapeHtml(t('basket_per_unit', 'ea'))}</div>
         </div>
       </div>
     `;
@@ -285,17 +285,17 @@ function initDonorBasket(): void {
             const items = CartStore.getItems();
             if (items.length > 0) {
                 const itemsHtml = items.map(item => `
-                    <div class="flex justify-between text-xs text-slate-600">
-                        <span class="truncate max-w-[60%]">${escapeHtml(item.name)} <span class="text-slate-400">×${item.quantity}</span></span>
+                    <div class="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+                        <span class="truncate max-w-[60%]">${escapeHtml(item.name)} <span class="text-slate-400 dark:text-slate-500">×${item.quantity}</span></span>
                         <span class="font-bold">${formatDollars(item.unitPrice * item.quantity)}</span>
                     </div>
                 `).join('');
 
                 breakdownEl.innerHTML = `
-                    <div class="border-t border-slate-100 pt-3 space-y-1.5">
-                        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 mb-2" data-i18n="checkout_breakdown">${escapeHtml(t('checkout_breakdown', 'Order Summary'))}</p>
+                    <div class="border-t border-slate-100 pt-3 space-y-1.5 dark:border-dark-border">
+                        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 mb-2 dark:text-slate-500" data-i18n="checkout_breakdown">${escapeHtml(t('checkout_breakdown', 'Order Summary'))}</p>
                         ${itemsHtml}
-                        <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
+                        <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100 dark:text-slate-100 dark:border-dark-border">
                             <span data-i18n="checkout_subtotal">${escapeHtml(t('checkout_subtotal', 'Subtotal'))}</span>
                             <span>${formatDollars(total)}</span>
                         </div>
@@ -312,38 +312,41 @@ function initDonorBasket(): void {
 
     // HGH-001 FIX: Local escapeHtml removed — using centralized import from utils/xss.ts
 
-    // P2-001 FIX: Clear cart with inline confirmation dialog
-    let clearPending = false;
+    // P2-001 FIX: Clear cart with explicit Native Modal (removed 5s exploding timer)
     clearBtn?.addEventListener('click', () => {
         if (CartStore.getItems().length === 0) {
             return;
         }
-        if (!clearPending) {
-            // Show confirmation banner
-            clearPending = true;
-            const confirm = document.createElement('div');
-            confirm.id = 'clear-confirm-banner';
-            confirm.className = 'rounded-xl p-3 text-sm font-medium flex items-center justify-between gap-2 bg-amber-50 text-amber-700 border border-amber-200 mt-3 animate-fade-in-up';
-            confirm.innerHTML = `
-                <span><i class="ph ph-warning" aria-hidden="true"></i> ${escapeHtml(t('basket_clear_confirm', 'Clear all items?'))}</span>
-                <div class="flex gap-2">
-                    <button type="button" id="clear-yes" class="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">${escapeHtml(t('common_yes', 'Yes'))}</button>
-                    <button type="button" id="clear-no" class="px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg">${escapeHtml(t('common_no', 'No'))}</button>
-                </div>`;
-            container!.prepend(confirm);
-            confirm.querySelector('#clear-yes')?.addEventListener('click', () => {
-                CartStore.clear();
-                confirm.remove();
-                clearPending = false;
-                render();
-            });
-            confirm.querySelector('#clear-no')?.addEventListener('click', () => {
-                confirm.remove();
-                clearPending = false;
-            });
-            // Auto-dismiss after 5s
-            setTimeout(() => { if (clearPending) { confirm.remove(); clearPending = false; } }, 5000);
-        }
+        
+        const dialog = document.createElement('dialog');
+        dialog.className = 'nm-dialog p-0 w-[90%] max-w-sm rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up';
+        dialog.innerHTML = `
+            <div class="p-6">
+                <div class="size-12 rounded-full bg-red-50 flex items-center justify-center mb-4 text-red-600 dark:bg-red-500/10">
+                    <i class="ph ph-trash text-2xl" aria-hidden="true"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2 dark:text-slate-100">${escapeHtml(t('basket_clear_title', 'Clear Basket?'))}</h3>
+                <p class="text-sm text-slate-500 mb-6 dark:text-slate-400">${escapeHtml(t('basket_clear_desc', 'Are you sure you want to remove all items from your basket? This action cannot be undone.'))}</p>
+                <div class="flex gap-3">
+                    <button type="button" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors dark:text-slate-300" id="dialog-cancel">${escapeHtml(t('common_no', 'No'))}</button>
+                    <button type="button" class="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors" id="dialog-confirm">${escapeHtml(t('basket_clear_yes', 'Yes, Clear All'))}</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+        
+        dialog.querySelector('#dialog-cancel')?.addEventListener('click', () => {
+            dialog.close();
+        });
+        
+        dialog.querySelector('#dialog-confirm')?.addEventListener('click', () => {
+            CartStore.clear();
+            dialog.close();
+            render();
+        });
+        
+        dialog.addEventListener('close', () => dialog.remove());
+        dialog.showModal();
     });
 
     // PLT-CART-001 FIX: Wire checkout to donations.create() API.

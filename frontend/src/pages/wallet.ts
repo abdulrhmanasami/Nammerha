@@ -90,17 +90,17 @@ function renderTransaction(tx: Transaction): string {
     const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: t('wallet_status_pending', 'Pending') };
 
     return `
-    <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up">
+    <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up dark:border-dark-border">
       <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
         <i class="ph ph-${config.icon} ${config.color}" aria-hidden="true"></i>
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-bold truncate">${escapeHtml(tx.material_name ?? tx.project_title ?? t('wallet_transaction', 'Transaction'))}</p>
-        <p class="text-3xs text-slate-400">${formatDate(tx.created_at)}</p>
+        <p class="text-3xs text-slate-400 dark:text-slate-500">${formatDate(tx.created_at)}</p>
       </div>
       <div class="text-end shrink-0">
         <p class="text-sm font-bold ${config.color}">${formatCents(tx.amount)}</p>
-        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400">${config.label}</p>
+        <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">${config.label}</p>
       </div>
     </div>`;
 }
@@ -132,8 +132,8 @@ async function loadTransactions(): Promise<void> {
             listEl.innerHTML = `
             <div class="text-center py-12 animate-fade-in-up">
               <i class="ph ph-wallet text-slate-300 nm-icon-48" aria-hidden="true"></i>
-              <p class="text-slate-500 font-bold mt-4">${t('wallet_no_transactions', 'No transactions yet')}</p>
-              <p class="text-slate-400 text-sm mt-1">${t('wallet_history_description', 'Your donation and payment history will appear here')}</p>
+              <p class="text-slate-500 font-bold mt-4 dark:text-slate-400">${escapeHtml(t('wallet_no_transactions', 'No transactions yet'))}</p>
+              <p class="text-slate-400 text-sm mt-1 dark:text-slate-500">${escapeHtml(t('wallet_history_description', 'Your donation and payment history will appear here'))}</p>
             </div>`;
             return;
         }
@@ -145,8 +145,8 @@ async function loadTransactions(): Promise<void> {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
         listEl.innerHTML = `
         <div class="text-center py-8">
-          <p class="text-slate-500 text-sm">${t('wallet_load_failed', 'Unable to load transactions. Please sign in.')}</p>
-          <a href="auth.html" class="btn-primary w-auto px-6 mt-4 inline-flex">${t('wallet_sign_in', 'Sign In')}</a>
+          <p class="text-slate-500 text-sm dark:text-slate-400">${escapeHtml(t('wallet_load_failed', 'Unable to load transactions. Please sign in.'))}</p>
+          <a href="auth.html" class="btn-primary w-auto px-6 mt-4 inline-flex">${escapeHtml(t('wallet_sign_in', 'Sign In'))}</a>
         </div>`;
     }
 }
@@ -237,7 +237,7 @@ function init(): void {
             banner.className = 'mt-3 rounded-xl p-3 text-xs font-medium flex items-center gap-2 bg-white/20 text-white backdrop-blur-sm animate-fade-in-up';
             banner.innerHTML = `
                 <i class="ph ph-info shrink-0 text-base" aria-hidden="true"></i>
-                <span>${t('add_funds_coming_soon', 'Direct deposits are coming soon. For now, fund projects directly from the project page.')}</span>
+                <span>${escapeHtml(t('add_funds_coming_soon', 'Direct deposits are coming soon. For now, fund projects directly from the project page.'))}</span>
             `;
             parent.appendChild(banner);
 

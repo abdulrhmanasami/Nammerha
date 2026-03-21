@@ -84,10 +84,10 @@ async function loadEscrowCases(): Promise<void> {
                 panel.innerHTML = `
                     <div class="col-span-2 flex flex-col items-center justify-center py-16 text-center">
                         <div class="size-16 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-4">
-                            <i class="ph ph-shield-check text-smoky-jade text-3xl" aria-hidden="true"></i>
+                            <i class="ph ph-shield-check text-smoky-jade text-3xl dark:text-emerald-400" aria-hidden="true"></i>
                         </div>
-                        <p class="text-lg font-bold text-slate-600">${esc(t('esc_all_cleared', 'All Cleared'))}</p>
-                        <p class="text-sm text-slate-400 mt-1">${esc(t('esc_no_pending', 'No pending escrow verifications.'))}</p>
+                        <p class="text-lg font-bold text-slate-600 dark:text-slate-400">${esc(t('esc_all_cleared', 'All Cleared'))}</p>
+                        <p class="text-sm text-slate-400 mt-1 dark:text-slate-500">${esc(t('esc_no_pending', 'No pending escrow verifications.'))}</p>
                     </div>
                 `;
             }

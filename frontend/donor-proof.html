@@ -35,7 +35,7 @@
   <!-- UXA-018 FIX: Removed duplicate OG/Twitter meta block — tags already declared at L25-30. -->
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
-<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased">
+<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased dark:bg-dark-surface dark:text-slate-100">
 <!-- PE-001 FIX: Noscript fallback -->
 <noscript>
   <style>html:not([data-theme]){visibility:visible!important}</style>
@@ -71,7 +71,7 @@
       <div class="w-20 h-20 bg-trust-blue/10 rounded-full flex items-center justify-center mb-4">
         <i class="ph ph-check-circle text-trust-blue nm-icon-36" aria-hidden="true"></i>
       </div>
-      <h2 id="proof-page-title" class="text-2xl font-extrabold text-slate-900 leading-tight" data-i18n="contribution_onsite">
+      <h2 id="proof-page-title" class="text-2xl font-extrabold text-slate-900 leading-tight dark:text-slate-100" data-i18n="contribution_onsite">
         Success! Your contribution is on-site
       </h2>
     </div>
@@ -84,7 +84,7 @@
          Standard: Nielsen #1 (System Status Visibility), FinTech UX, Data-Driven UI. -->
 
     <!-- Verification Card -->
-    <div class="bg-white rounded-xl overflow-hidden shadow-xl shadow-trust-blue/5 border border-trust-blue/5 mb-6 animate-fade-in-up" style="--anim-delay:0.1s">
+    <div class="bg-white rounded-xl overflow-hidden shadow-xl shadow-trust-blue/5 border border-trust-blue/5 mb-6 animate-fade-in-up dark:bg-dark-surface" style="--anim-delay:0.1s">
       <!-- Delivery Photo -->
       <div id="proof-photo-container" class="relative aspect-video bg-gradient-to-br from-warm-earth/20 to-slate-200">
         <div class="absolute inset-0 flex items-center justify-center" data-skeleton>
@@ -106,10 +106,10 @@
       <div class="p-5">
         <div class="flex items-start justify-between mb-3">
           <div>
-            <h3 id="proof-project-name" class="font-bold text-lg text-slate-900">
+            <h3 id="proof-project-name" class="font-bold text-lg text-slate-900 dark:text-slate-100">
               <span class="inline-block h-5 w-40 bg-slate-200 rounded animate-pulse" data-skeleton></span>
             </h3>
-            <p class="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
+            <p class="text-sm text-slate-500 flex items-center gap-1 mt-0.5 dark:text-slate-400">
               <i class="ph ph-shield-check text-trust-blue ph-sm" aria-hidden="true"></i>
               <span id="proof-verifier" data-i18n="verified_by_engineer">
                 <span class="inline-block h-3 w-32 bg-slate-200 rounded animate-pulse" data-skeleton></span>
@@ -120,7 +120,7 @@
             <span class="inline-block h-3 w-14 bg-slate-200 rounded animate-pulse" data-skeleton></span>
           </span>
         </div>
-        <div id="proof-description" class="text-slate-600 leading-relaxed text-sm mb-6">
+        <div id="proof-description" class="text-slate-600 leading-relaxed text-sm mb-6 dark:text-slate-400">
           <div class="space-y-2 animate-pulse" data-skeleton>
             <div class="h-3 bg-slate-200 rounded w-full"></div>
             <div class="h-3 bg-slate-200 rounded w-4/5"></div>
@@ -140,10 +140,10 @@
         <i class="ph ph-shield-check nm-icon-28" aria-hidden="true"></i>
       </div>
       <div class="flex-1">
-        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="blockchain_verified">Blockchain Verified</h4>
+        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider dark:text-slate-100" data-i18n="blockchain_verified">Blockchain Verified</h4>
         <!-- PLT-G002 FIX: Transaction hash now uses id for dynamic hydration.
              Previous: Hardcoded "0x1A73...E8a2" — never changed. -->
-        <p class="text-xs text-slate-500">
+        <p class="text-xs text-slate-500 dark:text-slate-400">
           <span data-i18n="tx_hash_label">Transaction hash:</span>
           <code id="proof-tx-hash" class="font-mono text-3xs">
             <span class="inline-block h-3 w-24 bg-slate-200 rounded animate-pulse" data-skeleton></span>

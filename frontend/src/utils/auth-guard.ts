@@ -51,7 +51,7 @@ function showAuthRequired(): void {
                 <i class="ph ph-lock text-trust-blue nm-icon-40" aria-hidden="true"></i>
             </div>
             <h2 class="text-lg font-bold" data-i18n="auth_required">Sign in required</h2>
-            <p class="text-sm text-slate-500 max-w-xs" data-i18n="auth_required_msg">
+            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="auth_required_msg">
                 Please sign in to access this page. Your data is safe and waiting for you.
             </p>
             <a href="/auth.html?redirect=${returnPath}" class="btn-primary nm-btn-inline mt-2">

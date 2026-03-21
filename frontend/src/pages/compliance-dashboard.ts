@@ -125,32 +125,43 @@ async function loadEscrowReviewQueue(): Promise<void> {
         const reviews = (res.data ?? []) as unknown as Array<Record<string, string | number | boolean>>;
 
         if (reviews.length === 0) {
-            tbody.innerHTML = `<tr class="border-t border-slate-100">
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400">
-                    <i class="ph ph-check-circle text-2xl" aria-hidden="true"></i>
-                    <p class="mt-2 text-xs">${esc(t('compliance_all_reviewed', 'All escrow releases reviewed'))}</p>
-                </td>
-            </tr>`;
+            tbody.innerHTML = `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-smoky-jade mb-4 nm-empty-icon dark:bg-dark-elevated dark:text-emerald-400">
+                    <i class="ph ph-check-circle nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${esc(t('compliance_all_reviewed', 'All escrow releases reviewed'))}</p>
+            </div>`;
             return;
         }
 
         tbody.innerHTML = reviews.map((r) => `
-            <tr class="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                <td class="px-5 py-3 font-mono text-xs">${esc(String(r['reference'] ?? ''))}</td>
-                <td class="px-5 py-3 font-medium">${esc(String(r['project_title'] ?? ''))}</td>
-                <td class="px-5 py-3 font-mono">${formatCents(Number(r['amount'] ?? 0))}</td>
-                <td class="px-5 py-3 text-slate-500">${esc(String(r['donor_name'] ?? t('compliance_anonymous', 'Anonymous')))}</td>
-                <td class="px-5 py-3">
-                    ${r['has_spatial_proof']
-                ? `<span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full">${esc(t('compliance_verified', 'Verified'))}</span>`
-                : `<span class="text-3xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'Pending'))}</span>`}
-                </td>
-                <td class="px-5 py-3 text-slate-500 text-xs">${esc(String(r['submitted_at'] ?? '—'))}</td>
-                <td class="px-5 py-3 flex gap-2">
-                    <button type="button" class="text-xs font-semibold text-smoky-jade hover:underline" data-action="approve" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_approve', 'Approve'))}</button>
-                    <button type="button" class="text-xs font-semibold text-danger-red hover:underline" data-action="flag" data-ref="${esc(String(r['reference'] ?? ''))}">${esc(t('compliance_flag', 'Flag'))}</button>
-                </td>
-            </tr>
+            <div class="p-4 hover:bg-slate-50 transition-colors group border-t border-slate-100 project-card dark:border-dark-border">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs text-trust-blue font-bold">${esc(String(r['reference'] ?? ''))}</span>
+                            ${r['has_spatial_proof']
+                        ? `<span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full dark:text-emerald-400">${esc(t('compliance_verified', 'Verified'))}</span>`
+                        : `<span class="text-3xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'Pending'))}</span>`}
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900 mt-1 dark:text-slate-100">${esc(String(r['project_title'] ?? ''))}</h3>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                            <p class="text-xs text-slate-600 font-bold dark:text-slate-400"><i class="ph ph-currency-dollar text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${formatCents(Number(r['amount'] ?? 0))}</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><i class="ph ph-hand-heart text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${esc(String(r['donor_name'] ?? t('compliance_anonymous', 'Anonymous')))}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400"><i class="ph ph-clock text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${esc(String(r['submitted_at'] ?? '—'))}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <button type="button" class="bg-smoky-jade/10 text-smoky-jade px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-smoky-jade/20 transition-colors flex items-center gap-1 dark:text-emerald-400" data-action="approve" data-ref="${esc(String(r['reference'] ?? ''))}">
+                            <i class="ph ph-check" aria-hidden="true"></i> ${esc(t('compliance_approve', 'Approve'))}
+                        </button>
+                        <button type="button" class="bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20 transition-colors flex items-center gap-1" data-action="flag" data-ref="${esc(String(r['reference'] ?? ''))}">
+                            <i class="ph ph-flag" aria-hidden="true"></i> ${esc(t('compliance_flag', 'Flag'))}
+                        </button>
+                    </div>
+                </div>
+            </div>
         `).join('');
 
         // TICK-034: Event delegation for review action buttons.
@@ -173,7 +184,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-001 FIX: Show user-facing error in escrow review table.
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-sm text-red-400">${esc(t('failed_to_load', 'Failed to load'))}</td></tr>`;
+            tbody.innerHTML = `<div class="px-5 py-8 text-center text-sm font-bold text-red-500">${esc(t('failed_to_load', 'Failed to load'))}</div>`;
         }
     }
 }
