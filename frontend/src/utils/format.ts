@@ -19,6 +19,10 @@ export function formatCents(
     currency = 'USD',
     locale?: string,
 ): string {
+    // FIX-Ω1: Guard against undefined/null/NaN from API responses.
+    // undefined / 100 = NaN → Intl.NumberFormat renders "ليس رقماً US$".
+    const safeCents = (cents !== null && cents !== undefined && Number.isFinite(cents)) ? cents : 0;
+
     const resolvedLocale = locale
         ?? (document.documentElement.lang || navigator.language || 'en-US');
 
@@ -27,7 +31,7 @@ export function formatCents(
         currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-    }).format(cents / 100);
+    }).format(safeCents / 100);
 }
 
 /**
@@ -46,6 +50,9 @@ export function formatDollars(
     currency = 'USD',
     locale?: string,
 ): string {
+    // FIX-Ω1: Same NaN guard as formatCents() — prevents 'ليس رقماً' display.
+    const safeDollars = (dollars !== null && dollars !== undefined && Number.isFinite(dollars)) ? dollars : 0;
+
     const resolvedLocale = locale
         ?? (document.documentElement.lang || navigator.language || 'en-US');
 
@@ -54,7 +61,7 @@ export function formatDollars(
         currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(dollars);
+    }).format(safeDollars);
 }
 
 /**

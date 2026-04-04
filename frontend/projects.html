@@ -74,7 +74,8 @@
       <input type="search" id="project-search" enterkeyhint="search" class="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white border border-slate-200 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-trust-blue/30 dark:bg-dark-surface dark:border-dark-border" placeholder="Search projects..." data-i18n-placeholder="projects_search_placeholder" />
     </div>
     <!-- Filter pills -->
-    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden" id="filter-pills">
+    <!-- FIX: w-full max-w-full added to prevent flex layout horizontal expansion -->
+    <div class="flex gap-2 overflow-x-auto w-full max-w-full pb-1 scrollbar-hidden" id="filter-pills">
       <button type="button" class="filter-pill filter-pill-active shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors" data-filter="all" data-i18n="projects_filter_all">All</button>
       <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-filter="structural" data-i18n="projects_filter_structural">Structural</button>
       <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-filter="plumbing" data-i18n="projects_filter_plumbing">Plumbing</button>

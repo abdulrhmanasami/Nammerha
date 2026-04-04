@@ -301,9 +301,9 @@
         </div>
         <!-- UXA-027 FIX: Added scroll-snap for native-like magnetic card snapping.
              snap-x: horizontal snap axis. snap-mandatory: always snap to nearest card.
-             Child cards use snap-start + snap-always for predictable paging.
-             Standard: CSS Scroll Snap spec, Apple HIG (Paging), Material Design 3 (Carousel). -->
-        <div id="projects-carousel" class="flex overflow-x-auto gap-4 px-4 pb-4 no-scrollbar snap-x snap-mandatory" tabindex="0" role="region" aria-label="Featured projects" data-i18n-aria="aria_featured_projects">
+             Child cards use snap-start + snap-always for predictable paging. -->
+        <!-- FIX: w-full max-w-full applied to strictly bound horizontal scrolling container -->
+        <div id="projects-carousel" class="flex overflow-x-auto w-full max-w-full gap-4 px-4 pb-4 no-scrollbar snap-x snap-mandatory" tabindex="0" role="region" aria-label="Featured projects" data-i18n-aria="aria_featured_projects">
           <!-- HGH-AUD-001 FIX: Project cards are now rendered dynamically from API -->
           <!-- Skeleton loading state -->
           <div id="projects-skeleton" class="flex gap-4">
@@ -389,23 +389,23 @@
               >
                 <i class="ph ph-buildings text-white nm-icon-28" aria-hidden="true"></i>
               </div>
-              <div class="flex-1">
+              <div class="flex-1 min-w-0">
                 <h2 class="font-bold text-base mb-1" data-i18n="about_nammerha">About Nammerha</h2>
                 <p class="text-xs text-white/70 leading-relaxed" data-i18n="transparency_body">
                   Nammerha uses the Open Contracting Data Standard (OCDS) for all
                   financial reporting. Every dollar invested is tracked and audited
                   in real-time.
                 </p>
-                <div class="flex flex-wrap items-center gap-2 mt-3">
-                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                <div class="flex flex-wrap items-center gap-2 mt-3 w-full overflow-hidden">
+                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0">
                     <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                     OCDS
                   </span>
-                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0">
                     <i class="ph ph-map-pin text-xs" aria-hidden="true"></i>
                     GPS
                   </span>
-                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1">
+                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0">
                     <i class="ph ph-lock-key text-xs" aria-hidden="true"></i>
                     Escrow
                   </span>

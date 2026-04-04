@@ -666,7 +666,7 @@ body.about-page a { text-decoration: none; color: inherit; }
 .dot-earth { background: var(--warm-earth); box-shadow: 0 0 20px var(--warm-earth-glow); }
 
 .timeline-card {
-  padding: 32px;
+  padding: clamp(16px, 5vw, 32px);
 }
 .timeline-phase {
   font-size: 15px;
@@ -680,13 +680,13 @@ body.about-page a { text-decoration: none; color: inherit; }
 .phase-earth { color: var(--warm-earth); }
 
 .timeline-card h3 {
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 4vw, 1.3rem);
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--about-text-primary);
 }
 .timeline-card p {
-  font-size: 0.92rem;
+  font-size: clamp(0.85rem, 3vw, 0.92rem);
   color: var(--about-text-secondary);
   line-height: 2;
 }
@@ -708,7 +708,7 @@ body.about-page a { text-decoration: none; color: inherit; }
   grid-row: span 2;
 }
 .bento-card {
-  padding: clamp(24px, 3vw, 40px);
+  padding: clamp(20px, 4vw, 40px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -765,11 +765,11 @@ body.about-page .bento-large {
    ═══════════════════════════════════════════════════════════════════ */
 .leaders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   gap: 24px;
 }
 .leader-card {
-  padding: 40px 32px;
+  padding: clamp(24px, 5vw, 40px) clamp(20px, 4vw, 32px);
   position: relative;
   overflow: hidden;
 }

@@ -115,6 +115,11 @@ html, body {
     /* PLT-W2-001 FIX: Default text color for body.
        Previously hardcoded in _base.css. Now governed by design system. */
     color: var(--text-body);
+    /* P0-OVF-001 FIX: Root-level overflow containment to prevent absolutely
+       positioned background elements (e.g. .gradient-orb) from stretching 
+       the document width on mobile and causing horizontal scroll. */
+    overflow-x: clip;
+    max-width: 100vw;
 }
 
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */
@@ -378,6 +383,16 @@ body {
 /* Arabic body variant */
 body[dir='rtl'] {
   font-family: var(--font-arabic);
+}
+
+/* ─── FIX-Ω4: Legal Page Nav Suppression ───────────────────────────────────── */
+/* Legal pages (Privacy, Terms, Refund Policy) are informational documents.
+   The portal bottom nav adds navigational clutter that detracts from the
+   professional "legal document" feel. Mirrors body.about-page suppression
+   pattern in _about.css (L1063).
+   Standard: Nielsen #8 (Aesthetic and minimalist design). */
+body.legal-page .nm-bottom-nav {
+  display: none !important;
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
