@@ -123,6 +123,8 @@
         // Unified nav at z-9900 physically blocked the "Publish to Marketplace" button at z-20.
         // Standard: Apple HIG (Primary Action Accessibility), Fitts's Law.
         'engineer-boq.html',
+        // Legal Pages (suppress nav on static content pages)
+        'privacy.html', 'terms.html', 'refund-policy.html',
     ];
 
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────

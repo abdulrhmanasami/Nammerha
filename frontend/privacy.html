@@ -56,7 +56,15 @@
   </header>
 
   <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto">
-    <p class="text-xs text-slate-400 mb-6 dark:text-slate-500" data-i18n="pp_last_updated">Last updated: March 2026</p>
+    <div class="flex items-center justify-between mb-6">
+      <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="pp_last_updated">Last updated: March 2026</p>
+      <div class="flex items-center gap-3">
+        <div id="nm-lang-mount"></div>
+        <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border cursor-pointer touch-safe shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-dark-elevated" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
+          <i id="nm-theme-toggle-icon" class="text-lg text-slate-600 dark:text-slate-300" data-nm-theme-icon aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
 
     <section class="mb-8">
       <h2 class="text-base font-bold mb-3" data-i18n="pp_intro">1. Introduction</h2>
