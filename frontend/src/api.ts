@@ -4,15 +4,15 @@
 // ============================================================================
 
 import { reportError } from './error-reporter';
+import { t } from './utils/i18n';
 
 const API_BASE = '/api';
 
 // ─── P1-NEW-002 FIX: CSRF Token Management ─────────────────────────────────
-// The backend has a complete double-submit cookie CSRF implementation.
-// JWT Bearer tokens are inherently CSRF-safe (not auto-attached like cookies),
-// so the CSRF middleware correctly short-circuits for Bearer requests.
-// This utility provides defense-in-depth for any future cookie-based auth flows.
-async function ensureCsrfToken(): Promise<string | null> {
+// SEC-001 FATAL FLAW FIX: The platform relies on HttpOnly cookies for JWTs (V1-AUDIT).
+// Therefore, Bearer fallback is a hallucination. Without CSRF, state-changing requests
+// are exposed to Cross-Site Request Forgery. Failure to acquire CSRF MUST block the request.
+async function ensureCsrfToken(): Promise<string> {
     // Check if a CSRF token cookie already exists
     const existing = document.cookie.match(/(?:^|;\s*)_csrf=([^;]*)/)?.[1];
     if (existing) {
@@ -23,13 +23,17 @@ async function ensureCsrfToken(): Promise<string | null> {
     try {
         const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
         if (!res.ok) {
-            return null;
+            throw new Error(`Failed to fetch CSRF: ${res.status}`);
         }
         const data = await res.json() as { csrfToken?: string };
-        return data.csrfToken ?? null;
-    } catch {
-        // CSRF fetch failure is non-fatal — Bearer auth still works
-        return null;
+        if (!data.csrfToken) {
+            throw new Error('CSRF Token missing from response payload');
+        }
+        return data.csrfToken;
+    } catch (err) {
+        // CSRF failure MUST be fatal for HttpOnly cookie sessions
+        reportError(new Error('CSRF Token Handshake Failed'), { error: err instanceof Error ? err.message : String(err) });
+        throw new Error(t('error_csrf_missing', 'Security connection failed. Please refresh the page to continue.'));
     }
 }
 
@@ -54,9 +58,7 @@ async function request<T>(
     const method = options.method ?? 'GET';
     if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
         const csrfToken = await ensureCsrfToken();
-        if (csrfToken) {
-            headers['X-CSRF-Token'] = csrfToken;
-        }
+        headers['X-CSRF-Token'] = csrfToken;
     }
 
     // P3-NEW-001 FIX: Guard dev header with Vite env check.

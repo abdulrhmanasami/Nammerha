@@ -48,6 +48,7 @@ export async function registerServiceWorker(): Promise<void> {
         window.addEventListener('beforeunload', () => clearInterval(swUpdateCheckId));
 
         // MED-002 FIX: Demoted from console.log to dev-only debug.
+        // eslint-disable-next-line no-console
         if (import.meta.env.DEV) { console.debug('[SW] Registered, scope:', registration.scope); }
     } catch (error) {
         // P2-FIX-2: Replaced console.error with centralized error reporter.

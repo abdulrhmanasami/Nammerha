@@ -30,7 +30,9 @@ function canVibrate(): boolean {
 }
 
 function vibrate(pattern: number | number[]): void {
-    if (!canVibrate()) return;
+    if (!canVibrate()) {
+        return;
+    }
     try {
         navigator.vibrate(pattern);
     } catch {
