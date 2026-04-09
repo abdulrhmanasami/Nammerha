@@ -26,6 +26,7 @@ interface WizardState {
     description: string;
     photoCount: number;
     projectId: string | null; // P1-002: Real OCDS project ID from API
+    uploadedPhotoUrls: string[]; // P1-FIX-007: Store S3 permanent URLs instead of Base64 blobs
 }
 
 const state: WizardState = {
@@ -37,6 +38,7 @@ const state: WizardState = {
     description: '',
     photoCount: 0,
     projectId: null,
+    uploadedPhotoUrls: [],
 };
 
 const TOTAL_STEPS = 3;
@@ -60,7 +62,10 @@ function saveWizardState(): void {
             neighborhood: state.neighborhood,
             gpsCoords: state.gpsCoords,
             description: state.description,
-            // Note: photos and projectId are NOT persisted (binary data / server-side)
+            photoCount: state.photoCount,
+            uploadedPhotoUrls: state.uploadedPhotoUrls,
+            // P1-FIX-007: Safe persistence! Public URLs are mere bytes, saving us from QuotaExceededError
+            // Note: projectId is NOT persisted (server-side)
         };
         sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(serializable));
     } catch {
@@ -83,6 +88,8 @@ function restoreWizardState(): boolean {
         if (parsed.neighborhood) { state.neighborhood = parsed.neighborhood; }
         if (parsed.gpsCoords) { state.gpsCoords = parsed.gpsCoords; }
         if (parsed.description) { state.description = parsed.description; }
+        if (parsed.photoCount) { state.photoCount = parsed.photoCount; }
+        if (parsed.uploadedPhotoUrls) { state.uploadedPhotoUrls = parsed.uploadedPhotoUrls; }
         if (parsed.currentStep && parsed.currentStep >= 1 && parsed.currentStep <= TOTAL_STEPS) {
             state.currentStep = parsed.currentStep;
         }
@@ -230,6 +237,8 @@ if (nextBtn) {
                     gps_lat,
                     gps_lng,
                     address_text: `${state.neighborhood}, ${state.governorate}`,
+                    images: state.uploadedPhotoUrls.length > 0 ? state.uploadedPhotoUrls : undefined,
+                    cover_image_url: state.uploadedPhotoUrls[0] || undefined,
                 });
 
                 if (response.success && response.data) {
@@ -469,12 +478,14 @@ const photoUploadZone = document.getElementById('photo-upload-zone');
 const photoInput = document.getElementById('photo-input') as HTMLInputElement | null;
 const photoThumbnails = document.getElementById('photo-thumbnails');
 
+import { storage } from '../api'; // P1-FIX-007: Implemented real storage API
+
 /**
  * GAP-08 FIX: Compress image via Canvas before upload.
  * Max dimension: 1200px, JPEG quality: 0.75, target < 300KB.
  * Critical for Syrian 3G field operations where 5MB+ photos exhaust bandwidth.
  */
-function compressImage(file: File, maxDimension = 1200, quality = 0.75): Promise<string> {
+function compressImage(file: File, maxDimension = 1200, quality = 0.75): Promise<{ dataUrl: string; blob: Blob }> {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
@@ -495,7 +506,13 @@ function compressImage(file: File, maxDimension = 1200, quality = 0.75): Promise
             ctx.drawImage(img, 0, 0, width, height);
             // Output as JPEG for maximum compression on photos
             const dataUrl = canvas.toDataURL('image/jpeg', quality);
-            resolve(dataUrl);
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    resolve({ dataUrl, blob });
+                } else {
+                    reject(new Error('Compression empty'));
+                }
+            }, 'image/jpeg', quality);
         };
         img.onerror = () => reject(new Error('Image load failed'));
         // TICKET-002 FIX: Revoke blob URL after image loads to prevent memory leak.
@@ -527,21 +544,58 @@ if (photoUploadZone && photoInput) {
 
             try {
                 // GAP-08: Compress before display — saves bandwidth on upload
-                const compressedUrl = await compressImage(file);
+                const { dataUrl, blob } = await compressImage(file);
 
                 const thumb = document.createElement('div');
-                thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
+                thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative flex items-center justify-center';
                 thumb.innerHTML = `
-          <img src="${esc(compressedUrl)}" class="w-full h-full object-cover" alt="Damage photo" />
-          <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
-            <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
-          </div>
+          <img src="${esc(dataUrl)}" class="w-full h-full object-cover opacity-50 transition-opacity duration-300" alt="Damage photo" />
+          <i class="ph ph-spinner ph-spin absolute text-slate-500 text-xl" aria-hidden="true"></i>
         `;
                 photoThumbnails.appendChild(thumb);
-                state.photoCount++;
-                // GAP-AUD-06 FIX: Update dynamic photo counter
-                const photoCountEl = document.getElementById('photo-count');
-                if (photoCountEl) { photoCountEl.textContent = String(state.photoCount); }
+
+                // P1-FIX-007: Immediate Pre-Signed Upload to MinIO/S3
+                try {
+                    const uploadData = await storage.getUploadUrl({
+                        project_id: 'pending', // Special case allowed by routes for pre-creation uploads
+                        category: 'proof',
+                        filename: file.name || 'photo.jpg',
+                        content_type: 'image/jpeg',
+                        file_size_bytes: blob.size,
+                    });
+                    
+                    if (uploadData.success && uploadData.data) {
+                        const s3Upload = await fetch(uploadData.data.upload_url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'image/jpeg' },
+                            body: blob
+                        });
+                        if (!s3Upload.ok) { throw new Error('S3 Upload Failed'); }
+                        
+                        state.uploadedPhotoUrls.push(uploadData.data.public_url);
+                        state.photoCount++;
+                        
+                        // Reflect success in thumbnail
+                        const imgEl = thumb.querySelector('img');
+                        if (imgEl) { imgEl.classList.remove('opacity-50'); }
+                        thumb.innerHTML = `
+                            <img src="${esc(dataUrl)}" class="w-full h-full object-cover" alt="Damage photo" />
+                            <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
+                                <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
+                            </div>
+                        `;
+                        const photoCountEl = document.getElementById('photo-count');
+                        if (photoCountEl) { photoCountEl.textContent = String(state.photoCount); }
+                    } else { throw new Error('No upload token'); }
+                } catch (err) {
+                    thumb.remove();
+                    // HIGH-002 FIX: Replace alert() with inline error banner
+                    const errDiv = document.createElement('div');
+                    errDiv.className = 'w-full rounded bg-red-50 text-red-700 text-xs p-2 mt-2';
+                    errDiv.textContent = t('hr_upload_failed', 'Failed to upload image securely.');
+                    photoThumbnails.parentElement?.appendChild(errDiv);
+                    setTimeout(() => errDiv.remove(), 4000);
+                }
             } catch {
                 // Fallback: use raw FileReader if compression fails
                 const reader = new FileReader();

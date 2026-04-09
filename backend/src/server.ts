@@ -80,10 +80,10 @@ const PKG_VERSION = (() => {
 const app = express();
 const PORT = parseInt(process.env['PORT'] ?? '3001', 10);
 
-// P1-NEW-001 FIX: Trust the first proxy (Nginx/Caddy).
-// Without this, all requests appear from the container gateway IP,
-// breaking rate limiting and poisoning audit trail source IPs.
-app.set('trust proxy', 1);
+// P1-NEW-001 FIX: Trust Local proxies (loopback, linklocal, uniquelocal).
+// Supports environments with multiple reverse proxies (e.g. Cloudflare -> Nginx -> Node)
+// by trusting the internal network's IPs and evaluating the X-Forwarded-For chain properly.
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
 // ─── Security Headers (Report §5: Cybersecurity Architecture) ───────────────
 // Helmet v8 sets HSTS, CSP, X-Frame-Options, X-Content-Type-Options by default.
@@ -281,12 +281,8 @@ function csrfProtection(
         return next();
     }
 
-    // JWT Bearer tokens are inherently CSRF-safe (not auto-attached like cookies).
-    // If the request uses Bearer auth, it's not vulnerable to CSRF.
-    const authHeader = req.headers['authorization'];
-    if (authHeader?.startsWith('Bearer ')) {
-        return next();
-    }
+    // JWTs are stored in HttpOnly cookies, not Bearer headers.
+    // SEC-006 FIX: Removed legacy 'Bearer' escape hatch which bypassed CSRF protection.
 
     // Development fallback: skip CSRF for X-User-Id header auth
     if (process.env['NODE_ENV'] === 'development' && req.headers['x-user-id']) {

@@ -124,6 +124,7 @@ export const projects = {
         gps_lng: number;
         address_text?: string;
         cover_image_url?: string;
+        images?: string[]; // P1-FIX-007: Added support for array of uploaded image URLs
     }) => request('/projects', { method: 'POST', body: JSON.stringify(data) }),
 
     assignEngineer: (projectId: string) =>
@@ -441,6 +442,20 @@ export const payments = {
         const q = qs.toString();
         return request(`/payments/my${q ? `?${q}` : ''}`);
     },
+};
+
+// ─── P1-FIX-007: Storage (Pre-signed Uploads) ──────────────────────────────
+export const storage = {
+    getUploadUrl: (data: {
+        project_id: string; // use 'pending' for pre-project workflows
+        category: 'proof' | 'boq' | 'capture' | 'floor_plan' | 'document' | 'avatar';
+        filename: string;
+        content_type: string;
+        file_size_bytes: number;
+    }) => request<{ upload_url: string; file_key: string; public_url: string; expires_at: string }>('/storage/upload-url', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
 };
 
 // ─── Matchmaking ────────────────────────────────────────────────────────────

@@ -159,9 +159,12 @@ router.post('/upload-url', async (req: Request, res: Response) => {
         }
 
         // SEC-001: Verify the user has access to this project before generating upload URL
-        const allowed = await hasProjectAccess(
+        // P1-FIX-007: 'pending' project_id allowed for pre-project wizards (e.g. Homeowner damage report)
+        const isPending = project_id === 'pending';
+        const allowed = isPending || await hasProjectAccess(
             getAuthUser(req).user_id, getAuthUser(req).role, project_id
         );
+        
         if (!allowed) {
             logger.warn('Storage: IDOR blocked — upload denied', { userId: getAuthUser(req).user_id, projectId: project_id });
             res.status(403).json({
