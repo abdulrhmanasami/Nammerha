@@ -444,19 +444,7 @@ export const payments = {
     },
 };
 
-// ─── P1-FIX-007: Storage (Pre-signed Uploads) ──────────────────────────────
-export const storage = {
-    getUploadUrl: (data: {
-        project_id: string; // use 'pending' for pre-project workflows
-        category: 'proof' | 'boq' | 'capture' | 'floor_plan' | 'document' | 'avatar';
-        filename: string;
-        content_type: string;
-        file_size_bytes: number;
-    }) => request<{ upload_url: string; file_key: string; public_url: string; expires_at: string }>('/storage/upload-url', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    }),
-};
+// Removed redundant storage export from here (moved to bottom)
 
 // ─── Matchmaking ────────────────────────────────────────────────────────────
 export const matchmaking = {
@@ -1436,6 +1424,18 @@ export const storage = {
         content_type: string;
         purpose?: string;
     }) => request<PresignResponse>('/storage/presign', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    /** POST /api/storage/upload-url — Get a pre-signed upload URL (P1-FIX-007) */
+    getUploadUrl: (data: {
+        project_id: string; // use 'pending' for pre-project workflows
+        category: 'proof' | 'boq' | 'capture' | 'floor_plan' | 'document' | 'avatar';
+        filename: string;
+        content_type: string;
+        file_size_bytes: number;
+    }) => request<{ upload_url: string; file_key: string; public_url: string; expires_at: string }>('/storage/upload-url', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
