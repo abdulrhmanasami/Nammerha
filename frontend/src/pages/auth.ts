@@ -19,17 +19,13 @@ import { updatePasswordStrength } from '../utils/password-strength';
 // P0-003 FIX: Full authentication UI with API integration
 // ============================================================================
 
-type UserRole = 'homeowner' | 'donor' | 'engineer' | 'supplier' | 'contractor' | 'tradesperson';
-
 interface AuthState {
     mode: 'login' | 'register';
-    selectedRole: UserRole | null;
     isSubmitting: boolean;
 }
 
 const state: AuthState = {
     mode: 'login',
-    selectedRole: null,
     isSubmitting: false,
 };
 

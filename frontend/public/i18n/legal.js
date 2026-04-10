@@ -149,7 +149,25 @@
         'refund_time_instant': { ar: 'فوري', de: 'Sofort', fr: 'Instantané', tr: 'Anında' },
         'refund_time_7d': { ar: '٧ أيام عمل', de: '7 Werktage', fr: '7 jours ouvrés', tr: '7 iş günü' },
         'refund_time_14d': { ar: '١٤ يوم عمل', de: '14 Werktage', fr: '14 jours ouvrés', tr: '14 iş günü' },
-        'refund_time_5_10': { ar: '٥-١٠ أيام عمل', de: '5–10 Werktage', fr: '5–10 jours ouvrés', tr: '5–10 iş günü' }
+        'refund_time_5_10': { ar: '٥-١٠ أيام عمل', de: '5–10 Werktage', fr: '5–10 jours ouvrés', tr: '5–10 iş günü' },
+        
+        // ═══ ABOUT PAGE MISSING KEYS ═══
+        'about_explore': { ar: 'استكشف', de: 'Entdecken', fr: 'Explorer', tr: 'Keşfet' },
+        'about_toc_story': { ar: 'قصتنا', de: 'Unsere Geschichte', fr: 'Notre histoire', tr: 'Hikayemiz' },
+        'about_toc_leadership': { ar: 'القيادة', de: 'Führung', fr: 'Direction', tr: 'Liderlik' },
+        'about_toc_approach': { ar: 'منهجيتنا', de: 'Unser Ansatz', fr: 'Notre approche', tr: 'Yaklaşımımız' },
+        'about_toc_trust': { ar: 'الثقة والامتثال', de: 'Vertrauen & Compliance', fr: 'Confiance & Conformité', tr: 'Güven & Uyum' },
+        'about_origin_desc': { ar: 'من مراقبة الفجوة الإنسانية إلى بناء نظام بيئي متكامل لإعادة الإعمار', de: 'Von der Beobachtung der humanitären Lücke zum Aufbau eines integrierten Wiederaufbau-Ökosystems', fr: 'De l\'observation du vide humanitaire à la construction d\'un écosystème de reconstruction intégré', tr: 'İnsani boşluğu gözlemlemekten entegre bir yeniden inşa ekosistemi kurmaya' },
+        'about_trust_stat1_label': { ar: 'شفافية مالية', de: 'Finanzielle Transparenz', fr: 'Transparence financière', tr: 'Finansal Şeffaflık' },
+        'about_trust_stat2_label': { ar: 'تسليمات موثقة', de: 'Dokumentierte Lieferungen', fr: 'Livraisons documentées', tr: 'Belgelenmiş Teslimatlar' },
+        'about_trust_stat3_label': { ar: 'معيار البيانات', de: 'Datenstandard', fr: 'Standard de données', tr: 'Veri Standardı' },
+        'about_trust_stat4_label': { ar: 'رسوم تبرع', de: 'Spendengebühren', fr: 'Frais de don', tr: 'Bağış Ücretleri' },
+        'about_trust_body': { ar: 'مسارنا التشغيلي مصمم تقنياً وتشريعياً للامتثال التام مع متطلبات ما بعد العقوبات الديناميكية والقوانين الدولية المنظمة للعمليات المالية — لضمان استمرارية الأعمال وحماية الشركاء والمانحين من أي مخاطر قانونية أو سمعية.', de: 'Unser operativer Pfad ist technisch und rechtlich so gestaltet, dass er den dynamischen Post-Sanktions-Anforderungen und den internationalen Gesetzen für Finanzoperationen vollständig entspricht — um die Geschäftskontinuität zu gewährleisten und Partner und Spender vor rechtlichen oder rufschädigenden Risiken zu schützen.', fr: 'Notre voie opérationnelle est conçue techniquement et légalement pour se conformer pleinement aux exigences post-sanctions dynamiques et aux lois internationales régissant les opérations financières — afin d\'assurer la continuité des affaires et de protéger les partenaires et les donateurs de tout risque légal ou de réputation.', tr: 'Operasyonel yolumuz, dinamik yaptırım sonrası taleplere ve finansal operasyonları düzenleyen uluslararası yasalara tam uyum sağlamak üzere teknik ve yasal olarak tasarlanmıştır — iş sürekliliğini sağlamak ve ortakları ve bağışçıları her türlü yasal ve itibari riskten korumak için.' },
+        'about_cta_title': { ar: 'رؤيتك في بناء عالم أكثر أماناً تبدأ من هنا', de: 'Ihre Vision für den Aufbau einer sichereren Welt beginnt hier', fr: 'Votre vision pour construire un monde plus sûr commence ici', tr: 'Daha güvenli bir dünya inşa etme vizyonunuz burada başlıyor' },
+        'about_cta_body': { ar: 'لأن مجتمعات تحمّلت الدمار تستحق أكثر من التعاطف — تستحق شريكاً يحوّل سخاءك إلى تغيير دائم وقابل للقياس. نحن نوفر الأدوات. أنت تصنع الأثر.', de: 'Weil Gemeinschaften, die Zerstörung überstanden haben, mehr als Mitleid verdienen — sie verdienen einen Partner, der Ihre Großzügigkeit in dauerhafte, messbare Veränderungen verwandelt. Wir stellen die Werkzeuge bereit. Sie schaffen die Wirkung.', fr: 'Parce que les communautés qui ont enduré la destruction méritent plus que de la sympathie — elles méritent un partenaire qui transforme votre générosité en changement durable et mesurable. Nous fournissons les outils. Vous créez l\'impact.', tr: 'Yıkıma göğüs geren topluluklar empatiden fazlasını hak eder — cömertliğinizi kalıcı, ölçülebilir değişime dönüştüren bir ortağı hak ederler. Biz araçları sağlıyoruz. Etkiyi siz yaratıyorsunuz.' },
+        'about_cta_btn1': { ar: 'موّل مشروعاً الآن', de: 'Jetzt ein Projekt finanzieren', fr: 'Financer un projet maintenant', tr: 'Şimdi Bir Proje Finansmanı' },
+        'about_cta_links_contact': { ar: 'تواصل معنا', de: 'Kontaktiere uns', fr: 'Contactez-nous', tr: 'Bize Ulaşın' },
+        'about_cta_links_pricing': { ar: 'خطط الشراكة', de: 'Partnerschaftspläne', fr: 'Plans de partenariat', tr: 'Ortaklık Planları' }
         });
     }
 })();

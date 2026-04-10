@@ -9,6 +9,7 @@
 // ============================================================================
 import { getAuthUser } from '../utils/auth-guard';
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
@@ -56,6 +57,23 @@ const VERIFICATION_TOKEN_EXPIRY_HOURS = 24;
 const RESET_TOKEN_EXPIRY_MINUTES = 60;
 // Resend verification rate limit (seconds)
 const RESEND_COOLDOWN_SECONDS = 60;
+
+// ─── PLT-SEC-004 FIX: Anti-DoS Rate Limiting ────────────────────────────────
+const verifyEmailLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // Limit each IP to 20 verification requests
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many verification attempts from this IP, please try again later.' } as ApiResponse
+});
+
+const sensitiveActionLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 sensitive requests (resend/forgot-password)
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many requests from this IP, please try again later.' } as ApiResponse
+});
 
 // SEC-FIELD-002 FIX: ReDoS-safe email validation. The original RFC 5322 pattern
 // had nested quantifiers `(?:...)*` causing catastrophic backtracking on crafted input.
@@ -428,7 +446,7 @@ router.post(
 );
 
 // ─── GET /api/auth/verify-email/:token ──────────────────────────────────────
-router.get('/verify-email/:token', async (req: Request, res: Response): Promise<void> => {
+router.get('/verify-email/:token', verifyEmailLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { token } = req.params;
         if (!token || token.length < 10) {
@@ -507,6 +525,7 @@ router.get('/verify-email/:token', async (req: Request, res: Response): Promise<
 // Now accepts email in body and does its own user lookup with rate limiting.
 router.post(
     '/resend-verification',
+    sensitiveActionLimiter,
     async (req: Request, res: Response): Promise<void> => {
         try {
             const { email } = req.body as { email?: string };
@@ -582,7 +601,7 @@ router.post(
 );
 
 // ─── POST /api/auth/forgot-password ─────────────────────────────────────────
-router.post('/forgot-password', async (req: Request, res: Response): Promise<void> => {
+router.post('/forgot-password', sensitiveActionLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { email } = req.body as { email: string };
 
@@ -639,7 +658,7 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
 });
 
 // ─── POST /api/auth/reset-password ──────────────────────────────────────────
-router.post('/reset-password', async (req: Request, res: Response): Promise<void> => {
+router.post('/reset-password', sensitiveActionLimiter, async (req: Request, res: Response): Promise<void> => {
     try {
         const { token, new_password } = req.body as {
             token: string;
