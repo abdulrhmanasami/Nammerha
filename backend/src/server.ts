@@ -27,6 +27,7 @@ dotenv.config();
 
 // Import middleware
 import { auditMiddleware } from './middleware/audit.middleware';
+import { idempotencyMiddleware } from './middleware/idempotency.middleware';
 
 // Import routes
 import projectRoutes from './routes/project.routes';
@@ -172,6 +173,7 @@ app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
 app.use(cookieParser());                           // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
 app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
 app.use(auditMiddleware);                          // Auto audit trail
+app.use(idempotencyMiddleware);                    // Titan Architect FIX: Idempotency enforcement
 
 // ─── Rate Limiting (MED-001) ────────────────────────────────────────────────
 const globalLimiter = rateLimit({

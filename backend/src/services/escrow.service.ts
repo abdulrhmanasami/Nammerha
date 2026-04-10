@@ -560,43 +560,55 @@ export async function processRefund(
 
         for (const match of matchResult.rows) {
             // Refund sponsor's escrow entry
-            await client.query(
+            const matchUpdateResult = await client.query(
                 `UPDATE escrow_ledger
                  SET payment_status = 'refunded', refunded_at = NOW(), updated_at = NOW()
-                 WHERE transaction_id = $1 AND payment_status = 'locked'`,
+                 WHERE transaction_id = $1 AND payment_status = 'locked'
+                 RETURNING transaction_id`,
                 [match.matched_escrow_id],
             );
 
-            // Reverse spent on matching program (atomic decrement)
-            const matchAmount = parseInt(match.match_amount, 10);
-            await client.query(
-                `UPDATE matching_programs
-                 SET spent = GREATEST(spent - $1, 0), updated_at = NOW()
-                 WHERE program_id = $2`,
-                [matchAmount, match.program_id],
-            );
+            // Titan Architect FIX: Silent De-sync Prevention
+            // Only decrement the matching program's spent budget IF the sponsor's
+            // escrow was genuinely locked and successfully updated to 'refunded'.
+            // If it was already released (rowCount === 0), do NOT artificially lower 'spent'.
+            if (matchUpdateResult.rowCount && matchUpdateResult.rowCount > 0) {
+                // Reverse spent on matching program (atomic decrement)
+                const matchAmount = parseInt(match.match_amount, 10);
+                await client.query(
+                    `UPDATE matching_programs
+                     SET spent = GREATEST(spent - $1, 0), updated_at = NOW()
+                     WHERE program_id = $2`,
+                    [matchAmount, match.program_id],
+                );
 
-            // Audit the reversal
-            await client.query(
-                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
-                 VALUES ('match_reversed', 'matching_pledges', $1, $2, $3)`,
-                [
-                    match.pledge_id,
-                    adminId,
-                    JSON.stringify({
-                        reason: 'donor_refund',
-                        original_escrow: req.escrow_id,
-                        sponsor_escrow: match.matched_escrow_id,
-                        match_amount: matchAmount,
-                    }),
-                ],
-            );
+                // Audit the reversal
+                await client.query(
+                    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                     VALUES ('match_reversed', 'matching_pledges', $1, $2, $3)`,
+                    [
+                        match.pledge_id,
+                        adminId,
+                        JSON.stringify({
+                            reason: 'donor_refund',
+                            original_escrow: req.escrow_id,
+                            sponsor_escrow: match.matched_escrow_id,
+                            match_amount: matchAmount,
+                        }),
+                    ],
+                );
 
-            logger.info('D-10: Matching pledge reversed due to refund', {
-                pledge_id: match.pledge_id,
-                program_id: match.program_id,
-                match_amount: matchAmount,
-            });
+                logger.info('D-10: Matching pledge reversed due to refund', {
+                    pledge_id: match.pledge_id,
+                    program_id: match.program_id,
+                    match_amount: matchAmount,
+                });
+            } else {
+                logger.warn('Titan Architect Alert: Skipped sponsor refund de-sync. Escrow already released.', {
+                    pledge_id: match.pledge_id,
+                    escrow_id: match.matched_escrow_id
+                });
+            }
         }
 
         // 3. Update refund request to 'processed'
