@@ -4005,3 +4005,37 @@ html[data-theme="dark"] .nm-dashboard-home-link {
     background-color: #25D366;
 }
 
+/* ============================================================================
+   PLAT-IOS-001 FIX: iPhone UX Architecture Traps
+   1) 14px Input Zoom: Apple WebKit instantly zooms viewport to 114% if input < 16px.
+   2) SafeArea Top: PWA translucent status bar causes header -> dynamic island collision.
+   3) SafeArea Bottom: Protects FABs and bottom navigation from indicator sweep.
+   Standard: Apple HIG (Web Apps) & Web Content Accessibility.
+   ============================================================================ */
+@supports (padding-top: env(safe-area-inset-top)) {
+    /* Auto-expand the fixed top-glass navigation */
+    .glass-nav, .page-header {
+        padding-top: calc(0.75rem + env(safe-area-inset-top)) !important;
+        min-height: calc(3.5rem + env(safe-area-inset-top)) !important;
+        height: auto !important;
+    }
+    /* Auto-push the main content grid below the newly expanded header */
+    .mobile-container, #main-content {
+        padding-top: calc(4.5rem + env(safe-area-inset-top)) !important;
+    }
+}
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    /* Lift bottom nav to avoid the iOS home swipe bar */
+    .nm-bottom-nav {
+        padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)) !important;
+        height: auto !important;
+    }
+}
+@media (pointer: coarse) {
+    /* Touch devices (Mobile/Tablet): Force inputs to 16px to disable Safari Auto-Zoom */
+    .nm-input, .nm-select, .nm-textarea, input[type="search"] {
+        font-size: 16px !important;
+    }
+}
+
+

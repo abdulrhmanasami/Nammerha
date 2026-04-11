@@ -304,34 +304,44 @@ router.post(
                 return;
             }
 
-            // SEC-002 + RED TEAM FIX: Check account lockout per (IP + email)
-            // Only the attacker's IP gets locked, not the entire account.
+            // SEC-002 + RED TEAM FIX: Independent check for IP and Email lockouts
+            // Splitting Email and IP trackers mitigates the rotating-proxy loop-hole.
             const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-            const lockoutScope = `${normalizedEmail}::${clientIp}`;
+            const emailScope = `email::${normalizedEmail}`;
+            const ipScope = `ip::${clientIp}`;
 
-            const lockoutResult = await query<{ failed_attempts: number; locked_until: Date | null }>(
-                `SELECT
-                    COALESCE((
-                        SELECT COUNT(*) FROM audit_trail
-                        WHERE entity_type = 'auth_failure'
-                          AND entity_id = $1
-                          AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
-                    ), 0)::int AS failed_attempts,
-                    (
-                        SELECT created_at + MAKE_INTERVAL(mins => $2)
-                        FROM audit_trail
-                        WHERE entity_type = 'auth_lockout'
-                          AND entity_id = $1
-                          AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
-                        ORDER BY created_at DESC LIMIT 1
-                    ) AS locked_until`,
-                [lockoutScope, LOCKOUT_DURATION_MINUTES]
-            );
+            const checkLockout = async (scope: string) => {
+                const res = await query<{ failed_attempts: number; locked_until: Date | null }>(
+                    `SELECT
+                        COALESCE((
+                            SELECT COUNT(*) FROM audit_trail
+                            WHERE entity_type = 'auth_failure'
+                              AND entity_id = $1
+                              AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
+                        ), 0)::int AS failed_attempts,
+                        (
+                            SELECT created_at + MAKE_INTERVAL(mins => $2)
+                            FROM audit_trail
+                            WHERE entity_type = 'auth_lockout'
+                              AND entity_id = $1
+                              AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
+                            ORDER BY created_at DESC LIMIT 1
+                        ) AS locked_until`,
+                    [scope, LOCKOUT_DURATION_MINUTES]
+                );
+                return res.rows[0];
+            };
 
-            const lockout = lockoutResult.rows[0];
-            if (lockout?.locked_until && new Date(lockout.locked_until) > new Date()) {
+            const [emailLockout, ipLockout] = await Promise.all([
+                checkLockout(emailScope),
+                checkLockout(ipScope)
+            ]);
+
+            const activeLockout = [emailLockout, ipLockout].find(l => l?.locked_until && new Date(l.locked_until) > new Date());
+            
+            if (activeLockout?.locked_until) {
                 const minutesLeft = Math.ceil(
-                    (new Date(lockout.locked_until).getTime() - Date.now()) / 60_000
+                    (new Date(activeLockout.locked_until).getTime() - Date.now()) / 60_000
                 );
                 res.status(429).json({
                     success: false,
@@ -343,32 +353,33 @@ router.post(
             // Verify password
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
             if (!isPasswordValid) {
-                // SEC-002 + RED TEAM: Record failed attempt scoped to (IP + email)
-                await query(
-                    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
-                     VALUES ('login_failed', 'auth_failure', $1, NULL, $2)`,
-                    [lockoutScope, JSON.stringify({
-                        email: normalizedEmail,
-                        ip: clientIp,
-                        timestamp: new Date().toISOString(),
-                    })]
-                );
-
-                // Check if this failure triggers lockout for this IP
-                const newCount = (lockout?.failed_attempts ?? 0) + 1;
-                if (newCount >= MAX_FAILED_ATTEMPTS) {
+                // Independent failure logging and lockout handling
+                const recordFailureAndLockIfOverLimit = async (scope: string, currentAttempts: number) => {
                     await query(
                         `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
-                         VALUES ('account_locked', 'auth_lockout', $1, NULL, $2)`,
-                        [lockoutScope, JSON.stringify({
-                            email: normalizedEmail,
-                            ip: clientIp,
-                            reason: `${MAX_FAILED_ATTEMPTS} consecutive failed login attempts from IP ${clientIp}`,
-                            duration_minutes: LOCKOUT_DURATION_MINUTES,
-                        })]
+                         VALUES ('login_failed', 'auth_failure', $1, NULL, $2)`,
+                        [scope, JSON.stringify({ email: normalizedEmail, ip: clientIp, timestamp: new Date().toISOString() })]
                     );
-                    logger.warn('Auth: IP locked due to failed attempts', { ip: clientIp, email: normalizedEmail, maxAttempts: MAX_FAILED_ATTEMPTS });
-                }
+                    const newCount = currentAttempts + 1;
+                    if (newCount >= MAX_FAILED_ATTEMPTS) {
+                        await query(
+                            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                             VALUES ('account_locked', 'auth_lockout', $1, NULL, $2)`,
+                            [scope, JSON.stringify({
+                                email: normalizedEmail,
+                                ip: clientIp,
+                                reason: `${MAX_FAILED_ATTEMPTS} consecutive failed login attempts on ${scope}`,
+                                duration_minutes: LOCKOUT_DURATION_MINUTES,
+                            })]
+                        );
+                        logger.warn(`Auth: Scope locked due to failed attempts`, { scope, maxAttempts: MAX_FAILED_ATTEMPTS });
+                    }
+                };
+
+                await Promise.all([
+                    recordFailureAndLockIfOverLimit(emailScope, emailLockout?.failed_attempts ?? 0),
+                    recordFailureAndLockIfOverLimit(ipScope, ipLockout?.failed_attempts ?? 0)
+                ]);
 
                 res.status(401).json({
                     success: false,

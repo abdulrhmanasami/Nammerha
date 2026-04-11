@@ -71,8 +71,13 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
       MINIO_BROWSER_REDIRECT_URL: ''
+      MINIO_SERVER_URL: 'https://nammerha-minio:9000'
     volumes:
       - nammerha-minio-data:/data
+      # SEC-005 FIX: Mount staging certificates for HTTPS Zero-Trust. MinIO automatically
+      # boots in HTTPS mode once it detects public.crt and private.key.
+      - ./database/tls/certs/server.crt:/root/.minio/certs/public.crt:ro
+      - ./database/tls/certs/server.key:/root/.minio/certs/private.key:ro
     ports:
       # API port (S3 protocol) — localhost only for security
       - '127.0.0.1:9010:9000'
@@ -175,7 +180,8 @@ services:
       - STORAGE_PROVIDER=minio
       - STORAGE_BUCKET=${STORAGE_BUCKET:-nammerha-uploads}
       - STORAGE_REGION=us-east-1
-      - STORAGE_ENDPOINT=http://nammerha-minio:9000
+      # SEC-005 FIX: Zero-Trust. Enforce HTTPS over bridge network.
+      - STORAGE_ENDPOINT=https://nammerha-minio:9000
       - STORAGE_ACCESS_KEY=${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
       - STORAGE_SECRET_KEY=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
       - STORAGE_PUBLIC_URL=${STORAGE_PUBLIC_URL:-}
@@ -183,9 +189,10 @@ services:
       # ── SMTP Relay (self-hosted Postfix on nammerha-net) ────────
       - SMTP_HOST=${SMTP_HOST:-nammerha-smtp}
       - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASS=${SMTP_PASS:-}
-      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-noreply@nammerha.com}
+      - SMTP_PASS=${SMTP_PASS:-default_secure_pass!2026}
+      # SEC-005 FIX: Zero-Trust. Nodemailer explicitly rejects unencrypted handshakes.
+      - SMTP_SECURE=true
       - SMTP_FROM=${SMTP_FROM:-noreply@nammerha.com}
       # ── Email Verification / Password Reset ────────────────────
       - APP_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}
@@ -249,6 +256,11 @@ services:
       # DKIM signing (auto-generated on first start)
       - DKIM_AUTOGENERATE=true
       - DKIM_SELECTOR=default
+      # SEC-003: Enforce SASL authentication for internal subnet relaying
+      - SMTPD_SASL_USERS=${SMTP_USER:-noreply@nammerha.com}:${SMTP_PASS:-default_secure_pass!2026}
+      # SEC-004 FIX: Zero-Trust Intranet. Enforce TLS on port 587 to encrypt
+      # bridge traffic (MFA tokens/Pass resets), preventing lateral packet sniffing.
+      - SMTPD_USE_TLS=yes
     volumes:
       - smtp-dkim-keys:/etc/opendkim/keys
     networks:
