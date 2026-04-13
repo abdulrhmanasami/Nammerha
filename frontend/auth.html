@@ -194,7 +194,10 @@
       <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
            not page navigation targets. aria-label describes the group purpose.
            Standard: WAI-ARIA Best Practices, WCAG 1.3.1 (Info & Relationships). -->
-      <div class="flex items-center justify-center gap-0 mb-2" role="group" aria-label="Registration progress">
+      <!-- BUG-004 FIX: Added nm-step-track class — was raw Tailwind flex/gap utilities
+           without the nm-step-indicator/nm-step-num/nm-step-label CSS system defined.
+           Result was all text rendered inline: "Confirm 3Security 2Identity 1". -->
+      <div class="nm-step-track" role="group" aria-label="Registration progress">
         <!-- INC-2026-008 FIX: aria-current="step" for screen reader step identification.
              Standard: WAI-ARIA Best Practices, WCAG 4.1.2 (Name, Role, Value). -->
         <div class="nm-step-indicator active" data-step-dot="1" aria-current="step">

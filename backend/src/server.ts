@@ -283,6 +283,17 @@ function csrfProtection(
         return next();
     }
 
+    // BUG-003 FIX: Skip CSRF for browser telemetry reporters.
+    // These are fire-and-forget endpoints called by window.onerror and the
+    // browser's built-in CSP violation reporter — neither can attach a CSRF
+    // token (no cookie jar access in violation reports; onerror fires before
+    // the app fully boots). They are read-only side-effect endpoints (logging
+    // only) with their own strict rate limiting, making CSRF risk negligible.
+    // Standard: W3C CSP Level 3 §7.4 (violation reporting), Browser Security.
+    if (req.path === '/client-errors' || req.path === '/csp-report') {
+        return next();
+    }
+
     // JWTs are stored in HttpOnly cookies, not Bearer headers.
     // SEC-006 FIX: Removed legacy 'Bearer' escape hatch which bypassed CSRF protection.
 

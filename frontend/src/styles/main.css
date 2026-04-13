@@ -1819,6 +1819,157 @@ html[data-theme="dark"] .nm-toast {
     margin: 0;
 }
 
+/* ============================================================================
+   BUG-004 FIX: Registration Wizard Stepper — Complete CSS Component System
+   ROOT CAUSE: .nm-step-indicator, .nm-step-num, .nm-step-label and
+   .nm-step-line had ZERO CSS definitions. Browser rendered all child text
+   nodes inline, producing garbled output: "Confirm 3Security 2Identity 1".
+   STANDARD: P1-SST-001 (CSS Single Source of Truth), WCAG 1.4.3 (Contrast),
+   Apple HIG (Progress Indicators), RTL-safe Logical Properties.
+   ============================================================================ */
+
+/* Step container — horizontal progress track */
+.nm-step-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 0;
+    margin-block-end: 2rem;
+}
+
+/* Individual step dot + label wrapper */
+.nm-step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Step circle number */
+.nm-step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 2px solid var(--border-light, rgba(0,0,0,0.1));
+    background: var(--bg-card, #ffffff);
+    color: var(--text-muted, #94a3b8);
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+                box-shadow 0.25s ease;
+}
+
+/* Step label below circle */
+.nm-step-label {
+    font-size: 0.6875rem; /* 11px — compact below the circle */
+    font-weight: 500;
+    color: var(--text-muted, #94a3b8);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1;
+    transition: color 0.25s ease;
+    /* Prevent any inherited block layout from garbling inline siblings */
+    display: block;
+}
+
+/* Connecting line between steps */
+.nm-step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border-light, rgba(0,0,0,0.1));
+    margin-inline: 4px;
+    transition: background 0.3s ease;
+    position: relative;
+    z-index: 0;
+}
+
+/* ── Active step ────────────────────────────────────────── */
+.nm-step-indicator.active .nm-step-num {
+    background: var(--trust-blue, #1a73e8);
+    color: #ffffff;
+    border-color: var(--trust-blue, #1a73e8);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--trust-blue, #1a73e8) 15%, transparent);
+}
+.nm-step-indicator.active .nm-step-label {
+    color: var(--trust-blue, #1a73e8);
+    font-weight: 600;
+}
+
+/* ── Completed step ─────────────────────────────────────── */
+.nm-step-indicator.completed .nm-step-num {
+    background: var(--smoky-jade, #109173);
+    color: #ffffff;
+    border-color: var(--smoky-jade, #109173);
+}
+.nm-step-indicator.completed .nm-step-label {
+    color: var(--smoky-jade, #109173);
+}
+
+/* ── Completed line ─────────────────────────────────────── */
+/* DT-03 FIX: Specificity (0,2,0) overrides base (0,1,0). No !important needed. */
+.nm-step-line.nm-step-line--completed { background: var(--smoky-jade, #109173); }
+
+/* ── Dark mode ──────────────────────────────────────────── */
+html[data-theme="dark"] .nm-step-num {
+    background: var(--bg-card, rgba(255,255,255,0.06));
+    border-color: rgba(255,255,255,0.12);
+    color: var(--text-muted, #64748b);
+}
+html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
+    background: var(--trust-blue, #1a73e8);
+    border-color: var(--trust-blue, #1a73e8);
+    color: #ffffff;
+}
+html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
+    background: var(--smoky-jade, #109173);
+    border-color: var(--smoky-jade, #109173);
+    color: #ffffff;
+}
+html[data-theme="dark"] .nm-step-line {
+    background: rgba(255,255,255,0.10);
+}
+
+/* ── Back button (wizard navigation) ───────────────────── */
+/* INC-2026-004 FIX: Replaces 105+ chars of Tailwind inline classes. */
+.nm-step-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--border-light, rgba(0,0,0,0.1));
+    border-radius: var(--radius-md, 8px);
+    background: transparent;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.nm-step-back:hover {
+    background: var(--bg-subtle, rgba(0,0,0,0.04));
+    border-color: var(--border-medium, rgba(0,0,0,0.15));
+    color: var(--text-primary, #334155);
+}
+html[data-theme="dark"] .nm-step-back {
+    border-color: rgba(255,255,255,0.10);
+    color: var(--text-muted, #94a3b8);
+}
+html[data-theme="dark"] .nm-step-back:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.18);
+    color: var(--text-secondary, #cbd5e1);
+}
+/* ── RTL support ───────────────────────────────────────── */
+[dir="rtl"] .nm-step-back i { transform: scaleX(-1); }
+
 /* P1-SOV-01 FIX: Body scroll lock for overlay components (search, modals).
    Previous: document.body.style.overflow = 'hidden' — inline style fights CSS !important.
    Now: classList.add('nm-scroll-locked') — declarative and cascade-safe.

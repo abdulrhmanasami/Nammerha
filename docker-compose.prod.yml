@@ -233,6 +233,50 @@ services:
     tmpfs:
       - /tmp:size=32M
 
+  # ── Tile Server: Self-Hosted Map Tiles (Sovereign Geospatial) ────────
+  # FIX-2: Added missing tileserver-gl service — root cause of all /styles/,
+  # /tiles/, /data/ 502 Bad Gateway errors. Nginx on Cloud forwards these paths
+  # to 10.99.0.1:8088 (WireGuard tunnel to Metal). This service listens on
+  # 127.0.0.1:8088 and serves the OpenMapTiles-compatible MBTiles file for Syria.
+  #
+  # ── Setup (first deploy only) ───────────────────────────────────────────
+  # Place the Syria MBTiles file in the named volume before starting:
+  #   docker run --rm -v nammerha-tiles:/tiles alpine sh -c \
+  #     "wget -O /tiles/syria.mbtiles <MBTILES_URL>"
+  # Then create /opt/nammerha-backend/tiles/config.json:
+  #   {"data":{"syria":{"mbtiles":"/tiles/syria.mbtiles"}}}
+  #
+  # ── Style ───────────────────────────────────────────────────────────────
+  # Uses the OpenMapTiles default styles (basic, dark) bundled in the image.
+  # Future: mount custom Nammerha brand styles via /app/styles/ volume.
+  nammerha-tileserver:
+    image: maptiler/tileserver-gl:latest
+    container_name: nammerha-tileserver
+    restart: unless-stopped
+    command: ["--config", "/tiles/config.json", "--port", "8080"]
+    volumes:
+      - nammerha-tiles:/tiles
+    ports:
+      - '127.0.0.1:8088:8080'
+    networks:
+      - nammerha-net
+    labels:
+      - 'com.nammerha.project=nammerha'
+      - 'com.nammerha.component=tileserver'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8080/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.50'
+    security_opt:
+      - no-new-privileges:true
+
   # ── SMTP Relay: Self-Hosted Postfix (OPS-2) ──────────────────────────
   # Zero external email service dependency — runs entirely on your own server.
   # Backend reaches this container at nammerha-smtp:587 on nammerha-net.
@@ -241,6 +285,7 @@ services:
   #   TXT  nammerha.com          "v=spf1 ip4:91.98.182.... -all"     ✅ Done
   #   TXT  _dmarc.nammerha.com   "v=DMARC1; p=quarantine; ..."       ✅ Done
   #   TXT  default._domainkey... "v=DKIM1; h=sha256; ..."            ✅ Done
+
   nammerha-smtp:
     image: boky/postfix:latest
     container_name: nammerha-smtp
@@ -286,6 +331,9 @@ volumes:
     name: nammerha-minio-data
   smtp-dkim-keys:
     name: smtp-dkim-keys
+  # FIX-2: Syria MBTiles data volume for self-hosted tileserver-gl
+  nammerha-tiles:
+    name: nammerha-tiles
 
 networks:
   nammerha-net:
