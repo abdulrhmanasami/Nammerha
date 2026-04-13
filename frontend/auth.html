@@ -188,7 +188,7 @@
          Standard: Miller's Law (7±2), Progressive Disclosure, Material Design 3,
          Nielsen #6 (Recognition over Recall), Apple HIG (Multi-Step Forms). -->
     <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-    <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10 hidden" novalidate>
+    <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10 nm-hidden" novalidate>
 
       <!-- ─── Stepper Indicator ─────────────────────────── -->
       <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
@@ -246,7 +246,7 @@
       </fieldset>
 
       <!-- ─── STEP 2: Security ─────────────────────────── -->
-      <fieldset class="nm-step-panel hidden" data-reg-step="2">
+      <fieldset class="nm-step-panel nm-hidden" data-reg-step="2">
         <legend class="sr-only" data-i18n="reg_legend_security">Step 2: Create a Password</legend>
         <!-- Password -->
         <div class="mb-4">
@@ -316,7 +316,7 @@
       </fieldset>
 
       <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
-      <fieldset class="nm-step-panel hidden" data-reg-step="3">
+      <fieldset class="nm-step-panel nm-hidden" data-reg-step="3">
         <legend class="sr-only" data-i18n="reg_legend_consent">Step 3: Review and Agree</legend>
         <!-- Multi-Role Architecture note -->
         <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
