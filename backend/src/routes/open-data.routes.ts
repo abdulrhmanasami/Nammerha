@@ -8,6 +8,7 @@ import { requireRole } from '../middleware/role-guard.middleware';
 import * as openData from '../services/open-data.service';
 import { exportProjectsPDF, exportProjectsExcel } from '../services/report-export.service';
 import { safeRouteError } from '../utils/safe-error';
+import { cacheResponse } from '../middleware/cache.middleware';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -18,7 +19,7 @@ const router = Router();
 // ═════════════════════════════════════════════════════════════════════════════
 
 // ─── GET /api/open-data/projects — List Published Projects ──────────────────
-router.get('/projects', async (req: Request, res: Response) => {
+router.get('/projects', cacheResponse(30), async (req: Request, res: Response) => {
     try {
         // P2-PAG-002 FIX: Clamp public pagination to prevent DoS via massive DB queries.
         const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 20, 100);
@@ -79,7 +80,7 @@ router.get('/schema', (_req: Request, res: Response) => {
 });
 
 // ─── GET /api/open-data/stats — Platform Statistics ─────────────────────────
-router.get('/stats', async (_req: Request, res: Response) => {
+router.get('/stats', cacheResponse(60), async (_req: Request, res: Response) => {
     try {
         const stats = await openData.getPlatformStats();
 

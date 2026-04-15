@@ -267,4 +267,17 @@ async function gracefulShutdown(signal: string): Promise<void> {
 process.on('SIGTERM', () => { gracefulShutdown('SIGTERM'); });
 process.on('SIGINT', () => { gracefulShutdown('SIGINT'); });
 
+// PLATINUM STANDARD FIX: Prevent sudden exits from unhandled errors, ensuring APM logs them before clean termination.
+process.on('uncaughtException', (err: Error) => {
+    logger.error('CRITICAL: Uncaught Exception', { error: err.message, stack: err.stack });
+    gracefulShutdown('uncaughtException').catch(() => process.exit(1));
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+    const message = reason instanceof Error ? reason.message : String(reason);
+    const stack = reason instanceof Error ? reason.stack : undefined;
+    logger.error('CRITICAL: Unhandled Promise Rejection', { error: message, stack });
+    gracefulShutdown('unhandledRejection').catch(() => process.exit(1));
+});
+
 export default app;

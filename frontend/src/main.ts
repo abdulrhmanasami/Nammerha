@@ -105,12 +105,15 @@ function buildProjectCard(project: ProjectCard, index: number): string {
     const icon = damageIcons[project.damage_type] ?? 'building-office';
     const delay = `--anim-delay:${index * 0.1}s`;
 
+    // PLATINUM UX FIX: Strict typeguarding replaces unsafe `as unknown` hack
+    const region = typeof (project as any).region === 'string' ? (project as any).region : '';
+    
     // UXA-027 FIX: snap-start snap-always → magnetic card snapping during swipe.
     return `
-    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up snap-start snap-always" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml((project as unknown as Record<string, string>).region ?? '')}">
+    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up snap-start snap-always" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml(region)}">
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
-            ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" loading="lazy" />`
+            ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" fetchpriority="high" decoding="async" style="aspect-ratio: 16/9; background-color: #f1f5f9;" />`
             : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48" aria-hidden="true"></i></div>`}
         <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm nm-badge-pos-end dark:bg-[#1e1e1e]/90">
           <i class="ph ph-seal-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
@@ -160,6 +163,8 @@ async function loadFeaturedProjects(): Promise<void> {
             // P2-I18N-TIMING FIX: Explicitly translate dynamic card content now,
             // don't rely solely on MutationObserver which may have timing gaps.
             applyI18n();
+            // Store fallback in case of future network interruption
+            try { sessionStorage.setItem('fallback_featured_projects', carousel.innerHTML); } catch (e) { /* ignore */ }
         } else {
             // NMR-AUD-H002 FIX: Show empty state instead of infinite skeleton.
             // Previous code kept the skeleton visible when API returned empty data.
@@ -171,10 +176,17 @@ async function loadFeaturedProjects(): Promise<void> {
     } catch (err) {
         reportWarning('[Dashboard] Featured projects load failed, keeping static fallback', { component: 'main', action: 'load_featured', error: err instanceof Error ? err.message : String(err) });
         // UXA-013 FIX: Show user-visible error state instead of infinite skeleton pulse.
-        // Previous: skeleton looped forever — user sees permanent "loading" with no escape.
-        // Standard: Nielsen #1 (System Status), Error Recovery, Sustainable UX (2G/3G).
+        // PLATINUM UX FIX: Circuit Breaker - Render cached HTML if exists gracefully
+        const cachedHtml = sessionStorage.getItem('fallback_featured_projects');
         const skeleton = document.getElementById('projects-skeleton');
         if (skeleton) { skeleton.remove(); }
+        
+        if (cachedHtml) {
+            carousel.innerHTML = cachedHtml;
+            reportWarning('[Dashboard] Featured projects loaded from Circuit Breaker Cache', { component: 'main', action: 'load_featured' });
+            return;
+        }
+
         carousel.innerHTML = `
             <div class="w-full py-8 text-center snap-start">
                 <i class="ph ph-cloud-slash text-slate-300 nm-icon-40" aria-hidden="true"></i>
@@ -261,6 +273,21 @@ function initDashboard(): void {
 
     // FRC-005 FIX: Platform-wide search (Cmd/Ctrl+K)
     initSearch();
+    
+    // PLATINUM UX FIX: Dynamic Glass Nav Blur
+    initGlassNavScroll();
+}
+
+function initGlassNavScroll(): void {
+    const nav = document.querySelector('.glass-nav');
+    if (!nav) return;
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 10) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    }, { passive: true });
 }
 
 // Initialize when DOM is ready
@@ -273,6 +300,9 @@ if (document.readyState === 'loading') {
 // ─── F-001 FIX: Progressive Disclosure via Scroll Reveal ─────────────────────
 // Previous: all homepage content rendered at once (3-4 scrolls of content).
 // Now: sections start invisible and smoothly reveal as they enter the viewport.
+// PLATINUM UX FIX: WeakMap garbage collection prevents Memory Leaks.
+const observerRegistry = new WeakMap<HTMLElement, boolean>();
+
 function initScrollReveal(): void {
     const sections = document.querySelectorAll<HTMLElement>('.scroll-reveal');
     if (sections.length === 0 || !('IntersectionObserver' in window)) {
@@ -283,14 +313,19 @@ function initScrollReveal(): void {
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
+            if (entry.isIntersecting && !observerRegistry.has(entry.target as HTMLElement)) {
                 entry.target.classList.add('scroll-revealed');
+                observerRegistry.set(entry.target as HTMLElement, true);
                 observer.unobserve(entry.target); // Only reveal once
             }
         });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-    sections.forEach(section => observer.observe(section));
+    sections.forEach(section => {
+        if (!observerRegistry.has(section)) {
+            observer.observe(section);
+        }
+    });
 }
 
 // ─── P2-UX-001: Role-Aware Quick Actions ─────────────────────────────────────

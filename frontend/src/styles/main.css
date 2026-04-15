@@ -442,6 +442,8 @@ th, td {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
 }
 .scroll-reveal.scroll-revealed {
   opacity: 1;
@@ -502,6 +504,34 @@ html[data-theme="dark"] :focus-visible {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+/* ─── Premium Shimmer Skeletons (Platinum Certification) Override ─────────── */
+@keyframes premium-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-pulse {
+  animation: none !important;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--surface-soft) !important;
+}
+.animate-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+  animation: premium-shimmer 1.5s infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+html[data-theme="dark"] .animate-pulse {
+  background-color: var(--dark-border) !important;
+}
+html[data-theme="dark"] .animate-pulse::after {
+  background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+}
+
 /* PERF-02 FIX: Removed duplicate RTL icon-flipping rules.
    Canonical source: i18n.css §6.1 (lines 214-222).
    Duplicate rules caused double-specificity and wasted CSS parse time. */
@@ -558,6 +588,13 @@ html[data-theme="dark"] :focus-visible {
     border: 1px solid var(--border-light);
     box-shadow: var(--shadow-glass);
     border-radius: var(--radius-md);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+    will-change: transform;
+  }
+  .glass-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(26, 115, 232, 0.15);
+    border-color: rgba(26, 115, 232, 0.3);
   }
 
   .glass-card-active {
@@ -566,10 +603,17 @@ html[data-theme="dark"] :focus-visible {
   }
 
   .glass-nav {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease;
+  }
+  .glass-nav.scrolled {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 
   .glass-sheet {
@@ -605,7 +649,7 @@ html[data-theme="dark"] :focus-visible {
     background-color: var(--trust-blue-hover);
   }
   .btn-primary:active {
-    transform: scale(0.98);
+    transform: scale(0.96);
   }
 
   .btn-secondary {
@@ -625,6 +669,10 @@ html[data-theme="dark"] :focus-visible {
   }
   .btn-secondary:hover {
     background-color: rgba(26, 115, 232, 0.15);
+    transform: translateY(-1px);
+  }
+  .btn-secondary:active {
+    transform: scale(0.96);
   }
 
   .btn-jade {

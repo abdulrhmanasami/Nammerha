@@ -5,6 +5,7 @@ import { Router, Request, Response } from 'express';
 import * as crowdfundingService from '../services/crowdfunding.service';
 import * as supplierService from '../services/supplier.service';
 import { safeRouteError } from '../utils/safe-error';
+import { cacheResponse } from '../middleware/cache.middleware';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -12,7 +13,7 @@ const router = Router();
 // Marketplace routes are public (no auth required for browsing)
 
 // ─── GET /api/marketplace/projects — Browse Published Projects ──────────────
-router.get('/projects', async (req: Request, res: Response) => {
+router.get('/projects', cacheResponse(30), async (req: Request, res: Response) => {
     try {
         // PLT-AUDIT-001 FIX: Forward pagination params to prevent unbounded result sets.
         const limit = req.query['limit'] ? parseInt(String(req.query['limit']), 10) : undefined;
