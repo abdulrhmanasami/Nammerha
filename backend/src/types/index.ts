@@ -312,6 +312,7 @@ export interface SubmitSpatialProofDTO {
     image_url: string;
     description?: string;
     device_info?: Record<string, unknown>;
+    client_hash?: string;
 }
 
 export interface ReleaseEscrowDTO {
