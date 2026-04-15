@@ -24,7 +24,9 @@
   <!-- INC-NEW-02 FIX: Arabic font preload — was missing on this dashboard page.
        All consumer pages preload IBM Plex Sans Arabic for first-paint performance.
        Standard: Performance consistency, FOUT prevention. -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <meta property="og:title" content="Contractor Dashboard — Nammerha" />
   <meta property="og:description" content="Contractor portal for managing assigned projects, spatial proofs, competitive bids, and escrow payments." />

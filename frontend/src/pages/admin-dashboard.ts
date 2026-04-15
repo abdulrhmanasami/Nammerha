@@ -21,28 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
 
     initTimestamp();
-    initNotificationBell();
     loadKPIs();
     loadProjects();
     loadAuditTrail();
 });
 
-/* GAP-ADM-003 FIX: Notification bell scroll handler.
-   Bell button has data-scroll-target="section-audit-trail".
-   Clicks smooth-scroll to the target element.
-   Standard: Nielsen #4 (Consistency). */
-function initNotificationBell(): void {
-    const bell = document.getElementById('notification-bell');
-    if (!bell) { return; }
-    bell.addEventListener('click', () => {
-        const targetId = bell.getAttribute('data-scroll-target');
-        if (!targetId) { return; }
-        const target = document.getElementById(targetId);
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    });
-}
 
 // ─── Live Timestamp ─────────────────────────────────────────────────────────
 function initTimestamp(): void {

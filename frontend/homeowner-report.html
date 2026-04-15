@@ -23,7 +23,9 @@
   <meta name="robots" content="noindex, nofollow" />
   <!-- GAP-A04 FIX: IBM Plex Sans Arabic preload — was missing on this page.
        All other pages preload this critical Arabic font for rendering performance. -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/homeowner-report.ts"></script>
   <!-- GAP-010 FIX: OG/Twitter meta for damage report sharing -->

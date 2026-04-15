@@ -20,7 +20,9 @@
   <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <meta property="og:title" content="Profile — Nammerha" />
   <meta property="og:description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />

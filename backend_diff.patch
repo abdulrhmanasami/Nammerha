@@ -1,0 +1,410 @@
+diff --git a/backend/src/server.ts b/backend/src/server.ts
+index c746dd72..1d022afe 100644
+--- a/backend/src/server.ts
++++ b/backend/src/server.ts
+@@ -7,6 +7,10 @@
+ //   Path 2: Donor → Escrow (itemized crowdfunding)
+ //   Path 3: Execution → Spatial Proof (GPS-verified delivery)
+ //   Path 4: Release → Notify (escrow release, donor notification)
++//
++// IMP-004 Refactor: Rate limiters → middleware/rate-limiters.ts
++//                   CSRF protection → middleware/csrf.middleware.ts
++//                   Route registration → routes/index.ts
+ // ============================================================================
+ 
+ // ── APM MUST be initialized FIRST (before all other imports) ────────────────
+@@ -18,57 +22,27 @@ import express from 'express';
+ import cors from 'cors';
+ import helmet from 'helmet';
+ import dotenv from 'dotenv';
+-import rateLimit from 'express-rate-limit';
+-import { logger } from './utils/logger';
++import * as path from 'path';
++import { readFileSync } from 'fs';
+ import cookieParser from 'cookie-parser';
++import { logger } from './utils/logger';
+ 
+ // Load environment variables
+ dotenv.config();
+ 
+-// Import middleware
++// Middleware
+ import { auditMiddleware } from './middleware/audit.middleware';
+ import { idempotencyMiddleware } from './middleware/idempotency.middleware';
++import { globalLimiter } from './middleware/rate-limiters';
++import { csrfProtection, csrfTokenRateLimiter, csrfTokenHandler } from './middleware/csrf.middleware';
++
++// Route registry
++import { registerRoutes } from './routes/index';
+ 
+-// Import routes
+-import projectRoutes from './routes/project.routes';
+-import marketplaceRoutes from './routes/marketplace.routes';
+-import donationRoutes from './routes/donation.routes';
+-import spatialProofRoutes from './routes/spatial-proof.routes';
+-import adminRoutes from './routes/admin.routes';
+-import notificationRoutes from './routes/notification.routes';
+-import paymentRoutes from './routes/payment.routes';
+-import authRoutes from './routes/auth.routes';
+-import matchmakingRoutes from './routes/matchmaking.routes';
+-import epaOracleRoutes from './routes/epa-oracle.routes';
+-import dashboardRoutes from './routes/project-dashboard.routes';
+-import realityCaptureRoutes from './routes/reality-capture.routes';
+-import openDataRoutes from './routes/open-data.routes';
+-import complianceRoutes from './routes/compliance.routes';
+-import translationRoutes from './routes/translation.routes';
+-import storageRoutes from './routes/storage.routes';
+-import supplierRoutes from './routes/supplier.routes';
+-import engineerRoutes from './routes/engineer.routes';
+-import contractorRoutes from './routes/contractor.routes';
+-import tradespersonRoutes from './routes/tradesperson.routes';
+-import homeownerRoutes from './routes/homeowner.routes';
+-import donorRoutes from './routes/donor.routes';
+-import routingRoutes from './routes/routing.routes';
+-import spatialRoutes from './routes/spatial.routes';
++// Locale pages middleware (handles /:locale/:page SSR)
+ import localeRouter from './middleware/locale-pages.middleware';
+-import adminStatsRoutes from './routes/admin-stats.routes';
+-import apiKeysRoutes from './routes/api-keys.routes';
+-import contactRoutes from './routes/contact.routes';
+-import clientErrorRoutes from './routes/client-error.routes';
+-import cspReportRoutes from './routes/csp-report.routes';
+-import roleRoutes from './routes/role.routes';
+-import reviewRoutes from './routes/review.routes';
+-import privacyRoutes from './routes/privacy.routes';
+-import impactRoutes from './routes/impact.routes';
+-import monetizationRoutes from './routes/monetization.routes';
+-import subscriptionRoutes from './routes/subscription.routes';
+-import enterpriseRoutes from './routes/enterprise.routes';
+-import * as path from 'path';
+-import { readFileSync } from 'fs';
++
++// Background jobs
+ import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
+ 
+ // P3-AUD-NEW-002 FIX: Dynamic version from package.json instead of hardcoded '1.0.0'
+@@ -176,172 +150,10 @@ app.use(auditMiddleware);                          // Auto audit trail
+ app.use(idempotencyMiddleware);                    // Titan Architect FIX: Idempotency enforcement
+ 
+ // ─── Rate Limiting (MED-001) ────────────────────────────────────────────────
+-const globalLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,   // 15 minutes
+-    max: 100,                    // 100 requests per window per IP
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many requests. Please try again later.' },
+-});
+ app.use('/api', globalLimiter);
+ 
+-// Stricter limiter for auth endpoints (brute-force protection)
+-const authLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 10,                     // 10 login/register attempts per 15 min
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many authentication attempts. Please wait 15 minutes.' },
+-});
+-
+-// Stricter limiter for payment endpoints
+-const paymentLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 20,
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many payment requests. Please try again later.' },
+-});
+-
+-// HGH-AUD-005 FIX: Rate limiter for compliance/SDN screening endpoints.
+-// Without this, an attacker could brute-force name variations against the SDN list
+-// to map the entire screening database within hours.
+-const complianceLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 15,                     // 15 screening requests per 15 min per IP
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many compliance requests. Please try again later.' },
+-});
+-
+-// HGH-002 FIX: Dedicated rate limiter for storage upload-url generation.
+-// Each call produces a pre-signed URL that reserves cloud resources. Without
+-// throttling, an attacker could exhaust storage quotas or generate millions of
+-// pending upload slots.
+-const storageLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 30,                     // 30 upload-url requests per 15 min per IP
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many storage requests. Please try again later.' },
+-});
+-
+-// HGH-002 FIX: Dedicated rate limiter for translation endpoints.
+-// Each call consumes external NMT/LLM quotas (DeepL, OpenAI). Without throttling,
+-// an attacker could exhaust the paid API quota within minutes.
+-const translationLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 20,                     // 20 translation requests per 15 min per IP
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many translation requests. Please try again later.' },
+-});
+-
+-// HGH-002 FIX: Dedicated rate limiter for matchmaking search.
+-// Search queries trigger heavy PostGIS distance calculations and scoring.
+-// Without throttling, an attacker could DDOS the database via repeated queries.
+-const matchmakingLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 30,                     // 30 search requests per 15 min per IP
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many matchmaking requests. Please try again later.' },
+-});
+-
+-// HGH-AUD-006 FIX: CSRF Protection via Double-Submit Cookie pattern.
+-// Since the platform uses JWT (Bearer token) for authentication — not session
+-// cookies — traditional CSRF attacks have limited impact. However, the CORS
+-// config uses `credentials: true`, which means cookies ARE sent cross-origin.
+-// This lightweight middleware adds an additional defense layer for state-changing
+-// operations without requiring an external dependency.
+-import crypto from 'crypto';
+-
+-function csrfProtection(
+-    req: express.Request,
+-    res: express.Response,
+-    next: express.NextFunction
+-): void {
+-    // Skip CSRF for safe methods and webhook endpoints
+-    const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+-    if (safeMethods.includes(req.method)) {
+-        return next();
+-    }
+-
+-    // Skip for webhook callbacks (gateway-to-server, not browser-initiated)
+-    if (req.path.includes('/webhook')) {
+-        return next();
+-    }
+-
+-    // M-003 FIX: Skip CSRF for logout endpoint.
+-    // clearAuth() in the frontend fires POST /api/auth/logout without a CSRF
+-    // token (fire-and-forget). Without this exemption, CSRF middleware rejects
+-    // the request with 403, silently preventing the JWT httpOnly cookie from
+-    // being cleared — the user appears logged out but their session persists
+-    // for up to 24 hours. Logout is safe to exempt because it only destroys
+-    // session state (cookie clearance), never creates or modifies data.
+-    if (req.path === '/auth/logout') {
+-        return next();
+-    }
+-
+-    // BUG-003 FIX: Skip CSRF for browser telemetry reporters.
+-    // These are fire-and-forget endpoints called by window.onerror and the
+-    // browser's built-in CSP violation reporter — neither can attach a CSRF
+-    // token (no cookie jar access in violation reports; onerror fires before
+-    // the app fully boots). They are read-only side-effect endpoints (logging
+-    // only) with their own strict rate limiting, making CSRF risk negligible.
+-    // Standard: W3C CSP Level 3 §7.4 (violation reporting), Browser Security.
+-    if (req.path === '/client-errors' || req.path === '/csp-report') {
+-        return next();
+-    }
+-
+-    // JWTs are stored in HttpOnly cookies, not Bearer headers.
+-    // SEC-006 FIX: Removed legacy 'Bearer' escape hatch which bypassed CSRF protection.
+-
+-    // Development fallback: skip CSRF for X-User-Id header auth
+-    if (process.env['NODE_ENV'] === 'development' && req.headers['x-user-id']) {
+-        return next();
+-    }
+-
+-    // For cookie-based requests without Bearer token, require CSRF token
+-    const csrfCookie = req.cookies?.['_csrf'] as string | undefined;
+-    const csrfHeader = req.headers['x-csrf-token'] as string | undefined;
+-
+-    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+-        res.status(403).json({
+-            success: false,
+-            error: 'CSRF token validation failed',
+-        });
+-        return;
+-    }
+-
+-    next();
+-}
+-
+-// PLT-AUD-004 FIX: Rate limiter for CSRF token generation.
+-// crypto.randomBytes(32) consumes entropy — without throttling, an attacker
+-// flooding this endpoint could exhaust the entropy pool and stall the event loop.
+-const csrfLimiter = rateLimit({
+-    windowMs: 15 * 60 * 1000,
+-    max: 10,                     // 10 CSRF token requests per 15 min per IP
+-    standardHeaders: true,
+-    legacyHeaders: false,
+-    message: { success: false, error: 'Too many requests. Please try again later.' },
+-});
+-
+-// Endpoint to obtain a CSRF token (the client calls this before making
+-// state-changing requests without a Bearer token)
+-app.get('/api/csrf-token', csrfLimiter, (_req, res) => {
+-    const token = crypto.randomBytes(32).toString('hex');
+-    res.cookie('_csrf', token, {
+-        httpOnly: false,  // Client JS needs to read this to send as header
+-        sameSite: 'strict',
+-        secure: process.env['NODE_ENV'] === 'production',
+-        maxAge: 3600_000,  // 1 hour
+-    });
+-    res.json({ success: true, csrfToken: token });
+-});
+-
+-// Apply CSRF protection to all API routes
++// ─── CSRF Protection ────────────────────────────────────────────────────────
++app.get('/api/csrf-token', csrfTokenRateLimiter, csrfTokenHandler);
+ app.use('/api', csrfProtection);
+ 
+ // ─── Health Check ───────────────────────────────────────────────────────────
+@@ -370,115 +182,8 @@ app.get('/health', async (_req, res) => {
+     }
+ });
+ 
+-// ─── API Routes ─────────────────────────────────────────────────────────────
+-// Auth (public — with strict rate limiting for brute-force protection)
+-app.use('/api/auth', authLimiter, authRoutes);
+-
+-// Path 1: Homeowner → Engineer
+-app.use('/api/projects', projectRoutes);
+-
+-// Path 2: Donor → Escrow (public marketplace + authenticated donations)
+-app.use('/api/marketplace', marketplaceRoutes);
+-app.use('/api/donations', donationRoutes);
+-
+-// Path 3: Execution → Spatial Proof
+-app.use('/api/spatial-proof', spatialProofRoutes);
+-
+-// Path 4: Release → Notify (admin panel)
+-// PLT-MAR12-005 FIX: adminStatsRoutes registered BEFORE adminRoutes.
+-// Express matches routes in registration order — a future wildcard on
+-// /api/admin/:param in adminRoutes would shadow /api/admin/stats.
+-app.use('/api/admin/stats', adminStatsRoutes);
+-app.use('/api/admin', adminRoutes);
+-
+-// Payment Gateway (Visa + Fatora) — rate limited
+-app.use('/api/payments', paymentLimiter, paymentRoutes);
+-
+-// Cross-cutting: Notifications
+-app.use('/api/notifications', notificationRoutes);
+-
+-// Phase 2: Matchmaking Engine (BuildZoom + Thumbtack hybrid)
+-// HGH-002: Protected with dedicated rate limiter (heavy PostGIS queries)
+-app.use('/api/matchmaking', matchmakingLimiter, matchmakingRoutes);
+-
+-// Georavity Routing Intelligence (self-hosted Valhalla engine)
+-app.use('/api/routing', routingRoutes);
+-
+-// Phase 3: Spatial Intelligence (satellite imagery + geofencing compliance)
+-app.use('/api/spatial', spatialRoutes);
+-
+-// Phase 2: EPA Oracle (FIDIC 13.8 price adjustment engine)
+-app.use('/api/oracle', epaOracleRoutes);
+-
+-// Phase 2: Supplier Portal (catalog management, PO tracking, dashboard)
+-app.use('/api/supplier', supplierRoutes);
+-
+-// Phase 2: Engineer Portal (projects, stats, bids, profile, camera)
+-app.use('/api/engineer', engineerRoutes);
+-
+-// Phase 2: Contractor Portal (projects, marketplace, bids, payments)
+-app.use('/api/contractor', contractorRoutes);
+-
+-// Phase 2: Tradesperson Portal (requests, assignments, earnings)
+-app.use('/api/tradesperson', tradespersonRoutes);
+-
+-// Phase 2: Homeowner Portal (projects, service requests, approvals, escrow)
+-app.use('/api/homeowner', homeownerRoutes);
+-
+-// Phase 2: Donor Portal (impact, donations, marketplace, proofs)
+-app.use('/api/donor', donorRoutes);
+-
+-// Phase 2: Client Dashboard (bird's eye project view)
+-app.use('/api/dashboard', dashboardRoutes);
+-
+-// Phase 3: Reality Capture (PlanRadar 360 + Houzz Pro LIDAR patterns)
+-app.use('/api/reality-capture', realityCaptureRoutes);
+-
+-// Phase 4: Open Data Portal (OCDS public APIs — بوابة البيانات المفتوحة)
+-app.use('/api/open-data', openDataRoutes);
+-
+-// Phase 4: Global Compliance Engine (SDN screening, export controls, security events)
+-// HGH-AUD-005: Protected with dedicated rate limiter
+-app.use('/api/compliance', complianceLimiter, complianceRoutes);
+-
+-// Phase 5: Translation Engine & Localization (hybrid NMT/LLM, glossary, locale detection)
+-// HGH-002: Protected with dedicated rate limiter (external API quota protection)
+-app.use('/api/translation', translationLimiter, translationRoutes);
+-
+-// Phase 6: Storage Service (pre-signed S3-compatible uploads — P2-005)
+-// HGH-002: Protected with dedicated rate limiter (pre-signed URL abuse prevention)
+-app.use('/api/storage', storageLimiter, storageRoutes);
+-
+-// (adminStatsRoutes registered above — before adminRoutes — see PLT-MAR12-005)
+-
+-// API Key Management (Feature 5: create, list, revoke, usage)
+-app.use('/api/keys', apiKeysRoutes);
+-
+-// Contact Form (PLT-2026-MAR12-003 FIX)
+-app.use('/api/contact', contactRoutes);
+-
+-// Client Error Reporting (PLT-AUDIT-007: server-side error visibility)
+-app.use('/api/client-errors', clientErrorRoutes);
+-
+-// CSP Violation Reporting (PLT-AUDIT-008: security monitoring)
+-app.use('/api/csp-report', cspReportRoutes);
+-
+-// ─── Role Management (Multi-Role Architecture) ─────────────────────────────
+-app.use('/api/roles', roleRoutes);
+-
+-// ─── Reviews System (Polymorphic Multi-Dimensional Reviews) ─────────────────
+-app.use('/api/reviews', reviewRoutes);
+-app.use('/api/privacy', privacyRoutes);
+-app.use('/api/impact', impactRoutes);
+-
+-// Phase 1 Monetization: Commission engine + Donor tipping (per profitability study)
+-app.use('/api/revenue', monetizationRoutes);
+-
+-// Phase 2 SaaS Subscriptions: Plan management + Feature gating (per profitability study §2)
+-app.use('/api/subscriptions', subscriptionRoutes);
+-
+-// Phase 3 FinTech + Enterprise TaaS: Escrow fees + OCDS dashboards (per profitability study §5-§6)
+-app.use('/api/enterprise', enterpriseRoutes);
++// ─── API Routes (registered from centralized registry) ──────────────────────
++registerRoutes(app);
+ 
+ // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
+ // Serves stitch pages at /:locale/:page with server-side HTML injection
+@@ -489,6 +194,7 @@ app.use('/', localeRouter);
+ const STITCH_ROOT = path.resolve(__dirname, '../stitch');
+ app.use('/i18n', express.static(path.join(STITCH_ROOT, 'i18n')));
+ app.use('/phosphor-icons', express.static(path.join(STITCH_ROOT, 'phosphor-icons')));
++
+ // ─── 404 Handler ────────────────────────────────────────────────────────────
+ app.use((_req, res) => {
+     res.status(404).json({
+diff --git a/backend/src/services/execution.service.ts b/backend/src/services/execution.service.ts
+index 4c8f0538..fa3e003c 100644
+--- a/backend/src/services/execution.service.ts
++++ b/backend/src/services/execution.service.ts
+@@ -164,6 +164,19 @@ export async function submitSpatialProof(
+                 .createHash('sha256')
+                 .update(imageBuffer)
+                 .digest('hex');
++
++            // IMP-007: Dual Verification (Absolute Spatial Reality rule)
++            // If the client provided a hash compiled BEFORE upload, it MUST identically match
++            // the server-computed hash compiled AFTER download. A mismatch implies MITM tampering.
++            if (dto.client_hash && dto.client_hash.toLowerCase() !== imageHash.toLowerCase()) {
++                logger.error('Spatial Proof Dual Verification Failed: MITM tampering detected', {
++                    client_hash: dto.client_hash,
++                    server_hash: imageHash,
++                    engineer_id: engineerId,
++                    project_id: dto.project_id
++                });
++                throw new Error('Spatial proof integrity compromise detected: Client hash does not match server hash. Refusing proof.');
++            }
+         } catch (hashErr) {
+             // NMR-AUD-202 FIX: Fail-secure — do NOT fall back to URL hashing.
+             // A URL-hash fallback allows tampered images at the same URL to pass

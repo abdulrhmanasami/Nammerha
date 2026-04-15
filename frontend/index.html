@@ -20,7 +20,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
     <!-- F-002 FIX: Preload self-hosted font instead of Google CDN (PLT-OPT-002).
          Previous: fonts.googleapis.com preload contradicted zero-CDN strategy. -->
-    <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <title>Nammerha — Rebuild Syria Together | منصة إعادة إعمار سوريا</title>
     <meta
       name="description"

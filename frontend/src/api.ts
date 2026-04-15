@@ -1124,6 +1124,8 @@ export const engineer = {
         gps_lng: number;
         gps_accuracy_meters?: number;
         description?: string;
+        /** IMP-007: Client-side SHA-256 hash for dual verification */
+        client_hash?: string;
     }) => request('/engineer/camera/spatial-proof', {
         method: 'POST',
         body: JSON.stringify(data),

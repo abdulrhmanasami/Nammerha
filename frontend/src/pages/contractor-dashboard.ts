@@ -38,22 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadKPIs();
     loadProjectTimeline();
     setupTabs();
-    initNotificationBell();
 });
 
-// ─── PLT-AUD-G002 FIX: Notification Bell ────────────────────────────────────
-// Previously: #notification-bell was a complete dead UI element — no handler.
-// Now: tapping bell navigates to bids tab (badge shows active_bids count).
-function initNotificationBell(): void {
-    const bell = document.getElementById('notification-bell');
-    if (!bell) { return; }
-    bell.addEventListener('click', () => {
-        const count = document.getElementById('notif-count')?.textContent?.trim();
-        if (count && count !== '0') {
-            switchDashTab('bids');
-        }
-    });
-}
 
 // ─── Live Timestamp ─────────────────────────────────────────────────────────
 function initTimestamp(): void {

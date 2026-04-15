@@ -68,12 +68,22 @@ export function normalizeHeader(config: HeaderConfig = {}): void {
     if (config.showNotification && !hasBell) {
         const bell = document.createElement('button');
         bell.id = 'notification-bell';
+        bell.type = 'button';
         bell.setAttribute('aria-label', t('aria_notifications', 'Notifications'));
+        bell.setAttribute('aria-expanded', 'false');
+        bell.setAttribute('aria-haspopup', 'dialog');
         bell.className = 'relative size-11 flex items-center justify-center rounded-xl hover:bg-slate-100/50 transition-colors';
         bell.innerHTML = `
             <i class="ph ph-bell text-slate-700 nm-icon-22 dark:text-slate-300" aria-hidden="true"></i>
             <span id="notif-count" class="absolute -top-0.5 -end-0.5 bg-red-500 text-white text-3xs font-bold size-4 rounded-full flex items-center justify-center hidden">0</span>
         `;
         header.appendChild(bell);
+
+        // IMP-015: Auto-initialize notification panel (lazy-loaded)
+        import('./notification-panel').then(({ initNotificationPanel }) => {
+            initNotificationPanel();
+        }).catch(() => {
+            // Silent — notification panel is non-critical enhancement
+        });
     }
 }

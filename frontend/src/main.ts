@@ -19,6 +19,7 @@ import { autoTriggerTour } from './components/tour-engine';
 // P2-I18N-TIMING FIX: Explicit applyI18n call after dynamic card injection
 import { applyI18n } from './utils/locale';
 import { initSearch } from './utils/search-overlay';
+import { initNotificationPanel } from './components/notification-panel';
 
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
@@ -233,6 +234,9 @@ function initDashboard(): void {
     // P1-001: Load dynamic data from API
     loadFeaturedProjects();
     loadStats();
+    
+    // IMP-015: Init interactive notification UI globally
+    initNotificationPanel();
 
     // P2-UX-001 FIX: Hide role-restricted Quick Actions for non-matching users
     filterQuickActionsByRole();

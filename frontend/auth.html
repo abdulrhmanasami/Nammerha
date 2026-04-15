@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <!-- FRC-007 FIX: Inline Locale Boot (Synchronous) — Zero FOUC for i18n -->
+  <script>(function(){try{var l=localStorage.getItem('nm-locale');if(l){document.documentElement.setAttribute('lang',l);document.documentElement.setAttribute('dir',l==='ar'?'rtl':'ltr')}}catch(e){}})();</script>
   <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
   <script>(function(){var m=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{m=localStorage.getItem('nm-theme')||m}catch(e){}document.documentElement.setAttribute('data-theme',m)})();</script>
   <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
@@ -23,7 +25,9 @@
   <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Sign In — Nammerha" />
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/auth.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
@@ -76,7 +80,7 @@
       <!-- P3-PLT-005 FIX: Improved contrast from text-slate-500 to text-slate-600.
            Previous: nearly invisible on light backgrounds, especially under sunlight.
            Standard: WCAG 1.4.3 (Minimum Contrast), Apple HIG. -->
-      <a href="index.html" class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400" data-i18n="auth_back_home">
+      <a href="/" class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400" data-i18n="auth_back_home">
         <i class="ph ph-arrow-left text-sm" aria-hidden="true"></i> Back to Home
       </a>
     </header>

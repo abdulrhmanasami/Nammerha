@@ -17,7 +17,9 @@
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Project Details | تفاصيل المشروع</title>
   <meta name="description" content="Itemized project BOQ with funding progress and donation buttons." />
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <script type="module" src="/src/pages/project-details.ts"></script>
   <!-- GAP-010 FIX: OG/Twitter meta for project sharing — critical for crowdfunding reach -->

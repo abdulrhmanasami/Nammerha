@@ -31,6 +31,7 @@
 
 import { isAuthenticated as checkSession } from '../auth';
 import { tryApplyI18n } from './i18n-apply';
+import { initNotificationPanel } from '../components/notification-panel';
 
 /**
  * Shows the "Please sign in" overlay on the current page.
@@ -77,6 +78,7 @@ function showAuthRequired(): void {
  */
 export function requireAuth(): boolean {
     if (checkSession()) {
+        initNotificationPanel();
         return true;
     }
 
@@ -93,6 +95,10 @@ export function requireAuth(): boolean {
  * duplicating broken JWT localStorage logic.
  */
 export function isAuthenticated(): boolean {
-    return checkSession();
+    const isAuth = checkSession();
+    if (isAuth) {
+        initNotificationPanel();
+    }
+    return isAuth;
 }
 

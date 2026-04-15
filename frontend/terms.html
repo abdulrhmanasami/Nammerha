@@ -25,7 +25,9 @@
   <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Nammerha — Terms of Service | شروط الخدمة" />
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" />
+  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <link href="/i18n.css?v=7" rel="stylesheet"/>
   <script type="module">import './src/styles/main.css';</script>

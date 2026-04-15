@@ -371,46 +371,11 @@
             document.head.appendChild(bttScript);
         }
 
-        // ─── P0-001 FIX: Notification Bell "Coming Soon" Handler ────────────
-        // Previous: Bell icon existed on 11 HTML pages with ZERO JS handler.
-        // Users tapped and got no response — silent dead end.
-        // Now: Informational toast (consistent with SSO "coming soon" in auth.ts)
-        // + haptic feedback. Uses event delegation on shared CSS class.
-        // Standard: Nielsen #1 (System Status Visibility), Honest Affordances.
+        // ─── P0-001 FIX: Notification Bell Handler ────────────
+        // Replaced mock 'Coming soon' toast with real notification 
+        // component integration. Event listeners are now managed natively
+        // by notification-panel.ts.
         // ─────────────────────────────────────────────────────────────────────
-        document.querySelectorAll('#nav-notification-btn, #mobile-notif-bell, [data-notif-bell]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                // Show toast if showToast is available (loaded by page modules)
-                var msg = window.NammerhaI18n && window.NammerhaI18n.t
-                    ? window.NammerhaI18n.t('notif_coming_soon')
-                    : 'Notifications are coming soon. Stay tuned!';
-                // Use global showToast if available, otherwise create inline toast
-                if (window._nmShowToast) {
-                    window._nmShowToast(msg, 'info');
-                } else {
-                    // Lightweight fallback — inject a transient banner
-                    var toast = document.createElement('div');
-                    toast.className = 'nm-notif-toast';
-                    toast.setAttribute('role', 'status');
-                    toast.textContent = msg;
-                    document.body.appendChild(toast);
-                    // Trigger enter animation
-                    requestAnimationFrame(function () {
-                        toast.classList.add('nm-notif-toast--visible');
-                    });
-                    setTimeout(function () {
-                        toast.classList.add('nm-notif-toast--exit');
-                        toast.addEventListener('transitionend', function () { toast.remove(); });
-                    }, 3500);
-                }
-                // Haptic feedback
-                if (window.NammerhaHaptic && window.NammerhaHaptic.light) {
-                    window.NammerhaHaptic.light();
-                } else if (navigator.vibrate) {
-                    navigator.vibrate(10);
-                }
-            });
-        });
 
         // CONF-2026-001 FIX: Dynamic bottom padding based on actual nav height.
         // Previous: hardcoded 96px — failed on iPhone 14+ (34px safe area caused

@@ -13,6 +13,8 @@ import { showToast } from '../utils/toast';
 // W5-003 FIX: Auth guard — was missing on this engineer page.
 import { requireAuth } from '../utils/auth-guard';
 import { escapeHtml as esc } from '../utils/xss';
+// IMP-007: Client-side SHA-256 image integrity hashing
+import { computeImageHash } from '../utils/image-hash';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -261,6 +263,16 @@ function setupSync(): void {
                 const blob = dataURLtoBlob(dataUrl);
                 const filename = `proof_${projectId}_${Date.now()}_${uploaded}.jpg`;
 
+                // IMP-007: Compute SHA-256 hash BEFORE upload (chain of custody)
+                // Hash is computed from the raw JPEG bytes, not the URL.
+                let clientHash: string | undefined;
+                try {
+                    clientHash = await computeImageHash(blob);
+                } catch {
+                    // Non-critical: hash may fail on insecure context (HTTP).
+                    // Backend will still compute its own hash from the stored image.
+                }
+
                 // 1. Get presigned URL — via centralized api.ts wrapper
                 const presignData = await storage.presign({
                     filename,
@@ -279,6 +291,7 @@ function setupSync(): void {
                 // 3. Submit spatial proof — via centralized api.ts wrapper
                 // P1-AUD-GPS-002 FIX: Uses correct field name 'gps_accuracy_meters'
                 // (was 'gps_accuracy' — silently dropped by backend).
+                // IMP-007: client_hash enables dual verification.
                 await engineer.submitSpatialProof({
                     project_id: projectId!,
                     item_id: projectId!,
@@ -286,6 +299,7 @@ function setupSync(): void {
                     gps_lat: gpsLat!,
                     gps_lng: gpsLng!,
                     gps_accuracy_meters: gpsAccuracy ?? undefined,
+                    client_hash: clientHash,
                 });
 
                 uploaded++;

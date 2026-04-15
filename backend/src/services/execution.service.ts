@@ -164,6 +164,19 @@ export async function submitSpatialProof(
                 .createHash('sha256')
                 .update(imageBuffer)
                 .digest('hex');
+
+            // IMP-007: Dual Verification (Absolute Spatial Reality rule)
+            // If the client provided a hash compiled BEFORE upload, it MUST identically match
+            // the server-computed hash compiled AFTER download. A mismatch implies MITM tampering.
+            if (dto.client_hash && dto.client_hash.toLowerCase() !== imageHash.toLowerCase()) {
+                logger.error('Spatial Proof Dual Verification Failed: MITM tampering detected', {
+                    client_hash: dto.client_hash,
+                    server_hash: imageHash,
+                    engineer_id: engineerId,
+                    project_id: dto.project_id
+                });
+                throw new Error('Spatial proof integrity compromise detected: Client hash does not match server hash. Refusing proof.');
+            }
         } catch (hashErr) {
             // NMR-AUD-202 FIX: Fail-secure — do NOT fall back to URL hashing.
             // A URL-hash fallback allows tampered images at the same URL to pass
