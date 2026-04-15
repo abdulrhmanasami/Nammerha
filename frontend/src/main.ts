@@ -20,10 +20,13 @@ import { autoTriggerTour } from './components/tour-engine';
 import { applyI18n } from './utils/locale';
 import { initSearch } from './utils/search-overlay';
 import { initNotificationPanel } from './components/notification-panel';
+import { initPrefetchEngine } from './utils/prefetch-engine';
 
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
 initErrorReporter();
+initPrefetchEngine();
+
 
 // Register Service Worker for offline capabilities (field operations)
 registerServiceWorker();

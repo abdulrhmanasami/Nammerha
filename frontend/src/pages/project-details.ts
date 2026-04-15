@@ -423,7 +423,7 @@ function initWhatsAppCTA(): void {
                 <p class="text-sm font-bold" data-i18n="whatsapp_cta_title">${esc(t('whatsapp_cta_title', 'Get Updates via WhatsApp'))}</p>
                 <p class="text-xs text-white/80" data-i18n="whatsapp_cta_desc">${esc(t('whatsapp_cta_desc', 'Instant notifications about your project progress'))}</p>
             </div>
-            <button type="button" id="whatsapp-dismiss" class="text-white/70 hover:text-white shrink-0" aria-label="Dismiss">
+            <button type="button" id="whatsapp-dismiss" class="text-white/70 hover:text-white shrink-0" aria-label="Dismiss" data-i18n-aria="aria_dismiss">
                 <i class="ph ph-x text-lg" aria-hidden="true"></i>
             </button>
         </div>`;

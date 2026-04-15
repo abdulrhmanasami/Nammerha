@@ -73,6 +73,7 @@ async function request<T>(
 
     // MED-AUD-009 FIX: AbortController with 30s timeout to prevent indefinite
     // hangs on degraded Syrian networks. Without this, fetch() blocks forever.
+    const startTime = Date.now();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
@@ -90,6 +91,13 @@ async function request<T>(
 
         if (!res.ok) {
             throw new Error(body.error ?? `Request failed: ${res.status}`);
+        }
+
+        // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)
+        // Prevents rapid UI jitter on 5G networks, ensuring premium animation completion.
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 300) {
+            await new Promise(r => setTimeout(r, 300 - elapsed));
         }
 
         return body;

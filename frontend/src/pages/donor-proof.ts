@@ -190,6 +190,20 @@ function renderProofData(proof: ProofData, donation?: DonationRecord): void {
         // Replace placeholder icon
         const placeholder = photoContainer.querySelector('[data-skeleton]');
         if (placeholder) { placeholder.replaceWith(img); }
+
+        // PLAT-TRUST-001 FIX: Inject Cryptographic Tamper-Evident Badge
+        if (proof.image_hash) {
+            const badge = document.createElement('div');
+            badge.className = 'absolute bottom-3 start-3 z-10 glass-card bg-emerald-500/20 px-3 py-1.5 rounded-full flex items-center gap-2 border border-emerald-500/40 backdrop-blur-md shadow-lg animate-fade-in-up';
+            badge.innerHTML = `
+                <i class="ph ph-shield-check text-emerald-400 text-lg" aria-hidden="true"></i>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest leading-none" data-i18n="sha256_verified">Verified by SHA-256</span>
+                    <span class="text-[8px] text-emerald-400/80 font-mono tracking-wider">${proof.image_hash.slice(0, 16)}...</span>
+                </div>
+            `;
+            photoContainer.appendChild(badge);
+        }
     }
 
     // Blockchain hash
