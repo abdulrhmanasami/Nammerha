@@ -71,54 +71,72 @@ async function request<T>(
         }
     }
 
-    // MED-AUD-009 FIX: AbortController with 30s timeout to prevent indefinite
-    // hangs on degraded Syrian networks. Without this, fetch() blocks forever.
-    const startTime = Date.now();
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+    const isIdempotent = !!headers['Idempotency-Key'] || method === 'GET';
+    const maxRetries = isIdempotent ? 2 : 0;
+    
+    let lastErr: unknown;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const startTime = Date.now();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-    try {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-            ...options,
-            headers,
-            signal: controller.signal,
-            credentials: 'same-origin', // V1-AUDIT: Send httpOnly cookie
-        });
+        try {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers,
+                signal: controller.signal,
+                credentials: 'same-origin', // V1-AUDIT: Send httpOnly cookie
+            });
 
-        clearTimeout(timeoutId);
+            clearTimeout(timeoutId);
 
-        const body = await res.json() as ApiResponse<T>;
+            // Resilient Idempotency failover (502/503/504)
+            if (!res.ok && attempt < maxRetries && [502, 503, 504].includes(res.status)) {
+                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt))); // Exponential backoff
+                continue;
+            }
 
-        if (!res.ok) {
-            throw new Error(body.error ?? `Request failed: ${res.status}`);
+            const body = await res.json() as ApiResponse<T>;
+
+            if (!res.ok) {
+                throw new Error(body.error ?? `Request failed: ${res.status}`);
+            }
+
+            // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 300) {
+                await new Promise(r => setTimeout(r, 300 - elapsed));
+            }
+
+            return body;
+        } catch (err) {
+            clearTimeout(timeoutId);
+            
+            // Retry on Network failure or Timeout if idempotent
+            if (attempt < maxRetries && (err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError'))) {
+                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+                lastErr = err;
+                continue;
+            }
+
+            // PLT-FE-002 FIX: Route ALL API failures through centralized error reporter.
+            const reportedError = err instanceof DOMException && err.name === 'AbortError'
+                ? new Error(`API Timeout: ${endpoint}`)
+                : err instanceof Error ? err : new Error('Network error');
+
+            reportError(reportedError, { endpoint, method: options?.method ?? 'GET' });
+
+            if (err instanceof DOMException && err.name === 'AbortError') {
+                throw new Error(t('error_timeout', 'Request timed out — please check your network connection and try again.'));
+            }
+            if (err instanceof Error) { throw err; }
+            throw new Error(t('error_network', 'Network error'));
         }
-
-        // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)
-        // Prevents rapid UI jitter on 5G networks, ensuring premium animation completion.
-        const elapsed = Date.now() - startTime;
-        if (elapsed < 300) {
-            await new Promise(r => setTimeout(r, 300 - elapsed));
-        }
-
-        return body;
-    } catch (err) {
-        clearTimeout(timeoutId);
-
-        // PLT-FE-002 FIX: Route ALL API failures through centralized error reporter.
-        // This ensures every timeout, network error, and server error across all portals
-        // is captured in backend telemetry — not just uncaught global errors.
-        const reportedError = err instanceof DOMException && err.name === 'AbortError'
-            ? new Error(`API Timeout: ${endpoint}`)
-            : err instanceof Error ? err : new Error('Network error');
-
-        reportError(reportedError, { endpoint, method: options?.method ?? 'GET' });
-
-        if (err instanceof DOMException && err.name === 'AbortError') {
-            throw new Error('Request timed out — please check your network connection and try again.');
-        }
-        if (err instanceof Error) { throw err; }
-        throw new Error('Network error');
     }
+    
+    // Fallback if loop ends (should never hit normally due to throw inside catch)
+    if (lastErr instanceof Error) { throw lastErr; }
+    throw new Error('Network error');
 }
 
 // ─── Projects (Path 1) ─────────────────────────────────────────────────────

@@ -21,8 +21,14 @@
     <!-- F-002 FIX: Preload self-hosted font instead of Google CDN (PLT-OPT-002).
          Previous: fonts.googleapis.com preload contradicted zero-CDN strategy. -->
     <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link rel="preload" href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-bold.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="preload" href="/fonts/phosphor/phosphor.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+      <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
+      <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    </noscript>
     <title>Nammerha — Rebuild Syria Together | منصة إعادة إعمار سوريا</title>
     <meta
       name="description"

@@ -15,6 +15,7 @@ import { query } from '../config/database';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { safeRouteError } from '../utils/safe-error';
+import { memoryCache } from '../utils/native-cache';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -58,6 +59,13 @@ interface PlatformOverview {
 // ─── GET /overview ──────────────────────────────────────────────────────────
 router.get('/overview', async (_req: Request, res: Response): Promise<void> => {
     try {
+        const cacheKey = 'admin_stats_overview';
+        const cached = memoryCache.get(cacheKey);
+        if (cached) {
+            res.json({ success: true, data: cached } as ApiResponse);
+            return;
+        }
+
         const result = await query<PlatformOverview>(
             `SELECT
                 (SELECT COUNT(*)::int FROM users) AS total_users,
@@ -70,9 +78,12 @@ router.get('/overview', async (_req: Request, res: Response): Promise<void> => {
                 (SELECT COUNT(*)::int FROM spatial_proofs WHERE verification_status = 'verified') AS verified_proofs`
         );
 
+        const data = result.rows[0];
+        memoryCache.set(cacheKey, data, 30); // 30 seconds cache
+
         res.json({
             success: true,
-            data: result.rows[0],
+            data,
         } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'AdminStats.Overview');
@@ -84,6 +95,13 @@ router.get('/projects-by-month', async (req: Request, res: Response): Promise<vo
     try {
         const months = parseInt(req.query['months'] as string) || 12;
         const clampedMonths = Math.min(Math.max(months, 1), 36);
+
+        const cacheKey = `stats_projects_by_month_${clampedMonths}`;
+        const cached = memoryCache.get(cacheKey);
+        if (cached) {
+            res.json({ success: true, data: cached } as ApiResponse);
+            return;
+        }
 
         const result = await query<MonthlyDataPoint>(
             `SELECT
@@ -103,9 +121,12 @@ router.get('/projects-by-month', async (req: Request, res: Response): Promise<vo
             [clampedMonths - 1]
         );
 
+        const data = result.rows;
+        memoryCache.set(cacheKey, data, 30);
+
         res.json({
             success: true,
-            data: result.rows,
+            data,
         } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'AdminStats.ProjectsByMonth');
@@ -117,6 +138,13 @@ router.get('/donations-by-month', async (req: Request, res: Response): Promise<v
     try {
         const months = parseInt(req.query['months'] as string) || 12;
         const clampedMonths = Math.min(Math.max(months, 1), 36);
+
+        const cacheKey = `stats_donations_by_month_${clampedMonths}`;
+        const cached = memoryCache.get(cacheKey);
+        if (cached) {
+            res.json({ success: true, data: cached } as ApiResponse);
+            return;
+        }
 
         const result = await query<MonthlyAmountPoint>(
             `SELECT
@@ -136,9 +164,12 @@ router.get('/donations-by-month', async (req: Request, res: Response): Promise<v
             [clampedMonths - 1]
         );
 
+        const data = result.rows;
+        memoryCache.set(cacheKey, data, 30);
+
         res.json({
             success: true,
-            data: result.rows,
+            data,
         } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'AdminStats.DonationsByMonth');
@@ -150,6 +181,13 @@ router.get('/users-by-month', async (req: Request, res: Response): Promise<void>
     try {
         const months = parseInt(req.query['months'] as string) || 12;
         const clampedMonths = Math.min(Math.max(months, 1), 36);
+
+        const cacheKey = `stats_users_by_month_${clampedMonths}`;
+        const cached = memoryCache.get(cacheKey);
+        if (cached) {
+            res.json({ success: true, data: cached } as ApiResponse);
+            return;
+        }
 
         const result = await query<MonthlyDataPoint>(
             `SELECT
@@ -169,9 +207,12 @@ router.get('/users-by-month', async (req: Request, res: Response): Promise<void>
             [clampedMonths - 1]
         );
 
+        const data = result.rows;
+        memoryCache.set(cacheKey, data, 30);
+
         res.json({
             success: true,
-            data: result.rows,
+            data,
         } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'AdminStats.UsersByMonth');
@@ -183,6 +224,13 @@ router.get('/funding-progress', async (req: Request, res: Response): Promise<voi
     try {
         const limit = parseInt(req.query['limit'] as string) || 20;
         const clampedLimit = Math.min(Math.max(limit, 1), 100);
+
+        const cacheKey = `stats_funding_progress_${clampedLimit}`;
+        const cached = memoryCache.get(cacheKey);
+        if (cached) {
+            res.json({ success: true, data: cached } as ApiResponse);
+            return;
+        }
 
         const result = await query<FundingProgressPoint>(
             `SELECT
@@ -202,9 +250,12 @@ router.get('/funding-progress', async (req: Request, res: Response): Promise<voi
             [clampedLimit]
         );
 
+        const data = result.rows;
+        memoryCache.set(cacheKey, data, 30);
+
         res.json({
             success: true,
-            data: result.rows,
+            data,
         } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'AdminStats.FundingProgress');

@@ -29,6 +29,16 @@ async function initHomepageMap(): Promise<void> {
         return;
     }
 
+    // PLAT-FR-001 FIX: Geolocation Deadlock Prevention
+    // If the map fails to fetch tiles or locks, this fallback ensures
+    // the UI doesn't hang infinitely on "Detecting active region...".
+    const regionEl = document.getElementById('map-active-region');
+    const countEl = document.getElementById('map-active-count');
+    const loadGuard = setTimeout(() => {
+        if (regionEl) regionEl.textContent = t('map_region_syria', 'Syrian Recovery Grid');
+        if (countEl && countEl.textContent?.includes('…')) countEl.textContent = t('map_projects_syncing', 'Syncing Data...');
+    }, 4000);
+
     try {
         // ─── Initialize Map ─────────────────────────────────────────────────
         const map = await initMap({
@@ -42,6 +52,7 @@ async function initHomepageMap(): Promise<void> {
 
         // ─── Load Data on Map Ready ─────────────────────────────────────────
         map.on('load', async () => {
+            clearTimeout(loadGuard);
             try {
                 await loadProjectMarkers(map);
                 updateStatsOverlay(map);
