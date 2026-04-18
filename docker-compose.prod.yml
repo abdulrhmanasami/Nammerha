@@ -71,13 +71,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
       MINIO_BROWSER_REDIRECT_URL: ''
-      MINIO_SERVER_URL: 'https://nammerha-minio:9000'
     volumes:
       - nammerha-minio-data:/data
-      # SEC-005 FIX: Mount staging certificates for HTTPS Zero-Trust. MinIO automatically
-      # boots in HTTPS mode once it detects public.crt and private.key.
-      - ./database/tls/certs/server.crt:/root/.minio/certs/public.crt:ro
-      - ./database/tls/certs/server.key:/root/.minio/certs/private.key:ro
     ports:
       # API port (S3 protocol) — localhost only for security
       - '127.0.0.1:9010:9000'
@@ -184,8 +179,8 @@ services:
       - STORAGE_PROVIDER=minio
       - STORAGE_BUCKET=${STORAGE_BUCKET:-nammerha-uploads}
       - STORAGE_REGION=us-east-1
-      # SEC-005 FIX: Zero-Trust. Enforce HTTPS over bridge network.
-      - STORAGE_ENDPOINT=https://nammerha-minio:9000
+      # MinIO runs HTTP on internal bridge (not publicly exposed)
+      - STORAGE_ENDPOINT=http://nammerha-minio:9000
       - STORAGE_ACCESS_KEY=${MINIO_ROOT_USER:?MINIO_ROOT_USER must be set}
       - STORAGE_SECRET_KEY=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
       - STORAGE_PUBLIC_URL=${STORAGE_PUBLIC_URL:-}
