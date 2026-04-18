@@ -212,53 +212,55 @@ app.use('/graphql', async (req, res, next) => {
     next();
 });
 
-// Async mount of Apollo Server
-mountGraphQL(app).catch((err) => {
-    logger.error('CRITICAL: Failed to mount GraphQL server', {
-        error: err instanceof Error ? err.message : String(err),
-    });
-});
+// ─── Async Bootstrap ────────────────────────────────────────────────────────
+// CRITICAL: mountGraphQL is async (Apollo Server init). It MUST resolve
+// BEFORE the 404 catch-all is registered. Otherwise, Express evaluates
+// routes in registration order and the 404 handler intercepts /graphql
+// requests before Apollo's middleware can process them.
+async function bootstrap(): Promise<void> {
+    // Mount Apollo Server as Express middleware at /graphql
+    await mountGraphQL(app);
 
-// ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
-// Serves stitch pages at /:locale/:page with server-side HTML injection
-app.use('/', localeRouter);
+    // ── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
+    // Serves stitch pages at /:locale/:page with server-side HTML injection
+    app.use('/', localeRouter);
 
-// ─── Stitch Static Assets ──────────────────────────────────────────────────
-// Serve i18n module, phosphor icons, and page assets from stitch directory
-const STITCH_ROOT = path.resolve(__dirname, '../stitch');
-app.use('/i18n', express.static(path.join(STITCH_ROOT, 'i18n')));
-app.use('/phosphor-icons', express.static(path.join(STITCH_ROOT, 'phosphor-icons')));
+    // ── Stitch Static Assets ──────────────────────────────────────────────────
+    // Serve i18n module, phosphor icons, and page assets from stitch directory
+    const STITCH_ROOT = path.resolve(__dirname, '../stitch');
+    app.use('/i18n', express.static(path.join(STITCH_ROOT, 'i18n')));
+    app.use('/phosphor-icons', express.static(path.join(STITCH_ROOT, 'phosphor-icons')));
 
-// ─── 404 Handler ────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Endpoint not found',
-    });
-});
-
-// ─── Global Error Handler ───────────────────────────────────────────────────
-// SEC-008 FIX: NEVER expose internal error messages to the client,
-// regardless of NODE_ENV. Internal details are logged server-side only.
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    logger.error('Unhandled error in request pipeline', { error: err.message, stack: err.stack });
-    res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-    });
-});
-
-// ─── Start Server & Graceful Shutdown (CRT-001: single listen) ──────────────
-const server = app.listen(PORT, () => {
-    logger.info('Nammerha backend started', {
-        port: PORT,
-        environment: process.env['NODE_ENV'] ?? 'development',
-        pid: process.pid,
+    // ── 404 Handler ────────────────────────────────────────────────────────────
+    app.use((_req, res) => {
+        res.status(404).json({
+            success: false,
+            error: 'Endpoint not found',
+        });
     });
 
-    // P1-PLT-001: Start background job to expire stale 'pending' payments
-    startStalePaymentCleanup();
-});
+    // ── Global Error Handler ───────────────────────────────────────────────────
+    // SEC-008 FIX: NEVER expose internal error messages to the client,
+    // regardless of NODE_ENV. Internal details are logged server-side only.
+    app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+        logger.error('Unhandled error in request pipeline', { error: err.message, stack: err.stack });
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+        });
+    });
+
+    // ── Start Server ────────────────────────────────────────────────────────
+    const server = app.listen(PORT, () => {
+        logger.info('Nammerha backend started', {
+            port: PORT,
+            environment: process.env['NODE_ENV'] ?? 'development',
+            pid: process.pid,
+        });
+
+        // P1-PLT-001: Start background job to expire stale 'pending' payments
+        startStalePaymentCleanup();
+    });
 
 async function gracefulShutdown(signal: string): Promise<void> {
     logger.info('Graceful shutdown initiated', { signal });
@@ -312,6 +314,16 @@ process.on('unhandledRejection', (reason: unknown) => {
     const stack = reason instanceof Error ? reason.stack : undefined;
     logger.error('CRITICAL: Unhandled Promise Rejection', { error: message, stack });
     gracefulShutdown('unhandledRejection').catch(() => process.exit(1));
+});
+}
+
+// ─── Bootstrap Invocation ───────────────────────────────────────────────────
+bootstrap().catch((err) => {
+    logger.error('CRITICAL: Bootstrap failed — server cannot start', {
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+    });
+    process.exit(1);
 });
 
 export default app;
