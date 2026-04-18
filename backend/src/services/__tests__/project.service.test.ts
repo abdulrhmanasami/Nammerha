@@ -362,7 +362,7 @@ describe('Project Service', () => {
             expect(geojson.type).toBe('FeatureCollection');
             expect(geojson.features).toHaveLength(2);
             expect(geojson.features[0]?.geometry.type).toBe('Point');
-            expect(geojson.features[0]?.geometry.coordinates).toEqual([37.15, 36.2]); // [lng, lat]
+            expect((geojson.features[0]?.geometry as GeoJSON.Point).coordinates).toEqual([37.15, 36.2]); // [lng, lat]
         });
 
         it('should only include projects with valid GPS', async () => {

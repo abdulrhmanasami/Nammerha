@@ -297,7 +297,7 @@ describe('Crowdfunding Service', () => {
                 rows: [{ po_id: 'po-auto-1' }],
             });
 
-            const result = await createDonation('donor-1', {
+            void await createDonation('donor-1', {
                 items: [{ item_id: 'item-partial', amount: 10000 }],
                 payment_method: 'visa',
             });

@@ -3,7 +3,6 @@
 // ============================================================================
 import { Request, Response, NextFunction } from 'express';
 import { memoryCache } from '../utils/native-cache';
-import { logger } from '../utils/logger';
 
 export function cacheResponse(ttlSeconds: number) {
     return (req: Request, res: Response, next: NextFunction): void => {

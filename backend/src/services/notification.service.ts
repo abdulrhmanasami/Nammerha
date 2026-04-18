@@ -7,6 +7,7 @@
 import { query } from '../config/database';
 import type { Notification, NotificationType, NotificationChannel } from '../types';
 import { logger } from '../utils/logger';
+import { sendPushNotification } from './push-notification.service';
 
 // ─── Create Notification ────────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ export async function createNotification(
 type DispatchProvider = (input: CreateNotificationInput) => Promise<void>;
 
 /**
- * Provider registry. Extensible — add FCM, Twilio, etc. by adding entries.
+ * Dispatch providers mapped by notification channel.
  * Each provider is async and independently error-isolated.
  */
 const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
@@ -84,6 +85,12 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
     in_app: async (input) => {
         // In-app: already persisted to DB above. No additional delivery needed.
         logger.info('In-app notification', { userId: input.user_id, title: input.title });
+    },
+
+    push: async (input) => {
+        // Push: Deliver via FCM (Mobile App / Web Push)
+        // Wraps the push-notification.service.ts abstraction
+        await sendPushNotification(input.user_id, input.title, input.body, input.data);
     },
 
     email: async (input) => {

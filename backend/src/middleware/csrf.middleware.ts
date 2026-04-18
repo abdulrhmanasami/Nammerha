@@ -64,8 +64,12 @@ export function csrfProtection(
         return next();
     }
 
-    // JWTs are stored in HttpOnly cookies, not Bearer headers.
-    // SEC-006 FIX: Removed legacy 'Bearer' escape hatch which bypassed CSRF protection.
+    // JWTs from Mobile App / API Clients are sent via Bearer headers.
+    // Since browsers cannot automatically append Authorization headers to cross-origin
+    // requests (unlike cookies), Bearer-authenticated requests are immune to CSRF.
+    if (req.headers['authorization']?.startsWith('Bearer ')) {
+        return next();
+    }
 
     // For cookie-based requests, require matching CSRF token
     const csrfCookie = req.cookies?.['_csrf'] as string | undefined;

@@ -35,9 +35,13 @@ import { auditMiddleware } from './middleware/audit.middleware';
 import { idempotencyMiddleware } from './middleware/idempotency.middleware';
 import { globalLimiter } from './middleware/rate-limiters';
 import { csrfProtection, csrfTokenRateLimiter, csrfTokenHandler } from './middleware/csrf.middleware';
+import { mobileGuardMiddleware } from './middleware/mobile-guard.middleware';
 
 // Route registry
 import { registerRoutes } from './routes/index';
+
+// GraphQL gateway (Phase 1: Strangler Fig pattern)
+import { mountGraphQL } from './graphql/server';
 
 // Locale pages middleware (handles /:locale/:page SSR)
 import localeRouter from './middleware/locale-pages.middleware';
@@ -145,6 +149,7 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
 app.use(cookieParser());                           // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
+app.use(mobileGuardMiddleware);                    // Enforce API versioning for mobile apps
 app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
 app.use(auditMiddleware);                          // Auto audit trail
 app.use(idempotencyMiddleware);                    // Titan Architect FIX: Idempotency enforcement
@@ -184,6 +189,35 @@ app.get('/health', async (_req, res) => {
 
 // ─── API Routes (registered from centralized registry) ──────────────────────
 registerRoutes(app);
+
+// ─── GraphQL Gateway (Phase 1: Strangler Fig Pattern) ────────────────────────
+// Apollo Server requires async initialization. We mount it here so it's
+// available AFTER REST routes but BEFORE the 404 catch-all.
+// During the migration period, both REST (/api/*) and GraphQL (/graphql)
+// operate simultaneously — clients choose which to use.
+import { authMiddleware } from './middleware/auth.middleware';
+
+// Mount auth middleware for GraphQL path (optional auth — doesn't 401 on missing token)
+// The authMiddleware populates req.authUser if a valid token exists but does NOT
+// reject unauthenticated requests (that's handled by resolver-level guards).
+// We need a permissive wrapper that always calls next().
+app.use('/graphql', async (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const hasCookie = req.cookies?.['nammerha_jwt'];
+    if (authHeader || hasCookie) {
+        // Only run auth middleware if credentials are present
+        return authMiddleware(req, res, next);
+    }
+    // No credentials → proceed as unauthenticated (public queries)
+    next();
+});
+
+// Async mount of Apollo Server
+mountGraphQL(app).catch((err) => {
+    logger.error('CRITICAL: Failed to mount GraphQL server', {
+        error: err instanceof Error ? err.message : String(err),
+    });
+});
 
 // ─── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
 // Serves stitch pages at /:locale/:page with server-side HTML injection
