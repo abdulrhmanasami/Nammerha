@@ -1,0 +1,33 @@
+    type UploadUrl {
+        uploadUrl: String!
+        storageKey: String!
+        expiresAt: DateTime!
+    }
+
+    # ── Payment Intent ──────────────────────────────────────────────────────
+
+    type PaymentIntent {
+        intentId: String!
+        checkoutUrl: String!
+        clientSecret: String
+        returnUrl: String!
+        amount: BigIntCents!
+        currency: String!
+    }
+
+    # ── Paginated Response Wrapper ──────────────────────────────────────────
+
+    type PaginatedProjects {
+        items: [ProjectCard!]!
+        total: Int!
+        page: Int!
+        pageSize: Int!
+        hasMore: Boolean!
+    }
+
+    type PaginatedNotifications {
+        items: [Notification!]!
+        total: Int!
+        unreadCount: Int!
+    }
+

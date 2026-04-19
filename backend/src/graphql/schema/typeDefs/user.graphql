@@ -1,0 +1,89 @@
+    type User {
+        userId: ID!
+        email: String!
+        phone: String
+        fullName: String!
+        role: UserRole!
+        avatarUrl: String
+        kycVerificationStatus: KycStatus!
+        isActive: Boolean!
+        isEmailVerified: Boolean!
+        roles: [UserRole!]!
+        createdAt: DateTime!
+        updatedAt: DateTime!
+    }
+
+    """Authenticated user context injected from JWT"""
+    type AuthUser {
+        userId: ID!
+        role: UserRole!
+        roles: [UserRole!]!
+        activeRole: UserRole!
+        isActive: Boolean!
+    }
+
+    """OCDS-compliant project (بطاقة مشروع)"""
+        ): AuthPayload!
+
+        """Login with email and password"""
+        login(email: String!, password: String!): AuthPayload!
+
+        """Refresh JWT token"""
+        refreshToken(refreshToken: String!): AuthPayload!
+
+        # ── Projects (Path 1) ────────────────────────────────────────────
+        """Create a new reconstruction project"""
+        createProject(input: CreateProjectInput!): Project!
+
+        """Add a BOQ item to a project"""
+        addBOQItem(projectId: ID!, input: AddBOQItemInput!): BOQItem!
+
+        # ── Donations (Path 2) ───────────────────────────────────────────
+        """Create a donation with payment intent"""
+        createDonation(input: CreateDonationInput!): PaymentIntent!
+
+        # ── Spatial Proofs (Path 3) ──────────────────────────────────────
+        """Submit a GPS-verified spatial proof"""
+        submitSpatialProof(input: SubmitSpatialProofInput!): SpatialProof!
+
+        # ── Escrow (Path 4) ──────────────────────────────────────────────
+        """Release escrow funds after proof verification (admin only)"""
+        releaseEscrow(input: ReleaseEscrowInput!): EscrowEntry!
+
+        # ── Storage ──────────────────────────────────────────────────────
+        """Request a pre-signed upload URL for direct-to-MinIO upload"""
+        requestUploadUrl(input: RequestUploadUrlInput!): UploadUrl!
+
+        # ── Notifications ─────────────────────────────────────────────────
+        """Mark notification as read"""
+        markNotificationRead(notificationId: ID!): Notification!
+
+        """Mark all notifications as read"""
+        markAllNotificationsRead: Boolean!
+
+        # ── Supplier ─────────────────────────────────────────────────────
+        """Acknowledge a purchase order"""
+        acknowledgePO(poId: ID!): PurchaseOrder!
+
+        """Update PO status (ship, deliver)"""
+        updatePOStatus(poId: ID!, status: PoStatus!): PurchaseOrder!
+
+        # ── Reviews ──────────────────────────────────────────────────────
+        """Create a review for an entity"""
+        createReview(input: CreateReviewInput!): Review!
+
+        # ── Push Tokens ──────────────────────────────────────────────────
+        """Register a device push token for notifications"""
+        registerPushToken(
+            deviceToken: String!
+            platform: String!
+            deviceId: String
+        ): Boolean!
+    }
+
+    type AuthPayload {
+        token: String!
+        refreshToken: String
+        user: User!
+    }
+

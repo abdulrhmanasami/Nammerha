@@ -1,0 +1,146 @@
+    ${scalarTypeDefs}
+
+    # ── User & Identity Enums (maps to types/index.ts) ──────────────────────
+    enum UserRole {
+        DONOR
+        HOMEOWNER
+        ENGINEER
+        CONTRACTOR
+        TRADESPERSON
+        SUPPLIER
+        ADMIN
+        AUDITOR
+    }
+
+    enum KycStatus {
+        PENDING
+        SUBMITTED
+        VERIFIED
+        REJECTED
+        SUSPENDED
+    }
+
+    # ── Project Enums ───────────────────────────────────────────────────────
+    enum DamageType {
+        STRUCTURAL
+        PLUMBING
+        ELECTRICAL
+        MIXED
+    }
+
+    enum DamageSeverity {
+        MINOR
+        MODERATE
+        SEVERE
+        TOTAL_DESTRUCTION
+    }
+
+    enum ProjectStatus {
+        DRAFT
+        PENDING_ASSESSMENT
+        ASSESSED
+        PUBLISHED
+        IN_PROGRESS
+        COMPLETED
+        CANCELLED
+    }
+
+    # ── Financial Enums ─────────────────────────────────────────────────────
+    enum BoqItemStatus {
+        PENDING_VERIFICATION
+        VERIFIED
+        PARTIALLY_FUNDED
+        FULLY_FUNDED
+        DELIVERED
+        INSTALLED
+    }
+
+    enum PaymentStatus {
+        PENDING
+        LOCKED
+        RELEASED
+        REFUNDED
+        DISPUTED
+        CANCELLED
+    }
+
+    enum PoStatus {
+        GENERATED
+        SENT_TO_SUPPLIER
+        ACKNOWLEDGED
+        SHIPPED
+        DELIVERED
+        CANCELLED
+    }
+
+    enum PaymentMethod {
+        VISA
+        FATORA
+    }
+
+    # ── Notification Enums ──────────────────────────────────────────────────
+    enum NotificationType {
+        DONATION_RECEIVED
+        PROOF_SUBMITTED
+        FUNDS_RELEASED
+        DELIVERY_CONFIRMED
+        ENGINEER_ASSIGNED
+        PO_GENERATED
+        PROJECT_PUBLISHED
+        KYC_APPROVED
+        KYC_REJECTED
+        DISCREPANCY_FLAGGED
+        REFUND_APPROVED
+        REFUND_REJECTED
+    }
+
+    enum NotificationChannel {
+        PUSH
+        EMAIL
+        SMS
+        IN_APP
+    }
+
+    # ── Verification Enums ──────────────────────────────────────────────────
+    enum VerificationStatus {
+        SUBMITTED
+        VERIFIED
+        REJECTED
+    }
+
+    # ── Review Enums ────────────────────────────────────────────────────────
+    enum ReviewableType {
+        CONTRACTOR_PROFILES
+        SUPPLIER_PROFILES
+        ENGINEER_PROFILES
+        TRADESPERSON_PROFILES
+        HOMEOWNER_PROFILES
+        PROJECT
+    }
+
+    enum ReviewStatus {
+        PUBLISHED
+        HIDDEN
+        FLAGGED
+        REMOVED
+    }
+
+    # ── Impact Enums ────────────────────────────────────────────────────────
+    enum ImpactEventType {
+        DONATION_RECEIVED
+        CONTRACTOR_ASSIGNED
+        CONSTRUCTION_STARTED
+        MILESTONE_COMPLETED
+        PHOTO_PROOF_ADDED
+        ESCROW_RELEASED
+        PROJECT_COMPLETED
+    }
+
+    # ── Donation Intent ─────────────────────────────────────────────────────
+    enum DonationIntent {
+        ZAKAT
+        SADAQAH
+        GENERAL
+    }
+
+    """Platform user — all roles: donor, homeowner, engineer, supplier, admin, etc."""

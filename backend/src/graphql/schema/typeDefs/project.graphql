@@ -1,0 +1,70 @@
+    type Project {
+        projectId: ID!
+        homeownerId: ID!
+        assignedEngineerId: ID
+        assignedContractorId: ID
+        title: String!
+        description: String
+        coverImageUrl: String
+        gpsLocation: String
+        addressText: String
+        damageType: DamageType!
+        damageSeverity: DamageSeverity
+        status: ProjectStatus!
+        isPublic: Boolean!
+        totalEstimatedCost: BigIntCents!
+        totalFundedAmount: BigIntCents!
+        fundedPercentage: Float!
+        publishedAt: DateTime
+        completedAt: DateTime
+        createdAt: DateTime!
+        updatedAt: DateTime!
+        # Resolved fields
+        homeowner: User
+        engineer: User
+        boqItems: [BOQItem!]!
+        spatialProofs: [SpatialProof!]!
+    }
+
+    """Public marketplace project card (from vw_project_cards)"""
+    type ProjectCard {
+        projectId: ID!
+        title: String!
+        description: String
+        coverImageUrl: String
+        addressText: String
+        damageType: DamageType!
+        status: ProjectStatus!
+        totalEstimatedCost: BigIntCents!
+        totalFundedAmount: BigIntCents!
+        fundedPercentage: Float!
+        homeownerName: String!
+        latitude: Float
+        longitude: Float
+        publishedAt: DateTime
+        totalItems: Int!
+        fullyFundedItems: Int!
+    }
+
+    """Itemized Bill of Quantities entry (سلة البناء item)"""
+    type BOQItem {
+        itemId: ID!
+        projectId: ID!
+        materialName: String!
+        materialCategory: String
+        description: String
+        imageUrl: String
+        unit: String!
+        unitPrice: BigIntCents!
+        requiredQuantity: Float!
+        fundedAmount: BigIntCents!
+        fundedPercentage: Float!
+        oracleReferencePrice: BigIntCents
+        status: BoqItemStatus!
+        preferredSupplierId: ID
+        preferredSupplier: User
+        createdAt: DateTime!
+        updatedAt: DateTime!
+    }
+
+    """Immutable escrow ledger entry (مجمدة)"""

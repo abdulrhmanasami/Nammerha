@@ -1,0 +1,14 @@
+    type Notification {
+        notificationId: ID!
+        userId: ID!
+        type: NotificationType!
+        title: String!
+        body: String!
+        data: JSON
+        channel: NotificationChannel!
+        isRead: Boolean!
+        readAt: DateTime
+        createdAt: DateTime!
+    }
+
+    """Supplier catalog product listing"""

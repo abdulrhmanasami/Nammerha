@@ -1,0 +1,33 @@
+    type Review {
+        reviewId: ID!
+        reviewerId: ID!
+        reviewableType: ReviewableType!
+        reviewableId: ID!
+        projectId: ID
+        overallRating: Float!
+        title: String
+        body: String!
+        isVerifiedInteraction: Boolean!
+        status: ReviewStatus!
+        helpfulCount: Int!
+        createdAt: DateTime!
+        reviewer: User
+    }
+
+    """Donor impact communication"""
+    type ImpactMessage {
+        messageId: ID!
+        donorId: ID!
+        projectId: ID
+        eventType: ImpactEventType!
+        titleEn: String!
+        titleAr: String!
+        bodyEn: String!
+        bodyAr: String!
+        metadata: JSON!
+        readAt: DateTime
+        createdAt: DateTime!
+    }
+
+    # ── Dashboard Statistics Types ──────────────────────────────────────────
+

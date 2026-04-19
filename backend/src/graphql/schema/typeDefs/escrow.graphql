@@ -1,0 +1,21 @@
+    type EscrowEntry {
+        transactionId: ID!
+        donorId: ID!
+        itemId: ID!
+        projectId: ID!
+        amountLocked: BigIntCents!
+        currency: String!
+        paymentStatus: PaymentStatus!
+        paymentMethod: String
+        paymentGatewayRef: String
+        lockedAt: DateTime!
+        releasedAt: DateTime
+        releasedBy: ID
+        releaseProofId: ID
+        giftRecipientName: String
+        giftMessage: String
+        donationIntent: DonationIntent
+        createdAt: DateTime!
+    }
+
+    """GPS-verified spatial proof (إثبات مكاني)"""

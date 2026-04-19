@@ -41,7 +41,7 @@ import { mobileGuardMiddleware } from './middleware/mobile-guard.middleware';
 import { registerRoutes } from './routes/index';
 
 // GraphQL gateway (Phase 1: Strangler Fig pattern)
-import { mountGraphQL } from './graphql/server';
+import { setupGraphQL } from './graphql/server';
 
 // Locale pages middleware (handles /:locale/:page SSR)
 import localeRouter from './middleware/locale-pages.middleware';
@@ -126,8 +126,8 @@ app.use(cors({
     // SEC-011: Only expose X-User-Id header in development mode.
     // In production, this dev-only header should not be in the CORS allowlist.
     allowedHeaders: process.env['NODE_ENV'] === 'development'
-        ? ['Content-Type', 'Authorization', 'X-User-Id', 'Idempotency-Key', 'X-CSRF-Token']
-        : ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-CSRF-Token'],
+        ? ['Content-Type', 'Authorization', 'X-User-Id', 'Idempotency-Key', 'X-CSRF-Token', 'X-Platform', 'X-Device-Id', 'X-App-Version', 'X-Os-Version', 'X-Device-Model']
+        : ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-CSRF-Token', 'X-Platform', 'X-Device-Id', 'X-App-Version', 'X-Os-Version', 'X-Device-Model'],
     credentials: true,
     maxAge: 86400, // 24h preflight cache
 }));
@@ -218,8 +218,11 @@ app.use('/graphql', async (req, res, next) => {
 // routes in registration order and the 404 handler intercepts /graphql
 // requests before Apollo's middleware can process them.
 async function bootstrap(): Promise<void> {
+    const { createServer } = await import('http');
+    const httpServer = createServer(app);
+
     // Mount Apollo Server as Express middleware at /graphql
-    await mountGraphQL(app);
+    await setupGraphQL(app, httpServer);
 
     // ── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
     // Serves stitch pages at /:locale/:page with server-side HTML injection
@@ -251,7 +254,7 @@ async function bootstrap(): Promise<void> {
     });
 
     // ── Start Server ────────────────────────────────────────────────────────
-    const server = app.listen(PORT, () => {
+    const server = httpServer.listen(PORT, () => {
         logger.info('Nammerha backend started', {
             port: PORT,
             environment: process.env['NODE_ENV'] ?? 'development',

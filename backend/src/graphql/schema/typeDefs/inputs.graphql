@@ -1,0 +1,86 @@
+    input CreateProjectInput {
+        title: String!
+        damageType: DamageType!
+        damageSeverity: DamageSeverity
+        description: String
+        gpsLat: Float!
+        gpsLng: Float!
+        addressText: String
+        coverImageUrl: String
+    }
+
+    input AddBOQItemInput {
+        materialName: String!
+        materialCategory: String
+        description: String
+        unit: String!
+        unitPrice: BigIntCents!
+        requiredQuantity: Float!
+        imageUrl: String
+        preferredSupplierId: ID!
+    }
+
+    input DonationItemInput {
+        itemId: ID!
+        amount: BigIntCents!
+    }
+
+    input CreateDonationInput {
+        items: [DonationItemInput!]!
+        paymentMethod: PaymentMethod!
+        returnUrl: String
+        giftRecipientName: String
+        giftMessage: String
+        donationIntent: DonationIntent
+    }
+
+    input SubmitSpatialProofInput {
+        itemId: ID!
+        projectId: ID!
+        gpsLat: Float!
+        gpsLng: Float!
+        gpsAccuracyMeters: Float
+        imageUrl: String!
+        description: String
+        deviceInfo: JSON
+        clientHash: String
+    }
+
+    input ReleaseEscrowInput {
+        proofId: ID!
+        itemId: ID!
+    }
+
+    input RequestUploadUrlInput {
+        projectId: ID!
+        category: String!
+        filename: String!
+        contentType: String!
+        sizeBytes: Int!
+    }
+
+    input MarketplaceFilters {
+        damageType: DamageType
+        status: ProjectStatus
+        minFundedPercentage: Float
+        maxFundedPercentage: Float
+        search: String
+        page: Int
+        pageSize: Int
+    }
+
+    input CreateReviewInput {
+        reviewableType: ReviewableType!
+        reviewableId: ID!
+        projectId: ID
+        overallRating: Float!
+        title: String
+        body: String!
+        ratings: [DimensionRatingInput!]!
+    }
+
+    input DimensionRatingInput {
+        dimensionKey: String!
+        score: Float!
+    }
+

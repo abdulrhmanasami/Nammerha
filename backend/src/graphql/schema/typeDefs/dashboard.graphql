@@ -1,0 +1,65 @@
+    type EngineerStats {
+        assignedProjects: Int!
+        proofsPending: Int!
+        proofsVerified: Int!
+        escrowReleased: BigIntCents!
+        activeBids: Int!
+        totalBids: Int!
+    }
+
+    type ContractorStats {
+        activeProjects: Int!
+        pendingBids: Int!
+        wonBids: Int!
+        totalEscrowReceived: BigIntCents!
+        totalBids: Int!
+        bidWinRate: Float!
+    }
+
+    type TradespersonStats {
+        activeJobs: Int!
+        completedJobs: Int!
+        pendingRequests: Int!
+        activeAssignments: Int!
+        totalEarnings: BigIntCents!
+        averageRating: Float
+    }
+
+    # ── Pre-signed Upload URL ───────────────────────────────────────────────
+
+        contractorStats: ContractorStats!
+
+        """Tradesperson dashboard statistics"""
+        tradespersonStats: TradespersonStats!
+
+        # ── Notifications ─────────────────────────────────────────────────
+        """Get user notifications (paginated)"""
+        notifications(page: Int, pageSize: Int): PaginatedNotifications!
+
+        # ── Donor ─────────────────────────────────────────────────────────
+        """Get donor's escrow history"""
+        donorEscrowHistory: [EscrowEntry!]!
+
+        """Get donor's impact messages"""
+        donorImpactMessages: [ImpactMessage!]!
+
+        # ── Engineer ──────────────────────────────────────────────────────
+        """Get engineer's assigned projects"""
+        engineerProjects: [Project!]!
+
+        # ── Supplier ─────────────────────────────────────────────────────
+        """Get supplier's catalog items"""
+        supplierCatalog: [SupplierCatalogItem!]!
+
+        """Get supplier's purchase orders"""
+        supplierOrders: [PurchaseOrder!]!
+
+        # ── Spatial Proofs (Path 3) ──────────────────────────────────────
+        """Get spatial proofs for a project"""
+        spatialProofs(projectId: ID!): [SpatialProof!]!
+
+        # ── Reviews ──────────────────────────────────────────────────────
+        """Get reviews for an entity"""
+        reviews(reviewableType: ReviewableType!, reviewableId: ID!): [Review!]!
+    }
+

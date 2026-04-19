@@ -21,9 +21,18 @@ import { expressMiddleware } from '@as-integrations/express4';
 import type { Express } from 'express';
 import express from 'express';
 
+import { type Server as HttpServer } from 'http';
+import { WebSocketServer } from 'ws';
+// @ts-ignore - graphql-ws types require moduleResolution: Node16 which breaks the rest of the codebase
+import { useServer } from 'graphql-ws/use/ws';
+
 import { schema } from './schema/index';
 import { buildContext, type GQLContext } from './context/auth.context';
+import { createUserLoader } from './context/dataloader/user.loader';
+import { createProjectLoader } from './context/dataloader/project.loader';
+import { createBOQLoader } from './context/dataloader/boq.loader';
 import { logger } from '../utils/logger';
+import { initPgNotifyListener } from './resolvers/subscription/notification.resolver';
 
 /**
  * Creates and starts the Apollo Server instance.
@@ -111,8 +120,10 @@ async function createApolloServer(): Promise<ApolloServer<GQLContext>> {
  *
  * @param app - The Express application instance from server.ts
  */
-export async function mountGraphQL(app: Express): Promise<void> {
+export async function setupGraphQL(app: Express, httpServer: HttpServer): Promise<void> {
     try {
+        await initPgNotifyListener();
+        
         const server = await createApolloServer();
 
         // Mount Apollo as Express middleware
@@ -123,6 +134,59 @@ export async function mountGraphQL(app: Express): Promise<void> {
             expressMiddleware(server, {
                 context: async ({ req }: { req: express.Request }) => buildContext({ req }),
             }),
+        );
+        
+        // Mount graphql-ws handler
+        const wsServer = new WebSocketServer({
+            server: httpServer,
+            path: '/graphql',
+        });
+        
+        useServer(
+            {
+                schema,
+                context: async (ctx: any) => {
+                    const token = ctx.connectionParams?.['token'] as string | undefined;
+                    const fakeReq = {
+                        headers: token ? { authorization: `Bearer ${token}` } : {},
+                        authUser: null as null | Record<string, unknown>,
+                    };
+                    
+                    if (token) {
+                        try {
+                            const jwt = await import('jsonwebtoken');
+                            const secret = process.env['JWT_SECRET'];
+                            if (secret) {
+                                const decoded = jwt.default.verify(token, secret) as Record<string, unknown>;
+                                fakeReq.authUser = {
+                                    user_id: decoded['userId'],
+                                    role: decoded['role'],
+                                    roles: decoded['roles'] ?? [decoded['role']],
+                                };
+                            }
+                        } catch (err) {
+                            logger.error('WebSocket context JWT verify failed', { error: err instanceof Error ? err.message : String(err) });
+                        }
+                    }
+                    
+                    return {
+                        req: fakeReq,
+                        user: fakeReq.authUser,
+                        loaders: {
+                            userLoader: createUserLoader(),
+                            projectLoader: createProjectLoader(),
+                            boqLoader: createBOQLoader(),
+                        },
+                    } as unknown as GQLContext;
+                },
+                onConnect: (_ctx: any) => {
+                    logger.info('WebSocket client connected for GraphQL Subscriptions');
+                },
+                onDisconnect: () => {
+                    logger.info('WebSocket client disconnected');
+                },
+            },
+            wsServer
         );
 
         logger.info('GraphQL endpoint mounted at /graphql');

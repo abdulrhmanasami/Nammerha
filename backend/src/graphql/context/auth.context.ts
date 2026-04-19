@@ -23,6 +23,15 @@
 
 import type { Request } from 'express';
 import type { AuthUser } from '../../types/index';
+import { createUserLoader } from './dataloader/user.loader';
+import { createProjectLoader } from './dataloader/project.loader';
+import { createBOQLoader } from './dataloader/boq.loader';
+
+export interface GQLDataLoaders {
+    userLoader: ReturnType<typeof createUserLoader>;
+    projectLoader: ReturnType<typeof createProjectLoader>;
+    boqLoader: ReturnType<typeof createBOQLoader>;
+}
 
 /**
  * GraphQL context type available in all resolvers.
@@ -32,6 +41,8 @@ export interface GQLContext {
     user: AuthUser | null;
     /** Raw Express request for IP/user-agent access */
     req: Request;
+    /** Per-request caching/batching loaders */
+    loaders: GQLDataLoaders;
 }
 
 /**
@@ -47,6 +58,11 @@ export async function buildContext({ req }: { req: Request }): Promise<GQLContex
     return {
         user: req.authUser ?? null,
         req,
+        loaders: {
+            userLoader: createUserLoader(),
+            projectLoader: createProjectLoader(),
+            boqLoader: createBOQLoader(),
+        },
     };
 }
 

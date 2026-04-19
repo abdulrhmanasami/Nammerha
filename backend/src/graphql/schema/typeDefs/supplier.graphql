@@ -1,0 +1,25 @@
+    type SupplierCatalogItem {
+        catalogId: ID!
+        supplierId: ID!
+        materialName: String!
+        materialCategory: String!
+        description: String
+        imageUrl: String
+        unit: String!
+        unitPriceGuide: BigIntCents!
+        minOrderQty: Int!
+        leadTimeDays: Int!
+        isActive: Boolean!
+        createdAt: DateTime!
+    }
+
+    """Review with dimensional ratings"""
+    type SupplierStats {
+        pendingOrders: Int!
+        wonContracts: Int!
+        inTransit: Int!
+        totalRevenue: BigIntCents!
+        catalogItems: Int!
+        totalOrders: Int!
+    }
+

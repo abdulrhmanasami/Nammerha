@@ -1,0 +1,40 @@
+    type Query {
+        # ── Auth ────────────────────────────────────────────────────────────
+        """Get current authenticated user profile"""
+        me: User
+
+        # ── Marketplace (Path 2: Public) ─────────────────────────────────
+        """Browse published reconstruction projects"""
+        marketplace(filters: MarketplaceFilters): PaginatedProjects!
+
+        """Get project details by ID"""
+        project(projectId: ID!): Project
+
+        """Get BOQ items for a project"""
+        projectBOQ(projectId: ID!): [BOQItem!]!
+
+        # ── Role Dashboards ──────────────────────────────────────────────
+        """Supplier dashboard statistics"""
+        supplierStats: SupplierStats!
+
+        """Engineer dashboard statistics"""
+        engineerStats: EngineerStats!
+
+        """Contractor dashboard statistics"""
+    type Mutation {
+        # ── Auth ────────────────────────────────────────────────────────────
+        """Register a new user account"""
+        register(
+            email: String!
+            password: String!
+            fullName: String!
+            role: UserRole!
+            phone: String
+    type Subscription {
+        """Real-time notification stream"""
+        notificationReceived: Notification!
+
+        """Real-time project update stream"""
+        projectUpdated(projectId: ID!): Project!
+    }
+

@@ -1,0 +1,39 @@
+    type SpatialProof {
+        proofId: ID!
+        itemId: ID!
+        projectId: ID!
+        engineerId: ID!
+        gpsCoordinates: String!
+        gpsAccuracyMeters: Float
+        capturedAt: DateTime!
+        imageUrl: String!
+        imageHash: String
+        description: String
+        deviceInfo: JSON
+        verificationStatus: VerificationStatus!
+        verifiedBy: ID
+        verifiedAt: DateTime
+        createdAt: DateTime!
+        engineer: User
+    }
+
+    """Purchase order for verified supplier"""
+    type PurchaseOrder {
+        poId: ID!
+        poNumber: String!
+        itemId: ID!
+        projectId: ID!
+        supplierId: ID!
+        amount: BigIntCents!
+        currency: String!
+        status: PoStatus!
+        materialName: String!
+        quantity: Float!
+        unit: String!
+        unitPrice: BigIntCents!
+        supplierName: String!
+        generatedAt: DateTime!
+        createdAt: DateTime!
+    }
+
+    """User notification"""
