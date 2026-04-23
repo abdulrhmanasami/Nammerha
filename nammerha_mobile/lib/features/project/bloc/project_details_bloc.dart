@@ -17,12 +17,17 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
       LoadProjectDetailsRequested event, Emitter<ProjectDetailsState> emit) async {
     emit(ProjectDetailsLoading());
     try {
-      final results = await Future.wait([
-        _repository.getProject(event.projectId),
-        _repository.getProjectBOQ(event.projectId),
-      ]);
-      final projectData = results[0] as Map<String, dynamic>?;
-      final boqData = results[1] as List<Map<String, dynamic>>;
+      // Load independently — BOQ failure should not prevent viewing the project
+      Map<String, dynamic>? projectData;
+      List<Map<String, dynamic>> boqData = [];
+
+      try {
+        projectData = await _repository.getProject(event.projectId);
+      } catch (_) {}
+
+      try {
+        boqData = await _repository.getProjectBOQ(event.projectId);
+      } catch (_) {}
       
       if (projectData == null) {
         emit(const ProjectDetailsError('المشروع غير موجود'));

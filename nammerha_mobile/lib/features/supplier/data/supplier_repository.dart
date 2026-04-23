@@ -6,17 +6,23 @@ class SupplierRepository {
 
   SupplierRepository({SupplierApi? api}) : _api = api ?? SupplierApi();
 
-  /// Loads stats, orders, and catalog simultaneously.
+  /// Loads stats, orders, and catalog independently for resilience.
   Future<SupplierDashboardModel> loadFullDashboard() async {
-    final results = await Future.wait([
-      _api.getStats(),
-      _api.getOrders(),
-      _api.getCatalog(),
-    ]);
+    Map<String, dynamic> stats = {};
+    List<Map<String, dynamic>> rawOrders = [];
+    List<Map<String, dynamic>> rawCatalog = [];
 
-    final stats = results[0] as Map<String, dynamic>;
-    final rawOrders = (results[1] as List).cast<Map<String, dynamic>>();
-    final rawCatalog = (results[2] as List).cast<Map<String, dynamic>>();
+    try {
+      stats = await _api.getStats();
+    } catch (_) {}
+
+    try {
+      rawOrders = await _api.getOrders();
+    } catch (_) {}
+
+    try {
+      rawCatalog = await _api.getCatalog();
+    } catch (_) {}
 
     final orders = rawOrders.map((e) => SupplierOrderModel.fromJson(e)).toList();
     final catalog = rawCatalog.map((e) => SupplierItemModel.fromJson(e)).toList();

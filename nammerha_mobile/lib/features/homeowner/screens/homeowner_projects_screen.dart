@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/utils/error_localizer.dart';
 
 class HomeownerProjectsScreen extends StatefulWidget {
   const HomeownerProjectsScreen({super.key});
@@ -29,7 +30,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
       _projects = await _api.getProjects();
       setState(() => _isLoading = false);
     } on ApiException catch (e) {
-      setState(() { _error = e.message; _isLoading = false; });
+      setState(() { _error = localizeApiError(e.message); _isLoading = false; });
     } catch (e) {
       setState(() { _error = 'حدث خطأ في تحميل مشاريعك'; _isLoading = false; });
     }
@@ -265,7 +266,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
                   } on ApiException catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.message), backgroundColor: colors.error),
+                        SnackBar(content: Text(localizeApiError(e.message)), backgroundColor: colors.error),
                       );
                     }
                   }

@@ -7,13 +7,21 @@ class DonorRepository {
   DonorRepository({DonorApi? api}) : _api = api ?? DonorApi();
 
   Future<DonorDashboardModel> loadDashboard() async {
-    final results = await Future.wait([
-      _api.getStats(),
-      _api.getImpact(),
-    ]);
+    Map<String, dynamic> stats = {};
+    List<Map<String, dynamic>> impact = [];
+
+    try {
+      stats = await _api.getStats();
+    } catch (_) {}
+
+    try {
+      final raw = await _api.getImpact();
+      impact = raw;
+    } catch (_) {}
+
     return DonorDashboardModel(
-      stats: results[0] as Map<String, dynamic>,
-      fundedProjects: (results[1] as List).cast<Map<String, dynamic>>(),
+      stats: stats,
+      fundedProjects: impact,
     );
   }
 

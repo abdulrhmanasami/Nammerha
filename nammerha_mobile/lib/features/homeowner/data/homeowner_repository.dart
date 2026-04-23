@@ -11,13 +11,21 @@ class HomeownerRepository {
         _apiClient = apiClient ?? NammerhaApiClient.instance;
 
   Future<HomeownerDashboardModel> loadDashboard() async {
-    final results = await Future.wait([
-      _api.getStats(),
-      _api.getProjects(),
-    ]);
+    Map<String, dynamic> stats = {};
+    List<Map<String, dynamic>> projects = [];
+
+    try {
+      stats = await _api.getStats();
+    } catch (_) {}
+
+    try {
+      final raw = await _api.getProjects();
+      projects = raw;
+    } catch (_) {}
+
     return HomeownerDashboardModel(
-      stats: results[0] as Map<String, dynamic>,
-      projects: (results[1] as List).cast<Map<String, dynamic>>(),
+      stats: stats,
+      projects: projects,
     );
   }
 

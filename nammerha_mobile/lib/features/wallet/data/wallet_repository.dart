@@ -10,13 +10,17 @@ class WalletRepository {
         _paymentsApi = paymentsApi ?? PaymentsApi();
 
   Future<WalletSummaryModel> loadWallet() async {
-    final results = await Future.wait([
-      _donationsApi.getMyEscrow(),
-      _paymentsApi.getMyPayments(limit: 50),
-    ]);
+    Map<String, dynamic> escrowSummary = {};
+    List<Map<String, dynamic>> transactionsMap = [];
 
-    final escrowSummary = results[0] as Map<String, dynamic>;
-    final transactionsMap = (results[1] as List).cast<Map<String, dynamic>>();
+    try {
+      escrowSummary = await _donationsApi.getMyEscrow();
+    } catch (_) {}
+
+    try {
+      final raw = await _paymentsApi.getMyPayments(limit: 50);
+      transactionsMap = raw;
+    } catch (_) {}
 
     final transactions = transactionsMap.map((tx) => WalletTransactionModel.fromJson(tx)).toList();
 

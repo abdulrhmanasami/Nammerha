@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/utils/error_localizer.dart';
 
 class DonationsScreen extends StatefulWidget {
   const DonationsScreen({super.key});
@@ -29,17 +30,25 @@ class _DonationsScreenState extends State<DonationsScreen> {
   Future<void> _loadData() async {
     setState(() { _isLoading = true; _error = null; });
     try {
-      final results = await Future.wait([
-        _donorApi.getDonations(),
-        _donationsApi.getMyEscrow(),
-      ]);
+      // Load independently — one failing should not kill both
+      List<Map<String, dynamic>> donations = [];
+      Map<String, dynamic> summary = {};
+
+      try {
+        donations = await _donorApi.getDonations();
+      } catch (_) {}
+
+      try {
+        summary = await _donationsApi.getMyEscrow();
+      } catch (_) {}
+
       setState(() {
-        _donations = results[0] as List<Map<String, dynamic>>;
-        _summary = results[1] as Map<String, dynamic>;
+        _donations = donations;
+        _summary = summary;
         _isLoading = false;
       });
     } on ApiException catch (e) {
-      setState(() { _error = e.message; _isLoading = false; });
+      setState(() { _error = localizeApiError(e.message); _isLoading = false; });
     } catch (e) {
       setState(() { _error = 'حدث خطأ في تحميل بيانات التبرعات'; _isLoading = false; });
     }

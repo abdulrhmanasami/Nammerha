@@ -62,22 +62,26 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
     try {
       switch (index) {
         case 0:
-          final results = await Future.wait([_api.getStats(), _api.getProjects()]);
-          _stats = results[0] as Map<String, dynamic>;
-          _projects = (results[1] as List).cast<Map<String, dynamic>>();
+          // Load independently — one failing should not kill both
+          try {
+            _stats = await _api.getStats();
+          } catch (_) {
+            _stats = {'assigned_projects': 0, 'active_bids': 0, 'completed_projects': 0, 'total_earnings': 0};
+          }
+          try {
+            _projects = await _api.getProjects();
+          } catch (_) {}
           break;
         case 1:
-          _marketplace = await _api.getMarketplace();
+          try { _marketplace = await _api.getMarketplace(); } catch (_) {}
           break;
         case 2:
-          _bids = await _api.getBids();
+          try { _bids = await _api.getBids(); } catch (_) {}
           break;
         case 3:
-          _payments = await _api.getPayments();
+          try { _payments = await _api.getPayments(); } catch (_) {}
           break;
       }
-    } on ApiException catch (_) {
-      // Graceful degradation — show empty state
     } catch (_) {}
     if (mounted) setState(() => _isLoading = false);
   }
