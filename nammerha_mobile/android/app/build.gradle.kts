@@ -10,7 +10,7 @@ plugins {
 // ═══════════════════════════════════════════════════════════════════════════
 // Release Signing — Load credentials from key.properties (not in git)
 // ═══════════════════════════════════════════════════════════════════════════
-val keystorePropertiesFile = rootProject.file("app/key.properties")
+val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
