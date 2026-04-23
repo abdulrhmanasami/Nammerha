@@ -20,35 +20,40 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     
     emit(ProfileLoading(user: currentUser, roles: currentRoles));
     
+    // Load independently — profile must not break if roles API fails
+    Map<String, dynamic> user = {};
+    List<Map<String, dynamic>> roles = [];
+    
     try {
-      final results = await Future.wait([
-        _api.request<Map<String, dynamic>>(
-          '/auth/me',
-          fromData: (d) => d as Map<String, dynamic>,
-        ),
-        _api.request<Map<String, dynamic>>(
-          '/roles/my-roles',
-          fromData: (d) => d as Map<String, dynamic>,
-        ),
-      ]);
-      
-      final meData = results[0].data;
-      final rolesData = results[1].data;
-      
-      Map<String, dynamic> user = {};
-      List<Map<String, dynamic>> roles = [];
-      
-      if (meData != null && meData['user'] != null) {
-        user = Map<String, dynamic>.from(meData['user'] as Map);
+      final meResult = await _api.request<Map<String, dynamic>>(
+        '/auth/me',
+        fromData: (d) => d as Map<String, dynamic>,
+      );
+      if (meResult.data != null && meResult.data!['user'] != null) {
+        user = Map<String, dynamic>.from(meResult.data!['user'] as Map);
       }
-      if (rolesData != null && rolesData['roles'] is List) {
-        roles = (rolesData['roles'] as List).cast<Map<String, dynamic>>();
-      }
-      
-      emit(ProfileLoaded(user: user, roles: roles));
-    } catch (e) {
-      emit(const ProfileError('Failed to load profile data'));
+    } catch (_) {
+      // /auth/me failed — will show error below
     }
+    
+    try {
+      final rolesResult = await _api.request<Map<String, dynamic>>(
+        '/roles/my-roles',
+        fromData: (d) => d as Map<String, dynamic>,
+      );
+      if (rolesResult.data != null && rolesResult.data!['roles'] is List) {
+        roles = (rolesResult.data!['roles'] as List).cast<Map<String, dynamic>>();
+      }
+    } catch (_) {
+      // /roles/my-roles failed — continue without roles
+    }
+    
+    if (user.isEmpty) {
+      emit(const ProfileError('تعذر تحميل بيانات الملف الشخصي. حاول مرة أخرى.'));
+      return;
+    }
+    
+    emit(ProfileLoaded(user: user, roles: roles));
   }
 
   Future<void> _onSaveProfile(SaveProfileRequested event, Emitter<ProfileState> emit) async {

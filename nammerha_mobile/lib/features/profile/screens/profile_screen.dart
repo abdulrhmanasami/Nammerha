@@ -92,9 +92,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         } else if (state is ProfileError) {
           return Scaffold(
             backgroundColor: colors.backgroundPrimary,
+            appBar: AppBar(title: const Text('الملف الشخصي')),
             body: Center(
-              child: Text(state.message, style: TextStyle(color: colors.error)),
-            )
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.person_off_rounded, size: 64, color: colors.textSecondary),
+                    const SizedBox(height: 16),
+                    Text(
+                      state.message,
+                      style: TextStyle(color: colors.error, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () => context.read<ProfileBloc>().add(LoadProfileRequested()),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('إعادة المحاولة'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.primaryBrand,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         }
 

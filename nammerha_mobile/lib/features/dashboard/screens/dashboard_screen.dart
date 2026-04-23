@@ -159,7 +159,21 @@ class _DashboardHomeState extends State<_DashboardHome> {
       }
       if (mounted) setState(() { _stats = stats; _isLoadingStats = false; });
     } catch (_) {
-      if (mounted) setState(() => _isLoadingStats = false);
+      if (mounted) setState(() { _stats = _defaultStats(widget.role); _isLoadingStats = false; });
+    }
+  }
+
+  /// Fallback zero-value stats when API fails or user is not yet activated
+  Map<String, dynamic> _defaultStats(String role) {
+    switch (role) {
+      case 'ENGINEER':
+        return {'assignedProjects': 0, 'assigned_projects': 0, 'pendingProofs': 0, 'pending_proofs': 0, 'verifiedProofs': 0, 'verified_proofs': 0, 'totalRevenue': 0, 'total_revenue': 0};
+      case 'SUPPLIER':
+        return {'pendingOrders': 0, 'pending_orders': 0, 'inTransit': 0, 'in_transit': 0, 'delivered': 0, 'totalRevenue': 0, 'total_revenue': 0};
+      case 'HOMEOWNER':
+        return {'total_projects': 0, 'totalProjects': 0, 'pending_bids': 0, 'pendingBids': 0, 'funding_percentage': 0, 'fundingPercentage': 0, 'escrow_total': 0, 'escrowTotal': 0};
+      default:
+        return {'totalDonated': 0, 'total_donated': 0, 'activeProjects': 0, 'active_projects': 0, 'proofsSeen': 0, 'proofs_seen': 0, 'impactScore': 0, 'impact_score': 0};
     }
   }
 
@@ -294,9 +308,9 @@ class _DashboardHomeState extends State<_DashboardHome> {
     switch (role) {
       case 'ENGINEER':
         items = [
-          _StatItem('مشاريع معيّنة', '${stats['assignedProjects']}', Icons.architecture_rounded, colors.primaryBrand),
-          _StatItem('إثباتات معلّقة', '${stats['pendingProofs']}', Icons.pending_actions_rounded, colors.warning),
-          _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs']}', Icons.verified_rounded, colors.success),
+          _StatItem('مشاريع معيّنة', '${stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', Icons.architecture_rounded, colors.primaryBrand),
+          _StatItem('إثباتات معلّقة', '${stats['pendingProofs'] ?? stats['pending_proofs'] ?? 0}', Icons.pending_actions_rounded, colors.warning),
+          _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? 0}', Icons.verified_rounded, colors.success),
           _StatItem('الإيرادات', formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
         ];
         break;
@@ -319,9 +333,9 @@ class _DashboardHomeState extends State<_DashboardHome> {
       default:
         items = [
           _StatItem('إجمالي التبرعات', formatCurrency(stats['totalDonated'] ?? stats['total_donated'] ?? 0), Icons.favorite_rounded, colors.primaryBrand),
-          _StatItem('مشاريع نشطة', '${stats['activeProjects']}', Icons.home_work_rounded, colors.info),
-          _StatItem('إثباتات مُستلمة', '${stats['proofsSeen']}', Icons.verified_rounded, colors.success),
-          _StatItem('معدل الأثر', '${stats['impactScore']}%', Icons.trending_up_rounded, colors.goldFunding),
+          _StatItem('مشاريع نشطة', '${stats['activeProjects'] ?? stats['active_projects'] ?? 0}', Icons.home_work_rounded, colors.info),
+          _StatItem('إثباتات مُستلمة', '${stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}', Icons.verified_rounded, colors.success),
+          _StatItem('معدل الأثر', '${stats['impactScore'] ?? stats['impact_score'] ?? 0}%', Icons.trending_up_rounded, colors.goldFunding),
         ];
     }
 
@@ -461,91 +475,42 @@ class _DashboardHomeState extends State<_DashboardHome> {
   Widget _buildRecentActivity(BuildContext context, String role) {
     final colors = context.colors;
 
-    final List<Map<String, dynamic>> activities;
-    switch (role) {
-      case 'ENGINEER':
-        activities = [
-          {'title': 'إثبات مكاني مُرسل', 'subtitle': 'ترميم منزل الحسين — حلب', 'icon': Icons.camera_alt, 'time': 'منذ ساعتين', 'color': colors.success},
-          {'title': 'عرض مقبول', 'subtitle': 'ترميم سوق المدينة — حلب', 'icon': Icons.check_circle, 'time': 'أمس', 'color': colors.primaryBrand},
-          {'title': 'مشروع جديد مُعيّن', 'subtitle': 'منزل عائلة الشعار — دمشق', 'icon': Icons.assignment, 'time': 'منذ 3 أيام', 'color': colors.info},
-        ];
-        break;
-      case 'SUPPLIER':
-        activities = [
-          {'title': 'طلب جديد وارد', 'subtitle': '100 كيس إسمنت — حلب', 'icon': Icons.notification_important, 'time': 'منذ ساعة', 'color': colors.warning},
-          {'title': 'تم تأكيد التوصيل', 'subtitle': '3 طن حديد — حمص', 'icon': Icons.local_shipping, 'time': 'أمس', 'color': colors.success},
-          {'title': 'دفعة مُستلمة', 'subtitle': '300,000 ل.س', 'icon': Icons.account_balance_wallet, 'time': 'منذ 5 أيام', 'color': colors.goldFunding},
-        ];
-        break;
-      default:
-        activities = [
-          {'title': 'تبرع مُؤمّن', 'subtitle': 'إسمنت — منزل الحسين', 'icon': Icons.lock, 'time': 'منذ ساعتين', 'color': colors.success},
-          {'title': 'إثبات تسليم مُستلم', 'subtitle': 'حديد — مدرسة النور', 'icon': Icons.verified, 'time': 'أمس', 'color': colors.primaryBrand},
-          {'title': 'مشروع جديد متاح', 'subtitle': 'مركز صحي — الرقة', 'icon': Icons.add_circle, 'time': 'منذ 3 أيام', 'color': colors.info},
-        ];
-    }
-
-    return Column(
-      children: List.generate(activities.length, (index) {
-        final a = activities[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colors.surfaceElevated,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: colors.strokeSubtle),
+    // Empty state — no mock data. Real activity comes from notifications API.
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.strokeSubtle),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.inbox_rounded,
+            size: 48,
+            color: colors.textSecondary.withAlpha(80),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: (a['color'] as Color).withAlpha(15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(a['icon'] as IconData, color: a['color'] as Color, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      a['title'] as String,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      a['subtitle'] as String,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                a['time'] as String,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: colors.textSecondary,
-                ),
-              ),
-            ],
+          const SizedBox(height: 12),
+          Text(
+            'لا توجد نشاطات حديثة',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: colors.textSecondary,
+            ),
           ),
-        )
-            .animate(delay: (900 + index * 100).ms)
-            .fadeIn()
-            .slideX(begin: 0.05, end: 0);
-      }),
-    );
+          const SizedBox(height: 4),
+          Text(
+            'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع',
+            style: TextStyle(
+              fontSize: 12,
+              color: colors.textSecondary.withAlpha(150),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ).animate(delay: 900.ms).fadeIn();
   }
 
   String _getRoleLabel(String role) {

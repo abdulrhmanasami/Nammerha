@@ -29,10 +29,27 @@ class _BidsScreenState extends State<BidsScreen> {
       _bids = await _engineerApi.getBids();
       setState(() => _isLoading = false);
     } on ApiException catch (e) {
-      setState(() { _error = e.message; _isLoading = false; });
+      setState(() { _error = _localizeError(e.message); _isLoading = false; });
     } catch (e) {
       setState(() { _error = 'حدث خطأ في تحميل العروض'; _isLoading = false; });
     }
+  }
+
+  /// Maps English backend errors to user-facing Arabic messages
+  String _localizeError(String message) {
+    if (message.contains('not activated') || message.contains('KYC') || message.contains('not active')) {
+      return 'الحساب غير مفعّل. يرجى إكمال التحقق من الهوية (KYC).';
+    }
+    if (message.contains('not authorized') || message.contains('Forbidden') || message.contains('forbidden')) {
+      return 'ليس لديك صلاحية للوصول لهذه الصفحة.';
+    }
+    if (message.contains('not found') || message.contains('Not Found')) {
+      return 'لم يتم العثور على البيانات المطلوبة.';
+    }
+    if (message.contains('network') || message.contains('timeout') || message.contains('ETIMEDOUT')) {
+      return 'خطأ في الاتصال بالشبكة. تحقق من اتصالك بالإنترنت.';
+    }
+    return 'حدث خطأ في تحميل البيانات. حاول مرة أخرى.';
   }
 
   @override
