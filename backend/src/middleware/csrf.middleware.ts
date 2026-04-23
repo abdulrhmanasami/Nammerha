@@ -16,12 +16,22 @@ import rateLimit from 'express-rate-limit';
 // ─── Paths Exempted from CSRF ───────────────────────────────────────────────
 // Documented rationale for each exemption:
 //
-// - /webhook       → Gateway-to-server callbacks, not browser-initiated
-// - /auth/logout   → Fire-and-forget cookie clearance (M-003)
-// - /client-errors → Browser onerror telemetry, no cookie jar access (BUG-003)
-// - /csp-report    → W3C CSP violation reporter, no CSRF token possible (BUG-003)
+// - /webhook            → Gateway-to-server callbacks, not browser-initiated
+// - /auth/logout        → Fire-and-forget cookie clearance (M-003)
+// - /auth/register      → Pre-auth: no token/cookie exists yet (MOB-CSRF-001)
+// - /auth/login         → Pre-auth: no token/cookie exists yet (MOB-CSRF-001)
+// - /auth/forgot-password → Pre-auth: password recovery flow (MOB-CSRF-001)
+// - /auth/reset-password  → Pre-auth: token-based password reset (MOB-CSRF-001)
+// - /auth/resend-verification → Pre-auth: email verification flow (MOB-CSRF-001)
+// - /client-errors      → Browser onerror telemetry, no cookie jar access (BUG-003)
+// - /csp-report         → W3C CSP violation reporter, no CSRF token possible (BUG-003)
 const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set([
     '/auth/logout',
+    '/auth/register',
+    '/auth/login',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/resend-verification',
     '/client-errors',
     '/csp-report',
 ]);
@@ -68,6 +78,15 @@ export function csrfProtection(
     // Since browsers cannot automatically append Authorization headers to cross-origin
     // requests (unlike cookies), Bearer-authenticated requests are immune to CSRF.
     if (req.headers['authorization']?.startsWith('Bearer ')) {
+        return next();
+    }
+
+    // MOB-CSRF-001: Mobile clients send X-Platform: mobile header.
+    // Mobile apps don't use browser cookies for session management, so they are
+    // inherently immune to CSRF. The X-Platform header cannot be set by a CSRF
+    // attack (custom headers require CORS preflight which the attacker can't pass).
+    const platform = req.headers['x-platform'] as string | undefined;
+    if (platform === 'mobile' || platform === 'flutter' || platform === 'android' || platform === 'ios') {
         return next();
     }
 
