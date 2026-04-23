@@ -13,7 +13,8 @@ RUN npm ci --ignore-scripts
 COPY tsconfig.json ./
 COPY src/ ./src/
 RUN rm -rf src/routes/__tests__ src/services/__tests__ && \
-    npx tsc --skipLibCheck
+    npx tsc --skipLibCheck && \
+    cp -r src/graphql/schema/typeDefs dist/graphql/schema/typeDefs
 
 # ── Production stage: Node.js Alpine (minimal)
 FROM node:22-alpine AS production
