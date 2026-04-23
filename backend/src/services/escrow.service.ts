@@ -15,6 +15,7 @@ import {
     recordEscrowFeeInTransaction,
 } from './escrow-fee.service';
 import { logger } from '../utils/logger';
+import { redisLockManager } from '../config/redis.client';
 import type {
     VerificationCase,
     SpatialProof,
@@ -180,9 +181,21 @@ export async function getPendingVerifications(
 export async function releaseEscrow(
     auditorId: string,
     dto: ReleaseEscrowDTO
-): Promise<{ released_count: number; total_released: number }> {
-    return transaction(async (client) => {
-        // 1. Verify the proof exists and is in 'submitted' status
+): Promise<{ released_count: number; total_released: number; fee_charged: number }> {
+    const lockKey = `nammerha:escrow_release:lock:${dto.item_id}`;
+    const hasLock = await redisLockManager.acquireLock(lockKey, 30);
+    
+    if (!hasLock) {
+        logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent escrow release', { item_id: dto.item_id });
+        throw new Error('Another release operation is currently in progress for this item.');
+    }
+
+    try {
+        return await transaction(async (client) => {
+            // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
+            await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+
+            // 1. Verify the proof exists and is in 'submitted' status
         // M-001 FIX: Explicit column list — prevents schema drift.
         const proofResult = await client.query<SpatialProof>(
             `SELECT proof_id, item_id, project_id, engineer_id,
@@ -330,6 +343,9 @@ export async function releaseEscrow(
             fee_charged: feeCharged,
         };
     });
+    } finally {
+        await redisLockManager.releaseLock(lockKey);
+    }
 }
 
 // ─── Path 4.3: Flag Discrepancy ─────────────────────────────────────────────
@@ -484,8 +500,20 @@ export async function processRefund(
     decision: 'approved' | 'rejected',
     notes?: string,
 ): Promise<{ refund_id: string; status: string }> {
-    return transaction(async (client) => {
-        // 1. Lock and validate the refund request
+    const lockKey = `nammerha:refund:lock:${refundId}`;
+    const hasLock = await redisLockManager.acquireLock(lockKey, 30);
+    
+    if (!hasLock) {
+        logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent refund processing', { refund_id: refundId });
+        throw new Error('Another refund processing operation is currently in progress.');
+    }
+
+    try {
+        return await transaction(async (client) => {
+            // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
+            await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+
+            // 1. Lock and validate the refund request
         const reqResult = await client.query<{
             refund_id: string;
             escrow_id: string;
@@ -646,6 +674,9 @@ export async function processRefund(
 
         return { refund_id: refundId, status: 'processed' };
     });
+    } finally {
+        await redisLockManager.releaseLock(lockKey);
+    }
 }
 
 /**

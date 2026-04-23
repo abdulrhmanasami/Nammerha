@@ -421,18 +421,26 @@ router.post(
 
             // V1-AUDIT FIX: Set JWT in httpOnly cookie — JS cannot read this token.
             // This neutralizes XSS-based session theft entirely.
-            res.cookie('nammerha_jwt', token, {
-                httpOnly: true,
-                secure: process.env['NODE_ENV'] === 'production',
-                sameSite: 'strict',
-                maxAge: 24 * 60 * 60 * 1000, // 24h — mirrors JWT expiry
-                path: '/',
-            });
+            // MOB-AUTH-001: Skip cookie for native mobile clients — they use Bearer tokens.
+            const clientPlatform = req.headers['x-platform'] as string | undefined;
+            const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
 
-            // NMR-AUD-H001 FIX: JWT is NO LONGER returned in the response body.
-            // The httpOnly cookie migration is complete — the frontend uses
-            // credentials: 'same-origin' exclusively. Removing the body token
-            // eliminates the XSS token theft vector entirely.
+            if (!isMobileClient) {
+                res.cookie('nammerha_jwt', token, {
+                    httpOnly: true,
+                    secure: process.env['NODE_ENV'] === 'production',
+                    sameSite: 'strict',
+                    maxAge: 24 * 60 * 60 * 1000, // 24h — mirrors JWT expiry
+                    path: '/',
+                });
+            }
+
+            // MOB-AUTH-001: Mobile clients receive the JWT in the response body
+            // because native apps cannot reliably use httpOnly cookies for cross-origin
+            // API requests. The token is stored in flutter_secure_storage (AES-encrypted
+            // on Android, Keychain on iOS) which provides equivalent security to httpOnly
+            // cookies in a native context.
+            // Web clients continue to use httpOnly cookies exclusively (NMR-AUD-H001).
             res.json({
                 success: true,
                 data: {
@@ -448,6 +456,8 @@ router.post(
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                     },
+                    // MOB-AUTH-001: Token only included for mobile clients
+                    ...(isMobileClient ? { token } : {}),
                 },
             } as ApiResponse);
         } catch (error) {

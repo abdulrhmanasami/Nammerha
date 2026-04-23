@@ -239,7 +239,7 @@ async function loadMarketplace(): Promise<void> {
         tbody.innerHTML = projects.map((p) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pr-12 dark:text-slate-100">${esc(p.title)}</h3>
+                    <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pe-12 dark:text-slate-100">${esc(p.title)}</h3>
                     <div class="text-end">
                         <p class="font-mono font-bold text-trust-blue">${formatCents(p.total_estimated_cost)}</p>
                         <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mt-0.5 dark:text-slate-500" data-i18n="th_est_cost">Est. Cost</p>

@@ -34,6 +34,21 @@ export const miscQueryResolvers = {
         return donations.map(d => mapEscrowEntry(d as unknown as Record<string, unknown>));
     },
 
+    // H-3 FIX: Added paginated donorDonations query for mobile app compatibility.
+    // The mobile escrow_queries.dart sends `donorDonations(limit: $limit, offset: $offset)`.
+    donorDonations: async (
+        _: unknown,
+        args: { limit?: number; offset?: number },
+        context: GQLContext,
+    ) => {
+        const user = requireRole(context, 'donor');
+        const limit = Math.min(50, Math.max(1, args.limit ?? 20));
+        const offset = Math.max(0, args.offset ?? 0);
+        const donations = await crowdfundingService.getDonorDonations(user.user_id, limit, offset);
+        return donations.map(d => mapEscrowEntry(d as unknown as Record<string, unknown>));
+    },
+
+
     donorImpactMessages: async (_: unknown, __: unknown, context: GQLContext) => {
         const user = requireRole(context, 'donor');
         const messages = await impactService.getDonorMessages(user.user_id);

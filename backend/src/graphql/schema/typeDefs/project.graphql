@@ -1,3 +1,4 @@
+    """OCDS-compliant project (بطاقة مشروع)"""
     type Project {
         projectId: ID!
         homeownerId: ID!
@@ -66,5 +67,3 @@
         createdAt: DateTime!
         updatedAt: DateTime!
     }
-
-    """Immutable escrow ledger entry (مجمدة)"""

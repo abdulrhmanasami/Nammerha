@@ -572,28 +572,25 @@ export const paymentService = {
      * same transaction client — NOT via createDonation() which opens its own
      * independent transaction and would cause a connection pool deadlock.
      */
-    handleWebhook(data: {
+    async handleWebhook(data: {
         reference: string;
         gateway: PaymentGateway;
         status: 'success' | 'failure';
         gateway_tx_id: string;
     }): Promise<{ processed: boolean; payment_id?: string }> {
+        const { redisLockManager } = await import('../config/redis.client');
+        const lockKey = `nammerha:webhook:lock:${data.reference}`;
+        const hasLock = await redisLockManager.acquireLock(lockKey, 30);
+        
+        if (!hasLock) {
+            logger.warn('Domain Law 1 Enforced: Redis Lock prevented race condition', { reference: data.reference });
+            return { processed: false };
+        }
 
-        return transaction(async (client) => {
-            // GAP-3 FIX: Acquire a PostgreSQL advisory lock scoped to this transaction.
-            // Titan Architect FIX: Generated two 32-bit integers from the reference
-            // via MD5 to utilize the pg_advisory_xact_lock(int, int) signature.
-            // This provides 64-bit collision space (2^64) instead of the highly
-            // susceptible 32-bit space (2^32) of hashtext(). This completely prevents
-            // identical hash deadlocks under hyper-scale load.
-            const hashBuffer = crypto.createHash('md5').update(data.reference).digest();
-            const key1 = hashBuffer.readInt32LE(0);
-            const key2 = hashBuffer.readInt32LE(4);
-
-            await client.query(
-                `SELECT pg_advisory_xact_lock($1, $2)`,
-                [key1, key2]
-            );
+        try {
+            return await transaction(async (client) => {
+                // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
+                await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
 
             // 1. Look up payment
             // M-001 FIX: Explicit column list — prevents schema drift.
@@ -778,6 +775,9 @@ export const paymentService = {
 
             return { processed: true, payment_id: payment.payment_id };
         });
+        } finally {
+            await redisLockManager.releaseLock(lockKey);
+        }
     },
 
     /**

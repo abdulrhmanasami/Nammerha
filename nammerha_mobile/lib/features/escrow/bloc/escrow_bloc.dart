@@ -1,56 +1,40 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_event.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_state.dart';
-import 'package:nammerha_mobile/features/escrow/data/escrow_repository.dart';
+import '../data/escrow_repository.dart';
+import 'escrow_event.dart';
+import 'escrow_state.dart';
 
 class EscrowBloc extends Bloc<EscrowEvent, EscrowState> {
-  final EscrowRepository _repository;
+  final EscrowRepository repository;
 
-  EscrowBloc({required EscrowRepository repository})
-      : _repository = repository,
-        super(EscrowInitial()) {
-    on<InitiateDonationEvent>(_onInitiateDonation);
-    on<LoadEscrowSummaryEvent>(_onLoadEscrowSummary);
+  EscrowBloc({required this.repository}) : super(EscrowInitial()) {
+    on<FetchEscrowSummaryEvent>(_onFetchEscrowSummary);
+    on<FetchDonorDonationsEvent>(_onFetchDonorDonations);
   }
 
-  Future<void> _onInitiateDonation(
-    InitiateDonationEvent event,
+  Future<void> _onFetchEscrowSummary(
+    FetchEscrowSummaryEvent event,
     Emitter<EscrowState> emit,
   ) async {
     emit(EscrowLoading());
     try {
-      final response = await _repository.createDonation(
-        items: event.items,
-        paymentMethod: event.paymentMethod,
-        returnUrl: event.returnUrl,
-      );
-
-      final checkoutUrl = response['checkoutUrl'];
-      final intentId = response['intentId'];
-      final clientSecret = response['clientSecret'];
-
-      if ((checkoutUrl != null && checkoutUrl.isNotEmpty) || (clientSecret != null && clientSecret.isNotEmpty)) {
-        emit(EscrowCheckoutReady(
-          checkoutUrl: checkoutUrl, 
-          intentId: intentId ?? '',
-          clientSecret: clientSecret,
-        ));
-      } else {
-        emit(const EscrowError('Failed to generate secure checkout link.'));
-      }
+      final summary = await repository.fetchDonorEscrowSummary();
+      emit(EscrowSummaryLoaded(summary));
     } catch (e) {
       emit(EscrowError(e.toString()));
     }
   }
 
-  Future<void> _onLoadEscrowSummary(
-    LoadEscrowSummaryEvent event,
+  Future<void> _onFetchDonorDonations(
+    FetchDonorDonationsEvent event,
     Emitter<EscrowState> emit,
   ) async {
     emit(EscrowLoading());
     try {
-      final summary = await _repository.getDonorEscrowSummary();
-      emit(EscrowSummaryLoaded(summary: summary));
+      final donations = await repository.fetchDonorDonations(
+        limit: event.limit,
+        offset: event.offset,
+      );
+      emit(DonorDonationsLoaded(donations));
     } catch (e) {
       emit(EscrowError(e.toString()));
     }

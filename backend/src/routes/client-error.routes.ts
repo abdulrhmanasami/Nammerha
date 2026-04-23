@@ -35,7 +35,10 @@ interface ClientErrorPayload {
     url: string;
     userAgent?: string;
     timestamp: string;
-    type: 'error' | 'unhandledrejection' | 'manual';
+    // PLT-2026-AUD-002 FIX: Added 'warning' to match frontend error-reporter severity tiers
+    type: 'error' | 'unhandledrejection' | 'manual' | 'warning';
+    /** PLT-2026-AUD-002: Severity tier for APM alerting rules */
+    severity?: 'error' | 'warning';
     metadata?: Record<string, unknown>;
 }
 
@@ -51,7 +54,7 @@ function isValidPayload(body: unknown): body is ClientErrorPayload {
         typeof obj['url'] === 'string' &&
         typeof obj['timestamp'] === 'string' &&
         typeof obj['type'] === 'string' &&
-        ['error', 'unhandledrejection', 'manual'].includes(obj['type'] as string)
+        ['error', 'unhandledrejection', 'manual', 'warning'].includes(obj['type'] as string)
     );
 }
 
@@ -71,8 +74,14 @@ router.post('/', errorReportLimiter, (req, res) => {
             : undefined;
 
         // Log through structured logger (visible to ops team via log aggregation)
-        logger.error('CLIENT_ERROR', {
+        // PLT-2026-AUD-002: Route warnings to warn level, errors to error level
+        const logFn = payload.type === 'warning' || payload.severity === 'warning'
+            ? logger.warn.bind(logger)
+            : logger.error.bind(logger);
+
+        logFn('CLIENT_ERROR', {
             type: payload.type,
+            severity: payload.severity ?? 'error',
             message: payload.message.slice(0, 2048),
             source: payload.source?.slice(0, 512),
             lineno: payload.lineno,

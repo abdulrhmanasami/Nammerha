@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { signalHydrated } from '../utils/hydration';
 import { escapeHtml as esc } from '../utils/xss';
 import { reportWarning } from '../error-reporter';
 // TICK-026: Import shared error-retry utility for consistent error recovery.
@@ -35,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // W6-001 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
     initTimestamp();
-    loadKPIs();
-    loadProjectTimeline();
+    // GAP-2601: Signal hydration after primary data loads
+    Promise.allSettled([loadKPIs(), loadProjectTimeline()]).then(signalHydrated);
     setupTabs();
 });
 

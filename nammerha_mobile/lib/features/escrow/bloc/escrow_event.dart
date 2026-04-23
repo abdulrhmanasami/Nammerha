@@ -4,22 +4,17 @@ abstract class EscrowEvent extends Equatable {
   const EscrowEvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
-class InitiateDonationEvent extends EscrowEvent {
-  final List<Map<String, dynamic>> items;
-  final String paymentMethod;
-  final String? returnUrl;
+class FetchEscrowSummaryEvent extends EscrowEvent {}
 
-  const InitiateDonationEvent({
-    required this.items,
-    required this.paymentMethod,
-    this.returnUrl,
-  });
+class FetchDonorDonationsEvent extends EscrowEvent {
+  final int limit;
+  final int offset;
+
+  const FetchDonorDonationsEvent({this.limit = 20, this.offset = 0});
 
   @override
-  List<Object?> get props => [items, paymentMethod, returnUrl];
+  List<Object> get props => [limit, offset];
 }
-
-class LoadEscrowSummaryEvent extends EscrowEvent {}

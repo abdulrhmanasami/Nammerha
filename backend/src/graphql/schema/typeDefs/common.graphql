@@ -1,4 +1,11 @@
-    ${scalarTypeDefs}
+    """ISO 8601 date-time string"""
+    scalar DateTime
+
+    """Monetary value in smallest currency unit (cents), serialized as string"""
+    scalar BigIntCents
+
+    """Arbitrary JSON value"""
+    scalar JSON
 
     # ── User & Identity Enums (maps to types/index.ts) ──────────────────────
     enum UserRole {
@@ -142,5 +149,3 @@
         SADAQAH
         GENERAL
     }
-
-    """Platform user — all roles: donor, homeowner, engineer, supplier, admin, etc."""

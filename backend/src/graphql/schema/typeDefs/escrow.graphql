@@ -1,3 +1,4 @@
+    """Immutable escrow ledger entry (مجمدة)"""
     type EscrowEntry {
         transactionId: ID!
         donorId: ID!
@@ -6,16 +7,14 @@
         amountLocked: BigIntCents!
         currency: String!
         paymentStatus: PaymentStatus!
-        paymentMethod: String
+        paymentMethod: PaymentMethod
         paymentGatewayRef: String
-        lockedAt: DateTime!
+        lockedAt: DateTime
         releasedAt: DateTime
         releasedBy: ID
         releaseProofId: ID
-        giftRecipientName: String
-        giftMessage: String
-        donationIntent: DonationIntent
+        refundedAt: DateTime
+        blockchainTxHash: String
         createdAt: DateTime!
+        updatedAt: DateTime!
     }
-
-    """GPS-verified spatial proof (إثبات مكاني)"""

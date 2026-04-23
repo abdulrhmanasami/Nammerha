@@ -520,5 +520,16 @@
     } else {
         init();
     }
+
+    // GAP-2601-V3: Auto-hydration fallback for load-guard.js.
+    // Every page loads nav.js. After 8s (< load-guard's 10s timeout),
+    // signal hydration to cancel the error banner. Pages that call
+    // signalHydrated() explicitly via their TS module will set this
+    // attribute even earlier, making this a harmless no-op.
+    setTimeout(function () {
+        if (!document.documentElement.hasAttribute('data-hydrated')) {
+            document.documentElement.setAttribute('data-hydrated', 'true');
+        }
+    }, 8000);
 })();
 

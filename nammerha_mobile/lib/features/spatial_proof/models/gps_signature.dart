@@ -45,6 +45,6 @@ class GpsSignature {
 
   @override
   String toString() {
-    return 'GpsSignature(lat: \$latitude, lng: \$longitude, acc: \${accuracy}m, hash: \$clientHash)';
+    return 'GpsSignature(lat: $latitude, lng: $longitude, acc: ${accuracy}m, hash: $clientHash)';
   }
 }

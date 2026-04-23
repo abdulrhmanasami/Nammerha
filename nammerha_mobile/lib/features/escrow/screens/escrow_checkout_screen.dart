@@ -1,220 +1,269 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_bloc.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_event.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_state.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/gradient_button.dart';
+import '../../cart/bloc/checkout_bloc.dart';
+import '../../cart/bloc/checkout_event.dart';
+import '../../cart/bloc/checkout_state.dart';
 
-class EscrowCheckoutScreen extends StatefulWidget {
+class EscrowCheckoutScreen extends StatelessWidget {
   final List<Map<String, dynamic>> basketItems;
   final double totalAmount;
+  final int tipAmount;
 
   const EscrowCheckoutScreen({
-    Key? key,
+    super.key,
     required this.basketItems,
     required this.totalAmount,
-  }) : super(key: key);
+    this.tipAmount = 0,
+  });
 
   @override
-  State<EscrowCheckoutScreen> createState() => _EscrowCheckoutScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => CheckoutBloc(),
+      child: EscrowCheckoutView(
+        basketItems: basketItems,
+        totalAmount: totalAmount,
+        tipAmount: tipAmount,
+      ),
+    );
+  }
 }
 
-class _EscrowCheckoutScreenState extends State<EscrowCheckoutScreen> {
+class EscrowCheckoutView extends StatefulWidget {
+  final List<Map<String, dynamic>> basketItems;
+  final double totalAmount;
+  final int tipAmount;
+
+  const EscrowCheckoutView({
+    super.key,
+    required this.basketItems,
+    required this.totalAmount,
+    required this.tipAmount,
+  });
+
+  @override
+  State<EscrowCheckoutView> createState() => _EscrowCheckoutViewState();
+}
+
+class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
   String _selectedGateway = 'fatora';
 
-  Future<void> _handlePayment(String? url, String? clientSecret) async {
-    if (clientSecret != null && clientSecret.isNotEmpty && _selectedGateway == 'stripe') {
-      try {
-        await Stripe.instance.initPaymentSheet(
-          paymentSheetParameters: SetupPaymentSheetParameters(
-            paymentIntentClientSecret: clientSecret,
-            merchantDisplayName: 'Nammerha Platform',
-            allowsDelayedPaymentMethods: true,
-          ),
-        );
-        await Stripe.instance.presentPaymentSheet();
-        _showAwaitingDialog();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Payment failed or cancelled: $e')),
-          );
-        }
-      }
-    } else if (url != null && url.isNotEmpty) {
-      final uri = Uri.parse(url);
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to open payment gateway. Please try again.')),
-          );
-        }
-      } else {
-        _showAwaitingDialog();
-      }
+  // Fallback formatter
+  String formatCurrency(num amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
     }
+    return '${amount.toStringAsFixed(0)} ل.س';
   }
 
-  void _showAwaitingDialog() {
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Awaiting Payment'),
-          content: const Text('Please verify the transaction details.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // close dialog
-                context.read<EscrowBloc>().add(LoadEscrowSummaryEvent());
-                Navigator.pop(context); // return to previous screen
-              },
-              child: const Text('I have completed the payment'),
-            ),
-          ],
-        ),
-      );
-    }
+  void _handleCheckout() {
+    context.read<CheckoutBloc>().add(InitiateCheckoutEvent(
+      basketItems: widget.basketItems,
+      tipAmount: widget.tipAmount,
+      paymentGateway: _selectedGateway,
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text('Secure Checkout', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        titleTextStyle: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-      body: BlocConsumer<EscrowBloc, EscrowState>(
-        listener: (context, state) {
-          if (state is EscrowCheckoutReady) {
-            _handlePayment(state.checkoutUrl, state.clientSecret);
-          } else if (state is EscrowError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message, style: const TextStyle(color: Colors.white))),
-            );
+    final colors = context.colors;
+
+    return BlocConsumer<CheckoutBloc, CheckoutState>(
+      listener: (context, state) async {
+        if (state is CheckoutSuccess && state.checkoutUrl != null) {
+          final url = Uri.parse(state.checkoutUrl!);
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
           }
-        },
-        builder: (context, state) {
-          return SafeArea(
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('✅ تم توجيهك إلى بوابة الدفع الآمنة'),
+                backgroundColor: colors.success,
+              ),
+            );
+            Navigator.pop(context); // Close checkout
+          }
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is CheckoutLoading;
+        String? errorMessage;
+        if (state is CheckoutError) {
+          errorMessage = state.message;
+        }
+
+        return Scaffold(
+          backgroundColor: colors.backgroundPrimary,
+          appBar: AppBar(title: const Text('الدفع الآمن')),
+          body: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Funding Summary',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1F2937)),
-                  ),
+                  Text('ملخص التمويل', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                   const SizedBox(height: 16),
+
+                  // Items list
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colors.surfaceElevated,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
-                        ],
+                        border: Border.all(color: colors.strokeSubtle),
                       ),
                       child: ListView.separated(
                         itemCount: widget.basketItems.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                        separatorBuilder: (_, _) => Divider(height: 1, color: colors.strokeSubtle),
                         itemBuilder: (context, index) {
                           final item = widget.basketItems[index];
+                          final lineTotal = ((item['unit_price'] as num?) ?? 0) * ((item['quantity'] as num?) ?? 1);
                           return ListTile(
-                            title: Text(item['name'] ?? 'BOQ Item', style: const TextStyle(fontWeight: FontWeight.w500)),
+                            title: Text(
+                              '${item['material_name'] ?? item['name']} × ${item['quantity']}',
+                              style: TextStyle(fontWeight: FontWeight.w500, color: colors.textPrimary, fontSize: 14),
+                            ),
                             trailing: Text(
-                              '\$${((item['amount'] as num) / 100).toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF047857)),
+                              formatCurrency(lineTotal),
+                              style: TextStyle(fontWeight: FontWeight.w700, color: colors.success, fontSize: 14),
                             ),
                           );
                         },
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Tips if selected
+                  if (widget.tipAmount > 0) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: colors.backgroundSecondary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('إكرامية المنصة', style: TextStyle(fontWeight: FontWeight.w500, color: colors.textSecondary)),
+                          Text(formatCurrency(widget.tipAmount), style: TextStyle(fontWeight: FontWeight.w700, color: colors.success)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // Total
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colors.primaryBrandLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: colors.primaryBrand.withAlpha(30)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.lock_rounded, color: colors.primaryBrand, size: 20),
+                            const SizedBox(width: 8),
+                            Text('إجمالي الضمان', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
+                          ],
+                        ),
+                        Text(
+                          formatCurrency(widget.totalAmount + widget.tipAmount),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.primaryBrand),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Gateway Selector
+                  Text('اختر بوابة الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                  const SizedBox(height: 12),
+                  _buildGatewaySelector(context, 'Fatora (محلي/دولي)', 'fatora', Icons.account_balance_rounded),
                   const SizedBox(height: 24),
+
+                  // Error
+                  if (errorMessage != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: colors.errorLight, borderRadius: BorderRadius.circular(10)),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: colors.error, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(errorMessage, style: TextStyle(color: colors.error, fontSize: 13))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // Trust badge
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Secure Escrow', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                      Text(
-                        '\$${(widget.totalAmount / 100).toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+                      Icon(Icons.shield_rounded, color: colors.success, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'الأموال مؤمّنة في حساب الضمان ولا يتم الإفراج عنها إلا بإثبات مكاني مُوثّق',
+                          style: TextStyle(fontSize: 11, color: colors.textSecondary, height: 1.4),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Select Payment Gateway',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildGatewaySelector('Fatora (Local/International)', 'fatora'),
-                  const SizedBox(height: 8),
-                  _buildGatewaySelector('Visa Click-to-Pay / Native Stripe', 'stripe'),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: state is EscrowLoading
-                        ? null
-                        : () {
-                            context.read<EscrowBloc>().add(
-                                  InitiateDonationEvent(
-                                    items: widget.basketItems,
-                                    paymentMethod: _selectedGateway,
-                                  ),
-                                );
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    child: state is EscrowLoading
-                        ? const SizedBox(
-                            width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Lock Funds in Escrow', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 16),
+
+                  // Checkout Button
+                  GradientButton(
+                    label: 'تأمين الأموال في الضمان',
+                    icon: Icons.lock_rounded,
+                    isLoading: isLoading,
+                    onPressed: _handleCheckout,
                   ),
                 ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildGatewaySelector(String title, String gatewayValue) {
-    final isSelected = _selectedGateway == gatewayValue;
+  Widget _buildGatewaySelector(BuildContext context, String title, String value, IconData icon) {
+    final colors = context.colors;
+    final isSelected = _selectedGateway == value;
+
     return GestureDetector(
-      onTap: () => setState(() => _selectedGateway = gatewayValue),
+      onTap: () => setState(() => _selectedGateway = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-          border: Border.all(
-            color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFD1D5DB),
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.primaryBrandLight : colors.surfaceElevated,
+          border: Border.all(color: isSelected ? colors.primaryBrand : colors.strokeBorder, width: isSelected ? 2 : 1),
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Row(
           children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF9CA3AF),
-            ),
+            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: isSelected ? colors.primaryBrand : colors.textSecondary),
             const SizedBox(width: 12),
-            Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: const Color(0xFF1F2937))),
+            Icon(icon, color: isSelected ? colors.primaryBrand : colors.textSecondary, size: 20),
+            const SizedBox(width: 8),
+            Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: colors.textPrimary)),
           ],
         ),
       ),
     );
   }
 }
+

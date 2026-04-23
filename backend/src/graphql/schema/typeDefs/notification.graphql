@@ -1,3 +1,4 @@
+    """User notification"""
     type Notification {
         notificationId: ID!
         userId: ID!
@@ -10,5 +11,3 @@
         readAt: DateTime
         createdAt: DateTime!
     }
-
-    """Supplier catalog product listing"""

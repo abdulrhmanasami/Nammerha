@@ -189,7 +189,7 @@ function initDonorBasket(): void {
 
     function createItemCard(item: CartItem): HTMLElement {
         const card = document.createElement('div');
-        card.className = 'cart-item-card glass-card p-4 rounded-xl flex items-center justify-between border-l-4 border-l-trust-blue animate-fade-in-up';
+        card.className = 'cart-item-card glass-card p-4 rounded-xl flex items-center justify-between border-s-4 border-s-trust-blue animate-fade-in-up';
         card.dataset.itemId = item.id;
 
         card.innerHTML = `
@@ -202,7 +202,7 @@ function initDonorBasket(): void {
           <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtml(item.category)}</p>
         </div>
       </div>
-      <div class="flex items-center gap-3 shrink-0 ml-3">
+      <div class="flex items-center gap-3 shrink-0 ms-3">
         <div class="flex items-center gap-1">
           <button type="button" class="qty-btn qty-minus size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors" aria-label="${escapeHtml(t('basket_decrease_qty', 'Decrease quantity'))}">
             <i class="ph ph-minus ph-xs" aria-hidden="true"></i>

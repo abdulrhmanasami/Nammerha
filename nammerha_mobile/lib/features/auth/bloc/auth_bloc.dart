@@ -1,30 +1,69 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-
 import '../repositories/auth_repository.dart';
+import '../../../core/network/api_client.dart';
 
-// ─── EVENTS ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
-
   @override
   List<Object?> get props => [];
 }
 
-class CheckAuthStatus extends AuthEvent {}
+/// Check if user has a valid session (on app start)
+class AuthCheckSession extends AuthEvent {}
 
-class LoginRequested extends AuthEvent {
+/// Login with email + password
+class AuthLoginRequested extends AuthEvent {
   final String email;
   final String password;
-  const LoginRequested({required this.email, required this.password});
-
+  const AuthLoginRequested({required this.email, required this.password});
   @override
   List<Object?> get props => [email, password];
 }
 
-class LogoutRequested extends AuthEvent {}
+/// Register new account
+class AuthRegisterRequested extends AuthEvent {
+  final String email;
+  final String password;
+  final String fullName;
+  final String role;
+  const AuthRegisterRequested({
+    required this.email,
+    required this.password,
+    required this.fullName,
+    this.role = 'donor',
+  });
+  @override
+  List<Object?> get props => [email, password, fullName, role];
+}
 
-// ─── STATES ────────────────────────────────────────────────────────
+/// Logout
+class AuthLogoutRequested extends AuthEvent {}
+
+/// Switch active role
+class AuthRoleSwitched extends AuthEvent {
+  final String role;
+  const AuthRoleSwitched(this.role);
+  @override
+  List<Object?> get props => [role];
+}
+
+/// Forgot password
+class AuthForgotPassword extends AuthEvent {
+  final String email;
+  const AuthForgotPassword(this.email);
+  @override
+  List<Object?> get props => [email];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATES
+// ═══════════════════════════════════════════════════════════════════════════
+
 abstract class AuthState extends Equatable {
   const AuthState();
   @override
@@ -32,56 +71,141 @@ abstract class AuthState extends Equatable {
 }
 
 class AuthInitial extends AuthState {}
-class AuthLoading extends AuthState {}
-class AuthAuthenticated extends AuthState {}
-class AuthUnauthenticated extends AuthState {}
-class AuthError extends AuthState {
-  final String message;
-  const AuthError(this.message);
 
+class AuthLoading extends AuthState {}
+
+class AuthAuthenticated extends AuthState {
+  final NammerhaUser user;
+  const AuthAuthenticated(this.user);
+  @override
+  List<Object?> get props => [user.userId, user.activeRole];
+}
+
+class AuthUnauthenticated extends AuthState {}
+
+class AuthRegistrationSuccess extends AuthState {
+  final String message;
+  const AuthRegistrationSuccess(this.message);
   @override
   List<Object?> get props => [message];
 }
 
-// ─── BLOC ─────────────────────────────────────────────────────────
+class AuthPasswordResetSent extends AuthState {
+  final String message;
+  const AuthPasswordResetSent(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthError extends AuthState {
+  final String message;
+  const AuthError(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOC
+// ═══════════════════════════════════════════════════════════════════════════
+
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
 
-  AuthBloc(this._authRepository) : super(AuthInitial()) {
-    on<CheckAuthStatus>(_onCheckAuthStatus);
-    on<LoginRequested>(_onLoginRequested);
-    on<LogoutRequested>(_onLogoutRequested);
+  AuthBloc({required AuthRepository authRepository})
+      : _authRepository = authRepository,
+        super(AuthInitial()) {
+    on<AuthCheckSession>(_onCheckSession);
+    on<AuthLoginRequested>(_onLogin);
+    on<AuthRegisterRequested>(_onRegister);
+    on<AuthLogoutRequested>(_onLogout);
+    on<AuthRoleSwitched>(_onRoleSwitch);
+    on<AuthForgotPassword>(_onForgotPassword);
+
+    // Listen for 401 from API client
+    NammerhaApiClient.instance.onAuthExpired = () {
+      add(AuthLogoutRequested());
+    };
   }
 
-  Future<void> _onCheckAuthStatus(CheckAuthStatus event, Emitter<AuthState> emit) async {
+  Future<void> _onCheckSession(AuthCheckSession event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final isAuth = await _authRepository.isAuthenticated();
-      if (isAuth) {
-        emit(AuthAuthenticated());
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
       } else {
         emit(AuthUnauthenticated());
       }
-    } catch (e) {
+    } catch (_) {
       emit(AuthUnauthenticated());
     }
   }
 
-  Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await _authRepository.loginWithEmail(event.email, event.password);
-      emit(AuthAuthenticated());
-    } on AuthException catch (e) {
+      final user = await _authRepository.login(
+        email: event.email,
+        password: event.password,
+      );
+
+      if (!user.isEmailVerified) {
+        emit(const AuthError('يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول'));
+        return;
+      }
+
+      emit(AuthAuthenticated(user));
+    } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(AuthError("Unknown Error: \${e.toString()}"));
+      emit(AuthError('حدث خطأ أثناء تسجيل الدخول: ${e.toString()}'));
     }
   }
 
-  Future<void> _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onRegister(AuthRegisterRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+    try {
+      final message = await _authRepository.register(
+        email: event.email,
+        password: event.password,
+        fullName: event.fullName,
+        role: event.role,
+      );
+      emit(AuthRegistrationSuccess(message));
+    } on ApiException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('حدث خطأ أثناء إنشاء الحساب: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onLogout(AuthLogoutRequested event, Emitter<AuthState> emit) async {
     await _authRepository.logout();
     emit(AuthUnauthenticated());
+  }
+
+  Future<void> _onRoleSwitch(AuthRoleSwitched event, Emitter<AuthState> emit) async {
+    try {
+      await _authRepository.switchRole(event.role);
+      // Refresh user data after role switch
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      }
+    } catch (e) {
+      // Role switch failed — stay on current role
+    }
+  }
+
+  Future<void> _onForgotPassword(AuthForgotPassword event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final message = await _authRepository.forgotPassword(email: event.email);
+      emit(AuthPasswordResetSent(message));
+    } on ApiException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('حدث خطأ: ${e.toString()}'));
+    }
   }
 }

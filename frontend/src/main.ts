@@ -22,6 +22,8 @@ import { initSearch } from './utils/search-overlay';
 import { initNotificationPanel } from './components/notification-panel';
 import { initPrefetchEngine } from './utils/prefetch-engine';
 
+import { signalHydrated } from './utils/hydration';
+
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
 initErrorReporter();
@@ -247,8 +249,14 @@ function initDashboard(): void {
     });
 
     // P1-001: Load dynamic data from API
-    loadFeaturedProjects();
-    loadStats();
+    // GAP-2601 FIX: Signal hydration to cancel load-guard.js banner.
+    // Promise.allSettled ensures we signal even if one API fails.
+    Promise.allSettled([
+        loadFeaturedProjects(),
+        loadStats(),
+    ]).then(() => {
+        signalHydrated();
+    });
     
     // IMP-015: Init interactive notification UI globally
     initNotificationPanel();
@@ -290,17 +298,12 @@ function initGlassNavScroll(): void {
     }, { passive: true });
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDashboard);
-} else {
-    initDashboard();
-}
-
 // ─── F-001 FIX: Progressive Disclosure via Scroll Reveal ─────────────────────
 // Previous: all homepage content rendered at once (3-4 scrolls of content).
 // Now: sections start invisible and smoothly reveal as they enter the viewport.
 // PLATINUM UX FIX: WeakMap garbage collection prevents Memory Leaks.
+// TDZ-FIX: Declaration moved BEFORE initDashboard() call to avoid
+// ReferenceError when document.readyState !== 'loading' (synchronous init).
 const observerRegistry = new WeakMap<HTMLElement, boolean>();
 
 function initScrollReveal(): void {
@@ -326,6 +329,13 @@ function initScrollReveal(): void {
             observer.observe(section);
         }
     });
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+} else {
+    initDashboard();
 }
 
 // ─── P2-UX-001: Role-Aware Quick Actions ─────────────────────────────────────

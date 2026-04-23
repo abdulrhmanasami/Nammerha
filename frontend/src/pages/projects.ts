@@ -9,6 +9,7 @@
  * Standard: OCDS-compliant project card rendering.
  */
 import '../styles/main.css';
+import { signalHydrated } from '../utils/hydration';
 import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { marketplace } from '../api';
@@ -289,4 +290,4 @@ retryBtn?.addEventListener('click', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
-void fetchProjects();
+void fetchProjects().finally(signalHydrated);

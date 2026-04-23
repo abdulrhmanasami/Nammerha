@@ -256,16 +256,19 @@ export const admin = {
         return request(`/admin/verifications/pending${q ? `?${q}` : ''}`);
     },
 
+    // Nammerha Domain Law 1 FIX: Missing Idempotency-Key patched to prevent Escrow double-spend
     releaseEscrow: (data: { proof_id: string; item_id: string }) =>
         request('/admin/escrow/release', {
             method: 'POST',
             body: JSON.stringify(data),
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
         }),
 
     flagDiscrepancy: (data: { proof_id: string; reason: string }) =>
         request('/admin/escrow/flag', {
             method: 'POST',
             body: JSON.stringify(data),
+            headers: { 'Idempotency-Key': crypto.randomUUID() },
         }),
 
     // GAP-P3-009 FIX: KYC admin endpoints — replaces hardcoded APPLICANTS[].

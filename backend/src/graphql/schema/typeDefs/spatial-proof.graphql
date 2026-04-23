@@ -1,3 +1,4 @@
+    """GPS-verified spatial proof (إثبات مكاني)"""
     type SpatialProof {
         proofId: ID!
         itemId: ID!
@@ -35,5 +36,3 @@
         generatedAt: DateTime!
         createdAt: DateTime!
     }
-
-    """User notification"""

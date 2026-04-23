@@ -23,7 +23,10 @@ import express from 'express';
 
 import { type Server as HttpServer } from 'http';
 import { WebSocketServer } from 'ws';
-// @ts-ignore - graphql-ws types require moduleResolution: Node16 which breaks the rest of the codebase
+// L-1 AUDIT: @ts-ignore is required because graphql-ws uses Node16 exports map
+// (`exports["./use/ws"]`). TypeScript cannot resolve this without moduleResolution: Node16,
+// which would break the rest of the codebase. The runtime import is correct.
+// @ts-ignore - graphql-ws exports require moduleResolution: Node16
 import { useServer } from 'graphql-ws/use/ws';
 
 import { schema } from './schema/index';
@@ -142,10 +145,15 @@ export async function setupGraphQL(app: Express, httpServer: HttpServer): Promis
             path: '/graphql',
         });
         
+        // M-4 FIX: Typed WebSocket context — no `any` annotations.
+        interface WsConnectionContext {
+            connectionParams?: Record<string, unknown>;
+        }
+
         useServer(
             {
                 schema,
-                context: async (ctx: any) => {
+                context: async (ctx: WsConnectionContext) => {
                     const token = ctx.connectionParams?.['token'] as string | undefined;
                     const fakeReq = {
                         headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -179,7 +187,7 @@ export async function setupGraphQL(app: Express, httpServer: HttpServer): Promis
                         },
                     } as unknown as GQLContext;
                 },
-                onConnect: (_ctx: any) => {
+                onConnect: () => {
                     logger.info('WebSocket client connected for GraphQL Subscriptions');
                 },
                 onDisconnect: () => {

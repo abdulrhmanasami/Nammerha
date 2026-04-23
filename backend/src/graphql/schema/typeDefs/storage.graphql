@@ -1,11 +1,12 @@
+    """Pre-signed upload URL response"""
     type UploadUrl {
         uploadUrl: String!
+        publicUrl: String!
         storageKey: String!
         expiresAt: DateTime!
     }
 
-    # ── Payment Intent ──────────────────────────────────────────────────────
-
+    """Payment intent response for gateway redirect"""
     type PaymentIntent {
         intentId: String!
         checkoutUrl: String!
@@ -15,8 +16,7 @@
         currency: String!
     }
 
-    # ── Paginated Response Wrapper ──────────────────────────────────────────
-
+    """Paginated projects response"""
     type PaginatedProjects {
         items: [ProjectCard!]!
         total: Int!
@@ -25,9 +25,9 @@
         hasMore: Boolean!
     }
 
+    """Paginated notifications response"""
     type PaginatedNotifications {
         items: [Notification!]!
         total: Int!
         unreadCount: Int!
     }
-

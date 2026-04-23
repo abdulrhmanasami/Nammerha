@@ -1,104 +1,138 @@
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
-
-const String queryProjects = r'''
-  query GetEngineerProjects {
-    activeEngineerProjects {
-      projectId
-      title
-      totalEstimatedCost
-      fundedPercentage
-      status
-    }
-  }
-''';
+import '../bloc/project_bloc.dart';
+import '../bloc/project_event.dart';
+import '../bloc/project_state.dart';
+import '../data/project_repository.dart';
 
 class ProjectListScreen extends StatelessWidget {
   const ProjectListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Assigned Projects'),
-        backgroundColor: context.colors.backgroundPrimary,
-        elevation: 0,
-      ),
-      body: Query(
-        options: QueryOptions(
-          document: gql(queryProjects),
-          // Offline-First strategy: Use cache if available, fetch network silently
-          fetchPolicy: FetchPolicy.cacheAndNetwork, 
+    final colors = context.colors;
+
+    return BlocProvider(
+      create: (context) => ProjectBloc(repository: ProjectRepository())..add(FetchEngineerProjectsEvent()),
+      child: Scaffold(
+        backgroundColor: colors.backgroundPrimary,
+        appBar: AppBar(
+          title: const Text('مشاريعي المعيّنة'),
         ),
-        builder: (QueryResult result, {VoidCallback? refetch, FetchMore? fetchMore}) {
-          if (result.hasException) {
-            return Center(
-              child: Text(
-                'Network Error: \${result.exception.toString()}',
-                style: TextStyle(color: context.colors.error),
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
-
-          if (result.isLoading && result.data == null) {
-            return Center(
-              child: CircularProgressIndicator(color: context.colors.primaryBrand),
-            );
-          }
-
-          final List projects = result.data?['activeEngineerProjects'] ?? [];
-
-          if (projects.isEmpty) {
-            return Center(
-              child: Text(
-                'No active projects assigned.',
-                style: TextStyle(color: context.colors.textSecondary),
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: projects.length,
-            padding: const EdgeInsets.all(16),
-            itemBuilder: (context, index) {
-              final project = projects[index];
-              return Card(
-                color: context.colors.backgroundSecondary,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: context.colors.strokeBorder),
-                ),
-                child: ListTile(
-                  title: Text(
-                    project['title'] ?? 'Unknown Project',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.textPrimary),
-                  ),
-                  subtitle: Text(
-                    'Status: \${project["status"]}',
-                    style: TextStyle(color: context.colors.textSecondary),
-                  ),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: context.colors.primaryBrand.withAlpha(25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '\${project["fundedPercentage"]}% Funded',
-                      style: TextStyle(
-                        color: context.colors.primaryBrand,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+        body: BlocBuilder<ProjectBloc, ProjectState>(
+          builder: (context, state) {
+            if (state is ProjectLoading || state is ProjectInitial) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is ProjectError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    state.message,
+                    style: TextStyle(color: colors.error),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               );
-            },
-          );
-        },
+            } else if (state is ProjectLoaded) {
+              final projects = state.projects;
+
+              if (projects.isEmpty) {
+                return Center(
+                  child: Text(
+                    'لا توجد مشاريع حالياً',
+                    style: TextStyle(color: colors.textSecondary),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: projects.length,
+                itemBuilder: (context, index) {
+                  final project = projects[index];
+                  final funded = project.fundedPercentage;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceElevated,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: colors.strokeSubtle),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                project.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: colors.primaryBrand.withAlpha(15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                project.status,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.primaryBrand,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: funded / 100,
+                            backgroundColor: colors.strokeSubtle,
+                            valueColor: AlwaysStoppedAnimation<Color>(colors.primaryBrand),
+                            minHeight: 6,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${funded.toStringAsFixed(1)}% مموّل',
+                              style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.pending_actions_rounded, size: 14, color: colors.warning),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${project.pendingProofs} إثبات معلّق',
+                                  style: TextStyle(fontSize: 12, color: colors.warning, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            }
+            return const SizedBox();
+          },
+        ),
       ),
     );
   }

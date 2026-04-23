@@ -1,10 +1,12 @@
 import { requireAuth, requireRole, type GQLContext } from '../../context/auth.context';
-import { query as dbQuery } from '../../../config/database';
+import { query as dbQuery, getClient } from '../../../config/database';
 import * as crowdfundingService from '../../../services/crowdfunding.service';
 import * as executionService from '../../../services/execution.service';
+import * as escrowService from '../../../services/escrow.service';
 import * as storageService from '../../../services/storage.service';
 import * as notificationService from '../../../services/notification.service';
 import * as supplierService from '../../../services/supplier.service';
+import { logger } from '../../../utils/logger';
 import {
     mapEscrowEntry, mapSpatialProof, mapNotification,
     mapPurchaseOrder, mapReview,
@@ -148,38 +150,99 @@ export const donationMutationResolvers = {
         const user = requireRole(context, 'donor');
         const { input } = args;
 
-        const escrowEntries = await crowdfundingService.createDonation(
-            user.user_id,
-            {
-                items: input.items.map(i => ({ item_id: i.itemId, amount: i.amount })),
-                payment_method: input.paymentMethod.toLowerCase() as 'visa' | 'fatora' | 'stripe',
-                return_url: input.returnUrl,
-                gift_recipient_name: input.giftRecipientName,
-                gift_message: input.giftMessage,
-                donation_intent: (input.donationIntent?.toLowerCase() ?? 'general') as 'zakat' | 'sadaqah' | 'general',
-            },
-        );
+        // H-1 FIX: Fail-fast on unsupported payment methods.
+        // Only 'visa' and 'fatora' are implemented gateways.
+        const VALID_METHODS = new Set(['visa', 'fatora']);
+        const normalizedMethod = input.paymentMethod.toLowerCase();
+        if (!VALID_METHODS.has(normalizedMethod)) {
+            throw new Error(`Unsupported payment method: ${input.paymentMethod}. Accepted: VISA, FATORA.`);
+        }
 
-        const firstEntry = escrowEntries[0] as unknown as Record<string, unknown>;
-        const totalAmount = escrowEntries.reduce(
-            (sum, e) => sum + Number((e as unknown as Record<string, unknown>)['amount_locked'] ?? 0), 0,
-        );
+        // H-2 FIX: Idempotency enforcement — mirror REST layer's pg_advisory_xact_lock pattern.
+        // Extract Idempotency-Key from HTTP headers via the GraphQL context.
+        const idempotencyKey = context.req.headers['idempotency-key'] as string | undefined;
+        if (!idempotencyKey) {
+            throw new Error('Missing required Idempotency-Key header. Each donation request must include a unique idempotency key.');
+        }
 
-        const intentId = firstEntry ? String(firstEntry['transaction_id']) : '';
-        const checkoutUrl = String(firstEntry?.['payment_gateway_ref'] ?? '');
-        
-        // Native Stripe SDK requires a client secret parameter. 
-        // We simulate it here, to be replaced by native Stripe SDK backend core.
-        const clientSecret = input.paymentMethod.toLowerCase() === 'stripe' ? `pi_${intentId}_secret_test_mock` : null;
+        // Acquire advisory lock to serialize concurrent requests with the same key
+        const client = await getClient();
+        try {
+            await client.query('BEGIN');
+            await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [idempotencyKey]);
 
-        return {
-            intentId,
-            checkoutUrl,
-            clientSecret,
-            returnUrl: input.returnUrl ?? '',
-            amount: String(totalAmount),
-            currency: 'USD',
-        };
+            // Check for existing completed request (5-minute replay window)
+            const existing = await client.query<{ new_values: string }>(
+                `SELECT new_values FROM audit_trail
+                 WHERE action = 'donation_created'
+                   AND entity_type = 'idempotency'
+                   AND entity_id = $1
+                   AND created_at > NOW() - INTERVAL '5 minutes'
+                 LIMIT 1`,
+                [idempotencyKey],
+            );
+
+            if (existing.rows[0]) {
+                await client.query('COMMIT');
+                const cachedData = JSON.parse(existing.rows[0].new_values);
+                return {
+                    intentId: cachedData.escrow_entries?.[0]?.transaction_id ?? '',
+                    checkoutUrl: cachedData.escrow_entries?.[0]?.payment_gateway_ref ?? '',
+                    clientSecret: null,
+                    returnUrl: input.returnUrl ?? '',
+                    amount: String(cachedData.total_locked ?? 0),
+                    currency: 'USD',
+                };
+            }
+
+            // First request: process the donation
+            const escrowEntries = await crowdfundingService.createDonation(
+                user.user_id,
+                {
+                    items: input.items.map(i => ({ item_id: i.itemId, amount: i.amount })),
+                    payment_method: normalizedMethod as 'visa' | 'fatora',
+                    return_url: input.returnUrl,
+                    gift_recipient_name: input.giftRecipientName,
+                    gift_message: input.giftMessage,
+                    donation_intent: (input.donationIntent?.toLowerCase() ?? 'general') as 'zakat' | 'sadaqah' | 'general',
+                },
+            );
+
+            const firstEntry = escrowEntries[0] as unknown as Record<string, unknown>;
+            const totalAmount = escrowEntries.reduce(
+                (sum, e) => sum + Number((e as unknown as Record<string, unknown>)['amount_locked'] ?? 0), 0,
+            );
+
+            // Store idempotency record
+            const responseData = {
+                escrow_entries: escrowEntries,
+                total_locked: totalAmount,
+                items_funded: escrowEntries.length,
+            };
+            await client.query(
+                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                 VALUES ('donation_created', 'idempotency', $1, $2, $3)`,
+                [idempotencyKey, user.user_id, JSON.stringify(responseData)],
+            );
+            await client.query('COMMIT');
+
+            const intentId = firstEntry ? String(firstEntry['transaction_id']) : '';
+            const checkoutUrl = String(firstEntry?.['payment_gateway_ref'] ?? '');
+
+            return {
+                intentId,
+                checkoutUrl,
+                clientSecret: null,
+                returnUrl: input.returnUrl ?? '',
+                amount: String(totalAmount),
+                currency: 'USD',
+            };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     },
 };
 
@@ -217,6 +280,9 @@ export const spatialProofMutationResolvers = {
 };
 
 export const escrowMutationResolvers = {
+    // M-5 FIX: Replaced hollow inline SQL with full escrowService.releaseEscrow().
+    // The service layer includes Redis distributed locks, Serializable isolation,
+    // escrow fee calculation, BOQ status update, and donor notifications.
     releaseEscrow: async (
         _: unknown,
         args: { input: { proofId: string; itemId: string } },
@@ -225,23 +291,38 @@ export const escrowMutationResolvers = {
         const user = requireRole(context, 'admin', 'auditor');
         const { input } = args;
 
-        const result = await dbQuery(
-            `UPDATE escrow_ledger
-             SET payment_status = 'released', released_at = NOW(),
-                 released_by = $1, release_proof_id = $2
-             WHERE item_id = $3 AND payment_status = 'locked'
-             RETURNING transaction_id, donor_id, item_id, project_id,
-                       amount_locked, currency, payment_status, payment_method,
-                       locked_at, released_at, released_by, release_proof_id,
-                       created_at`,
-            [user.user_id, input.proofId, input.itemId],
+        const result = await escrowService.releaseEscrow(user.user_id, {
+            proof_id: input.proofId,
+            item_id: input.itemId,
+        });
+
+        logger.info('GraphQL releaseEscrow completed', {
+            auditor_id: user.user_id,
+            item_id: input.itemId,
+            released_count: result.released_count,
+            total_released: result.total_released,
+            fee_charged: result.fee_charged,
+        });
+
+        // Return the first released escrow entry for the response
+        const entries = await dbQuery(
+            `SELECT transaction_id, donor_id, item_id, project_id,
+                    amount_locked, currency, payment_status, payment_method,
+                    payment_gateway_ref, locked_at, released_at, released_by,
+                    release_proof_id, refunded_at, blockchain_tx_hash,
+                    created_at, updated_at
+             FROM escrow_ledger
+             WHERE item_id = $1 AND release_proof_id = $2
+             ORDER BY released_at DESC
+             LIMIT 1`,
+            [input.itemId, input.proofId],
         );
 
-        if (result.rows.length === 0) {
-            throw new Error('No locked escrow found for this item');
+        if (entries.rows.length === 0) {
+            throw new Error('Escrow release succeeded but no entries found (internal error)');
         }
 
-        return mapEscrowEntry(result.rows[0] as Record<string, unknown>);
+        return mapEscrowEntry(entries.rows[0] as Record<string, unknown>);
     },
 };
 
@@ -267,6 +348,7 @@ export const storageMutationResolvers = {
 
         return {
             uploadUrl: response.upload_url,
+            publicUrl: response.public_url,
             storageKey: response.file_key,
             expiresAt: response.expires_at,
         };

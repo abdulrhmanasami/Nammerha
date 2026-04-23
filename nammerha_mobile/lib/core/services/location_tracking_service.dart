@@ -13,19 +13,16 @@ class LocationTaskHandler extends TaskHandler {
   }
 
   @override
-  Future<void> onEvent(DateTime timestamp, SendPort? sendPort) async {
+  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) {
     // Trigger GPS coordinate fetch and cache inside Isar
-    if (sendPort != null) {
-      sendPort.send('Ping from background: $timestamp');
-    }
+    sendPort?.send('Ping from background: $timestamp');
   }
 
   @override
-  Future<void> onDestroy(DateTime timestamp, SendPort? sendPort) async {
+  void onDestroy(DateTime timestamp, SendPort? sendPort) {
     // Cleanup resources
   }
 
-  @override
   void onButtonPressed(String id) {}
 
   @override

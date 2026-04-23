@@ -40,6 +40,8 @@
   /**
    * Detect if page still has unresolved skeleton loaders.
    * Returns true if skeletons are present AND no hydration signal has been set.
+   * GAP-2601-V2 FIX: Also checks if skeleton elements are actually visible
+   * (display !== 'none') to avoid false positives from hidden tab sections.
    */
   function hasUnresolvedSkeletons() {
     // If the page TS module signaled hydration, all is well
@@ -47,12 +49,25 @@
       return false;
     }
 
-    // Check for common skeleton indicators
+    // Check for common skeleton indicators — but only VISIBLE ones
     var pulseElements = document.querySelectorAll('.animate-pulse');
     var spinners = document.querySelectorAll('.ph-spin');
     var skeletons = document.querySelectorAll('[data-skeleton]');
 
-    return (pulseElements.length + spinners.length + skeletons.length) > 0;
+    var visibleCount = 0;
+    var all = [].concat(
+      Array.prototype.slice.call(pulseElements),
+      Array.prototype.slice.call(spinners),
+      Array.prototype.slice.call(skeletons)
+    );
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      // Skip if element or parent is hidden (nm-hidden class or display:none)
+      if (el.closest('.nm-hidden') || el.offsetParent === null) { continue; }
+      visibleCount++;
+    }
+
+    return visibleCount > 0;
   }
 
   /**

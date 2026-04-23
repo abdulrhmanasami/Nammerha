@@ -1,136 +1,159 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_bloc.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_event.dart';
-import 'package:nammerha_mobile/features/escrow/bloc/escrow_state.dart';
+import '../../../core/theme/semantic_colors.dart';
+import '../bloc/escrow_bloc.dart';
+import '../bloc/escrow_event.dart';
+import '../bloc/escrow_state.dart';
+import '../data/escrow_repository.dart';
 
-class EscrowSummaryScreen extends StatefulWidget {
-  const EscrowSummaryScreen({Key? key}) : super(key: key);
+class EscrowSummaryScreen extends StatelessWidget {
+  const EscrowSummaryScreen({super.key});
 
-  @override
-  State<EscrowSummaryScreen> createState() => _EscrowSummaryScreenState();
-}
-
-class _EscrowSummaryScreenState extends State<EscrowSummaryScreen> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<EscrowBloc>().add(LoadEscrowSummaryEvent());
+  // Basic numeric formatting fallback if MockData is fully removed
+  String formatCurrency(num amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
+    }
+    return '${amount.toStringAsFixed(0)} ل.س';
   }
-
-  final _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text('My Escrow Vault', style: TextStyle(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        titleTextStyle: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<EscrowBloc>().add(LoadEscrowSummaryEvent()),
-          ),
-        ],
-      ),
-      body: BlocBuilder<EscrowBloc, EscrowState>(
-        buildWhen: (previous, current) => current is EscrowSummaryLoaded || current is EscrowLoading || current is EscrowError,
-        builder: (context, state) {
-          if (state is EscrowLoading) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF3B82F6)));
-          } else if (state is EscrowError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                  const SizedBox(height: 16),
-                  Text(state.message, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF4B5563))),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<EscrowBloc>().add(LoadEscrowSummaryEvent()),
-                    child: const Text('Retry'),
-                  ),
-                ],
+    final colors = context.colors;
+
+    return BlocProvider(
+      create: (context) => EscrowBloc(repository: EscrowRepository())..add(FetchEscrowSummaryEvent()),
+      child: Scaffold(
+        backgroundColor: colors.backgroundPrimary,
+        appBar: AppBar(
+          title: const Text('خزنة الضمان'),
+          actions: [
+            Builder(
+              builder: (ctx) => IconButton(
+                icon: Icon(Icons.refresh_rounded, color: colors.textSecondary),
+                onPressed: () {
+                  ctx.read<EscrowBloc>().add(FetchEscrowSummaryEvent());
+                },
               ),
-            );
-          } else if (state is EscrowSummaryLoaded) {
-            final summary = state.summary;
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<EscrowBloc>().add(LoadEscrowSummaryEvent());
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16.0),
+            ),
+          ],
+        ),
+        body: BlocBuilder<EscrowBloc, EscrowState>(
+          builder: (context, state) {
+            if (state is EscrowLoading || state is EscrowInitial) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is EscrowError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    state.message,
+                    style: TextStyle(color: colors.error),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            } else if (state is EscrowSummaryLoaded) {
+              final summary = state.summary;
+              final totalLocked = (summary['total_locked'] as num?) ?? summary['totalLocked'] as num? ?? 0;
+              final totalReleased = (summary['total_released'] as num?) ?? summary['totalReleased'] as num? ?? 0;
+              final totalRefunded = (summary['total_refunded'] as num?) ?? summary['totalRefunded'] as num? ?? 0;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildStatusCard(
-                      'Locked in Escrow',
-                      (summary['totalLocked'] ?? 0) / 100,
-                      Icons.lock_clock,
-                      const Color(0xFF047857),
-                      const Color(0xFFD1FAE5),
+                      context,
+                      'مُؤمّن في الضمان',
+                      formatCurrency(totalLocked),
+                      Icons.lock_clock_rounded,
+                      colors.success,
+                      colors.successLight,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Expanded(
                           child: _buildStatusCard(
-                            'Released',
-                            (summary['totalReleased'] ?? 0) / 100,
-                            Icons.check_circle,
-                            const Color(0xFF3B82F6),
-                            const Color(0xFFDBEAFE),
+                            context,
+                            'تم الإفراج',
+                            formatCurrency(totalReleased),
+                            Icons.check_circle_rounded,
+                            colors.primaryBrand,
+                            colors.primaryBrandLight,
                             isSmall: true,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: _buildStatusCard(
-                            'Refunded',
-                            (summary['totalRefunded'] ?? 0) / 100,
-                            Icons.settings_backup_restore,
-                            const Color(0xFF6B7280),
-                            const Color(0xFFF3F4F6),
+                            context,
+                            'مُسترد',
+                            formatCurrency(totalRefunded),
+                            Icons.settings_backup_restore_rounded,
+                            colors.textSecondary,
+                            colors.backgroundSecondary,
                             isSmall: true,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Information securely synchronized via Platinum Standard ledgering framework. Funds are cryptographically locked until spatial delivery proof is provided by the designated engineer.',
-                      style: TextStyle(color: Color(0xFF6B7280), fontSize: 13, height: 1.5),
-                      textAlign: TextAlign.center,
+                    const SizedBox(height: 28),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colors.primaryBrandLight,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: colors.primaryBrand.withAlpha(30)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.shield_rounded, color: colors.primaryBrand, size: 22),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'الأموال مؤمّنة بنظام الضمان المشفّر وفق معيار البلاتينيوم. لا يتم الإفراج عنها إلا بتقديم إثبات مكاني مُوثّق من المهندس المعيّن.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colors.primaryBrand,
+                                height: 1.7,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
+              );
+            }
+            return const SizedBox();
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildStatusCard(String title, num amount, IconData icon, Color mainColor, Color bgColor, {bool isSmall = false}) {
+  Widget _buildStatusCard(
+    BuildContext context,
+    String title,
+    String amount,
+    IconData icon,
+    Color mainColor,
+    Color bgColor, {
+    bool isSmall = false,
+  }) {
+    final colors = context.colors;
     return Container(
-      padding: EdgeInsets.all(isSmall ? 16 : 24),
+      padding: EdgeInsets.all(isSmall ? 16 : 22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceElevated,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-        border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+        border: Border.all(color: colors.strokeSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,29 +162,29 @@ class _EscrowSummaryScreenState extends State<EscrowSummaryScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8)),
-                child: Icon(icon, color: mainColor, size: isSmall ? 20 : 24),
+                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, color: mainColor, size: isSmall ? 18 : 22),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: isSmall ? 14 : 16,
+                    fontSize: isSmall ? 13 : 15,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF4B5563),
+                    color: colors.textSecondary,
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isSmall ? 12 : 20),
+          SizedBox(height: isSmall ? 12 : 18),
           Text(
-            _currencyFormat.format(amount),
+            amount,
             style: TextStyle(
-              fontSize: isSmall ? 24 : 32,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF1F2937),
+              fontSize: isSmall ? 18 : 26,
+              fontWeight: FontWeight.w800,
+              color: colors.textPrimary,
             ),
           ),
         ],
@@ -169,3 +192,4 @@ class _EscrowSummaryScreenState extends State<EscrowSummaryScreen> {
     );
   }
 }
+
