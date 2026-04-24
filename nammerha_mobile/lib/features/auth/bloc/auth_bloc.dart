@@ -60,6 +60,18 @@ class AuthForgotPassword extends AuthEvent {
   List<Object?> get props => [email];
 }
 
+/// Change password (authenticated)
+class AuthChangePasswordRequested extends AuthEvent {
+  final String currentPassword;
+  final String newPassword;
+  const AuthChangePasswordRequested({
+    required this.currentPassword,
+    required this.newPassword,
+  });
+  @override
+  List<Object?> get props => [currentPassword, newPassword];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // STATES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -104,6 +116,15 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
+/// Emitted after a successful password change — distinct from AuthError so
+/// callers can differentiate between password-change success and login success.
+class AuthPasswordChanged extends AuthState {
+  final String message;
+  const AuthPasswordChanged(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOC
 // ═══════════════════════════════════════════════════════════════════════════
@@ -120,6 +141,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogout);
     on<AuthRoleSwitched>(_onRoleSwitch);
     on<AuthForgotPassword>(_onForgotPassword);
+    on<AuthChangePasswordRequested>(_onChangePassword);
 
     // Listen for 401 from API client
     NammerhaApiClient.instance.onAuthExpired = () {
@@ -206,6 +228,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.message));
     } catch (e) {
       emit(AuthError('حدث خطأ: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onChangePassword(AuthChangePasswordRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final message = await _authRepository.changePassword(
+        currentPassword: event.currentPassword,
+        newPassword: event.newPassword,
+      );
+      // Re-fetch user to get fresh token state
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthPasswordChanged(message));
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(AuthPasswordChanged(message));
+      }
+    } on ApiException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('فشل تغيير كلمة المرور: ${e.toString()}'));
     }
   }
 }

@@ -832,6 +832,148 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
 });
 
+// ─── POST /api/auth/change-password ─────────────────────────────────────────
+// Authenticated endpoint: requires valid JWT + current password verification.
+// SEC: Rate-limited via sensitiveActionLimiter (5 req / 15 min per IP).
+// SEC: bcrypt.compare verifies current password before accepting new one.
+// SEC: token_invalidated_at = NOW() revokes ALL other sessions.
+// SEC: Fresh JWT cookie reissued so current session survives.
+// AUDIT: Logged in audit_trail for forensic compliance.
+router.post(
+    '/change-password',
+    authMiddleware,
+    sensitiveActionLimiter,
+    async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userId = getAuthUser(req).user_id;
+            const { current_password, new_password } = req.body as {
+                current_password?: string;
+                new_password?: string;
+            };
+
+            // ── Validation: Required fields ────────────────────────────
+            if (!current_password || !new_password) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Current password and new password are required',
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Validation: Max length (SEC-003: bcrypt DoS prevention) ─
+            if (new_password.length > MAX_PASSWORD_LENGTH) {
+                res.status(400).json({
+                    success: false,
+                    error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Validation: Password complexity rules ──────────────────
+            const failedRules = PASSWORD_RULES
+                .filter(rule => !rule.test(new_password))
+                .map(rule => rule.msg);
+
+            if (failedRules.length > 0) {
+                res.status(400).json({
+                    success: false,
+                    error: `Password must contain: ${failedRules.join(', ')}`,
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Validation: No password reuse ──────────────────────────
+            if (current_password === new_password) {
+                res.status(400).json({
+                    success: false,
+                    error: 'New password must be different from current password',
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Fetch current password hash from DB ────────────────────
+            const userResult = await query<Pick<User, 'user_id' | 'email' | 'password_hash' | 'role'> & { roles?: string[] }>(
+                'SELECT user_id, email, password_hash, role FROM users WHERE user_id = $1',
+                [userId]
+            );
+
+            const user = userResult.rows[0];
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    error: 'User not found',
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Verify current password via bcrypt ─────────────────────
+            const isCurrentValid = await bcrypt.compare(current_password, user.password_hash);
+            if (!isCurrentValid) {
+                logger.warn('Auth: Change password — invalid current password', { userId });
+                res.status(401).json({
+                    success: false,
+                    error: 'Current password is incorrect',
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Hash new password ──────────────────────────────────────
+            const newHash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
+
+            // ── Update DB: new hash + invalidate all other sessions ────
+            // token_invalidated_at = NOW() causes auth middleware to reject
+            // any JWT issued before this moment — all other sessions are killed.
+            await query(
+                `UPDATE users
+                 SET password_hash = $1,
+                     token_invalidated_at = NOW(),
+                     updated_at = NOW()
+                 WHERE user_id = $2`,
+                [newHash, userId]
+            );
+
+            // ── Reissue JWT for current session ────────────────────────
+            // Fetch all active roles for the new token
+            const rolesResult = await query<{ role_name: string }>(
+                `SELECT r.role_name FROM user_roles ur
+                 JOIN roles r ON r.role_id = ur.role_id
+                 WHERE ur.user_id = $1 AND ur.status = 'active'`,
+                [userId]
+            );
+            const allRoles = rolesResult.rows.map(r => r.role_name);
+
+            const token = generateToken(userId, user.role, allRoles);
+            res.cookie('nammerha_jwt', token, {
+                httpOnly: true,
+                secure: process.env['NODE_ENV'] === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000,
+                path: '/',
+            });
+
+            // ── Audit trail ────────────────────────────────────────────
+            await query(
+                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                 VALUES ('password_changed', 'user', $1, $1, $2)`,
+                [userId, JSON.stringify({
+                    email: user.email,
+                    timestamp: new Date().toISOString(),
+                    method: 'authenticated_change',
+                })]
+            );
+
+            logger.info('Auth: Password changed successfully', { userId });
+
+            res.json({
+                success: true,
+                message: 'Password changed successfully',
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.ChangePassword');
+        }
+    }
+);
+
 // ─── GET /api/auth/me ───────────────────────────────────────────────────────
 // V1-AUDIT FIX: Allows the frontend to check authentication status without
 // storing JWT in localStorage. The httpOnly cookie is sent automatically.

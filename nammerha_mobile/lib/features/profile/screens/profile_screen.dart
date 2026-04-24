@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/role_localizer.dart';
+import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -421,6 +422,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+
+  // ─── Change Password ─────────────────────────────────────────────────
+
+  void _showChangePasswordSheet(SemanticColors colors) {
+    final authBloc = context.read<AuthBloc>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: authBloc,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colors.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: const _ChangePasswordSheet(),
+        ),
+      ),
+    );
+  }
+
   // ─── Settings ─────────────────────────────────────────────────────────
 
   Widget _buildSettingsSection(SemanticColors colors) {
@@ -440,11 +463,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onChanged: (_) {},
           activeTrackColor: colors.primaryBrand,
         )),
-        _settingRow(Icons.lock_rounded, 'تغيير كلمة المرور', colors, onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: const Text('تغيير كلمة المرور — قريباً'), backgroundColor: context.colors.info),
-          );
-        }),
+        _settingRow(Icons.lock_rounded, 'تغيير كلمة المرور', colors, onTap: () => _showChangePasswordSheet(colors)),
       ],
     );
   }
@@ -516,6 +535,312 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(width: 8),
             Text('تسجيل الخروج', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.error)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ═══════════════════════════════════════════════════════════════════════════
+/// Change Password Bottom Sheet
+/// ═══════════════════════════════════════════════════════════════════════════
+/// Platinum-grade: Client-side validation matching backend PASSWORD_RULES,
+/// password strength indicator, Arabic error messages, loading state.
+class _ChangePasswordSheet extends StatefulWidget {
+  const _ChangePasswordSheet();
+
+  @override
+  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
+}
+
+class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+  final _currentCtrl = TextEditingController();
+  final _newCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _obscureCurrent = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+  bool _isSubmitting = false;
+  String? _errorMessage;
+  int _strength = 0;
+
+  @override
+  void dispose() {
+    _currentCtrl.dispose();
+    _newCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  /// Calculates password strength (0-4) matching backend PASSWORD_RULES:
+  /// 1. >= 8 chars  2. uppercase  3. lowercase  4. digit  5. special
+  void _updateStrength(String value) {
+    int s = 0;
+    if (value.length >= 8) s++;
+    if (RegExp(r'[A-Z]').hasMatch(value)) s++;
+    if (RegExp(r'[a-z]').hasMatch(value)) s++;
+    if (RegExp(r'[0-9]').hasMatch(value)) s++;
+    if (RegExp(r'[^A-Za-z0-9]').hasMatch(value)) s++;
+    setState(() => _strength = s);
+  }
+
+  Color _strengthColor(SemanticColors colors) {
+    if (_strength <= 1) return colors.error;
+    if (_strength <= 2) return const Color(0xFFFCC934);
+    if (_strength <= 3) return const Color(0xFFD59F80);
+    return colors.success;
+  }
+
+  String _strengthLabel() {
+    if (_strength == 0) return '';
+    if (_strength <= 1) return 'ضعيفة جداً';
+    if (_strength <= 2) return 'ضعيفة';
+    if (_strength <= 3) return 'متوسطة';
+    if (_strength <= 4) return 'قوية';
+    return 'ممتازة ✓';
+  }
+
+  String? _validate() {
+    final current = _currentCtrl.text.trim();
+    final newPwd = _newCtrl.text;
+    final confirm = _confirmCtrl.text;
+
+    if (current.isEmpty) return 'يرجى إدخال كلمة المرور الحالية';
+    if (newPwd.isEmpty) return 'يرجى إدخال كلمة المرور الجديدة';
+    if (newPwd.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+    if (!RegExp(r'[A-Z]').hasMatch(newPwd)) return 'يجب أن تحتوي على حرف كبير واحد على الأقل';
+    if (!RegExp(r'[a-z]').hasMatch(newPwd)) return 'يجب أن تحتوي على حرف صغير واحد على الأقل';
+    if (!RegExp(r'[0-9]').hasMatch(newPwd)) return 'يجب أن تحتوي على رقم واحد على الأقل';
+    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(newPwd)) return 'يجب أن تحتوي على رمز خاص واحد على الأقل';
+    if (newPwd != confirm) return 'كلمات المرور غير متطابقة';
+    if (current == newPwd) return 'كلمة المرور الجديدة يجب أن تكون مختلفة';
+    return null;
+  }
+
+  Future<void> _submit() async {
+    final error = _validate();
+    if (error != null) {
+      setState(() => _errorMessage = error);
+      return;
+    }
+
+    setState(() { _isSubmitting = true; _errorMessage = null; });
+
+    context.read<AuthBloc>().add(AuthChangePasswordRequested(
+      currentPassword: _currentCtrl.text.trim(),
+      newPassword: _newCtrl.text,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (ctx, state) {
+        if (state is AuthPasswordChanged) {
+          setState(() => _isSubmitting = false);
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('✅ تم تغيير كلمة المرور بنجاح'),
+              backgroundColor: colors.success,
+            ),
+          );
+        } else if (state is AuthError) {
+          setState(() {
+            _isSubmitting = false;
+            _errorMessage = state.message;
+          });
+        } else if (state is AuthLoading) {
+          setState(() => _isSubmitting = true);
+        }
+      },
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 20, right: 20, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 16),
+
+              // Title
+              Row(
+                children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primaryBrand.withAlpha(12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.lock_rounded, color: colors.primaryBrand, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('تغيير كلمة المرور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+                        Text('ادخل كلمة المرور الحالية والجديدة', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Error message
+              if (_errorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colors.error.withAlpha(10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: colors.error.withAlpha(30)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline_rounded, color: colors.error, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_errorMessage!, style: TextStyle(fontSize: 13, color: colors.error, fontWeight: FontWeight.w600))),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // Current password field
+              _buildPasswordField(
+                controller: _currentCtrl,
+                label: 'كلمة المرور الحالية',
+                icon: Icons.lock_open_rounded,
+                obscure: _obscureCurrent,
+                onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                colors: colors,
+              ),
+              const SizedBox(height: 12),
+
+              // New password field
+              _buildPasswordField(
+                controller: _newCtrl,
+                label: 'كلمة المرور الجديدة',
+                icon: Icons.lock_rounded,
+                obscure: _obscureNew,
+                onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                colors: colors,
+                onChanged: _updateStrength,
+              ),
+
+              // Strength indicator
+              if (_newCtrl.text.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    ...List.generate(5, (i) => Expanded(
+                      child: Container(
+                        height: 3,
+                        margin: EdgeInsetsDirectional.only(end: i < 4 ? 3 : 0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(2),
+                          color: i < _strength ? _strengthColor(colors) : colors.strokeSubtle,
+                        ),
+                      ),
+                    )),
+                    const SizedBox(width: 8),
+                    Text(_strengthLabel(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _strengthColor(colors))),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 12),
+
+              // Confirm password field
+              _buildPasswordField(
+                controller: _confirmCtrl,
+                label: 'تأكيد كلمة المرور',
+                icon: Icons.lock_rounded,
+                obscure: _obscureConfirm,
+                onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                colors: colors,
+              ),
+              const SizedBox(height: 20),
+
+              // Submit button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primaryBrand,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                    disabledBackgroundColor: colors.primaryBrand.withAlpha(100),
+                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('تغيير كلمة المرور', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Security note
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shield_rounded, size: 14, color: colors.textSubtle),
+                  const SizedBox(width: 4),
+                  Text('سيتم تسجيل الخروج من الأجهزة الأخرى', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required bool obscure,
+    required VoidCallback onToggle,
+    required SemanticColors colors,
+    ValueChanged<String>? onChanged,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      onChanged: onChanged,
+      textDirection: TextDirection.ltr,
+      style: TextStyle(fontSize: 14, color: colors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(fontSize: 13, color: colors.textSubtle),
+        prefixIcon: Icon(icon, size: 20, color: colors.textSecondary),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 20, color: colors.textSubtle),
+          onPressed: onToggle,
+        ),
+        filled: true,
+        fillColor: colors.backgroundPrimary,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colors.strokeSubtle),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colors.primaryBrand, width: 1.5),
         ),
       ),
     );
