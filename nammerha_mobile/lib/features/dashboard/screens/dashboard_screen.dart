@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/services/api_services.dart';
+import '../../../core/utils/role_localizer.dart';
 import '../../auth/repositories/auth_repository.dart';
+import '../../auth/bloc/auth_bloc.dart';
 
 // Feature screens
 import '../../project/screens/marketplace_screen.dart';
@@ -19,6 +21,8 @@ import '../../spatial_proof/screens/spatial_camera_screen.dart';
 import '../../escrow/screens/escrow_summary_screen.dart';
 import '../../donor_proof/screens/donor_proof_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
+import '../../damage_report/screens/damage_report_screen.dart';
+import '../../map/screens/project_map_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -240,18 +244,29 @@ class _DashboardHomeState extends State<_DashboardHome> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: colors.successLight,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            _getRoleLabel(widget.role),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: colors.success,
+                        // ── ROLE SWITCHER: Tappable badge ──
+                        GestureDetector(
+                          onTap: () => _showRoleSwitcher(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: colors.successLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _getRoleLabel(widget.role),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.success,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.swap_horiz_rounded, size: 14, color: colors.success),
+                              ],
                             ),
                           ),
                         ),
@@ -432,6 +447,13 @@ class _DashboardHomeState extends State<_DashboardHome> {
           _QuickAction('سجل التوصيل', Icons.receipt_long_rounded, colors.success, const WalletScreen()),
         ];
         break;
+      case 'HOMEOWNER':
+        actions = [
+          _QuickAction('تقرير ضرر', Icons.report_rounded, colors.warning, const DamageReportScreen()),
+          _QuickAction('المحفظة', Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
+          _QuickAction('خريطة المشاريع', Icons.map_rounded, colors.primaryBrand, const ProjectMapScreen()),
+        ];
+        break;
       default:
         actions = [
           _QuickAction('تصفح المشاريع', Icons.search_rounded, colors.primaryBrand, const MarketplaceScreen()),
@@ -542,6 +564,119 @@ class _DashboardHomeState extends State<_DashboardHome> {
       default:
         return '💚 متبرع';
     }
+  }
+
+  /// Opens a bottom sheet listing all user roles, allowing the user to switch.
+  void _showRoleSwitcher(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
+    final user = authState.user;
+    final userRoles = user.roles;
+    final activeRole = user.activeRole;
+    final colors = context.colors;
+
+    if (userRoles.length <= 1) {
+      // Only one role — show a snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('لديك دور واحد فقط — يمكنك إضافة أدوار جديدة من الملف الشخصي'),
+          backgroundColor: colors.info,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          decoration: BoxDecoration(
+            color: colors.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 16),
+              Text('تبديل الدور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+              const SizedBox(height: 4),
+              Text('اختر الدور الذي تريد العمل به', style: TextStyle(fontSize: 13, color: colors.textSubtle)),
+              const SizedBox(height: 16),
+              ...userRoles.map((role) {
+                final meta = getRoleMeta(role);
+                final isActive = role.toLowerCase() == activeRole.toLowerCase();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: isActive ? null : () {
+                      Navigator.pop(sheetContext);
+                      context.read<AuthBloc>().add(AuthRoleSwitched(role.toLowerCase()));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isActive ? colors.primaryBrand.withAlpha(12) : colors.backgroundPrimary,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isActive ? colors.primaryBrand.withAlpha(40) : colors.strokeSubtle,
+                          width: isActive ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44, height: 44,
+                            decoration: BoxDecoration(
+                              color: (meta?.color ?? colors.primaryBrand).withAlpha(15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(meta?.icon ?? Icons.person_rounded, size: 22, color: meta?.color ?? colors.primaryBrand),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  meta?.nameAr ?? role,
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                                ),
+                                Text(
+                                  meta?.nameEn ?? role,
+                                  style: TextStyle(fontSize: 11, color: colors.textSubtle),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isActive)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(color: colors.success.withAlpha(15), borderRadius: BorderRadius.circular(6)),
+                              child: Text('نشط', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.success)),
+                            )
+                          else
+                            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.textSubtle),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
