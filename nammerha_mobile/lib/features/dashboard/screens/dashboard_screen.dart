@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/services/api_services.dart';
@@ -11,6 +12,7 @@ import '../../donations/screens/donations_screen.dart';
 import '../../bids/screens/bids_screen.dart';
 import '../../supplier/screens/supplier_portal_screen.dart';
 import '../../profile/screens/profile_screen.dart';
+import '../../profile/bloc/profile_bloc.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../homeowner/screens/homeowner_projects_screen.dart';
 import '../../spatial_proof/screens/spatial_camera_screen.dart';
@@ -39,26 +41,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
           const BidsScreen(),
-          const ProfileScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
         ];
       case 'SUPPLIER':
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
           const SupplierPortalScreen(),
-          const ProfileScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
         ];
       case 'HOMEOWNER':
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
           const HomeownerProjectsScreen(),
-          const ProfileScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
         ];
       default:
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
           const MarketplaceScreen(),
           const DonationsScreen(),
-          const ProfileScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
         ];
     }
   }
