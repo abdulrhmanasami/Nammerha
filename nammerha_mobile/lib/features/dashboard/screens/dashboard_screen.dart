@@ -202,8 +202,12 @@ class _DashboardHomeState extends State<_DashboardHome> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        child: RefreshIndicator(
+          onRefresh: _loadStats,
+          color: colors.primaryBrand,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -325,6 +329,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
               _buildRecentActivity(context, widget.role),
             ],
           ),
+        ),
         ),
       ),
     );

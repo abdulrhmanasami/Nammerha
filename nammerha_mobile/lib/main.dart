@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/network/api_client.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/repositories/auth_repository.dart';
 import 'features/auth/screens/login_screen.dart';
@@ -33,36 +34,43 @@ class NammerhaMobileApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<ThemeCubit>(
+            create: (_) => ThemeCubit()..loadSavedTheme(),
+          ),
           BlocProvider<AuthBloc>(
             create: (ctx) => AuthBloc(
               authRepository: ctx.read<AuthRepository>(),
             ),
           ),
         ],
-        child: MaterialApp(
-          title: 'نعمّرها',
-          debugShowCheckedModeBanner: false,
+        child: BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) {
+            return MaterialApp(
+              title: 'نعمّرها',
+              debugShowCheckedModeBanner: false,
 
-          // Localization — Arabic First (Syria)
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('ar', 'SY'),
-            Locale('ar'),
-            Locale('en'),
-          ],
-          locale: const Locale('ar', 'SY'),
+              // Localization — Arabic First (Syria)
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('ar', 'SY'),
+                Locale('ar'),
+                Locale('en'),
+              ],
+              locale: const Locale('ar', 'SY'),
 
-          // Theme
-          themeMode: ThemeMode.light,
-          theme: NammerhaTheme.light(),
-          darkTheme: NammerhaTheme.dark(),
+              // Theme — controlled by ThemeCubit
+              themeMode: themeMode,
+              theme: NammerhaTheme.light(),
+              darkTheme: NammerhaTheme.dark(),
 
-          // Entry Point — Navigation Flow Controller
-          home: const _AppFlowController(),
+              // Entry Point — Navigation Flow Controller
+              home: const _AppFlowController(),
+            );
+          },
         ),
       ),
     );

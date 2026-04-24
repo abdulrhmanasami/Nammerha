@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/theme/theme_cubit.dart';
 import '../../../core/utils/role_localizer.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
@@ -459,8 +460,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         )),
         _settingRow(Icons.language_rounded, 'اللغة', colors, value: 'العربية'),
         _settingRow(Icons.dark_mode_rounded, 'الوضع الداكن', colors, trailing: Switch.adaptive(
-          value: Theme.of(context).brightness == Brightness.dark,
-          onChanged: (_) {},
+          value: context.watch<ThemeCubit>().isDark,
+          onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
           activeTrackColor: colors.primaryBrand,
         )),
         _settingRow(Icons.lock_rounded, 'تغيير كلمة المرور', colors, onTap: () => _showChangePasswordSheet(colors)),
