@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import '../offline/offline_queue.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:http/http.dart' as http;
@@ -211,12 +213,42 @@ class NammerhaApiClient {
           await _exponentialBackoff(attempt);
           continue;
         }
+        // GAP-C2 FIX: Enqueue idempotent mutations for offline replay
+        if (idempotent && method != 'GET') {
+          await OfflineQueue.instance.enqueue(QueuedRequest(
+            id: headers['Idempotency-Key'] ?? _generateUUID(),
+            endpoint: endpoint,
+            method: method,
+            body: body,
+            extraHeaders: extraHeaders,
+            enqueuedAt: DateTime.now(),
+          ));
+          throw const ApiException(
+            'تم حفظ الطلب — سيُرسل تلقائياً عند عودة الاتصال.',
+            statusCode: 0,
+          );
+        }
         throw const ApiException('لا يوجد اتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.');
       } on TimeoutException {
         lastError = TimeoutException('Timeout');
         if (attempt < maxRetries) {
           await _exponentialBackoff(attempt);
           continue;
+        }
+        // GAP-C2 FIX: Enqueue idempotent mutations on timeout
+        if (idempotent && method != 'GET') {
+          await OfflineQueue.instance.enqueue(QueuedRequest(
+            id: headers['Idempotency-Key'] ?? _generateUUID(),
+            endpoint: endpoint,
+            method: method,
+            body: body,
+            extraHeaders: extraHeaders,
+            enqueuedAt: DateTime.now(),
+          ));
+          throw const ApiException(
+            'تم حفظ الطلب — سيُرسل تلقائياً عند عودة الاتصال.',
+            statusCode: 0,
+          );
         }
         throw const ApiException('انتهت مهلة الاتصال — تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
       } on ApiException {

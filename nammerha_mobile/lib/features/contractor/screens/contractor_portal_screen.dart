@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/widgets/gradient_button.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════

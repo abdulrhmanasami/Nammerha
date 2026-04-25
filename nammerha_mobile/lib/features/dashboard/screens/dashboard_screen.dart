@@ -152,11 +152,28 @@ class _DashboardHome extends StatefulWidget {
 class _DashboardHomeState extends State<_DashboardHome> {
   Map<String, dynamic> _stats = {};
   bool _isLoadingStats = true;
+  List<Map<String, dynamic>> _recentActivity = [];
+  bool _isLoadingActivity = true;
 
   @override
   void initState() {
     super.initState();
     _loadStats();
+    _loadRecentActivity();
+  }
+
+  Future<void> _loadRecentActivity() async {
+    try {
+      final notifications = await NotificationsApi().getAll();
+      if (mounted) {
+        setState(() {
+          _recentActivity = notifications.take(5).toList();
+          _isLoadingActivity = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingActivity = false);
+    }
   }
 
   Future<void> _loadStats() async {
@@ -203,7 +220,9 @@ class _DashboardHomeState extends State<_DashboardHome> {
       backgroundColor: colors.backgroundPrimary,
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _loadStats,
+          onRefresh: () async {
+            await Future.wait([_loadStats(), _loadRecentActivity()]);
+          },
           color: colors.primaryBrand,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -516,42 +535,126 @@ class _DashboardHomeState extends State<_DashboardHome> {
   Widget _buildRecentActivity(BuildContext context, String role) {
     final colors = context.colors;
 
-    // Empty state — no mock data. Real activity comes from notifications API.
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-      decoration: BoxDecoration(
-        color: colors.surfaceElevated,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.strokeSubtle),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.inbox_rounded,
-            size: 48,
-            color: colors.textSecondary.withAlpha(80),
+    if (_isLoadingActivity) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2),
+        ),
+      );
+    }
+
+    if (_recentActivity.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: colors.strokeSubtle),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.inbox_rounded, size: 48, color: colors.textSecondary.withAlpha(80)),
+            const SizedBox(height: 12),
+            Text('لا توجد نشاطات حديثة', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+            const SizedBox(height: 4),
+            Text('ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', style: TextStyle(fontSize: 12, color: colors.textSecondary.withAlpha(150)), textAlign: TextAlign.center),
+          ],
+        ),
+      ).animate(delay: 900.ms).fadeIn();
+    }
+
+    // GAP-C4 FIX: Live activity timeline from Notifications API
+    return Column(
+      children: List.generate(_recentActivity.length, (index) {
+        final item = _recentActivity[index];
+        final type = item['type'] as String? ?? 'info';
+        final title = item['title'] as String? ?? '';
+        final body = item['body'] as String? ?? item['message'] as String? ?? '';
+        final createdAt = item['created_at'] as String?;
+        final isRead = item['is_read'] as bool? ?? false;
+
+        final actMeta = _activityMeta(type, colors);
+
+        String timeAgo = '';
+        if (createdAt != null) {
+          try {
+            final diff = DateTime.now().difference(DateTime.parse(createdAt));
+            if (diff.inMinutes < 60) {
+              timeAgo = 'منذ ${diff.inMinutes} دقيقة';
+            } else if (diff.inHours < 24) {
+              timeAgo = 'منذ ${diff.inHours} ساعة';
+            } else {
+              timeAgo = 'منذ ${diff.inDays} يوم';
+            }
+          } catch (_) {}
+        }
+
+        return Container(
+          margin: EdgeInsets.only(bottom: index < _recentActivity.length - 1 ? 10 : 0),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isRead ? colors.surfaceElevated : actMeta.color.withAlpha(8),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: isRead ? colors.strokeSubtle : actMeta.color.withAlpha(30)),
           ),
-          const SizedBox(height: 12),
-          Text(
-            'لا توجد نشاطات حديثة',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: colors.textSecondary,
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(color: actMeta.color.withAlpha(20), borderRadius: BorderRadius.circular(10)),
+                child: Icon(actMeta.icon, size: 20, color: actMeta.color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: TextStyle(fontSize: 13, fontWeight: isRead ? FontWeight.w500 : FontWeight.w700, color: colors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    if (body.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(body, style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ],
+                    if (timeAgo.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(timeAgo, style: TextStyle(fontSize: 10, color: colors.textSubtle, fontWeight: FontWeight.w500)),
+                    ],
+                  ],
+                ),
+              ),
+              if (!isRead)
+                Container(
+                  width: 8, height: 8,
+                  margin: const EdgeInsetsDirectional.only(start: 8, top: 4),
+                  decoration: BoxDecoration(color: actMeta.color, shape: BoxShape.circle),
+                ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع',
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.textSecondary.withAlpha(150),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    ).animate(delay: 900.ms).fadeIn();
+        ).animate(delay: (900 + index * 80).ms).fadeIn().slideX(begin: 0.05, end: 0);
+      }),
+    );
+  }
+
+  _ActivityMeta _activityMeta(String type, dynamic colors) {
+    switch (type) {
+      case 'escrow_locked': case 'donation_received': case 'escrow_released': case 'payment_completed':
+        return _ActivityMeta(Icons.lock_rounded, colors.success as Color);
+      case 'proof_submitted': case 'proof_verified':
+        return _ActivityMeta(Icons.verified_rounded, colors.primaryBrand as Color);
+      case 'bid_received': case 'bid_accepted':
+        return _ActivityMeta(Icons.gavel_rounded, colors.goldFunding as Color);
+      case 'project_published': case 'project_funded':
+        return _ActivityMeta(Icons.home_work_rounded, colors.info as Color);
+      case 'kyc_verified':
+        return _ActivityMeta(Icons.badge_rounded, colors.success as Color);
+      case 'kyc_rejected':
+        return _ActivityMeta(Icons.badge_rounded, colors.error as Color);
+      case 'order_status':
+        return _ActivityMeta(Icons.local_shipping_rounded, colors.info as Color);
+      default:
+        return _ActivityMeta(Icons.notifications_rounded, colors.textSecondary as Color);
+    }
   }
 
   String _getRoleLabel(String role) {
@@ -699,4 +802,10 @@ class _QuickAction {
   final Color color;
   final Widget screen;
   const _QuickAction(this.label, this.icon, this.color, this.screen);
+}
+
+class _ActivityMeta {
+  final IconData icon;
+  final Color color;
+  const _ActivityMeta(this.icon, this.color);
 }

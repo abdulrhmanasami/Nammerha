@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../offline/offline_queue.dart';
 import '../theme/semantic_colors.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Connectivity Banner — Network-aware offline indicator
+/// Connectivity Banner — Network-aware offline indicator (Platinum Standard)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Shows a non-intrusive banner when the device is offline.
 /// Automatically hides when connectivity is restored.
+/// Displays pending offline queue count when requests are queued.
 /// Designed for Syria's restricted network conditions (2G/3G).
+///
+/// GAP-C2 Enhancement: Now integrates with OfflineQueue to show pending
+/// request count and replay status.
 /// ═══════════════════════════════════════════════════════════════════════════
 class ConnectivityBanner extends StatefulWidget {
   final Widget child;
@@ -19,38 +25,46 @@ class ConnectivityBanner extends StatefulWidget {
   State<ConnectivityBanner> createState() => _ConnectivityBannerState();
 }
 
-class _ConnectivityBannerState extends State<ConnectivityBanner> {
+class _ConnectivityBannerState extends State<ConnectivityBanner>
+    with SingleTickerProviderStateMixin {
   bool _isOffline = false;
-  Timer? _checkTimer;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+
+  late AnimationController _animController;
+  late Animation<double> _slideAnim;
 
   @override
   void initState() {
     super.initState();
-    // Periodic connectivity check (lightweight — no heavy ping)
-    _checkTimer = Timer.periodic(const Duration(seconds: 15), (_) => _checkConnectivity());
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _slideAnim = Tween<double>(begin: -1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+
+    _connectivitySub = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final isOffline = results.every((r) => r == ConnectivityResult.none);
+      if (isOffline != _isOffline && mounted) {
+        setState(() => _isOffline = isOffline);
+        if (isOffline) {
+          _animController.forward();
+        } else {
+          _animController.reverse();
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
-    _checkTimer?.cancel();
+    _connectivitySub?.cancel();
+    _animController.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkConnectivity() async {
-    // Lightweight connectivity check via DNS resolve
-    // In production, use connectivity_plus package
-    try {
-      // Placeholder — real implementation uses connectivity_plus
-      // For now, always report online. When connectivity_plus is added,
-      // this will use ConnectivityResult.
-      if (mounted && _isOffline) {
-        setState(() => _isOffline = false);
-      }
-    } catch (_) {
-      if (mounted && !_isOffline) {
-        setState(() => _isOffline = true);
-      }
-    }
   }
 
   @override
@@ -59,29 +73,50 @@ class _ConnectivityBannerState extends State<ConnectivityBanner> {
 
     return Column(
       children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          height: _isOffline ? 36 : 0,
-          color: colors.warning,
-          child: _isOffline
-              ? Center(
-                  child: Row(
+        // Offline banner with slide animation
+        AnimatedBuilder(
+          animation: _slideAnim,
+          builder: (context, child) {
+            return ClipRect(
+              child: Align(
+                heightFactor: _isOffline ? 1.0 : (_slideAnim.value + 1.0).clamp(0.0, 1.0),
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: colors.warning,
+            child: SafeArea(
+              bottom: false,
+              child: ValueListenableBuilder<int>(
+                valueListenable: OfflineQueue.instance.pendingCount,
+                builder: (context, pendingCount, _) {
+                  return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.wifi_off_rounded, size: 16, color: Colors.white),
                       const SizedBox(width: 8),
-                      Text(
-                        'غير متصل بالإنترنت — البيانات المخزنة مؤقتاً',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withAlpha(230),
+                      Flexible(
+                        child: Text(
+                          pendingCount > 0
+                              ? 'غير متصل — $pendingCount طلب في الانتظار'
+                              : 'غير متصل بالإنترنت',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withAlpha(230),
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
-                  ),
-                )
-              : null,
+                  );
+                },
+              ),
+            ),
+          ),
         ),
         Expanded(child: widget.child),
       ],

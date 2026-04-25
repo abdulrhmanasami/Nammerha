@@ -72,6 +72,15 @@ class AuthChangePasswordRequested extends AuthEvent {
   List<Object?> get props => [currentPassword, newPassword];
 }
 
+/// Reset password via deep-link token (GAP-H5)
+class AuthResetPassword extends AuthEvent {
+  final String token;
+  final String newPassword;
+  const AuthResetPassword({required this.token, required this.newPassword});
+  @override
+  List<Object?> get props => [token, newPassword];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // STATES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -125,6 +134,14 @@ class AuthPasswordChanged extends AuthState {
   List<Object?> get props => [message];
 }
 
+/// Emitted after a successful password reset via deep-link token (GAP-H5)
+class AuthPasswordResetSuccess extends AuthState {
+  final String message;
+  const AuthPasswordResetSuccess(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOC
 // ═══════════════════════════════════════════════════════════════════════════
@@ -142,6 +159,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRoleSwitched>(_onRoleSwitch);
     on<AuthForgotPassword>(_onForgotPassword);
     on<AuthChangePasswordRequested>(_onChangePassword);
+    on<AuthResetPassword>(_onResetPassword);
 
     // Listen for 401 from API client
     NammerhaApiClient.instance.onAuthExpired = () {
@@ -250,6 +268,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.message));
     } catch (e) {
       emit(AuthError('فشل تغيير كلمة المرور: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onResetPassword(AuthResetPassword event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final message = await _authRepository.resetPassword(
+        token: event.token,
+        newPassword: event.newPassword,
+      );
+      emit(AuthPasswordResetSuccess(message));
+    } on ApiException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('فشل إعادة تعيين كلمة المرور: ${e.toString()}'));
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/network/api_client.dart';
+import 'core/offline/offline_queue.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/auth/bloc/auth_bloc.dart';
@@ -17,6 +18,9 @@ void main() async {
 
   // Initialize production API client
   await NammerhaApiClient.instance.init();
+
+  // Initialize offline queue engine (loads persisted requests, starts connectivity monitor)
+  await OfflineQueue.instance.init();
 
   runApp(const NammerhaMobileApp());
 }
