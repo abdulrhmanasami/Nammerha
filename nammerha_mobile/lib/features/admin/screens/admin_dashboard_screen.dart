@@ -1,0 +1,310 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/theme/semantic_colors.dart';
+import '../bloc/admin_dashboard_bloc.dart';
+import '../widgets/admin_kpi_card.dart';
+import '../widgets/admin_stat_chart.dart';
+import '../models/admin_models.dart';
+
+/// Admin Dashboard — Platform Command Center
+/// KPIs + bar charts + projects table + audit trail.
+class AdminDashboardScreen extends StatelessWidget {
+  const AdminDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => AdminDashboardBloc()..add(LoadDashboard()),
+      child: const _DashboardView(),
+    );
+  }
+}
+
+class _DashboardView extends StatelessWidget {
+  const _DashboardView();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Scaffold(
+      backgroundColor: colors.backgroundPrimary,
+      appBar: AppBar(
+        title: Text(
+          'لوحة القيادة',
+          style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
+        ),
+        backgroundColor: colors.surfaceElevated,
+        elevation: 0,
+        iconTheme: IconThemeData(color: colors.textHeading),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh_rounded, color: colors.primaryBrand),
+            onPressed: () => context.read<AdminDashboardBloc>().add(RefreshDashboard()),
+          ),
+        ],
+      ),
+      body: BlocBuilder<AdminDashboardBloc, AdminDashboardState>(
+        builder: (context, state) {
+          if (state is AdminDashboardLoading) {
+            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+          }
+          if (state is AdminDashboardError) {
+            return _buildError(context, state.message);
+          }
+          if (state is AdminDashboardLoaded) {
+            return _buildLoaded(context, state);
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  Widget _buildError(BuildContext context, String message) {
+    final colors = context.colors;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline_rounded, size: 48, color: colors.error),
+          const SizedBox(height: 12),
+          Text(message, style: TextStyle(color: colors.textSecondary, fontSize: 14)),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => context.read<AdminDashboardBloc>().add(LoadDashboard()),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('إعادة المحاولة'),
+            style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoaded(BuildContext context, AdminDashboardLoaded state) {
+    final colors = context.colors;
+    final overview = state.overview;
+
+    return RefreshIndicator(
+      color: colors.primaryBrand,
+      onRefresh: () async {
+        context.read<AdminDashboardBloc>().add(RefreshDashboard());
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ─── KPI Grid ───────────────────────────────────────
+          GridView.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              AdminKpiCard(
+                title: 'إجمالي التمويل',
+                value: overview.totalFundedAmount,
+                icon: Icons.attach_money_rounded,
+                accentColor: colors.primaryBrand,
+                isCurrency: true,
+              ),
+              AdminKpiCard(
+                title: 'المشاريع النشطة',
+                value: overview.totalProjects,
+                icon: Icons.business_rounded,
+                accentColor: colors.secondaryAccent,
+              ),
+              AdminKpiCard(
+                title: 'المهندسون',
+                value: overview.activeEngineers,
+                icon: Icons.engineering_rounded,
+                accentColor: colors.warmEarth,
+              ),
+              AdminKpiCard(
+                title: 'إثباتات محققة',
+                value: overview.verifiedProofs,
+                icon: Icons.verified_rounded,
+                accentColor: colors.success,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // ─── Summary Row ────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors.surfaceElevated,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colors.strokeBorder.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              children: [
+                _buildMiniStat(colors, 'المستخدمون', overview.totalUsers.toString(), Icons.people_rounded),
+                _divider(colors),
+                _buildMiniStat(colors, 'التبرعات', overview.totalDonations.toString(), Icons.volunteer_activism_rounded),
+                _divider(colors),
+                _buildMiniStat(colors, 'المقاولون', overview.activeContractors.toString(), Icons.construction_rounded),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // ─── Charts ─────────────────────────────────────────
+          AdminStatChart(
+            title: 'المشاريع حسب الشهر',
+            data: state.projectsByMonth.map((p) => ChartDataPoint(
+              label: p.month,
+              value: p.count.toDouble(),
+            )).toList(),
+            barColor: colors.primaryBrand,
+          ),
+
+          const SizedBox(height: 16),
+
+          AdminStatChart(
+            title: 'التبرعات حسب الشهر',
+            data: state.donationsByMonth.map((d) => ChartDataPoint(
+              label: d.month,
+              value: (d.totalAmount / 100).toDouble(),
+            )).toList(),
+            barColor: colors.secondaryAccent,
+          ),
+
+          const SizedBox(height: 20),
+
+          // ─── Recent Audit Trail ─────────────────────────────
+          Container(
+            decoration: BoxDecoration(
+              color: colors.surfaceElevated,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colors.strokeBorder.withValues(alpha: 0.5)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'سجل التدقيق',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textHeading,
+                    ),
+                  ),
+                ),
+                if (state.recentAudit.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(
+                        'لا توجد إدخالات حديثة',
+                        style: TextStyle(color: colors.textMuted, fontSize: 13),
+                      ),
+                    ),
+                  )
+                else
+                  ...state.recentAudit.map((c) => _buildAuditItem(colors, c)),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniStat(SemanticColors colors, String label, String value, IconData icon) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: colors.primaryBrand, size: 20),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: colors.textHeading,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(fontSize: 10, color: colors.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider(SemanticColors colors) {
+    return Container(width: 1, height: 40, color: colors.strokeBorder);
+  }
+
+  Widget _buildAuditItem(SemanticColors colors, EscrowCase c) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: colors.primaryBrandLight,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.receipt_long_rounded, color: colors.primaryBrand, size: 16),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  c.poNumber.isNotEmpty ? c.poNumber : (c.description ?? 'تحقق معلّق'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (c.vendorName.isNotEmpty)
+                  Text(
+                    c.vendorName,
+                    style: TextStyle(fontSize: 11, color: colors.textMuted),
+                  ),
+              ],
+            ),
+          ),
+          if (c.submittedAt != null)
+            Text(
+              _relativeTime(c.submittedAt!),
+              style: TextStyle(fontSize: 10, color: colors.textMuted),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _relativeTime(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final diff = DateTime.now().difference(date);
+      if (diff.inMinutes < 60) return '${diff.inMinutes}د';
+      if (diff.inHours < 24) return '${diff.inHours}س';
+      if (diff.inDays < 30) return '${diff.inDays}ي';
+      return '${diff.inDays ~/ 30}ش';
+    } catch (_) {
+      return '—';
+    }
+  }
+}

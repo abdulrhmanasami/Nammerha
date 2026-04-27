@@ -1,0 +1,247 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/theme/semantic_colors.dart';
+import '../bloc/admin_oracle_bloc.dart';
+import '../models/admin_models.dart';
+
+/// Admin Pricing Oracle — FIDIC material prices (EPA engine).
+class AdminOracleScreen extends StatelessWidget {
+  const AdminOracleScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => AdminOracleBloc()..add(LoadOraclePrices()),
+      child: const _OracleView(),
+    );
+  }
+}
+
+class _OracleView extends StatelessWidget {
+  const _OracleView();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Scaffold(
+      backgroundColor: colors.backgroundPrimary,
+      appBar: AppBar(
+        title: Text(
+          'أسعار المواد — أوراكل',
+          style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
+        ),
+        backgroundColor: colors.surfaceElevated,
+        elevation: 0,
+        iconTheme: IconThemeData(color: colors.textHeading),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh_rounded, color: colors.primaryBrand),
+            onPressed: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
+          ),
+        ],
+      ),
+      body: BlocBuilder<AdminOracleBloc, AdminOracleState>(
+        builder: (context, state) {
+          if (state is AdminOracleLoading) {
+            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+          }
+          if (state is AdminOracleError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline_rounded, size: 48, color: colors.error),
+                  const SizedBox(height: 12),
+                  Text(state.message, style: TextStyle(color: colors.textSecondary)),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('إعادة المحاولة'),
+                    style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
+                  ),
+                ],
+              ),
+            );
+          }
+          if (state is AdminOracleLoaded) {
+            return _buildLoaded(context, state.prices);
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoaded(BuildContext context, List<OraclePriceEntry> prices) {
+    final colors = context.colors;
+
+    if (prices.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.price_change_rounded, size: 48, color: colors.textMuted),
+            const SizedBox(height: 8),
+            Text('لا توجد أسعار متاحة', style: TextStyle(color: colors.textMuted)),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      color: colors.primaryBrand,
+      onRefresh: () async {
+        context.read<AdminOracleBloc>().add(LoadOraclePrices());
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Info header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
+                colors: [colors.primaryBrand, colors.primaryBrandHover],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.price_change_rounded, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'محرك التسعير FIDIC 13.8',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        '${prices.length} مادة مُراقبة',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Price cards
+          ...prices.map((p) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _buildPriceCard(colors, p),
+          )),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceCard(SemanticColors colors, OraclePriceEntry price) {
+    final isPositive = price.changePercent >= 0;
+    final changeColor = isPositive ? colors.error : colors.success;
+    final changeIcon = isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.strokeBorder.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: colors.warmEarth.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.inventory_2_rounded, color: colors.warmEarth, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  price.materialName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textHeading,
+                  ),
+                ),
+                Text(
+                  'الوحدة: ${price.unit}',
+                  style: TextStyle(fontSize: 11, color: colors.textMuted),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '\$${price.currentPrice.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: colors.textHeading,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: changeColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(changeIcon, size: 12, color: changeColor),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${isPositive ? '+' : ''}${price.changePercent.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: changeColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

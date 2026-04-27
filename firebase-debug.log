@@ -1,0 +1,12 @@
+[debug] [2026-04-26T03:04:21.561Z] ----------------------------------------------------------------------
+[debug] [2026-04-26T03:04:21.568Z] Command:       /usr/local/Cellar/node@20/20.19.4/bin/node /usr/local/bin/firebase --project=nammerha-platform --token 1//03VX2CaaH6OzCCgYIARAAGAMSNwF-L9IrYSKjEUaW1xwBGFAc_R_P71HVQAXkw2ksIRqh16CGIO8STHM1niQDiGScoBOiKdQMzXg setup:emulators:database
+[debug] [2026-04-26T03:04:21.569Z] CLI Version:   14.18.0
+[debug] [2026-04-26T03:04:21.569Z] Platform:      darwin
+[debug] [2026-04-26T03:04:21.569Z] Node Version:  v20.19.4
+[debug] [2026-04-26T03:04:21.569Z] Time:          Sun Apr 26 2026 06:04:21 GMT+0300 (GMT+03:00)
+[debug] [2026-04-26T03:04:21.569Z] ----------------------------------------------------------------------
+[debug] 
+[info] i  database: downloading firebase-database-emulator-v4.11.2.jar... {"metadata":{"emulator":{"name":"database"},"message":"downloading firebase-database-emulator-v4.11.2.jar..."}}
+[debug] [2026-04-26T03:04:21.591Z] >>> [apiv2][query] GET https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v4.11.2.jar 
+[debug] [2026-04-26T03:04:22.311Z] <<< [apiv2][status] GET https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v4.11.2.jar 200
+[debug] [2026-04-26T03:04:22.312Z] <<< [apiv2][body] GET https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v4.11.2.jar [stream]

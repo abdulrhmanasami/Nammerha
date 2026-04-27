@@ -23,6 +23,10 @@ import '../../donor_proof/screens/donor_proof_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
 import '../../map/screens/project_map_screen.dart';
+import '../../admin/screens/admin_hub_screen.dart';
+import '../../admin/screens/admin_dashboard_screen.dart';
+import '../../admin/screens/admin_escrow_screen.dart';
+import '../../admin/screens/admin_kyc_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -41,6 +45,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<Widget> _getPages() {
     switch (widget.role) {
+      case 'ADMIN':
+      case 'AUDITOR':
+        return [
+          _DashboardHome(role: widget.role, userName: widget.user.fullName),
+          const AdminHubScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
+        ];
       case 'ENGINEER':
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
@@ -83,6 +97,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<BottomNavigationBarItem> _getNavItems() {
     switch (widget.role) {
+      case 'ADMIN':
+      case 'AUDITOR':
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
+          BottomNavigationBarItem(icon: Icon(Icons.shield_rounded), label: 'الإدارة'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+        ];
       case 'ENGINEER':
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
@@ -457,6 +478,14 @@ class _DashboardHomeState extends State<_DashboardHome> {
     List<_QuickAction> actions;
 
     switch (role) {
+      case 'ADMIN':
+      case 'AUDITOR':
+        actions = [
+          _QuickAction('لوحة القيادة', Icons.dashboard_rounded, colors.primaryBrand, const AdminDashboardScreen()),
+          _QuickAction('الضمان', Icons.account_balance_wallet_rounded, colors.secondaryAccent, const AdminEscrowScreen()),
+          _QuickAction('التحقق KYC', Icons.verified_user_rounded, colors.warmEarth, const AdminKycScreen()),
+        ];
+        break;
       case 'ENGINEER':
         actions = [
           _QuickAction('كاميرا مكانية', Icons.camera_alt_rounded, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),

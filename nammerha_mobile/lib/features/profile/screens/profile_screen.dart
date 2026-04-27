@@ -6,6 +6,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/theme/theme_cubit.dart';
 import '../../../core/utils/role_localizer.dart';
+import '../../../core/i18n/locale_cubit.dart';
+import '../../../core/i18n/supported_locales.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
@@ -458,7 +460,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onChanged: (_) {},
           activeTrackColor: colors.primaryBrand,
         )),
-        _settingRow(Icons.language_rounded, 'اللغة', colors, value: 'العربية'),
+        _settingRow(Icons.language_rounded, 'اللغة', colors,
+          value: context.watch<LocaleCubit>().currentLocaleName,
+          onTap: () => _showLanguagePicker(colors),
+        ),
         _settingRow(Icons.dark_mode_rounded, 'الوضع الداكن', colors, trailing: Switch.adaptive(
           value: context.watch<ThemeCubit>().isDark,
           onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
@@ -488,6 +493,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (value != null) Text(value, style: TextStyle(fontSize: 13, color: colors.textSubtle)),
             if (trailing != null) trailing,
             if (value == null && trailing == null) Icon(Icons.chevron_right_rounded, color: colors.textSubtle, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Language Picker ─────────────────────────────────────────────────────────
+
+  void _showLanguagePicker(SemanticColors colors) {
+    final currentCode = context.read<LocaleCubit>().currentCode;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(Icons.language_rounded, color: colors.primaryBrand, size: 22),
+                const SizedBox(width: 10),
+                Text('اختر اللغة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...kSupportedLocales.map((loc) {
+              final isActive = loc.code == currentCode;
+              return GestureDetector(
+                onTap: () {
+                  context.read<LocaleCubit>().switchLocale(loc.code);
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isActive ? colors.primaryBrand.withAlpha(12) : colors.backgroundPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isActive ? colors.primaryBrand.withAlpha(60) : colors.strokeSubtle,
+                      width: isActive ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        loc.nativeName,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                          color: isActive ? colors.primaryBrand : colors.textPrimary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (isActive)
+                        Icon(Icons.check_circle_rounded, color: colors.primaryBrand, size: 22),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 8),
           ],
         ),
       ),

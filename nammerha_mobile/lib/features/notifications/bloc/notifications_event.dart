@@ -18,3 +18,13 @@ class MarkAsReadRequested extends NotificationsEvent {
   @override
   List<Object?> get props => [notificationId];
 }
+
+/// Injected by PushNotificationService when a foreground FCM message arrives.
+/// Prepends the notification to the list without a full API reload.
+class PushNotificationReceived extends NotificationsEvent {
+  final Map<String, dynamic> notification;
+  const PushNotificationReceived(this.notification);
+
+  @override
+  List<Object?> get props => [notification];
+}

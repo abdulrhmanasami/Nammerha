@@ -49,3 +49,8 @@ android/key.properties
 android/keystore/
 *.jks
 *.keystore
+
+# Firebase credentials (NEVER commit — contains API keys)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart

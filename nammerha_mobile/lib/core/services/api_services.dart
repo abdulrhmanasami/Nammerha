@@ -131,6 +131,15 @@ class DonorApi {
       idempotent: true,
     );
   }
+
+  /// GET /api/donor/receipts/:escrowId — returns PDF receipt URL
+  Future<String?> getReceiptUrl(String escrowId) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/donor/receipts/$escrowId',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data?['url'] as String?;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -519,6 +528,32 @@ class NotificationsApi {
   Future<void> markAllAsRead() async {
     await _api.request('/notifications/read-all', method: 'PATCH');
   }
+
+  /// POST /api/notifications/push-token — Register FCM device token
+  Future<void> registerPushToken({
+    required String deviceToken,
+    required String platform,
+    String? deviceId,
+  }) async {
+    await _api.request(
+      '/notifications/push-token',
+      method: 'POST',
+      body: {
+        'device_token': deviceToken,
+        'platform': platform,
+        if (deviceId != null) 'device_id': deviceId,
+      },
+    );
+  }
+
+  /// DELETE /api/notifications/push-token — Unregister FCM device token
+  Future<void> unregisterPushToken(String deviceToken) async {
+    await _api.request(
+      '/notifications/push-token',
+      method: 'DELETE',
+      body: {'device_token': deviceToken},
+    );
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -653,6 +688,39 @@ class MatchmakingApi {
       method: 'POST',
       idempotent: true,
     );
+  }
+
+  /// GET /api/matchmaking/search-engineers — search with geo/specialty/score filters
+  Future<List<Map<String, dynamic>>> searchEngineers({
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
+    String? specialty,
+    int? minScore,
+  }) async {
+    final params = <String, String>{};
+    if (latitude != null) params['lat'] = latitude.toString();
+    if (longitude != null) params['lng'] = longitude.toString();
+    if (radiusKm != null) params['radius'] = radiusKm.toString();
+    if (specialty != null) params['specialty'] = specialty;
+    if (minScore != null) params['min_score'] = minScore.toString();
+    final qs = params.isNotEmpty
+        ? '?${params.entries.map((e) => '${e.key}=${e.value}').join('&')}'
+        : '';
+    final response = await _api.request<List<dynamic>>(
+      '/matchmaking/search-engineers$qs',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/matchmaking/engineers/:id/score-breakdown
+  Future<Map<String, dynamic>> getScoreBreakdown(String engineerId) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/matchmaking/engineers/$engineerId/score-breakdown',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
   }
 }
 
@@ -826,5 +894,25 @@ class TradespersonApi {
       method: 'PATCH',
       body: {'status': status},
     );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OPEN DATA API — Mirrors api.ts openData module
+// GAP-FIX-005: Export OCDS reports in PDF/XLSX format
+// ═══════════════════════════════════════════════════════════════════════════
+
+class OpenDataApi {
+  final NammerhaApiClient _api;
+  OpenDataApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /api/open-data/projects/:id/export?format=pdf|xlsx
+  /// Returns the download URL for the exported report
+  Future<String?> exportReport(String projectId, {String format = 'pdf'}) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/open-data/projects/$projectId/export?format=$format',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data?['url'] as String?;
   }
 }

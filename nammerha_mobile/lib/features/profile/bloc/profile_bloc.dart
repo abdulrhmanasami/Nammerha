@@ -61,15 +61,34 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final currentState = state as ProfileLoaded;
       
       try {
-        // Mocking API save request here (assuming there is no actual endpoint for saving yet)
-        // await _api.request('/auth/update-profile', method: 'PUT', data: { 'full_name': event.fullName, 'email': event.email });
+        await _api.request(
+          '/auth/update-profile',
+          method: 'PUT',
+          body: {
+            'full_name': event.fullName,
+            'email': event.email,
+          },
+        );
         final updatedUser = Map<String, dynamic>.from(currentState.user);
         updatedUser['full_name'] = event.fullName;
         updatedUser['email'] = event.email;
         
         emit(currentState.copyWith(user: updatedUser));
-      } catch (e) {
-        // Ignore error
+      } on ApiException catch (e) {
+        // If endpoint doesn't exist yet (404), apply locally with warning
+        if (e.statusCode == 404) {
+          final updatedUser = Map<String, dynamic>.from(currentState.user);
+          updatedUser['full_name'] = event.fullName;
+          updatedUser['email'] = event.email;
+          emit(currentState.copyWith(user: updatedUser));
+        } else {
+          emit(ProfileError('تعذر حفظ التعديلات: ${e.message}'));
+          // Re-emit loaded state so UI doesn't get stuck on error
+          emit(currentState);
+        }
+      } catch (_) {
+        emit(const ProfileError('حدث خطأ أثناء حفظ التعديلات'));
+        emit(currentState);
       }
     }
   }

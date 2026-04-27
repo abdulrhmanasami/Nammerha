@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
@@ -247,15 +248,93 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
               ElevatedButton.icon(
                 onPressed: () async {
                   if (titleCtrl.text.trim().isEmpty) return;
-                  Navigator.pop(ctx);
+
+                  // Acquire GPS before closing sheet — show spinner
+                  showDialog(
+                    context: ctx,
+                    barrierDismissible: false,
+                    builder: (_) => Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: colors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(color: colors.primaryBrand),
+                            const SizedBox(height: 14),
+                            Text('جارٍ تحديد الموقع...', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+
+                  double gpsLat = 0;
+                  double gpsLng = 0;
+
+                  try {
+                    // Check & request location permission
+                    LocationPermission permission = await Geolocator.checkPermission();
+                    if (permission == LocationPermission.denied) {
+                      permission = await Geolocator.requestPermission();
+                    }
+                    if (permission == LocationPermission.denied ||
+                        permission == LocationPermission.deniedForever) {
+                      if (ctx.mounted) Navigator.pop(ctx); // dismiss spinner
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('يرجى السماح بالوصول للموقع لإنشاء المشروع'),
+                            backgroundColor: colors.error,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    final position = await Geolocator.getCurrentPosition(
+                      desiredAccuracy: LocationAccuracy.high,
+                    );
+                    gpsLat = position.latitude;
+                    gpsLng = position.longitude;
+                  } catch (_) {
+                    // Fallback: try last known position
+                    try {
+                      final last = await Geolocator.getLastKnownPosition();
+                      if (last != null) {
+                        gpsLat = last.latitude;
+                        gpsLng = last.longitude;
+                      }
+                    } catch (_) {}
+                  }
+
+                  if (ctx.mounted) Navigator.pop(ctx); // dismiss spinner
+
+                  // Validate we got real coordinates (not 0,0)
+                  if (gpsLat == 0 && gpsLng == 0) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('تعذر تحديد الموقع — تأكد من تفعيل GPS'),
+                          backgroundColor: colors.warning,
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
+                  Navigator.pop(ctx); // close bottom sheet
                   try {
                     await _api.createProject(
                       title: titleCtrl.text.trim(),
                       damageType: selectedDamage,
                       description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
                       addressText: addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
-                      gpsLat: 0, // TODO: get from device GPS
-                      gpsLng: 0,
+                      gpsLat: gpsLat,
+                      gpsLng: gpsLng,
                     );
                     await _loadProjects();
                     if (mounted) {

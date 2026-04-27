@@ -11,3 +11,7 @@ dist/
 
 # Dependencies
 node_modules/
+
+# Secrets (GCP service account keys, certificates — NEVER commit)
+secrets/
+!secrets/.gitkeep

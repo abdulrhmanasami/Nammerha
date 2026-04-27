@@ -4,9 +4,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/services/api_services.dart';
 import '../../donor/bloc/donor_bloc.dart';
 import '../../donor/bloc/donor_event.dart';
 import '../../donor/bloc/donor_state.dart';
+import '../../pdf/screens/pdf_viewer_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Proof Screen — Proof of Delivery with GPS Verification
@@ -304,9 +306,82 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
                 ),
               ),
             ),
+          // Receipt download button
+          if (status.toLowerCase() == 'released') ...[
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _openReceipt(proof, colors),
+                  icon: Icon(Icons.picture_as_pdf_rounded, size: 18, color: colors.primaryBrand),
+                  label: Text('تحميل الإيصال PDF', style: TextStyle(color: colors.primaryBrand, fontWeight: FontWeight.w600)),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: colors.primaryBrand.withAlpha(40)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.06, end: 0);
+  }
+
+  Future<void> _openReceipt(Map<String, dynamic> proof, SemanticColors colors) async {
+    final escrowId = proof['escrow_id']?.toString() ?? proof['id']?.toString();
+    if (escrowId == null || escrowId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('لا يوجد معرّف للضمان'), backgroundColor: colors.error),
+        );
+      }
+      return;
+    }
+
+    // Show loading
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('جاري تحميل الإيصال...'),
+          backgroundColor: colors.primaryBrand,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+
+    try {
+      final url = await DonorApi().getReceiptUrl(escrowId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (url == null || url.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('الإيصال غير متوفر حالياً'), backgroundColor: colors.warning),
+        );
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PdfViewerScreen(
+            url: url,
+            title: 'إيصال التبرع',
+            subtitle: proof['project_title']?.toString(),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: colors.error),
+        );
+      }
+    }
   }
 
   Widget _gpsRow(String label, String value, SemanticColors colors) {

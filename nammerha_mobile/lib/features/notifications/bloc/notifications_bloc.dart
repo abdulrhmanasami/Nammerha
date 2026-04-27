@@ -12,6 +12,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     on<LoadNotificationsRequested>(_onLoadNotifications);
     on<MarkAllAsReadRequested>(_onMarkAllAsRead);
     on<MarkAsReadRequested>(_onMarkAsRead);
+    on<PushNotificationReceived>(_onPushNotificationReceived);
   }
 
   Future<void> _onLoadNotifications(
@@ -71,6 +72,20 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       } catch (e) {
         // Do nothing on failure locally
       }
+    }
+  }
+
+  /// Handle real-time FCM push notifications by prepending to existing list.
+  /// No API call needed — the notification data comes directly from FCM.
+  void _onPushNotificationReceived(
+      PushNotificationReceived event, Emitter<NotificationsState> emit) {
+    if (state is NotificationsLoaded) {
+      final currentState = state as NotificationsLoaded;
+      final updated = [event.notification, ...currentState.notifications];
+      emit(currentState.copyWith(notifications: updated));
+    } else {
+      // If notifications haven't been loaded yet, emit a fresh list
+      emit(NotificationsLoaded(notifications: [event.notification]));
     }
   }
 }
