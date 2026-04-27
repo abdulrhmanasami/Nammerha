@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../network/api_client.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Offline Request Queue — Platinum Standard (Nammerha Domain Law: Offline-First)
+// Offline Request Queue — Platinum Standard v2 (Nammerha Domain Law: Offline-First)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // Architecture:
@@ -17,6 +18,12 @@ import '../network/api_client.dart';
 //   3. Automatically replays queued requests when connectivity is restored
 //   4. Idempotency-Key ensures zero duplicate mutations on replay
 //   5. Exponential backoff prevents server hammering on flaky 2G/3G
+//   6. [PLATINUM v2] Startup replay: if queue non-empty AND online at launch,
+//      processQueue() fires immediately — no more silent queue abandonment.
+//   7. [PLATINUM v2] De-bounce: flappy connections debounce replay by 2s
+//      to prevent rapid-fire storms on unstable 2G connections in Syria.
+//   8. [PLATINUM v2] Per-item exponential backoff: 2^retryCount * 200ms
+//      (capped at 30s) between retry attempts for individual failed items.
 //
 // Critical Contract:
 //   - Only IDEMPOTENT mutations are queued (identified by Idempotency-Key header)
@@ -106,6 +113,14 @@ class OfflineQueue {
   static const String _storageKey = 'nammerha_offline_queue';
   static const int _maxQueueSize = 50;
 
+  // ─── De-bounce timer for flappy connections ─────────────────────────────
+  // Purpose: Syria's 2G/3G connections frequently drop and restore within
+  // milliseconds. Without de-bouncing, a "offline → online" flap triggers
+  // multiple rapid `processQueue()` calls simultaneously.
+  // Solution: Wait 2 seconds after a connectivity restore before processing.
+  static const Duration _debounceDuration = Duration(seconds: 2);
+  Timer? _debounceTimer;
+
   final List<QueuedRequest> _queue = [];
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   bool _isProcessing = false;
@@ -120,14 +135,42 @@ class OfflineQueue {
   /// Callback for UI to show queue status changes.
   ValueNotifier<int> pendingCount = ValueNotifier<int>(0);
 
+  // ─── Initialization ──────────────────────────────────────────────────────
+
   /// Initialize the queue: load persisted requests + start connectivity listener.
+  ///
+  /// PLATINUM v2 FIX (Startup Race Condition):
+  /// After loading from disk, check CURRENT connectivity. If already online
+  /// AND queue is non-empty, trigger processQueue() immediately.
+  /// Previously, the queue was only replayed on connectivity CHANGES —
+  /// meaning persisted requests from a previous session were silently
+  /// abandoned until the user lost and regained internet.
   Future<void> init() async {
     if (_isInitialized) return;
     _isInitialized = true;
 
     await _loadFromDisk();
     _startConnectivityMonitor();
+
+    // PLATINUM v2: If app launched online with a non-empty queue,
+    // replay immediately without waiting for a connectivity change event.
+    if (_queue.isNotEmpty) {
+      final connectivity = Connectivity();
+      final currentResults = await connectivity.checkConnectivity();
+      final isOnline = currentResults.any((r) => r != ConnectivityResult.none);
+
+      if (isOnline) {
+        debugPrint(
+          '[OfflineQueue] STARTUP REPLAY — ${_queue.length} persisted requests found online',
+        );
+        // Small delay to let the rest of `main()` complete first
+        await Future<void>.delayed(const Duration(seconds: 3));
+        unawaited(processQueue());
+      }
+    }
   }
+
+  // ─── Public API ──────────────────────────────────────────────────────────
 
   /// Number of requests waiting in the queue.
   int get length => _queue.length;
@@ -156,6 +199,13 @@ class OfflineQueue {
       }
     }
 
+    // De-duplicate: reject if same Idempotency-Key already in queue
+    final alreadyQueued = _queue.any((r) => r.id == request.id);
+    if (alreadyQueued) {
+      debugPrint('[OfflineQueue] DUPLICATE rejected: ${request.id}');
+      return;
+    }
+
     _queue.add(request);
     pendingCount.value = _queue.length;
     await _saveToDisk();
@@ -167,6 +217,10 @@ class OfflineQueue {
   }
 
   /// Process all queued requests (called on connectivity restoration).
+  ///
+  /// PLATINUM v2: Per-item exponential backoff on failure.
+  /// Failed items sleep for `min(2^retryCount * 200ms, 30s)` before
+  /// the queue continues — preventing server flood on Syria's flaky 2G.
   Future<void> processQueue() async {
     if (_isProcessing || _queue.isEmpty) return;
     _isProcessing = true;
@@ -182,7 +236,9 @@ class OfflineQueue {
         _queue.remove(request);
         onRequestFailed?.call(
           request,
-          request.isExpired ? 'انتهت صلاحية الطلب (24 ساعة)' : 'تم استنفاد محاولات الإعادة',
+          request.isExpired
+              ? 'انتهت صلاحية الطلب (24 ساعة)'
+              : 'تم استنفاد محاولات الإعادة',
         );
         continue;
       }
@@ -196,7 +252,7 @@ class OfflineQueue {
           extraHeaders: request.extraHeaders,
         );
 
-        // Success — remove from queue
+        // ── SUCCESS ───────────────────────────────────────────────────────
         _queue.remove(request);
         onRequestReplayed?.call(request);
 
@@ -204,9 +260,10 @@ class OfflineQueue {
           '[OfflineQueue] ✅ REPLAYED: ${request.method} ${request.endpoint}',
         );
 
-        // Brief pause between replays to avoid server flood
+        // Brief inter-request pause to avoid server flood
         await Future<void>.delayed(const Duration(milliseconds: 500));
       } catch (e) {
+        // ── FAILURE ───────────────────────────────────────────────────────
         request.retryCount++;
         debugPrint(
           '[OfflineQueue] ❌ RETRY FAILED (${request.retryCount}/${QueuedRequest.maxRetries}): '
@@ -216,6 +273,15 @@ class OfflineQueue {
         if (request.isExhausted) {
           _queue.remove(request);
           onRequestFailed?.call(request, e.toString());
+        } else {
+          // PLATINUM v2 — Exponential backoff per failed item.
+          // Formula: min(2^retryCount × 200ms, 30s)
+          // retryCount 1 →  400ms | 2 →  800ms | 3 → 1.6s | 4 → 3.2s | 5 → 6.4s
+          final backoff = _computeBackoff(request.retryCount);
+          debugPrint(
+            '[OfflineQueue] BACKOFF ${backoff.inMilliseconds}ms before next item',
+          );
+          await Future<void>.delayed(backoff);
         }
       }
     }
@@ -235,21 +301,43 @@ class OfflineQueue {
     await prefs.remove(_storageKey);
   }
 
-  /// Dispose connectivity listener.
+  /// Dispose connectivity listener and de-bounce timer.
   void dispose() {
+    _debounceTimer?.cancel();
     _connectivitySub?.cancel();
   }
 
-  // ─── Private Implementation ─────────────────────────────────────────────
+  // ─── Private Implementation ──────────────────────────────────────────────
 
+  /// Starts the connectivity monitor.
+  ///
+  /// PLATINUM v2 — De-bounce Pattern:
+  /// On connectivity restoration, we do NOT immediately fire `processQueue()`.
+  /// Instead, we start a 2-second de-bounce timer. If another connectivity
+  /// change arrives within 2 seconds (flappy connection), the timer resets.
+  /// Only after 2 consecutive seconds of "online" status does replay begin.
+  ///
+  /// This prevents request storms on Syrian 2G where the connection may
+  /// toggle offline → online → offline → online many times per minute.
   void _startConnectivityMonitor() {
     _connectivitySub = Connectivity()
         .onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
       final isOnline = results.any((r) => r != ConnectivityResult.none);
+
       if (isOnline && _queue.isNotEmpty) {
-        debugPrint('[OfflineQueue] CONNECTIVITY RESTORED — processing queue...');
-        processQueue();
+        // Cancel any existing de-bounce timer and start fresh
+        _debounceTimer?.cancel();
+        _debounceTimer = Timer(_debounceDuration, () {
+          debugPrint(
+            '[OfflineQueue] CONNECTIVITY STABLE — processing ${_queue.length} queued requests...',
+          );
+          unawaited(processQueue());
+        });
+      } else if (!isOnline) {
+        // If we went offline, cancel any pending de-bounce
+        _debounceTimer?.cancel();
+        debugPrint('[OfflineQueue] CONNECTIVITY LOST — replay paused');
       }
     });
   }
@@ -290,4 +378,17 @@ class OfflineQueue {
       debugPrint('[OfflineQueue] Failed to persist to disk: $e');
     }
   }
+
+  /// Compute exponential backoff duration for a given retry count.
+  /// Formula: min(2^retryCount × 200ms, 30s)
+  Duration _computeBackoff(int retryCount) {
+    final ms = (math.pow(2, retryCount) * 200).toInt();
+    return Duration(milliseconds: ms.clamp(200, 30000));
+  }
+}
+
+/// Marks a Future as intentionally unawaited (suppresses Dart linter warning).
+/// Used when we fire-and-forget processQueue() from synchronous callbacks.
+void unawaited(Future<void> future) {
+  // intentionally unawaited
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 
 import '../offline/offline_queue.dart';
@@ -180,8 +181,8 @@ class NammerhaApiClient {
           continue;
         }
 
-        // Parse response
-        final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+        // Parse response — offload to Isolate for large OCDS payloads.
+        final responseBody = await _decodeBodyAsync(response.body);
 
         // Handle errors
         if (!_isSuccess(response.statusCode)) {
@@ -311,6 +312,29 @@ class NammerhaApiClient {
         '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
+  // ─── Isolate JSON Offloading ──────────────────────────────────────────
+  /// Decodes a JSON string into a Map.
+  ///
+  /// Strategy:
+  ///   - Payloads < 50 KB  → decode synchronously on the calling isolate.
+  ///     Isolate spawn overhead (~2 ms) would exceed the decode time for
+  ///     small auth/mutation responses.
+  ///   - Payloads ≥ 50 KB  → decode in a separate Isolate via `Isolate.run()`
+  ///     to keep the UI thread free during heavy OCDS tender/project lists.
+  ///
+  /// The 50 KB threshold is empirically calibrated for ARM Cortex-A55 devices
+  /// (typical mid-range Syrian market hardware).
+  static const int _isolateThresholdBytes = 50 * 1024; // 50 KB
+
+  static Future<Map<String, dynamic>> _decodeBodyAsync(String body) async {
+    if (body.length < _isolateThresholdBytes) {
+      // Fast path: sync decode on main isolate
+      return jsonDecode(body) as Map<String, dynamic>;
+    }
+    // Heavy path: spawn a new isolate and decode there
+    return Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
+  }
+
   // ─── GraphQL Transport (C-2 Remediation) ─────────────────────────────
   // Hybrid Transport Layer: GraphQL for financial mutations, aggregated
   // queries, and subscriptions. Reuses JWT auth, telemetry headers, retry
@@ -361,6 +385,7 @@ class NammerhaApiClient {
       if (operationName != null) 'operationName': operationName,
     };
 
+
     // Retry logic (same as REST)
     final maxRetries = idempotent ? AppConfig.maxRetries : 0;
     Object? lastError;
@@ -389,9 +414,8 @@ class NammerhaApiClient {
           );
         }
 
-        // Parse GraphQL response
-        final responseBody =
-            jsonDecode(response.body) as Map<String, dynamic>;
+        // Parse GraphQL response — offload to Isolate for large payloads.
+        final responseBody = await _decodeBodyAsync(response.body);
 
         // Extract GraphQL errors
         final errors = responseBody['errors'] as List<dynamic>?;

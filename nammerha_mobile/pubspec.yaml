@@ -35,6 +35,10 @@ dependencies:
   flutter_foreground_task: ^6.1.1
   permission_handler: ^11.3.0
 
+  # Map Rendering (flutter_map — MapLibre/OSM tile engine)
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
   # UI Premium
   google_fonts: ^6.2.1
   shimmer: ^3.0.0
@@ -61,6 +65,8 @@ dependencies:
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.3

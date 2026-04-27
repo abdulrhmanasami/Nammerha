@@ -129,7 +129,7 @@ class _KycView extends StatelessWidget {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: state.entries.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
                     itemBuilder: (context, index) => _buildKycCard(context, state.entries[index]),
                   ),
                 ),

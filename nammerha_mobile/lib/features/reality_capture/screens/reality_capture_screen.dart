@@ -269,12 +269,12 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                 height: 180,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
+                placeholder: (context, url) => Container(
                   height: 180,
                   color: colors.backgroundSecondary,
                   child: Center(child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2)),
                 ),
-                errorWidget: (_, __, ___) => Container(
+                errorWidget: (context, url, error) => Container(
                   height: 180,
                   color: colors.backgroundSecondary,
                   child: Icon(Icons.broken_image_rounded, size: 40, color: colors.textSubtle),
@@ -403,7 +403,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
               Text('مرحلة البناء', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
               const SizedBox(height: 8),
               DropdownButtonFormField<ConstructionPhase>(
-                value: selectedPhase,
+                initialValue: selectedPhase,
                 dropdownColor: colors.surfaceElevated,
                 style: TextStyle(color: colors.textPrimary, fontSize: 14),
                 decoration: InputDecoration(

@@ -4,6 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart'; // formatCurrency
 import '../../escrow/screens/escrow_checkout_screen.dart';
+import '../../boq/screens/boq_details_screen.dart';
+import '../../donations/screens/donation_checkout_screen.dart';
+import '../../open_data/screens/transparency_dashboard_screen.dart';
+import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/project_details_bloc.dart';
 import '../bloc/project_details_event.dart';
 import '../bloc/project_details_state.dart';
@@ -54,6 +58,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final authState = context.read<AuthBloc>().state;
+    final userRole = authState is AuthAuthenticated ? authState.user.activeRole.toUpperCase() : 'DONOR';
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
@@ -112,6 +118,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildProjectHeader(colors, state.project),
+                    const SizedBox(height: 16),
+                    _buildRoleActions(context, colors, userRole),
                     const SizedBox(height: 24),
 
                     // BOQ Section
@@ -307,7 +315,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  selectedQty > 0 ? '${formatCurrency(unitPrice.toInt() * selectedQty)}' : 'اختر الكمية',
+                  selectedQty > 0 ? formatCurrency(unitPrice.toInt() * selectedQty) : 'اختر الكمية',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: selectedQty > 0 ? colors.primaryBrand : colors.textSecondary),
                 ),
                 Row(
@@ -417,6 +425,58 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRoleActions(BuildContext context, SemanticColors colors, String userRole) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (userRole == 'CONTRACTOR' || userRole == 'ENGINEER')
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => BOQDetailsScreen(projectId: widget.projectId),
+              ));
+            },
+            icon: const Icon(Icons.gavel_rounded),
+            label: const Text('تقديم عطاء وتسعير (BOQ)'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primaryBrand,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          )
+        else
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => DonationCheckoutScreen(projectId: widget.projectId),
+              ));
+            },
+            icon: const Icon(Icons.favorite_rounded),
+            label: const Text('تبرع الآن للمشروع'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.success,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_) => TransparencyDashboardScreen(projectId: widget.projectId),
+            ));
+          },
+          icon: Icon(Icons.public_rounded, color: colors.primaryBrand),
+          label: Text('سجل الشفافية (OCDS)', style: TextStyle(color: colors.primaryBrand)),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            side: BorderSide(color: colors.primaryBrand),
+          ),
+        ),
+      ],
     );
   }
 }

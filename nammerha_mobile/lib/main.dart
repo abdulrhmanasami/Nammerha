@@ -18,6 +18,12 @@ import 'features/notifications/bloc/notifications_bloc.dart';
 import 'features/notifications/bloc/notifications_event.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/splash_screen.dart';
+import 'features/search/data/search_repository.dart';
+import 'features/search/bloc/search_bloc.dart';
+
+/// Global navigator key — allows OfflineQueue to show SnackBars from
+/// outside the widget tree (e.g., from background connectivity callbacks).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,11 +39,54 @@ void main() async {
   // Initialize offline queue engine (loads persisted requests, starts connectivity monitor)
   await OfflineQueue.instance.init();
 
+  // Wire OfflineQueue callbacks — notifies users when queued requests replay.
+  // PLATINUM v2: These callbacks were defined but never wired. Users had zero
+  // visibility into whether their offline mutations succeeded or silently failed.
+  OfflineQueue.instance.onRequestReplayed = (request) {
+    _showSyncSnackBar(
+      message: '✅ تم إرسال طلب مؤجل بنجاح: ${request.endpoint}',
+      isError: false,
+    );
+  };
+
+  OfflineQueue.instance.onRequestFailed = (request, error) {
+    _showSyncSnackBar(
+      message: '❌ فشل طلب مؤجل نهائياً: ${request.endpoint}',
+      isError: true,
+    );
+  };
+
   // Initialize push notification service (registers background handler, creates channel)
   await PushNotificationService.instance.init();
 
   runApp(const NammerhaMobileApp());
 }
+
+/// Shows a non-blocking SnackBar notification for offline queue sync events.
+/// Uses the [navigatorKey] to access the current overlay without BuildContext.
+void _showSyncSnackBar({required String message, required bool isError}) {
+  final context = navigatorKey.currentContext;
+  if (context == null) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: isError ? const Color(0xFFB00020) : const Color(0xFF0A6E55),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 4),
+      margin: const EdgeInsets.all(12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+}
+
 
 class NammerhaMobileApp extends StatelessWidget {
   const NammerhaMobileApp({super.key});
@@ -48,6 +97,9 @@ class NammerhaMobileApp extends StatelessWidget {
       providers: [
         RepositoryProvider<AuthRepository>(
           create: (_) => AuthRepository(),
+        ),
+        RepositoryProvider<SearchRepository>(
+          create: (_) => SearchRepository(),
         ),
       ],
       child: MultiBlocProvider(
@@ -66,6 +118,11 @@ class NammerhaMobileApp extends StatelessWidget {
           BlocProvider<LocaleCubit>(
             create: (_) => LocaleCubit()..loadSavedLocale(),
           ),
+          BlocProvider<SearchBloc>(
+            create: (ctx) => SearchBloc(
+              searchRepository: ctx.read<SearchRepository>(),
+            ),
+          ),
         ],
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
@@ -74,6 +131,7 @@ class NammerhaMobileApp extends StatelessWidget {
                 return MaterialApp(
                   title: 'نعمّرها',
                   debugShowCheckedModeBanner: false,
+                  navigatorKey: navigatorKey,
 
                   // Localization — dynamic from LocaleCubit
                   localizationsDelegates: const [

@@ -491,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(width: 12),
             Expanded(child: Text(label, style: TextStyle(fontSize: 14, color: colors.textPrimary))),
             if (value != null) Text(value, style: TextStyle(fontSize: 13, color: colors.textSubtle)),
-            if (trailing != null) trailing,
+            ?trailing,
             if (value == null && trailing == null) Icon(Icons.chevron_right_rounded, color: colors.textSubtle, size: 20),
           ],
         ),
@@ -636,11 +636,12 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   final _currentCtrl = TextEditingController();
   final _newCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  // UI-only toggles — legitimate local state
   bool _obscureCurrent = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
-  bool _isSubmitting = false;
-  String? _errorMessage;
+  // Client-side validation error — pre-BLoC, must stay local
+  String? _validationError;
   int _strength = 0;
 
   @override
@@ -696,15 +697,13 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     return null;
   }
 
-  Future<void> _submit() async {
+  void _submit() {
     final error = _validate();
     if (error != null) {
-      setState(() => _errorMessage = error);
+      setState(() => _validationError = error);
       return;
     }
-
-    setState(() { _isSubmitting = true; _errorMessage = null; });
-
+    setState(() => _validationError = null);
     context.read<AuthBloc>().add(AuthChangePasswordRequested(
       currentPassword: _currentCtrl.text.trim(),
       newPassword: _newCtrl.text,
@@ -715,31 +714,32 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (prev, curr) =>
+          curr is AuthPasswordChanged ||
+          curr is AuthError ||
+          curr is AuthLoading,
       listener: (ctx, state) {
         if (state is AuthPasswordChanged) {
-          setState(() => _isSubmitting = false);
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('✅ تم تغيير كلمة المرور بنجاح'),
-              backgroundColor: colors.success,
+              backgroundColor: context.colors.success,
             ),
           );
-        } else if (state is AuthError) {
-          setState(() {
-            _isSubmitting = false;
-            _errorMessage = state.message;
-          });
-        } else if (state is AuthLoading) {
-          setState(() => _isSubmitting = true);
         }
       },
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 20, right: 20, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-        ),
-        child: SingleChildScrollView(
+      builder: (ctx, authState) {
+        final isSubmitting = authState is AuthLoading;
+        final serverError = authState is AuthError ? authState.message : null;
+        final displayError = _validationError ?? serverError;
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+          ),
+          child: SingleChildScrollView(
+
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -775,8 +775,8 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               ),
               const SizedBox(height: 20),
 
-              // Error message
-              if (_errorMessage != null) ...[
+              // Error message (validation OR server error)
+              if (displayError != null) ...[
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
@@ -789,7 +789,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                     children: [
                       Icon(Icons.error_outline_rounded, color: colors.error, size: 18),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_errorMessage!, style: TextStyle(fontSize: 13, color: colors.error, fontWeight: FontWeight.w600))),
+                      Expanded(child: Text(displayError, style: TextStyle(fontSize: 13, color: colors.error, fontWeight: FontWeight.w600))),
                     ],
                   ),
                 ),
@@ -852,23 +852,23 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               const SizedBox(height: 20),
 
               // Submit button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primaryBrand,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                    disabledBackgroundColor: colors.primaryBrand.withAlpha(100),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: isSubmitting ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.primaryBrand,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                      disabledBackgroundColor: colors.primaryBrand.withAlpha(100),
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text('تغيير كلمة المرور', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   ),
-                  child: _isSubmitting
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('تغيير كلمة المرور', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 ),
-              ),
               const SizedBox(height: 8),
 
               // Security note
@@ -883,7 +883,8 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
             ],
           ),
         ),
-      ),
+        );
+      },
     );
   }
 

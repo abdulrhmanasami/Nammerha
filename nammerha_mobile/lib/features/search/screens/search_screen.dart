@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/semantic_colors.dart';
-import '../../../core/services/api_services.dart';
-import '../../../core/network/api_client.dart';
 
-/// ═══════════════════════════════════════════════════════════════════════════
-/// Global Search Screen — Projects, Materials, Regions
-/// ═══════════════════════════════════════════════════════════════════════════
-/// Debounced search with category filters and rich result cards.
-/// Mirrors web search behavior across marketplace projects.
-/// ═══════════════════════════════════════════════════════════════════════════
+import '../../project/data/models/project_model.dart';
+import '../bloc/search_bloc.dart';
+import '../bloc/search_event.dart';
+import '../bloc/search_state.dart';
+import '../models/marketplace_filter_model.dart';
+
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
@@ -20,217 +17,200 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final MarketplaceApi _api = MarketplaceApi();
-  List<Map<String, dynamic>> _results = [];
-  bool _isSearching = false;
-  String _filter = 'all';
-  String _sortBy = 'newest';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _search(String query) async {
-    if (query.trim().length < 2) {
-      setState(() => _results = []);
-      return;
-    }
-    setState(() => _isSearching = true);
-    try {
-      final results = await _api.getProjects(
-        damageType: _filter == 'all' ? null : _filter,
-        sortBy: _sortBy,
-      );
-      // Client-side filter by query (backend search is via damage_type param)
-      final filtered = results.where((p) {
-        final title = (p['title']?.toString() ?? '').toLowerCase();
-        final region = (p['region']?.toString() ?? '').toLowerCase();
-        final damage = (p['damage_type']?.toString() ?? '').toLowerCase();
-        final q = query.toLowerCase();
-        return title.contains(q) || region.contains(q) || damage.contains(q);
-      }).toList();
-      setState(() => _results = filtered);
-    } on ApiException catch (_) {} catch (_) {}
-    if (mounted) setState(() => _isSearching = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
     return Scaffold(
-      backgroundColor: colors.backgroundPrimary,
+      backgroundColor: const Color(0xFFF4F6F8), // Cloud Dancer
       appBar: AppBar(
-        title: const Text('البحث'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              onChanged: (q) => _search(q),
-              decoration: InputDecoration(
-                hintText: 'ابحث عن مشاريع، مواد، مناطق...',
-                prefixIcon: Icon(Icons.search_rounded, color: colors.textSubtle),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.close_rounded, color: colors.textSubtle),
-                        onPressed: () {
-                          _controller.clear();
-                          setState(() => _results = []);
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: colors.surfaceElevated,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: colors.strokeSubtle),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: colors.strokeSubtle),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: colors.primaryBrand, width: 1.5),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: TextField(
+          controller: _searchController,
+          onChanged: (val) {
+            context.read<SearchBloc>().add(SearchQueryChanged(val));
+          },
+          decoration: InputDecoration(
+            hintText: 'ابحث عن مشروع أو مقاول...',
+            hintStyle: GoogleFonts.cairo(color: Colors.grey.shade500),
+            border: InputBorder.none,
+            // Assuming Phosphor is used in the app, using standard Icons as fallback if not imported
+            prefixIcon: const Icon(Icons.search, color: Color(0xFF0D47A1)), 
+          ),
+          style: GoogleFonts.cairo(
+            color: const Color(0xFF242424),
+            fontWeight: FontWeight.w600,
           ),
         ),
-      ),
-      body: Column(
-        children: [
-          // Filter chips
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _filterChip('الكل', 'all', colors),
-                _filterChip('هيكلي', 'structural', colors),
-                _filterChip('كهرباء', 'electrical', colors),
-                _filterChip('صحي', 'plumbing', colors),
-                _filterChip('تشطيبات', 'finishing', colors),
-                _filterChip('سقف', 'roofing', colors),
-              ],
-            ),
-          ),
-          // Results
-          Expanded(
-            child: _isSearching
-                ? Center(child: CircularProgressIndicator(color: colors.primaryBrand))
-                : _results.isEmpty
-                    ? _emptyState(colors)
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _results.length,
-                        itemBuilder: (_, i) => _resultCard(_results[i], colors, i),
-                      ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Color(0xFF0D47A1)),
+            onPressed: () => _showFilterBottomSheet(context),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _filterChip(String label, String value, SemanticColors colors) {
-    final isActive = _filter == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _filter = value);
-        if (_controller.text.isNotEmpty) _search(_controller.text);
-      },
-      child: AnimatedContainer(
-        duration: NammerhaAnimations.fast,
-        margin: const EdgeInsetsDirectional.only(end: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? colors.primaryBrand : colors.surfaceElevated,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isActive ? colors.primaryBrand : colors.strokeSubtle),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isActive ? Colors.white : colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _resultCard(Map<String, dynamic> p, SemanticColors colors, int index) {
-    final progress = (p['funded_percentage'] ?? 0) as num;
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/project/${p['project_id']}'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colors.surfaceElevated,
-          borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
-          border: Border.all(color: colors.strokeSubtle),
-          boxShadow: const [NammerhaShadows.elevation],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-            const SizedBox(height: 6),
-            Row(children: [
-              Icon(Icons.location_on_rounded, size: 14, color: colors.textSubtle),
-              const SizedBox(width: 4),
-              Text(p['region']?.toString() ?? '', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-              const SizedBox(width: 12),
-              Icon(Icons.build_rounded, size: 14, color: colors.textSubtle),
-              const SizedBox(width: 4),
-              Text(p['damage_type']?.toString() ?? '', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-            ]),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: (progress / 100).clamp(0.0, 1.0).toDouble(),
-                      backgroundColor: colors.backgroundSecondary,
-                      valueColor: AlwaysStoppedAnimation(progress >= 100 ? colors.success : colors.secondaryAccent),
-                      minHeight: 6,
+      body: BlocBuilder<SearchBloc, SearchState>(
+        builder: (context, state) {
+          if (state is SearchInitial) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_rounded, size: 80, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text(
+                    'ابدأ البحث عن المشاريع',
+                    style: GoogleFonts.cairo(
+                      color: Colors.grey.shade600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
+              ),
+            );
+          } else if (state is SearchLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF0D47A1)),
+            );
+          } else if (state is SearchLoaded) {
+            if (state.projects.isEmpty) {
+              return Center(
+                child: Text(
+                  'لم يتم العثور على نتائج',
+                  style: GoogleFonts.cairo(
+                    color: Colors.grey.shade600,
+                    fontSize: 18,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text('${progress.toInt()}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: progress >= 100 ? colors.success : colors.secondaryAccent)),
-              ],
-            ),
-          ],
-        ),
+              );
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: state.projects.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final project = state.projects[index];
+                return _buildProjectCard(project);
+              },
+            );
+          } else if (state is SearchError) {
+            return Center(
+              child: Text(
+                state.message,
+                style: GoogleFonts.cairo(color: Colors.red),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
-    ).animate(delay: (index * 60).ms).fadeIn().slideY(begin: 0.03, end: 0);
+    );
   }
 
-  Widget _emptyState(SemanticColors colors) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search_rounded, size: 64, color: colors.textSubtle),
-          const SizedBox(height: 16),
-          Text(_controller.text.isEmpty ? 'ابحث عن مشاريع إعادة الإعمار' : 'لا توجد نتائج', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-          const SizedBox(height: 6),
-          Text(_controller.text.isEmpty ? 'مشاريع، مواد، مناطق جغرافية' : 'حاول بكلمات مختلفة', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+  Widget _buildProjectCard(ProjectModel project) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            project.title,
+            style: GoogleFonts.cairo(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: const Color(0xFF242424),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '\${project.totalEstimatedCost} USD',
+                  style: GoogleFonts.cairo(
+                    color: const Color(0xFF0D47A1),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'مُنجز \${project.fundedPercentage}%',
+                style: GoogleFonts.cairo(
+                  color: const Color(0xFF0A6E55),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    // Basic bottom sheet for filters
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'تصفية النتائج',
+                style: GoogleFonts.cairo(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF242424),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Dummy filter option for UI completeness
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text('المشاريع ذات الأولوية (وفاق)', style: GoogleFonts.cairo()),
+                trailing: const Icon(Icons.verified, color: Color(0xFF0D47A1)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  context.read<SearchBloc>().add(
+                        const SearchFiltersApplied(MarketplaceFilters(ofacClearance: true)),
+                      );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

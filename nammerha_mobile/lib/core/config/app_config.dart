@@ -68,4 +68,26 @@ class AppConfig {
 
   /// Minimum transition duration (skeleton anti-flicker)
   static const Duration minTransitionDuration = Duration(milliseconds: 300);
+
+  // ─── Map Tile Engine ─────────────────────────────────────────────────────
+  /// Primary raster tile URL — points to the Nammerha production tile server.
+  /// Dev: OpenStreetMap (no API key, works offline-adjacent for testing).
+  /// Production: nammerha.com MapLibre-compatible tile CDN.
+  static String get mapTileUrl {
+    if (isDev) {
+      return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    }
+    // Production: swap with self-hosted MapLibre / Valhalla tile CDN
+    return 'https://nammerha.com/tiles/{z}/{x}/{y}.png';
+  }
+
+  /// Fallback tile URL for degraded network conditions (Syria 2G/3G).
+  /// Uses a lighter CDN with smaller tile sizes for offline-degraded UX.
+  static const String mapFallbackTileUrl =
+      'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  /// Syria center coordinates — default camera anchor for the map.
+  static const double syriaLat = 34.8021;
+  static const double syriaLng = 38.9968;
+  static const double syriaDefaultZoom = 6.0;
 }

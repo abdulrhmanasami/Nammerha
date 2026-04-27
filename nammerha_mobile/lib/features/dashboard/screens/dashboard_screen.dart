@@ -7,9 +7,9 @@ import '../../../core/services/api_services.dart';
 import '../../../core/utils/role_localizer.dart';
 import '../../auth/repositories/auth_repository.dart';
 import '../../auth/bloc/auth_bloc.dart';
+import '../bloc/dashboard_home_bloc.dart';
 
-// Feature screens
-import '../../project/screens/marketplace_screen.dart';
+import '../../search/screens/search_screen.dart';
 import '../../donations/screens/donations_screen.dart';
 import '../../bids/screens/bids_screen.dart';
 import '../../supplier/screens/supplier_portal_screen.dart';
@@ -85,7 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       default:
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const MarketplaceScreen(),
+          const SearchScreen(),
           const DonationsScreen(),
           BlocProvider(
             create: (_) => ProfileBloc(),
@@ -161,77 +161,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 // ─── DASHBOARD HOME TAB ─────────────────────────────────────────
-class _DashboardHome extends StatefulWidget {
+// PLATINUM v2: Fully BLoC-driven — zero setState, zero direct API calls.
+// DashboardHomeBloc is provided locally here and dispatches LoadDashboardHome
+// on first build. RefreshIndicator re-dispatches the same event.
+class _DashboardHome extends StatelessWidget {
   final String role;
   final String userName;
   const _DashboardHome({required this.role, required this.userName});
 
   @override
-  State<_DashboardHome> createState() => _DashboardHomeState();
+  Widget build(BuildContext context) {
+    return BlocProvider<DashboardHomeBloc>(
+      create: (_) => DashboardHomeBloc()..add(LoadDashboardHome(role)),
+      child: _DashboardHomeView(role: role, userName: userName),
+    );
+  }
 }
 
-class _DashboardHomeState extends State<_DashboardHome> {
-  Map<String, dynamic> _stats = {};
-  bool _isLoadingStats = true;
-  List<Map<String, dynamic>> _recentActivity = [];
-  bool _isLoadingActivity = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStats();
-    _loadRecentActivity();
-  }
-
-  Future<void> _loadRecentActivity() async {
-    try {
-      final notifications = await NotificationsApi().getAll();
-      if (mounted) {
-        setState(() {
-          _recentActivity = notifications.take(5).toList();
-          _isLoadingActivity = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoadingActivity = false);
-    }
-  }
-
-  Future<void> _loadStats() async {
-    try {
-      Map<String, dynamic> stats;
-      switch (widget.role) {
-        case 'ENGINEER':
-          stats = await EngineerApi().getStats();
-          break;
-        case 'SUPPLIER':
-          stats = await SupplierApi().getStats();
-          break;
-        case 'HOMEOWNER':
-          stats = await HomeownerApi().getStats();
-          break;
-        default:
-          stats = await DonorApi().getStats();
-      }
-      if (mounted) setState(() { _stats = stats; _isLoadingStats = false; });
-    } catch (_) {
-      if (mounted) setState(() { _stats = _defaultStats(widget.role); _isLoadingStats = false; });
-    }
-  }
-
-  /// Fallback zero-value stats when API fails or user is not yet activated
-  Map<String, dynamic> _defaultStats(String role) {
-    switch (role) {
-      case 'ENGINEER':
-        return {'assignedProjects': 0, 'assigned_projects': 0, 'pendingProofs': 0, 'pending_proofs': 0, 'verifiedProofs': 0, 'verified_proofs': 0, 'totalRevenue': 0, 'total_revenue': 0};
-      case 'SUPPLIER':
-        return {'pendingOrders': 0, 'pending_orders': 0, 'inTransit': 0, 'in_transit': 0, 'delivered': 0, 'totalRevenue': 0, 'total_revenue': 0};
-      case 'HOMEOWNER':
-        return {'total_projects': 0, 'totalProjects': 0, 'pending_bids': 0, 'pendingBids': 0, 'funding_percentage': 0, 'fundingPercentage': 0, 'escrow_total': 0, 'escrowTotal': 0};
-      default:
-        return {'totalDonated': 0, 'total_donated': 0, 'activeProjects': 0, 'active_projects': 0, 'proofsSeen': 0, 'proofs_seen': 0, 'impactScore': 0, 'impact_score': 0};
-    }
-  }
+/// Inner view widget — consumes DashboardHomeBloc. Zero setState.
+class _DashboardHomeView extends StatelessWidget {
+  final String role;
+  final String userName;
+  const _DashboardHomeView({required this.role, required this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -240,136 +191,153 @@ class _DashboardHomeState extends State<_DashboardHome> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await Future.wait([_loadStats(), _loadRecentActivity()]);
-          },
-          color: colors.primaryBrand,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [colors.primaryBrand, colors.secondaryAccent],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.userName.isNotEmpty ? widget.userName[0] : 'U',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: BlocBuilder<DashboardHomeBloc, DashboardHomeState>(
+          builder: (context, state) {
+            final isLoading = state is DashboardHomeLoading || state is DashboardHomeInitial;
+            final stats = state is DashboardHomeLoaded ? state.stats : <String, dynamic>{};
+            final recentActivity = state is DashboardHomeLoaded ? state.recentActivity : <Map<String, dynamic>>[];
+            final isLoadingActivity = isLoading;
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<DashboardHomeBloc>().add(LoadDashboardHome(role));
+              },
+              color: colors.primaryBrand,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
                       children: [
-                        Text(
-                          'أهلاً، ${widget.userName}',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: colors.textPrimary,
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [colors.primaryBrand, colors.secondaryAccent],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: Text(
+                              userName.isNotEmpty ? userName[0] : 'U',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        // ── ROLE SWITCHER: Tappable badge ──
-                        GestureDetector(
-                          onTap: () => _showRoleSwitcher(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: colors.successLight,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _getRoleLabel(widget.role),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: colors.success,
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'أهلاً، $userName',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              GestureDetector(
+                                onTap: () => _showRoleSwitcher(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: colors.successLight,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _getRoleLabel(role),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: colors.success,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(Icons.swap_horiz_rounded, size: 14, color: colors.success),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.swap_horiz_rounded, size: 14, color: colors.success),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
+                        IconButton(
+                          icon: Icon(Icons.notifications_outlined, color: colors.textSecondary),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                            );
+                          },
+                        ),
                       ],
+                    )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .slideY(begin: -0.1, end: 0),
+                    const SizedBox(height: 28),
+
+                    // Stats Cards
+                    isLoading
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: CircularProgressIndicator(
+                                color: colors.primaryBrand,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          )
+                        : _buildStatsSection(context, stats, role),
+                    const SizedBox(height: 28),
+
+                    // Quick Actions
+                    Text(
+                      'إجراءات سريعة',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
+                      ),
+                    ).animate(delay: 600.ms).fadeIn(),
+                    const SizedBox(height: 14),
+                    _buildQuickActions(context, role),
+                    const SizedBox(height: 28),
+
+                    // Recent Activity
+                    Text(
+                      'آخر النشاطات',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
+                      ),
+                    ).animate(delay: 800.ms).fadeIn(),
+                    const SizedBox(height: 14),
+                    _buildRecentActivity(
+                      context,
+                      role,
+                      recentActivity,
+                      isLoadingActivity,
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.notifications_outlined, color: colors.textSecondary),
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
-                    },
-                  ),
-                ],
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms)
-                  .slideY(begin: -0.1, end: 0),
-              const SizedBox(height: 28),
-
-              // Stats Cards
-              _isLoadingStats
-                  ? Center(child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2),
-                    ))
-                  : _buildStatsSection(context, _stats, widget.role),
-              const SizedBox(height: 28),
-
-              // Quick Actions
-              Text(
-                'إجراءات سريعة',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
+                  ],
                 ),
-              )
-                  .animate(delay: 600.ms)
-                  .fadeIn(),
-              const SizedBox(height: 14),
-              _buildQuickActions(context, widget.role),
-              const SizedBox(height: 28),
-
-              // Recent Activity
-              Text(
-                'آخر النشاطات',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                ),
-              )
-                  .animate(delay: 800.ms)
-                  .fadeIn(),
-              const SizedBox(height: 14),
-              _buildRecentActivity(context, widget.role),
-            ],
-          ),
-        ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -509,7 +477,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
         break;
       default:
         actions = [
-          _QuickAction('تصفح المشاريع', Icons.search_rounded, colors.primaryBrand, const MarketplaceScreen()),
+          _QuickAction('تصفح المشاريع', Icons.search_rounded, colors.primaryBrand, const SearchScreen()),
           _QuickAction('حساب الضمان', Icons.lock_rounded, colors.success, const EscrowSummaryScreen()),
           _QuickAction('آخر الإثباتات', Icons.verified_user_rounded, colors.info, const DonorProofScreen()),
         ];
@@ -561,10 +529,15 @@ class _DashboardHomeState extends State<_DashboardHome> {
     );
   }
 
-  Widget _buildRecentActivity(BuildContext context, String role) {
+  Widget _buildRecentActivity(
+    BuildContext context,
+    String role,
+    List<Map<String, dynamic>> recentActivity,
+    bool isLoadingActivity,
+  ) {
     final colors = context.colors;
 
-    if (_isLoadingActivity) {
+    if (isLoadingActivity) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
@@ -573,7 +546,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
       );
     }
 
-    if (_recentActivity.isEmpty) {
+    if (recentActivity.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
         decoration: BoxDecoration(
@@ -593,10 +566,9 @@ class _DashboardHomeState extends State<_DashboardHome> {
       ).animate(delay: 900.ms).fadeIn();
     }
 
-    // GAP-C4 FIX: Live activity timeline from Notifications API
     return Column(
-      children: List.generate(_recentActivity.length, (index) {
-        final item = _recentActivity[index];
+      children: List.generate(recentActivity.length, (index) {
+        final item = recentActivity[index];
         final type = item['type'] as String? ?? 'info';
         final title = item['title'] as String? ?? '';
         final body = item['body'] as String? ?? item['message'] as String? ?? '';
@@ -620,7 +592,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
         }
 
         return Container(
-          margin: EdgeInsets.only(bottom: index < _recentActivity.length - 1 ? 10 : 0),
+          margin: EdgeInsets.only(bottom: index < recentActivity.length - 1 ? 10 : 0),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: isRead ? colors.surfaceElevated : actMeta.color.withAlpha(8),

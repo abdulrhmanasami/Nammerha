@@ -70,32 +70,74 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
     await _fetchData(emit);
   }
 
-  /// Resilient data loading — partial data renders even if one API fails.
-  /// Mirrors web's Promise.allSettled pattern.
+  /// Resilient data loading — partial data renders even if secondary API fails.
+  /// Overview is mandatory (fails fast). Charts and audit trail degrade gracefully.
+  /// Uses explicit error logging to violate Zero-Silent Failure protocol.
   Future<void> _fetchData(Emitter<AdminDashboardState> emit) async {
+    // ── Step 1: Load mandatory overview (fail-fast if unavailable) ──────────
+    PlatformOverview? overview;
     try {
-      // Fire all requests concurrently
-      final results = await Future.wait([
-        _api.getStatsOverview().then<Object?>((v) => v).catchError((_) => null),
-        _api.getProjectsByMonth().then<Object?>((v) => v).catchError((_) => <MonthlyDataPoint>[]),
-        _api.getDonationsByMonth().then<Object?>((v) => v).catchError((_) => <MonthlyAmountPoint>[]),
-        _api.getPendingVerifications(limit: 5).then<Object?>((v) => v).catchError((_) => <EscrowCase>[]),
-      ]);
-
-      final overview = results[0] as PlatformOverview?;
-      if (overview == null) {
-        emit(const AdminDashboardError('فشل تحميل إحصائيات المنصة'));
-        return;
-      }
-
-      emit(AdminDashboardLoaded(
-        overview: overview,
-        projectsByMonth: results[1] as List<MonthlyDataPoint>,
-        donationsByMonth: results[2] as List<MonthlyAmountPoint>,
-        recentAudit: results[3] as List<EscrowCase>,
-      ));
+      overview = await _api.getStatsOverview();
     } catch (e) {
-      emit(AdminDashboardError(e.toString()));
+      _logError('getStatsOverview', e);
+      emit(const AdminDashboardError('فشل تحميل إحصائيات المنصة'));
+      return;
     }
+
+    // ── Step 2: Load secondary data concurrently (degrade gracefully) ────────
+    List<MonthlyDataPoint> projectsByMonth = [];
+    List<MonthlyAmountPoint> donationsByMonth = [];
+    List<EscrowCase> recentAudit = [];
+
+    await Future.wait([
+      _safeLoad<List<MonthlyDataPoint>>(
+        label: 'getProjectsByMonth',
+        fallback: const [],
+        fetch: () => _api.getProjectsByMonth(),
+        onSuccess: (v) => projectsByMonth = v,
+      ),
+      _safeLoad<List<MonthlyAmountPoint>>(
+        label: 'getDonationsByMonth',
+        fallback: const [],
+        fetch: () => _api.getDonationsByMonth(),
+        onSuccess: (v) => donationsByMonth = v,
+      ),
+      _safeLoad<List<EscrowCase>>(
+        label: 'getPendingVerifications',
+        fallback: const [],
+        fetch: () => _api.getPendingVerifications(limit: 5),
+        onSuccess: (v) => recentAudit = v,
+      ),
+    ]);
+
+    emit(AdminDashboardLoaded(
+      overview: overview,
+      projectsByMonth: projectsByMonth,
+      donationsByMonth: donationsByMonth,
+      recentAudit: recentAudit,
+    ));
+  }
+
+  /// Type-safe async helper: runs [fetch], calls [onSuccess] if successful,
+  /// or logs the error and returns [fallback] on failure.
+  Future<void> _safeLoad<T>({
+    required String label,
+    required T fallback,
+    required Future<T> Function() fetch,
+    required void Function(T) onSuccess,
+  }) async {
+    try {
+      onSuccess(await fetch());
+    } catch (e) {
+      _logError(label, e);
+    }
+  }
+
+  void _logError(String endpoint, Object error) {
+    assert(() {
+      // ignore: avoid_print
+      print('[AdminDashboardBloc] $endpoint failed: $error');
+      return true;
+    }());
   }
 }

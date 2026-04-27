@@ -3,6 +3,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:math' as math;
+import 'dart:isolate';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../models/gps_signature.dart';
@@ -13,11 +15,15 @@ import '../bloc/spatial_proof_state.dart';
 class SpatialCameraScreen extends StatelessWidget {
   final String projectId;
   final String itemId;
+  final double? targetLat;
+  final double? targetLng;
 
   const SpatialCameraScreen({
     super.key,
     required this.projectId,
     required this.itemId,
+    this.targetLat,
+    this.targetLng,
   });
 
   @override
@@ -27,6 +33,8 @@ class SpatialCameraScreen extends StatelessWidget {
       child: _SpatialCameraView(
         projectId: projectId,
         itemId: itemId,
+        targetLat: targetLat,
+        targetLng: targetLng,
       ),
     );
   }
@@ -35,10 +43,14 @@ class SpatialCameraScreen extends StatelessWidget {
 class _SpatialCameraView extends StatefulWidget {
   final String projectId;
   final String itemId;
+  final double? targetLat;
+  final double? targetLng;
 
   const _SpatialCameraView({
     required this.projectId,
     required this.itemId,
+    this.targetLat,
+    this.targetLng,
   });
 
   @override
@@ -132,6 +144,8 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
   Future<void> _captureSpatialProof() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) return;
     if (_currentPosition == null) return;
+    
+    final localColors = context.colors;
 
     try {
       // 1. Refresh precise location
@@ -142,6 +156,32 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       // 2. Take physical picture
       final xFile = await _cameraController!.takePicture();
       final bytes = await xFile.readAsBytes();
+
+      if (!mounted) return;
+
+      // PLATINUM UPGRADE: Background Isolate Haversine Check
+      if (widget.targetLat != null && widget.targetLng != null && widget.targetLat != 0.0) {
+        setState(() {}); // Show loading
+        
+        final distance = await Isolate.run(() => _haversineDistance({
+          'lat1': _currentPosition!.latitude,
+          'lng1': _currentPosition!.longitude,
+          'lat2': widget.targetLat!,
+          'lng2': widget.targetLng!,
+        }));
+
+        if (distance > 150) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('أنت بعيد عن موقع المشروع بمسافة ${distance.toInt()} متر. الحد الأقصى هو 150 متر.'),
+                backgroundColor: localColors.error,
+              ),
+            );
+          }
+          return; // Block submission
+        }
+      }
 
       if (!mounted) return;
 
@@ -162,7 +202,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('فشل الالتقاط: $e'),
-            backgroundColor: context.colors.error,
+            backgroundColor: localColors.error,
           ),
         );
       }
@@ -365,5 +405,25 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       },
     );
   }
+}
+
+// ─── BACKGROUND ISOLATE FUNCTION ───
+// Calculates GPS distance accurately without blocking the 60fps UI thread.
+double _haversineDistance(Map<String, double> args) {
+  final lat1 = args['lat1']!;
+  final lng1 = args['lng1']!;
+  final lat2 = args['lat2']!;
+  final lng2 = args['lng2']!;
+
+  const R = 6371e3; // Earth radius in meters
+  final dLat = (lat2 - lat1) * math.pi / 180;
+  final dLng = (lng2 - lng1) * math.pi / 180;
+
+  final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(lat1 * math.pi / 180) * math.cos(lat2 * math.pi / 180) *
+      math.sin(dLng / 2) * math.sin(dLng / 2);
+
+  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  return R * c;
 }
 

@@ -14,12 +14,17 @@ class WalletRepository {
     List<Map<String, dynamic>> transactionsMap = [];
 
     try {
-      escrowSummary = await _donationsApi.getMyEscrow();
-    } catch (_) {}
-
-    try {
-      final raw = await _paymentsApi.getMyPayments(limit: 50);
-      transactionsMap = raw;
+      // Platinum Standard: Batch operations using Future.wait to avoid N+1 latency
+      final results = await Future.wait([
+        _donationsApi.getMyEscrow().catchError((_) => <String, dynamic>{}),
+        _paymentsApi.getMyPayments(limit: 50).catchError((_) => <Map<String, dynamic>>[]),
+      ]);
+      escrowSummary = results[0] as Map<String, dynamic>;
+      
+      final rawTx = results[1];
+      if (rawTx is List) {
+        transactionsMap = List<Map<String, dynamic>>.from(rawTx.map((x) => x as Map<String, dynamic>));
+      }
     } catch (_) {}
 
     final transactions = transactionsMap.map((tx) => WalletTransactionModel.fromJson(tx)).toList();

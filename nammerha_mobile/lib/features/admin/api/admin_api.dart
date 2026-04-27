@@ -107,7 +107,7 @@ class AdminApi {
       '/admin/escrow/release',
       method: 'POST',
       body: {'proof_id': proofId, 'item_id': itemId},
-      headers: {'Idempotency-Key': _generateIdempotencyKey()},
+      extraHeaders: {'Idempotency-Key': _generateIdempotencyKey()},
       fromData: (d) => d as Map<String, dynamic>,
     );
     return response.data ?? {};
@@ -123,7 +123,7 @@ class AdminApi {
       '/admin/escrow/flag',
       method: 'POST',
       body: {'proof_id': proofId, 'reason': reason},
-      headers: {'Idempotency-Key': _generateIdempotencyKey()},
+      extraHeaders: {'Idempotency-Key': _generateIdempotencyKey()},
       fromData: (d) => d as Map<String, dynamic>,
     );
     return response.data ?? {};
@@ -152,9 +152,9 @@ class AdminApi {
       body: {
         'refund_id': refundId,
         'decision': decision,
-        if (notes != null) 'notes': notes,
+        'notes': ?notes,
       },
-      headers: {'Idempotency-Key': _generateIdempotencyKey()},
+      extraHeaders: {'Idempotency-Key': _generateIdempotencyKey()},
       fromData: (d) => d as Map<String, dynamic>,
     );
     return response.data ?? {};
@@ -203,9 +203,9 @@ class AdminApi {
       method: 'POST',
       body: {
         'decision': decision,
-        if (reason != null) 'reason': reason,
+        'reason': ?reason,
       },
-      headers: {'Idempotency-Key': _generateIdempotencyKey()},
+      extraHeaders: {'Idempotency-Key': _generateIdempotencyKey()},
       fromData: (d) => d as Map<String, dynamic>,
     );
     return response.data ?? {};

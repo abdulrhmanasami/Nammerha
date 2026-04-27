@@ -1,44 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
-import '../../../core/services/api_services.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../models/contractor_models.dart';
+import '../bloc/contractor_bloc.dart';
+import '../bloc/contractor_event.dart';
+import '../bloc/contractor_state.dart';
+import '../data/contractor_repository.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Contractor Portal — Multi-tab Dashboard
+/// Contractor Portal — Multi-tab Dashboard (Platinum Standard)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Mirrors web: frontend/src/pages/contractor-portal.ts
 /// 4 tabs: Dashboard, Marketplace, Bids, Payments
+///
+/// P0.2 UPGRADE: Migrated from StatefulWidget+setState to BLoC architecture.
+/// P0.3 FIX: All `catch (_) {}` replaced with structured error handling.
 /// ═══════════════════════════════════════════════════════════════════════════
-class ContractorPortalScreen extends StatefulWidget {
+class ContractorPortalScreen extends StatelessWidget {
   const ContractorPortalScreen({super.key});
 
   @override
-  State<ContractorPortalScreen> createState() => _ContractorPortalScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ContractorBloc(repository: ContractorRepository())
+        ..add(LoadContractorDashboard()),
+      child: const _ContractorPortalView(),
+    );
+  }
 }
 
-class _ContractorPortalScreenState extends State<ContractorPortalScreen>
+class _ContractorPortalView extends StatefulWidget {
+  const _ContractorPortalView();
+
+  @override
+  State<_ContractorPortalView> createState() => _ContractorPortalViewState();
+}
+
+class _ContractorPortalViewState extends State<_ContractorPortalView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final ContractorApi _api = ContractorApi();
-
-  Map<String, dynamic> _stats = {};
-  List<Map<String, dynamic>> _projects = [];
-  List<Map<String, dynamic>> _marketplace = [];
-  List<Map<String, dynamic>> _bids = [];
-  List<Map<String, dynamic>> _payments = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) _loadTabData(_tabController.index);
-    });
-    _loadTabData(0);
   }
 
   @override
@@ -54,35 +63,6 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
       return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
     }
     return '${amount.toStringAsFixed(0)} ل.س';
-  }
-
-  Future<void> _loadTabData(int index) async {
-    setState(() => _isLoading = true);
-    try {
-      switch (index) {
-        case 0:
-          // Load independently — one failing should not kill both
-          try {
-            _stats = await _api.getStats();
-          } catch (_) {
-            _stats = {'assigned_projects': 0, 'active_bids': 0, 'completed_projects': 0, 'total_earnings': 0};
-          }
-          try {
-            _projects = await _api.getProjects();
-          } catch (_) {}
-          break;
-        case 1:
-          try { _marketplace = await _api.getMarketplace(); } catch (_) {}
-          break;
-        case 2:
-          try { _bids = await _api.getBids(); } catch (_) {}
-          break;
-        case 3:
-          try { _payments = await _api.getPayments(); } catch (_) {}
-          break;
-      }
-    } catch (_) {}
-    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -108,53 +88,104 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildDashboard(colors),
-          _buildMarketplace(colors),
-          _buildBids(colors),
-          _buildPayments(colors),
-        ],
+      body: BlocConsumer<ContractorBloc, ContractorState>(
+        listener: (context, state) {
+          if (state is ContractorActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: colors.success),
+            );
+          } else if (state is ContractorError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: colors.error),
+            );
+          }
+        },
+        buildWhen: (previous, current) => current is! ContractorActionSuccess,
+        builder: (context, state) {
+          if (state is ContractorLoading || state is ContractorInitial) {
+            return Center(
+              child: CircularProgressIndicator(color: colors.primaryBrand),
+            );
+          }
+
+          if (state is ContractorError && state.message.contains('فشل')) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colors.error),
+                  const SizedBox(height: 16),
+                  Text('حدث خطأ أثناء تحميل البيانات',
+                      style: TextStyle(color: colors.textPrimary)),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => context.read<ContractorBloc>().add(LoadContractorDashboard()),
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is ContractorLoaded) {
+            final dashboard = state.dashboard;
+            return TabBarView(
+              controller: _tabController,
+              children: [
+                _buildDashboard(dashboard, colors),
+                _buildMarketplace(dashboard.marketplace, colors),
+                _buildBids(dashboard.bids, colors),
+                _buildPayments(dashboard.payments, colors),
+              ],
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
 
   // ─── Tab 1: Dashboard ─────────────────────────────────────────────────
 
-  Widget _buildDashboard(SemanticColors colors) {
-    if (_isLoading && _stats.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    }
+  Widget _buildDashboard(ContractorDashboardModel dashboard, SemanticColors colors) {
     return RefreshIndicator(
-      onRefresh: () => _loadTabData(0),
+      onRefresh: () async {
+        context.read<ContractorBloc>().add(LoadContractorDashboard());
+      },
       color: colors.primaryBrand,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildKpiRow(colors),
+          _buildKpiRow(dashboard.stats, colors),
           const SizedBox(height: 20),
-          Text('المشاريع المُسندة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text('المشاريع المُسندة',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textPrimary)),
           const SizedBox(height: 12),
-          if (_projects.isEmpty)
-            _emptyState(colors, Icons.assignment_rounded, 'لا توجد مشاريع مُسندة بعد', 'تصفح السوق وقدّم عروضك')
+          if (dashboard.projects.isEmpty)
+            _emptyState(colors, Icons.assignment_rounded,
+                'لا توجد مشاريع مُسندة بعد', 'تصفح السوق وقدّم عروضك')
           else
-            ..._projects.asMap().entries.map((e) => _projectCard(e.value, colors, e.key)),
+            ...dashboard.projects.asMap().entries.map(
+                (e) => _projectCard(e.value, colors, e.key)),
         ],
       ),
     );
   }
 
-  Widget _buildKpiRow(SemanticColors colors) {
+  Widget _buildKpiRow(ContractorStatsModel stats, SemanticColors colors) {
     return Row(
       children: [
-        _kpiCard('مشاريع نشطة', '${_stats['assigned_projects'] ?? 0}', colors.primaryBrand, colors),
+        _kpiCard('مشاريع نشطة', '${stats.assignedProjects}', colors.primaryBrand, colors),
         const SizedBox(width: 8),
-        _kpiCard('عروض معلقة', '${_stats['active_bids'] ?? 0}', colors.warning, colors),
+        _kpiCard('عروض معلقة', '${stats.activeBids}', colors.warning, colors),
         const SizedBox(width: 8),
-        _kpiCard('مكتملة', '${_stats['completed_projects'] ?? 0}', colors.success, colors),
+        _kpiCard('مكتملة', '${stats.completedProjects}', colors.success, colors),
         const SizedBox(width: 8),
-        _kpiCard('الأرباح', formatCurrency(_stats['total_earnings'] ?? 0), colors.secondaryAccent, colors),
+        _kpiCard('الأرباح', formatCurrency(stats.totalEarnings), colors.secondaryAccent, colors),
       ],
     ).animate().fadeIn(duration: 400.ms);
   }
@@ -170,17 +201,22 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
         ),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: accent), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(value,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: accent),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 9, color: colors.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(label,
+                style: TextStyle(fontSize: 9, color: colors.textSecondary),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
     );
   }
 
-  Widget _projectCard(Map<String, dynamic> p, SemanticColors colors, int index) {
-    final progress = (p['progress'] ?? 0) as num;
+  Widget _projectCard(ContractorProjectModel p, SemanticColors colors, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -194,8 +230,13 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
         children: [
           Row(
             children: [
-              Expanded(child: Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-              _phaseBadge(p['phase']?.toString() ?? '', colors),
+              Expanded(
+                  child: Text(p.title,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary))),
+              _phaseBadge(p.phase, colors),
             ],
           ),
           const SizedBox(height: 8),
@@ -203,7 +244,8 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
             children: [
               Icon(Icons.location_on_rounded, size: 14, color: colors.textSubtle),
               const SizedBox(width: 4),
-              Text(p['region']?.toString() ?? '', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+              Text(p.region,
+                  style: TextStyle(fontSize: 12, color: colors.textSecondary)),
             ],
           ),
           const SizedBox(height: 10),
@@ -213,7 +255,7 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: progress / 100,
+                    value: p.progress / 100,
                     backgroundColor: colors.backgroundSecondary,
                     valueColor: AlwaysStoppedAnimation(colors.warning),
                     minHeight: 6,
@@ -221,7 +263,11 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              Text('${progress.toInt()}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+              Text('${p.progress}%',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary)),
             ],
           ),
         ],
@@ -232,39 +278,48 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
   Widget _phaseBadge(String phase, SemanticColors colors) {
     Color c;
     switch (phase.toLowerCase()) {
-      case 'planning': c = colors.info; break;
-      case 'in_progress': c = colors.warning; break;
-      case 'completed': c = colors.success; break;
-      default: c = colors.textSecondary;
+      case 'planning':
+        c = colors.info;
+        break;
+      case 'in_progress':
+        c = colors.warning;
+        break;
+      case 'completed':
+        c = colors.success;
+        break;
+      default:
+        c = colors.textSecondary;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: c.withAlpha(15), borderRadius: BorderRadius.circular(6)),
-      child: Text(phase, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c)),
+      decoration: BoxDecoration(
+          color: c.withAlpha(15), borderRadius: BorderRadius.circular(6)),
+      child: Text(phase,
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c)),
     );
   }
 
   // ─── Tab 2: Marketplace ───────────────────────────────────────────────
 
-  Widget _buildMarketplace(SemanticColors colors) {
-    if (_isLoading && _marketplace.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    }
-    if (_marketplace.isEmpty) {
-      return _emptyState(colors, Icons.search_rounded, 'لا توجد مشاريع متاحة', 'ستظهر المشاريع الجديدة هنا');
+  Widget _buildMarketplace(List<ContractorProjectModel> marketplace, SemanticColors colors) {
+    if (marketplace.isEmpty) {
+      return _emptyState(
+          colors, Icons.search_rounded, 'لا توجد مشاريع متاحة', 'ستظهر المشاريع الجديدة هنا');
     }
     return RefreshIndicator(
-      onRefresh: () => _loadTabData(1),
+      onRefresh: () async {
+        context.read<ContractorBloc>().add(LoadContractorDashboard());
+      },
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _marketplace.length,
-        itemBuilder: (_, i) => _marketplaceCard(_marketplace[i], colors, i),
+        itemCount: marketplace.length,
+        itemBuilder: (_, i) => _marketplaceCard(marketplace[i], colors, i),
       ),
     );
   }
 
-  Widget _marketplaceCard(Map<String, dynamic> p, SemanticColors colors, int index) {
+  Widget _marketplaceCard(ContractorProjectModel p, SemanticColors colors, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -279,23 +334,38 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
         children: [
           Row(
             children: [
-              Expanded(child: Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
-              Text(formatCurrency(p['total_estimated_cost'] ?? 0), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.primaryBrand)),
+              Expanded(
+                  child: Text(p.title,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis)),
+              Text(formatCurrency(p.totalEstimatedCost),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: colors.primaryBrand)),
             ],
           ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: colors.backgroundSecondary, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: colors.backgroundSecondary,
+                borderRadius: BorderRadius.circular(10)),
             child: Row(
               children: [
                 Icon(Icons.location_on_rounded, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
-                Text(p['region']?.toString() ?? '', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                Text(p.region,
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                 const SizedBox(width: 12),
                 Icon(Icons.build_rounded, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
-                Text(p['damage_type']?.toString() ?? '', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                Text(p.damageType,
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary)),
               ],
             ),
           ),
@@ -305,15 +375,15 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
             children: [
               Row(
                 children: [
-                  _miniStat('بنود', '${p['boq_count'] ?? 0}', colors),
+                  _miniStat('بنود', '${p.boqCount}', colors),
                   const SizedBox(width: 16),
-                  _miniStat('عروض', '${p['bid_count'] ?? 0}', colors),
+                  _miniStat('عروض', '${p.bidCount}', colors),
                 ],
               ),
               GradientButton(
                 label: 'قدّم عرض',
                 icon: Icons.gavel_rounded,
-                onPressed: () => _openBidModal(p['project_id']?.toString() ?? ''),
+                onPressed: () => _openBidModal(p.projectId),
                 height: 36,
                 borderRadius: 10,
               ),
@@ -328,40 +398,53 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.textSubtle)),
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: colors.textSubtle)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary)),
       ],
     );
   }
 
   // ─── Tab 3: Bids ──────────────────────────────────────────────────────
 
-  Widget _buildBids(SemanticColors colors) {
-    if (_isLoading && _bids.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    }
-    if (_bids.isEmpty) {
+  Widget _buildBids(List<ContractorBidModel> bids, SemanticColors colors) {
+    if (bids.isEmpty) {
       return _emptyState(colors, Icons.flag_rounded, 'لم تقدم أي عروض بعد', '');
     }
     return RefreshIndicator(
-      onRefresh: () => _loadTabData(2),
+      onRefresh: () async {
+        context.read<ContractorBloc>().add(LoadContractorDashboard());
+      },
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _bids.length,
-        itemBuilder: (_, i) => _bidCard(_bids[i], colors, i),
+        itemCount: bids.length,
+        itemBuilder: (_, i) => _bidCard(bids[i], colors, i),
       ),
     );
   }
 
-  Widget _bidCard(Map<String, dynamic> b, SemanticColors colors, int index) {
-    final status = b['status']?.toString() ?? '';
+  Widget _bidCard(ContractorBidModel b, SemanticColors colors, int index) {
     Color statusColor;
-    switch (status.toLowerCase()) {
-      case 'accepted': statusColor = colors.success; break;
-      case 'pending': statusColor = colors.warning; break;
-      case 'rejected': statusColor = colors.error; break;
-      default: statusColor = colors.textSecondary;
+    switch (b.status.toLowerCase()) {
+      case 'accepted':
+        statusColor = colors.success;
+        break;
+      case 'pending':
+        statusColor = colors.warning;
+        break;
+      case 'rejected':
+        statusColor = colors.error;
+        break;
+      default:
+        statusColor = colors.textSecondary;
     }
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -376,11 +459,22 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
         children: [
           Row(
             children: [
-              Expanded(child: Text(b['project_title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+              Expanded(
+                  child: Text(b.projectTitle,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: statusColor.withAlpha(15), borderRadius: BorderRadius.circular(6)),
-                child: Text(status, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor)),
+                decoration: BoxDecoration(
+                    color: statusColor.withAlpha(15),
+                    borderRadius: BorderRadius.circular(6)),
+                child: Text(b.status,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor)),
               ),
             ],
           ),
@@ -388,9 +482,9 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _miniStat('التكلفة المقترحة', formatCurrency(b['proposed_cost'] ?? 0), colors),
-              _miniStat('المدة', '${b['estimated_days'] ?? 0} يوم', colors),
-              _miniStat('التاريخ', _formatDate(b['created_at']?.toString() ?? ''), colors),
+              _miniStat('التكلفة المقترحة', formatCurrency(b.proposedCost), colors),
+              _miniStat('المدة', '${b.estimatedDays} يوم', colors),
+              _miniStat('التاريخ', _formatDate(b.createdAt), colors),
             ],
           ),
         ],
@@ -400,21 +494,20 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
 
   // ─── Tab 4: Payments ──────────────────────────────────────────────────
 
-  Widget _buildPayments(SemanticColors colors) {
-    if (_isLoading && _payments.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    }
-    if (_payments.isEmpty) {
+  Widget _buildPayments(List<ContractorPaymentModel> payments, SemanticColors colors) {
+    if (payments.isEmpty) {
       return _emptyState(colors, Icons.wallet_rounded, 'لا توجد مدفوعات بعد', '');
     }
     return RefreshIndicator(
-      onRefresh: () => _loadTabData(3),
+      onRefresh: () async {
+        context.read<ContractorBloc>().add(LoadContractorDashboard());
+      },
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _payments.length,
+        itemCount: payments.length,
         itemBuilder: (_, i) {
-          final p = _payments[i];
+          final p = payments[i];
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(16),
@@ -426,21 +519,35 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
             child: Row(
               children: [
                 Container(
-                  width: 44, height: 44,
-                  decoration: BoxDecoration(color: colors.success.withAlpha(15), borderRadius: BorderRadius.circular(12)),
-                  child: Icon(Icons.payments_rounded, color: colors.success, size: 22),
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                      color: colors.success.withAlpha(15),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Icon(Icons.payments_rounded,
+                      color: colors.success, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p['project_title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                      Text(_formatDate(p['created_at']?.toString() ?? ''), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                      Text(p.projectTitle,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: colors.textPrimary)),
+                      Text(_formatDate(p.createdAt),
+                          style: TextStyle(
+                              fontSize: 11, color: colors.textSubtle)),
                     ],
                   ),
                 ),
-                Text(formatCurrency(p['amount'] ?? 0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
+                Text(formatCurrency(p.amount),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: colors.secondaryAccent)),
               ],
             ),
           ).animate(delay: (i * 80).ms).fadeIn();
@@ -456,56 +563,78 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
     final daysController = TextEditingController();
     final letterController = TextEditingController();
     final colors = context.colors;
+    final bloc = context.read<ContractorBloc>();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: colors.surfaceElevated,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('تقديم عرض', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+            Text('تقديم عرض',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: colors.textPrimary)),
             const SizedBox(height: 16),
             TextField(
               controller: costController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'التكلفة المقترحة (ل.س)', filled: true, fillColor: colors.backgroundSecondary, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              decoration: InputDecoration(
+                  labelText: 'التكلفة المقترحة (ل.س)',
+                  filled: true,
+                  fillColor: colors.backgroundSecondary,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12))),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: daysController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'المدة التقديرية (أيام)', filled: true, fillColor: colors.backgroundSecondary, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              decoration: InputDecoration(
+                  labelText: 'المدة التقديرية (أيام)',
+                  filled: true,
+                  fillColor: colors.backgroundSecondary,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12))),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: letterController,
               maxLines: 3,
-              decoration: InputDecoration(labelText: 'رسالة تعريفية', filled: true, fillColor: colors.backgroundSecondary, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              decoration: InputDecoration(
+                  labelText: 'رسالة تعريفية',
+                  filled: true,
+                  fillColor: colors.backgroundSecondary,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12))),
             ),
             const SizedBox(height: 16),
             GradientButton(
               label: 'إرسال العرض',
               icon: Icons.send_rounded,
-              onPressed: () async {
+              onPressed: () {
                 final cost = int.tryParse(costController.text) ?? 0;
                 final days = int.tryParse(daysController.text) ?? 0;
                 if (cost <= 0 || days <= 0) return;
-                try {
-                  await _api.submitBid(
-                    projectId: projectId,
-                    proposedCost: cost * 100,
-                    estimatedDays: days,
-                    coverLetter: letterController.text.isNotEmpty ? letterController.text : null,
-                  );
-                  if (ctx.mounted) Navigator.pop(ctx);
-                  _loadTabData(0);
-                  _loadTabData(1);
-                } catch (_) {}
+
+                bloc.add(SubmitContractorBid(
+                  projectId: projectId,
+                  proposedCost: cost * 100,
+                  estimatedDays: days,
+                  coverLetter: letterController.text.isNotEmpty
+                      ? letterController.text
+                      : null,
+                ));
+
+                Navigator.pop(ctx);
               },
             ),
           ],
@@ -516,7 +645,8 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
 
   // ─── Shared Helpers ───────────────────────────────────────────────────
 
-  Widget _emptyState(SemanticColors colors, IconData icon, String title, String subtitle) {
+  Widget _emptyState(
+      SemanticColors colors, IconData icon, String title, String subtitle) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -525,10 +655,17 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
           children: [
             Icon(icon, size: 56, color: colors.textSubtle),
             const SizedBox(height: 16),
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
+            Text(title,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary),
+                textAlign: TextAlign.center),
             if (subtitle.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(subtitle, style: TextStyle(fontSize: 13, color: colors.textSecondary), textAlign: TextAlign.center),
+              Text(subtitle,
+                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                  textAlign: TextAlign.center),
             ],
           ],
         ),
@@ -540,6 +677,8 @@ class _ContractorPortalScreenState extends State<ContractorPortalScreen>
     try {
       final dt = DateTime.parse(dateStr);
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (_) { return dateStr; }
+    } catch (_) {
+      return dateStr;
+    }
   }
 }

@@ -9,6 +9,7 @@ import '../bloc/supplier_bloc.dart';
 import '../bloc/supplier_event.dart';
 import '../bloc/supplier_state.dart';
 import '../data/supplier_repository.dart';
+import 'supplier_subscription_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Supplier Portal — 2-Tab Dashboard (Orders + Catalog)
@@ -81,13 +82,24 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
           AnimatedBuilder(
             animation: _tabController,
             builder: (context, child) {
+              final actions = <Widget>[
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplierSubscriptionScreen()));
+                  },
+                  icon: Icon(Icons.workspace_premium_rounded, color: colors.goldFunding),
+                  tooltip: 'اشتراكات TaaS',
+                ),
+              ];
               if (_tabController.index == 1) {
-                return IconButton(
-                  onPressed: () => _showAddCatalogModal(context),
-                  icon: Icon(Icons.add_circle_rounded, color: colors.primaryBrand),
+                actions.add(
+                  IconButton(
+                    onPressed: () => _showAddCatalogModal(context),
+                    icon: Icon(Icons.add_circle_rounded, color: colors.primaryBrand),
+                  ),
                 );
               }
-              return const SizedBox.shrink();
+              return Row(mainAxisSize: MainAxisSize.min, children: actions);
             },
           ),
         ],

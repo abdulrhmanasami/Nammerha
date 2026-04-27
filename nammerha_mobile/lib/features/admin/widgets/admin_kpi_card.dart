@@ -125,7 +125,7 @@ class _AdminKpiCardState extends State<AdminKpiCard>
           // Animated value
           AnimatedBuilder(
             animation: _animation,
-            builder: (_, __) {
+            builder: (ctx, child) {
               final currentValue = (_animation.value * widget.value).round();
               return Text(
                 '${widget.prefix ?? ''}${_formatValue(currentValue)}${widget.suffix ?? ''}',
