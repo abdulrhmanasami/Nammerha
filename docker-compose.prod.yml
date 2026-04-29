@@ -263,7 +263,7 @@ services:
       - 'com.nammerha.project=nammerha'
       - 'com.nammerha.component=tileserver'
     healthcheck:
-      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8080/health']
+      test: ['CMD-SHELL', 'node -e "require(\"http\").get(\"http://localhost:8080/health\",r=>{process.exit(r.statusCode===200?0:1)}).on(\"error\",()=>process.exit(1))"']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -281,7 +281,7 @@ services:
   # Backend reaches this container at nammerha-smtp:587 on nammerha-net.
   #
   # ✅ DNS RECORDS — CONFIGURED & VERIFIED (2026-03-11, Cloudflare)
-  #   TXT  nammerha.com          "v=spf1 ip4:91.98.182.... -all"     ✅ Done
+  #   TXT  nammerha.com          "v=spf1 ip4:46.224.113.10 ~all"     ✅ Updated 2026-04-29
   #   TXT  _dmarc.nammerha.com   "v=DMARC1; p=quarantine; ..."       ✅ Done
   #   TXT  default._domainkey... "v=DKIM1; h=sha256; ..."            ✅ Done
 
