@@ -11,6 +11,7 @@ import '../bloc/map_bloc.dart';
 import '../bloc/map_event.dart';
 import '../bloc/map_state.dart';
 import '../models/map_project_model.dart';
+import '../../../core/i18n/t.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ProjectMapScreen — Production Geospatial Intelligence View
@@ -609,7 +610,7 @@ class _ProjectDetailPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'التمويل',
+                      context.tr('str_00675587'),
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,

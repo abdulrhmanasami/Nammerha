@@ -6,6 +6,7 @@ import 'admin_kyc_screen.dart';
 import 'admin_revenue_screen.dart';
 import 'admin_fintech_screen.dart';
 import 'admin_oracle_screen.dart';
+import '../../../core/i18n/t.dart';
 
 /// Admin Hub — Entry point with 6 section cards.
 /// Only accessible for admin/auditor roles.
@@ -128,7 +129,7 @@ class AdminHubScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminKycScreen())),
                   ),
                   _SectionCard(
-                    title: 'الإيرادات',
+                    title: context.tr('admin_revenue'),
                     subtitle: 'عمولات وإكراميات',
                     icon: Icons.trending_up_rounded,
                     accentColor: colors.success,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
+import 'dart:typed_data';
 
 import '../offline/offline_queue.dart';
 
@@ -181,8 +182,9 @@ class NammerhaApiClient {
           continue;
         }
 
-        // Parse response — offload to Isolate for large OCDS payloads.
-        final responseBody = await _decodeBodyAsync(response.body);
+        // Parse response — offload both UTF-8 decoding and JSON parsing to Isolate.
+        // Using response.bodyBytes avoids synchronous UTF-8 decoding on the main thread.
+        final responseBody = await _decodeBodyAsync(response.bodyBytes);
 
         // Handle errors
         if (!_isSuccess(response.statusCode)) {
@@ -312,27 +314,18 @@ class NammerhaApiClient {
         '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
-  // ─── Isolate JSON Offloading ──────────────────────────────────────────
-  /// Decodes a JSON string into a Map.
+  // ─── Isolate JSON Offloading (Absolute Zero Jank) ───────────────────
+  /// Decodes UTF-8 and parses JSON entirely off the main thread.
   ///
-  /// Strategy:
-  ///   - Payloads < 50 KB  → decode synchronously on the calling isolate.
-  ///     Isolate spawn overhead (~2 ms) would exceed the decode time for
-  ///     small auth/mutation responses.
-  ///   - Payloads ≥ 50 KB  → decode in a separate Isolate via `Isolate.run()`
-  ///     to keep the UI thread free during heavy OCDS tender/project lists.
-  ///
-  /// The 50 KB threshold is empirically calibrated for ARM Cortex-A55 devices
-  /// (typical mid-range Syrian market hardware).
-  static const int _isolateThresholdBytes = 50 * 1024; // 50 KB
-
-  static Future<Map<String, dynamic>> _decodeBodyAsync(String body) async {
-    if (body.length < _isolateThresholdBytes) {
-      // Fast path: sync decode on main isolate
-      return jsonDecode(body) as Map<String, dynamic>;
-    }
-    // Heavy path: spawn a new isolate and decode there
-    return Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
+  /// Passing `response.body` (String) previously caused Jank because the
+  /// http package synchronously decodes UTF-8 on the UI thread when `.body` 
+  /// is accessed. We now pass `response.bodyBytes` (Uint8List) directly to 
+  /// the Isolate.
+  static Future<Map<String, dynamic>> _decodeBodyAsync(Uint8List bytes) async {
+    return Isolate.run(() {
+      final decodedString = utf8.decode(bytes);
+      return jsonDecode(decodedString) as Map<String, dynamic>;
+    });
   }
 
   // ─── GraphQL Transport (C-2 Remediation) ─────────────────────────────
@@ -414,8 +407,8 @@ class NammerhaApiClient {
           );
         }
 
-        // Parse GraphQL response — offload to Isolate for large payloads.
-        final responseBody = await _decodeBodyAsync(response.body);
+        // Parse GraphQL response — completely off-thread (UTF-8 + JSON).
+        final responseBody = await _decodeBodyAsync(response.bodyBytes);
 
         // Extract GraphQL errors
         final errors = responseBody['errors'] as List<dynamic>?;

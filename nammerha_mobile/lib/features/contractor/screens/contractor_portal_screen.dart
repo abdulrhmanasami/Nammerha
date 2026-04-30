@@ -10,6 +10,7 @@ import '../bloc/contractor_bloc.dart';
 import '../bloc/contractor_event.dart';
 import '../bloc/contractor_state.dart';
 import '../data/contractor_repository.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Contractor Portal — Multi-tab Dashboard (Platinum Standard)
@@ -108,7 +109,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             );
           }
 
-          if (state is ContractorError && state.message.contains('فشل')) {
+          if (state is ContractorError && state.message.contains(context.tr('str_a838e35c'))) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -183,9 +184,9 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
         const SizedBox(width: 8),
         _kpiCard('عروض معلقة', '${stats.activeBids}', colors.warning, colors),
         const SizedBox(width: 8),
-        _kpiCard('مكتملة', '${stats.completedProjects}', colors.success, colors),
+        _kpiCard(context.tr('str_03eacf6f'), '${stats.completedProjects}', colors.success, colors),
         const SizedBox(width: 8),
-        _kpiCard('الأرباح', formatCurrency(stats.totalEarnings), colors.secondaryAccent, colors),
+        _kpiCard(context.tr('str_e3a4dbca'), formatCurrency(stats.totalEarnings), colors.secondaryAccent, colors),
       ],
     ).animate().fadeIn(duration: 400.ms);
   }
@@ -375,9 +376,9 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             children: [
               Row(
                 children: [
-                  _miniStat('بنود', '${p.boqCount}', colors),
+                  _miniStat(context.tr('str_8d92d2d9'), '${p.boqCount}', colors),
                   const SizedBox(width: 16),
-                  _miniStat('عروض', '${p.bidCount}', colors),
+                  _miniStat(context.tr('str_21762fb2'), '${p.bidCount}', colors),
                 ],
               ),
               GradientButton(
@@ -483,8 +484,8 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _miniStat('التكلفة المقترحة', formatCurrency(b.proposedCost), colors),
-              _miniStat('المدة', '${b.estimatedDays} يوم', colors),
-              _miniStat('التاريخ', _formatDate(b.createdAt), colors),
+              _miniStat(context.tr('str_71aec9a4'), '${b.estimatedDays} يوم', colors),
+              _miniStat(context.tr('date'), _formatDate(b.createdAt), colors),
             ],
           ),
         ],

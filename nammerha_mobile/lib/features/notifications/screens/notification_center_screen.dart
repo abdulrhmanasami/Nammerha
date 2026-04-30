@@ -7,6 +7,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Notification Center — Full notification history + mark read
@@ -233,7 +234,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final dt = DateTime.parse(dateStr);
       final diff = DateTime.now().difference(dt);
-      if (diff.inMinutes < 1) return 'الآن';
+      if (diff.inMinutes < 1) return context.tr('str_3d57faea');
       if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
       if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
       if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';

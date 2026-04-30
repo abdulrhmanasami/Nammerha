@@ -4,6 +4,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
+import '../../../core/i18n/t.dart';
 
 class BidsScreen extends StatefulWidget {
   const BidsScreen({super.key});
@@ -126,13 +127,13 @@ class _BidsScreenState extends State<BidsScreen> {
             case 'مقبول':
               statusColor = colors.success;
               statusIcon = Icons.check_circle_rounded;
-              statusLabel = 'مقبول';
+              statusLabel = context.tr('str_19837e3e');
               break;
             case 'rejected':
             case 'مرفوض':
               statusColor = colors.error;
               statusIcon = Icons.cancel_rounded;
-              statusLabel = 'مرفوض';
+              statusLabel = context.tr('admin_filter_rejected');
               break;
             default:
               statusColor = colors.warning;
@@ -187,7 +188,7 @@ class _BidsScreenState extends State<BidsScreen> {
                     children: [
                       _buildRow(context, 'قيمة العرض', formatCurrency(bidAmount as num)),
                       const SizedBox(height: 6),
-                      _buildRow(context, 'المنهجية', methodology.toString()),
+                      _buildRow(context, context.tr('str_e690c520'), methodology.toString()),
                     ],
                   ),
                 ),

@@ -27,6 +27,7 @@ import '../../admin/screens/admin_hub_screen.dart';
 import '../../admin/screens/admin_dashboard_screen.dart';
 import '../../admin/screens/admin_escrow_screen.dart';
 import '../../admin/screens/admin_kyc_screen.dart';
+import '../../../core/i18n/t.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -353,7 +354,7 @@ class _DashboardHomeView extends StatelessWidget {
           _StatItem('مشاريع معيّنة', '${stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', Icons.architecture_rounded, colors.primaryBrand),
           _StatItem('إثباتات معلّقة', '${stats['pendingProofs'] ?? stats['pending_proofs'] ?? 0}', Icons.pending_actions_rounded, colors.warning),
           _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? 0}', Icons.verified_rounded, colors.success),
-          _StatItem('الإيرادات', formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
+          _StatItem(context.tr('admin_revenue'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
         ];
         break;
       case 'SUPPLIER':
@@ -361,15 +362,15 @@ class _DashboardHomeView extends StatelessWidget {
           _StatItem('طلبات معلّقة', '${stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}', Icons.hourglass_top_rounded, colors.warning),
           _StatItem('قيد التوصيل', '${stats['inTransit'] ?? stats['in_transit'] ?? 0}', Icons.local_shipping_rounded, colors.info),
           _StatItem('تم التسليم', '${stats['delivered'] ?? 0}', Icons.check_circle_rounded, colors.success),
-          _StatItem('الإيرادات', formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
+          _StatItem(context.tr('admin_revenue'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
         ];
         break;
       case 'HOMEOWNER':
         items = [
-          _StatItem('مشاريعي', '${stats['total_projects'] ?? stats['totalProjects'] ?? 0}', Icons.home_work_rounded, colors.primaryBrand),
+          _StatItem(context.tr('my_projects'), '${stats['total_projects'] ?? stats['totalProjects'] ?? 0}', Icons.home_work_rounded, colors.primaryBrand),
           _StatItem('عروض واردة', '${stats['pending_bids'] ?? stats['pendingBids'] ?? 0}', Icons.gavel_rounded, colors.warning),
-          _StatItem('التمويل', '${stats['funding_percentage'] ?? stats['fundingPercentage'] ?? 0}%', Icons.trending_up_rounded, colors.success),
-          _StatItem('الضمان', formatCurrency(stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), Icons.lock_rounded, colors.goldFunding),
+          _StatItem(context.tr('str_00675587'), '${stats['funding_percentage'] ?? stats['fundingPercentage'] ?? 0}%', Icons.trending_up_rounded, colors.success),
+          _StatItem(context.tr('escrow_label'), formatCurrency(stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), Icons.lock_rounded, colors.goldFunding),
         ];
         break;
       default:
@@ -450,14 +451,14 @@ class _DashboardHomeView extends StatelessWidget {
       case 'AUDITOR':
         actions = [
           _QuickAction('لوحة القيادة', Icons.dashboard_rounded, colors.primaryBrand, const AdminDashboardScreen()),
-          _QuickAction('الضمان', Icons.account_balance_wallet_rounded, colors.secondaryAccent, const AdminEscrowScreen()),
+          _QuickAction(context.tr('escrow_label'), Icons.account_balance_wallet_rounded, colors.secondaryAccent, const AdminEscrowScreen()),
           _QuickAction('التحقق KYC', Icons.verified_user_rounded, colors.warmEarth, const AdminKycScreen()),
         ];
         break;
       case 'ENGINEER':
         actions = [
           _QuickAction('كاميرا مكانية', Icons.camera_alt_rounded, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
-          _QuickAction('مشاريعي', Icons.architecture_rounded, colors.info, const BidsScreen()),
+          _QuickAction(context.tr('my_projects'), Icons.architecture_rounded, colors.info, const BidsScreen()),
           _QuickAction('تقديم عرض', Icons.gavel_rounded, colors.goldFunding, const BidsScreen()),
         ];
         break;
@@ -471,7 +472,7 @@ class _DashboardHomeView extends StatelessWidget {
       case 'HOMEOWNER':
         actions = [
           _QuickAction('تقرير ضرر', Icons.report_rounded, colors.warning, const DamageReportScreen()),
-          _QuickAction('المحفظة', Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
+          _QuickAction(context.tr('wallet'), Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
           _QuickAction('خريطة المشاريع', Icons.map_rounded, colors.primaryBrand, const ProjectMapScreen()),
         ];
         break;
@@ -771,7 +772,7 @@ class _DashboardHomeView extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(color: colors.success.withAlpha(15), borderRadius: BorderRadius.circular(6)),
-                              child: Text('نشط', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.success)),
+                              child: Text(context.tr('active'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.success)),
                             )
                           else
                             Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.textSubtle),

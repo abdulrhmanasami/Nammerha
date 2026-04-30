@@ -17,6 +17,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/pdf_download_service.dart';
+import '../../../core/i18n/t.dart';
 
 /// Full-screen PDF viewer that downloads and renders a PDF from a URL.
 ///
@@ -168,7 +169,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             IconButton(
               icon: Icon(Icons.share_rounded, color: colors.primaryBrand),
               onPressed: _sharePdf,
-              tooltip: 'مشاركة',
+              tooltip: context.tr('str_81a50c9d'),
             ),
         ],
       ),

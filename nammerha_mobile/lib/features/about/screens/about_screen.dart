@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// About Screen — platform info, mission, team, and legal links.
 /// GAP-M5 FIX: Previously web-only (about.ts).
@@ -53,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 28),
 
           // Mission
-          _sectionCard(colors, icon: Icons.flag_rounded, title: 'مهمتنا', body:
+          _sectionCard(colors, icon: Icons.flag_rounded, title: context.tr('str_55da8344'), body:
             'نعمّرها هي منصة إعادة إعمار سوريا الرقمية الأولى، مبنية على الشفافية الجذرية ومعيار البيانات المفتوحة للتعاقد (OCDS). '
             'نضمن وصول كل ليرة إلى حيث يجب عبر آلية ضمان إسكرو مع إثبات مكاني بالـ GPS.',
           ),
@@ -69,7 +70,7 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 14),
 
           // Values
-          _sectionCard(colors, icon: Icons.verified_user_rounded, title: 'قيمنا', body:
+          _sectionCard(colors, icon: Icons.verified_user_rounded, title: context.tr('str_6874f4fa'), body:
             '• الشفافية الجذرية — كل معاملة مرئية ومتتبَّعة\n'
             '• الأمان المالي — إسكرو معتمد، لا تحويلات مباشرة\n'
             '• إثبات الواقع — تحقق GPS + SHA-256 للصور\n'

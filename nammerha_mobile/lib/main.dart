@@ -20,6 +20,14 @@ import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/splash_screen.dart';
 import 'features/search/data/search_repository.dart';
 import 'features/search/bloc/search_bloc.dart';
+// P0-002 REMEDIATION: Deep link target screens
+import 'features/escrow/screens/escrow_summary_screen.dart';
+import 'features/donations/screens/donations_screen.dart';
+import 'features/donor_proof/screens/donor_proof_screen.dart';
+import 'features/project/screens/project_details_screen.dart';
+import 'features/admin/screens/admin_kyc_screen.dart';
+import 'features/admin/screens/admin_escrow_screen.dart';
+import 'features/wallet/screens/wallet_screen.dart';
 
 /// Global navigator key — allows OfflineQueue to show SnackBars from
 /// outside the widget tree (e.g., from background connectivity callbacks).
@@ -209,11 +217,11 @@ class _AppFlowControllerState extends State<_AppFlowController> {
     };
 
     // Wire notification tap for deep link navigation
+    // P0-002 REMEDIATION: Replaced dead `// Future:` comment with live
+    // deep link routing. Maps notification types → screen navigation.
     pushService.onNotificationTapped = (data) {
-      // Future: navigate to specific screen based on data['type']
-      // e.g., 'escrow_released' → EscrowSummaryScreen
-      // For now, tapping opens the dashboard (already the default)
       debugPrint('[Nammerha Push] Deep link: $data');
+      _handleDeepLink(data);
     };
   }
 
@@ -222,6 +230,85 @@ class _AppFlowControllerState extends State<_AppFlowController> {
     PushNotificationService.instance.unregisterToken();
     PushNotificationService.instance.onForegroundMessage = null;
     PushNotificationService.instance.onNotificationTapped = null;
+  }
+
+  /// ═══════════════════════════════════════════════════════════════════════
+  /// P0-002 REMEDIATION: Push Notification Deep Link Navigation
+  /// ═══════════════════════════════════════════════════════════════════════
+  /// Maps notification `type` field to the corresponding screen.
+  /// Uses the global [navigatorKey] to navigate without BuildContext.
+  ///
+  /// Supported types:
+  ///   escrow_released   → EscrowSummaryScreen
+  ///   proof_verified    → DonorProofScreen
+  ///   bid_accepted      → ProjectDetailsScreen
+  ///   kyc_verified      → AdminKycScreen (admin) or DashboardScreen
+  ///   kyc_rejected      → AdminKycScreen (admin) or DashboardScreen
+  ///   order_status      → WalletScreen
+  ///   donation_received → DonationsScreen
+  ///   project_funded    → ProjectDetailsScreen
+  ///   project_update    → ProjectDetailsScreen
+  /// ═══════════════════════════════════════════════════════════════════════
+  void _handleDeepLink(Map<String, dynamic> data) {
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null) return;
+
+    final type = (data['type'] ?? '').toString();
+    final projectId = (data['project_id'] ?? data['projectId'] ?? '').toString();
+
+    Widget? targetScreen;
+
+    switch (type) {
+      case 'escrow_released':
+      case 'escrow_locked':
+        targetScreen = const EscrowSummaryScreen();
+        break;
+
+      case 'proof_verified':
+      case 'proof_submitted':
+        targetScreen = const DonorProofScreen();
+        break;
+
+      case 'bid_accepted':
+      case 'bid_received':
+      case 'project_funded':
+      case 'project_update':
+      case 'project_published':
+        if (projectId.isNotEmpty) {
+          targetScreen = ProjectDetailsScreen(projectId: projectId);
+        }
+        break;
+
+      case 'kyc_verified':
+      case 'kyc_rejected':
+        targetScreen = const AdminKycScreen();
+        break;
+
+      case 'order_status':
+      case 'payment_completed':
+        targetScreen = const WalletScreen();
+        break;
+
+      case 'donation_received':
+      case 'donation_refunded':
+        targetScreen = const DonationsScreen();
+        break;
+
+      case 'admin_escrow_pending':
+        targetScreen = const AdminEscrowScreen();
+        break;
+
+      default:
+        // Unknown type — no navigation, user stays on dashboard
+        debugPrint('[Nammerha Push] Unknown deep link type: $type');
+        return;
+    }
+
+    if (targetScreen != null) {
+      Navigator.of(ctx).push(
+        MaterialPageRoute(builder: (_) => targetScreen!),
+      );
+    }
   }
 
   @override

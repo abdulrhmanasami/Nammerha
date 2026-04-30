@@ -11,6 +11,7 @@ import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/project_details_bloc.dart';
 import '../bloc/project_details_event.dart';
 import '../bloc/project_details_state.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Project Details Screen
@@ -290,11 +291,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              _infoChip(colors, 'الكمية', '$required $unit'),
+              _infoChip(colors, context.tr('str_5101659e'), '$required $unit'),
               const SizedBox(width: 12),
               _infoChip(colors, 'سعر الوحدة', formatCurrency(unitPrice)),
               const SizedBox(width: 12),
-              _infoChip(colors, 'المتبقي', '$remainingQty $unit'),
+              _infoChip(colors, context.tr('str_3b5f3860'), '$remainingQty $unit'),
             ],
           ),
           const SizedBox(height: 10),

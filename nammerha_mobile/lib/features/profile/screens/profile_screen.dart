@@ -12,6 +12,7 @@ import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Profile Screen — User Identity, Roles, Settings
@@ -187,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(_getInitials(user), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: Colors.white)),
           ),
           const SizedBox(height: 12),
-          Text(user?['full_name']?.toString() ?? 'مستخدم', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+          Text(user?['full_name']?.toString() ?? context.tr('user_default'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
           const SizedBox(height: 4),
           Text(user?['email']?.toString() ?? '', style: TextStyle(fontSize: 14, color: Colors.white.withAlpha(180))),
           const SizedBox(height: 8),
@@ -322,7 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     side: BorderSide(color: colors.strokeSubtle),
                   ),
-                  child: Text('إلغاء', style: TextStyle(color: colors.textSecondary)),
+                  child: Text(context.tr('cancel'), style: TextStyle(color: colors.textSecondary)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -341,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: Text(isSaving ? 'جارِ الحفظ...' : 'حفظ', style: const TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text(isSaving ? 'جارِ الحفظ...' : context.tr('save'), style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -396,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                               decoration: BoxDecoration(color: colors.success.withAlpha(15), borderRadius: BorderRadius.circular(4)),
-                              child: Text('نشط', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: colors.success)),
+                              child: Text(context.tr('active'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: colors.success)),
                             ),
                           ],
                         ]),
@@ -415,12 +416,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   _RoleMeta _roleMeta(String role) {
     final colors = context.colors;
     switch (role) {
-      case 'donor': return _RoleMeta('متبرع', Icons.volunteer_activism_rounded, colors.primaryBrand, 'تحقق مالي');
-      case 'homeowner': return _RoleMeta('متضرر', Icons.house_rounded, colors.warning, 'تحقق هوية');
-      case 'engineer': return _RoleMeta('مهندس', Icons.engineering_rounded, colors.info, 'رقم نقابة');
-      case 'contractor': return _RoleMeta('مقاول', Icons.construction_rounded, colors.secondaryAccent, 'سجل تجاري');
-      case 'tradesperson': return _RoleMeta('حرفي', Icons.handyman_rounded, colors.success, 'خبرة مهنية');
-      case 'supplier': return _RoleMeta('مورّد', Icons.inventory_rounded, colors.warning, 'وثائق توريد');
+      case 'donor': return _RoleMeta(context.tr('role_donor'), Icons.volunteer_activism_rounded, colors.primaryBrand, 'تحقق مالي');
+      case 'homeowner': return _RoleMeta(context.tr('role_homeowner'), Icons.house_rounded, colors.warning, 'تحقق هوية');
+      case 'engineer': return _RoleMeta(context.tr('role_engineer'), Icons.engineering_rounded, colors.info, 'رقم نقابة');
+      case 'contractor': return _RoleMeta(context.tr('role_contractor'), Icons.construction_rounded, colors.secondaryAccent, 'سجل تجاري');
+      case 'tradesperson': return _RoleMeta(context.tr('role_tradesperson'), Icons.handyman_rounded, colors.success, 'خبرة مهنية');
+      case 'supplier': return _RoleMeta(context.tr('role_supplier'), Icons.inventory_rounded, colors.warning, 'وثائق توريد');
       default: return _RoleMeta(role, Icons.person_rounded, colors.textSecondary, '—');
     }
   }
@@ -453,14 +454,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('الإعدادات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        Text(context.tr('settings'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const SizedBox(height: 10),
-        _settingRow(Icons.notifications_rounded, 'الإشعارات', colors, trailing: Switch.adaptive(
+        _settingRow(Icons.notifications_rounded, context.tr('notifications_title'), colors, trailing: Switch.adaptive(
           value: true,
           onChanged: (_) {},
           activeTrackColor: colors.primaryBrand,
         )),
-        _settingRow(Icons.language_rounded, 'اللغة', colors,
+        _settingRow(Icons.language_rounded, context.tr('language'), colors,
           value: context.watch<LocaleCubit>().currentLocaleName,
           onTap: () => _showLanguagePicker(colors),
         ),
@@ -587,14 +588,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: Text('إلغاء', style: TextStyle(color: colors.textSecondary)),
+                child: Text(context.tr('cancel'), style: TextStyle(color: colors.textSecondary)),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(ctx);
                   context.read<ProfileBloc>().add(LogoutRequested());
                 },
-                child: Text('خروج', style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
+                child: Text(context.tr('str_60806661'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -674,9 +675,9 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   String _strengthLabel() {
     if (_strength == 0) return '';
     if (_strength <= 1) return 'ضعيفة جداً';
-    if (_strength <= 2) return 'ضعيفة';
-    if (_strength <= 3) return 'متوسطة';
-    if (_strength <= 4) return 'قوية';
+    if (_strength <= 2) return context.tr('pw_strength_fair');
+    if (_strength <= 3) return context.tr('pw_strength_good');
+    if (_strength <= 4) return context.tr('pw_strength_strong');
     return 'ممتازة ✓';
   }
 

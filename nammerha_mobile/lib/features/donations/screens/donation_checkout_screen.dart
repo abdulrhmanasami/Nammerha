@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/donations_repository.dart';
+import '../../../core/i18n/t.dart';
 
 class DonationCheckoutScreen extends StatefulWidget {
   final String projectId;
@@ -131,7 +132,7 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
                   prefixIcon: const Icon(Icons.attach_money, size: 32, color: Color(0xFF0A6E55)),
                 ),
                 validator: (val) {
-                  if (val == null || val.isEmpty) return 'مطلوب';
+                  if (val == null || val.isEmpty) return context.tr('str_bbd73382');
                   final num = double.tryParse(val);
                   if (num == null || num <= 0) return 'مبلغ غير صالح';
                   return null;

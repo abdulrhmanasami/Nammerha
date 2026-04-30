@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../core/i18n/t.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -116,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'نُعمّرها',
+                      context.tr('str_e29cfbf2'),
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
@@ -310,12 +311,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   Widget _buildRoleSelector() {
     final roles = [
-      {'key': 'donor', 'label': 'متبرع', 'icon': Icons.volunteer_activism_rounded},
-      {'key': 'homeowner', 'label': 'متضرر', 'icon': Icons.home_rounded},
-      {'key': 'engineer', 'label': 'مهندس', 'icon': Icons.engineering_rounded},
-      {'key': 'supplier', 'label': 'مورّد', 'icon': Icons.inventory_2_rounded},
-      {'key': 'contractor', 'label': 'مقاول', 'icon': Icons.construction_rounded},
-      {'key': 'tradesperson', 'label': 'حرفي', 'icon': Icons.handyman_rounded},
+      {'key': 'donor', 'label': context.tr('role_donor'), 'icon': Icons.volunteer_activism_rounded},
+      {'key': 'homeowner', 'label': context.tr('role_homeowner'), 'icon': Icons.home_rounded},
+      {'key': 'engineer', 'label': context.tr('role_engineer'), 'icon': Icons.engineering_rounded},
+      {'key': 'supplier', 'label': context.tr('role_supplier'), 'icon': Icons.inventory_2_rounded},
+      {'key': 'contractor', 'label': context.tr('role_contractor'), 'icon': Icons.construction_rounded},
+      {'key': 'tradesperson', 'label': context.tr('role_tradesperson'), 'icon': Icons.handyman_rounded},
     ];
 
     final colors = context.colors;
@@ -396,7 +397,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('إلغاء', style: TextStyle(color: colors.textSecondary)),
+            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {

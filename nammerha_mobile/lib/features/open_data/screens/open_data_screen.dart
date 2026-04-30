@@ -6,6 +6,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/services/open_data_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Open Data Portal — بوابة البيانات المفتوحة
@@ -120,8 +121,8 @@ class _OpenDataScreenState extends State<OpenDataScreen> {
     final items = [
       _StatItem('المشاريع المنشورة', '${_stats['total_projects'] ?? _total}', Icons.article_rounded, colors.primaryBrand),
       _StatItem('إجمالي التمويل', '${_formatCurrency((_stats['total_funding'] ?? 0) as num)} ل.س', Icons.account_balance_rounded, colors.secondaryAccent),
-      _StatItem('المانحون', '${_stats['total_donors'] ?? 0}', Icons.people_rounded, colors.info),
-      _StatItem('المقاولون', '${_stats['total_contractors'] ?? 0}', Icons.engineering_rounded, colors.success),
+      _StatItem(context.tr('str_9ddc2404'), '${_stats['total_donors'] ?? 0}', Icons.people_rounded, colors.info),
+      _StatItem(context.tr('admin_contractors'), '${_stats['total_contractors'] ?? 0}', Icons.engineering_rounded, colors.success),
       _StatItem('المشاريع المكتملة', '${_stats['completed_projects'] ?? 0}', Icons.check_circle_rounded, colors.success),
       _StatItem('المناطق المغطاة', '${_stats['total_regions'] ?? 0}', Icons.map_rounded, colors.warning),
     ];

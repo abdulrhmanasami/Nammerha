@@ -9,6 +9,7 @@ import '../../donor/bloc/donor_bloc.dart';
 import '../../donor/bloc/donor_event.dart';
 import '../../donor/bloc/donor_state.dart';
 import '../../pdf/screens/pdf_viewer_screen.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Proof Screen — Proof of Delivery with GPS Verification
@@ -267,7 +268,7 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
                   _gpsRow('خط العرض', '$gpsLat', colors),
                   _gpsRow('خط الطول', '$gpsLng', colors),
                   if (gpsAccuracy != null)
-                    _gpsRow('الدقة', '±${gpsAccuracy}م', colors),
+                    _gpsRow(context.tr('str_ccac5b98'), '±${gpsAccuracy}م', colors),
                   if (clientHash != null && clientHash.isNotEmpty)
                     _gpsRow(
                       'التوقيع الرقمي',
@@ -275,7 +276,7 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
                       colors,
                     ),
                   if (proofDate.toString().isNotEmpty)
-                    _gpsRow('التاريخ', _formatDate(proofDate.toString()), colors),
+                    _gpsRow(context.tr('date'), _formatDate(proofDate.toString()), colors),
                 ],
               ),
             ),

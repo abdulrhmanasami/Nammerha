@@ -11,6 +11,7 @@ import '../models/gps_signature.dart';
 import '../bloc/spatial_proof_bloc.dart';
 import '../bloc/spatial_proof_event.dart';
 import '../bloc/spatial_proof_state.dart';
+import '../../../core/i18n/t.dart';
 
 class SpatialCameraScreen extends StatelessWidget {
   final String projectId;
@@ -346,7 +347,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                     children: [
                       Icon(Icons.map_rounded, color: colors.primaryBrand, size: 32),
                       const SizedBox(height: 4),
-                      Text('خريطة', style: TextStyle(fontSize: 10, color: colors.textSecondary)),
+                      Text(context.tr('str_0976264c'), style: TextStyle(fontSize: 10, color: colors.textSecondary)),
                     ],
                   ),
                 ),

@@ -5,6 +5,7 @@ import '../../../core/services/api_services.dart';
 import '../bloc/admin_fintech_bloc.dart';
 import '../widgets/admin_kpi_card.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/t.dart';
 
 /// Admin FinTech Dashboard — Escrow fees, fee configs, enterprise orgs.
 class AdminFintechScreen extends StatelessWidget {
@@ -137,7 +138,7 @@ class _FintechView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Enterprise Organizations
-          _sectionHeader(colors, 'المؤسسات', Icons.business_center_rounded),
+          _sectionHeader(colors, context.tr('admin_organizations'), Icons.business_center_rounded),
           const SizedBox(height: 8),
           if (state.organizations.isEmpty)
             _emptyCard(colors, 'لا توجد مؤسسات')

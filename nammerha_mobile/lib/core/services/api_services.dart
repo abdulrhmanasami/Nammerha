@@ -898,13 +898,56 @@ class TradespersonApi {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// OPEN DATA API — Mirrors api.ts openData module
-// GAP-FIX-005: Export OCDS reports in PDF/XLSX format
+// OPEN DATA API — Mirrors api.ts openData module (100% parity)
+// REM-005: Complete OCDS transparency endpoints
 // ═══════════════════════════════════════════════════════════════════════════
 
 class OpenDataApi {
   final NammerhaApiClient _api;
   OpenDataApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /api/open-data/projects — Public project listings (paginated)
+  Future<List<Map<String, dynamic>>> getProjectListings({
+    int? limit,
+    int? offset,
+  }) async {
+    final params = <String>[];
+    if (limit != null) params.add('limit=$limit');
+    if (offset != null) params.add('offset=$offset');
+    final qs = params.isNotEmpty ? '?${params.join('&')}' : '';
+    final response = await _api.request<List<dynamic>>(
+      '/open-data/projects$qs',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/open-data/projects/:id — Single project card (OCDS-compliant)
+  Future<Map<String, dynamic>> getProjectCard(String projectId) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/open-data/projects/$projectId',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/open-data/ocds/:id — Full OCDS release package
+  Future<Map<String, dynamic>> getOCDSRelease(String projectId) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/open-data/ocds/$projectId',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/open-data/stats — Platform-wide transparency statistics
+  Future<Map<String, dynamic>> getStats() async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/open-data/stats',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
 
   /// GET /api/open-data/projects/:id/export?format=pdf|xlsx
   /// Returns the download URL for the exported report
@@ -914,5 +957,101 @@ class OpenDataApi {
       fromData: (d) => d as Map<String, dynamic>,
     );
     return response.data?['url'] as String?;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRANSLATION API — Mirrors api.ts translation module
+// REM-006: Runtime translation capability (NMT + LLM hybrid)
+// ═══════════════════════════════════════════════════════════════════════════
+
+class TranslationApi {
+  final NammerhaApiClient _api;
+  TranslationApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// POST /api/translation/translate — Single text translation
+  Future<Map<String, dynamic>> translate({
+    required String text,
+    required String sourceLang,
+    required String targetLang,
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/translation/translate',
+      method: 'POST',
+      body: {
+        'text': text,
+        'source_lang': sourceLang,
+        'target_lang': targetLang,
+      },
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// POST /api/translation/batch — Batch translation
+  Future<List<Map<String, dynamic>>> batchTranslate({
+    required List<String> items,
+    required String sourceLang,
+    required String targetLang,
+  }) async {
+    final response = await _api.request<List<dynamic>>(
+      '/translation/batch',
+      method: 'POST',
+      body: {
+        'items': items,
+        'source_lang': sourceLang,
+        'target_lang': targetLang,
+      },
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/translation/glossary — RAG-based glossary
+  Future<List<Map<String, dynamic>>> getGlossary() async {
+    final response = await _api.request<List<dynamic>>(
+      '/translation/glossary',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/translation/languages — Supported language pairs
+  Future<List<Map<String, dynamic>>> getSupportedLanguages() async {
+    final response = await _api.request<List<dynamic>>(
+      '/translation/languages',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTACT API — Mirrors web contact form submission
+// REM-009: Centralized typed API pattern
+// ═══════════════════════════════════════════════════════════════════════════
+
+class ContactApi {
+  final NammerhaApiClient _api;
+  ContactApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// POST /api/contact — Submit contact form
+  Future<void> submitContactForm({
+    required String name,
+    required String email,
+    required String subject,
+    required String message,
+  }) async {
+    await _api.request(
+      '/contact',
+      method: 'POST',
+      idempotent: true,
+      body: {
+        'name': name,
+        'email': email,
+        'subject': subject,
+        'message': message,
+      },
+    );
   }
 }

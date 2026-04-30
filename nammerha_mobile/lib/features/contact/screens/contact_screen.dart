@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// Contact Screen — mirrors web contact.ts
 /// GAP-M4 FIX: Contact form with category picker.
@@ -105,7 +106,7 @@ class _ContactScreenState extends State<ContactScreen> {
           value: _category,
           dropdownColor: colors.surfaceElevated,
           style: TextStyle(color: colors.textPrimary, fontSize: 14),
-          decoration: _inputDecor(colors, 'الفئة'),
+          decoration: _inputDecor(colors, context.tr('str_dc731208')),
           items: const [
             DropdownMenuItem(value: 'general', child: Text('استفسار عام')),
             DropdownMenuItem(value: 'technical', child: Text('دعم تقني')),
@@ -118,25 +119,25 @@ class _ContactScreenState extends State<ContactScreen> {
         const SizedBox(height: 14),
         TextFormField(controller: _nameCtrl, style: TextStyle(color: colors.textPrimary),
           decoration: _inputDecor(colors, 'الاسم الكامل *'),
-          validator: (v) => v == null || v.trim().isEmpty ? 'مطلوب' : null),
+          validator: (v) => v == null || v.trim().isEmpty ? context.tr('str_bbd73382') : null),
         const SizedBox(height: 14),
         TextFormField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress,
           textDirection: TextDirection.ltr, style: TextStyle(color: colors.textPrimary),
           decoration: _inputDecor(colors, 'البريد الإلكتروني *'),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return 'مطلوب';
+            if (v == null || v.trim().isEmpty) return context.tr('str_bbd73382');
             if (!v.contains('@')) return 'بريد إلكتروني غير صالح';
             return null;
           }),
         const SizedBox(height: 14),
         TextFormField(controller: _subjectCtrl, style: TextStyle(color: colors.textPrimary),
           decoration: _inputDecor(colors, 'الموضوع *'),
-          validator: (v) => v == null || v.trim().isEmpty ? 'مطلوب' : null),
+          validator: (v) => v == null || v.trim().isEmpty ? context.tr('str_bbd73382') : null),
         const SizedBox(height: 14),
         TextFormField(controller: _messageCtrl, maxLines: 5, style: TextStyle(color: colors.textPrimary),
           decoration: _inputDecor(colors, 'الرسالة *'),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return 'مطلوب';
+            if (v == null || v.trim().isEmpty) return context.tr('str_bbd73382');
             if (v.trim().length < 10) return 'الرسالة قصيرة جداً';
             return null;
           }),

@@ -5,6 +5,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
+import '../../../core/i18n/t.dart';
 
 class HomeownerProjectsScreen extends StatefulWidget {
   const HomeownerProjectsScreen({super.key});
@@ -135,7 +136,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
           switch (status.toString().toUpperCase()) {
             case 'ACTIVE':
               statusColor = colors.success;
-              statusLabel = 'نشط';
+              statusLabel = context.tr('active');
               break;
             case 'PENDING':
               statusColor = colors.warning;
@@ -143,7 +144,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
               break;
             case 'COMPLETED':
               statusColor = colors.primaryBrand;
-              statusLabel = 'مكتمل';
+              statusLabel = context.tr('str_95159717');
               break;
             default:
               statusColor = colors.textSecondary;
@@ -228,7 +229,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
               const SizedBox(height: 12),
               _sheetField(colors, descCtrl, 'وصف المشروع', Icons.description_rounded, maxLines: 3),
               const SizedBox(height: 12),
-              _sheetField(colors, addressCtrl, 'العنوان', Icons.location_on_rounded),
+              _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), Icons.location_on_rounded),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: selectedDamage,
@@ -239,7 +240,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
                   filled: true,
                   fillColor: colors.backgroundSecondary,
                 ),
-                items: ['هيكلي جزئي', 'تدمير كامل', 'أضرار سطحية', 'بناء جديد', 'تراثي']
+                items: ['هيكلي جزئي', 'تدمير كامل', 'أضرار سطحية', 'بناء جديد', context.tr('str_72955a96')]
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (v) => selectedDamage = v ?? selectedDamage,

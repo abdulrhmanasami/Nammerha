@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../bloc/project_dashboard_bloc.dart';
 import '../bloc/project_dashboard_event_state.dart';
+import '../../../core/i18n/t.dart';
 
 /// Project Dashboard Screen — per-project management console.
 ///
@@ -407,7 +408,7 @@ class _ProjectDashboardView extends StatelessWidget {
     final descController = TextEditingController();
     final workController = TextEditingController();
     final issuesController = TextEditingController();
-    String weatherCondition = 'مشمس';
+    String weatherCondition = context.tr('str_073de245');
     int workersOnSite = 1;
 
     showModalBottomSheet(
@@ -477,7 +478,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 // Weather
                 Row(
                   children: [
-                    Text('الطقس:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                    Text(context.tr('str_fad1a3cc'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButton<String>(
@@ -485,7 +486,7 @@ class _ProjectDashboardView extends StatelessWidget {
                         isExpanded: true,
                         dropdownColor: colors.surfaceElevated,
                         style: TextStyle(color: colors.textPrimary, fontSize: 13),
-                        items: ['مشمس', 'غائم', 'ممطر', 'عاصف', 'ثلوج']
+                        items: [context.tr('str_073de245'), context.tr('str_9e8dbe3a'), context.tr('str_a020adc6'), context.tr('str_46e24efe'), context.tr('str_d14ed194')]
                             .map((w) => DropdownMenuItem(value: w, child: Text(w)))
                             .toList(),
                         onChanged: (v) => setModalState(() => weatherCondition = v ?? weatherCondition),

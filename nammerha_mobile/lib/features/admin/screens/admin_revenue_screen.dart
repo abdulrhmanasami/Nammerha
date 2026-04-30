@@ -5,6 +5,7 @@ import '../../../core/services/api_services.dart';
 import '../bloc/admin_revenue_bloc.dart';
 import '../widgets/admin_kpi_card.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/t.dart';
 
 /// Admin Revenue Dashboard — Commissions, tips, and revenue KPIs.
 class AdminRevenueScreen extends StatelessWidget {
@@ -30,7 +31,7 @@ class _RevenueView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'الإيرادات',
+          context.tr('admin_revenue'),
           style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
         ),
         backgroundColor: colors.surfaceElevated,

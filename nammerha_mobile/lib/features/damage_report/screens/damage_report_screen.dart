@@ -14,6 +14,7 @@ import '../data/damage_report_repository.dart';
 import '../bloc/damage_report_bloc.dart';
 import '../bloc/damage_report_event.dart';
 import '../bloc/damage_report_state.dart';
+import '../../../core/i18n/t.dart';
 
 class DamageReportScreen extends StatelessWidget {
   const DamageReportScreen({super.key});
@@ -250,7 +251,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
               context.read<DamageReportBloc>().add(UpdateFormDataEvent(data.copyWith(neighborhood: val)));
             },
             decoration: InputDecoration(
-              labelText: 'الحي',
+              labelText: context.tr('str_c9256712'),
               hintText: 'مثال: المزة، الشعلان',
               filled: true,
               fillColor: colors.surfaceElevated,
@@ -334,13 +335,13 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             child: Column(
               children: [
                 _reviewRow('نوع الضرر', damageLabel, colors),
-                _reviewRow('المحافظة', data.governorate, colors),
+                _reviewRow(context.tr('str_d5113593'), data.governorate, colors),
                 if (data.neighborhood.isNotEmpty)
-                  _reviewRow('الحي', data.neighborhood, colors),
-                _reviewRow('الصور', '${data.photos.length} صور', colors),
+                  _reviewRow(context.tr('str_c9256712'), data.neighborhood, colors),
+                _reviewRow(context.tr('str_5ed92505'), '${data.photos.length} صور', colors),
                 if (data.gpsPosition != null)
                   _reviewRow(
-                    'الإحداثيات',
+                    context.tr('str_3cf6c7a4'),
                     '${data.gpsPosition!.latitude.toStringAsFixed(4)}, ${data.gpsPosition!.longitude.toStringAsFixed(4)}',
                     colors,
                   ),
@@ -410,7 +411,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
                 onPressed: data.canProceed && !isLoading ? () => context.read<DamageReportBloc>().add(SubmitReportEvent()) : null,
               )
             : GradientButton(
-                label: 'التالي',
+                label: context.tr('next'),
                 icon: Icons.arrow_forward_rounded,
                 onPressed: data.canProceed ? () => context.read<DamageReportBloc>().add(NextStepEvent()) : null,
               ),

@@ -39,3 +39,10 @@ database/tls/
 
 # Environment — catch all variants (.env.staging, .env.test, etc.)
 .env.*
+
+# Backups — local only, never committed (metal server decommissioned 2026-04-28)
+.backups/
+
+# Deprecated compose files (unified on docker-compose.prod.yml)
+docker-compose.cloud.yml
+docker-compose.staging.yml

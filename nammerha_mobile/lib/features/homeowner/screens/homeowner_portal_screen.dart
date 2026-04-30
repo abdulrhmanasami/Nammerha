@@ -10,6 +10,7 @@ import '../data/homeowner_repository.dart';
 import '../bloc/homeowner_bloc.dart';
 import '../bloc/homeowner_event.dart';
 import '../bloc/homeowner_state.dart';
+import '../../../core/i18n/t.dart';
 
 class HomeownerPortalScreen extends StatelessWidget {
   const HomeownerPortalScreen({super.key});
@@ -352,13 +353,13 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(
-                      child: _actionButton('رفض', colors.error, () {
+                      child: _actionButton(context.tr('admin_reject'), colors.error, () {
                         context.read<HomeownerBloc>().add(RespondToApprovalEvent(a['approval_id'].toString(), 'rejected'));
                       }),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: _actionButton('موافقة', colors.success, () {
+                      child: _actionButton(context.tr('str_bd78c08e'), colors.success, () {
                         context.read<HomeownerBloc>().add(RespondToApprovalEvent(a['approval_id'].toString(), 'approved'));
                       }),
                     ),
@@ -398,15 +399,15 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         padding: const EdgeInsets.all(16),
         children: [
           Row(children: [
-            _escrowCard('المودع', _formatCurrency(data.escrow['total_deposited'] ?? 0), colors.primaryBrand, colors),
+            _escrowCard(context.tr('str_ab95b0d8'), _formatCurrency(data.escrow['total_deposited'] ?? 0), colors.primaryBrand, colors),
             const SizedBox(width: 10),
-            _escrowCard('المُحرَّر', _formatCurrency(data.escrow['total_released'] ?? 0), colors.success, colors),
+            _escrowCard(context.tr('str_99ef4a75'), _formatCurrency(data.escrow['total_released'] ?? 0), colors.success, colors),
           ]).animate().fadeIn(),
           const SizedBox(height: 10),
           Row(children: [
-            _escrowCard('محتجز', _formatCurrency(data.escrow['held_in_escrow'] ?? 0), colors.warning, colors),
+            _escrowCard(context.tr('str_f013adbb'), _formatCurrency(data.escrow['held_in_escrow'] ?? 0), colors.warning, colors),
             const SizedBox(width: 10),
-            _escrowCard('مشاريع', '${data.escrow['projects_with_escrow'] ?? 0}', colors.textPrimary, colors),
+            _escrowCard(context.tr('str_aac24d04'), '${data.escrow['projects_with_escrow'] ?? 0}', colors.textPrimary, colors),
           ]).animate(delay: 100.ms).fadeIn(),
 
           if ((data.escrow['held_in_escrow'] as num?) != null && (data.escrow['held_in_escrow'] as num) > 0) ...[

@@ -8,6 +8,7 @@ import '../bloc/donor_bloc.dart';
 import '../bloc/donor_event.dart';
 import '../bloc/donor_state.dart';
 import '../models/donor_models.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Portal — Full 5-Tab Dashboard
@@ -147,11 +148,11 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _heroStat('مشاريع', '${data.stats['projects_supported'] ?? 0}'),
+                    _heroStat(context.tr('str_aac24d04'), '${data.stats['projects_supported'] ?? 0}'),
                     Container(width: 1, height: 30, color: Colors.white.withAlpha(30)),
-                    _heroStat('عناصر', '${data.stats['items_funded'] ?? 0}'),
+                    _heroStat(context.tr('str_46648494'), '${data.stats['items_funded'] ?? 0}'),
                     Container(width: 1, height: 30, color: Colors.white.withAlpha(30)),
-                    _heroStat('الأثر', '${data.stats['impact_score'] ?? 0}%'),
+                    _heroStat(context.tr('str_98a766ca'), '${data.stats['impact_score'] ?? 0}%'),
                   ],
                 ),
               ],
@@ -163,9 +164,9 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
           // Escrow stats
           Row(
             children: [
-              _statCard('محتجز', formatCurrency(data.stats['escrow_locked'] ?? 0), colors.warning, colors),
+              _statCard(context.tr('str_f013adbb'), formatCurrency(data.stats['escrow_locked'] ?? 0), colors.warning, colors),
               const SizedBox(width: 10),
-              _statCard('مُحرَّر', formatCurrency(data.stats['escrow_released'] ?? 0), colors.success, colors),
+              _statCard(context.tr('str_233a60b2'), formatCurrency(data.stats['escrow_released'] ?? 0), colors.success, colors),
             ],
           ).animate(delay: 200.ms).fadeIn(),
 

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/review_api.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../bloc/review_bloc.dart';
+import '../../../core/i18n/t.dart';
 
 /// Reviews Screen — displays reviews + aggregates for any entity.
 /// GAP-H1 FIX: Previously web-only.
@@ -205,7 +206,7 @@ class _ReviewsView extends StatelessWidget {
                   child: Row(children: [
                     Icon(Icons.flag_outlined, size: 14, color: colors.textSubtle),
                     const SizedBox(width: 4),
-                    Text('إبلاغ', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                    Text(context.tr('str_d40b505f'), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                   ]),
                 ),
               ),

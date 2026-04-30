@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// EPA Pricing Oracle — FIDIC 13.8 Price Adjustment Engine
@@ -323,7 +324,7 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
                 _resultRow('المبلغ الأصلي', formatCurrency(_adjustmentResult!['original_amount'] ?? 0), colors),
                 _resultRow('المبلغ المعدّل', formatCurrency(_adjustmentResult!['adjusted_amount'] ?? 0), colors),
                 _resultRow('نسبة التغيير', '${(_adjustmentResult!['adjustment_factor'] as num?)?.toStringAsFixed(4) ?? '—'}', colors),
-                _resultRow('الفرق', formatCurrency((_adjustmentResult!['adjusted_amount'] ?? 0) - (_adjustmentResult!['original_amount'] ?? 0)), colors),
+                _resultRow(context.tr('str_0b79cb24'), formatCurrency((_adjustmentResult!['adjusted_amount'] ?? 0) - (_adjustmentResult!['original_amount'] ?? 0)), colors),
               ],
             ),
           ).animate().fadeIn().slideY(begin: 0.05, end: 0),

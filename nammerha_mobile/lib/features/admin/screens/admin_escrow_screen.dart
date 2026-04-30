@@ -4,6 +4,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../bloc/admin_escrow_bloc.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/t.dart';
 
 /// Admin Escrow Verification — Review spatial proofs & release/flag escrow.
 class AdminEscrowScreen extends StatelessWidget {
@@ -255,7 +256,7 @@ class _EscrowView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('إلغاء', style: TextStyle(color: colors.textMuted)),
+            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
           ),
           FilledButton(
             onPressed: () {
@@ -305,7 +306,7 @@ class _EscrowView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('إلغاء', style: TextStyle(color: colors.textMuted)),
+            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
           ),
           FilledButton(
             onPressed: () {

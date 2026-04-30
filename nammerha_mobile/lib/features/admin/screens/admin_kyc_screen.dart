@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../bloc/admin_kyc_bloc.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/t.dart';
 
 /// Admin KYC Queue — Verify/reject identity documents.
 class AdminKycScreen extends StatelessWidget {
@@ -83,10 +84,10 @@ class _KycView extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _statBadge(colors, 'معلّق', state.stats.pending, colors.warning),
-              _statBadge(colors, 'محقق', state.stats.verified, colors.success),
-              _statBadge(colors, 'مرفوض', state.stats.rejected, colors.error),
-              _statBadge(colors, 'الكل', state.stats.total, colors.primaryBrand),
+              _statBadge(colors, context.tr('admin_suspended'), state.stats.pending, colors.warning),
+              _statBadge(colors, context.tr('admin_filter_verified'), state.stats.verified, colors.success),
+              _statBadge(colors, context.tr('admin_filter_rejected'), state.stats.rejected, colors.error),
+              _statBadge(colors, context.tr('admin_filter_all'), state.stats.total, colors.primaryBrand),
             ],
           ),
         ),
@@ -98,10 +99,10 @@ class _KycView extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsetsDirectional.only(start: 16),
             children: [
-              _filterChip(context, colors, 'الكل', null, state.activeFilter),
-              _filterChip(context, colors, 'معلّق', 'pending', state.activeFilter),
-              _filterChip(context, colors, 'محقق', 'verified', state.activeFilter),
-              _filterChip(context, colors, 'مرفوض', 'rejected', state.activeFilter),
+              _filterChip(context, colors, context.tr('admin_filter_all'), null, state.activeFilter),
+              _filterChip(context, colors, context.tr('admin_suspended'), 'pending', state.activeFilter),
+              _filterChip(context, colors, context.tr('admin_filter_verified'), 'verified', state.activeFilter),
+              _filterChip(context, colors, context.tr('admin_filter_rejected'), 'rejected', state.activeFilter),
             ],
           ),
         ),
@@ -280,7 +281,7 @@ class _KycView extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(context, entry),
                       icon: Icon(Icons.close_rounded, size: 18, color: colors.error),
-                      label: Text('رفض', style: TextStyle(color: colors.error)),
+                      label: Text(context.tr('admin_reject'), style: TextStyle(color: colors.error)),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: colors.error),
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -358,7 +359,7 @@ class _KycView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('إلغاء', style: TextStyle(color: colors.textMuted)),
+            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
           ),
           FilledButton(
             onPressed: () {

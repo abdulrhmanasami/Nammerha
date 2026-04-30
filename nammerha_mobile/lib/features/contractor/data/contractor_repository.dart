@@ -15,49 +15,23 @@ class ContractorRepository {
   ContractorRepository({ContractorApi? api}) : _api = api ?? ContractorApi();
 
   /// Loads all dashboard data (stats, projects, marketplace, bids, payments)
-  /// independently. Each call is wrapped separately so a single failing
-  /// endpoint doesn't take down the entire dashboard.
+  /// concurrently. Enforces Zero-Trust protocol: if any endpoint fails, the
+  /// error is bubbled up to the BLoC to display an explicit error state,
+  /// completely eradicating the 'Silent Failure' / fake empty state vulnerability.
   Future<ContractorDashboardModel> loadFullDashboard() async {
-    Map<String, dynamic> rawStats = {};
-    List<Map<String, dynamic>> rawProjects = [];
-    List<Map<String, dynamic>> rawMarketplace = [];
-    List<Map<String, dynamic>> rawBids = [];
-    List<Map<String, dynamic>> rawPayments = [];
+    final results = await Future.wait([
+      _api.getStats(),
+      _api.getProjects(),
+      _api.getMarketplace(),
+      _api.getBids(),
+      _api.getPayments(),
+    ]);
 
-    // P0.3 FIX: Each catch now logs the error type for telemetry instead of
-    // silently swallowing with `catch (_) {}`. The BLoC still receives a
-    // degraded dashboard so the UI doesn't crash.
-
-    try {
-      rawStats = await _api.getStats();
-    } catch (e) {
-      // Degraded: KPI row shows zeros — better than crashing
-      _logError('getStats', e);
-    }
-
-    try {
-      rawProjects = await _api.getProjects();
-    } catch (e) {
-      _logError('getProjects', e);
-    }
-
-    try {
-      rawMarketplace = await _api.getMarketplace();
-    } catch (e) {
-      _logError('getMarketplace', e);
-    }
-
-    try {
-      rawBids = await _api.getBids();
-    } catch (e) {
-      _logError('getBids', e);
-    }
-
-    try {
-      rawPayments = await _api.getPayments();
-    } catch (e) {
-      _logError('getPayments', e);
-    }
+    final rawStats = results[0] as Map<String, dynamic>;
+    final rawProjects = results[1] as List<Map<String, dynamic>>;
+    final rawMarketplace = results[2] as List<Map<String, dynamic>>;
+    final rawBids = results[3] as List<Map<String, dynamic>>;
+    final rawPayments = results[4] as List<Map<String, dynamic>>;
 
     return ContractorDashboardModel(
       stats: rawStats.isNotEmpty
@@ -85,15 +59,5 @@ class ContractorRepository {
       coverLetter: coverLetter,
       methodology: methodology,
     );
-  }
-
-  /// Structured error logging — replaces silent `catch (_) {}`.
-  void _logError(String endpoint, Object error) {
-    // Using assert-guarded debugPrint ensures this is stripped in release builds.
-    assert(() {
-      // ignore: avoid_print
-      print('[ContractorRepository] $endpoint failed: $error');
-      return true;
-    }());
   }
 }

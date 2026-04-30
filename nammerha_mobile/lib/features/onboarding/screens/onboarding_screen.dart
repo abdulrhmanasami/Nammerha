@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/i18n/t.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -64,7 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: TextButton(
                   onPressed: widget.onComplete,
                   child: Text(
-                    'تخطّي',
+                    context.tr('str_69b04b59'),
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 15,
@@ -180,7 +181,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // CTA Button
                   GradientButton(
-                    label: _currentPage == _slides.length - 1 ? 'ابدأ الآن' : 'التالي',
+                    label: _currentPage == _slides.length - 1 ? 'ابدأ الآن' : context.tr('next'),
                     icon: _currentPage == _slides.length - 1
                         ? Icons.arrow_forward_rounded
                         : null,

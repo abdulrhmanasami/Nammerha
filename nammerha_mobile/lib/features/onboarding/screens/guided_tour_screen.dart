@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Guided Feature Tour — Post-login interactive walkthrough
@@ -137,7 +138,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
                 padding: const EdgeInsets.all(16),
                 child: TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('تخطّي', style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 15)),
+                  child: Text(context.tr('str_69b04b59'), style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 15)),
                 ),
               ),
             ),
@@ -220,7 +221,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
-                    _currentStep == _steps.length - 1 ? 'ابدأ الاستكشاف' : 'التالي',
+                    _currentStep == _steps.length - 1 ? 'ابدأ الاستكشاف' : context.tr('next'),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 
@@ -9,6 +10,7 @@ import '../../../core/widgets/gradient_button.dart';
 import '../../escrow/screens/escrow_checkout_screen.dart';
 import '../models/cart_item.dart';
 import '../state/cart_store.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Cart Screen — Dynamic Construction Basket
@@ -166,9 +168,10 @@ class _CartScreenState extends State<CartScreen> {
             content: Text('تم حذف ${item.name}'),
             backgroundColor: colors.textPrimary,
             action: SnackBarAction(
-              label: 'تراجع',
+              label: context.tr('str_32d990bf'),
               textColor: colors.primaryBrand,
               onPressed: () {
+                HapticFeedback.mediumImpact();
                 CartStore.instance.addItem(
                   id: item.id,
                   name: item.name,
@@ -344,7 +347,7 @@ class _CartScreenState extends State<CartScreen> {
 
             // Grand total
             _buildSummaryRow(
-              'الإجمالي',
+              context.tr('str_88fc73eb'),
               formatCurrency(_grandTotal),
               colors,
               isBold: true,
@@ -434,7 +437,7 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      'مخصص',
+                      context.tr('str_94d3bff8'),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: _isCustomTip ? FontWeight.w700 : FontWeight.w500,
@@ -554,7 +557,7 @@ class _CartScreenState extends State<CartScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('إلغاء', style: TextStyle(color: colors.textSecondary)),
+              child: Text(context.tr('cancel'), style: TextStyle(color: colors.textSecondary)),
             ),
             TextButton(
               onPressed: () {

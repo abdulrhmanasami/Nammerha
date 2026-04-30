@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../core/i18n/t.dart';
 
 /// Password Reset Screen — handles deep-link token from email.
 ///
@@ -87,8 +88,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
   String _strengthLabel() {
     if (_passwordStrength < 0.3) return 'ضعيفة جداً';
-    if (_passwordStrength < 0.6) return 'متوسطة';
-    if (_passwordStrength < 0.85) return 'جيدة';
+    if (_passwordStrength < 0.6) return context.tr('pw_strength_good');
+    if (_passwordStrength < 0.85) return context.tr('str_5edbdc1c');
     return 'قوية جداً ✓';
   }
 

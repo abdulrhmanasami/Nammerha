@@ -10,7 +10,7 @@ description: How to deploy Nammerha changes to production (Unified Cloud Server)
 |:-------|:---|:-----|:----------|
 | **Cloud (CX33)** | `46.224.113.10` | Unified | Frontend + Backend + DB + MinIO + SMTP + TileServer |
 
-> **History**: Migrated from DMZ split architecture (Metal AX102 backend + CX33 frontend) to unified cloud on 2026-04-28.
+
 
 > **Security**: All services bound to `127.0.0.1` — only Nginx (ports 80/443) is public-facing via Cloudflare (`nammerha.com` → `46.224.113.10`).
 
@@ -73,12 +73,11 @@ scp database/migrations/NNN_name.sql root@46.224.113.10:/tmp/NNN_name.sql
 ssh root@46.224.113.10 "docker cp /tmp/NNN_name.sql nammerha-db:/tmp/NNN_name.sql && docker exec nammerha-db psql -U nammerha -d nammerha -f /tmp/NNN_name.sql"
 ```
 
-## Docker Compose Files
+## Docker Compose File
 
 | Compose File | Purpose | Path on Server |
 |:-------------|:--------|:---------------|
 | `docker-compose.prod.yml` | Full stack (DB + MinIO + SMTP + Backend + Frontend + TileServer) | `/opt/nammerha/` |
-| `docker-compose.cloud.yml` | Frontend-only (DEPRECATED) | `/opt/nammerha/` |
 
 ## Troubleshooting
 

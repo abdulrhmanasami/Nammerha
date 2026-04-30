@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../bloc/escrow_bloc.dart';
 import '../bloc/escrow_event.dart';
 import '../bloc/escrow_state.dart';
 import '../data/escrow_repository.dart';
+import '../../../core/i18n/t.dart';
 
 class EscrowSummaryScreen extends StatelessWidget {
   const EscrowSummaryScreen({super.key});
@@ -34,6 +36,7 @@ class EscrowSummaryScreen extends StatelessWidget {
               builder: (ctx) => IconButton(
                 icon: Icon(Icons.refresh_rounded, color: colors.textSecondary),
                 onPressed: () {
+                HapticFeedback.mediumImpact();
                   ctx.read<EscrowBloc>().add(FetchEscrowSummaryEvent());
                 },
               ),
@@ -61,73 +64,79 @@ class EscrowSummaryScreen extends StatelessWidget {
               final totalReleased = (summary['total_released'] as num?) ?? summary['totalReleased'] as num? ?? 0;
               final totalRefunded = (summary['total_refunded'] as num?) ?? summary['totalRefunded'] as num? ?? 0;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildStatusCard(
-                      context,
-                      'مُؤمّن في الضمان',
-                      formatCurrency(totalLocked),
-                      Icons.lock_clock_rounded,
-                      colors.success,
-                      colors.successLight,
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatusCard(
-                            context,
-                            'تم الإفراج',
-                            formatCurrency(totalReleased),
-                            Icons.check_circle_rounded,
-                            colors.primaryBrand,
-                            colors.primaryBrandLight,
-                            isSmall: true,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _buildStatusCard(
-                            context,
-                            'مُسترد',
-                            formatCurrency(totalRefunded),
-                            Icons.settings_backup_restore_rounded,
-                            colors.textSecondary,
-                            colors.backgroundSecondary,
-                            isSmall: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.primaryBrandLight,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: colors.primaryBrand.withAlpha(30)),
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<EscrowBloc>().add(FetchEscrowSummaryEvent());
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildStatusCard(
+                        context,
+                        'مُؤمّن في الضمان',
+                        formatCurrency(totalLocked),
+                        Icons.lock_clock_rounded,
+                        colors.success,
+                        colors.successLight,
                       ),
-                      child: Row(
+                      const SizedBox(height: 14),
+                      Row(
                         children: [
-                          Icon(Icons.shield_rounded, color: colors.primaryBrand, size: 22),
-                          const SizedBox(width: 12),
                           Expanded(
-                            child: Text(
-                              'الأموال مؤمّنة بنظام الضمان المشفّر وفق معيار البلاتينيوم. لا يتم الإفراج عنها إلا بتقديم إثبات مكاني مُوثّق من المهندس المعيّن.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.primaryBrand,
-                                height: 1.7,
-                              ),
+                            child: _buildStatusCard(
+                              context,
+                              'تم الإفراج',
+                              formatCurrency(totalReleased),
+                              Icons.check_circle_rounded,
+                              colors.primaryBrand,
+                              colors.primaryBrandLight,
+                              isSmall: true,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: _buildStatusCard(
+                              context,
+                              context.tr('str_223dd076'),
+                              formatCurrency(totalRefunded),
+                              Icons.settings_backup_restore_rounded,
+                              colors.textSecondary,
+                              colors.backgroundSecondary,
+                              isSmall: true,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 28),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colors.primaryBrandLight,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: colors.primaryBrand.withAlpha(30)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.shield_rounded, color: colors.primaryBrand, size: 22),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'الأموال مؤمّنة بنظام الضمان المشفّر وفق معيار البلاتينيوم. لا يتم الإفراج عنها إلا بتقديم إثبات مكاني مُوثّق من المهندس المعيّن.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: colors.primaryBrand,
+                                  height: 1.7,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }

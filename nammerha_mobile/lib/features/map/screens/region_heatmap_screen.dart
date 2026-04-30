@@ -5,6 +5,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/services/open_data_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Region Heatmap Screen — Advanced map visualization
@@ -119,9 +120,9 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
                   Row(children: [
                     _legendDot(colors.error, 'كثافة عالية'),
                     const SizedBox(width: 16),
-                    _legendDot(colors.warning, 'متوسطة'),
+                    _legendDot(colors.warning, context.tr('pw_strength_good')),
                     const SizedBox(width: 16),
-                    _legendDot(colors.success, 'منخفضة'),
+                    _legendDot(colors.success, context.tr('str_d6f3661b')),
                   ]),
                   const SizedBox(height: 16),
 

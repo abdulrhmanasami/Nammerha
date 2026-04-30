@@ -10,6 +10,7 @@ import '../bloc/supplier_event.dart';
 import '../bloc/supplier_state.dart';
 import '../data/supplier_repository.dart';
 import 'supplier_subscription_screen.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Supplier Portal — 2-Tab Dashboard (Orders + Catalog)
@@ -135,7 +136,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
             );
           }
 
-          if (state is SupplierError && state.message.contains('فشل')) {
+          if (state is SupplierError && state.message.contains(context.tr('str_a838e35c'))) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -190,10 +191,10 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
       ),
       child: Row(
         children: [
-          _kpiChip('معلقة', '${dashboard.pendingOrders}', colors.warning, colors),
-          _kpiChip('عقود', '${dashboard.wonContracts}', colors.primaryBrand, colors),
-          _kpiChip('شحن', '${dashboard.inTransit}', colors.info, colors),
-          _kpiChip('الإيراد', formatCurrency(dashboard.totalRevenue), colors.success, colors),
+          _kpiChip(context.tr('str_aacc257a'), '${dashboard.pendingOrders}', colors.warning, colors),
+          _kpiChip(context.tr('str_ebc7739e'), '${dashboard.wonContracts}', colors.primaryBrand, colors),
+          _kpiChip(context.tr('str_42df41a8'), '${dashboard.inTransit}', colors.info, colors),
+          _kpiChip(context.tr('str_2ce9c33b'), formatCurrency(dashboard.totalRevenue), colors.success, colors),
         ],
       ),
     ).animate().fadeIn();
@@ -266,11 +267,11 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('الكمية', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
+                        Text(context.tr('str_5101659e'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
                         Text('${o.quantity} ${o.unit}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                       ]),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text('المبلغ', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
+                        Text(context.tr('amount'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
                         Text(formatCurrency(o.amount), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
                       ]),
                     ],
@@ -522,9 +523,9 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
           _field(nameC, 'اسم المادة', colors),
           const SizedBox(height: 8),
           Row(children: [
-            Expanded(child: _field(categoryC, 'التصنيف', colors)),
+            Expanded(child: _field(categoryC, context.tr('str_cf143297'), colors)),
             const SizedBox(width: 8),
-            Expanded(child: _field(unitC, 'الوحدة', colors)),
+            Expanded(child: _field(unitC, context.tr('str_694ca78e'), colors)),
           ]),
           const SizedBox(height: 8),
           _field(priceC, 'السعر الاسترشادي (ل.س)', colors, isNum: true),

@@ -1,48 +1,192 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-class TransparencyDashboardScreen extends StatelessWidget {
+import '../../../core/network/api_client.dart';
+import '../../../core/services/open_data_api.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/semantic_colors.dart';
+import '../../../core/utils/error_localizer.dart';
+import '../../../core/services/api_services.dart' show formatCurrency;
+import '../../../core/i18n/t.dart';
+
+/// ═══════════════════════════════════════════════════════════════════════════
+/// Transparency Dashboard — لوحة الشفافية والبيانات المفتوحة (OCDS)
+/// ═══════════════════════════════════════════════════════════════════════════
+/// P0-001 REMEDIATION: Replaced hardcoded mock data with live API integration.
+/// P0-004 REMEDIATION: Replaced GoogleFonts.cairo with semantic theme system.
+///
+/// Data sources:
+///   - OpenDataApi.getOCDSRelease(projectId) → OCDS compliance data
+///   - DonationsApi.getMyEscrow() → Escrow ledger entries (if authenticated)
+///   - OpenDataApi.getProjectCard(projectId) → Project metadata
+///
+/// Standard: Nammerha Domain Law §2 — Radical Transparency / OCDS.
+/// ═══════════════════════════════════════════════════════════════════════════
+class TransparencyDashboardScreen extends StatefulWidget {
   final String projectId;
-  
+
   const TransparencyDashboardScreen({super.key, required this.projectId});
 
   @override
+  State<TransparencyDashboardScreen> createState() =>
+      _TransparencyDashboardScreenState();
+}
+
+class _TransparencyDashboardScreenState
+    extends State<TransparencyDashboardScreen> {
+  final OpenDataApi _openDataApi = OpenDataApi();
+
+  Map<String, dynamic> _projectCard = {};
+  Map<String, dynamic> _ocdsRelease = {};
+  List<Map<String, dynamic>> _ledgerEntries = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final results = await Future.wait<Map<String, dynamic>>([
+        _openDataApi.getProjectCard(widget.projectId),
+        _openDataApi.getOCDSRelease(widget.projectId),
+      ]);
+
+      final card = results[0];
+      final ocds = results[1];
+
+      // Extract escrow ledger entries from OCDS release or project card
+      final List<dynamic> rawLedger = (ocds['escrow_ledger'] ??
+              ocds['transactions'] ??
+              card['escrow_entries'] ??
+              []) as List<dynamic>;
+
+      setState(() {
+        _projectCard = card;
+        _ocdsRelease = ocds;
+        _ledgerEntries = rawLedger.cast<Map<String, dynamic>>();
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = localizeApiError(e.message);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'تعذر تحميل بيانات الشفافية';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8),
+      backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colors.backgroundPrimary,
+        elevation: 0,
         title: Text(
           'الشفافية والبيانات المفتوحة (OCDS)',
-          style: GoogleFonts.cairo(
-            color: const Color(0xFF242424),
+          style: TextStyle(
+            color: colors.textPrimary,
             fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF242424)),
+        iconTheme: IconThemeData(color: colors.textPrimary),
       ),
-      body: SingleChildScrollView(
+      body: _buildBody(colors),
+    );
+  }
+
+  Widget _buildBody(SemanticColors colors) {
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(color: colors.primaryBrand),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud_off_rounded,
+                  size: 64, color: colors.textSecondary),
+              const SizedBox(height: 16),
+              Text(
+                _error!,
+                style: TextStyle(color: colors.error, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _loadData,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('إعادة المحاولة'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primaryBrand),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: colors.primaryBrand,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoCard(
               title: 'الشفافية المطلقة',
-              description: 'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل دولار تم التبرع به حتى لحظة صرفه.',
+              description:
+                  'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم التبرع بها حتى لحظة صرفها.',
               icon: Icons.public,
-              color: const Color(0xFF0D47A1),
-            ),
-            const SizedBox(height: 24),
+              color: colors.primaryBrand,
+              colors: colors,
+            ).animate().fadeIn(duration: 400.ms),
+            const SizedBox(height: 20),
+
+            // OCDS Release Summary (if available)
+            if (_ocdsRelease.isNotEmpty) ...[
+              _buildOCDSSummary(colors),
+              const SizedBox(height: 20),
+            ],
+
+            // Escrow Ledger Timeline
             Text(
               'سجل الضمان (Escrow Ledger)',
-              style: GoogleFonts.cairo(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF242424),
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
-            _buildLedgerTimeline(),
+            _buildLedgerTimeline(colors),
           ],
         ),
       ),
@@ -54,15 +198,17 @@ class TransparencyDashboardScreen extends StatelessWidget {
     required String description,
     required IconData icon,
     required Color color,
+    required SemanticColors colors,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceElevated,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.strokeSubtle),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colors.glassOverlay.withAlpha(10),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -74,7 +220,7 @@ class TransparencyDashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withAlpha(20),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 32),
@@ -86,17 +232,17 @@ class TransparencyDashboardScreen extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.cairo(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: const Color(0xFF242424),
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   description,
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey.shade600,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -108,34 +254,154 @@ class TransparencyDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLedgerTimeline() {
-    // Mocking ledger entries for UI completion
-    final mockEntries = [
-      {'status': 'released', 'amount': '5,000 USD', 'date': '2026-04-20', 'note': 'تم الإفراج بعد المطابقة المكانية للمرحلة 1'},
-      {'status': 'locked', 'amount': '10,000 USD', 'date': '2026-04-18', 'note': 'أموال محتجزة في الضمان بانتظار التنفيذ'},
-    ];
+  Widget _buildOCDSSummary(SemanticColors colors) {
+    final ocid = _ocdsRelease['ocid']?.toString() ?? '';
+    final releaseDate = _ocdsRelease['date']?.toString() ?? '';
+    final tag = (_ocdsRelease['tag'] as List<dynamic>?)?.join(', ') ??
+        _ocdsRelease['tag']?.toString() ??
+        '';
+    final totalAmount = _projectCard['total_estimated_cost'] ??
+        _projectCard['funding_goal'] ??
+        0;
+    final fundedAmount = _projectCard['total_funded'] ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: NammerhaGradients.brandPrimary,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [NammerhaShadows.cta],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.verified_rounded,
+                  color: Colors.white, size: 24),
+              const SizedBox(width: 8),
+              const Text(
+                'OCDS 1.1 — Release',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (ocid.isNotEmpty)
+            _buildOCDSField('OCID', ocid, colors),
+          if (releaseDate.isNotEmpty)
+            _buildOCDSField('تاريخ الإصدار', releaseDate, colors),
+          if (tag.isNotEmpty)
+            _buildOCDSField(context.tr('str_91b260c9'), tag, colors),
+          _buildOCDSField(
+            'إجمالي التكلفة',
+            formatCurrency(totalAmount as num),
+            colors,
+          ),
+          _buildOCDSField(
+            'إجمالي المموّل',
+            formatCurrency(fundedAmount as num),
+            colors,
+          ),
+        ],
+      ),
+    ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.03);
+  }
+
+  Widget _buildOCDSField(
+      String label, String value, SemanticColors colors) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withAlpha(180),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLedgerTimeline(SemanticColors colors) {
+    if (_ledgerEntries.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(Icons.receipt_long_rounded,
+                  size: 48, color: colors.textSubtle),
+              const SizedBox(height: 12),
+              Text(
+                'لا توجد سجلات ضمان لهذا المشروع بعد',
+                style: TextStyle(
+                    fontSize: 14, color: colors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: mockEntries.length,
+      itemCount: _ledgerEntries.length,
       itemBuilder: (context, index) {
-        final entry = mockEntries[index];
-        final isReleased = entry['status'] == 'released';
-        
+        final entry = _ledgerEntries[index];
+        final status = (entry['status']?.toString() ?? '').toLowerCase();
+        final isReleased =
+            status == 'released' || status == 'escrow_released';
+        final amount = entry['amount'] ??
+            entry['amount_locked'] ??
+            entry['amount_released'] ??
+            0;
+        final note = entry['note'] ??
+            entry['description'] ??
+            entry['reason'] ??
+            '';
+        final date = entry['date'] ??
+            entry['created_at'] ??
+            entry['released_at'] ??
+            entry['locked_at'] ??
+            '';
+
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colors.surfaceElevated,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isReleased ? const Color(0xFF0A6E55).withValues(alpha: 0.3) : const Color(0xFFFCC934).withValues(alpha: 0.5),
+              color: isReleased
+                  ? colors.secondaryAccent.withAlpha(80)
+                  : colors.goldFunding.withAlpha(130),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: colors.glassOverlay.withAlpha(5),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               ),
@@ -148,43 +414,59 @@ class TransparencyDashboardScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    entry['amount']!,
-                    style: GoogleFonts.cairo(
+                    amount is num
+                        ? formatCurrency(amount)
+                        : amount.toString(),
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      color: isReleased ? const Color(0xFF0A6E55) : const Color(0xFF242424),
+                      color: isReleased
+                          ? colors.secondaryAccent
+                          : colors.textPrimary,
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isReleased ? const Color(0xFF0A6E55).withValues(alpha: 0.1) : const Color(0xFFFCC934).withValues(alpha: 0.1),
+                      color: isReleased
+                          ? colors.secondaryAccentLight
+                          : colors.warningLight,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      isReleased ? 'مُفرج (Released)' : 'محتجز (Locked)',
-                      style: GoogleFonts.cairo(
+                      isReleased
+                          ? 'مُفرج (Released)'
+                          : 'محتجز (Locked)',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: isReleased ? const Color(0xFF0A6E55) : const Color(0xFFD69E00), // Darker yellow for text
+                        color: isReleased
+                            ? colors.secondaryAccent
+                            : colors.warningText,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                entry['note']!,
-                style: GoogleFonts.cairo(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                entry['date']!,
-                style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey.shade500),
-              ),
+              if (note.toString().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  note.toString(),
+                  style: TextStyle(color: colors.textBody),
+                ),
+              ],
+              if (date.toString().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  date.toString(),
+                  style: TextStyle(
+                      fontSize: 12, color: colors.textMuted),
+                ),
+              ],
             ],
           ),
-        );
+        ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.03);
       },
     );
   }

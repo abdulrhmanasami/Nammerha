@@ -9,6 +9,7 @@ import '../bloc/compliance_bloc.dart';
 import '../bloc/compliance_event.dart';
 import '../bloc/compliance_state.dart';
 import '../data/compliance_repository.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Compliance Dashboard — OCDS Audit & Escrow Review (Platinum Standard)
@@ -91,7 +92,7 @@ class _ComplianceDashboardView extends StatelessWidget {
             );
           }
 
-          if (state is ComplianceError && state.message.contains('فشل')) {
+          if (state is ComplianceError && state.message.contains(context.tr('str_a838e35c'))) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

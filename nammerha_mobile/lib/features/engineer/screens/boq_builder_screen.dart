@@ -11,6 +11,7 @@ import '../data/boq_repository.dart';
 import '../bloc/boq_bloc.dart';
 import '../bloc/boq_event.dart';
 import '../bloc/boq_state.dart';
+import '../../../core/i18n/t.dart';
 
 class BoqBuilderScreen extends StatelessWidget {
   final String? projectId;
@@ -192,7 +193,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('المقدّر', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
+                          Text(context.tr('str_245e33ef'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
                           Text(_formatCurrency(totalCents), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.primaryBrand)),
                         ],
                       ),
@@ -263,7 +264,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('${state.items.length} ${state.items.length == 1 ? 'عنصر' : 'عناصر'}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                  Text('${state.items.length} ${state.items.length == 1 ? context.tr('str_fd63841b') : context.tr('str_46648494')}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                   Text(_formatCurrency(totalCents), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)),
                 ],
               ),
@@ -338,9 +339,9 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _field(unitC, 'الوحدة', colors)),
+              Expanded(child: _field(unitC, context.tr('str_694ca78e'), colors)),
               const SizedBox(width: 10),
-              Expanded(child: _field(categoryC, 'التصنيف', colors)),
+              Expanded(child: _field(categoryC, context.tr('str_cf143297'), colors)),
             ],
           ),
           const SizedBox(height: 10),

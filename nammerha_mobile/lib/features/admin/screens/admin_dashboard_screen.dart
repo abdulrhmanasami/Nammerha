@@ -5,6 +5,7 @@ import '../bloc/admin_dashboard_bloc.dart';
 import '../widgets/admin_kpi_card.dart';
 import '../widgets/admin_stat_chart.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/t.dart';
 
 /// Admin Dashboard — Platform Command Center
 /// KPIs + bar charts + projects table + audit trail.
@@ -117,7 +118,7 @@ class _DashboardView extends StatelessWidget {
                 accentColor: colors.secondaryAccent,
               ),
               AdminKpiCard(
-                title: 'المهندسون',
+                title: context.tr('admin_engineers'),
                 value: overview.activeEngineers,
                 icon: Icons.engineering_rounded,
                 accentColor: colors.warmEarth,
@@ -143,11 +144,11 @@ class _DashboardView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _buildMiniStat(colors, 'المستخدمون', overview.totalUsers.toString(), Icons.people_rounded),
+                _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), Icons.people_rounded),
                 _divider(colors),
-                _buildMiniStat(colors, 'التبرعات', overview.totalDonations.toString(), Icons.volunteer_activism_rounded),
+                _buildMiniStat(colors, context.tr('admin_donations'), overview.totalDonations.toString(), Icons.volunteer_activism_rounded),
                 _divider(colors),
-                _buildMiniStat(colors, 'المقاولون', overview.activeContractors.toString(), Icons.construction_rounded),
+                _buildMiniStat(colors, context.tr('admin_contractors'), overview.activeContractors.toString(), Icons.construction_rounded),
               ],
             ),
           ),
