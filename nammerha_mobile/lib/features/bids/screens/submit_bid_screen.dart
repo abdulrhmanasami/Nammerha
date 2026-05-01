@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../data/bids_repository.dart';
+import '../../../core/theme/semantic_colors.dart';
 
 class SubmitBidScreen extends StatefulWidget {
   final String projectId;
@@ -41,12 +41,9 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم تقديم العطاء بنجاح. سيتم إرساله للقيد الذكي.',
-              style: GoogleFonts.cairo(),
-            ),
-            backgroundColor: const Color(0xFF0A6E55),
+          const SnackBar(
+            content: Text('تم تقديم العطاء بنجاح. سيتم إرساله للقيد الذكي.'),
+            backgroundColor: Color(0xFF0A6E55),
           ),
         );
         Navigator.pop(context);
@@ -55,10 +52,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              e.toString(),
-              style: GoogleFonts.cairo(),
-            ),
+            content: Text(e.toString()),
             backgroundColor: Colors.red,
           ),
         );
@@ -72,18 +66,19 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8),
+      backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: Text(
           'تقديم عطاء تسعير',
-          style: GoogleFonts.cairo(
-            color: const Color(0xFF242424),
+          style: textTheme.titleMedium?.copyWith(
+            color: colors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF242424)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -94,27 +89,26 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
             children: [
               Text(
                 'المبلغ الإجمالي المقترح (USD)',
-                style: GoogleFonts.cairo(
-                  fontSize: 16,
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF242424),
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: GoogleFonts.cairo(),
+                style: textTheme.bodyLarge,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: colors.surfaceElevated,
                   hintText: 'أدخل المبلغ هنا...',
-                  hintStyle: GoogleFonts.cairo(color: Colors.grey.shade400),
+                  hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
                   ),
-                  prefixIcon: const Icon(Icons.attach_money, color: Color(0xFF0D47A1)),
+                  prefixIcon: Icon(Icons.attach_money, color: colors.primaryBrand),
                 ),
                 validator: (val) {
                   if (val == null || val.isEmpty) return 'المبلغ مطلوب';
@@ -127,22 +121,21 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
               const SizedBox(height: 24),
               Text(
                 'ملاحظات إضافية وشروط (اختياري)',
-                style: GoogleFonts.cairo(
-                  fontSize: 16,
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF242424),
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _notesController,
                 maxLines: 4,
-                style: GoogleFonts.cairo(),
+                style: textTheme.bodyLarge,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: colors.surfaceElevated,
                   hintText: 'اكتب الشروط الإضافية أو الملاحظات الهندسية...',
-                  hintStyle: GoogleFonts.cairo(color: Colors.grey.shade400),
+                  hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -153,12 +146,10 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(const Color(0xFF0D47A1)),
-                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primaryBrand,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _isSubmitting ? null : _submitBid,
                   child: _isSubmitting
@@ -172,8 +163,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
                         )
                       : Text(
                           'تأكيد وتقديم العطاء',
-                          style: GoogleFonts.cairo(
-                            fontSize: 16,
+                          style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

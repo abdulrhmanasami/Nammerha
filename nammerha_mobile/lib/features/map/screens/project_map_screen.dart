@@ -12,6 +12,7 @@ import '../bloc/map_event.dart';
 import '../bloc/map_state.dart';
 import '../models/map_project_model.dart';
 import '../../../core/i18n/t.dart';
+import '../../project/screens/project_details_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ProjectMapScreen — Production Geospatial Intelligence View
@@ -149,9 +150,13 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
                     onClose: () => context
                         .read<MapBloc>()
                         .add(const DeselectMapProject()),
-                    onNavigate: () => Navigator.pushNamed(
+                    onNavigate: () => Navigator.push(
                       context,
-                      '/project/${state.selectedProject!.projectId}',
+                      MaterialPageRoute(
+                        builder: (_) => ProjectDetailsScreen(
+                          projectId: state.selectedProject!.projectId,
+                        ),
+                      ),
                     ),
                   ),
                 ).animate().slideY(begin: 1.0, end: 0.0, duration: 300.ms,

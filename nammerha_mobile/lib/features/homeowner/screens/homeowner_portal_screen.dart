@@ -11,6 +11,7 @@ import '../bloc/homeowner_bloc.dart';
 import '../bloc/homeowner_event.dart';
 import '../bloc/homeowner_state.dart';
 import '../../../core/i18n/t.dart';
+import '../../damage_report/screens/damage_report_screen.dart';
 
 class HomeownerPortalScreen extends StatelessWidget {
   const HomeownerPortalScreen({super.key});
@@ -70,7 +71,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         title: const Text('بوابة المتضرر'),
         actions: [
           IconButton(
-            onPressed: () => Navigator.pushNamed(context, '/damage-report'),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DamageReportScreen())),
             icon: Icon(Icons.add_circle_rounded, color: colors.primaryBrand),
             tooltip: 'تقرير أضرار',
           ),

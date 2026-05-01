@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/donations_repository.dart';
+import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 
 class DonationCheckoutScreen extends StatefulWidget {
@@ -51,7 +51,7 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString(), style: GoogleFonts.cairo()),
+            content: Text(e.toString()),
             backgroundColor: Colors.red,
           ),
         );
@@ -63,18 +63,19 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8),
+      backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: Text(
           'التبرع للمشروع',
-          style: GoogleFonts.cairo(
-            color: const Color(0xFF242424),
+          style: textTheme.titleMedium?.copyWith(
+            color: colors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF242424)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -86,20 +87,19 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  color: colors.primaryBrandLight,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF0D47A1).withValues(alpha: 0.2)),
+                  border: Border.all(color: colors.primaryBrand.withAlpha(50)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.security, color: Color(0xFF0D47A1)),
+                    Icon(Icons.security, color: colors.primaryBrand),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'جميع التبرعات محمية بنظام الضمان (Escrow) ولن تُصرف إلا بعد الإثبات المكاني.',
-                        style: GoogleFonts.cairo(
-                          color: const Color(0xFF0D47A1),
-                          fontSize: 12,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colors.primaryBrand,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -110,26 +110,25 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
               const SizedBox(height: 32),
               Text(
                 'مبلغ التبرع (USD)',
-                style: GoogleFonts.cairo(
-                  fontSize: 16,
+                style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF242424),
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.bold),
+                style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: colors.surfaceElevated,
                   hintText: '0.00',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  prefixIcon: const Icon(Icons.attach_money, size: 32, color: Color(0xFF0A6E55)),
+                  prefixIcon: Icon(Icons.attach_money, size: 32, color: colors.secondaryAccent),
                 ),
                 validator: (val) {
                   if (val == null || val.isEmpty) return context.tr('str_bbd73382');
@@ -143,14 +142,14 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   'تبرع بصفة مجهول (Anonymous)',
-                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
+                  style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
                   'لن يتم عرض اسمك في السجل العام للمشروع',
-                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.grey.shade600),
+                  style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
                 ),
-                activeTrackColor: const Color(0xFF0D47A1).withValues(alpha: 0.5),
-                activeThumbColor: const Color(0xFF0D47A1),
+                activeTrackColor: colors.primaryBrand.withAlpha(127),
+                activeThumbColor: colors.primaryBrand,
                 value: _isAnonymous,
                 onChanged: (val) => setState(() => _isAnonymous = val),
               ),
@@ -158,12 +157,10 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(const Color(0xFF0A6E55)),
-                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.secondaryAccent,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _isSubmitting ? null : _processDonation,
                   child: _isSubmitting
@@ -174,8 +171,7 @@ class _DonationCheckoutScreenState extends State<DonationCheckoutScreen> {
                         )
                       : Text(
                           'متابعة الدفع عبر بوابة فاتورة',
-                          style: GoogleFonts.cairo(
-                            fontSize: 16,
+                          style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

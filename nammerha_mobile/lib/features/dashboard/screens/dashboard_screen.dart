@@ -27,6 +27,8 @@ import '../../admin/screens/admin_hub_screen.dart';
 import '../../admin/screens/admin_dashboard_screen.dart';
 import '../../admin/screens/admin_escrow_screen.dart';
 import '../../admin/screens/admin_kyc_screen.dart';
+import '../../contractor/screens/contractor_portal_screen.dart';
+import '../../tradesperson/screens/tradesperson_portal_screen.dart';
 import '../../../core/i18n/t.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -83,6 +85,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: const ProfileScreen(),
           ),
         ];
+      case 'CONTRACTOR':
+        return [
+          _DashboardHome(role: widget.role, userName: widget.user.fullName),
+          const ContractorPortalScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
+        ];
+      case 'TRADESPERSON':
+        return [
+          _DashboardHome(role: widget.role, userName: widget.user.fullName),
+          const TradespersonPortalScreen(),
+          BlocProvider(
+            create: (_) => ProfileBloc(),
+            child: const ProfileScreen(),
+          ),
+        ];
       default:
         return [
           _DashboardHome(role: widget.role, userName: widget.user.fullName),
@@ -121,6 +141,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
           BottomNavigationBarItem(icon: Icon(Icons.local_shipping_rounded), label: 'الطلبات'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+        ];
+      case 'CONTRACTOR':
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
+          BottomNavigationBarItem(icon: Icon(Icons.construction_rounded), label: 'عروضي'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+        ];
+      case 'TRADESPERSON':
+        return const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
+          BottomNavigationBarItem(icon: Icon(Icons.handyman_rounded), label: 'المهام'),
           BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
         ];
       default:
@@ -206,7 +238,7 @@ class _DashboardHomeView extends StatelessWidget {
               color: colors.primaryBrand,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

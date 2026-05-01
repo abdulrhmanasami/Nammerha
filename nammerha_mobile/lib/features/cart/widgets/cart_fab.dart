@@ -49,9 +49,9 @@ class CartFab extends StatelessWidget {
                   ),
                 ),
                 // Badge
-                Positioned(
+                PositionedDirectional(
                   top: -4,
-                  right: -4,
+                  end: -4,
                   child: AnimatedScale(
                     scale: count > 0 ? 1.0 : 0.0,
                     duration: NammerhaAnimations.fast,

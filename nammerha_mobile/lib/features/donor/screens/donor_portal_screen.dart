@@ -9,6 +9,7 @@ import '../bloc/donor_event.dart';
 import '../bloc/donor_state.dart';
 import '../models/donor_models.dart';
 import '../../../core/i18n/t.dart';
+import '../../project/screens/project_details_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Portal — Full 5-Tab Dashboard
@@ -329,7 +330,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                     Text('${formatCurrency(p['total_funded'] ?? 0)} / ${formatCurrency(p['total_cost'] ?? 0)}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                     if (!isFullyFunded)
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, '/project/${p['project_id']}'),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProjectDetailsScreen(projectId: p['project_id']?.toString() ?? ''))),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
@@ -545,9 +546,9 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                             : Center(child: Icon(Icons.image_rounded, size: 32, color: colors.textSubtle)),
                       ),
                       if (hasGps)
-                        Positioned(
+                        PositionedDirectional(
                           bottom: 4,
-                          right: 4,
+                          end: 4,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(

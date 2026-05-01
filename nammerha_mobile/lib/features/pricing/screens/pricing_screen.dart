@@ -4,6 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../../contact/screens/contact_screen.dart';
+import '../../auth/screens/login_screen.dart';
+import '../../supplier/screens/supplier_subscription_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Pricing Screen — REM-004: 4-Tier SaaS Pricing Page
@@ -407,15 +410,15 @@ class _PricingScreenState extends State<PricingScreen> {
 
   void _handleSubscribe(String slug) {
     if (slug == 'enterprise') {
-      Navigator.pushNamed(context, '/contact', arguments: {'subject': 'enterprise'});
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen()));
       return;
     }
     if (slug == 'free') {
-      Navigator.pushNamed(context, '/auth');
+      Navigator.push(context, MaterialPageRoute(builder: (_) => LoginScreen(onLoginSuccess: () => Navigator.pop(context))));
       return;
     }
-    // Pro/Business → payment flow
-    Navigator.pushNamed(context, '/subscription', arguments: {'plan': slug, 'yearly': _isYearly});
+    // Pro/Business → subscription flow
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplierSubscriptionScreen()));
   }
 }
 

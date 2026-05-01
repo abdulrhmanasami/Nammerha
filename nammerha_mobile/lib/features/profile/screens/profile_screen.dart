@@ -736,8 +736,8 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
         final serverError = authState is AuthError ? authState.message : null;
         final displayError = _validationError ?? serverError;
         return Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+          padding: EdgeInsetsDirectional.fromSTEB(
+            20, 12, 20, MediaQuery.of(context).viewInsets.bottom + 32,
           ),
           child: SingleChildScrollView(
 

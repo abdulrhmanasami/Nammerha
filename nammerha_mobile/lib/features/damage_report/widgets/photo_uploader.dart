@@ -237,9 +237,9 @@ class _PhotoUploaderState extends State<PhotoUploader> {
             ),
           ),
           // Remove button
-          Positioned(
+          PositionedDirectional(
             top: 4,
-            right: 4,
+            end: 4,
             child: GestureDetector(
               onTap: () => _removePhoto(index),
               child: Container(

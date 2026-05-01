@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
@@ -75,6 +74,7 @@ class _SupplierSubscriptionScreenState extends State<SupplierSubscriptionScreen>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
@@ -89,8 +89,7 @@ class _SupplierSubscriptionScreenState extends State<SupplierSubscriptionScreen>
           children: [
             Text(
               'الارتقاء بمستوى الثقة',
-              style: GoogleFonts.cairo(
-                fontSize: 24,
+              style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: colors.textPrimary,
               ),
@@ -99,8 +98,7 @@ class _SupplierSubscriptionScreenState extends State<SupplierSubscriptionScreen>
             const SizedBox(height: 8),
             Text(
               'خدمة الثقة (Trust-as-a-Service) تمنحك الأولوية والموثوقية في المشاريع الاستراتيجية.',
-              style: GoogleFonts.cairo(
-                fontSize: 14,
+              style: textTheme.bodyMedium?.copyWith(
                 color: colors.textSecondary,
                 height: 1.5,
               ),
@@ -148,8 +146,7 @@ class _SupplierSubscriptionScreenState extends State<SupplierSubscriptionScreen>
                               const SizedBox(width: 12),
                               Text(
                                 tier['name'] as String,
-                                style: GoogleFonts.cairo(
-                                  fontSize: 18,
+                                style: textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: isSelected ? colors.primaryBrand : colors.textPrimary,
                                 ),
@@ -176,19 +173,17 @@ class _SupplierSubscriptionScreenState extends State<SupplierSubscriptionScreen>
                         children: [
                           Text(
                             tier['price'] as String,
-                            style: GoogleFonts.cairo(
-                              fontSize: 28,
+                            style: textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                               color: colors.textPrimary,
                             ),
                           ),
                           const SizedBox(width: 4),
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsetsDirectional.only(bottom: 6),
                             child: Text(
                               'ل.س / ${tier['period']}',
-                              style: GoogleFonts.cairo(
-                                fontSize: 13,
+                              style: textTheme.bodySmall?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: colors.textSecondary,
                               ),
@@ -210,7 +205,7 @@ class _SupplierSubscriptionScreenState extends State<SupplierSubscriptionScreen>
                               Expanded(
                                 child: Text(
                                   feature,
-                                  style: GoogleFonts.cairo(fontSize: 13, color: colors.textPrimary),
+                                  style: textTheme.bodySmall?.copyWith(color: colors.textPrimary),
                                 ),
                               ),
                             ],

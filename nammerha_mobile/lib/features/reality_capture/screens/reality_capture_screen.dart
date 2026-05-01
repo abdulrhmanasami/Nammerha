@@ -288,8 +288,8 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
               ),
             // 360 badge
             if (is360)
-              Positioned(
-                top: 10, left: 10,
+              PositionedDirectional(
+                top: 10, start: 10,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -305,8 +305,8 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
               ),
             // Verified badge
             if (isVerified)
-              Positioned(
-                top: 10, right: 10,
+              PositionedDirectional(
+                top: 10, end: 10,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(

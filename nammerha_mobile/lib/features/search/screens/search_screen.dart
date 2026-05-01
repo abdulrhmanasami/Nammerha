@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-
+import '../../../core/theme/semantic_colors.dart';
 import '../../project/data/models/project_model.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
@@ -27,11 +26,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8), // Cloud Dancer
+      backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         title: TextField(
           controller: _searchController,
           onChanged: (val) {
@@ -39,19 +39,18 @@ class _SearchScreenState extends State<SearchScreen> {
           },
           decoration: InputDecoration(
             hintText: 'ابحث عن مشروع أو مقاول...',
-            hintStyle: GoogleFonts.cairo(color: Colors.grey.shade500),
+            hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
             border: InputBorder.none,
-            // Assuming Phosphor is used in the app, using standard Icons as fallback if not imported
-            prefixIcon: const Icon(Icons.search, color: Color(0xFF0D47A1)), 
+            prefixIcon: Icon(Icons.search, color: colors.primaryBrand),
           ),
-          style: GoogleFonts.cairo(
-            color: const Color(0xFF242424),
+          style: textTheme.bodyMedium?.copyWith(
+            color: colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list, color: Color(0xFF0D47A1)),
+            icon: Icon(Icons.filter_list, color: colors.primaryBrand),
             onPressed: () => _showFilterBottomSheet(context),
           ),
         ],
@@ -63,13 +62,12 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_rounded, size: 80, color: Colors.grey.shade300),
+                  Icon(Icons.search_rounded, size: 80, color: colors.textSubtle),
                   const SizedBox(height: 16),
                   Text(
                     'ابدأ البحث عن المشاريع',
-                    style: GoogleFonts.cairo(
-                      color: Colors.grey.shade600,
-                      fontSize: 18,
+                    style: textTheme.titleMedium?.copyWith(
+                      color: colors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -77,17 +75,16 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             );
           } else if (state is SearchLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF0D47A1)),
+            return Center(
+              child: CircularProgressIndicator(color: colors.primaryBrand),
             );
           } else if (state is SearchLoaded) {
             if (state.projects.isEmpty) {
               return Center(
                 child: Text(
                   'لم يتم العثور على نتائج',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey.shade600,
-                    fontSize: 18,
+                  style: textTheme.titleMedium?.copyWith(
+                    color: colors.textSecondary,
                   ),
                 ),
               );
@@ -98,14 +95,14 @@ class _SearchScreenState extends State<SearchScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final project = state.projects[index];
-                return _buildProjectCard(project);
+                return _buildProjectCard(project, colors, textTheme);
               },
             );
           } else if (state is SearchError) {
             return Center(
               child: Text(
                 state.message,
-                style: GoogleFonts.cairo(color: Colors.red),
+                style: textTheme.bodyMedium?.copyWith(color: colors.error),
               ),
             );
           }
@@ -115,18 +112,12 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildProjectCard(ProjectModel project) {
+  Widget _buildProjectCard(ProjectModel project, SemanticColors colors, TextTheme textTheme) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surfaceElevated,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: colors.strokeSubtle),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -134,10 +125,9 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           Text(
             project.title,
-            style: GoogleFonts.cairo(
+            style: textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: const Color(0xFF242424),
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -146,13 +136,13 @@ class _SearchScreenState extends State<SearchScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  color: colors.primaryBrandLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '\${project.totalEstimatedCost} USD',
-                  style: GoogleFonts.cairo(
-                    color: const Color(0xFF0D47A1),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colors.primaryBrand,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -160,8 +150,8 @@ class _SearchScreenState extends State<SearchScreen> {
               const Spacer(),
               Text(
                 'مُنجز \${project.fundedPercentage}%',
-                style: GoogleFonts.cairo(
-                  color: const Color(0xFF0A6E55),
+                style: textTheme.bodySmall?.copyWith(
+                  color: colors.secondaryAccent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -173,9 +163,12 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _showFilterBottomSheet(BuildContext context) {
-    // Basic bottom sheet for filters
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: colors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -188,18 +181,16 @@ class _SearchScreenState extends State<SearchScreen> {
             children: [
               Text(
                 'تصفية النتائج',
-                style: GoogleFonts.cairo(
-                  fontSize: 20,
+                style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF242424),
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 20),
-              // Dummy filter option for UI completeness
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('المشاريع ذات الأولوية (وفاق)', style: GoogleFonts.cairo()),
-                trailing: const Icon(Icons.verified, color: Color(0xFF0D47A1)),
+                title: Text('المشاريع ذات الأولوية (وفاق)', style: textTheme.bodyMedium),
+                trailing: Icon(Icons.verified, color: colors.primaryBrand),
                 onTap: () {
                   Navigator.pop(ctx);
                   context.read<SearchBloc>().add(

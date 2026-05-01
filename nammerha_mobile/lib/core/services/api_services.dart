@@ -1055,3 +1055,43 @@ class ContactApi {
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROLES API — Mirrors api.ts roles module
+// GAP-C03: Users can now discover and activate new roles from mobile
+// ═══════════════════════════════════════════════════════════════════════════
+
+class RolesApi {
+  final NammerhaApiClient _api;
+  RolesApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /api/roles/available — List all roles the user can activate
+  Future<List<Map<String, dynamic>>> getAvailable() async {
+    final response = await _api.request<List<dynamic>>(
+      '/roles/available',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// POST /api/roles/activate — Activate a new role for the current user
+  Future<Map<String, dynamic>> activate(String roleName) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/roles/activate',
+      method: 'POST',
+      idempotent: true,
+      body: {'role': roleName},
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/roles/my-roles — Get the current user's active roles
+  Future<List<Map<String, dynamic>>> getMyRoles() async {
+    final response = await _api.request<List<dynamic>>(
+      '/roles/my-roles',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+}
