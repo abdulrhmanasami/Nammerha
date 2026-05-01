@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/network/api_client.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/contact_bloc.dart';
 
 /// Contact Screen — mirrors web contact.ts
-/// GAP-M4 FIX: Contact form with category picker.
+/// GAP-M4 FIX: Contact form with category picker + Platinum BLoC integration.
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
 
@@ -21,8 +22,6 @@ class _ContactScreenState extends State<ContactScreen> {
   final _subjectCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
   String _category = 'general';
-  bool _isSubmitting = false;
-  bool _isSuccess = false;
 
   @override
   void dispose() {
@@ -33,55 +32,57 @@ class _ContactScreenState extends State<ContactScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  void _submit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSubmitting = true);
-    try {
-      await NammerhaApiClient.instance.request(
-        '/contact',
-        method: 'POST',
-        body: {
-          'name': _nameCtrl.text.trim(),
-          'email': _emailCtrl.text.trim(),
-          'subject': _subjectCtrl.text.trim(),
-          'message': _messageCtrl.text.trim(),
-          'category': _category,
-        },
-      );
-      setState(() { _isSubmitting = false; _isSuccess = true; });
-    } on ApiException catch (e) {
-      setState(() => _isSubmitting = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: context.colors.error));
-      }
-    } catch (e) {
-      setState(() => _isSubmitting = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الإرسال: $e'), backgroundColor: context.colors.error));
-      }
-    }
+    
+    // Add the category to the subject or message since the API currently takes subject/message
+    final subjectWithCategory = '[$_category] ${_subjectCtrl.text.trim()}';
+    
+    context.read<ContactBloc>().add(
+      SubmitContactForm(
+        name: _nameCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
+        subject: subjectWithCategory,
+        message: _messageCtrl.text.trim(),
+      )
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Scaffold(
-      backgroundColor: colors.backgroundPrimary,
-      appBar: AppBar(
-        title: Text('تواصل معنا', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-        backgroundColor: colors.backgroundPrimary, elevation: 0,
-        iconTheme: IconThemeData(color: colors.textPrimary),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: _isSuccess ? _successView(colors) : _formView(colors),
+    
+    return BlocProvider(
+      create: (_) => ContactBloc(),
+      child: Scaffold(
+        backgroundColor: colors.backgroundPrimary,
+        appBar: AppBar(
+          title: Text('تواصل معنا', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          backgroundColor: colors.backgroundPrimary, elevation: 0,
+          iconTheme: IconThemeData(color: colors.textPrimary),
+        ),
+        body: SafeArea(
+          child: BlocConsumer<ContactBloc, ContactState>(
+            listener: (context, state) {
+              if (state.error != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.error!), backgroundColor: colors.error)
+                );
+              }
+            },
+            builder: (context, state) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: state.isSuccess ? _successView(colors, context) : _formView(colors, context, state),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _formView(SemanticColors colors) {
+  Widget _formView(SemanticColors colors, BuildContext context, ContactState state) {
     return Form(
       key: _formKey,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -114,7 +115,11 @@ class _ContactScreenState extends State<ContactScreen> {
             DropdownMenuItem(value: 'partnership', child: Text('شراكات')),
             DropdownMenuItem(value: 'complaint', child: Text('شكوى')),
           ],
-          onChanged: (v) => setState(() => _category = v ?? _category),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() => _category = v);
+            }
+          },
         ),
         const SizedBox(height: 14),
         TextFormField(controller: _nameCtrl, style: TextStyle(color: colors.textPrimary),
@@ -143,11 +148,11 @@ class _ContactScreenState extends State<ContactScreen> {
           }),
         const SizedBox(height: 24),
         ElevatedButton(
-          onPressed: _isSubmitting ? null : _submit,
+          onPressed: state.isSubmitting ? null : () => _submit(context),
           style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-          child: _isSubmitting
+          child: state.isSubmitting
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : const Text('إرسال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
         ),
@@ -155,7 +160,7 @@ class _ContactScreenState extends State<ContactScreen> {
     );
   }
 
-  Widget _successView(SemanticColors colors) {
+  Widget _successView(SemanticColors colors, BuildContext context) {
     return Column(children: [
       const SizedBox(height: 60),
       Container(width: 80, height: 80,

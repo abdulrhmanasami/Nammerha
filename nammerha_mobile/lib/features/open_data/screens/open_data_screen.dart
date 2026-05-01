@@ -1,54 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../core/services/open_data_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/open_data_bloc.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Open Data Portal — بوابة البيانات المفتوحة
 /// ═══════════════════════════════════════════════════════════════════════════
 /// GAP-H3 FIX: OCDS transparency portal — previously web-only.
 /// Shows platform stats, public projects, and OCDS compliance badge.
+/// Platinum BLoC integration: Zero setState.
 /// ═══════════════════════════════════════════════════════════════════════════
-class OpenDataScreen extends StatefulWidget {
+class OpenDataScreen extends StatelessWidget {
   const OpenDataScreen({super.key});
-
-  @override
-  State<OpenDataScreen> createState() => _OpenDataScreenState();
-}
-
-class _OpenDataScreenState extends State<OpenDataScreen> {
-  final OpenDataApi _api = OpenDataApi();
-  Map<String, dynamic> _stats = {};
-  List<Map<String, dynamic>> _projects = [];
-  bool _isLoading = true;
-  int _total = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
-    try {
-      final results = await Future.wait([
-        _api.getStats(),
-        _api.getProjects(limit: 20),
-      ]);
-      _stats = results[0];
-      final projData = results[1];
-      _projects = (projData['projects'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
-      _total = (projData['total'] as int?) ?? _projects.length;
-    } on ApiException catch (_) {
-    } catch (_) {}
-    if (mounted) setState(() => _isLoading = false);
-  }
 
   String _formatCurrency(num amount) {
     if (amount >= 1000000) return '${(amount / 1000000).toStringAsFixed(1)}M';
@@ -60,29 +28,47 @@ class _OpenDataScreenState extends State<OpenDataScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
-      backgroundColor: colors.backgroundPrimary,
-      appBar: AppBar(
-        title: Text('بوابة البيانات المفتوحة', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-        backgroundColor: colors.backgroundPrimary, elevation: 0,
-        iconTheme: IconThemeData(color: colors.textPrimary),
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: colors.primaryBrand))
-          : RefreshIndicator(
-              onRefresh: _load,
+    return BlocProvider(
+      create: (_) => OpenDataBloc()..add(LoadOpenDataDashboard()),
+      child: Scaffold(
+        backgroundColor: colors.backgroundPrimary,
+        appBar: AppBar(
+          title: Text('بوابة البيانات المفتوحة', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          backgroundColor: colors.backgroundPrimary, elevation: 0,
+          iconTheme: IconThemeData(color: colors.textPrimary),
+        ),
+        body: BlocConsumer<OpenDataBloc, OpenDataState>(
+          listener: (context, state) {
+            if (state.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error!), backgroundColor: colors.error)
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state.isLoading && state.projects.isEmpty && state.stats.isEmpty) {
+              return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            }
+
+            final total = state.stats['total_projects'] as int? ?? state.projects.length;
+
+            return RefreshIndicator(
+              onRefresh: () async => context.read<OpenDataBloc>().add(LoadOpenDataDashboard()),
               color: colors.primaryBrand,
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
                   _buildOCDSBadge(colors),
                   const SizedBox(height: 20),
-                  _buildStatsGrid(colors),
+                  _buildStatsGrid(context, colors, state.stats, total),
                   const SizedBox(height: 20),
-                  _buildProjectsList(colors),
+                  _buildProjectsList(colors, state.projects, total),
                 ],
               ),
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -117,14 +103,14 @@ class _OpenDataScreenState extends State<OpenDataScreen> {
     ).animate().fadeIn(duration: 400.ms);
   }
 
-  Widget _buildStatsGrid(SemanticColors colors) {
+  Widget _buildStatsGrid(BuildContext context, SemanticColors colors, Map<String, dynamic> stats, int total) {
     final items = [
-      _StatItem('المشاريع المنشورة', '${_stats['total_projects'] ?? _total}', Icons.article_rounded, colors.primaryBrand),
-      _StatItem('إجمالي التمويل', '${_formatCurrency((_stats['total_funding'] ?? 0) as num)} ل.س', Icons.account_balance_rounded, colors.secondaryAccent),
-      _StatItem(context.tr('str_9ddc2404'), '${_stats['total_donors'] ?? 0}', Icons.people_rounded, colors.info),
-      _StatItem(context.tr('admin_contractors'), '${_stats['total_contractors'] ?? 0}', Icons.engineering_rounded, colors.success),
-      _StatItem('المشاريع المكتملة', '${_stats['completed_projects'] ?? 0}', Icons.check_circle_rounded, colors.success),
-      _StatItem('المناطق المغطاة', '${_stats['total_regions'] ?? 0}', Icons.map_rounded, colors.warning),
+      _StatItem('المشاريع المنشورة', '${stats['total_projects'] ?? total}', Icons.article_rounded, colors.primaryBrand),
+      _StatItem('إجمالي التمويل', '${_formatCurrency((stats['total_funding'] ?? 0) as num)} ل.س', Icons.account_balance_rounded, colors.secondaryAccent),
+      _StatItem(context.tr('str_9ddc2404'), '${stats['total_donors'] ?? 0}', Icons.people_rounded, colors.info),
+      _StatItem(context.tr('admin_contractors'), '${stats['total_contractors'] ?? 0}', Icons.engineering_rounded, colors.success),
+      _StatItem('المشاريع المكتملة', '${stats['completed_projects'] ?? 0}', Icons.check_circle_rounded, colors.success),
+      _StatItem('المناطق المغطاة', '${stats['total_regions'] ?? 0}', Icons.map_rounded, colors.warning),
     ];
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -158,15 +144,15 @@ class _OpenDataScreenState extends State<OpenDataScreen> {
     ]);
   }
 
-  Widget _buildProjectsList(SemanticColors colors) {
+  Widget _buildProjectsList(SemanticColors colors, List<Map<String, dynamic>> projects, int total) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Text('المشاريع المنشورة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const Spacer(),
-        Text('$_total مشروع', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+        Text('$total مشروع', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
       ]),
       const SizedBox(height: 12),
-      if (_projects.isEmpty)
+      if (projects.isEmpty)
         Center(child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(children: [
@@ -176,7 +162,7 @@ class _OpenDataScreenState extends State<OpenDataScreen> {
           ]),
         ))
       else
-        ...List.generate(_projects.length, (i) => _projectCard(_projects[i], colors, i)),
+        ...List.generate(projects.length, (i) => _projectCard(projects[i], colors, i)),
     ]);
   }
 

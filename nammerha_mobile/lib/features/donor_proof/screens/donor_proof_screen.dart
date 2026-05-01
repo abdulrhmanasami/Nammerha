@@ -4,10 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
-import '../../../core/services/api_services.dart';
-import '../../donor/bloc/donor_bloc.dart';
-import '../../donor/bloc/donor_event.dart';
-import '../../donor/bloc/donor_state.dart';
+import '../bloc/donor_proof_bloc.dart';
 import '../../pdf/screens/pdf_viewer_screen.dart';
 import '../../../core/i18n/t.dart';
 
@@ -15,23 +12,22 @@ import '../../../core/i18n/t.dart';
 /// Donor Proof Screen — Proof of Delivery with GPS Verification
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Mirrors web: frontend/src/pages/donor-proof.ts
-/// Absolute Zero Monolithic API coupling — Uses DonorBloc Native State.
+/// Platinum BLoC integration: Zero data setState.
 /// ═══════════════════════════════════════════════════════════════════════════
-class DonorProofScreen extends StatefulWidget {
+class DonorProofScreen extends StatelessWidget {
   const DonorProofScreen({super.key});
 
   @override
-  State<DonorProofScreen> createState() => _DonorProofScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => DonorProofBloc()..add(LoadDonorProofs()),
+      child: const _DonorProofScreenContent(),
+    );
+  }
 }
 
-class _DonorProofScreenState extends State<DonorProofScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DonorBloc>().add(DonorLoadStandaloneProofsRequested());
-    });
-  }
+class _DonorProofScreenContent extends StatelessWidget {
+  const _DonorProofScreenContent();
 
   @override
   Widget build(BuildContext context) {
@@ -40,42 +36,60 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(title: const Text('إثباتات التسليم')),
-      body: BlocConsumer<DonorBloc, DonorState>(
-        listener: (context, state) {},
+      body: BlocConsumer<DonorProofBloc, DonorProofState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error!), backgroundColor: colors.error)
+            );
+          } else if (state.receiptUrl != null && !state.isDownloadingReceipt) {
+            if (state.receiptUrl!.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: const Text('الإيصال غير متوفر حالياً'), backgroundColor: colors.warning),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PdfViewerScreen(
+                    url: state.receiptUrl!,
+                    title: 'إيصال التبرع',
+                  ),
+                ),
+              );
+            }
+          }
+        },
         builder: (context, state) {
-          if (state is DonorLoading || state is DonorInitial) {
+          if (state.isLoading && state.proofs.isEmpty) {
             return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
           }
 
-          if (state is DonorError) {
-            return _buildError(colors, state.message);
+          if (state.error != null && state.proofs.isEmpty) {
+            return _buildError(context, colors, state.error!);
           }
 
-          if (state is DonorStandaloneProofsLoaded) {
-            final proofs = state.proofs;
-            if (proofs.isEmpty) return _buildEmpty(colors);
+          final proofs = state.proofs;
+          if (proofs.isEmpty) return _buildEmpty(colors);
 
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<DonorBloc>().add(DonorLoadStandaloneProofsRequested());
-              },
-              color: colors.primaryBrand,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: proofs.length,
-                itemBuilder: (context, index) =>
-                    _buildProofCard(proofs[index], colors, index),
-              ),
-            );
-          }
-
-          return const SizedBox.shrink();
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<DonorProofBloc>().add(LoadDonorProofs());
+            },
+            color: colors.primaryBrand,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: proofs.length,
+              itemBuilder: (context, index) =>
+                  _buildProofCard(context, proofs[index], colors, index, state.isDownloadingReceipt),
+            ),
+          );
         },
       ),
     );
   }
 
-  Widget _buildError(SemanticColors colors, String error) {
+  Widget _buildError(BuildContext context, SemanticColors colors, String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -85,7 +99,7 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
           Text(error, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: () => context.read<DonorBloc>().add(DonorLoadStandaloneProofsRequested()),
+            onPressed: () => context.read<DonorProofBloc>().add(LoadDonorProofs()),
             icon: const Icon(Icons.refresh_rounded),
             label: const Text('إعادة المحاولة'),
           ),
@@ -116,7 +130,7 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
     );
   }
 
-  Widget _buildProofCard(Map<String, dynamic> proof, SemanticColors colors, int index) {
+  Widget _buildProofCard(BuildContext context, Map<String, dynamic> proof, SemanticColors colors, int index, bool isDownloading) {
     final materialName = proof['material_name'] ?? '';
     final projectTitle = proof['project_title'] ?? '';
     final status = (proof['payment_status'] ?? '') as String;
@@ -314,8 +328,10 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _openReceipt(proof, colors),
-                  icon: Icon(Icons.picture_as_pdf_rounded, size: 18, color: colors.primaryBrand),
+                  onPressed: isDownloading ? null : () => _openReceipt(context, proof, colors),
+                  icon: isDownloading
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Icon(Icons.picture_as_pdf_rounded, size: 18, color: colors.primaryBrand),
                   label: Text('تحميل الإيصال PDF', style: TextStyle(color: colors.primaryBrand, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: colors.primaryBrand.withAlpha(40)),
@@ -331,58 +347,16 @@ class _DonorProofScreenState extends State<DonorProofScreen> {
     ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.06, end: 0);
   }
 
-  Future<void> _openReceipt(Map<String, dynamic> proof, SemanticColors colors) async {
+  void _openReceipt(BuildContext context, Map<String, dynamic> proof, SemanticColors colors) {
     final escrowId = proof['escrow_id']?.toString() ?? proof['id']?.toString();
     if (escrowId == null || escrowId.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('لا يوجد معرّف للضمان'), backgroundColor: colors.error),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('لا يوجد معرّف للضمان'), backgroundColor: colors.error),
+      );
       return;
     }
 
-    // Show loading
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('جاري تحميل الإيصال...'),
-          backgroundColor: colors.primaryBrand,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-
-    try {
-      final url = await DonorApi().getReceiptUrl(escrowId);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-      if (url == null || url.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('الإيصال غير متوفر حالياً'), backgroundColor: colors.warning),
-        );
-        return;
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PdfViewerScreen(
-            url: url,
-            title: 'إيصال التبرع',
-            subtitle: proof['project_title']?.toString(),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ: $e'), backgroundColor: colors.error),
-        );
-      }
-    }
+    context.read<DonorProofBloc>().add(DownloadReceipt(escrowId));
   }
 
   Widget _gpsRow(String label, String value, SemanticColors colors) {

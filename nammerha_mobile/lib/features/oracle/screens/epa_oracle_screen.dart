@@ -1,37 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
-import '../../../core/services/api_services.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/oracle_bloc.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// EPA Pricing Oracle — FIDIC 13.8 Price Adjustment Engine
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Mirrors web: frontend/src/pages/admin-oracle.ts
 /// Live material price ticker + adjustment calculator + approval flow
+/// Platinum BLoC integration: Zero data setState.
 /// ═══════════════════════════════════════════════════════════════════════════
-class EpaOracleScreen extends StatefulWidget {
+class EpaOracleScreen extends StatelessWidget {
   final String? projectId;
 
   const EpaOracleScreen({super.key, this.projectId});
 
   @override
-  State<EpaOracleScreen> createState() => _EpaOracleScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => OracleBloc(),
+      child: _EpaOracleScreenContent(projectId: projectId),
+    );
+  }
 }
 
-class _EpaOracleScreenState extends State<EpaOracleScreen>
+class _EpaOracleScreenContent extends StatefulWidget {
+  final String? projectId;
+
+  const _EpaOracleScreenContent({this.projectId});
+
+  @override
+  State<_EpaOracleScreenContent> createState() => _EpaOracleScreenContentState();
+}
+
+class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final NammerhaApiClient _api = NammerhaApiClient.instance;
-
-  List<Map<String, dynamic>> _prices = [];
-  List<Map<String, dynamic>> _history = [];
-  Map<String, dynamic>? _adjustmentResult;
-  bool _isLoading = true;
-  bool _isCalculating = false;
 
   // FIDIC 13.8 coefficients
   final _aController = TextEditingController(text: '0.35');
@@ -47,7 +55,11 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) _loadTabData(_tabController.index);
     });
-    _loadTabData(0);
+    
+    // Initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTabData(0);
+    });
   }
 
   @override
@@ -61,60 +73,45 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
     super.dispose();
   }
 
-  Future<void> _loadTabData(int index) async {
-    setState(() => _isLoading = true);
-    try {
-      switch (index) {
-        case 0:
-          final response = await _api.request<List<dynamic>>(
-            '/oracle/prices',
-            fromData: (d) => d as List<dynamic>,
-          );
-          _prices = response.data?.cast<Map<String, dynamic>>() ?? [];
-          break;
-        case 2:
-          if (widget.projectId != null) {
-            final response = await _api.request<List<dynamic>>(
-              '/oracle/history/${widget.projectId}',
-              fromData: (d) => d as List<dynamic>,
-            );
-            _history = response.data?.cast<Map<String, dynamic>>() ?? [];
-          }
-          break;
-      }
-    } on ApiException catch (_) {} catch (_) {}
-    if (mounted) setState(() => _isLoading = false);
+  void _loadTabData(int index) {
+    final bloc = context.read<OracleBloc>();
+    switch (index) {
+      case 0:
+        bloc.add(LoadOraclePrices());
+        break;
+      case 2:
+        if (widget.projectId != null) {
+          bloc.add(LoadAdjustmentHistory(widget.projectId!));
+        }
+        break;
+    }
   }
 
-  Future<void> _calculateAdjustment() async {
-    if (_isCalculating || widget.projectId == null) return;
+  void _calculateAdjustment() {
+    if (widget.projectId == null) return;
     final amount = int.tryParse(_amountController.text);
     if (amount == null || amount <= 0) return;
 
-    setState(() => _isCalculating = true);
-    try {
-      final a = double.tryParse(_aController.text) ?? 0.35;
-      final b = double.tryParse(_bController.text) ?? 0.25;
-      final c = double.tryParse(_cController.text) ?? 0.25;
-      final d = double.tryParse(_dController.text) ?? 0.15;
+    final a = double.tryParse(_aController.text) ?? 0.35;
+    final b = double.tryParse(_bController.text) ?? 0.25;
+    final c = double.tryParse(_cController.text) ?? 0.25;
+    final d = double.tryParse(_dController.text) ?? 0.15;
 
-      final response = await _api.request<Map<String, dynamic>>(
-        '/oracle/calculate',
-        method: 'POST',
-        body: {
-          'project_id': widget.projectId,
-          'fidic_params': {
-            'a': a, 'b': b, 'c': c, 'd': d,
-            'Ln': 105, 'En': 110, 'Mn': 108,
-            'Lo': 100, 'Eo': 100, 'Mo': 100,
-          },
-          'original_amount': amount * 100,
+    context.read<OracleBloc>().add(
+      CalculateEPAAdjustment(
+        projectId: widget.projectId!,
+        fidicParams: {
+          'a': a, 'b': b, 'c': c, 'd': d,
+          'Ln': 105, 'En': 110, 'Mn': 108,
+          'Lo': 100, 'Eo': 100, 'Mo': 100,
         },
-        fromData: (d) => d as Map<String, dynamic>,
-      );
-      _adjustmentResult = response.data;
-    } catch (_) {}
-    if (mounted) setState(() => _isCalculating = false);
+        originalAmount: amount * 100, // converted to cents or lowest denom
+      )
+    );
+  }
+
+  String formatCurrency(num amount) {
+    return '${amount.toStringAsFixed(0)} ل.س';
   }
 
   @override
@@ -138,24 +135,35 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildPriceTicker(colors),
-          _buildCalculator(colors),
-          _buildHistory(colors),
-        ],
+      body: BlocConsumer<OracleBloc, OracleState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error!), backgroundColor: colors.error)
+            );
+          }
+        },
+        builder: (context, state) {
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              _buildPriceTicker(colors, state),
+              _buildCalculator(colors, state),
+              _buildHistory(colors, state),
+            ],
+          );
+        },
       ),
     );
   }
 
   // ─── Tab 1: Live Price Ticker ─────────────────────────────────────────
 
-  Widget _buildPriceTicker(SemanticColors colors) {
-    if (_isLoading && _prices.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    if (_prices.isEmpty) return _emptyState(colors, Icons.show_chart_rounded, 'لا تتوفر بيانات أسعار', 'سيتم تحديث الأسعار تلقائياً');
+  Widget _buildPriceTicker(SemanticColors colors, OracleState state) {
+    if (state.isLoading && state.prices.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (state.prices.isEmpty) return _emptyState(colors, Icons.show_chart_rounded, 'لا تتوفر بيانات أسعار', 'سيتم تحديث الأسعار تلقائياً');
     return RefreshIndicator(
-      onRefresh: () => _loadTabData(0),
+      onRefresh: () async => _loadTabData(0),
       color: colors.primaryBrand,
       child: ListView(
         padding: const EdgeInsets.all(16),
@@ -181,7 +189,7 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
           const SizedBox(height: 16),
 
           // Price cards
-          ..._prices.asMap().entries.map((e) {
+          ...state.prices.asMap().entries.map((e) {
             final p = e.value;
             final changePct = (p['price_change_pct'] as num?)?.toDouble() ?? 0.0;
             final isPositive = changePct >= 0;
@@ -237,7 +245,7 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
 
   // ─── Tab 2: FIDIC Calculator ──────────────────────────────────────────
 
-  Widget _buildCalculator(SemanticColors colors) {
+  Widget _buildCalculator(SemanticColors colors, OracleState state) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -295,9 +303,9 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: _isCalculating ? null : _calculateAdjustment,
-            icon: Icon(_isCalculating ? Icons.hourglass_top_rounded : Icons.calculate_rounded, size: 18),
-            label: Text(_isCalculating ? 'جارِ الحساب...' : 'احسب التعديل'),
+            onPressed: state.isLoading ? null : _calculateAdjustment,
+            icon: Icon(state.isLoading ? Icons.hourglass_top_rounded : Icons.calculate_rounded, size: 18),
+            label: Text(state.isLoading ? 'جارِ الحساب...' : 'احسب التعديل'),
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryBrand,
               foregroundColor: Colors.white,
@@ -308,7 +316,7 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
         ),
 
         // Result
-        if (_adjustmentResult != null) ...[
+        if (state.calculationResult != null) ...[
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
@@ -321,10 +329,10 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
               children: [
                 Text('نتيجة التعديل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.success)),
                 const SizedBox(height: 10),
-                _resultRow('المبلغ الأصلي', formatCurrency(_adjustmentResult!['original_amount'] ?? 0), colors),
-                _resultRow('المبلغ المعدّل', formatCurrency(_adjustmentResult!['adjusted_amount'] ?? 0), colors),
-                _resultRow('نسبة التغيير', '${(_adjustmentResult!['adjustment_factor'] as num?)?.toStringAsFixed(4) ?? '—'}', colors),
-                _resultRow(context.tr('str_0b79cb24'), formatCurrency((_adjustmentResult!['adjusted_amount'] ?? 0) - (_adjustmentResult!['original_amount'] ?? 0)), colors),
+                _resultRow('المبلغ الأصلي', formatCurrency(state.calculationResult!['original_amount'] ?? 0), colors),
+                _resultRow('المبلغ المعدّل', formatCurrency(state.calculationResult!['adjusted_amount'] ?? 0), colors),
+                _resultRow('نسبة التغيير', '${(state.calculationResult!['adjustment_factor'] as num?)?.toStringAsFixed(4) ?? '—'}', colors),
+                _resultRow(context.tr('str_0b79cb24'), formatCurrency((state.calculationResult!['adjusted_amount'] ?? 0) - (state.calculationResult!['original_amount'] ?? 0)), colors),
               ],
             ),
           ).animate().fadeIn().slideY(begin: 0.05, end: 0),
@@ -364,18 +372,18 @@ class _EpaOracleScreenState extends State<EpaOracleScreen>
 
   // ─── Tab 3: History ───────────────────────────────────────────────────
 
-  Widget _buildHistory(SemanticColors colors) {
+  Widget _buildHistory(SemanticColors colors, OracleState state) {
     if (widget.projectId == null) return _emptyState(colors, Icons.history_rounded, 'اختر مشروعاً لعرض السجل', '');
-    if (_isLoading && _history.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    if (_history.isEmpty) return _emptyState(colors, Icons.history_rounded, 'لا توجد تعديلات سابقة', '');
+    if (state.isLoading && state.history.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (state.history.isEmpty) return _emptyState(colors, Icons.history_rounded, 'لا توجد تعديلات سابقة', '');
     return RefreshIndicator(
-      onRefresh: () => _loadTabData(2),
+      onRefresh: () async => _loadTabData(2),
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _history.length,
+        itemCount: state.history.length,
         itemBuilder: (_, i) {
-          final h = _history[i];
+          final h = state.history[i];
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),

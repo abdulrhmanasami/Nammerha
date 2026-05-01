@@ -119,6 +119,16 @@ class DonorApi {
     return response.data?.cast<Map<String, dynamic>>() ?? [];
   }
 
+  /// GET /api/donor/projects/:id/funding — Per-project funding breakdown
+  /// GAP-A05 REMEDIATION: Mobile parity with web donor.getProjectFunding()
+  Future<Map<String, dynamic>> getProjectFunding(String projectId) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/donor/projects/$projectId/funding',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
   /// POST /api/donor/refunds
   Future<void> requestRefund({
     required String escrowId,
@@ -296,6 +306,17 @@ class EngineerApi {
       },
     );
   }
+
+  /// GET /api/engineer/captures — My recent captures
+  /// GAP-A06 REMEDIATION: Mobile parity with web engineer.getCaptures()
+  Future<List<Map<String, dynamic>>> getCaptures({int? limit}) async {
+    final qs = limit != null ? '?limit=$limit' : '';
+    final response = await _api.request<List<dynamic>>(
+      '/engineer/captures$qs',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -358,6 +379,42 @@ class SupplierApi {
       fromData: (d) => d as List<dynamic>,
     );
     return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// PATCH /api/supplier/catalog/:id — Update catalog item
+  /// GAP-A01 REMEDIATION: Mobile parity with web supplier.updateCatalogItem()
+  Future<Map<String, dynamic>?> updateCatalogItem(
+    String itemId, {
+    String? materialName,
+    String? materialCategory,
+    String? unit,
+    int? unitPriceGuide,
+    int? leadTimeDays,
+    int? minimumOrder,
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/supplier/catalog/$itemId',
+      method: 'PATCH',
+      body: {
+        if (materialName != null) 'material_name': materialName,
+        if (materialCategory != null) 'material_category': materialCategory,
+        if (unit != null) 'unit': unit,
+        if (unitPriceGuide != null) 'unit_price_guide': unitPriceGuide,
+        if (leadTimeDays != null) 'lead_time_days': leadTimeDays,
+        if (minimumOrder != null) 'minimum_order': minimumOrder,
+      },
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data;
+  }
+
+  /// DELETE /api/supplier/catalog/:id — Deactivate catalog item
+  /// GAP-A02 REMEDIATION: Mobile parity with web supplier.deactivateItem()
+  Future<void> deactivateItem(String itemId) async {
+    await _api.request(
+      '/supplier/catalog/$itemId',
+      method: 'DELETE',
+    );
   }
 
   /// PATCH /api/supplier/orders/:id/status
@@ -481,6 +538,32 @@ class HomeownerApi {
       fromData: (d) => d as List<dynamic>,
     );
     return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// POST /api/homeowner/service-requests/:id/cancel — Cancel a service request
+  /// GAP-A03 REMEDIATION: Mobile parity with web homeowner.cancelServiceRequest()
+  Future<void> cancelServiceRequest(String requestId) async {
+    await _api.request(
+      '/homeowner/service-requests/$requestId/cancel',
+      method: 'POST',
+    );
+  }
+
+  /// PATCH /api/dashboard/approvals/:id — Approve or reject an approval
+  /// GAP-A04 REMEDIATION: Mobile parity with web homeowner.respondToApproval()
+  Future<void> respondToApproval(
+    String approvalId, {
+    required String decision,
+    String? note,
+  }) async {
+    await _api.request(
+      '/dashboard/approvals/$approvalId',
+      method: 'PATCH',
+      body: {
+        'decision': decision,
+        if (note != null) 'note': note,
+      },
+    );
   }
 
   /// GET /api/homeowner/escrow
@@ -712,6 +795,16 @@ class MatchmakingApi {
       fromData: (d) => d as List<dynamic>,
     );
     return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/matchmaking/match/:id — Auto-match engine
+  /// GAP-A07 REMEDIATION: Mobile parity with web matchmaking.matchProject()
+  Future<Map<String, dynamic>> matchProject(String projectId) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/matchmaking/match/$projectId',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
   }
 
   /// GET /api/matchmaking/engineers/:id/score-breakdown
@@ -1027,6 +1120,79 @@ class TranslationApi {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// EPA ORACLE API — Mirrors api.ts epaOracle module
+// GAP-S02 REMEDIATION: FIDIC 13.8 Economic Price Adjustment endpoints
+// ═══════════════════════════════════════════════════════════════════════════
+
+class EpaOracleApi {
+  final NammerhaApiClient _api;
+  EpaOracleApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /api/oracle/prices — Get material prices (optionally by code)
+  Future<List<Map<String, dynamic>>> getPrices({String? materialCode}) async {
+    final qs = materialCode != null
+        ? '?material_code=${Uri.encodeComponent(materialCode)}'
+        : '';
+    final response = await _api.request<List<dynamic>>(
+      '/oracle/prices$qs',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// POST /api/oracle/prices — Upsert material price
+  Future<void> upsertPrice({
+    required String materialCode,
+    required String materialName,
+    required String unit,
+    required int basePrice,
+    required int currentPrice,
+  }) async {
+    await _api.request(
+      '/oracle/prices',
+      method: 'POST',
+      body: {
+        'material_code': materialCode,
+        'material_name': materialName,
+        'unit': unit,
+        'base_price': basePrice,
+        'current_price': currentPrice,
+      },
+    );
+  }
+
+  /// POST /api/oracle/calculate — Calculate FIDIC 13.8 EPA adjustment
+  Future<Map<String, dynamic>> calculateAdjustment({
+    required String projectId,
+    String? milestoneId,
+    required Map<String, double> fidicParams,
+    required int originalAmount,
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/oracle/calculate',
+      method: 'POST',
+      body: {
+        'project_id': projectId,
+        if (milestoneId != null) 'milestone_id': milestoneId,
+        'fidic_params': fidicParams,
+        'original_amount': originalAmount,
+      },
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/oracle/history/:projectId — Adjustment history
+  Future<List<Map<String, dynamic>>> getHistory(String projectId) async {
+    final response = await _api.request<List<dynamic>>(
+      '/oracle/history/$projectId',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // CONTACT API — Mirrors web contact form submission
 // REM-009: Centralized typed API pattern
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1093,5 +1259,231 @@ class RolesApi {
       fromData: (d) => d as List<dynamic>,
     );
     return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REVENUE ADMIN API — Mirrors api.ts revenueAdmin module
+// GAP-A08 REMEDIATION: Admin revenue dashboard endpoints
+// ═══════════════════════════════════════════════════════════════════════════
+
+class RevenueAdminApi {
+  final NammerhaApiClient _api;
+  RevenueAdminApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /api/revenue/admin/summary — KPI summary
+  Future<Map<String, dynamic>> getSummary() async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/revenue/admin/summary',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/revenue/admin/config — Commission tiers
+  Future<List<Map<String, dynamic>>> getTiers() async {
+    final response = await _api.request<List<dynamic>>(
+      '/revenue/admin/config',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/revenue/admin/commissions — Recent commissions
+  Future<Map<String, dynamic>> getCommissions({int limit = 8}) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/revenue/admin/commissions?limit=$limit',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/revenue/admin/tips — Recent tips
+  Future<List<Map<String, dynamic>>> getTips({int limit = 8}) async {
+    final response = await _api.request<List<dynamic>>(
+      '/revenue/admin/tips?limit=$limit',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ENTERPRISE ADMIN API — Mirrors api.ts enterpriseAdmin module
+// GAP-A09 REMEDIATION: Admin FinTech dashboard endpoints
+// ═══════════════════════════════════════════════════════════════════════════
+
+class EnterpriseAdminApi {
+  final NammerhaApiClient _api;
+  EnterpriseAdminApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /api/enterprise/admin/fees/summary — Escrow fee KPIs
+  Future<Map<String, dynamic>> getFeeSummary() async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/enterprise/admin/fees/summary',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/enterprise/admin/fees/config — Fee configuration tiers
+  Future<List<Map<String, dynamic>>> getFeeConfigs() async {
+    final response = await _api.request<List<dynamic>>(
+      '/enterprise/admin/fees/config',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/enterprise/admin/organizations — Enterprise organizations
+  Future<List<Map<String, dynamic>>> getOrganizations() async {
+    final response = await _api.request<List<dynamic>>(
+      '/enterprise/admin/organizations',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUBSCRIPTIONS API — Mirrors api.ts subscriptions module
+// GAP-A10 REMEDIATION: SaaS subscription flow
+// ═══════════════════════════════════════════════════════════════════════════
+
+class SubscriptionsApi {
+  final NammerhaApiClient _api;
+  SubscriptionsApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// POST /api/subscriptions/subscribe — Subscribe to a plan
+  Future<Map<String, dynamic>?> subscribe(String planSlug) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/subscriptions/subscribe',
+      method: 'POST',
+      idempotent: true,
+      body: {'plan_slug': planSlug},
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPLIANCE API — Mirrors api.ts compliance module
+// GAP-A11-A15 REMEDIATION: SDN screening, export controls, security events,
+// escrow review approval/flagging
+// ═══════════════════════════════════════════════════════════════════════════
+
+class ComplianceApi {
+  final NammerhaApiClient _api;
+  ComplianceApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// POST /api/compliance/sdn/screen — Screen name against SDN list
+  Future<Map<String, dynamic>> screenSDN({
+    required String fullName,
+    String? country,
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/compliance/sdn/screen',
+      method: 'POST',
+      body: {
+        'full_name': fullName,
+        if (country != null) 'country': country,
+      },
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/compliance/export-controls — Export control checks
+  Future<Map<String, dynamic>> getExportControls() async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/compliance/export-controls',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/compliance/security-events — Security event log
+  Future<List<Map<String, dynamic>>> getSecurityEvents({
+    String? severity,
+    int? limit,
+  }) async {
+    final params = <String>[];
+    if (severity != null) params.add('severity=$severity');
+    if (limit != null) params.add('limit=$limit');
+    final qs = params.isNotEmpty ? '?${params.join('&')}' : '';
+    final response = await _api.request<List<dynamic>>(
+      '/compliance/security-events$qs',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// GET /api/dashboard/compliance/stats — Dashboard compliance KPIs
+  Future<Map<String, dynamic>> getDashboardStats() async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/dashboard/compliance/stats',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/compliance/metrics — Compliance metrics
+  Future<Map<String, dynamic>> getMetrics() async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/compliance/metrics',
+      fromData: (d) => d as Map<String, dynamic>,
+    );
+    return response.data ?? {};
+  }
+
+  /// GET /api/compliance/escrow-reviews — Escrow review queue
+  Future<List<Map<String, dynamic>>> getEscrowReviews() async {
+    final response = await _api.request<List<dynamic>>(
+      '/compliance/escrow-reviews',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
+
+  /// POST /api/compliance/escrow-reviews/:ref/approve — Approve review (idempotent)
+  Future<void> approveReview(String reference) async {
+    await _api.request(
+      '/compliance/escrow-reviews/$reference/approve',
+      method: 'POST',
+      idempotent: true,
+    );
+  }
+
+  /// POST /api/compliance/escrow-reviews/:ref/flag — Flag review (idempotent)
+  Future<void> flagReview(String reference) async {
+    await _api.request(
+      '/compliance/escrow-reviews/$reference/flag',
+      method: 'POST',
+      idempotent: true,
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HEALTH API — Mirrors api.ts health module
+// GAP-X03 REMEDIATION: Backend health check endpoint
+// ═══════════════════════════════════════════════════════════════════════════
+
+class HealthApi {
+  final NammerhaApiClient _api;
+  HealthApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
+
+  /// GET /health — Backend health check (note: not behind /api prefix)
+  Future<Map<String, dynamic>> check() async {
+    try {
+      final response = await _api.request<Map<String, dynamic>>(
+        '/health',
+        fromData: (d) => d as Map<String, dynamic>,
+      );
+      return response.data ?? {'status': 'unknown'};
+    } catch (_) {
+      return {'status': 'unreachable'};
+    }
   }
 }
