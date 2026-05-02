@@ -247,9 +247,10 @@ async function initiateVisaPayment(
             return { success: false, reference, error: 'Visa gateway not configured. Contact administrator.' };
         }
         logger.warn('DEV MODE: Simulating Visa payment', { reference, amount, currency });
+        const simulatedBaseUrl = process.env['PLATFORM_BASE_URL'] ?? 'http://localhost:3000';
         return {
             success: true,
-            payment_url: `/payment/visa/checkout?ref=${reference}`,
+            payment_url: `${simulatedBaseUrl}/payment/visa/checkout?ref=${reference}`,
             reference,
             gateway_tx_id: `VISA-SIM-${crypto.randomUUID()}`,
         };
@@ -328,9 +329,10 @@ async function initiateFatoraPayment(
             return { success: false, reference, error: 'Fatora gateway not configured. Contact administrator.' };
         }
         logger.warn('DEV MODE: Simulating Fatora payment', { reference, amount, currency });
+        const simulatedBaseUrl = process.env['PLATFORM_BASE_URL'] ?? 'http://localhost:3000';
         return {
             success: true,
-            payment_url: `/payment/fatora/checkout?ref=${reference}`,
+            payment_url: `${simulatedBaseUrl}/payment/fatora/checkout?ref=${reference}`,
             reference,
             gateway_tx_id: `FTR-SIM-${crypto.randomUUID()}`,
         };

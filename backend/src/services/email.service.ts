@@ -377,6 +377,16 @@ function escapeHtml(str: string): string {
 export async function sendEmail(
     options: SendEmailOptions
 ): Promise<{ success: boolean; error?: string }> {
+    // ROOT FIX: Always log the variables/content in development regardless of transport status!
+    // This solves the 'Silent Drop' trap where local developers get locked out because
+    // the backend cannot resolve the Docker SMTP container.
+    if (process.env.NODE_ENV === 'development') {
+        const linkStr = Object.entries(options.variables)
+            .map(([k, v]) => `\n    ➜ ${k}: ${v}`)
+            .join('');
+        logger.info(`[DEV EMAIL MOCK] To: ${options.to} | Subject: ${options.subject}${linkStr}`);
+    }
+
     const transporter = await getTransporter();
     if (!transporter) {
         const msg = 'SMTP transport not available — email not sent';

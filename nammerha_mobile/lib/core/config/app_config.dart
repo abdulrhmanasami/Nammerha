@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// Nammerha App Configuration
 /// Centralized environment and API configuration.
@@ -11,9 +12,10 @@ class AppConfig {
 
   // ─── Environment Detection ──────────────────────────────────────────────
   /// True when running against local dev backend (emulator/device)
+  /// P1-2 FIX: Fallback to kDebugMode so standard IDE runs don't silently connect to production.
   static const bool isDev = bool.fromEnvironment(
     'DEV_MODE',
-    defaultValue: false,
+    defaultValue: kDebugMode,
   );
 
   // ─── REST API ───────────────────────────────────────────────────────────
