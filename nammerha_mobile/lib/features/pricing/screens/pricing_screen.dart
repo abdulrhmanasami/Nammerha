@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../../contact/screens/contact_screen.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../supplier/screens/supplier_subscription_screen.dart';
+import '../bloc/billing_toggle_cubit.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Pricing Screen — REM-004: 4-Tier SaaS Pricing Page
@@ -20,15 +22,8 @@ import '../../supplier/screens/supplier_subscription_screen.dart';
 // $99 Enterprise for international organizations.
 // ═══════════════════════════════════════════════════════════════════════════
 
-class PricingScreen extends StatefulWidget {
+class PricingScreen extends StatelessWidget {
   const PricingScreen({super.key});
-
-  @override
-  State<PricingScreen> createState() => _PricingScreenState();
-}
-
-class _PricingScreenState extends State<PricingScreen> {
-  bool _isYearly = false;
 
   // Price constants (cents)
   static const _tiers = [
@@ -124,7 +119,11 @@ class _PricingScreenState extends State<PricingScreen> {
     final colors = Theme.of(context).extension<SemanticColors>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => BillingToggleCubit(),
+      child: BlocBuilder<BillingToggleCubit, bool>(
+        builder: (context, isYearly) {
+          return Scaffold(
       appBar: AppBar(
         title: Text(context.tr('str_7e2f72d3')), // 'الأسعار والاشتراكات' or fallback
         centerTitle: true,
@@ -152,7 +151,7 @@ class _PricingScreenState extends State<PricingScreen> {
             const SizedBox(height: 24),
 
             // ── Billing Toggle ──────────────────────────────────────
-            _buildBillingToggle(context, colors),
+            _buildBillingToggle(context, colors, isYearly),
             const SizedBox(height: 24),
 
             // ── Tier Cards ──────────────────────────────────────────
@@ -161,7 +160,7 @@ class _PricingScreenState extends State<PricingScreen> {
               final tier = entry.value;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: _buildTierCard(context, tier, colors, isDark)
+                child: _buildTierCard(context, tier, colors, isDark, isYearly)
                     .animate()
                     .fadeIn(
                       delay: Duration(milliseconds: 100 * index),
@@ -185,9 +184,12 @@ class _PricingScreenState extends State<PricingScreen> {
         ),
       ),
     );
+        },
+      ),
+    );
   }
 
-  Widget _buildBillingToggle(BuildContext context, SemanticColors colors) {
+  Widget _buildBillingToggle(BuildContext context, SemanticColors colors, bool isYearly) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -197,14 +199,14 @@ class _PricingScreenState extends State<PricingScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _toggleButton('شهري', !_isYearly, colors, () {
+          _toggleButton('شهري', !isYearly, colors, () {
             HapticFeedback.selectionClick();
-            setState(() => _isYearly = false);
+            context.read<BillingToggleCubit>().setMonthly();
           }),
           const SizedBox(width: 4),
-          _toggleButton('سنوي (-20%)', _isYearly, colors, () {
+          _toggleButton('سنوي (-20%)', isYearly, colors, () {
             HapticFeedback.selectionClick();
-            setState(() => _isYearly = true);
+            context.read<BillingToggleCubit>().setYearly();
           }),
         ],
       ),
@@ -234,8 +236,8 @@ class _PricingScreenState extends State<PricingScreen> {
   }
 
   Widget _buildTierCard(BuildContext context, _PricingTier tier,
-      SemanticColors colors, bool isDark) {
-    final priceCents = _isYearly
+      SemanticColors colors, bool isDark, bool isYearly) {
+    final priceCents = isYearly
         ? (tier.monthlyPriceCents * 0.80).round()
         : tier.monthlyPriceCents;
     final priceStr = tier.monthlyPriceCents == 0
@@ -243,7 +245,7 @@ class _PricingScreenState extends State<PricingScreen> {
         : '\$${(priceCents / 100).toStringAsFixed(0)}';
     final interval = tier.monthlyPriceCents == 0
         ? ''
-        : _isYearly
+        : isYearly
             ? '/شهر (سنوي)'
             : '/شهر';
 
@@ -314,7 +316,7 @@ class _PricingScreenState extends State<PricingScreen> {
                       duration: const Duration(milliseconds: 300),
                       child: Text(
                         priceStr,
-                        key: ValueKey('$priceStr-$_isYearly'),
+                        key: ValueKey('$priceStr-$isYearly'),
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
@@ -373,7 +375,7 @@ class _PricingScreenState extends State<PricingScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       HapticFeedback.mediumImpact();
-                      _handleSubscribe(tier.slug);
+                      _handleSubscribe(context, tier.slug);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: tier.highlighted
@@ -408,7 +410,7 @@ class _PricingScreenState extends State<PricingScreen> {
     );
   }
 
-  void _handleSubscribe(String slug) {
+  void _handleSubscribe(BuildContext context, String slug) {
     if (slug == 'enterprise') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactScreen()));
       return;

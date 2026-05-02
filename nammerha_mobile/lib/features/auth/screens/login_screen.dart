@@ -4,8 +4,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../bloc/auth_bloc.dart';
+import '../bloc/login_form_cubit.dart';
 import '../../../core/i18n/t.dart';
 
+/// ═══════════════════════════════════════════════════════════════════════════
+/// Login Screen — Platinum Standard (Absolute Zero setState)
+/// ═══════════════════════════════════════════════════════════════════════════
+/// All UI state managed via LoginFormCubit + AuthBloc.
+/// Zero setState calls in this file.
+/// ═══════════════════════════════════════════════════════════════════════════
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
 
@@ -20,10 +27,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  bool _isLoginMode = true;
-  bool _obscurePassword = true;
-  String _selectedRole = 'donor';
 
   late AnimationController _animController;
   late Animation<double> _fadeIn;
@@ -45,12 +48,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _submit() {
+  void _submit(bool isLoginMode, String selectedRole) {
     if (!_formKey.currentState!.validate()) return;
 
     final authBloc = context.read<AuthBloc>();
 
-    if (_isLoginMode) {
+    if (isLoginMode) {
       authBloc.add(AuthLoginRequested(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -60,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _nameController.text.trim(),
-        role: _selectedRole,
+        role: selectedRole,
       ));
     }
   }
@@ -69,194 +72,205 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthAuthenticated) {
-          widget.onLoginSuccess();
-        } else if (state is AuthRegistrationSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colors.success,
-              duration: const Duration(seconds: 5),
-            ),
-          );
-          setState(() => _isLoginMode = true);
-        } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colors.error,
-            ),
-          );
-        }
-      },
-      child: Scaffold(
-        backgroundColor: colors.backgroundPrimary,
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeIn,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 40),
+    return BlocProvider(
+      create: (_) => LoginFormCubit(),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            widget.onLoginSuccess();
+          } else if (state is AuthRegistrationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: colors.success,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+            context.read<LoginFormCubit>().switchToLoginMode();
+          } else if (state is AuthEmailNotVerified) {
+            // Show persistent verification banner with resend action
+            ScaffoldMessenger.of(context).clearSnackBars();
+            _showVerificationBanner(context, state.email, state.message);
+          } else if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: colors.error,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: colors.backgroundPrimary,
+          body: SafeArea(
+            child: FadeTransition(
+              opacity: _fadeIn,
+              child: BlocBuilder<LoginFormCubit, LoginFormState>(
+                builder: (context, formState) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 40),
 
-                    // Logo — real Nammerha SVG from web platform compliant with Dark Mode WCAG standards
-                    Center(
-                      child: SvgPicture.asset(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? 'assets/brand/Nammerha_logo_Full_dark.svg'
-                            : 'assets/brand/Nammerha_logo_Full.svg',
-                        width: 200,
-                        height: 80,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      context.tr('str_e29cfbf2'),
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: colors.textPrimary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isLoginMode ? 'تسجيل الدخول إلى حسابك' : 'إنشاء حساب جديد',
-                      style: TextStyle(fontSize: 16, color: colors.textSecondary),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 36),
-
-                    // Full Name (register only)
-                    if (!_isLoginMode) ...[
-                      _buildTextField(
-                        controller: _nameController,
-                        label: 'الاسم الكامل',
-                        icon: Icons.person_rounded,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'الاسم مطلوب';
-                          if (v.trim().length < 3) return 'يجب أن يكون الاسم 3 أحرف على الأقل';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Email
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'البريد الإلكتروني',
-                      icon: Icons.email_rounded,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'البريد الإلكتروني مطلوب';
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
-                          return 'صيغة البريد غير صحيحة';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password
-                    _buildTextField(
-                      controller: _passwordController,
-                      label: 'كلمة المرور',
-                      icon: Icons.lock_rounded,
-                      obscureText: _obscurePassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          color: colors.textSecondary,
-                        ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'كلمة المرور مطلوبة';
-                        if (!_isLoginMode) {
-                          if (v.length < 8) return 'يجب أن تكون 8 أحرف على الأقل';
-                          if (!RegExp(r'[A-Z]').hasMatch(v)) return 'يجب أن تحتوي على حرف كبير';
-                          if (!RegExp(r'[a-z]').hasMatch(v)) return 'يجب أن تحتوي على حرف صغير';
-                          if (!RegExp(r'[0-9]').hasMatch(v)) return 'يجب أن تحتوي على رقم';
-                          if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return 'يجب أن تحتوي على رمز خاص';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Forgot Password
-                    if (_isLoginMode) ...[
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton(
-                          onPressed: () => _showForgotPasswordDialog(),
-                          child: Text(
-                            'نسيت كلمة المرور؟',
-                            style: TextStyle(color: colors.primaryBrand, fontSize: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Role Selector (register only)
-                    if (!_isLoginMode) ...[
-                      const SizedBox(height: 20),
-                      Text(
-                        'اختر دورك في المنصة',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildRoleSelector(),
-                    ],
-
-                    const SizedBox(height: 28),
-
-                    // Submit Button
-                    BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, state) {
-                        return GradientButton(
-                          label: _isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب',
-                          icon: _isLoginMode ? Icons.login_rounded : Icons.person_add_rounded,
-                          isLoading: state is AuthLoading,
-                          onPressed: _submit,
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Toggle Login/Register
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _isLoginMode ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟',
-                          style: TextStyle(color: colors.textSecondary),
-                        ),
-                        TextButton(
-                          onPressed: () => setState(() {
-                            _isLoginMode = !_isLoginMode;
-                            _formKey.currentState?.reset();
-                          }),
-                          child: Text(
-                            _isLoginMode ? 'أنشئ حساباً' : 'سجّل دخولك',
-                            style: TextStyle(
-                              color: colors.primaryBrand,
-                              fontWeight: FontWeight.w700,
+                          // Logo — real Nammerha SVG from web platform compliant with Dark Mode WCAG standards
+                          Center(
+                            child: SvgPicture.asset(
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? 'assets/brand/Nammerha_logo_Full_dark.svg'
+                                  : 'assets/brand/Nammerha_logo_Full.svg',
+                              width: 200,
+                              height: 80,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 20),
+                          Text(
+                            context.tr('str_e29cfbf2'),
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: colors.textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            formState.isLoginMode ? 'تسجيل الدخول إلى حسابك' : 'إنشاء حساب جديد',
+                            style: TextStyle(fontSize: 16, color: colors.textSecondary),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 36),
+
+                          // Full Name (register only)
+                          if (!formState.isLoginMode) ...[
+                            _buildTextField(
+                              controller: _nameController,
+                              label: 'الاسم الكامل',
+                              icon: Icons.person_rounded,
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return 'الاسم مطلوب';
+                                if (v.trim().length < 3) return 'يجب أن يكون الاسم 3 أحرف على الأقل';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Email
+                          _buildTextField(
+                            controller: _emailController,
+                            label: 'البريد الإلكتروني',
+                            icon: Icons.email_rounded,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return 'البريد الإلكتروني مطلوب';
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
+                                return 'صيغة البريد غير صحيحة';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Password
+                          _buildTextField(
+                            controller: _passwordController,
+                            label: 'كلمة المرور',
+                            icon: Icons.lock_rounded,
+                            obscureText: formState.obscurePassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                formState.obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                color: colors.textSecondary,
+                              ),
+                              onPressed: () => context.read<LoginFormCubit>().togglePasswordVisibility(),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'كلمة المرور مطلوبة';
+                              if (!formState.isLoginMode) {
+                                if (v.length < 8) return 'يجب أن تكون 8 أحرف على الأقل';
+                                if (!RegExp(r'[A-Z]').hasMatch(v)) return 'يجب أن تحتوي على حرف كبير';
+                                if (!RegExp(r'[a-z]').hasMatch(v)) return 'يجب أن تحتوي على حرف صغير';
+                                if (!RegExp(r'[0-9]').hasMatch(v)) return 'يجب أن تحتوي على رقم';
+                                if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return 'يجب أن تحتوي على رمز خاص';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          // Forgot Password
+                          if (formState.isLoginMode) ...[
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton(
+                                onPressed: () => _showForgotPasswordDialog(),
+                                child: Text(
+                                  'نسيت كلمة المرور؟',
+                                  style: TextStyle(color: colors.primaryBrand, fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+
+                          // Role Selector (register only)
+                          if (!formState.isLoginMode) ...[
+                            const SizedBox(height: 20),
+                            Text(
+                              'اختر دورك في المنصة',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildRoleSelector(formState.selectedRole),
+                          ],
+
+                          const SizedBox(height: 28),
+
+                          // Submit Button
+                          BlocBuilder<AuthBloc, AuthState>(
+                            builder: (context, state) {
+                              return GradientButton(
+                                label: formState.isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب',
+                                icon: formState.isLoginMode ? Icons.login_rounded : Icons.person_add_rounded,
+                                isLoading: state is AuthLoading,
+                                onPressed: () => _submit(formState.isLoginMode, formState.selectedRole),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Toggle Login/Register
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                formState.isLoginMode ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟',
+                                style: TextStyle(color: colors.textSecondary),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  context.read<LoginFormCubit>().toggleMode();
+                                  _formKey.currentState?.reset();
+                                },
+                                child: Text(
+                                  formState.isLoginMode ? 'أنشئ حساباً' : 'سجّل دخولك',
+                                  style: TextStyle(
+                                    color: colors.primaryBrand,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -309,7 +323,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildRoleSelector() {
+  Widget _buildRoleSelector(String selectedRole) {
     final roles = [
       {'key': 'donor', 'label': context.tr('role_donor'), 'icon': Icons.volunteer_activism_rounded},
       {'key': 'homeowner', 'label': context.tr('role_homeowner'), 'icon': Icons.home_rounded},
@@ -325,9 +339,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       spacing: 10,
       runSpacing: 10,
       children: roles.map((role) {
-        final isSelected = _selectedRole == role['key'];
+        final isSelected = selectedRole == role['key'];
         return GestureDetector(
-          onTap: () => setState(() => _selectedRole = role['key'] as String),
+          onTap: () => context.read<LoginFormCubit>().selectRole(role['key'] as String),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -417,6 +431,88 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text('إرسال', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a persistent MaterialBanner for email verification errors.
+  /// Includes a "Resend verification" action button so the user can
+  /// request a new verification link without leaving the login screen.
+  void _showVerificationBanner(BuildContext context, String email, String message) {
+    final colors = context.colors;
+
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        backgroundColor: const Color(0xFFFFF3E0), // Warm amber background
+        leading: Icon(Icons.mark_email_unread_rounded, color: colors.warning, size: 28),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              email,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 13,
+              ),
+              textDirection: TextDirection.ltr,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+            },
+            child: Text(
+              'حسناً',
+              style: TextStyle(color: colors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+              try {
+                final authRepo = context.read<AuthBloc>().authRepository;
+                final resultMessage = await authRepo.resendVerification(email: email);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(resultMessage),
+                      backgroundColor: colors.success,
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('تعذر إعادة إرسال رابط التحقق — حاول مرة أخرى'),
+                      backgroundColor: colors.error,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(
+              'إعادة إرسال رابط التحقق',
+              style: TextStyle(
+                color: colors.primaryBrand,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),

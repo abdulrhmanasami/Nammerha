@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/bloc/page_index_cubit.dart';
 import '../../../core/i18n/t.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -15,7 +17,6 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
 
   /// Slide gradients use governed NammerhaGradients brand tokens.
   /// Slide 1: Brand Primary (Cobalt→Pine) — "We rebuild together"
@@ -52,7 +53,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => PageIndexCubit(),
+      child: BlocBuilder<PageIndexCubit, int>(
+        builder: (context, currentPage) {
+          return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       body: SafeArea(
         child: Column(
@@ -81,7 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: _slides.length,
-                onPageChanged: (index) => setState(() => _currentPage = index),
+                onPageChanged: (index) => context.read<PageIndexCubit>().setPage(index),
                 itemBuilder: (context, index) {
                   final slide = _slides[index];
                   return Padding(
@@ -164,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(_slides.length, (index) {
-                      final isActive = index == _currentPage;
+                      final isActive = index == currentPage;
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -181,12 +186,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // CTA Button
                   GradientButton(
-                    label: _currentPage == _slides.length - 1 ? 'ابدأ الآن' : context.tr('next'),
-                    icon: _currentPage == _slides.length - 1
+                    label: currentPage == _slides.length - 1 ? 'ابدأ الآن' : context.tr('next'),
+                    icon: currentPage == _slides.length - 1
                         ? Icons.arrow_forward_rounded
                         : null,
                     onPressed: () {
-                      if (_currentPage == _slides.length - 1) {
+                      if (currentPage == _slides.length - 1) {
                         widget.onComplete();
                       } else {
                         _pageController.nextPage(
@@ -201,6 +206,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
+      ),
+    );
+        },
       ),
     );
   }

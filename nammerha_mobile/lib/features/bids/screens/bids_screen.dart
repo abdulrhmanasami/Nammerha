@@ -1,23 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/bids_fetch_cubit.dart';
 
-class BidsScreen extends StatefulWidget {
+/// ═══════════════════════════════════════════════════════════════════════════
+/// BidsScreen — Platinum Standard (Absolute Zero setState)
+/// ═══════════════════════════════════════════════════════════════════════════
+/// Data loading lifecycle managed via BidsFetchCubit.
+/// ═══════════════════════════════════════════════════════════════════════════
+
+class BidsScreen extends StatelessWidget {
   const BidsScreen({super.key});
 
   @override
-  State<BidsScreen> createState() => _BidsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => BidsFetchCubit(),
+      child: const _BidsScreenContent(),
+    );
+  }
 }
 
-class _BidsScreenState extends State<BidsScreen> {
+class _BidsScreenContent extends StatefulWidget {
+  const _BidsScreenContent();
+
+  @override
+  State<_BidsScreenContent> createState() => _BidsScreenContentState();
+}
+
+class _BidsScreenContentState extends State<_BidsScreenContent> {
   final EngineerApi _engineerApi = EngineerApi();
-  List<Map<String, dynamic>> _bids = [];
-  bool _isLoading = true;
-  String? _error;
 
   @override
   void initState() {
@@ -26,14 +43,15 @@ class _BidsScreenState extends State<BidsScreen> {
   }
 
   Future<void> _loadBids() async {
-    setState(() { _isLoading = true; _error = null; });
+    final cubit = context.read<BidsFetchCubit>();
+    cubit.setLoading();
     try {
-      _bids = await _engineerApi.getBids();
-      setState(() => _isLoading = false);
+      final bids = await _engineerApi.getBids();
+      cubit.setLoaded(bids);
     } on ApiException catch (e) {
-      setState(() { _error = localizeApiError(e.message); _isLoading = false; });
+      cubit.setError(localizeApiError(e.message));
     } catch (e) {
-      setState(() { _error = 'حدث خطأ في تحميل العروض'; _isLoading = false; });
+      cubit.setError('حدث خطأ في تحميل العروض');
     }
   }
 
@@ -52,12 +70,14 @@ class _BidsScreenState extends State<BidsScreen> {
           ),
         ],
       ),
-      body: _buildBody(colors),
+      body: BlocBuilder<BidsFetchCubit, BidsFetchState>(
+        builder: (context, state) => _buildBody(colors, state),
+      ),
     );
   }
 
-  Widget _buildBody(SemanticColors colors) {
-    if (_isLoading) {
+  Widget _buildBody(SemanticColors colors, BidsFetchState state) {
+    if (state.isLoading) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -70,7 +90,7 @@ class _BidsScreenState extends State<BidsScreen> {
       );
     }
 
-    if (_error != null) {
+    if (state.error != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -79,7 +99,7 @@ class _BidsScreenState extends State<BidsScreen> {
             children: [
               Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
-              Text(_error!, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
+              Text(state.error!, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadBids,
@@ -93,7 +113,7 @@ class _BidsScreenState extends State<BidsScreen> {
       );
     }
 
-    if (_bids.isEmpty) {
+    if (state.bids.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -111,9 +131,9 @@ class _BidsScreenState extends State<BidsScreen> {
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _bids.length,
+        itemCount: state.bids.length,
         itemBuilder: (context, index) {
-          final bid = _bids[index];
+          final bid = state.bids[index];
           final status = (bid['status'] ?? '') as String;
           final projectTitle = bid['project_title'] ?? bid['projectTitle'] ?? '';
           final bidAmount = bid['proposed_cost'] ?? bid['bidAmount'] ?? 0;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 
 import '../../../core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../../../core/widgets/gradient_button.dart';
 import '../../escrow/screens/escrow_checkout_screen.dart';
 import '../models/cart_item.dart';
 import '../state/cart_store.dart';
+import '../bloc/tip_selector_cubit.dart';
 import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -27,21 +29,19 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  int _selectedTipIndex = 0; // 0% default per FRC-003
   final List<int> _tipPercentages = [0, 3, 5, 10];
   final TextEditingController _customTipController = TextEditingController();
-  bool _isCustomTip = false;
 
-  int get _tipAmount {
+  int _tipAmount(TipSelectorState tipState) {
     final subtotal = CartStore.instance.total;
-    if (_isCustomTip) {
+    if (tipState.isCustomTip) {
       final customCents = int.tryParse(_customTipController.text) ?? 0;
       return customCents;
     }
-    return (subtotal * _tipPercentages[_selectedTipIndex] / 100).round();
+    return (subtotal * _tipPercentages[tipState.selectedTipIndex] / 100).round();
   }
 
-  int get _grandTotal => CartStore.instance.total + _tipAmount;
+  int _grandTotal(TipSelectorState tipState) => CartStore.instance.total + _tipAmount(tipState);
 
   @override
   void dispose() {
@@ -53,7 +53,9 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => TipSelectorCubit(),
+      child: Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: const Text('سلة التبرعات'),
@@ -80,6 +82,7 @@ class _CartScreenState extends State<CartScreen> {
           return _buildCartContent(colors);
         },
       ),
+    ),
     );
   }
 
@@ -307,172 +310,103 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildFooter(SemanticColors colors) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colors.surfaceElevated,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: const [NammerhaShadows.sheet],
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Tip selector
-            _buildTipSelector(colors),
-            const SizedBox(height: 16),
-
-            // Subtotal row
-            _buildSummaryRow(
-              'المجموع الفرعي',
-              formatCurrency(CartStore.instance.total),
-              colors,
+    return BlocBuilder<TipSelectorCubit, TipSelectorState>(
+      builder: (context, tipState) {
+        final tip = _tipAmount(tipState);
+        final grand = _grandTotal(tipState);
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colors.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: const [NammerhaShadows.sheet],
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildTipSelector(colors, tipState),
+                const SizedBox(height: 16),
+                _buildSummaryRow('المجموع الفرعي', formatCurrency(CartStore.instance.total), colors),
+                if (tip > 0) ...[
+                  const SizedBox(height: 8),
+                  _buildSummaryRow('إكرامية المنصة', formatCurrency(tip), colors, valueColor: colors.success),
+                ],
+                const SizedBox(height: 12),
+                Container(height: 1, color: colors.strokeSubtle),
+                const SizedBox(height: 12),
+                _buildSummaryRow(context.tr('str_88fc73eb'), formatCurrency(grand), colors, isBold: true, valueColor: colors.primaryBrand),
+                const SizedBox(height: 16),
+                GradientButton(label: 'متابعة الدفع', icon: Icons.lock_rounded, onPressed: () => _proceedToCheckout(tipState)),
+              ],
             ),
-
-            if (_tipAmount > 0) ...[
-              const SizedBox(height: 8),
-              _buildSummaryRow(
-                'إكرامية المنصة',
-                formatCurrency(_tipAmount),
-                colors,
-                valueColor: colors.success,
-              ),
-            ],
-
-            const SizedBox(height: 12),
-            Container(
-              height: 1,
-              color: colors.strokeSubtle,
-            ),
-            const SizedBox(height: 12),
-
-            // Grand total
-            _buildSummaryRow(
-              context.tr('str_88fc73eb'),
-              formatCurrency(_grandTotal),
-              colors,
-              isBold: true,
-              valueColor: colors.primaryBrand,
-            ),
-            const SizedBox(height: 16),
-
-            // Checkout button
-            GradientButton(
-              label: 'متابعة الدفع',
-              icon: Icons.lock_rounded,
-              onPressed: _proceedToCheckout,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildTipSelector(SemanticColors colors) {
+  Widget _buildTipSelector(SemanticColors colors, TipSelectorState tipState) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'إكرامية المنصة (اختياري)',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: colors.textSecondary,
-          ),
-        ),
+        Text('إكرامية المنصة (اختياري)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
         const SizedBox(height: 8),
         Row(
           children: [
             ..._tipPercentages.asMap().entries.map((entry) {
-              final isSelected = !_isCustomTip && _selectedTipIndex == entry.key;
+              final isSelected = !tipState.isCustomTip && tipState.selectedTipIndex == entry.key;
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() {
-                    _selectedTipIndex = entry.key;
-                    _isCustomTip = false;
-                  }),
+                  onTap: () => context.read<TipSelectorCubit>().selectTip(entry.key),
                   child: AnimatedContainer(
                     duration: NammerhaAnimations.fast,
                     margin: const EdgeInsetsDirectional.only(end: 6),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? colors.primaryBrand.withAlpha(15)
-                          : colors.backgroundSecondary,
+                      color: isSelected ? colors.primaryBrand.withAlpha(15) : colors.backgroundSecondary,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isSelected ? colors.primaryBrand : colors.strokeSubtle,
-                        width: isSelected ? 1.5 : 1,
-                      ),
+                      border: Border.all(color: isSelected ? colors.primaryBrand : colors.strokeSubtle, width: isSelected ? 1.5 : 1),
                     ),
                     child: Center(
-                      child: Text(
-                        '${entry.value}%',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? colors.primaryBrand : colors.textSecondary,
-                        ),
-                      ),
+                      child: Text('${entry.value}%', style: TextStyle(fontSize: 14, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: isSelected ? colors.primaryBrand : colors.textSecondary)),
                     ),
                   ),
                 ),
               );
             }),
-            // Custom tip button
             Expanded(
               child: GestureDetector(
-                onTap: () => setState(() => _isCustomTip = true),
+                onTap: () => context.read<TipSelectorCubit>().enableCustomTip(),
                 child: AnimatedContainer(
                   duration: NammerhaAnimations.fast,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: _isCustomTip
-                        ? colors.primaryBrand.withAlpha(15)
-                        : colors.backgroundSecondary,
+                    color: tipState.isCustomTip ? colors.primaryBrand.withAlpha(15) : colors.backgroundSecondary,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: _isCustomTip ? colors.primaryBrand : colors.strokeSubtle,
-                      width: _isCustomTip ? 1.5 : 1,
-                    ),
+                    border: Border.all(color: tipState.isCustomTip ? colors.primaryBrand : colors.strokeSubtle, width: tipState.isCustomTip ? 1.5 : 1),
                   ),
                   child: Center(
-                    child: Text(
-                      context.tr('str_94d3bff8'),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: _isCustomTip ? FontWeight.w700 : FontWeight.w500,
-                        color: _isCustomTip ? colors.primaryBrand : colors.textSecondary,
-                      ),
-                    ),
+                    child: Text(context.tr('str_94d3bff8'), style: TextStyle(fontSize: 13, fontWeight: tipState.isCustomTip ? FontWeight.w700 : FontWeight.w500, color: tipState.isCustomTip ? colors.primaryBrand : colors.textSecondary)),
                   ),
                 ),
               ),
             ),
           ],
         ),
-        if (_isCustomTip) ...[
+        if (tipState.isCustomTip) ...[
           const SizedBox(height: 8),
           TextField(
             controller: _customTipController,
             keyboardType: TextInputType.number,
-            onChanged: (_) => setState(() {}),
+            onChanged: (_) => context.read<TipSelectorCubit>().notifyCustomChanged(),
             decoration: InputDecoration(
               hintText: 'المبلغ بالليرة',
               suffixText: 'ل.س',
               filled: true,
               fillColor: colors.backgroundSecondary,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: colors.strokeSubtle),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: colors.strokeSubtle),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: colors.primaryBrand, width: 1.5),
-              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colors.strokeSubtle)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colors.strokeSubtle)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colors.primaryBrand, width: 1.5)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             ),
           ),
@@ -572,8 +506,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  void _proceedToCheckout() {
-    // Navigate to escrow checkout with cart items
+  void _proceedToCheckout(TipSelectorState tipState) {
     final items = CartStore.instance.items
         .map((i) => {
               'item_id': i.id,
@@ -590,7 +523,7 @@ class _CartScreenState extends State<CartScreen> {
         builder: (_) => EscrowCheckoutScreen(
           basketItems: items,
           totalAmount: CartStore.instance.total.toDouble(),
-          tipAmount: _tipAmount,
+          tipAmount: _tipAmount(tipState),
         ),
       ),
     );

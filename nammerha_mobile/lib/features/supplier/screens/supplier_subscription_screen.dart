@@ -5,14 +5,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../pricing/bloc/pricing_bloc.dart';
+import '../../../core/bloc/page_index_cubit.dart';
 
 class SupplierSubscriptionScreen extends StatelessWidget {
   const SupplierSubscriptionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => PricingBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => PricingBloc()),
+        BlocProvider(create: (_) => PageIndexCubit(1)),
+      ],
       child: const _SupplierSubscriptionScreenContent(),
     );
   }
@@ -26,7 +30,6 @@ class _SupplierSubscriptionScreenContent extends StatefulWidget {
 }
 
 class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptionScreenContent> {
-  int _selectedTierIndex = 1; // Default to Platinum
 
   final List<Map<String, dynamic>> _tiers = [
     {
@@ -71,7 +74,8 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
   ];
 
   void _processSubscription() {
-    final slug = _tiers[_selectedTierIndex]['slug'] as String;
+    final selectedIndex = context.read<PageIndexCubit>().state;
+    final slug = _tiers[selectedIndex]['slug'] as String;
     context.read<PricingBloc>().add(SubscribeToPlan(slug));
   }
 
@@ -100,7 +104,9 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
           }
         },
         builder: (context, state) {
-          return SingleChildScrollView(
+          return BlocBuilder<PageIndexCubit, int>(
+            builder: (context, selectedTierIndex) {
+              return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,12 +133,12 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                 // Tiers
                 ...List.generate(_tiers.length, (index) {
                   final tier = _tiers[index];
-                  final isSelected = _selectedTierIndex == index;
+                  final isSelected = selectedTierIndex == index;
                   final isPopular = tier['isPopular'] as bool;
 
                   return GestureDetector(
                     onTap: () {
-                      if (!state.isSubscribing) setState(() => _selectedTierIndex = index);
+                      if (!state.isSubscribing) context.read<PageIndexCubit>().setPage(index);
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
@@ -238,8 +244,8 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
 
                 const SizedBox(height: 32),
                 GradientButton(
-                  label: _selectedTierIndex == 0 ? 'استمرار بالباقة المجانية' : 'ترقية الحساب الآن',
-                  icon: _selectedTierIndex == 0 ? Icons.arrow_forward_rounded : Icons.workspace_premium_rounded,
+                  label: selectedTierIndex == 0 ? 'استمرار بالباقة المجانية' : 'ترقية الحساب الآن',
+                  icon: selectedTierIndex == 0 ? Icons.arrow_forward_rounded : Icons.workspace_premium_rounded,
                   isLoading: state.isSubscribing,
                   onPressed: _processSubscription,
                 ).animate(delay: 600.ms).fadeIn(),
@@ -247,6 +253,8 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
               ],
             ),
           );
+          },
+        );
         },
       ),
     );

@@ -1,80 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../bloc/verify_email_bloc.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Verify Email Screen — Email confirmation handler
+/// Verify Email Screen — Platinum Standard (Absolute Zero setState)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Mirrors web: frontend/src/pages/verify-email.ts
-/// Receives a verification token, calls backend, shows result.
-/// Auto-navigates to login on success after 3s.
+/// Receives a verification token, calls backend via VerifyEmailBloc,
+/// shows result. Auto-navigates to login on success after 3s.
+///
+/// CRITICAL FIX: Previous version called NammerhaApiClient.instance.request()
+/// directly inside initState() with raw setState. Now all network logic
+/// is encapsulated in VerifyEmailBloc.
 /// ═══════════════════════════════════════════════════════════════════════════
-class VerifyEmailScreen extends StatefulWidget {
+class VerifyEmailScreen extends StatelessWidget {
   final String? token;
 
   const VerifyEmailScreen({super.key, this.token});
 
   @override
-  State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => VerifyEmailBloc()
+        ..add(VerifyEmailRequested(token: token)),
+      child: _VerifyEmailView(token: token),
+    );
+  }
 }
 
-class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
-  String _status = 'verifying'; // verifying, success, error, expired
-  String _message = '';
+class _VerifyEmailView extends StatelessWidget {
+  final String? token;
 
-  @override
-  void initState() {
-    super.initState();
-    _verifyToken();
-  }
-
-  Future<void> _verifyToken() async {
-    if (widget.token == null || widget.token!.isEmpty) {
-      setState(() {
-        _status = 'error';
-        _message = 'رابط التحقق غير صالح — لا يوجد رمز تحقق';
-      });
-      return;
-    }
-
-    try {
-      final api = NammerhaApiClient.instance;
-      await api.request(
-        '/auth/verify-email',
-        method: 'POST',
-        body: {'token': widget.token},
-      );
-
-      setState(() {
-        _status = 'success';
-        _message = 'تم تأكيد بريدك الإلكتروني بنجاح!';
-      });
-
-      // Auto-navigate to login after 3 seconds
-      await Future.delayed(const Duration(seconds: 3));
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
-      }
-    } on ApiException catch (e) {
-      setState(() {
-        if (e.statusCode == 410 || e.message.contains('expired')) {
-          _status = 'expired';
-          _message = 'انتهت صلاحية رابط التحقق — اطلب رابطاً جديداً';
-        } else {
-          _status = 'error';
-          _message = e.message;
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'error';
-        _message = 'حدث خطأ في التحقق — حاول مرة أخرى';
-      });
-    }
-  }
+  const _VerifyEmailView({this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -86,17 +47,32 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildIcon(colors),
-                const SizedBox(height: 32),
-                _buildTitle(colors),
-                const SizedBox(height: 12),
-                _buildMessage(colors),
-                const SizedBox(height: 40),
-                _buildAction(colors),
-              ],
+            child: BlocConsumer<VerifyEmailBloc, VerifyEmailState>(
+              listener: (context, state) {
+                if (state is VerifyEmailSuccess) {
+                  // Auto-navigate to login after 3 seconds
+                  Future.delayed(const Duration(seconds: 3), () {
+                    if (context.mounted) {
+                      Navigator.of(context)
+                          .pushNamedAndRemoveUntil('/', (_) => false);
+                    }
+                  });
+                }
+              },
+              builder: (context, state) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildIcon(colors, state),
+                    const SizedBox(height: 32),
+                    _buildTitle(colors, state),
+                    const SizedBox(height: 12),
+                    _buildMessage(colors, state),
+                    const SizedBox(height: 40),
+                    _buildAction(context, colors, state),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -104,35 +80,34 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     );
   }
 
-  Widget _buildIcon(SemanticColors colors) {
+  Widget _buildIcon(SemanticColors colors, VerifyEmailState state) {
+    if (state is VerifyEmailVerifying) {
+      return SizedBox(
+        width: 80,
+        height: 80,
+        child: CircularProgressIndicator(
+          color: colors.primaryBrand,
+          strokeWidth: 3,
+        ),
+      ).animate().fadeIn();
+    }
+
     IconData icon;
     Color iconColor;
     Color bgColor;
 
-    switch (_status) {
-      case 'verifying':
-        return SizedBox(
-          width: 80,
-          height: 80,
-          child: CircularProgressIndicator(
-            color: colors.primaryBrand,
-            strokeWidth: 3,
-          ),
-        ).animate().fadeIn();
-      case 'success':
-        icon = Icons.verified_rounded;
-        iconColor = colors.success;
-        bgColor = colors.success.withAlpha(15);
-        break;
-      case 'expired':
-        icon = Icons.timer_off_rounded;
-        iconColor = colors.warning;
-        bgColor = colors.warning.withAlpha(15);
-        break;
-      default:
-        icon = Icons.error_outline_rounded;
-        iconColor = colors.error;
-        bgColor = colors.error.withAlpha(15);
+    if (state is VerifyEmailSuccess) {
+      icon = Icons.verified_rounded;
+      iconColor = colors.success;
+      bgColor = colors.success.withAlpha(15);
+    } else if (state is VerifyEmailExpired) {
+      icon = Icons.timer_off_rounded;
+      iconColor = colors.warning;
+      bgColor = colors.warning.withAlpha(15);
+    } else {
+      icon = Icons.error_outline_rounded;
+      iconColor = colors.error;
+      bgColor = colors.error.withAlpha(15);
     }
 
     return Container(
@@ -149,20 +124,16 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         .scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1));
   }
 
-  Widget _buildTitle(SemanticColors colors) {
+  Widget _buildTitle(SemanticColors colors, VerifyEmailState state) {
     String title;
-    switch (_status) {
-      case 'verifying':
-        title = 'جارِ التحقق...';
-        break;
-      case 'success':
-        title = 'تم التحقق ✓';
-        break;
-      case 'expired':
-        title = 'انتهت الصلاحية';
-        break;
-      default:
-        title = 'فشل التحقق';
+    if (state is VerifyEmailVerifying) {
+      title = 'جارِ التحقق...';
+    } else if (state is VerifyEmailSuccess) {
+      title = 'تم التحقق ✓';
+    } else if (state is VerifyEmailExpired) {
+      title = 'انتهت الصلاحية';
+    } else {
+      title = 'فشل التحقق';
     }
 
     return Text(
@@ -175,11 +146,20 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     ).animate(delay: 200.ms).fadeIn();
   }
 
-  Widget _buildMessage(SemanticColors colors) {
-    if (_message.isEmpty) return const SizedBox.shrink();
+  Widget _buildMessage(SemanticColors colors, VerifyEmailState state) {
+    String message = '';
+    if (state is VerifyEmailSuccess) {
+      message = state.message;
+    } else if (state is VerifyEmailExpired) {
+      message = state.message;
+    } else if (state is VerifyEmailError) {
+      message = state.message;
+    }
+
+    if (message.isEmpty) return const SizedBox.shrink();
 
     return Text(
-      _message,
+      message,
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 15,
@@ -189,23 +169,25 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     ).animate(delay: 400.ms).fadeIn();
   }
 
-  Widget _buildAction(SemanticColors colors) {
-    switch (_status) {
-      case 'verifying':
-        return const SizedBox.shrink();
-      case 'success':
-        return Text(
-          'سيتم تحويلك تلقائياً...',
-          style: TextStyle(fontSize: 13, color: colors.textSubtle),
-        ).animate(delay: 600.ms).fadeIn();
-      default:
-        return GradientButton(
-          label: 'العودة لتسجيل الدخول',
-          icon: Icons.login_rounded,
-          onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
-          },
-        ).animate(delay: 600.ms).fadeIn();
+  Widget _buildAction(
+      BuildContext context, SemanticColors colors, VerifyEmailState state) {
+    if (state is VerifyEmailVerifying) {
+      return const SizedBox.shrink();
     }
+
+    if (state is VerifyEmailSuccess) {
+      return Text(
+        'سيتم تحويلك تلقائياً...',
+        style: TextStyle(fontSize: 13, color: colors.textSubtle),
+      ).animate(delay: 600.ms).fadeIn();
+    }
+
+    return GradientButton(
+      label: 'العودة لتسجيل الدخول',
+      icon: Icons.login_rounded,
+      onPressed: () {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+      },
+    ).animate(delay: 600.ms).fadeIn();
   }
 }

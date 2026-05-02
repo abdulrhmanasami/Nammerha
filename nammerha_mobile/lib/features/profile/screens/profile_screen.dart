@@ -12,6 +12,8 @@ import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
+import '../bloc/profile_form_cubit.dart';
+import '../bloc/change_password_form_cubit.dart';
 import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -27,7 +29,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _isEditing = false;
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
 
@@ -70,9 +71,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocConsumer<ProfileBloc, ProfileState>(
+    return BlocProvider(
+      create: (_) => ProfileFormCubit(),
+      child: BlocConsumer<ProfileBloc, ProfileState>(
       listener: (context, state) {
-        if (state is ProfileLoaded && !_isEditing) {
+        final isEditing = context.read<ProfileFormCubit>().state;
+        if (state is ProfileLoaded && !isEditing) {
           _nameController.text = state.user['full_name']?.toString() ?? '';
           _emailController.text = state.user['email']?.toString() ?? '';
         }
@@ -131,42 +135,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        return Scaffold(
-          backgroundColor: colors.backgroundPrimary,
-          appBar: AppBar(
-            title: const Text('الملف الشخصي'),
-            actions: [
-              if (!_isEditing)
-                IconButton(
-                  onPressed: () => setState(() => _isEditing = true),
-                  icon: Icon(Icons.edit_rounded, color: colors.primaryBrand, size: 22),
+        return BlocBuilder<ProfileFormCubit, bool>(
+          builder: (context, isEditing) {
+            return Scaffold(
+              backgroundColor: colors.backgroundPrimary,
+              appBar: AppBar(
+                title: const Text('الملف الشخصي'),
+                actions: [
+                  if (!isEditing)
+                    IconButton(
+                      onPressed: () => context.read<ProfileFormCubit>().startEditing(),
+                      icon: Icon(Icons.edit_rounded, color: colors.primaryBrand, size: 22),
+                    ),
+                ],
+              ),
+              body: RefreshIndicator(
+                onRefresh: () async {
+                  context.read<ProfileBloc>().add(LoadProfileRequested());
+                },
+                color: colors.primaryBrand,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    _buildAvatarCard(colors, user),
+                    const SizedBox(height: 16),
+                    _buildCompletionBar(colors, user, roles),
+                    const SizedBox(height: 16),
+                    if (isEditing) _buildEditForm(context, colors, isSaving) else _buildInfoDisplay(colors, user),
+                    const SizedBox(height: 16),
+                    _buildRolesSection(colors, roles),
+                    const SizedBox(height: 16),
+                    _buildSettingsSection(colors),
+                    const SizedBox(height: 16),
+                    _buildLogoutButton(colors),
+                  ],
                 ),
-            ],
-          ),
-          body: RefreshIndicator(
-            onRefresh: () async {
-              context.read<ProfileBloc>().add(LoadProfileRequested());
-            },
-            color: colors.primaryBrand,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildAvatarCard(colors, user),
-                const SizedBox(height: 16),
-                _buildCompletionBar(colors, user, roles),
-                const SizedBox(height: 16),
-                if (_isEditing) _buildEditForm(colors, isSaving) else _buildInfoDisplay(colors, user),
-                const SizedBox(height: 16),
-                _buildRolesSection(colors, roles),
-                const SizedBox(height: 16),
-                _buildSettingsSection(colors),
-                const SizedBox(height: 16),
-                _buildLogoutButton(colors),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
+    ),
     );
   }
 
@@ -279,7 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ─── Edit Form ────────────────────────────────────────────────────────
 
-  Widget _buildEditForm(SemanticColors colors, bool isSaving) {
+  Widget _buildEditForm(BuildContext context, SemanticColors colors, bool isSaving) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -317,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => setState(() => _isEditing = false),
+                  onPressed: () => context.read<ProfileFormCubit>().stopEditing(),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -331,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ElevatedButton(
                   onPressed: isSaving ? null : () {
                     context.read<ProfileBloc>().add(SaveProfileRequested(fullName: _nameController.text.trim(), email: _emailController.text.trim()));
-                    setState(() => _isEditing = false);
+                    context.read<ProfileFormCubit>().stopEditing();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: const Text('تم تحديث الملف بنجاح ✓'), backgroundColor: colors.success),
                     );
@@ -637,13 +646,6 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   final _currentCtrl = TextEditingController();
   final _newCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
-  // UI-only toggles — legitimate local state
-  bool _obscureCurrent = true;
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
-  // Client-side validation error — pre-BLoC, must stay local
-  String? _validationError;
-  int _strength = 0;
 
   @override
   void dispose() {
@@ -653,31 +655,19 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     super.dispose();
   }
 
-  /// Calculates password strength (0-4) matching backend PASSWORD_RULES:
-  /// 1. >= 8 chars  2. uppercase  3. lowercase  4. digit  5. special
-  void _updateStrength(String value) {
-    int s = 0;
-    if (value.length >= 8) s++;
-    if (RegExp(r'[A-Z]').hasMatch(value)) s++;
-    if (RegExp(r'[a-z]').hasMatch(value)) s++;
-    if (RegExp(r'[0-9]').hasMatch(value)) s++;
-    if (RegExp(r'[^A-Za-z0-9]').hasMatch(value)) s++;
-    setState(() => _strength = s);
-  }
-
-  Color _strengthColor(SemanticColors colors) {
-    if (_strength <= 1) return colors.error;
-    if (_strength <= 2) return const Color(0xFFFCC934);
-    if (_strength <= 3) return const Color(0xFFD59F80);
+  Color _strengthColor(SemanticColors colors, int strength) {
+    if (strength <= 1) return colors.error;
+    if (strength <= 2) return const Color(0xFFFCC934);
+    if (strength <= 3) return const Color(0xFFD59F80);
     return colors.success;
   }
 
-  String _strengthLabel() {
-    if (_strength == 0) return '';
-    if (_strength <= 1) return 'ضعيفة جداً';
-    if (_strength <= 2) return context.tr('pw_strength_fair');
-    if (_strength <= 3) return context.tr('pw_strength_good');
-    if (_strength <= 4) return context.tr('pw_strength_strong');
+  String _strengthLabel(int strength) {
+    if (strength == 0) return '';
+    if (strength <= 1) return 'ضعيفة جداً';
+    if (strength <= 2) return context.tr('pw_strength_fair');
+    if (strength <= 3) return context.tr('pw_strength_good');
+    if (strength <= 4) return context.tr('pw_strength_strong');
     return 'ممتازة ✓';
   }
 
@@ -698,14 +688,14 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     return null;
   }
 
-  void _submit() {
+  void _submit(BuildContext blocContext) {
     final error = _validate();
     if (error != null) {
-      setState(() => _validationError = error);
+      blocContext.read<ChangePasswordFormCubit>().setValidationError(error);
       return;
     }
-    setState(() => _validationError = null);
-    context.read<AuthBloc>().add(AuthChangePasswordRequested(
+    blocContext.read<ChangePasswordFormCubit>().clearValidationError();
+    blocContext.read<AuthBloc>().add(AuthChangePasswordRequested(
       currentPassword: _currentCtrl.text.trim(),
       newPassword: _newCtrl.text,
     ));
@@ -715,27 +705,31 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocConsumer<AuthBloc, AuthState>(
-      listenWhen: (prev, curr) =>
-          curr is AuthPasswordChanged ||
-          curr is AuthError ||
-          curr is AuthLoading,
-      listener: (ctx, state) {
-        if (state is AuthPasswordChanged) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('✅ تم تغيير كلمة المرور بنجاح'),
-              backgroundColor: context.colors.success,
-            ),
-          );
-        }
-      },
-      builder: (ctx, authState) {
-        final isSubmitting = authState is AuthLoading;
-        final serverError = authState is AuthError ? authState.message : null;
-        final displayError = _validationError ?? serverError;
-        return Padding(
+    return BlocProvider(
+      create: (_) => ChangePasswordFormCubit(),
+      child: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (prev, curr) =>
+            curr is AuthPasswordChanged ||
+            curr is AuthError ||
+            curr is AuthLoading,
+        listener: (ctx, state) {
+          if (state is AuthPasswordChanged) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('✅ تم تغيير كلمة المرور بنجاح'),
+                backgroundColor: context.colors.success,
+              ),
+            );
+          }
+        },
+        builder: (ctx, authState) {
+          final isSubmitting = authState is AuthLoading;
+          final serverError = authState is AuthError ? authState.message : null;
+          return BlocBuilder<ChangePasswordFormCubit, ChangePasswordFormState>(
+            builder: (blocContext, formState) {
+              final displayError = formState.validationError ?? serverError;
+              return Padding(
           padding: EdgeInsetsDirectional.fromSTEB(
             20, 12, 20, MediaQuery.of(context).viewInsets.bottom + 32,
           ),
@@ -802,8 +796,8 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 controller: _currentCtrl,
                 label: 'كلمة المرور الحالية',
                 icon: Icons.lock_open_rounded,
-                obscure: _obscureCurrent,
-                onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                obscure: formState.obscureCurrent,
+                onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleCurrentVisibility(),
                 colors: colors,
               ),
               const SizedBox(height: 12),
@@ -813,10 +807,10 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 controller: _newCtrl,
                 label: 'كلمة المرور الجديدة',
                 icon: Icons.lock_rounded,
-                obscure: _obscureNew,
-                onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                obscure: formState.obscureNew,
+                onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleNewVisibility(),
                 colors: colors,
-                onChanged: _updateStrength,
+                onChanged: (v) => blocContext.read<ChangePasswordFormCubit>().updateStrength(v),
               ),
 
               // Strength indicator
@@ -830,12 +824,12 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                         margin: EdgeInsetsDirectional.only(end: i < 4 ? 3 : 0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(2),
-                          color: i < _strength ? _strengthColor(colors) : colors.strokeSubtle,
+                          color: i < formState.strength ? _strengthColor(colors, formState.strength) : colors.strokeSubtle,
                         ),
                       ),
                     )),
                     const SizedBox(width: 8),
-                    Text(_strengthLabel(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _strengthColor(colors))),
+                    Text(_strengthLabel(formState.strength), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _strengthColor(colors, formState.strength))),
                   ],
                 ),
               ],
@@ -846,8 +840,8 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 controller: _confirmCtrl,
                 label: 'تأكيد كلمة المرور',
                 icon: Icons.lock_rounded,
-                obscure: _obscureConfirm,
-                onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                obscure: formState.obscureConfirm,
+                onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleConfirmVisibility(),
                 colors: colors,
               ),
               const SizedBox(height: 20),
@@ -857,7 +851,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: isSubmitting ? null : _submit,
+                    onPressed: isSubmitting ? null : () => _submit(blocContext),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
                       foregroundColor: Colors.white,
@@ -885,7 +879,10 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
           ),
         ),
         );
-      },
+            },
+          );
+        },
+      ),
     );
   }
 

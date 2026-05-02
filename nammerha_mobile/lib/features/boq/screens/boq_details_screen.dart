@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../models/boq_item_model.dart';
 import '../../bids/data/bids_repository.dart';
 import '../../bids/screens/submit_bid_screen.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/boq_details_cubit.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BOQ Details Screen — جداول الكميات والتسعير
@@ -14,20 +16,30 @@ import '../../../core/i18n/t.dart';
 /// Now uses context.colors semantic design system for full dark mode + RTL
 /// compliance and visual consistency with the rest of the platform.
 /// ═══════════════════════════════════════════════════════════════════════════
-class BOQDetailsScreen extends StatefulWidget {
+class BOQDetailsScreen extends StatelessWidget {
   final String projectId;
 
   const BOQDetailsScreen({super.key, required this.projectId});
 
   @override
-  State<BOQDetailsScreen> createState() => _BOQDetailsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => BOQDetailsCubit(),
+      child: _BOQDetailsContent(projectId: projectId),
+    );
+  }
 }
 
-class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
+class _BOQDetailsContent extends StatefulWidget {
+  final String projectId;
+  const _BOQDetailsContent({required this.projectId});
+
+  @override
+  State<_BOQDetailsContent> createState() => _BOQDetailsContentState();
+}
+
+class _BOQDetailsContentState extends State<_BOQDetailsContent> {
   final _repository = BidsRepository();
-  bool _isLoading = true;
-  String? _error;
-  List<BOQItem> _items = [];
 
   @override
   void initState() {
@@ -36,19 +48,13 @@ class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
   }
 
   Future<void> _fetchBOQ() async {
+    final cubit = context.read<BOQDetailsCubit>();
     try {
       final jsonList = await _repository.getProjectBOQ(widget.projectId);
-      // High Performance Parsing via Isolate
       final parsed = await BOQItem.parseList(jsonList);
-      setState(() {
-        _items = parsed;
-        _isLoading = false;
-      });
+      cubit.setLoaded(parsed);
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      cubit.setError(e.toString());
     }
   }
 
@@ -70,8 +76,12 @@ class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
         ),
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),
-      body: _buildBody(colors),
-      bottomNavigationBar: _items.isNotEmpty
+      body: BlocBuilder<BOQDetailsCubit, BOQDetailsState>(
+        builder: (context, bState) => _buildBody(colors, bState),
+      ),
+      bottomNavigationBar: BlocBuilder<BOQDetailsCubit, BOQDetailsState>(
+        builder: (context, bState) {
+          return bState.items.isNotEmpty
           ? Container(
               padding: const EdgeInsets.all(16),
               color: colors.surfaceElevated,
@@ -107,16 +117,18 @@ class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
                 ),
               ),
             )
-          : null,
+          : const SizedBox.shrink();
+        },
+      ),
     );
   }
 
-  Widget _buildBody(SemanticColors colors) {
-    if (_isLoading) {
+  Widget _buildBody(SemanticColors colors, BOQDetailsState bState) {
+    if (bState.isLoading) {
       return Center(
           child: CircularProgressIndicator(color: colors.primaryBrand));
     }
-    if (_error != null) {
+    if (bState.error != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -127,7 +139,7 @@ class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
                   size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
               Text(
-                _error!,
+                bState.error!,
                 style: TextStyle(color: colors.error),
                 textAlign: TextAlign.center,
               ),
@@ -144,7 +156,7 @@ class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
         ),
       );
     }
-    if (_items.isEmpty) {
+    if (bState.items.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -166,10 +178,10 @@ class _BOQDetailsScreenState extends State<BOQDetailsScreen> {
       color: colors.primaryBrand,
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
-        itemCount: _items.length,
+        itemCount: bState.items.length,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          return _buildBOQCard(_items[index], colors, index);
+          return _buildBOQCard(bState.items[index], colors, index);
         },
       ),
     );

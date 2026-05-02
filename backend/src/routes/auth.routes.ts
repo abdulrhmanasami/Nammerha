@@ -270,10 +270,15 @@ router.post(
                 password: string;
             };
 
+            // I18N-004: Locale-aware error messages for mobile clients
+            const loginLocale = getEmailLocale(req);
+
             if (!email || !password) {
                 res.status(400).json({
                     success: false,
-                    error: 'Missing required fields: email, password',
+                    error: loginLocale === 'ar'
+                        ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني وكلمة المرور'
+                        : 'Missing required fields: email, password',
                 } as ApiResponse);
                 return;
             }
@@ -282,7 +287,9 @@ router.post(
             if (password.length > MAX_PASSWORD_LENGTH) {
                 res.status(401).json({
                     success: false,
-                    error: 'Invalid email or password',
+                    error: loginLocale === 'ar'
+                        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+                        : 'Invalid email or password',
                 } as ApiResponse);
                 return;
             }
@@ -299,7 +306,9 @@ router.post(
                 // Use generic message to prevent email enumeration
                 res.status(401).json({
                     success: false,
-                    error: 'Invalid email or password',
+                    error: loginLocale === 'ar'
+                        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+                        : 'Invalid email or password',
                 } as ApiResponse);
                 return;
             }
@@ -345,7 +354,9 @@ router.post(
                 );
                 res.status(429).json({
                     success: false,
-                    error: `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
+                    error: loginLocale === 'ar'
+                        ? `الحساب مقفل مؤقتاً. حاول مرة أخرى بعد ${minutesLeft} دقيقة.`
+                        : `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
                 } as ApiResponse);
                 return;
             }
@@ -383,7 +394,9 @@ router.post(
 
                 res.status(401).json({
                     success: false,
-                    error: 'Invalid email or password',
+                    error: loginLocale === 'ar'
+                        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+                        : 'Invalid email or password',
                 } as ApiResponse);
                 return;
             }
@@ -398,7 +411,10 @@ router.post(
             if (!user.is_email_verified) {
                 res.status(403).json({
                     success: false,
-                    error: 'Please verify your email before signing in. Check your inbox for the verification link.',
+                    error: loginLocale === 'ar'
+                        ? 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.'
+                        : 'Please verify your email before signing in. Check your inbox for the verification link.',
+                    code: 'EMAIL_NOT_VERIFIED',
                 } as ApiResponse);
                 return;
             }

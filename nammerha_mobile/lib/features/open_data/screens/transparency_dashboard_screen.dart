@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/services/open_data_api.dart';
@@ -8,6 +9,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/error_localizer.dart';
 import '../../../core/services/api_services.dart' show formatCurrency;
 import '../../../core/i18n/t.dart';
+import '../bloc/transparency_dashboard_cubit.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Transparency Dashboard — لوحة الشفافية والبيانات المفتوحة (OCDS)
@@ -22,25 +24,31 @@ import '../../../core/i18n/t.dart';
 ///
 /// Standard: Nammerha Domain Law §2 — Radical Transparency / OCDS.
 /// ═══════════════════════════════════════════════════════════════════════════
-class TransparencyDashboardScreen extends StatefulWidget {
+class TransparencyDashboardScreen extends StatelessWidget {
   final String projectId;
 
   const TransparencyDashboardScreen({super.key, required this.projectId});
 
   @override
-  State<TransparencyDashboardScreen> createState() =>
-      _TransparencyDashboardScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => TransparencyDashboardCubit(),
+      child: _TransparencyDashboardContent(projectId: projectId),
+    );
+  }
 }
 
-class _TransparencyDashboardScreenState
-    extends State<TransparencyDashboardScreen> {
-  final OpenDataApi _openDataApi = OpenDataApi();
+class _TransparencyDashboardContent extends StatefulWidget {
+  final String projectId;
+  const _TransparencyDashboardContent({required this.projectId});
 
-  Map<String, dynamic> _projectCard = {};
-  Map<String, dynamic> _ocdsRelease = {};
-  List<Map<String, dynamic>> _ledgerEntries = [];
-  bool _isLoading = true;
-  String? _error;
+  @override
+  State<_TransparencyDashboardContent> createState() => _TransparencyDashboardContentState();
+}
+
+class _TransparencyDashboardContentState
+    extends State<_TransparencyDashboardContent> {
+  final OpenDataApi _openDataApi = OpenDataApi();
 
   @override
   void initState() {
@@ -49,10 +57,8 @@ class _TransparencyDashboardScreenState
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    final cubit = context.read<TransparencyDashboardCubit>();
+    cubit.setLoading();
 
     try {
       final results = await Future.wait<Map<String, dynamic>>([
@@ -69,25 +75,18 @@ class _TransparencyDashboardScreenState
               card['escrow_entries'] ??
               []) as List<dynamic>;
 
-      setState(() {
-        _projectCard = card;
-        _ocdsRelease = ocds;
-        _ledgerEntries = rawLedger.cast<Map<String, dynamic>>();
-        _isLoading = false;
-      });
+      cubit.setLoaded(
+        projectCard: card,
+        ocdsRelease: ocds,
+        ledgerEntries: rawLedger.cast<Map<String, dynamic>>(),
+      );
     } on ApiException catch (e) {
       if (mounted) {
-        setState(() {
-          _error = localizeApiError(e.message);
-          _isLoading = false;
-        });
+        cubit.setError(localizeApiError(e.message));
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _error = 'تعذر تحميل بيانات الشفافية';
-          _isLoading = false;
-        });
+        cubit.setError('تعذر تحميل بيانات الشفافية');
       }
     }
   }
@@ -111,18 +110,20 @@ class _TransparencyDashboardScreenState
         ),
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),
-      body: _buildBody(colors),
+      body: BlocBuilder<TransparencyDashboardCubit, TransparencyDashboardState>(
+        builder: (context, tState) => _buildBody(colors, tState),
+      ),
     );
   }
 
-  Widget _buildBody(SemanticColors colors) {
-    if (_isLoading) {
+  Widget _buildBody(SemanticColors colors, TransparencyDashboardState tState) {
+    if (tState.isLoading) {
       return Center(
         child: CircularProgressIndicator(color: colors.primaryBrand),
       );
     }
 
-    if (_error != null) {
+    if (tState.error != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -133,7 +134,7 @@ class _TransparencyDashboardScreenState
                   size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
               Text(
-                _error!,
+                tState.error!,
                 style: TextStyle(color: colors.error, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
@@ -171,8 +172,8 @@ class _TransparencyDashboardScreenState
             const SizedBox(height: 20),
 
             // OCDS Release Summary (if available)
-            if (_ocdsRelease.isNotEmpty) ...[
-              _buildOCDSSummary(colors),
+            if (tState.ocdsRelease.isNotEmpty) ...[
+              _buildOCDSSummary(colors, tState),
               const SizedBox(height: 20),
             ],
 
@@ -186,7 +187,7 @@ class _TransparencyDashboardScreenState
               ),
             ),
             const SizedBox(height: 16),
-            _buildLedgerTimeline(colors),
+            _buildLedgerTimeline(colors, tState.ledgerEntries),
           ],
         ),
       ),
@@ -254,16 +255,18 @@ class _TransparencyDashboardScreenState
     );
   }
 
-  Widget _buildOCDSSummary(SemanticColors colors) {
-    final ocid = _ocdsRelease['ocid']?.toString() ?? '';
-    final releaseDate = _ocdsRelease['date']?.toString() ?? '';
-    final tag = (_ocdsRelease['tag'] as List<dynamic>?)?.join(', ') ??
-        _ocdsRelease['tag']?.toString() ??
+  Widget _buildOCDSSummary(SemanticColors colors, TransparencyDashboardState tState) {
+    final ocdsRelease = tState.ocdsRelease;
+    final projectCard = tState.projectCard;
+    final ocid = ocdsRelease['ocid']?.toString() ?? '';
+    final releaseDate = ocdsRelease['date']?.toString() ?? '';
+    final tag = (ocdsRelease['tag'] as List<dynamic>?)?.join(', ') ??
+        ocdsRelease['tag']?.toString() ??
         '';
-    final totalAmount = _projectCard['total_estimated_cost'] ??
-        _projectCard['funding_goal'] ??
+    final totalAmount = projectCard['total_estimated_cost'] ??
+        projectCard['funding_goal'] ??
         0;
-    final fundedAmount = _projectCard['total_funded'] ?? 0;
+    final fundedAmount = projectCard['total_funded'] ?? 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -343,8 +346,8 @@ class _TransparencyDashboardScreenState
     );
   }
 
-  Widget _buildLedgerTimeline(SemanticColors colors) {
-    if (_ledgerEntries.isEmpty) {
+  Widget _buildLedgerTimeline(SemanticColors colors, List<Map<String, dynamic>> ledgerEntries) {
+    if (ledgerEntries.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -367,9 +370,9 @@ class _TransparencyDashboardScreenState
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _ledgerEntries.length,
+      itemCount: ledgerEntries.length,
       itemBuilder: (context, index) {
-        final entry = _ledgerEntries[index];
+        final entry = ledgerEntries[index];
         final status = (entry['status']?.toString() ?? '').toLowerCase();
         final isReleased =
             status == 'released' || status == 'escrow_released';

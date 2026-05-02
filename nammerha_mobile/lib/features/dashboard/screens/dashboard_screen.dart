@@ -30,6 +30,7 @@ import '../../admin/screens/admin_kyc_screen.dart';
 import '../../contractor/screens/contractor_portal_screen.dart';
 import '../../tradesperson/screens/tradesperson_portal_screen.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/bloc/page_index_cubit.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -44,7 +45,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _currentIndex = 0;
 
   List<Widget> _getPages() {
     switch (widget.role) {
@@ -170,24 +170,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final pages = _getPages();
     final navItems = _getNavItems();
 
-    if (_currentIndex >= pages.length) _currentIndex = 0;
-
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: context.colors.strokeSubtle, width: 1),
-          ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) => setState(() => _currentIndex = i),
-          items: navItems,
-        ),
+    return BlocProvider(
+      create: (_) => PageIndexCubit(),
+      child: BlocBuilder<PageIndexCubit, int>(
+        builder: (context, currentIndex) {
+          final safeIndex = currentIndex >= pages.length ? 0 : currentIndex;
+          return Scaffold(
+            body: IndexedStack(
+              index: safeIndex,
+              children: pages,
+            ),
+            bottomNavigationBar: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: context.colors.strokeSubtle, width: 1),
+                ),
+              ),
+              child: BottomNavigationBar(
+                currentIndex: safeIndex,
+                onTap: (i) => context.read<PageIndexCubit>().setPage(i),
+                items: navItems,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -6,6 +6,7 @@ import '../../../core/widgets/gradient_button.dart';
 import '../../cart/bloc/checkout_bloc.dart';
 import '../../cart/bloc/checkout_event.dart';
 import '../../cart/bloc/checkout_state.dart';
+import '../bloc/gateway_selector_cubit.dart';
 
 class EscrowCheckoutScreen extends StatelessWidget {
   final List<Map<String, dynamic>> basketItems;
@@ -21,8 +22,11 @@ class EscrowCheckoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => CheckoutBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => CheckoutBloc()),
+        BlocProvider(create: (context) => GatewaySelectorCubit()),
+      ],
       child: EscrowCheckoutView(
         basketItems: basketItems,
         totalAmount: totalAmount,
@@ -32,7 +36,7 @@ class EscrowCheckoutScreen extends StatelessWidget {
   }
 }
 
-class EscrowCheckoutView extends StatefulWidget {
+class EscrowCheckoutView extends StatelessWidget {
   final List<Map<String, dynamic>> basketItems;
   final double totalAmount;
   final int tipAmount;
@@ -44,13 +48,6 @@ class EscrowCheckoutView extends StatefulWidget {
     required this.tipAmount,
   });
 
-  @override
-  State<EscrowCheckoutView> createState() => _EscrowCheckoutViewState();
-}
-
-class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
-  String _selectedGateway = 'fatora';
-
   // Fallback formatter
   String formatCurrency(num amount) {
     if (amount >= 1000000) {
@@ -61,11 +58,12 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
     return '${amount.toStringAsFixed(0)} ل.س';
   }
 
-  void _handleCheckout() {
+  void _handleCheckout(BuildContext context) {
+    final selectedGateway = context.read<GatewaySelectorCubit>().state;
     context.read<CheckoutBloc>().add(InitiateCheckoutEvent(
-      basketItems: widget.basketItems,
-      tipAmount: widget.tipAmount,
-      paymentGateway: _selectedGateway,
+      basketItems: basketItems,
+      tipAmount: tipAmount,
+      paymentGateway: selectedGateway,
     ));
   }
 
@@ -119,10 +117,10 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
                         border: Border.all(color: colors.strokeSubtle),
                       ),
                       child: ListView.separated(
-                        itemCount: widget.basketItems.length,
-                        separatorBuilder: (_, _) => Divider(height: 1, color: colors.strokeSubtle),
+                        itemCount: basketItems.length,
+                        separatorBuilder: (_, __) => Divider(height: 1, color: colors.strokeSubtle),
                         itemBuilder: (context, index) {
-                          final item = widget.basketItems[index];
+                          final item = basketItems[index];
                           final lineTotal = ((item['unit_price'] as num?) ?? 0) * ((item['quantity'] as num?) ?? 1);
                           return ListTile(
                             title: Text(
@@ -141,7 +139,7 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
                   const SizedBox(height: 20),
 
                   // Tips if selected
-                  if (widget.tipAmount > 0) ...[
+                  if (tipAmount > 0) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
@@ -152,7 +150,7 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('إكرامية المنصة', style: TextStyle(fontWeight: FontWeight.w500, color: colors.textSecondary)),
-                          Text(formatCurrency(widget.tipAmount), style: TextStyle(fontWeight: FontWeight.w700, color: colors.success)),
+                          Text(formatCurrency(tipAmount), style: TextStyle(fontWeight: FontWeight.w700, color: colors.success)),
                         ],
                       ),
                     ),
@@ -178,7 +176,7 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
                           ],
                         ),
                         Text(
-                          formatCurrency(widget.totalAmount + widget.tipAmount),
+                          formatCurrency(totalAmount + tipAmount),
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.primaryBrand),
                         ),
                       ],
@@ -228,7 +226,7 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
                     label: 'تأمين الأموال في الضمان',
                     icon: Icons.lock_rounded,
                     isLoading: isLoading,
-                    onPressed: _handleCheckout,
+                    onPressed: () => _handleCheckout(context),
                   ),
                 ],
               ),
@@ -241,28 +239,32 @@ class _EscrowCheckoutViewState extends State<EscrowCheckoutView> {
 
   Widget _buildGatewaySelector(BuildContext context, String title, String value, IconData icon) {
     final colors = context.colors;
-    final isSelected = _selectedGateway == value;
 
-    return GestureDetector(
-      onTap: () => setState(() => _selectedGateway = value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.primaryBrandLight : colors.surfaceElevated,
-          border: Border.all(color: isSelected ? colors.primaryBrand : colors.strokeBorder, width: isSelected ? 2 : 1),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: isSelected ? colors.primaryBrand : colors.textSecondary),
-            const SizedBox(width: 12),
-            Icon(icon, color: isSelected ? colors.primaryBrand : colors.textSecondary, size: 20),
-            const SizedBox(width: 8),
-            Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: colors.textPrimary)),
-          ],
-        ),
-      ),
+    return BlocBuilder<GatewaySelectorCubit, String>(
+      builder: (context, selectedGateway) {
+        final isSelected = selectedGateway == value;
+        return GestureDetector(
+          onTap: () => context.read<GatewaySelectorCubit>().selectGateway(value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isSelected ? colors.primaryBrandLight : colors.surfaceElevated,
+              border: Border.all(color: isSelected ? colors.primaryBrand : colors.strokeBorder, width: isSelected ? 2 : 1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: isSelected ? colors.primaryBrand : colors.textSecondary),
+                const SizedBox(width: 12),
+                Icon(icon, color: isSelected ? colors.primaryBrand : colors.textSecondary, size: 20),
+                const SizedBox(width: 8),
+                Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: colors.textPrimary)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

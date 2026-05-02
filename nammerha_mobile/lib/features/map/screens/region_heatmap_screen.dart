@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/services/open_data_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/region_heatmap_cubit.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Region Heatmap Screen — Advanced map visualization
@@ -16,19 +18,27 @@ import '../../../core/i18n/t.dart';
 ///
 /// Uses Open Data API stats + projects for real data.
 /// ═══════════════════════════════════════════════════════════════════════════
-class RegionHeatmapScreen extends StatefulWidget {
+class RegionHeatmapScreen extends StatelessWidget {
   const RegionHeatmapScreen({super.key});
 
   @override
-  State<RegionHeatmapScreen> createState() => _RegionHeatmapScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => RegionHeatmapCubit(),
+      child: const _RegionHeatmapContent(),
+    );
+  }
 }
 
-class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
+class _RegionHeatmapContent extends StatefulWidget {
+  const _RegionHeatmapContent();
+
+  @override
+  State<_RegionHeatmapContent> createState() => _RegionHeatmapContentState();
+}
+
+class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
   final OpenDataApi _api = OpenDataApi();
-  bool _isLoading = true;
-  List<_RegionData> _regions = [];
-  Map<String, dynamic> _stats = {};
-  int _maxCount = 1;
 
   @override
   void initState() {
@@ -37,13 +47,14 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    final cubit = context.read<RegionHeatmapCubit>();
+    cubit.setLoading();
     try {
       final results = await Future.wait([
         _api.getStats(),
         _api.getProjects(limit: 100),
       ]);
-      _stats = results[0];
+      final stats = results[0];
       final projData = results[1];
       final projects = (projData['projects'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
 
@@ -68,11 +79,14 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
         }
       }
 
-      _regions = regionMap.values.toList()..sort((a, b) => b.count.compareTo(a.count));
-      _maxCount = _regions.isEmpty ? 1 : _regions.first.count;
+      final regions = regionMap.values.toList()..sort((a, b) => b.count.compareTo(a.count));
+      final maxCount = regions.isEmpty ? 1 : regions.first.count;
+      cubit.setLoaded(regions: regions, stats: stats, maxCount: maxCount);
     } on ApiException catch (_) {
-    } catch (_) {}
-    if (mounted) setState(() => _isLoading = false);
+      cubit.setLoaded(regions: [], stats: {}, maxCount: 1);
+    } catch (_) {
+      cubit.setLoaded(regions: [], stats: {}, maxCount: 1);
+    }
   }
 
   String _formatAmount(num amount) {
@@ -92,9 +106,17 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
         backgroundColor: colors.backgroundPrimary, elevation: 0,
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: colors.primaryBrand))
-          : RefreshIndicator(
+      body: BlocBuilder<RegionHeatmapCubit, RegionHeatmapState>(
+        builder: (context, hState) {
+          final regions = hState.regions.cast<_RegionData>();
+          final stats = hState.stats;
+          final maxCount = hState.maxCount;
+
+          if (hState.isLoading) {
+            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+          }
+
+          return RefreshIndicator(
               onRefresh: _load,
               color: colors.primaryBrand,
               child: ListView(
@@ -110,8 +132,8 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
                     child: Column(children: [
                       const Icon(Icons.public_rounded, color: Colors.white, size: 36),
                       const SizedBox(height: 8),
-                      Text('${_stats['total_regions'] ?? _regions.length} محافظة', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
-                      Text('${_stats['total_projects'] ?? 0} مشروع إعادة إعمار', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
+                      Text('${stats['total_regions'] ?? regions.length} محافظة', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
+                      Text('${stats['total_projects'] ?? 0} مشروع إعادة إعمار', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
                     ]),
                   ).animate().fadeIn(duration: 400.ms),
                   const SizedBox(height: 20),
@@ -127,16 +149,18 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
                   const SizedBox(height: 16),
 
                   // Region cards
-                  if (_regions.isEmpty)
+                  if (regions.isEmpty)
                     Center(child: Padding(
                       padding: const EdgeInsets.all(32),
                       child: Text('لا توجد بيانات جغرافية', style: TextStyle(color: colors.textSecondary)),
                     ))
                   else
-                    ...List.generate(_regions.length, (i) => _regionCard(_regions[i], colors, i)),
+                    ...List.generate(regions.length, (i) => _regionCard(regions[i], colors, i, maxCount)),
                 ],
               ),
-            ),
+            );
+        },
+      ),
     );
   }
 
@@ -148,8 +172,8 @@ class _RegionHeatmapScreenState extends State<RegionHeatmapScreen> {
     ]);
   }
 
-  Widget _regionCard(_RegionData region, SemanticColors colors, int index) {
-    final intensity = region.count / _maxCount;
+  Widget _regionCard(_RegionData region, SemanticColors colors, int index, int maxCount) {
+    final intensity = region.count / maxCount;
     Color heatColor;
     if (intensity > 0.66) {
       heatColor = colors.error;

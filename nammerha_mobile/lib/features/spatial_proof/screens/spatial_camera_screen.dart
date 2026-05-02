@@ -11,6 +11,7 @@ import '../models/gps_signature.dart';
 import '../bloc/spatial_proof_bloc.dart';
 import '../bloc/spatial_proof_event.dart';
 import '../bloc/spatial_proof_state.dart';
+import '../bloc/camera_hardware_cubit.dart';
 import '../../../core/i18n/t.dart';
 
 class SpatialCameraScreen extends StatelessWidget {
@@ -29,8 +30,11 @@ class SpatialCameraScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SpatialProofBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => SpatialProofBloc()),
+        BlocProvider(create: (context) => CameraHardwareCubit()),
+      ],
       child: _SpatialCameraView(
         projectId: projectId,
         itemId: itemId,
@@ -60,12 +64,6 @@ class _SpatialCameraView extends StatefulWidget {
 
 class _SpatialCameraViewState extends State<_SpatialCameraView> {
   CameraController? _cameraController;
-
-  bool _isInitializing = true;
-  bool _hasPermissions = false;
-  String _errorMessage = '';
-
-  Position? _currentPosition;
   GpsSignature? _currentSignature; // Visual only
 
   @override
@@ -75,6 +73,8 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
   }
 
   Future<void> _initializeHardware() async {
+    final hwCubit = context.read<CameraHardwareCubit>();
+    hwCubit.resetInitializing();
     try {
       final statuses = await [
         Permission.camera,
@@ -83,15 +83,11 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
       if (statuses[Permission.camera] != PermissionStatus.granted ||
           statuses[Permission.locationWhenInUse] != PermissionStatus.granted) {
-        setState(() {
-          _hasPermissions = false;
-          _isInitializing = false;
-          _errorMessage = 'صلاحيات الكاميرا والموقع مطلوبة للإثبات المكاني.';
-        });
+        hwCubit.setPermissionDenied('صلاحيات الكاميرا والموقع مطلوبة للإثبات المكاني.');
         return;
       }
 
-      _hasPermissions = true;
+      hwCubit.setPermissionsGranted();
 
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
@@ -110,28 +106,24 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       );
 
       await _cameraController!.initialize();
-      _currentPosition = await Geolocator.getCurrentPosition();
-      _updateSignature();
+      final position = await Geolocator.getCurrentPosition();
+      _updateSignatureFromPosition(position);
 
       if (mounted) {
-        setState(() => _isInitializing = false);
+        hwCubit.setReady(lat: position.latitude, lng: position.longitude, acc: position.accuracy);
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isInitializing = false;
-          _errorMessage = 'خطأ في التهيئة: ${e.toString()}';
-        });
+        hwCubit.setError('خطأ في التهيئة: ${e.toString()}');
       }
     }
   }
 
-  void _updateSignature() {
-    if (_currentPosition == null) return;
+  void _updateSignatureFromPosition(Position position) {
     _currentSignature = GpsSignature(
-      latitude: _currentPosition!.latitude,
-      longitude: _currentPosition!.longitude,
-      accuracy: _currentPosition!.accuracy,
+      latitude: position.latitude,
+      longitude: position.longitude,
+      accuracy: position.accuracy,
       timestamp: DateTime.now(),
     );
   }
@@ -144,15 +136,19 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
   Future<void> _captureSpatialProof() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) return;
-    if (_currentPosition == null) return;
+    final cubit = context.read<CameraHardwareCubit>();
+    final hwState = cubit.state;
+    if (hwState.latitude == null) return;
     
     final localColors = context.colors;
 
     try {
       // 1. Refresh precise location
-      _currentPosition = await Geolocator.getCurrentPosition();
-      _updateSignature();
-      setState(() {}); // Update HUD
+      final position = await Geolocator.getCurrentPosition();
+      _updateSignatureFromPosition(position);
+      cubit.updatePosition(
+        lat: position.latitude, lng: position.longitude, acc: position.accuracy,
+      );
 
       // 2. Take physical picture
       final xFile = await _cameraController!.takePicture();
@@ -162,11 +158,9 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
       // PLATINUM UPGRADE: Background Isolate Haversine Check
       if (widget.targetLat != null && widget.targetLng != null && widget.targetLat != 0.0) {
-        setState(() {}); // Show loading
-        
         final distance = await Isolate.run(() => _haversineDistance({
-          'lat1': _currentPosition!.latitude,
-          'lng1': _currentPosition!.longitude,
+          'lat1': position.latitude,
+          'lng1': position.longitude,
           'lat2': widget.targetLat!,
           'lng2': widget.targetLng!,
         }));
@@ -192,9 +186,9 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
           projectId: widget.projectId,
           itemId: widget.itemId,
           imageBytes: bytes,
-          latitude: _currentPosition!.latitude,
-          longitude: _currentPosition!.longitude,
-          accuracy: _currentPosition!.accuracy,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          accuracy: position.accuracy,
         ),
       );
 
@@ -214,48 +208,50 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    if (_isInitializing) {
-      return Scaffold(
-        backgroundColor: colors.backgroundPrimary,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: colors.primaryBrand),
-              const SizedBox(height: 16),
-              Text('جارِ تأمين الاتصال بالأجهزة...', style: TextStyle(color: colors.textSecondary)),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (!_hasPermissions || _errorMessage.isNotEmpty) {
-      return Scaffold(
-        backgroundColor: colors.backgroundPrimary,
-        appBar: AppBar(title: const Text('الحارس المكاني')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.warning_amber_rounded, size: 64, color: colors.error),
-                const SizedBox(height: 16),
-                Text(_errorMessage, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: 16)),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _initializeHardware,
-                  child: const Text('إعادة المحاولة'),
-                ),
-              ],
+    return BlocBuilder<CameraHardwareCubit, CameraHardwareState>(
+      builder: (context, hwState) {
+        if (hwState.isInitializing) {
+          return Scaffold(
+            backgroundColor: colors.backgroundPrimary,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: colors.primaryBrand),
+                  const SizedBox(height: 16),
+                  Text('جارِ تأمين الاتصال بالأجهزة...', style: TextStyle(color: colors.textSecondary)),
+                ],
+              ),
             ),
-          ),
-        ),
-      );
-    }
+          );
+        }
 
-    return BlocConsumer<SpatialProofBloc, SpatialProofState>(
+        if (!hwState.hasPermissions || hwState.errorMessage.isNotEmpty) {
+          return Scaffold(
+            backgroundColor: colors.backgroundPrimary,
+            appBar: AppBar(title: const Text('الحارس المكاني')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.warning_amber_rounded, size: 64, color: colors.error),
+                    const SizedBox(height: 16),
+                    Text(hwState.errorMessage, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: 16)),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _initializeHardware,
+                      child: const Text('إعادة المحاولة'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return BlocConsumer<SpatialProofBloc, SpatialProofState>(
       listener: (context, state) {
         if (state is SpatialProofSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -308,15 +304,15 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'خط العرض: ${_currentPosition?.latitude.toStringAsFixed(5)}',
+                        'خط العرض: ${hwState.latitude?.toStringAsFixed(5)}',
                         style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
                       ),
                       Text(
-                        'خط الطول: ${_currentPosition?.longitude.toStringAsFixed(5)}',
+                        'خط الطول: ${hwState.longitude?.toStringAsFixed(5)}',
                         style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
                       ),
                       Text(
-                        'الدقة: ±${_currentPosition?.accuracy.toStringAsFixed(1)}م',
+                        'الدقة: ±${hwState.accuracy?.toStringAsFixed(1)}م',
                         style: TextStyle(color: colors.warning, fontFamily: 'monospace', fontSize: 12),
                       ),
                       if (_currentSignature != null)
@@ -403,6 +399,8 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
             ],
           ),
         );
+      },
+    );
       },
     );
   }

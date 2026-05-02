@@ -1,24 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
 import '../../../core/i18n/t.dart';
+import '../bloc/homeowner_projects_cubit.dart';
 
-class HomeownerProjectsScreen extends StatefulWidget {
+class HomeownerProjectsScreen extends StatelessWidget {
   const HomeownerProjectsScreen({super.key});
 
   @override
-  State<HomeownerProjectsScreen> createState() => _HomeownerProjectsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => HomeownerProjectsCubit(),
+      child: const _HomeownerProjectsContent(),
+    );
+  }
 }
 
-class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
+class _HomeownerProjectsContent extends StatefulWidget {
+  const _HomeownerProjectsContent();
+
+  @override
+  State<_HomeownerProjectsContent> createState() => _HomeownerProjectsContentState();
+}
+
+class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
   final HomeownerApi _api = HomeownerApi();
-  List<Map<String, dynamic>> _projects = [];
-  bool _isLoading = true;
-  String? _error;
 
   @override
   void initState() {
@@ -27,14 +38,15 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
   }
 
   Future<void> _loadProjects() async {
-    setState(() { _isLoading = true; _error = null; });
+    final cubit = context.read<HomeownerProjectsCubit>();
+    cubit.setLoading();
     try {
-      _projects = await _api.getProjects();
-      setState(() => _isLoading = false);
+      final projects = await _api.getProjects();
+      cubit.setLoaded(projects);
     } on ApiException catch (e) {
-      setState(() { _error = localizeApiError(e.message); _isLoading = false; });
+      cubit.setError(localizeApiError(e.message));
     } catch (e) {
-      setState(() { _error = 'حدث خطأ في تحميل مشاريعك'; _isLoading = false; });
+      cubit.setError('حدث خطأ في تحميل مشاريعك');
     }
   }
 
@@ -57,12 +69,14 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
           ),
         ],
       ),
-      body: _buildBody(colors),
+      body: BlocBuilder<HomeownerProjectsCubit, HomeownerProjectsState>(
+        builder: (context, state) => _buildBody(colors, state),
+      ),
     );
   }
 
-  Widget _buildBody(SemanticColors colors) {
-    if (_isLoading) {
+  Widget _buildBody(SemanticColors colors, HomeownerProjectsState state) {
+    if (state.isLoading) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -75,7 +89,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
       );
     }
 
-    if (_error != null) {
+    if (state.error != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -84,7 +98,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
             children: [
               Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
-              Text(_error!, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
+              Text(state.error!, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadProjects,
@@ -98,7 +112,7 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
       );
     }
 
-    if (_projects.isEmpty) {
+    if (state.projects.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -123,9 +137,9 @@ class _HomeownerProjectsScreenState extends State<HomeownerProjectsScreen> {
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _projects.length,
+        itemCount: state.projects.length,
         itemBuilder: (context, index) {
-          final p = _projects[index];
+          final p = state.projects[index];
           final status = p['status'] ?? '';
           final funded = (p['funded_percentage'] ?? p['fundedPercentage'] ?? 0.0 as num).toDouble();
           final cost = p['total_estimated_cost'] ?? p['totalEstimatedCost'] ?? 0;

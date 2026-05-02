@@ -125,6 +125,16 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
+/// Emitted when login is rejected because the user's email is not verified.
+/// Carries the email address so the UI can offer a "Resend verification" action.
+class AuthEmailNotVerified extends AuthState {
+  final String email;
+  final String message;
+  const AuthEmailNotVerified({required this.email, required this.message});
+  @override
+  List<Object?> get props => [email, message];
+}
+
 /// Emitted after a successful password change — distinct from AuthError so
 /// callers can differentiate between password-change success and login success.
 class AuthPasswordChanged extends AuthState {
@@ -148,6 +158,9 @@ class AuthPasswordResetSuccess extends AuthState {
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
+
+  /// Exposed for direct repository access (e.g., resend verification).
+  AuthRepository get authRepository => _authRepository;
 
   AuthBloc({required AuthRepository authRepository})
       : _authRepository = authRepository,
@@ -181,6 +194,43 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  // ─── I18N-DEFENSE: Client-side error translation map ──────────────────
+  // Catches English error messages from the backend and translates them
+  // to Arabic. This is a defensive layer — the backend should already
+  // return Arabic when Accept-Language: ar, but this ensures zero English
+  // leaks even if the backend locale detection fails.
+  static final Map<RegExp, String> _errorTranslations = {
+    RegExp(r'verify your email', caseSensitive: false):
+        'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.',
+    RegExp(r'Invalid email or password', caseSensitive: false):
+        'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    RegExp(r'Account temporarily locked', caseSensitive: false):
+        'الحساب مقفل مؤقتاً — حاول مرة أخرى لاحقاً',
+    RegExp(r'Missing required fields', caseSensitive: false):
+        'الحقول المطلوبة مفقودة',
+    RegExp(r'Too many requests', caseSensitive: false):
+        'طلبات كثيرة جداً — حاول مرة أخرى لاحقاً',
+  };
+
+  /// Returns the Arabic translation if the message matches a known English
+  /// pattern, otherwise returns the original message.
+  static String _localizeError(String message) {
+    for (final entry in _errorTranslations.entries) {
+      if (entry.key.hasMatch(message)) {
+        return entry.value;
+      }
+    }
+    return message;
+  }
+
+  /// Detects if an error message is about email verification.
+  static bool _isEmailVerificationError(String message) {
+    return message.contains('verify') ||
+        message.contains('verification') ||
+        message.contains('تأكيد بريدك') ||
+        message.contains('EMAIL_NOT_VERIFIED');
+  }
+
   Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
@@ -190,13 +240,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       if (!user.isEmailVerified) {
-        emit(const AuthError('يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول'));
+        emit(AuthEmailNotVerified(
+          email: event.email,
+          message: 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.',
+        ));
         return;
       }
 
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
-      emit(AuthError(e.message));
+      // Detect email verification errors and emit specific state
+      if (_isEmailVerificationError(e.message)) {
+        emit(AuthEmailNotVerified(
+          email: event.email,
+          message: _localizeError(e.message),
+        ));
+      } else {
+        emit(AuthError(_localizeError(e.message)));
+      }
     } catch (e) {
       emit(AuthError('حدث خطأ أثناء تسجيل الدخول: ${e.toString()}'));
     }

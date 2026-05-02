@@ -117,7 +117,7 @@ class _ContactScreenState extends State<ContactScreen> {
           ],
           onChanged: (v) {
             if (v != null) {
-              setState(() => _category = v);
+              _category = v;
             }
           },
         ),

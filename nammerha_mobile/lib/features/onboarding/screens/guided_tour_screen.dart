@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/bloc/page_index_cubit.dart';
 import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -70,7 +72,6 @@ class _GuidedTourOverlay extends StatefulWidget {
 
 class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
   final PageController _pageController = PageController();
-  int _currentStep = 0;
 
   final List<_TourStep> _steps = [
     _TourStep(
@@ -111,8 +112,9 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
     super.dispose();
   }
 
-  void _next() {
-    if (_currentStep == _steps.length - 1) {
+  void _next(BuildContext ctx) {
+    final currentStep = ctx.read<PageIndexCubit>().state;
+    if (currentStep == _steps.length - 1) {
       Navigator.of(context).pop();
     } else {
       _pageController.nextPage(
@@ -126,7 +128,11 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => PageIndexCubit(),
+      child: BlocBuilder<PageIndexCubit, int>(
+        builder: (context, currentStep) {
+          return Scaffold(
       backgroundColor: Colors.black.withAlpha(220),
       body: SafeArea(
         child: Column(
@@ -148,7 +154,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Row(
                 children: List.generate(_steps.length, (i) {
-                  final isActive = i <= _currentStep;
+                  final isActive = i <= currentStep;
                   return Expanded(
                     child: Container(
                       height: 3,
@@ -168,7 +174,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: _steps.length,
-                onPageChanged: (i) => setState(() => _currentStep = i),
+                onPageChanged: (i) => context.read<PageIndexCubit>().setPage(i),
                 itemBuilder: (_, i) {
                   final step = _steps[i];
                   return Padding(
@@ -214,14 +220,14 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _next,
+                  onPressed: () => _next(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
-                    _currentStep == _steps.length - 1 ? 'ابدأ الاستكشاف' : context.tr('next'),
+                    currentStep == _steps.length - 1 ? 'ابدأ الاستكشاف' : context.tr('next'),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
                   ),
                 ),
@@ -229,6 +235,9 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
             ),
           ],
         ),
+      ),
+    );
+        },
       ),
     );
   }

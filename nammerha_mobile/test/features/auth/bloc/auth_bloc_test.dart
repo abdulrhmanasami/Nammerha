@@ -119,7 +119,7 @@ void main() {
     );
 
     blocTest<AuthBloc, AuthState>(
-      'emits [Loading, Error] when email is unverified',
+      'emits [Loading, EmailNotVerified] when email is unverified',
       build: () {
         when(() => mockRepo.login(
               email: any(named: 'email'),
@@ -133,7 +133,7 @@ void main() {
       )),
       expect: () => [
         isA<AuthLoading>(),
-        isA<AuthError>(),
+        isA<AuthEmailNotVerified>(),
       ],
     );
 
@@ -153,6 +153,28 @@ void main() {
       expect: () => [
         isA<AuthLoading>(),
         isA<AuthError>(),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'emits [Loading, EmailNotVerified] when backend returns verify email error',
+      build: () {
+        when(() => mockRepo.login(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+            )).thenThrow(const ApiException(
+          'Please verify your email before signing in.',
+          statusCode: 403,
+        ));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const AuthLoginRequested(
+        email: 'm.building2026@gmail.com',
+        password: 'Building.2026',
+      )),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthEmailNotVerified>(),
       ],
     );
   });

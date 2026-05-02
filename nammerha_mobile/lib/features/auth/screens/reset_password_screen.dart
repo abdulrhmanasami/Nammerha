@@ -6,13 +6,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../bloc/auth_bloc.dart';
+import '../bloc/reset_password_form_cubit.dart';
 import '../../../core/i18n/t.dart';
 
-/// Password Reset Screen — handles deep-link token from email.
-///
-/// GAP-H5 FIX: Mobile previously only had the "Forgot Password" dialog
-/// which sends the email. This screen processes the actual reset token
-/// received via deep-link (nammerha://reset-password?token=xxx).
+/// ═══════════════════════════════════════════════════════════════════════════
+/// Password Reset Screen — Platinum Standard (Absolute Zero setState)
+/// ═══════════════════════════════════════════════════════════════════════════
+/// All UI state managed via ResetPasswordFormCubit + AuthBloc.
+/// Zero setState calls in this file.
 ///
 /// Flow:
 ///   1. User taps "Forgot Password" → receives email with reset link
@@ -20,6 +21,7 @@ import '../../../core/i18n/t.dart';
 ///   3. User enters new password (with strength validation)
 ///   4. AuthBloc.add(AuthResetPassword(token, newPassword))
 ///   5. On success → navigates back to login
+/// ═══════════════════════════════════════════════════════════════════════════
 class ResetPasswordScreen extends StatefulWidget {
   final String token;
 
@@ -35,12 +37,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
-  bool _isSubmitting = false;
-  bool _isSuccess = false;
-  double _passwordStrength = 0;
-
   late AnimationController _animController;
   late Animation<double> _fadeIn;
 
@@ -53,50 +49,34 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     );
     _fadeIn = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
-
-    _passwordController.addListener(_updateStrength);
   }
 
   @override
   void dispose() {
-    _passwordController.removeListener(_updateStrength);
     _passwordController.dispose();
     _confirmController.dispose();
     _animController.dispose();
     super.dispose();
   }
 
-  void _updateStrength() {
-    final pw = _passwordController.text;
-    double strength = 0;
-    if (pw.length >= 8) strength += 0.2;
-    if (pw.length >= 12) strength += 0.1;
-    if (RegExp(r'[A-Z]').hasMatch(pw)) strength += 0.2;
-    if (RegExp(r'[a-z]').hasMatch(pw)) strength += 0.15;
-    if (RegExp(r'[0-9]').hasMatch(pw)) strength += 0.15;
-    if (RegExp(r'[^A-Za-z0-9]').hasMatch(pw)) strength += 0.2;
-    setState(() => _passwordStrength = strength.clamp(0.0, 1.0));
-  }
-
-  Color _strengthColor(BuildContext context) {
-    final colors = context.colors;
-    if (_passwordStrength < 0.3) return colors.error;
-    if (_passwordStrength < 0.6) return colors.warning;
-    if (_passwordStrength < 0.85) return colors.info;
+  Color _strengthColor(SemanticColors colors, double strength) {
+    if (strength < 0.3) return colors.error;
+    if (strength < 0.6) return colors.warning;
+    if (strength < 0.85) return colors.info;
     return colors.success;
   }
 
-  String _strengthLabel() {
-    if (_passwordStrength < 0.3) return 'ضعيفة جداً';
-    if (_passwordStrength < 0.6) return context.tr('pw_strength_good');
-    if (_passwordStrength < 0.85) return context.tr('str_5edbdc1c');
+  String _strengthLabel(double strength) {
+    if (strength < 0.3) return 'ضعيفة جداً';
+    if (strength < 0.6) return context.tr('pw_strength_good');
+    if (strength < 0.85) return context.tr('str_5edbdc1c');
     return 'قوية جداً ✓';
   }
 
-  void _submit() {
+  void _submit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSubmitting = true);
+    context.read<ResetPasswordFormCubit>().setSubmitting();
     context.read<AuthBloc>().add(
           AuthResetPassword(
             token: widget.token,
@@ -109,36 +89,42 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthPasswordResetSuccess) {
-          setState(() {
-            _isSubmitting = false;
-            _isSuccess = true;
-          });
-        } else if (state is AuthError) {
-          setState(() => _isSubmitting = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: colors.error,
-            ),
-          );
-        }
-      },
-      child: Scaffold(
-        backgroundColor: colors.backgroundPrimary,
-        appBar: AppBar(
+    return BlocProvider(
+      create: (_) => ResetPasswordFormCubit(),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthPasswordResetSuccess) {
+            context.read<ResetPasswordFormCubit>().setSuccess();
+          } else if (state is AuthError) {
+            context.read<ResetPasswordFormCubit>().setError();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: colors.error,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
           backgroundColor: colors.backgroundPrimary,
-          elevation: 0,
-          iconTheme: IconThemeData(color: colors.textPrimary),
-        ),
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeIn,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _isSuccess ? _buildSuccessView(context) : _buildFormView(context),
+          appBar: AppBar(
+            backgroundColor: colors.backgroundPrimary,
+            elevation: 0,
+            iconTheme: IconThemeData(color: colors.textPrimary),
+          ),
+          body: SafeArea(
+            child: FadeTransition(
+              opacity: _fadeIn,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: BlocBuilder<ResetPasswordFormCubit, ResetPasswordFormState>(
+                  builder: (context, formState) {
+                    return formState.isSuccess
+                        ? _buildSuccessView(context)
+                        : _buildFormView(context, formState);
+                  },
+                ),
+              ),
             ),
           ),
         ),
@@ -146,8 +132,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     );
   }
 
-  Widget _buildFormView(BuildContext context) {
+  Widget _buildFormView(BuildContext context, ResetPasswordFormState formState) {
     final colors = context.colors;
+    final strength = formState.passwordStrength;
 
     return Form(
       key: _formKey,
@@ -189,19 +176,25 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           // New Password
           TextFormField(
             controller: _passwordController,
-            obscureText: _obscurePassword,
+            obscureText: formState.obscurePassword,
             textDirection: TextDirection.ltr,
             style: TextStyle(color: colors.textPrimary),
+            onChanged: (value) =>
+                context.read<ResetPasswordFormCubit>().updateStrength(value),
             decoration: InputDecoration(
               labelText: 'كلمة المرور الجديدة',
               labelStyle: TextStyle(color: colors.textSecondary),
               prefixIcon: Icon(Icons.lock_rounded, color: colors.textSecondary),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  formState.obscurePassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                   color: colors.textSecondary,
                 ),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: () => context
+                    .read<ResetPasswordFormCubit>()
+                    .togglePasswordVisibility(),
               ),
               filled: true,
               fillColor: colors.surfaceElevated,
@@ -234,7 +227,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           ),
           const SizedBox(height: 8),
 
-          // Password Strength Meter (GAP-M7 bonus fix)
+          // Password Strength Meter
           if (_passwordController.text.isNotEmpty) ...[
             Row(
               children: [
@@ -242,20 +235,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: _passwordStrength,
+                      value: strength,
                       backgroundColor: colors.backgroundSecondary,
-                      valueColor: AlwaysStoppedAnimation<Color>(_strengthColor(context)),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          _strengthColor(colors, strength)),
                       minHeight: 4,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  _strengthLabel(),
+                  _strengthLabel(strength),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: _strengthColor(context),
+                    color: _strengthColor(colors, strength),
                   ),
                 ),
               ],
@@ -267,19 +261,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           // Confirm Password
           TextFormField(
             controller: _confirmController,
-            obscureText: _obscureConfirm,
+            obscureText: formState.obscureConfirm,
             textDirection: TextDirection.ltr,
             style: TextStyle(color: colors.textPrimary),
             decoration: InputDecoration(
               labelText: 'تأكيد كلمة المرور',
               labelStyle: TextStyle(color: colors.textSecondary),
-              prefixIcon: Icon(Icons.lock_outline_rounded, color: colors.textSecondary),
+              prefixIcon:
+                  Icon(Icons.lock_outline_rounded, color: colors.textSecondary),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureConfirm ? Icons.visibility_off : Icons.visibility,
+                  formState.obscureConfirm
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                   color: colors.textSecondary,
                 ),
-                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                onPressed: () => context
+                    .read<ResetPasswordFormCubit>()
+                    .toggleConfirmVisibility(),
               ),
               filled: true,
               fillColor: colors.surfaceElevated,
@@ -302,7 +301,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return 'تأكيد كلمة المرور مطلوب';
-              if (v != _passwordController.text) return 'كلمتا المرور غير متطابقتين';
+              if (v != _passwordController.text) {
+                return 'كلمتا المرور غير متطابقتين';
+              }
               return null;
             },
           ),
@@ -312,8 +313,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           GradientButton(
             label: 'تعيين كلمة المرور الجديدة',
             icon: Icons.lock_reset_rounded,
-            isLoading: _isSubmitting,
-            onPressed: _submit,
+            isLoading: formState.isSubmitting,
+            onPressed: () => _submit(context),
           ),
         ],
       ),
@@ -362,7 +363,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           ),
           child: const Text(
             'العودة لتسجيل الدخول',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
           ),
         ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.1),
       ],
