@@ -36,6 +36,7 @@ import { idempotencyMiddleware } from './middleware/idempotency.middleware';
 import { globalLimiter } from './middleware/rate-limiters';
 import { csrfProtection, csrfTokenRateLimiter, csrfTokenHandler } from './middleware/csrf.middleware';
 import { mobileGuardMiddleware } from './middleware/mobile-guard.middleware';
+import { i18nErrorMiddleware } from './middleware/i18n-error.middleware';
 
 // Route registry
 import { registerRoutes } from './routes/index';
@@ -149,6 +150,7 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
 app.use(cookieParser());                           // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
+app.use(i18nErrorMiddleware);                      // I18N-004: Translate error messages for Arabic clients
 app.use(mobileGuardMiddleware);                    // Enforce API versioning for mobile apps
 app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
 app.use(auditMiddleware);                          // Auto audit trail

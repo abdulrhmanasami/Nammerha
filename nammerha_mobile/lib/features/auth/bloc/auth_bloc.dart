@@ -200,16 +200,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   // return Arabic when Accept-Language: ar, but this ensures zero English
   // leaks even if the backend locale detection fails.
   static final Map<RegExp, String> _errorTranslations = {
+    // Auth
     RegExp(r'verify your email', caseSensitive: false):
         'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.',
     RegExp(r'Invalid email or password', caseSensitive: false):
         'البريد الإلكتروني أو كلمة المرور غير صحيحة',
     RegExp(r'Account temporarily locked', caseSensitive: false):
         'الحساب مقفل مؤقتاً — حاول مرة أخرى لاحقاً',
-    RegExp(r'Missing required fields', caseSensitive: false):
+    RegExp(r'Authentication required', caseSensitive: false):
+        'يجب تسجيل الدخول',
+    RegExp(r'Token expired', caseSensitive: false):
+        'انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً',
+    RegExp(r'Session expired', caseSensitive: false):
+        'انتهت الجلسة — يرجى تسجيل الدخول مجدداً',
+    RegExp(r'Token invalidated', caseSensitive: false):
+        'تم إلغاء الجلسة — يرجى تسجيل الدخول مجدداً',
+    RegExp(r'Invalid token', caseSensitive: false):
+        'رمز غير صالح',
+    // General
+    RegExp(r'Missing required fields?', caseSensitive: false):
         'الحقول المطلوبة مفقودة',
     RegExp(r'Too many requests', caseSensitive: false):
         'طلبات كثيرة جداً — حاول مرة أخرى لاحقاً',
+    RegExp(r'Internal server error', caseSensitive: false):
+        'خطأ في الخادم',
+    RegExp(r'Not found', caseSensitive: false):
+        'غير موجود',
+    RegExp(r'Unauthorized', caseSensitive: false):
+        'غير مصرح',
+    RegExp(r'Profile setup required', caseSensitive: false):
+        'يجب إكمال الملف الشخصي أولاً',
+    RegExp(r'no longer supported.*update', caseSensitive: false):
+        'يرجى تحديث التطبيق من متجر التطبيقات',
   };
 
   /// Returns the Arabic translation if the message matches a known English
