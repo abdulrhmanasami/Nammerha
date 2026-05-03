@@ -63,6 +63,16 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: const Text('عروضي'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add_circle_outline_rounded, color: colors.primaryBrand),
+            onPressed: () => _showAddBidDialog(context, colors),
+          ),
+          IconButton(
+            icon: Icon(Icons.filter_list_rounded, color: colors.primaryBrand),
+            onPressed: () => _showFilterBottomSheet(context, colors),
+          ),
+        ],
       ),
       body: BlocBuilder<BidsFetchCubit, BidsFetchState>(
         builder: (context, state) => _buildBody(colors, state),
@@ -230,6 +240,114 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
           child: Text(value, style: TextStyle(fontSize: 13, color: colors.textPrimary, fontWeight: FontWeight.w600)),
         ),
       ],
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context, SemanticColors colors) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return BlocProvider.value(
+          value: context.read<BidsFetchCubit>(),
+          child: Builder(
+            builder: (ctx) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colors.surfaceElevated,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('فرز وتصفية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+                    const SizedBox(height: 20),
+                    Text('حالة العرض', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      children: [
+                        _filterChip(ctx, 'الكل', 'all', colors),
+                        _filterChip(ctx, 'قيد المراجعة', 'pending', colors),
+                        _filterChip(ctx, 'مقبول', 'approved', colors),
+                        _filterChip(ctx, 'مرفوض', 'rejected', colors),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text('القيمة المالية', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      children: [
+                        _sortChip(ctx, 'الأعلى قيمة', 'highest_amount', colors),
+                        _sortChip(ctx, 'الأقل قيمة', 'lowest_amount', colors),
+                      ],
+                    ),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+                  ],
+                ),
+              );
+            }
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _filterChip(BuildContext context, String label, String filterValue, SemanticColors colors) {
+    final cubit = context.read<BidsFetchCubit>();
+    final state = cubit.state;
+    final isActive = state.activeFilter == filterValue || (state.activeFilter == null && filterValue == 'all');
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isActive,
+      onSelected: (selected) {
+        if (selected) {
+          cubit.applyFilter(filter: filterValue, sort: state.activeSort);
+          Navigator.pop(context);
+        }
+      },
+      selectedColor: colors.primaryBrand.withAlpha(40),
+      labelStyle: TextStyle(color: isActive ? colors.primaryBrand : colors.textPrimary, fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
+    );
+  }
+
+  Widget _sortChip(BuildContext context, String label, String sortValue, SemanticColors colors) {
+    final cubit = context.read<BidsFetchCubit>();
+    final state = cubit.state;
+    final isActive = state.activeSort == sortValue;
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isActive,
+      onSelected: (selected) {
+        cubit.applyFilter(filter: state.activeFilter, sort: selected ? sortValue : null);
+        Navigator.pop(context);
+      },
+      selectedColor: colors.primaryBrand.withAlpha(40),
+      labelStyle: TextStyle(color: isActive ? colors.primaryBrand : colors.textPrimary, fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
+    );
+  }
+
+  void _showAddBidDialog(BuildContext context, SemanticColors colors) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: colors.surfaceElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('تقديم عرض جديد', style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w800)),
+        content: Text('يرجى اختيار المشروع من "سوق المشاريع" لتقديم العرض عليه، لا يمكن تقديم عرض عشوائي.', style: TextStyle(color: colors.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('حسناً', style: TextStyle(color: colors.primaryBrand, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 }

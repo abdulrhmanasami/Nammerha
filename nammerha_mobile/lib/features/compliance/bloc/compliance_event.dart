@@ -33,3 +33,6 @@ class FlagEscrowReview extends ComplianceEvent {
   @override
   List<Object?> get props => [reference];
 }
+
+/// Run an active SDN Sanctions check.
+class RunSdnCheckEvent extends ComplianceEvent {}

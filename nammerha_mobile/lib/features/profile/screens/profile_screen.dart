@@ -7,6 +7,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/theme/theme_cubit.dart';
 import '../../../core/utils/role_localizer.dart';
 import '../../../core/i18n/locale_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/i18n/supported_locales.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
@@ -31,13 +32,34 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  bool _notificationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
+    _loadNotificationPref();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileBloc>().add(LoadProfileRequested());
     });
+  }
+
+  Future<void> _loadNotificationPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      });
+    }
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = value;
+      });
+    }
   }
 
   @override
@@ -465,6 +487,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(context.tr('settings'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const SizedBox(height: 10),
+
+        _settingRow(Icons.notifications_rounded, context.tr('notifications_title'), colors, trailing: Switch.adaptive(
+          value: _notificationsEnabled,
+          onChanged: _toggleNotifications,
+          activeTrackColor: colors.primaryBrand,
+        )),
 
         _settingRow(Icons.language_rounded, context.tr('language'), colors,
           value: context.watch<LocaleCubit>().currentLocaleName,

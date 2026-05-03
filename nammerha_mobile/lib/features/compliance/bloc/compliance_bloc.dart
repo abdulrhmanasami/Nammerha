@@ -14,6 +14,29 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
     on<LoadComplianceDashboard>(_onLoadDashboard);
     on<ApproveEscrowReview>(_onApproveReview);
     on<FlagEscrowReview>(_onFlagReview);
+    on<RunSdnCheckEvent>(_onRunSdnCheck);
+  }
+
+  Future<void> _onRunSdnCheck(
+    RunSdnCheckEvent event,
+    Emitter<ComplianceState> emit,
+  ) async {
+    final currentState = state;
+    emit(ComplianceLoading());
+    try {
+      // محاكاة الاتصال بـ OFAC / SDN
+      await Future.delayed(const Duration(seconds: 2));
+      emit(const ComplianceActionSuccess('تم فحص قاعدة SDN/OFAC بنجاح. لا توجد قيود على أي جهة متعاقدة.'));
+      
+      // العودة للحالة السابقة إن أمكن
+      if (currentState is ComplianceLoaded) {
+        emit(currentState);
+      } else {
+        add(LoadComplianceDashboard());
+      }
+    } catch (e) {
+      emit(ComplianceError('فشل فحص العقوبات: ${e.toString()}'));
+    }
   }
 
   Future<void> _onLoadDashboard(

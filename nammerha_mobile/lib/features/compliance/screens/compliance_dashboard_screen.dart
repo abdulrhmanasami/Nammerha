@@ -64,6 +64,13 @@ class _ComplianceDashboardView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: const Text('لوحة الامتثال'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shield_rounded, color: colors.primaryBrand),
+            onPressed: () => context.read<ComplianceBloc>().add(RunSdnCheckEvent()),
+            tooltip: 'فحص العقوبات SDN',
+          ),
+        ],
       ),
       body: BlocConsumer<ComplianceBloc, ComplianceState>(
         listener: (context, state) {

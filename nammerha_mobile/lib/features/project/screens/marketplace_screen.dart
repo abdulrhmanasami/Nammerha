@@ -42,6 +42,12 @@ class MarketplaceView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: const Text('مشاريع إعادة الإعمار'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.filter_list_rounded, color: colors.primaryBrand),
+            onPressed: () => _showFilterBottomSheet(context, colors),
+          ),
+        ],
       ),
       body: BlocBuilder<MarketplaceBloc, MarketplaceState>(
         builder: (context, state) {
@@ -254,5 +260,89 @@ class MarketplaceView extends StatelessWidget {
     .animate(delay: (100 + index * 80).ms)
     .fadeIn()
     .slideY(begin: 0.05, end: 0);
+  }
+
+  void _showFilterBottomSheet(BuildContext context, SemanticColors colors) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: colors.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('فرز وتصفية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+              const SizedBox(height: 20),
+              Text('حالة المشروع', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                children: [
+                  _filterChip(context, 'الكل', 'all', colors),
+                  _filterChip(context, 'نشط', 'active', colors),
+                  _filterChip(context, 'مكتمل', 'completed', colors),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text('نسبة التمويل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                children: [
+                  _sortChip(context, 'الأعلى تمويلاً', 'highest_funding', colors),
+                  _sortChip(context, 'الأقل تمويلاً', 'lowest_funding', colors),
+                ],
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _filterChip(BuildContext context, String label, String filterValue, SemanticColors colors) {
+    final bloc = context.read<MarketplaceBloc>();
+    final state = bloc.state;
+    final isActive = state is MarketplaceLoaded && (state.activeFilter == filterValue || (state.activeFilter == null && filterValue == 'all'));
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isActive,
+      onSelected: (selected) {
+        if (selected) {
+          final currentSort = state is MarketplaceLoaded ? state.activeSort : null;
+          bloc.add(FilterProjectsEvent(filter: filterValue, sort: currentSort));
+          Navigator.pop(context);
+        }
+      },
+      selectedColor: colors.primaryBrand.withAlpha(40),
+      labelStyle: TextStyle(color: isActive ? colors.primaryBrand : colors.textPrimary, fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
+    );
+  }
+
+  Widget _sortChip(BuildContext context, String label, String sortValue, SemanticColors colors) {
+    final bloc = context.read<MarketplaceBloc>();
+    final state = bloc.state;
+    final isActive = state is MarketplaceLoaded && state.activeSort == sortValue;
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isActive,
+      onSelected: (selected) {
+        final currentFilter = state is MarketplaceLoaded ? state.activeFilter : null;
+        bloc.add(FilterProjectsEvent(filter: currentFilter, sort: selected ? sortValue : null));
+        Navigator.pop(context);
+      },
+      selectedColor: colors.primaryBrand.withAlpha(40),
+      labelStyle: TextStyle(color: isActive ? colors.primaryBrand : colors.textPrimary, fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
+    );
   }
 }

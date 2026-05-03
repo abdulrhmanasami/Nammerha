@@ -15,3 +15,13 @@ class LoadProjectsEvent extends MarketplaceEvent {
   @override
   List<Object?> get props => [isRefresh];
 }
+
+class FilterProjectsEvent extends MarketplaceEvent {
+  final String? filter;
+  final String? sort; // 'highest_funding', 'lowest_funding', null
+
+  const FilterProjectsEvent({this.filter, this.sort});
+
+  @override
+  List<Object?> get props => [filter, sort];
+}
