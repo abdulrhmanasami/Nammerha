@@ -63,12 +63,6 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: const Text('عروضي'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add_circle_outline_rounded, color: colors.primaryBrand),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: BlocBuilder<BidsFetchCubit, BidsFetchState>(
         builder: (context, state) => _buildBody(colors, state),

@@ -42,12 +42,6 @@ class MarketplaceView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: const Text('مشاريع إعادة الإعمار'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.filter_list_rounded, color: colors.primaryBrand),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: BlocBuilder<MarketplaceBloc, MarketplaceState>(
         builder: (context, state) {

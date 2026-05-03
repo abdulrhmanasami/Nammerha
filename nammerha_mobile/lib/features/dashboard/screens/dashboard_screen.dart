@@ -496,14 +496,14 @@ class _DashboardHomeView extends StatelessWidget {
       case 'ENGINEER':
         actions = [
           _QuickAction('كاميرا مكانية', Icons.camera_alt_rounded, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
-          _QuickAction(context.tr('my_projects'), Icons.architecture_rounded, colors.info, const BidsScreen()),
-          _QuickAction('تقديم عرض', Icons.gavel_rounded, colors.goldFunding, const BidsScreen()),
+          _QuickAction('بوابة العروض', Icons.gavel_rounded, colors.info, const BidsScreen()),
+          _QuickAction(context.tr('wallet'), Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
         ];
         break;
       case 'SUPPLIER':
         actions = [
-          _QuickAction('طلبات جديدة', Icons.notification_important_rounded, colors.warning, const SupplierPortalScreen()),
-          _QuickAction('كتالوج المواد', Icons.inventory_2_rounded, colors.primaryBrand, const SupplierPortalScreen()),
+          _QuickAction('بوابة المورد', Icons.storefront_rounded, colors.warning, const SupplierPortalScreen()),
+          _QuickAction('حساب الضمان', Icons.lock_rounded, colors.primaryBrand, const EscrowSummaryScreen()),
           _QuickAction('سجل التوصيل', Icons.receipt_long_rounded, colors.success, const WalletScreen()),
         ];
         break;

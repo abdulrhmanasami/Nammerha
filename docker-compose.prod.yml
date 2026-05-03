@@ -190,8 +190,8 @@ services:
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-noreply@nammerha.com}
       - SMTP_PASS=${SMTP_PASS:-default_secure_pass!2026}
-      # Internal Postfix relay — no TLS needed within Docker network
-      - SMTP_SECURE=false
+      # Internal Postfix relay defaults to false, but external relays (Resend/SendGrid) require true
+      - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_FROM=${SMTP_FROM:-noreply@nammerha.com}
       # ── Email Verification / Password Reset ────────────────────
       - APP_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}

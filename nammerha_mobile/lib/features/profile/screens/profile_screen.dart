@@ -465,11 +465,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(context.tr('settings'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const SizedBox(height: 10),
-        _settingRow(Icons.notifications_rounded, context.tr('notifications_title'), colors, trailing: Switch.adaptive(
-          value: true,
-          onChanged: (_) {},
-          activeTrackColor: colors.primaryBrand,
-        )),
+
         _settingRow(Icons.language_rounded, context.tr('language'), colors,
           value: context.watch<LocaleCubit>().currentLocaleName,
           onTap: () => _showLanguagePicker(colors),
