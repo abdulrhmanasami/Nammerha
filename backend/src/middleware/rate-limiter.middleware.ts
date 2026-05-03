@@ -132,7 +132,7 @@ export function createEndpointRateLimiter(options: RateLimiterOptions = {}) {
             res.setHeader('X-RateLimit-Remaining', 0);
             res.status(429).json({
                 success: false,
-                error: 'Too many requests. Please try again later.',
+                error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة لاحقاً.',
             });
             return;
         }

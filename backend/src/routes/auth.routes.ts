@@ -72,7 +72,7 @@ const sensitiveActionLimiter = rateLimit({
     max: 5, // Limit each IP to 5 sensitive requests (resend/forgot-password)
     standardHeaders: true,
     legacyHeaders: false,
-    message: { success: false, error: 'Too many requests from this IP, please try again later.' } as ApiResponse
+    message: { success: false, error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد 15 دقيقة.' } as ApiResponse
 });
 
 // SEC-FIELD-002 FIX: ReDoS-safe email validation. The original RFC 5322 pattern
@@ -174,11 +174,49 @@ router.post(
 
             // Check for existing user
             const normalizedRegEmail = email.toLowerCase().trim();
-            const existing = await query<{ user_id: string }>(
-                'SELECT user_id FROM users WHERE email = $1',
+            const existing = await query<{ user_id: string, is_email_verified: boolean, email_token_expires_at: Date | null }>(
+                'SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
                 [normalizedRegEmail]
             );
+            
             if (existing.rows[0]) {
+                const existingUser = existing.rows[0];
+                
+                // PLT-AUD-009 FIX: The "Black Hole" Trap
+                // If a user registers, doesn't verify, and tries to register again days later,
+                // the system used to return GENERIC_REGISTRATION_RESPONSE but NEVER sent an email,
+                // leaving the user permanently stuck. We now silently treat this as a "resend" request.
+                if (!existingUser.is_email_verified) {
+                    let shouldSend = true;
+                    
+                    // Apply cooldown to prevent email bombing via /register endpoint
+                    if (existingUser.email_token_expires_at) {
+                        const tokenCreatedAt = new Date(existingUser.email_token_expires_at);
+                        tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
+                        const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+                        if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+                            shouldSend = false;
+                        }
+                    }
+
+                    if (shouldSend) {
+                        const verificationToken = crypto.randomUUID();
+                        const tokenExpiry = new Date();
+                        tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+                        
+                        await query(
+                            `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW() WHERE user_id = $3`,
+                            [verificationToken, tokenExpiry, existingUser.user_id]
+                        );
+
+                        const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+                        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+                        sendVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req)).catch((err) => {
+                            logger.error('Auth: Verification email dispatch failed (re-register)', { error: err instanceof Error ? err.message : String(err) });
+                        });
+                    }
+                }
+                
                 // SEC-FT-002 + PLT-AUD-001: Identical response — no enumeration leak
                 res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
                 return;
@@ -603,9 +641,12 @@ router.post(
                 const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
                 if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
                     const waitSeconds = Math.ceil(RESEND_COOLDOWN_SECONDS - secondsSinceLastSend);
+                    const reqLocale = getEmailLocale(req);
                     res.status(429).json({
                         success: false,
-                        error: `Please wait ${waitSeconds} seconds before requesting another verification email`,
+                        error: reqLocale === 'ar'
+                            ? `يرجى الانتظار ${waitSeconds} ثانية قبل طلب رابط تحقق جديد.`
+                            : `Please wait ${waitSeconds} seconds before requesting another verification email`,
                     } as ApiResponse);
                     return;
                 }

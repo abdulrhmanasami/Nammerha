@@ -495,12 +495,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     ),
                   );
                 }
+              } on ApiException catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.message),
+                      backgroundColor: colors.error,
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('تعذر إعادة إرسال رابط التحقق — حاول مرة أخرى'),
+                      content: const Text('تعذر إعادة إرسال رابط التحقق - حاول مرة أخرى'),
                       backgroundColor: colors.error,
+                      duration: const Duration(seconds: 4),
                     ),
                   );
                 }

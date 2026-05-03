@@ -49,10 +49,16 @@ async function getTransporter(): Promise<Transporter | null> {
     try {
         const nodemailer = await import('nodemailer');
 
+        const port = parseInt(process.env['SMTP_PORT'] ?? '465', 10);
+        // Smart fallback to prevent STARTTLS misconfiguration (port 465 -> secure: true, port 587/25 -> secure: false)
+        const secureFallback = port === 465;
+        const secureStr = process.env['SMTP_SECURE'];
+        const secure = secureStr !== undefined ? secureStr === 'true' : secureFallback;
+
         const transportConfig: Record<string, unknown> = {
             host,
-            port: parseInt(process.env['SMTP_PORT'] ?? '465', 10),
-            secure: process.env['SMTP_SECURE'] === 'true',
+            port,
+            secure,
             // SEC-005: Strict TLS verification. 'rejectUnauthorized: false' was removed
             // to ensure secure communication with external providers like Resend.
         };
@@ -379,7 +385,7 @@ export async function sendEmail(
         const linkStr = Object.entries(options.variables)
             .map(([k, v]) => `\n    ➜ ${k}: ${v}`)
             .join('');
-        logger.info(`[DEV EMAIL MOCK] To: ${options.to} | Subject: ${options.subject}${linkStr}`);
+        logger.info(`[EMAIL DISPATCH TRACE] To: ${options.to} | Subject: ${options.subject}${linkStr}`);
     }
 
     const transporter = await getTransporter();

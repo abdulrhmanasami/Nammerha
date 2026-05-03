@@ -9,11 +9,22 @@
 
 import rateLimit from 'express-rate-limit';
 
-/** Standard rate-limit error response body */
-const rateLimitMessage = (context: string) => ({
-    success: false,
-    error: `Too many ${context} requests. Please try again later.`,
-});
+/** Standard rate-limit error response body (Arabic for Platinum consistency) */
+const rateLimitMessage = (context: string) => {
+    const contextAr = {
+        'authentication': 'التسجيل/الدخول',
+        'payment': 'الدفع',
+        'compliance': 'التحقق الأمني',
+        'storage': 'التخزين',
+        'translation': 'الترجمة',
+        'matchmaking': 'البحث'
+    }[context] || 'العمليات';
+
+    return {
+        success: false,
+        error: `تم تجاوز الحد الأقصى لطلبات ${contextAr}. يرجى المحاولة لاحقاً.`,
+    };
+};
 
 // ─── Global API Limiter (MED-001) ───────────────────────────────────────────
 /** 100 requests per 15 minutes per IP across all /api/* routes */
