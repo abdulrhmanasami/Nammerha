@@ -58,6 +58,47 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  # ── Distributed Lock & Cache: Redis 7 (Alpine) ──────────────────────────
+  # INF-01: Required by redis.client.ts (Circuit Breaker Lock Manager).
+  # Without this container, the RedisLockManager immediately opens the
+  # circuit breaker and falls back to PostgreSQL Advisory Locks on EVERY
+  # request — defeating the purpose of distributed locking entirely.
+  # Also used for: rate limiter persistence, session cache, API response cache.
+  nammerha-redis:
+    image: redis:7-alpine
+    container_name: nammerha-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+      --bind 0.0.0.0
+      --protected-mode yes
+    volumes:
+      - nammerha-redis-data:/data
+    ports:
+      - '127.0.0.1:6379:6379'
+    networks:
+      - nammerha-net
+    labels:
+      - 'com.nammerha.project=nammerha'
+      - 'com.nammerha.component=cache'
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+          cpus: '0.25'
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
   # ── Object Storage: MinIO (S3-compatible, on-premise) ───────────────────
   # P2-005: Self-hosted file storage for spatial proofs, BOQ images,
   # floor plans, and all project-related uploads.
@@ -148,6 +189,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      # ── Redis (INF-01: Distributed Lock + Cache) ──────────────────
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@nammerha-redis:6379
       - DATABASE_URL=postgresql://nammerha:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@nammerha-db:5432/nammerha?sslmode=verify-ca&sslrootcert=/app/tls/ca.crt
       - PGSSLROOTCERT=/app/tls/ca.crt
       - NODE_EXTRA_CA_CERTS=/app/tls/ca.crt
@@ -202,7 +245,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
           cpus: '0.50'
     security_opt:
       - no-new-privileges:true
@@ -210,6 +253,8 @@ services:
       nammerha-db:
         condition: service_healthy
       nammerha-minio:
+        condition: service_healthy
+      nammerha-redis:
         condition: service_healthy
     volumes:
       - ./stitch:/app/stitch:ro
@@ -279,6 +324,9 @@ volumes:
     name: nammerha-pgdata
   nammerha-minio-data:
     name: nammerha-minio-data
+  # INF-01: Redis AOF persistence volume
+  nammerha-redis-data:
+    name: nammerha-redis-data
   # FIX-2: Syria MBTiles data volume for self-hosted tileserver-gl
   nammerha-tiles:
     name: nammerha-tiles
