@@ -582,9 +582,9 @@ export const paymentService = {
     }): Promise<{ processed: boolean; payment_id?: string }> {
         const { redisLockManager } = await import('../config/redis.client');
         const lockKey = `nammerha:webhook:lock:${data.reference}`;
-        const hasLock = await redisLockManager.acquireLock(lockKey, 30);
+        const lockToken = await redisLockManager.acquireLock(lockKey, 30);
         
-        if (!hasLock) {
+        if (!lockToken) {
             logger.warn('Domain Law 1 Enforced: Redis Lock prevented race condition', { reference: data.reference });
             return { processed: false };
         }
@@ -778,7 +778,7 @@ export const paymentService = {
             return { processed: true, payment_id: payment.payment_id };
         });
         } finally {
-            await redisLockManager.releaseLock(lockKey);
+            await redisLockManager.releaseLock(lockKey, lockToken);
         }
     },
 

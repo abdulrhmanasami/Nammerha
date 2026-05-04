@@ -185,12 +185,12 @@ services:
       - STORAGE_SECRET_KEY=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD must be set}
       - STORAGE_PUBLIC_URL=${STORAGE_PUBLIC_URL:-}
       - STORAGE_MAX_SIZE_MB=${STORAGE_MAX_SIZE_MB:-50}
-      # ── SMTP Relay (External Resend API) ────────
-      - SMTP_HOST=${SMTP_HOST:?SMTP_HOST must be set (e.g. smtp.resend.com)}
-      - SMTP_PORT=${SMTP_PORT:-465}
-      - SMTP_USER=${SMTP_USER:?SMTP_USER required}
-      - SMTP_PASS=${SMTP_PASS:?SMTP_PASS required}
-      - SMTP_SECURE=true
+      # ── Email Service (Resend SDK — API, NOT SMTP) ─────────────
+      # The backend was migrated from Nodemailer/SMTP to the Resend SDK.
+      # email.service.ts reads RESEND_API_KEY (not SMTP_HOST/USER/PASS).
+      # Get your API key from https://resend.com/api-keys
+      # Domain must be verified in Resend dashboard before emails send.
+      - RESEND_API_KEY=${RESEND_API_KEY:?RESEND_API_KEY must be set for email delivery}
       - SMTP_FROM=${SMTP_FROM:-noreply@nammerha.com}
       # ── Email Verification / Password Reset ────────────────────
       - APP_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}

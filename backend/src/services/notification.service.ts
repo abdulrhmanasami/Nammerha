@@ -94,35 +94,19 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
     },
 
     email: async (input) => {
-        // Email: use SMTP transport if configured, otherwise log warning.
-        const smtpHost = process.env['SMTP_HOST'];
-        const smtpUser = process.env['SMTP_USER'];
-        const smtpPass = process.env['SMTP_PASS'];
+        // Email: use Resend API if configured, otherwise log warning.
+        const apiKey = process.env['RESEND_API_KEY'];
         const fromEmail = process.env['SMTP_FROM'] ?? 'noreply@nammerha.com';
 
-        if (!smtpHost) {
-            logger.warn('Email delivery requested but SMTP_HOST not configured — skipping');
+        if (!apiKey) {
+            logger.warn('Email delivery requested but RESEND_API_KEY not configured — skipping');
             return;
         }
 
-        // Dynamic import to avoid loading nodemailer when not needed
+        // Dynamic import to avoid loading Resend when not needed globally
         try {
-            const nodemailer = await import('nodemailer');
-
-            // Build transport config — auth is optional (self-hosted Postfix relay
-            // on internal Docker network doesn't need credentials)
-            const transportConfig: Record<string, unknown> = {
-                host: smtpHost,
-                port: parseInt(process.env['SMTP_PORT'] ?? '587', 10),
-                secure: process.env['SMTP_SECURE'] === 'true',
-            };
-
-            // Only add auth if credentials are provided (external SMTP services)
-            if (smtpUser && smtpPass) {
-                transportConfig['auth'] = { user: smtpUser, pass: smtpPass };
-            }
-
-            const transporter = nodemailer.createTransport(transportConfig);
+            const { Resend } = await import('resend');
+            const resend = new Resend(apiKey);
 
             // Look up user email from DB
             const userResult = await query<{ email: string }>(
@@ -135,7 +119,7 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
                 return;
             }
 
-            await transporter.sendMail({
+            const { data, error } = await resend.emails.send({
                 from: fromEmail,
                 to: userEmail,
                 subject: input.title,
@@ -147,9 +131,14 @@ const DISPATCH_PROVIDERS: Record<string, DispatchProvider> = {
                     <p style="color:#94a3b8;font-size:12px;">Nammerha — National Reconstruction Platform</p>
                 </div>`,
             });
-            logger.info('Email notification sent', { to: userEmail, title: input.title });
+            
+            if (error) {
+                logger.error('Email delivery via Resend failed', { error: error.message });
+            } else {
+                logger.info('Email notification sent via Resend', { to: userEmail, title: input.title, resendId: data?.id });
+            }
         } catch (err) {
-            logger.error('Email delivery failed', { error: err instanceof Error ? err.message : String(err) });
+            logger.error('Unexpected error in email delivery', { error: err instanceof Error ? err.message : String(err) });
             // Never re-throw — email failure must not crash the calling operation
         }
     },

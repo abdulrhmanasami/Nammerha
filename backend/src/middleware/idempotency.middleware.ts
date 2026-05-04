@@ -44,6 +44,13 @@ export async function idempotencyMiddleware(
 
         try {
             await client.query('BEGIN');
+            // F-002 FIX: SERIALIZABLE isolation prevents phantom reads on INSERT.
+            // Without this, two concurrent requests with the same NEW idempotency key
+            // could both pass the SELECT FOR UPDATE (which acquires no lock on a
+            // non-existent row in READ COMMITTED), both INSERT successfully, and
+            // cause duplicate processing. SERIALIZABLE forces PostgreSQL to detect
+            // this conflict and abort one transaction (SQLSTATE 40001).
+            await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
 
             // 2. Try to lock or create the key in the database
             // We use FOR UPDATE to lock the row if it exists.
@@ -114,13 +121,28 @@ export async function idempotencyMiddleware(
         }
 
     } catch (err) {
+        // F-002 FIX: Handle SERIALIZABLE isolation serialization failures gracefully.
+        // SQLSTATE 40001 = serialization_failure — two concurrent requests with the
+        // same NEW key both tried to INSERT. PostgreSQL correctly aborted one.
+        // Return 409 Conflict so the client retries (not 500 which signals a bug).
+        const pgCode = (err as Record<string, unknown>)?.['code'];
+        if (pgCode === '40001') {
+            logger.info('Idempotency: Serialization conflict detected (expected under concurrency)', {
+                idempotencyKey,
+                path: requestPath,
+            });
+            res.status(409).json({
+                success: false,
+                error: 'Concurrent request detected. Please retry in a moment.',
+            });
+            return;
+        }
+
         logger.error('Idempotency middleware failed connecting/querying database', {
             error: err instanceof Error ? err.message : String(err),
             idempotencyKey
         });
-        // On strict systems this could be a fatal error, but gracefully fallback to next()
-        // so the business logic can process. However, to guarantee absolute 0 issues, 
-        // a 500 error might be safer. Let's fail-fast secure.
+        // Fail-fast secure: do not allow the request through without idempotency verification.
         res.status(500).json({
             success: false,
             error: 'Unable to verify idempotency layer. Please try again.',

@@ -216,169 +216,42 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
 
   void _showCreateProjectSheet(BuildContext context) {
     final colors = context.colors;
-    final titleCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final addressCtrl = TextEditingController();
-    String selectedDamage = 'هيكلي جزئي';
-
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: colors.surfaceElevated,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2))),
-              ),
-              const SizedBox(height: 16),
-              Text('إنشاء مشروع جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-              const SizedBox(height: 20),
-              _sheetField(colors, titleCtrl, 'عنوان المشروع', Icons.title_rounded),
-              const SizedBox(height: 12),
-              _sheetField(colors, descCtrl, 'وصف المشروع', Icons.description_rounded, maxLines: 3),
-              const SizedBox(height: 12),
-              _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), Icons.location_on_rounded),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: selectedDamage,
-                decoration: InputDecoration(
-                  labelText: 'نوع الضرر',
-                  prefixIcon: Icon(Icons.warning_rounded, color: colors.textSecondary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  filled: true,
-                  fillColor: colors.backgroundSecondary,
-                ),
-                items: ['هيكلي جزئي', 'تدمير كامل', 'أضرار سطحية', 'بناء جديد', context.tr('str_72955a96')]
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => selectedDamage = v ?? selectedDamage,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  if (titleCtrl.text.trim().isEmpty) return;
-
-                  // Acquire GPS before closing sheet — show spinner
-                  showDialog(
-                    context: ctx,
-                    barrierDismissible: false,
-                    builder: (_) => Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: colors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircularProgressIndicator(color: colors.primaryBrand),
-                            const SizedBox(height: 14),
-                            Text('جارٍ تحديد الموقع...', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-
-                  double gpsLat = 0;
-                  double gpsLng = 0;
-
-                  try {
-                    // Check & request location permission
-                    LocationPermission permission = await Geolocator.checkPermission();
-                    if (permission == LocationPermission.denied) {
-                      permission = await Geolocator.requestPermission();
-                    }
-                    if (permission == LocationPermission.denied ||
-                        permission == LocationPermission.deniedForever) {
-                      if (ctx.mounted) Navigator.pop(ctx); // dismiss spinner
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('يرجى السماح بالوصول للموقع لإنشاء المشروع'),
-                            backgroundColor: colors.error,
-                          ),
-                        );
-                      }
-                      return;
-                    }
-
-                    final position = await Geolocator.getCurrentPosition(
-                      desiredAccuracy: LocationAccuracy.high,
-                    );
-                    gpsLat = position.latitude;
-                    gpsLng = position.longitude;
-                  } catch (_) {
-                    // Fallback: try last known position
-                    try {
-                      final last = await Geolocator.getLastKnownPosition();
-                      if (last != null) {
-                        gpsLat = last.latitude;
-                        gpsLng = last.longitude;
-                      }
-                    } catch (_) {}
-                  }
-
-                  if (ctx.mounted) Navigator.pop(ctx); // dismiss spinner
-
-                  // Validate we got real coordinates (not 0,0)
-                  if (gpsLat == 0 && gpsLng == 0) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('تعذر تحديد الموقع — تأكد من تفعيل GPS'),
-                          backgroundColor: colors.warning,
-                        ),
-                      );
-                    }
-                    return;
-                  }
-
-                  Navigator.pop(ctx); // close bottom sheet
-                  try {
-                    await _api.createProject(
-                      title: titleCtrl.text.trim(),
-                      damageType: selectedDamage,
-                      description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
-                      addressText: addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
-                      gpsLat: gpsLat,
-                      gpsLng: gpsLng,
-                    );
-                    await _loadProjects();
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: const Text('✅ تم إنشاء المشروع بنجاح'), backgroundColor: colors.success),
-                      );
-                    }
-                  } on ApiException catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(localizeApiError(e.message)), backgroundColor: colors.error),
-                      );
-                    }
-                  }
-                },
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('إنشاء المشروع'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colors.primaryBrand,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (ctx) => _CreateProjectSheet(
+        api: _api,
+        onSuccess: _loadProjects,
       ),
     );
+  }
+}
+
+class _CreateProjectSheet extends StatefulWidget {
+  final HomeownerApi api;
+  final Future<void> Function() onSuccess;
+
+  const _CreateProjectSheet({required this.api, required this.onSuccess});
+
+  @override
+  State<_CreateProjectSheet> createState() => _CreateProjectSheetState();
+}
+
+class _CreateProjectSheetState extends State<_CreateProjectSheet> {
+  final titleCtrl = TextEditingController();
+  final descCtrl = TextEditingController();
+  final addressCtrl = TextEditingController();
+  String selectedDamage = 'هيكلي جزئي';
+
+  @override
+  void dispose() {
+    titleCtrl.dispose();
+    descCtrl.dispose();
+    addressCtrl.dispose();
+    super.dispose();
   }
 
   Widget _sheetField(SemanticColors colors, TextEditingController ctrl, String label, IconData icon, {int maxLines = 1}) {
@@ -391,6 +264,168 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         filled: true,
         fillColor: colors.backgroundSecondary,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2))),
+            ),
+            const SizedBox(height: 16),
+            Text('إنشاء مشروع جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+            const SizedBox(height: 20),
+            _sheetField(colors, titleCtrl, 'عنوان المشروع', Icons.title_rounded),
+            const SizedBox(height: 12),
+            _sheetField(colors, descCtrl, 'وصف المشروع', Icons.description_rounded, maxLines: 3),
+            const SizedBox(height: 12),
+            _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), Icons.location_on_rounded),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: selectedDamage,
+              decoration: InputDecoration(
+                labelText: 'نوع الضرر',
+                prefixIcon: Icon(Icons.warning_rounded, color: colors.textSecondary),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                filled: true,
+                fillColor: colors.backgroundSecondary,
+              ),
+              items: ['هيكلي جزئي', 'تدمير كامل', 'أضرار سطحية', 'بناء جديد', context.tr('str_72955a96')]
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => selectedDamage = v);
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () async {
+                if (titleCtrl.text.trim().isEmpty) return;
+
+                // Acquire GPS before closing sheet — show spinner
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: colors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: colors.primaryBrand),
+                          const SizedBox(height: 14),
+                          Text('جارٍ تحديد الموقع...', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+
+                double gpsLat = 0;
+                double gpsLng = 0;
+
+                try {
+                  // Check & request location permission
+                  LocationPermission permission = await Geolocator.checkPermission();
+                  if (permission == LocationPermission.denied) {
+                    permission = await Geolocator.requestPermission();
+                  }
+                  if (permission == LocationPermission.denied ||
+                      permission == LocationPermission.deniedForever) {
+                    if (context.mounted) Navigator.pop(context); // dismiss spinner
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('يرجى السماح بالوصول للموقع لإنشاء المشروع'),
+                          backgroundColor: colors.error,
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
+                  final position = await Geolocator.getCurrentPosition(
+                    desiredAccuracy: LocationAccuracy.high,
+                  );
+                  gpsLat = position.latitude;
+                  gpsLng = position.longitude;
+                } catch (_) {
+                  // Fallback: try last known position
+                  try {
+                    final last = await Geolocator.getLastKnownPosition();
+                    if (last != null) {
+                      gpsLat = last.latitude;
+                      gpsLng = last.longitude;
+                    }
+                  } catch (_) {}
+                }
+
+                if (context.mounted) Navigator.pop(context); // dismiss spinner
+
+                // Validate we got real coordinates (not 0,0)
+                if (gpsLat == 0 && gpsLng == 0) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('تعذر تحديد الموقع — تأكد من تفعيل GPS'),
+                        backgroundColor: colors.warning,
+                      ),
+                    );
+                  }
+                  return;
+                }
+
+                if (context.mounted) Navigator.pop(context); // close bottom sheet
+                try {
+                  await widget.api.createProject(
+                    title: titleCtrl.text.trim(),
+                    damageType: selectedDamage,
+                    description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
+                    addressText: addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
+                    gpsLat: gpsLat,
+                    gpsLng: gpsLng,
+                  );
+                  await widget.onSuccess();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: const Text('✅ تم إنشاء المشروع بنجاح'), backgroundColor: colors.success),
+                    );
+                  }
+                } on ApiException catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(localizeApiError(e.message)), backgroundColor: colors.error),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('إنشاء المشروع'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.primaryBrand,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -8,6 +8,8 @@ import { Router, Request, Response } from 'express';
 import { paymentService, PaymentGateway } from '../services/payment.service';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { requireIdempotencyKey } from '../middleware/require-idempotency-key.middleware';
+import { idempotencyMiddleware } from '../middleware/idempotency.middleware';
 import { query } from '../config/database';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
@@ -20,12 +22,17 @@ const router = Router();
 const MAX_PAYMENT_CENTS = parseInt(process.env['MAX_PAYMENT_CENTS'] ?? '10000000', 10); // Default: $100,000
 
 // ─── POST /api/payments/initiate ────────────────────────────────────────────
-// Authenticated donors initiate a payment for a specific BOQ item
+// Authenticated donors initiate a payment for a specific BOQ item.
+// F-001 FIX: requireIdempotencyKey enforces header presence + validation.
+// idempotencyMiddleware caches/replays responses for duplicate keys.
+// This double-layer prevents double charges in degraded Syrian network conditions.
 router.post(
     '/initiate',
     authMiddleware,
     requireActive,
     requireRole('donor'),
+    requireIdempotencyKey,
+    idempotencyMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         try {
             const { item_id, project_id, amount, gateway, currency, return_url } = req.body as {

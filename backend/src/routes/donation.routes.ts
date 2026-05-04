@@ -5,6 +5,7 @@ import { getAuthUser } from '../utils/auth-guard';
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { requireIdempotencyKey } from '../middleware/require-idempotency-key.middleware';
 import * as crowdfundingService from '../services/crowdfunding.service';
 import type { CreateDonationDTO, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
@@ -16,11 +17,11 @@ router.use(requireActive);
 
 // ─── POST /api/donations — Fund Specific BOQ Items (Donor) ─────────────────
 // SEC-004 FIX: Idempotency-Key header prevents double-submit.
-// RED TEAM FIX: Uses pg_advisory_xact_lock for atomic serialization.
+// F-001 FIX: requireIdempotencyKey enforces header presence + validation at middleware layer.
+// RED TEAM FIX: Uses pg_advisory_xact_lock for atomic DB-level serialization.
 // Two concurrent requests with the same key are serialized at the DB level —
 // the second one waits for the first to commit, then finds the existing record.
-// This is the same proven pattern used by the payment webhook handler.
-router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
+router.post('/', requireRole('donor'), requireIdempotencyKey, async (req: Request, res: Response) => {
     try {
         const dto = req.body as CreateDonationDTO;
 
@@ -95,19 +96,10 @@ router.post('/', requireRole('donor'), async (req: Request, res: Response) => {
             }
         }
 
-        // N-2 FIX: Idempotency-Key is now MANDATORY for donation creation.
-        // Without it, concurrent requests (mobile double-tap, degraded-network retry)
-        // can create duplicate escrow entries — a financial integrity violation.
-        // The frontend api.ts has been updated to always send this header.
-        const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
-        if (!idempotencyKey) {
-            const response: ApiResponse = {
-                success: false,
-                error: 'Missing required Idempotency-Key header. Each donation request must include a unique idempotency key.',
-            };
-            res.status(400).json(response);
-            return;
-        }
+        // F-001 FIX: Header presence + format validation is now handled by
+        // requireIdempotencyKey middleware (runs before this handler).
+        // The advisory lock below serializes concurrent requests with the SAME key.
+        const idempotencyKey = req.headers['idempotency-key'] as string;
 
         const { getClient } = await import('../config/database');
         const client = await getClient();

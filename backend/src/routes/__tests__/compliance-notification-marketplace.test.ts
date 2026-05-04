@@ -18,10 +18,12 @@ vi.mock('../../config/database', () => ({
 }));
 
 // ─── Mock Notification Transport ────────────────────────────────────────────
-vi.mock('nodemailer', () => ({
-    createTransport: vi.fn().mockReturnValue({
-        sendMail: vi.fn().mockResolvedValue({ messageId: 'test-msg-001' }),
-    }),
+vi.mock('resend', () => ({
+    Resend: vi.fn().mockImplementation(() => ({
+        emails: {
+            send: vi.fn().mockResolvedValue({ data: { id: 'test-msg-001' }, error: null }),
+        }
+    }))
 }));
 
 // ═════════════════════════════════════════════════════════════════════════════

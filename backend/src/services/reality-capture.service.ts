@@ -106,7 +106,11 @@ export interface UploadFloorPlanDTO {
 // Used to validate that reality capture photos were taken at the project site.
 // Threshold: 500 meters (accounts for GPS drift, building perimeter, etc.)
 
-const GPS_PROXIMITY_THRESHOLD_METERS = 500;
+// F-003 FIX: Reduced from 500m to 150m per Nammerha Domain Law 2.
+// Previous 500m threshold was a 3.3x overallowance that permitted geo-spoofing fraud.
+// 150m accounts for GPS drift, building perimeter, and device inaccuracy
+// while preventing captures from adjacent/unrelated locations.
+const GPS_PROXIMITY_THRESHOLD_METERS = 150;
 
 /**
  * Calculate the Haversine distance between two points on Earth.

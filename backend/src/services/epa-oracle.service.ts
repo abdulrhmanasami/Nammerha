@@ -129,6 +129,22 @@ export function calculateFIDIC(params: FIDICParams): number {
     // ── Calculation ─────────────────────────────────────────────────────
     const Pn = a + b * (Ln / Lo) + c * (En / Eo) + d * (Mn / Mo);
 
+    // F-004 FIX: FIDIC Pn Safety Bounds (Nammerha Domain Law 3).
+    // Protects contractor (floor: max 30% downward) and investor (ceiling: max 50% upward).
+    // Without this cap, fabricated inflation data (e.g. Mn=500, Mo=100) could produce
+    // Pn=2.60 → a 160% increase that would bankrupt the escrow account.
+    // Extreme adjustments beyond these bounds require manual admin override.
+    const FIDIC_PN_FLOOR = 0.70;   // Max 30% downward adjustment
+    const FIDIC_PN_CEILING = 1.50; // Max 50% upward adjustment
+
+    if (Pn < FIDIC_PN_FLOOR || Pn > FIDIC_PN_CEILING) {
+        throw new Error(
+            `FIDIC safety violation: Pn=${Pn.toFixed(6)} is outside safe bounds ` +
+            `[${FIDIC_PN_FLOOR}, ${FIDIC_PN_CEILING}]. ` +
+            `Manual admin override required for extreme price adjustments.`
+        );
+    }
+
     // Round to 6 decimal places for precision
     return Math.round(Pn * 1_000_000) / 1_000_000;
 }

@@ -183,9 +183,9 @@ export async function releaseEscrow(
     dto: ReleaseEscrowDTO
 ): Promise<{ released_count: number; total_released: number; fee_charged: number }> {
     const lockKey = `nammerha:escrow_release:lock:${dto.item_id}`;
-    const hasLock = await redisLockManager.acquireLock(lockKey, 30);
+    const lockToken = await redisLockManager.acquireLock(lockKey, 30);
     
-    if (!hasLock) {
+    if (!lockToken) {
         logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent escrow release', { item_id: dto.item_id });
         throw new Error('Another release operation is currently in progress for this item.');
     }
@@ -344,7 +344,7 @@ export async function releaseEscrow(
         };
     });
     } finally {
-        await redisLockManager.releaseLock(lockKey);
+        await redisLockManager.releaseLock(lockKey, lockToken);
     }
 }
 
@@ -501,9 +501,9 @@ export async function processRefund(
     notes?: string,
 ): Promise<{ refund_id: string; status: string }> {
     const lockKey = `nammerha:refund:lock:${refundId}`;
-    const hasLock = await redisLockManager.acquireLock(lockKey, 30);
+    const lockToken = await redisLockManager.acquireLock(lockKey, 30);
     
-    if (!hasLock) {
+    if (!lockToken) {
         logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent refund processing', { refund_id: refundId });
         throw new Error('Another refund processing operation is currently in progress.');
     }
@@ -675,7 +675,7 @@ export async function processRefund(
         return { refund_id: refundId, status: 'processed' };
     });
     } finally {
-        await redisLockManager.releaseLock(lockKey);
+        await redisLockManager.releaseLock(lockKey, lockToken);
     }
 }
 

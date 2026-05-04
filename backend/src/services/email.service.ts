@@ -3,17 +3,17 @@
 // ============================================================================
 // Standalone email service for transactional emails: verification,
 // password reset, and security alerts. Used by auth.routes.ts and
-// api-keys.service.ts. Wraps nodemailer with branded HTML templates.
+// api-keys.service.ts. Wraps Resend with branded HTML templates.
 //
 // I18N-004 FIX: Full bilingual support (EN/AR). Templates are locale-aware
 // with proper dir/lang attributes. Arabic users receive RTL emails.
 //
-// SMTP config via environment variables:
-//   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, SMTP_SECURE
+// API config via environment variables:
+//   RESEND_API_KEY, SMTP_FROM
 //
 // Non-throwing: failed emails are logged but never crash callers.
 // ============================================================================
-import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 import { logger } from '../utils/logger';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -31,49 +31,27 @@ export interface SendEmailOptions {
     locale?: EmailLocale;
 }
 
-// ─── Singleton Transporter ──────────────────────────────────────────────────
+// ─── Singleton Resend Client ────────────────────────────────────────────────
 
-let _transporter: Transporter | null = null;
+let _resend: Resend | null = null;
 
-async function getTransporter(): Promise<Transporter | null> {
-    if (_transporter) {
-        return _transporter;
+function getResendClient(): Resend | null {
+    if (_resend) {
+        return _resend;
     }
 
-    const host = process.env['SMTP_HOST'];
-    if (!host) {
-        logger.warn('SMTP_HOST not configured — email delivery disabled');
+    const apiKey = process.env['RESEND_API_KEY'];
+    if (!apiKey) {
+        logger.warn('RESEND_API_KEY not configured — email delivery disabled');
         return null;
     }
 
     try {
-        const nodemailer = await import('nodemailer');
-
-        const port = parseInt(process.env['SMTP_PORT'] ?? '465', 10);
-        // Smart fallback to prevent STARTTLS misconfiguration (port 465 -> secure: true, port 587/25 -> secure: false)
-        const secureFallback = port === 465;
-        const secureStr = process.env['SMTP_SECURE'];
-        const secure = secureStr !== undefined ? secureStr === 'true' : secureFallback;
-
-        const transportConfig: Record<string, unknown> = {
-            host,
-            port,
-            secure,
-            // SEC-005: Strict TLS verification. 'rejectUnauthorized: false' was removed
-            // to ensure secure communication with external providers like Resend.
-        };
-
-        const user = process.env['SMTP_USER'];
-        const pass = process.env['SMTP_PASS'];
-        if (user && pass) {
-            transportConfig['auth'] = { user, pass };
-        }
-
-        _transporter = nodemailer.createTransport(transportConfig);
-        logger.info('SMTP transport initialized', { host, port: transportConfig['port'] });
-        return _transporter;
+        _resend = new Resend(apiKey);
+        logger.info('Resend client initialized');
+        return _resend;
     } catch (err) {
-        logger.error('Failed to initialize SMTP transport', { error: err instanceof Error ? err.message : String(err) });
+        logger.error('Failed to initialize Resend client', { error: err instanceof Error ? err.message : String(err) });
         return null;
     }
 }
@@ -388,10 +366,10 @@ export async function sendEmail(
         logger.info(`[EMAIL DISPATCH TRACE] To: ${options.to} | Subject: ${options.subject}${linkStr}`);
     }
 
-    const transporter = await getTransporter();
-    if (!transporter) {
-        const msg = 'SMTP transport not available — email not sent';
-        logger.warn('SMTP transport not available — email not sent', { subject: options.subject, to: options.to });
+    const resend = getResendClient();
+    if (!resend) {
+        const msg = 'Resend client not available — email not sent';
+        logger.warn('Resend client not available — email not sent', { subject: options.subject, to: options.to });
         return { success: false, error: msg };
     }
 
@@ -400,7 +378,7 @@ export async function sendEmail(
         const html = renderTemplate(options.template, options.variables, locale);
         const plainText = stripHtml(html);
 
-        await transporter.sendMail({
+        const { data, error } = await resend.emails.send({
             from: getFromAddress(),
             to: options.to,
             subject: options.subject,
@@ -408,11 +386,16 @@ export async function sendEmail(
             html,
         });
 
-        logger.info('Email sent', { subject: options.subject, to: options.to, locale });
+        if (error) {
+            logger.error('Failed to send email via Resend', { subject: options.subject, to: options.to, error: error.message });
+            return { success: false, error: error.message };
+        }
+
+        logger.info('Email sent via Resend', { subject: options.subject, to: options.to, locale, resendId: data?.id });
         return { success: true };
     } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown email error';
-        logger.error('Failed to send email', { subject: options.subject, to: options.to, error: err instanceof Error ? err.message : String(err) });
+        logger.error('Unexpected error sending email via Resend', { subject: options.subject, to: options.to, error: errorMsg });
         return { success: false, error: errorMsg };
     }
 }

@@ -4,7 +4,7 @@
 //
 // Coverage:
 //   1. sendEmail — non-throwing design (never crashes caller)
-//   2. sendEmail — graceful degradation when SMTP not configured
+//   2. sendEmail — graceful degradation when Resend not configured
 //   3. sendEmail — template rendering with variable substitution
 //   4. sendEmail — XSS escaping in template variables
 //   5. sendVerificationEmail — convenience wrapper
@@ -18,14 +18,15 @@ vi.mock('../../utils/logger', () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-// ─── Mock nodemailer ────────────────────────────────────────────────────────
+// ─── Mock Resend ────────────────────────────────────────────────────────────
 const mockSendMail = vi.fn();
-const mockCreateTransport = vi.fn().mockReturnValue({
-    sendMail: mockSendMail,
-});
 
-vi.mock('nodemailer', () => ({
-    createTransport: (...args: unknown[]) => mockCreateTransport(...args),
+vi.mock('resend', () => ({
+    Resend: vi.fn().mockImplementation(() => ({
+        emails: {
+            send: mockSendMail
+        }
+    }))
 }));
 
 // ─── Import type-only reference (functions are re-imported dynamically per test) ──
@@ -40,7 +41,7 @@ describe('Email Service', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // Reset the singleton transporter between tests
+        // Reset the singleton client between tests
         vi.resetModules();
     });
 
@@ -50,8 +51,8 @@ describe('Email Service', () => {
 
     // ─── sendEmail — Non-Throwing Design ────────────────────────────────
     describe('sendEmail() — Non-Throwing Design', () => {
-        it('should return failure when SMTP_HOST is not configured', async () => {
-            delete process.env['SMTP_HOST'];
+        it('should return failure when RESEND_API_KEY is not configured', async () => {
+            delete process.env['RESEND_API_KEY'];
 
             // Need to re-import to get fresh singleton
             const { sendEmail: freshSendEmail } = await import('../../services/email.service');
@@ -67,9 +68,9 @@ describe('Email Service', () => {
             expect(result.error).toContain('not available');
         });
 
-        it('should return failure (not throw) when sendMail rejects', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockRejectedValueOnce(new Error('Connection refused'));
+        it('should return failure (not throw) when sendMail returns error', async () => {
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: null, error: { message: 'Connection refused' } });
 
             const { sendEmail: freshSendEmail } = await import('../../services/email.service');
             const result = await freshSendEmail({
@@ -83,9 +84,25 @@ describe('Email Service', () => {
             expect(result.error).toContain('Connection refused');
         });
 
+        it('should return failure (not throw) when sendMail throws completely', async () => {
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockRejectedValueOnce(new Error('Network failure'));
+
+            const { sendEmail: freshSendEmail } = await import('../../services/email.service');
+            const result = await freshSendEmail({
+                to: 'user@example.com',
+                subject: 'Test',
+                template: 'verification',
+                variables: { verification_url: 'https://nammerha.com/verify?token=abc' },
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toContain('Network failure');
+        });
+
         it('should return success when email is sent', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({ messageId: 'msg-001' });
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-001' }, error: null });
 
             const { sendEmail: freshSendEmail } = await import('../../services/email.service');
             const result = await freshSendEmail({
@@ -110,8 +127,8 @@ describe('Email Service', () => {
     // ─── Template Rendering ─────────────────────────────────────────────
     describe('Template Rendering', () => {
         it('should substitute {{variables}} in verification template', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({});
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-002' }, error: null });
 
             const { sendEmail: freshSendEmail } = await import('../../services/email.service');
             await freshSendEmail({
@@ -128,8 +145,8 @@ describe('Email Service', () => {
         });
 
         it('should escape XSS in template variables', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({});
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-003' }, error: null });
 
             const { sendEmail: freshSendEmail } = await import('../../services/email.service');
             await freshSendEmail({
@@ -152,8 +169,8 @@ describe('Email Service', () => {
         });
 
         it('should render password-reset template with reset_url', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({});
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-004' }, error: null });
 
             const { sendEmail: freshSendEmail } = await import('../../services/email.service');
             await freshSendEmail({
@@ -173,8 +190,8 @@ describe('Email Service', () => {
     // ─── Convenience Wrappers ───────────────────────────────────────────
     describe('Convenience Wrappers', () => {
         it('sendVerificationEmail() should call sendEmail with verification template', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({});
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-005' }, error: null });
 
             const { sendVerificationEmail: freshFn } = await import('../../services/email.service');
             const result = await freshFn(
@@ -191,8 +208,8 @@ describe('Email Service', () => {
         });
 
         it('sendPasswordResetEmail() should use password-reset template', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({});
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-006' }, error: null });
 
             const { sendPasswordResetEmail: freshFn } = await import('../../services/email.service');
             const result = await freshFn(
@@ -209,8 +226,8 @@ describe('Email Service', () => {
         });
 
         it('sendSecurityAlertEmail() should include alert metadata', async () => {
-            process.env['SMTP_HOST'] = 'smtp.nammerha.com';
-            mockSendMail.mockResolvedValueOnce({});
+            process.env['RESEND_API_KEY'] = 're_test_123';
+            mockSendMail.mockResolvedValueOnce({ data: { id: 'msg-007' }, error: null });
 
             const { sendSecurityAlertEmail: freshFn } = await import('../../services/email.service');
             const result = await freshFn(

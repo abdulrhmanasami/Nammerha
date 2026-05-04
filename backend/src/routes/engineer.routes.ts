@@ -11,7 +11,9 @@ import { safeRouteError } from '../utils/safe-error';
 import * as engineerService from '../services/engineer.service';
 import * as executionService from '../services/execution.service';
 import * as realityCapture from '../services/reality-capture.service';
-import type { ApiResponse, SubmitSpatialProofDTO } from '../types';
+import { parseSpatialProof, formatZodErrors } from '../validation/spatial-proof.schema';
+import type { ApiResponse } from '../types';
+import { ZodError } from 'zod';
 
 const router = Router();
 
@@ -115,17 +117,11 @@ router.post('/camera/capture', async (req: Request, res: Response) => {
 
 // ─── POST /api/engineer/camera/spatial-proof — Submit GPS Spatial Proof ─────
 // Proxy to execution service for convenience from engineer camera page.
+// F-006 FIX: Zod validation replaces ad-hoc type assertion.
 router.post('/camera/spatial-proof', async (req: Request, res: Response) => {
     try {
-        const dto = req.body as SubmitSpatialProofDTO;
-
-        if (!dto.item_id || !dto.project_id || !dto.image_url || dto.gps_lat === undefined || dto.gps_lng === undefined) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required fields: item_id, project_id, image_url, gps_lat, gps_lng',
-            } as ApiResponse);
-            return;
-        }
+        // F-006 FIX: Runtime validation — NOT a type assertion.
+        const dto = parseSpatialProof(req.body);
 
         const proof = await executionService.submitSpatialProof(
             getAuthUser(req).user_id,
@@ -137,6 +133,14 @@ router.post('/camera/spatial-proof', async (req: Request, res: Response) => {
             message: 'Spatial proof submitted for verification',
         } as ApiResponse);
     } catch (error) {
+        // F-006 FIX: Structured Zod validation errors → 400 with field details.
+        if (error instanceof ZodError) {
+            res.status(400).json({
+                success: false,
+                error: formatZodErrors(error),
+            } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Engineer');
     }
 });

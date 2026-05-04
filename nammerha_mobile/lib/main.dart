@@ -28,6 +28,7 @@ import 'features/project/screens/project_details_screen.dart';
 import 'features/admin/screens/admin_kyc_screen.dart';
 import 'features/admin/screens/admin_escrow_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
+import 'features/impact/screens/impact_inbox_screen.dart';
 
 /// Global navigator key — allows OfflineQueue to show SnackBars from
 /// outside the widget tree (e.g., from background connectivity callbacks).
@@ -248,6 +249,7 @@ class _AppFlowControllerState extends State<_AppFlowController> {
   ///   donation_received → DonationsScreen
   ///   project_funded    → ProjectDetailsScreen
   ///   project_update    → ProjectDetailsScreen
+  ///   impact_update     → ImpactInboxScreen
   /// ═══════════════════════════════════════════════════════════════════════
   void _handleDeepLink(Map<String, dynamic> data) {
     final ctx = navigatorKey.currentContext;
@@ -292,6 +294,12 @@ class _AppFlowControllerState extends State<_AppFlowController> {
       case 'donation_received':
       case 'donation_refunded':
         targetScreen = const DonationsScreen();
+        break;
+
+      case 'impact_update':
+      case 'milestone_reached':
+      case 'project_completed':
+        targetScreen = const ImpactInboxScreen();
         break;
 
       case 'admin_escrow_pending':

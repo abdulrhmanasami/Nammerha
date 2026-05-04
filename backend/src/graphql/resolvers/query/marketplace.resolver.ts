@@ -214,7 +214,12 @@ export const marketplaceQueryResolvers = {
         _context: GQLContext,
     ) => {
         const result = await dbQuery(
-            `SELECT b.*, s.full_name as supplier_name
+            // F-007 FIX: Explicit column list — eliminates SELECT b.* (schema drift prevention).
+            `SELECT b.item_id, b.project_id, b.material_name, b.material_category,
+                    b.description, b.image_url, b.unit, b.unit_price, b.required_quantity,
+                    b.funded_amount, b.status, b.preferred_supplier_id, b.oracle_reference_price,
+                    b.created_at, b.updated_at,
+                    s.full_name as supplier_name
              FROM itemized_boq b
              LEFT JOIN users s ON s.user_id = b.preferred_supplier_id
              WHERE b.project_id = $1
@@ -267,7 +272,12 @@ export const projectFieldResolvers = {
         /** Resolve spatial proofs for a project */
         spatialProofs: async (parent: { projectId: string }) => {
             const result = await dbQuery(
-                'SELECT * FROM spatial_proof WHERE project_id = $1 ORDER BY captured_at DESC',
+                // F-007 FIX: Explicit column list — eliminates last SELECT * (schema drift prevention).
+                `SELECT proof_id, item_id, project_id, engineer_id, gps_coordinates,
+                        gps_accuracy_meters, captured_at, image_url, image_hash,
+                        description, device_info, verification_status, verified_by,
+                        verified_at, created_at
+                 FROM spatial_proof WHERE project_id = $1 ORDER BY captured_at DESC`,
                 [parent.projectId],
             );
             return result.rows.map((row: Record<string, unknown>) => ({

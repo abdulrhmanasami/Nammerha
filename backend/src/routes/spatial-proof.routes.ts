@@ -6,8 +6,10 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as executionService from '../services/execution.service';
-import type { SubmitSpatialProofDTO, ApiResponse } from '../types';
+import { parseSpatialProof, formatZodErrors } from '../validation/spatial-proof.schema';
+import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
 
 const router = Router();
 
@@ -15,18 +17,14 @@ router.use(authMiddleware);
 router.use(requireActive);
 
 // ─── POST /api/spatial-proof — Submit GPS Proof (Engineer) ──────────────────
+// F-006 FIX: Zod validation replaces ad-hoc type assertion.
+// Validates: UUID format, coordinate ranges [-90/90, -180/180], NaN/Infinity
+// rejection, string length bounds, and produces structured error messages.
 router.post('/', requireRole('engineer'), async (req: Request, res: Response) => {
     try {
-        const dto = req.body as SubmitSpatialProofDTO;
-
-        if (!dto.item_id || !dto.project_id || !dto.image_url || dto.gps_lat === null || dto.gps_lat === undefined || dto.gps_lng === null || dto.gps_lng === undefined) {
-            const response: ApiResponse = {
-                success: false,
-                error: 'Missing required fields: item_id, project_id, image_url, gps_lat, gps_lng',
-            };
-            res.status(400).json(response);
-            return;
-        }
+        // F-006 FIX: Runtime validation — NOT a type assertion.
+        // parseSpatialProof() throws ZodError with field-level details on failure.
+        const dto = parseSpatialProof(req.body);
 
         const proof = await executionService.submitSpatialProof(
             getAuthUser(req).user_id,
@@ -40,6 +38,15 @@ router.post('/', requireRole('engineer'), async (req: Request, res: Response) =>
         };
         res.status(201).json(response);
     } catch (error) {
+        // F-006 FIX: Structured Zod validation errors → 400 with field details.
+        if (error instanceof ZodError) {
+            const response: ApiResponse = {
+                success: false,
+                error: formatZodErrors(error),
+            };
+            res.status(400).json(response);
+            return;
+        }
         safeRouteError(res, error, 'SpatialProof');
     }
 });

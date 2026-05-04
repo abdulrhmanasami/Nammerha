@@ -301,8 +301,11 @@ export async function importSDNList(dto: ImportSDNDTO): Promise<{ imported: numb
  * Get all pending screening results (potential matches awaiting review).
  *
  * P2-PLT-002 FIX: Added pagination to prevent unbounded result sets.
- * Under sustained name-variation attack, the unpaginated version could
- * grow unbounded, causing memory exhaustion and unbounded response times.
+ * F-005 FIX: Eliminated TOCTOU race condition by using COUNT(*) OVER()
+ * window function to compute total in the SAME query as data fetch.
+ * Previously used two separate queries (SELECT data + COUNT(*)), allowing
+ * a concurrent insert/update between the two to produce inconsistent
+ * results (e.g., total=5 but only 4 rows returned, or vice versa).
  */
 export async function getPendingScreenings(
     limit = 50,
@@ -311,8 +314,17 @@ export async function getPendingScreenings(
     const safeLimit = Math.min(Math.max(limit, 1), 100);
     const safeOffset = Math.max(offset, 0);
 
-    const { rows } = await pool.query(
-        `SELECT ssr.*, u.full_name AS user_name, u.role AS user_role, u.email AS user_email
+    // F-005 FIX: Single atomic query — COUNT(*) OVER() computes total
+    // across the entire filtered result set (ignoring LIMIT/OFFSET),
+    // while the outer LIMIT/OFFSET paginates the data rows.
+    // This eliminates the TOCTOU window between the old data + count queries.
+    const { rows } = await pool.query<ScreeningResult & { total_count: string }>(
+        `SELECT ssr.result_id, ssr.screened_user_id, ssr.matched_sdn_id,
+                ssr.match_score, ssr.matched_name, ssr.screened_name,
+                ssr.status, ssr.reviewed_by, ssr.reviewed_at,
+                ssr.review_notes, ssr.auto_blocked, ssr.screened_at,
+                u.full_name AS user_name, u.role AS user_role, u.email AS user_email,
+                COUNT(*) OVER() AS total_count
          FROM sanctions_screening_results ssr
          JOIN users u ON u.user_id = ssr.screened_user_id
          WHERE ssr.status = 'potential_match'
@@ -321,13 +333,17 @@ export async function getPendingScreenings(
         [safeLimit, safeOffset]
     );
 
-    const countResult = await pool.query<{ count: string }>(
-        `SELECT COUNT(*) AS count FROM sanctions_screening_results WHERE status = 'potential_match'`
-    );
-    const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
+    // If no rows match, total is 0. Otherwise, extract from any row's window output.
+    // Non-null assertion is safe here: rows.length > 0 guarantees rows[0] exists.
+    const total = rows.length > 0 ? parseInt(rows[0]!.total_count, 10) : 0;
 
-    return { results: rows, total };
+    // Strip the total_count field from each row before returning
+    // (it's a query artifact, not part of the ScreeningResult interface).
+    const results = rows.map(({ total_count: _tc, ...rest }) => rest as unknown as ScreeningResult);
+
+    return { results, total };
 }
+
 
 // ─── Export Controls ────────────────────────────────────────────────────────
 
