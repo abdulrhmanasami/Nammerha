@@ -105,6 +105,9 @@ router.post(
                 phone?: string;
             };
 
+            // I18N-004: Locale-aware error messages for mobile clients
+            const regLocale = getEmailLocale(req);
+
             // Multi-Role Architecture: role is optional, defaults to 'donor'
             const role: UserRole = rawRole ?? 'donor';
 
@@ -112,7 +115,9 @@ router.post(
             if (!email || !password || !full_name) {
                 res.status(400).json({
                     success: false,
-                    error: 'Missing required fields: email, password, full_name',
+                    error: regLocale === 'ar'
+                        ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني، كلمة المرور، الاسم الكامل'
+                        : 'Missing required fields: email, password, full_name',
                 } as ApiResponse);
                 return;
             }
@@ -121,7 +126,9 @@ router.post(
             if (rawRole && !SELF_REGISTER_ROLES.includes(role)) {
                 res.status(400).json({
                     success: false,
-                    error: `Invalid role. Allowed: ${SELF_REGISTER_ROLES.join(', ')}`,
+                    error: regLocale === 'ar'
+                        ? `الدور غير صالح. الأدوار المسموحة: ${SELF_REGISTER_ROLES.join(', ')}`
+                        : `Invalid role. Allowed: ${SELF_REGISTER_ROLES.join(', ')}`,
                 } as ApiResponse);
                 return;
             }
@@ -130,7 +137,9 @@ router.post(
             if (!EMAIL_REGEX.test(email)) {
                 res.status(400).json({
                     success: false,
-                    error: 'Invalid email format',
+                    error: regLocale === 'ar'
+                        ? 'صيغة البريد الإلكتروني غير صحيحة'
+                        : 'Invalid email format',
                 } as ApiResponse);
                 return;
             }
@@ -139,20 +148,36 @@ router.post(
             if (password.length > MAX_PASSWORD_LENGTH) {
                 res.status(400).json({
                     success: false,
-                    error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+                    error: regLocale === 'ar'
+                        ? `كلمة المرور يجب ألا تتجاوز ${MAX_PASSWORD_LENGTH} حرفاً`
+                        : `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
                 } as ApiResponse);
                 return;
             }
 
             // Validate password complexity
+            // I18N-004: Arabic password rule messages for mobile clients
+            const PASSWORD_RULES_AR: Record<string, string> = {
+                'at least 8 characters': '8 أحرف على الأقل',
+                'at least one uppercase letter': 'حرف كبير واحد على الأقل',
+                'at least one lowercase letter': 'حرف صغير واحد على الأقل',
+                'at least one digit': 'رقم واحد على الأقل',
+                'at least one special character': 'رمز خاص واحد على الأقل',
+            };
+
             const failedRules = PASSWORD_RULES
                 .filter(rule => !rule.test(password))
                 .map(rule => rule.msg);
 
             if (failedRules.length > 0) {
+                const localizedRules = regLocale === 'ar'
+                    ? failedRules.map(r => PASSWORD_RULES_AR[r] ?? r)
+                    : failedRules;
                 res.status(400).json({
                     success: false,
-                    error: `Password must contain: ${failedRules.join(', ')}`,
+                    error: regLocale === 'ar'
+                        ? `كلمة المرور يجب أن تحتوي على: ${localizedRules.join('، ')}`
+                        : `Password must contain: ${failedRules.join(', ')}`,
                 } as ApiResponse);
                 return;
             }

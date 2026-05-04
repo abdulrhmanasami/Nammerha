@@ -31,6 +31,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   late AnimationController _animController;
   late Animation<double> _fadeIn;
 
+  // UX-001 FIX: Debounce guard to prevent multi-tap spam.
+  // GradientButton's isLoading blocks taps during AuthLoading state, but
+  // there's a microsecond gap between the tap and the BLoC emitting AuthLoading.
+  // This flag closes that window with a 500ms lock.
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +55,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   void _submit(bool isLoginMode, String selectedRole) {
+    if (_isSubmitting) return; // UX-001: Block rapid multi-tap
     if (!_formKey.currentState!.validate()) return;
+
+    _isSubmitting = true;
+    // Release lock after 500ms — BLoC will have emitted AuthLoading by then,
+    // and GradientButton's isLoading guard takes over.
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _isSubmitting = false;
+    });
 
     final authBloc = context.read<AuthBloc>();
 
