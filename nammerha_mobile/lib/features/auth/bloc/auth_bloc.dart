@@ -308,15 +308,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onRoleSwitch(AuthRoleSwitched event, Emitter<AuthState> emit) async {
+    // BUG-4 FIX: Show loading state so user sees feedback during switch
+    emit(AuthLoading());
     try {
       await _authRepository.switchRole(event.role);
-      // Refresh user data after role switch
+      // Refresh user data after role switch (with new JWT from BUG-2 fix)
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(const AuthError('فشل تحديث بيانات المستخدم بعد تبديل الدور'));
+      }
+    } on ApiException catch (e) {
+      // BUG-4 FIX: Surface the error instead of swallowing it silently
+      emit(AuthError(_localizeError(e.message)));
+      // Attempt to re-emit current auth state so user stays logged in
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
         emit(AuthAuthenticated(user));
       }
     } catch (e) {
-      // Role switch failed — stay on current role
+      emit(AuthError('فشل تبديل الدور: ${e.toString()}'));
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      }
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/network/api_client.dart'; // ApiException
 import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
 import '../../../core/i18n/t.dart';

@@ -483,18 +483,23 @@ router.post(
             }
 
             // Fetch all active roles for multi-role JWT
-            const userRolesResult = await query<{ role_name: string }>(
-                `SELECT r.role_name FROM user_roles ur
+            // BUG-5 FIX: Also fetch is_primary to determine correct activeRole.
+            // Previous code used users.role which may be stale after cross-session switches.
+            const userRolesResult = await query<{ role_name: string; is_primary: boolean }>(
+                `SELECT r.role_name, ur.is_primary FROM user_roles ur
                  JOIN roles r ON r.role_id = ur.role_id
-                 WHERE ur.user_id = $1 AND ur.status = 'active'`,
+                 WHERE ur.user_id = $1 AND ur.status = 'active'
+                 ORDER BY ur.is_primary DESC, r.sort_order`,
                 [user.user_id]
             );
             const allRoles = userRolesResult.rows.map(r => r.role_name);
+            // BUG-5 FIX: Use the primary role from user_roles, fallback to users.role
+            const primaryRole = userRolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
 
-            // Generate JWT with all roles
+            // Generate JWT with all roles — use primaryRole as the active context
             const token = generateToken(
                 user.user_id,
-                user.role,
+                primaryRole,
                 allRoles.length > 0 ? allRoles : [user.role]
             );
 
@@ -527,11 +532,11 @@ router.post(
                         user_id: user.user_id,
                         email: user.email,
                         full_name: user.full_name,
-                        role: user.role,
+                        role: primaryRole,
                         // HIGH-002 FIX: Include all roles so frontend role-switcher
                         // can display all user roles immediately after login
                         roles: allRoles.length > 0 ? allRoles : [user.role],
-                        activeRole: user.role,
+                        activeRole: primaryRole,
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                     },

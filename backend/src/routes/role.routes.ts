@@ -151,23 +151,47 @@ router.post('/switch', async (req: Request, res: Response) => {
             );
         });
 
-        // HIGH-003 FIX: Reissue JWT with updated primary role
-        const allRoles = req.authUser.roles;
-        const token = generateToken(req.authUser.user_id, role, allRoles);
-        res.cookie('nammerha_jwt', token, {
-            httpOnly: true,
-            secure: process.env['NODE_ENV'] === 'production',
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000,
-            path: '/',
-        });
+        // BUG-3 FIX: Fresh DB query for roles — previous code used stale JWT roles
+        // which missed any roles activated after the last login.
+        const freshRolesResult = await query<{ role_name: string }>(
+            `SELECT r.role_name FROM user_roles ur
+             JOIN roles r ON r.role_id = ur.role_id
+             WHERE ur.user_id = $1 AND ur.status = 'active'`,
+            [userId]
+        );
+        const allRoles = freshRolesResult.rows.map(r => r.role_name);
 
-        logger.info('Role switched', { userId: req.authUser.user_id, newRole: role });
+        // HIGH-003 FIX: Reissue JWT with updated primary role + fresh roles
+        const token = generateToken(userId, role, allRoles.length > 0 ? allRoles : [role]);
+
+        // BUG-2 FIX (MOB-AUTH-001): Detect mobile clients and include token in JSON.
+        // Mobile apps use Bearer tokens, not cookies. Without this, after a role switch
+        // the mobile app continues sending the OLD JWT with the OLD role — breaking
+        // all subsequent API calls that check the role.
+        const clientPlatform = req.headers['x-platform'] as string | undefined;
+        const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
+
+        if (!isMobileClient) {
+            res.cookie('nammerha_jwt', token, {
+                httpOnly: true,
+                secure: process.env['NODE_ENV'] === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000,
+                path: '/',
+            });
+        }
+
+        logger.info('Role switched', { userId, newRole: role, isMobile: isMobileClient });
 
         res.json({
             success: true,
             message: 'Role switched successfully',
-            data: { activeRole: role, roles: allRoles },
+            data: {
+                activeRole: role,
+                roles: allRoles.length > 0 ? allRoles : [role],
+                // MOB-AUTH-001: Token only for mobile clients
+                ...(isMobileClient ? { token } : {}),
+            },
         });
     } catch (error) {
         logger.error('Failed to switch role', { error: error instanceof Error ? error.message : String(error) });
