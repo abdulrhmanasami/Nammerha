@@ -241,6 +241,13 @@ services:
       - APP_BASE_URL=${PLATFORM_BASE_URL:-https://nammerha.com}
       # ── Quota Webhook Notifications (optional) ─────────────────
       - NOTIFICATION_WEBHOOK_URL=${NOTIFICATION_WEBHOOK_URL:-}
+      # ── Social OAuth (Google, Apple, Facebook) ──────────────────
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS:-}
+      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID:-}
+      - APPLE_CLIENT_ID=${APPLE_CLIENT_ID:-}
+      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID:-}
+      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET:-}
     labels:
       - 'com.nammerha.project=nammerha'
       - 'com.nammerha.component=backend'
