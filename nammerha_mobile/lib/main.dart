@@ -396,7 +396,10 @@ class _AppFlowControllerState extends State<_AppFlowController> {
           builder: (context, state) {
             if (state is AuthAuthenticated) {
               return DashboardScreen(
-                key: const ValueKey('dashboard'),
+                // BUG-6 FIX: Include activeRole in key so Flutter REBUILDS the
+                // entire dashboard tree (pages, nav, BlocProviders) on role switch.
+                // Previous: const ValueKey('dashboard') → reused stale widget tree.
+                key: ValueKey('dashboard_${state.user.activeRole}'),
                 user: state.user,
                 onLogout: () {
                   context.read<AuthBloc>().add(AuthLogoutRequested());

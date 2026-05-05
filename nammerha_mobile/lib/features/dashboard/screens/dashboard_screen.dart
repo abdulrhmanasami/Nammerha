@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/services/api_services.dart';
+import '../../../core/network/api_client.dart'; // NammerhaApiClient for role activation
 import '../../../core/utils/role_localizer.dart';
 import '../../auth/repositories/auth_repository.dart';
 import '../../auth/bloc/auth_bloc.dart';
@@ -728,6 +729,8 @@ class _DashboardHomeView extends StatelessWidget {
   }
 
   /// Opens a bottom sheet listing all user roles, allowing the user to switch.
+  /// BUG-7 FIX: Always shows the sheet (even for 1 role) and includes
+  /// an "Add new role" button at the bottom.
   void _showRoleSwitcher(BuildContext context) {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
@@ -737,21 +740,10 @@ class _DashboardHomeView extends StatelessWidget {
     final activeRole = user.activeRole;
     final colors = context.colors;
 
-    if (userRoles.length <= 1) {
-      // Only one role — show a snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('لديك دور واحد فقط — يمكنك إضافة أدوار جديدة من الملف الشخصي'),
-          backgroundColor: colors.info,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -770,8 +762,12 @@ class _DashboardHomeView extends StatelessWidget {
               const SizedBox(height: 16),
               Text('تبديل الدور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
               const SizedBox(height: 4),
-              Text('اختر الدور الذي تريد العمل به', style: TextStyle(fontSize: 13, color: colors.textSubtle)),
+              Text(
+                userRoles.length > 1 ? 'اختر الدور الذي تريد العمل به' : 'لديك دور واحد حالياً — يمكنك إضافة أدوار جديدة',
+                style: TextStyle(fontSize: 13, color: colors.textSubtle),
+              ),
               const SizedBox(height: 16),
+              // ─── Current Roles ───────────────────────────────
               ...userRoles.map((role) {
                 final meta = getRoleMeta(role);
                 final isActive = role.toLowerCase() == activeRole.toLowerCase();
@@ -833,11 +829,232 @@ class _DashboardHomeView extends StatelessWidget {
                   ),
                 );
               }),
+              // ─── Add New Role Button ────────────────────────
+              const SizedBox(height: 8),
+              Divider(color: colors.strokeSubtle, height: 1),
+              const SizedBox(height: 12),
+              InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showAddRoleSheet(context, userRoles);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: colors.backgroundPrimary,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: colors.primaryBrand.withAlpha(30), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: colors.primaryBrand.withAlpha(10),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: colors.primaryBrand.withAlpha(25), width: 1.5),
+                        ),
+                        child: Icon(Icons.add_rounded, size: 24, color: colors.primaryBrand),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'إضافة دور جديد',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.primaryBrand),
+                            ),
+                            Text(
+                              'أضف دوراً إضافياً لحسابك',
+                              style: TextStyle(fontSize: 11, color: colors.textSubtle),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.primaryBrand),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );
       },
     );
+  }
+
+  /// Shows the "Add New Role" bottom sheet with available roles to activate.
+  void _showAddRoleSheet(BuildContext context, List<String> existingRoles) {
+    final colors = context.colors;
+
+    // Self-registerable roles (excluding admin/auditor — server-only)
+    const availableRoles = ['donor', 'homeowner', 'engineer', 'contractor', 'supplier', 'tradesperson'];
+    final newRoles = availableRoles.where((r) => !existingRoles.map((e) => e.toLowerCase()).contains(r)).toList();
+
+    if (newRoles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('لديك جميع الأدوار المتاحة بالفعل! 🎉'),
+          backgroundColor: colors.success,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          decoration: BoxDecoration(
+            color: colors.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 16),
+              Text('إضافة دور جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+              const SizedBox(height: 4),
+              Text('اختر الدور الذي تريد إضافته لحسابك', style: TextStyle(fontSize: 13, color: colors.textSubtle)),
+              const SizedBox(height: 16),
+              ...newRoles.map((role) {
+                final meta = getRoleMeta(role);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _activateRole(context, role);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: colors.backgroundPrimary,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: colors.strokeSubtle),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44, height: 44,
+                            decoration: BoxDecoration(
+                              color: (meta?.color ?? colors.primaryBrand).withAlpha(15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(meta?.icon ?? Icons.person_rounded, size: 22, color: meta?.color ?? colors.primaryBrand),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  meta?.nameAr ?? role,
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                                ),
+                                Text(
+                                  meta?.nameEn ?? role,
+                                  style: TextStyle(fontSize: 11, color: colors.textSubtle),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.add_circle_outline_rounded, size: 22, color: colors.primaryBrand),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Calls /api/roles/activate and shows result feedback.
+  Future<void> _activateRole(BuildContext context, String role) async {
+    final colors = context.colors;
+    final meta = getRoleMeta(role);
+    final authBloc = context.read<AuthBloc>();
+
+    try {
+      await authBloc.authRepository.switchRole(role); // Will fail if not activated
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم تفعيل دور ${meta?.nameAr ?? role} بنجاح! ✅'),
+          backgroundColor: colors.success,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      // Refresh auth state to get updated roles
+      authBloc.add(AuthCheckSession());
+    } catch (_) {
+      // Role not activated — try the activate API
+      try {
+        final apiClient = NammerhaApiClient.instance;
+        final response = await apiClient.request<Map<String, dynamic>>(
+          '/roles/activate',
+          method: 'POST',
+          body: {'role': role},
+          fromData: (data) => data as Map<String, dynamic>,
+        );
+
+        if (!context.mounted) return;
+
+        if (response.success) {
+          final status = response.data?['status'] as String? ?? 'active';
+          if (status == 'active') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('تم تفعيل دور ${meta?.nameAr ?? role} بنجاح! ✅'),
+                backgroundColor: colors.success,
+              ),
+            );
+            // Refresh to get updated roles
+            authBloc.add(AuthCheckSession());
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('طلب تفعيل ${meta?.nameAr ?? role} قيد المراجعة — سيتم إعلامك عند الموافقة'),
+                backgroundColor: colors.warning,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.error ?? 'فشل تفعيل الدور'),
+              backgroundColor: colors.error,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تعذّر تفعيل الدور: ${e.toString()}'),
+            backgroundColor: colors.error,
+          ),
+        );
+      }
+    }
   }
 }
 
