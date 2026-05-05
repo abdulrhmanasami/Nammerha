@@ -32,7 +32,12 @@
   <!-- Social OAuth SDKs — async loading, zero render-blocking -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- OAuth-001: Google Client ID injection (public, not secret — validated server-side) -->
-  <script>window.__GOOGLE_CLIENT_ID__='411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';</script>
+  <script>
+    window.__GOOGLE_CLIENT_ID__='411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';
+    window.__APPLE_CLIENT_ID__='com.nammerha.web';
+  </script>
+  <!-- Apple Sign-In JS SDK -->
+  <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>
   <script type="module" src="/src/pages/auth.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
