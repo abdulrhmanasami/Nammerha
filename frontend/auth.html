@@ -31,6 +31,8 @@
   <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
   <!-- Social OAuth SDKs — async loading, zero render-blocking -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- OAuth-001: Google Client ID injection (public, not secret — validated server-side) -->
+  <script>window.__GOOGLE_CLIENT_ID__='411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';</script>
   <script type="module" src="/src/pages/auth.ts"></script>
   <link href="/i18n.css?v=7" rel="stylesheet"/>
 </head>
