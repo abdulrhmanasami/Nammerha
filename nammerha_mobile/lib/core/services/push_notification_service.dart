@@ -247,7 +247,7 @@ class PushNotificationService {
     );
 
     await _localNotifications.initialize(
-      settings,
+      settings: settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle notification tap from local notification
         if (response.payload != null) {
@@ -277,10 +277,10 @@ class PushNotificationService {
     final android = message.notification?.android;
 
     _localNotifications.show(
-      message.hashCode,
-      notification.title ?? 'نعمّرها',
-      notification.body ?? '',
-      NotificationDetails(
+      id: message.hashCode,
+      title: notification.title ?? 'نعمّرها',
+      body: notification.body ?? '',
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _nammerhaChannel.id,
           _nammerhaChannel.name,

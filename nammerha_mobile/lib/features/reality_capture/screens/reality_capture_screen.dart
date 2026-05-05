@@ -485,8 +485,10 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
 
       // Step 2: Get GPS
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
       );
 
       // Step 3: Read bytes

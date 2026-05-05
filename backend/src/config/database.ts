@@ -176,6 +176,9 @@ export async function getClient() {
 /**
  * Execute a function within a database transaction.
  * Automatically handles BEGIN, COMMIT, and ROLLBACK.
+ *
+ * NOTE: For financial/monetary operations (escrow, donations, payments),
+ * use `financialTransaction()` instead — it enforces SERIALIZABLE isolation.
  */
 export async function transaction<T>(
     fn: (client: PoolClient) => Promise<T>
@@ -192,6 +195,136 @@ export async function transaction<T>(
     } finally {
         client.release();
     }
+}
+
+// ─── GAP-S1 PLATINUM FIX: Financial Transaction with SERIALIZABLE Isolation ──
+// Nammerha Domain Law 1: ALL escrow releases, donations, and payment mutations
+// MUST use SERIALIZABLE isolation to prevent double-spending race conditions.
+//
+// READ COMMITTED (default) allows two concurrent transactions to both read the
+// same escrow balance, then both release funds — resulting in double-spend.
+// SERIALIZABLE forces PostgreSQL to detect this conflict and abort one
+// transaction (SQLSTATE 40001), which the caller should retry.
+//
+// Usage: import { financialTransaction } from './config/database';
+//   await financialTransaction(async (client) => {
+//       // All queries inside here are SERIALIZABLE
+//   });
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Execute a function within a SERIALIZABLE database transaction.
+ * **MANDATORY** for all financial/monetary operations:
+ *   - Escrow release/lock
+ *   - Donation processing
+ *   - Payment state transitions
+ *   - Balance mutations
+ *
+ * Automatically handles BEGIN, COMMIT, ROLLBACK, and retries on
+ * serialization failures (SQLSTATE 40001) up to 3 times.
+ *
+ * @throws Error if all retry attempts fail
+ */
+export async function financialTransaction<T>(
+    fn: (client: PoolClient) => Promise<T>
+): Promise<T> {
+    const MAX_RETRIES = 3;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+            const result = await fn(client);
+            await client.query('COMMIT');
+            return result;
+        } catch (error) {
+            await client.query('ROLLBACK');
+
+            // SQLSTATE 40001 = serialization_failure — expected under concurrency.
+            // PostgreSQL correctly detected a conflict. Retry with fresh snapshot.
+            const pgCode = (error as Record<string, unknown>)?.['code'];
+            if (pgCode === '40001' && attempt < MAX_RETRIES) {
+                logger.warn('financialTransaction: Serialization conflict — retrying', {
+                    attempt,
+                    maxRetries: MAX_RETRIES,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                // Exponential backoff: 50ms, 100ms before retry
+                await new Promise(r => setTimeout(r, 50 * attempt));
+                continue;
+            }
+
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    // TypeScript: unreachable, but satisfies return type
+    throw new Error('financialTransaction: Exhausted all retry attempts');
+}
+
+// ─── GAP-O3 PLATINUM FIX: Production Slow Query Monitoring ──────────────────
+// Previous: Query duration logged only in development mode.
+// Now: Any query exceeding 200ms in production is logged with WARNING severity,
+// enabling APM alert rules and proactive performance monitoring.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SLOW_QUERY_THRESHOLD_MS = parseInt(
+    process.env['SLOW_QUERY_THRESHOLD_MS'] ?? '200', 10
+);
+
+// Override the base query function to add slow query detection in production
+const _originalQuery = query;
+
+// Re-export with production monitoring
+export { _originalQuery };
+
+// Patch: Add slow query detection to the existing query function
+pool.on('connect', (client) => {
+    const originalClientQuery = client.query.bind(client);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client as any).query = async (...args: unknown[]) => {
+        const start = Date.now();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await (originalClientQuery as any)(...args);
+        const duration = Date.now() - start;
+
+        if (duration > SLOW_QUERY_THRESHOLD_MS) {
+            const queryText = typeof args[0] === 'string'
+                ? args[0].substring(0, 120)
+                : typeof args[0] === 'object' && args[0] !== null && 'text' in (args[0] as Record<string, unknown>)
+                    ? String((args[0] as Record<string, unknown>).text).substring(0, 120)
+                    : 'unknown';
+            logger.warn('SLOW QUERY DETECTED', {
+                duration: `${duration}ms`,
+                threshold: `${SLOW_QUERY_THRESHOLD_MS}ms`,
+                query: queryText,
+                severity: duration > 1000 ? 'critical' : 'warning',
+                component: 'database',
+            });
+        }
+
+        return result;
+    };
+});
+
+// ─── GAP-O5 PLATINUM FIX: Pool Statistics for Health Monitoring ──────────────
+// Exposes connection pool metrics for the /health/full endpoint.
+// No external dependencies — uses pg Pool's built-in counters.
+export function getPoolStats(): {
+    total: number;
+    idle: number;
+    waiting: number;
+    available: number;
+} {
+    return {
+        total: pool.totalCount,
+        idle: pool.idleCount,
+        waiting: pool.waitingCount,
+        available: pool.idleCount, // Available = idle connections ready for use
+    };
 }
 
 export default pool;

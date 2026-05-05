@@ -48,6 +48,13 @@ export default defineConfig({
             },
         },
     },
+    // GAP-P5 PLATINUM FIX: Explicit Web Worker bundling configuration.
+    // Workers are bundled as ES modules with hashed filenames for cache busting.
+    // Vite's native `new Worker(new URL(...), { type: 'module' })` pattern is used
+    // in crypto-bridge.ts — this config ensures consistent output format.
+    worker: {
+        format: 'es' as const,
+    },
     server: {
         port: 3000,
         proxy: {

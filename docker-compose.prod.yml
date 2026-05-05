@@ -92,7 +92,9 @@ services:
           memory: 192M
           cpus: '0.25'
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      # GAP-S3 PLATINUM FIX: Redis password no longer visible in `docker inspect`
+      # or `ps aux`. REDISCLI_AUTH env var is the secure alternative to `-a` flag.
+      test: ['CMD-SHELL', 'REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG']
       interval: 10s
       timeout: 5s
       retries: 5

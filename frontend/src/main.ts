@@ -23,11 +23,16 @@ import { initNotificationPanel } from './components/notification-panel';
 import { initPrefetchEngine } from './utils/prefetch-engine';
 
 import { signalHydrated } from './utils/hydration';
+// GAP-O2 PLATINUM FIX: Real User Monitoring — captures Core Web Vitals
+// (LCP, FID, CLS, TTFB, INP) from actual Syrian field devices.
+import { initRUM } from './utils/rum';
 
 // PLT-AUDIT-007: Initialize error reporter EARLY — before any other module
 // code runs — to capture initialization errors from downstream imports.
 initErrorReporter();
 initPrefetchEngine();
+// GAP-O2: Initialize RUM after error reporter (non-blocking, production-only)
+initRUM();
 
 
 // Register Service Worker for offline capabilities (field operations)

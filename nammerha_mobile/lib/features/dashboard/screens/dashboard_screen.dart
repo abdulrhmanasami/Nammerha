@@ -432,45 +432,53 @@ class _DashboardHomeView extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return GlassCard(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: item.color.withAlpha(20),
-                  borderRadius: BorderRadius.circular(10),
+        return Semantics(
+          // GAP-M4: Each stat card announces its label and value to TalkBack/VoiceOver
+          label: '${item.label}: ${item.value}',
+          child: GlassCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: item.color.withAlpha(20),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(item.icon, size: 20, color: item.color),
+                  ),
                 ),
-                child: Icon(item.icon, size: 20, color: item.color),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.value,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: colors.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ExcludeSemantics(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.value,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         )
             .animate(delay: (300 + index * 100).ms)
@@ -531,31 +539,36 @@ class _DashboardHomeView extends StatelessWidget {
               start: index == 0 ? 0 : 6,
               end: index == actions.length - 1 ? 0 : 6,
             ),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => action.screen));
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                decoration: BoxDecoration(
-                  color: action.color.withAlpha(12),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: action.color.withAlpha(30)),
-                ),
-                child: Column(
-                  children: [
-                    Icon(action.icon, color: action.color, size: 28),
-                    const SizedBox(height: 8),
-                    Text(
-                      action.label,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
+            child: Semantics(
+              // GAP-M4: Quick action buttons announce their label to screen readers
+              label: action.label,
+              button: true,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => action.screen));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  decoration: BoxDecoration(
+                    color: action.color.withAlpha(12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: action.color.withAlpha(30)),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(action.icon, color: action.color, size: 28),
+                      const SizedBox(height: 8),
+                      Text(
+                        action.label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: colors.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

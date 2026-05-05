@@ -11,6 +11,7 @@
 // ============================================================================
 
 import type { Express } from 'express';
+import express from 'express';
 import {
     authLimiter,
     paymentLimiter,
@@ -66,7 +67,10 @@ import enterpriseRoutes from './enterprise.routes';
  */
 export function registerRoutes(app: Express): void {
     // ── Auth (public — with strict rate limiting for brute-force protection) ──
-    app.use('/api/auth', authLimiter, authRoutes);
+    // GAP-S6 PLATINUM FIX: Tighter body limit for auth endpoints.
+    // No legitimate auth payload exceeds 10KB (login: ~200B, register: ~500B).
+    // Prevents memory exhaustion from oversized payloads on public endpoints.
+    app.use('/api/auth', express.json({ limit: '10kb' }), authLimiter, authRoutes);
 
     // ── Path 1: Homeowner → Engineer ─────────────────────────────────────────
     app.use('/api/projects', projectRoutes);

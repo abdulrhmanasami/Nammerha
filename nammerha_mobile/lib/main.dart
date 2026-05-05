@@ -7,6 +7,10 @@ import 'firebase_options.dart';
 import 'core/network/api_client.dart';
 import 'core/offline/offline_queue.dart';
 import 'core/services/push_notification_service.dart';
+// GAP-M1 PLATINUM: Firebase Crashlytics — production crash reporting
+import 'core/services/crashlytics_service.dart';
+// GAP-M2 PLATINUM: Firebase Performance — app performance monitoring
+import 'core/services/performance_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/i18n/locale_cubit.dart';
@@ -44,6 +48,15 @@ void main() async {
 
   // Initialize production API client
   await NammerhaApiClient.instance.init();
+
+  // GAP-M1 PLATINUM: Initialize Crashlytics EARLY — before any other code runs.
+  // Wires FlutterError.onError + PlatformDispatcher.onError to capture ALL
+  // uncaught exceptions in production. Disabled in debug mode.
+  CrashlyticsService.instance.init();
+
+  // GAP-M2 PLATINUM: Initialize Performance Monitoring.
+  // Captures app startup time, HTTP latency, and custom screen traces.
+  PerformanceService.instance.init();
 
   // Initialize offline queue engine (loads persisted requests, starts connectivity monitor)
   await OfflineQueue.instance.init();

@@ -361,7 +361,9 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                   }
 
                   final position = await Geolocator.getCurrentPosition(
-                    desiredAccuracy: LocationAccuracy.high,
+                    locationSettings: const LocationSettings(
+                      accuracy: LocationAccuracy.high,
+                    ),
                   );
                   gpsLat = position.latitude;
                   gpsLng = position.longitude;

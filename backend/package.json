@@ -1,6 +1,6 @@
 {
   "name": "nammerha-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Nammerha Platform — OCDS-Compliant Backend Service Layer",
   "main": "dist/server.js",
   "scripts": {

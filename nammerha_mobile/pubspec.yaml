@@ -2,7 +2,7 @@ name: nammerha_mobile
 description: "نعمّرها — منصة إعادة إعمار سوريا الشفافة"
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 2.0.0+1
 
 environment:
   sdk: ^3.10.7
@@ -16,7 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # State Management
-  flutter_bloc: ^8.1.5
+  flutter_bloc: ^9.0.0
   equatable: ^2.0.5
 
   # Navigation
@@ -24,23 +24,23 @@ dependencies:
   # Storage & Security
   flutter_secure_storage: ^10.0.0
   crypto: ^3.0.3
-  device_info_plus: ^10.1.0
-  package_info_plus: ^8.0.0
+  device_info_plus: ^12.0.0
+  package_info_plus: ^9.0.0
   http: ^1.2.0
   web_socket_channel: ^3.0.1
 
   # Geospatial & Hardware
-  camera: ^0.10.5+9
-  geolocator: ^11.0.1
-  flutter_foreground_task: ^6.1.1
-  permission_handler: ^11.3.0
+  camera: ^0.12.0
+  geolocator: ^14.0.0
+  flutter_foreground_task: ^9.0.0
+  permission_handler: ^12.0.0
 
   # Map Rendering (flutter_map — MapLibre/OSM tile engine)
-  flutter_map: ^7.0.2
+  flutter_map: ^8.0.0
   latlong2: ^0.9.1
 
   # UI Premium
-  google_fonts: ^6.2.1
+  google_fonts: ^8.0.0
   shimmer: ^3.0.0
   flutter_animate: ^4.5.2
   cached_network_image: ^3.4.1
@@ -53,12 +53,18 @@ dependencies:
   # Wave 1: Cart & Damage Report
   shared_preferences: ^2.3.0
   image_picker: ^1.1.2
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^7.0.0
 
   # Push Notifications — Firebase Cloud Messaging (Platinum Standard)
-  firebase_core: ^3.13.0
-  firebase_messaging: ^15.2.5
-  flutter_local_notifications: ^18.0.1
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
+  flutter_local_notifications: ^21.0.0
+
+  # GAP-M1 PLATINUM: Crash Reporting — captures fatal/non-fatal errors in production
+  firebase_crashlytics: ^5.0.0
+
+  # GAP-M2 PLATINUM: Performance Monitoring — app startup, HTTP, screen traces
+  firebase_performance: ^0.11.0
   flutter_pdfview: ^1.4.4
   path_provider: ^2.1.5
   share_plus: ^12.0.2
@@ -68,7 +74,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  bloc_test: ^9.1.7
+  bloc_test: ^10.0.0
   mocktail: ^1.0.4
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.3

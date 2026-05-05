@@ -1,0 +1,618 @@
+# ============================================================================
+# Nammerha Platform — OpenAPI 3.1.0 Specification (GAP-S7 PLATINUM)
+# ============================================================================
+# OCDS-Compliant Reconstruction Platform for Syria
+#
+# This is the base specification. Route-specific schemas are documented
+# alongside their Zod validators in each route file.
+#
+# Standard: OpenAPI 3.1.0 (JSON Schema 2020-12 compatible)
+#           ISO/IEC 25010:2011 (Functional Suitability — Accuracy)
+# ============================================================================
+
+openapi: '3.1.0'
+
+info:
+  title: Nammerha Platform API
+  version: '2.0.0'
+  description: |
+    OCDS-Compliant Community-Driven Reconstruction Platform for Syria.
+
+    ## Authentication
+    All authenticated endpoints require a JWT token via:
+    - `Authorization: Bearer <token>` header, OR
+    - `nammerha_jwt` HTTP-only cookie (set by login)
+
+    ## CSRF Protection
+    State-changing operations (POST/PUT/DELETE) under `/api/*` require
+    a valid CSRF token obtained from `GET /api/csrf-token`.
+
+    ## Rate Limiting
+    - General: 100 req/15min per IP
+    - Auth endpoints: 5 req/15min per IP
+    - File upload: 10 req/15min per user
+
+    ## Idempotency
+    All financial POST/PUT endpoints require an `Idempotency-Key` header
+    to prevent double-spending in unreliable network conditions.
+  contact:
+    name: Nammerha Engineering
+    url: https://nammerha.com
+  license:
+    name: Proprietary
+    url: https://nammerha.com/terms
+
+servers:
+  - url: https://nammerha.com
+    description: Production (Syria/Global)
+  - url: http://localhost:5000
+    description: Local Development
+
+tags:
+  - name: Authentication
+    description: User registration, login, verification, and session management
+  - name: Projects
+    description: Reconstruction project CRUD and lifecycle management
+  - name: Donations
+    description: Itemized crowdfunding contributions with escrow tracking
+  - name: Marketplace
+    description: Construction material marketplace (suppliers/contractors)
+  - name: Escrow
+    description: Financial escrow management and release workflows
+  - name: Engineer
+    description: Engineer portal — damage assessment, BOQ, and field operations
+  - name: Spatial Proof
+    description: GPS-verified construction progress evidence (photos + metadata)
+  - name: Admin
+    description: Administrative dashboards and system management
+  - name: Compliance
+    description: OFAC/FATF sanctions screening and audit logging
+  - name: EPA Oracle
+    description: Economic Price Adjustment engine (FIDIC 13.8)
+  - name: Open Data
+    description: OCDS-compliant public procurement data
+  - name: Health
+    description: System health checks and monitoring endpoints
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from login endpoint
+
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: nammerha_jwt
+      description: HTTP-only secure cookie set by login endpoint
+
+  schemas:
+    # ── Common Schemas ──────────────────────────────────────────────────────
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        correlationId:
+          type: string
+          format: uuid
+          description: Request correlation ID for support tracking
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              minimum: 1
+            limit:
+              type: integer
+              minimum: 1
+              maximum: 100
+            total:
+              type: integer
+              minimum: 0
+            totalPages:
+              type: integer
+              minimum: 0
+
+    # ── User & Auth ─────────────────────────────────────────────────────────
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [homeowner, donor, engineer, contractor, supplier, admin, auditor]
+        isVerified:
+          type: boolean
+        ofacClearance:
+          type: boolean
+          description: OFAC/FATF sanctions screening result
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Project ─────────────────────────────────────────────────────────────
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        titleAr:
+          type: string
+          description: Arabic title
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, in_progress, completed, on_hold]
+        location:
+          type: object
+          properties:
+            lat:
+              type: number
+              format: double
+            lng:
+              type: number
+              format: double
+            governorate:
+              type: string
+        fundingGoalCents:
+          type: integer
+          description: Funding goal in cents (integer arithmetic — no float)
+        fundedCents:
+          type: integer
+          description: Amount funded in cents
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Milestone'
+        createdAt:
+          type: string
+          format: date-time
+
+    Milestone:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, completed, verified]
+        percentComplete:
+          type: integer
+          minimum: 0
+          maximum: 100
+        escrowReleasedCents:
+          type: integer
+
+    # ── Donation ────────────────────────────────────────────────────────────
+    Donation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        donorId:
+          type: string
+          format: uuid
+        amountCents:
+          type: integer
+          minimum: 100
+          description: Minimum donation $1.00 (100 cents)
+        status:
+          type: string
+          enum: [pending, completed, refunded]
+        idempotencyKey:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Spatial Proof ───────────────────────────────────────────────────────
+    SpatialProof:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        engineerId:
+          type: string
+          format: uuid
+        imageUrl:
+          type: string
+          format: uri
+        imageHash:
+          type: string
+          description: SHA-256 hash of image (computed via Web Worker)
+        gpsLat:
+          type: number
+          format: double
+        gpsLng:
+          type: number
+          format: double
+        haversineDistanceM:
+          type: number
+          description: Distance from project anchor point (meters)
+        isValid:
+          type: boolean
+          description: GPS within 150m threshold
+        capturedAt:
+          type: string
+          format: date-time
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Prevents duplicate financial operations
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+# ─── Paths ─────────────────────────────────────────────────────────────────
+
+paths:
+  # ── Health ──────────────────────────────────────────────────────────────
+  /health:
+    get:
+      tags: [Health]
+      summary: Basic health check
+      description: Returns service status and database connectivity
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  service:
+                    type: string
+                  version:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+        '503':
+          description: Service is unhealthy
+
+  /health/redis:
+    get:
+      tags: [Health]
+      summary: Redis circuit breaker status
+      responses:
+        '200':
+          description: Redis lock manager healthy
+        '503':
+          description: Redis degraded (circuit open)
+
+  /health/full:
+    get:
+      tags: [Health]
+      summary: Comprehensive system health
+      description: |
+        Aggregates DB, Redis, memory, and process metrics.
+        Returns alert levels (ok/warn/critical) per subsystem.
+      responses:
+        '200':
+          description: All systems healthy or degraded
+        '503':
+          description: Critical failure detected
+
+  # ── Authentication ──────────────────────────────────────────────────────
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, fullName, role]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                fullName:
+                  type: string
+                role:
+                  type: string
+                  enum: [homeowner, donor, engineer, contractor, supplier]
+      responses:
+        '201':
+          description: User registered — verification email sent
+        '409':
+          description: Email already registered
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful — JWT in cookie and response
+        '401':
+          description: Invalid credentials
+        '403':
+          description: Email not verified
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/verify-email:
+    get:
+      tags: [Authentication]
+      summary: Verify email address
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified successfully
+        '400':
+          description: Invalid or expired token
+
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Projects ────────────────────────────────────────────────────────────
+  /api/projects:
+    get:
+      tags: [Projects]
+      summary: List all projects
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, in_progress, completed]
+        - name: governorate
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated project list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+
+  # ── Donations ───────────────────────────────────────────────────────────
+  /api/donations:
+    post:
+      tags: [Donations]
+      summary: Create a donation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, amountCents]
+              properties:
+                projectId:
+                  type: string
+                  format: uuid
+                amountCents:
+                  type: integer
+                  minimum: 100
+      responses:
+        '201':
+          description: Donation created
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Marketplace ─────────────────────────────────────────────────────────
+  /api/marketplace/catalog:
+    get:
+      tags: [Marketplace]
+      summary: Browse construction material catalog
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated catalog items
+
+  # ── Open Data (OCDS) ───────────────────────────────────────────────────
+  /api/open-data/stats:
+    get:
+      tags: [Open Data]
+      summary: Platform-wide statistics
+      description: Public OCDS-compliant aggregated reconstruction metrics
+      responses:
+        '200':
+          description: Platform statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalProjects:
+                    type: integer
+                  totalFundedCents:
+                    type: integer
+                  activeEngineers:
+                    type: integer
+                  governorates:
+                    type: integer
+
+  # ── Spatial Proof ───────────────────────────────────────────────────────
+  /api/spatial-proof/verify:
+    post:
+      tags: [Spatial Proof]
+      summary: Submit GPS-verified construction evidence
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [projectId, image]
+              properties:
+                projectId:
+                  type: string
+                  format: uuid
+                image:
+                  type: string
+                  format: binary
+                  description: JPEG/PNG with EXIF GPS metadata
+      responses:
+        '200':
+          description: Spatial proof verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpatialProof'
+        '400':
+          description: GPS verification failed (>150m from project anchor)
+
+  # ── CSRF ────────────────────────────────────────────────────────────────
+  /api/csrf-token:
+    get:
+      tags: [Authentication]
+      summary: Get CSRF token
+      description: Returns a CSRF token for state-changing operations
+      responses:
+        '200':
+          description: CSRF token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  csrfToken:
+                    type: string

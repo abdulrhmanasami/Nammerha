@@ -4443,4 +4443,78 @@ html[data-theme="dark"] .nm-dashboard-home-link {
     }
 }
 
+/* ============================================================================
+   GAP-A4 PLATINUM FIX: Comprehensive Reduced Motion Guard
+   ============================================================================
+   WCAG 2.3.3 (AAA): Users who prefer reduced motion get ALL non-essential
+   animations, transitions, and scroll behavior disabled platform-wide.
 
+   This is a GLOBAL guard — catches every animation across all 4400+ lines
+   of the design system. Individual component guards exist (view-transitions,
+   scroll-reveal, shimmer) but this is the ultimate safety net.
+
+   Preserved:
+   - opacity (visibility must not be broken)
+   - color transitions (instant, no motion)
+   - Loading spinners (reduced to 0s duration — still visible but static)
+
+   Standard: WCAG 2.3.3 (Animation from Interactions — AAA Level)
+             Apple HIG — "Respect the Reduce Motion accessibility setting."
+             Material Design — "Support reduced motion preferences."
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+    /* ── Kill ALL animations platform-wide ── */
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+    }
+
+    /* ── Disable smooth scroll (instant jump) ── */
+    html {
+        scroll-behavior: auto !important;
+    }
+
+    /* ── Disable scroll-reveal motion (show immediately) ── */
+    .scroll-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    /* ── Disable glass-card hover lift ── */
+    .glass-card:hover {
+        transform: none !important;
+    }
+
+    /* ── Disable button press scale ── */
+    .btn-primary:active,
+    .btn-secondary:active,
+    .btn-jade:active {
+        transform: none !important;
+    }
+
+    /* ── Disable view transitions ── */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+
+    /* ── Disable gradient orb floating ── */
+    .gradient-orb {
+        animation: none !important;
+    }
+
+    /* ── Disable pull-to-refresh spinner ── */
+    .nm-ptr-spinner {
+        animation: none !important;
+    }
+
+    /* ── Shimmer skeletons: show static placeholder ── */
+    .animate-pulse::after {
+        animation: none !important;
+        display: none !important;
+    }
+}

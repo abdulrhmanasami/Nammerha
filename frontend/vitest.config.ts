@@ -4,11 +4,13 @@ export default defineConfig({
     test: {
         // TEST-GAP FIX: Frontend vitest configuration
         globals: true,
-        environment: 'node', // Pure logic tests — no DOM needed
+        // Default: node. Tests needing DOM use `// @vitest-environment jsdom` directive.
+        environment: 'node',
         include: ['src/**/__tests__/**/*.test.ts', 'src/**/*.test.ts'],
         coverage: {
             reporter: ['text', 'lcov'],
-            include: ['src/utils/**', 'src/api.ts'],
+            // GAP-P3/T1: Updated to include modular api/ directory + workers/
+            include: ['src/utils/**', 'src/api/**', 'src/workers/**'],
         },
         // Match backend timeout
         testTimeout: 10_000,

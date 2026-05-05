@@ -37,6 +37,8 @@ import { globalLimiter } from './middleware/rate-limiters';
 import { csrfProtection, csrfTokenRateLimiter, csrfTokenHandler } from './middleware/csrf.middleware';
 import { mobileGuardMiddleware } from './middleware/mobile-guard.middleware';
 import { i18nErrorMiddleware } from './middleware/i18n-error.middleware';
+// GAP-S2 PLATINUM FIX: Correlation ID for end-to-end request tracing
+import { correlationId } from './middleware/correlation-id';
 
 // Route registry
 import { registerRoutes } from './routes/index';
@@ -150,6 +152,10 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
 app.use(cookieParser());                           // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
+// GAP-S2 PLATINUM FIX: Correlation ID MUST be first functional middleware.
+// All downstream middleware, services, and logs inherit the X-Request-Id for
+// end-to-end tracing across Frontend → Backend → PostgreSQL → Redis → MinIO.
+app.use(correlationId);
 app.use(i18nErrorMiddleware);                      // I18N-004: Translate error messages for Arabic clients
 app.use(mobileGuardMiddleware);                    // Enforce API versioning for mobile apps
 app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
@@ -189,7 +195,154 @@ app.get('/health', async (_req, res) => {
     }
 });
 
-// ─── API Routes (registered from centralized registry) ──────────────────────
+// ─── GAP-O4 PLATINUM FIX: Redis Circuit Breaker Health Endpoint ─────────────
+// Exposes the Redis Lock Manager's circuit breaker state and operational metrics
+// for monitoring dashboards (Datadog, Grafana, etc.).
+// Returns: circuit state (CLOSED/OPEN/HALF_OPEN), consecutive failures,
+//          acquire/release counters for both Redis and PostgreSQL fallback.
+app.get('/health/redis', async (_req, res) => {
+    try {
+        const { redisLockManager } = await import('./config/redis.client');
+        const metrics = redisLockManager.getMetrics();
+        const isHealthy = metrics.state.state === 'CLOSED';
+        res.status(isHealthy ? 200 : 503).json({
+            status: isHealthy ? 'healthy' : 'degraded',
+            service: 'nammerha-redis-lock-manager',
+            circuit: metrics.state.state,
+            consecutiveFailures: metrics.state.consecutiveFailures,
+            counters: metrics.counters,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Redis health check failed',
+        });
+    }
+});
+
+// ─── GAP-O5 PLATINUM FIX: Comprehensive System Health + Alert Thresholds ────
+// Aggregates ALL system metrics into a single endpoint for monitoring dashboards.
+// Returns alert levels (ok/warn/critical) for each subsystem based on thresholds.
+//
+// Alert Rules:
+//   - DB Pool available < 2              → CRITICAL
+//   - Memory RSS > 512MB                 → WARNING
+//   - Circuit Breaker state OPEN         → CRITICAL
+//   - Uptime < 60s                       → WARNING (recent restart)
+//
+// Usage: GET /health/full (no auth required — public system status)
+app.get('/health/full', async (_req, res) => {
+    const startTime = process.hrtime.bigint();
+
+    interface SubsystemCheck {
+        status: 'ok' | 'warn' | 'critical';
+        latencyMs?: number;
+        details?: Record<string, unknown>;
+    }
+
+    const checks: Record<string, SubsystemCheck> = {};
+    let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+
+    // ── 1. Database ────────────────────────────────────────────────────────
+    try {
+        const dbStart = Date.now();
+        const { query: dbQuery, getPoolStats } = await import('./config/database');
+        await dbQuery('SELECT 1');
+        const dbLatency = Date.now() - dbStart;
+        const poolStats = getPoolStats();
+
+        const dbAlert = poolStats.available < 2 ? 'critical'
+            : poolStats.available < 5 ? 'warn' : 'ok';
+
+        checks.database = {
+            status: dbAlert,
+            latencyMs: dbLatency,
+            details: {
+                pool: poolStats,
+                ...(dbLatency > 200 && { alert: 'Slow DB response (>200ms)' }),
+            },
+        };
+    } catch (err) {
+        checks.database = {
+            status: 'critical',
+            details: { error: err instanceof Error ? err.message : 'Unknown' },
+        };
+    }
+
+    // ── 2. Redis ───────────────────────────────────────────────────────────
+    try {
+        const { redisLockManager } = await import('./config/redis.client');
+        const metrics = redisLockManager.getMetrics();
+        const redisAlert = metrics.state.state === 'OPEN' ? 'critical'
+            : metrics.state.state === 'HALF_OPEN' ? 'warn' : 'ok';
+
+        checks.redis = {
+            status: redisAlert,
+            details: {
+                circuit: metrics.state.state,
+                consecutiveFailures: metrics.state.consecutiveFailures,
+                counters: metrics.counters,
+            },
+        };
+    } catch (err) {
+        checks.redis = {
+            status: 'critical',
+            details: { error: err instanceof Error ? err.message : 'Unknown' },
+        };
+    }
+
+    // ── 3. Memory ──────────────────────────────────────────────────────────
+    const mem = process.memoryUsage();
+    const rssMB = Math.round(mem.rss / 1024 / 1024);
+    const heapMB = Math.round(mem.heapUsed / 1024 / 1024);
+    const memAlert = rssMB > 512 ? 'warn' : 'ok';
+
+    checks.memory = {
+        status: memAlert,
+        details: {
+            rssMB,
+            heapUsedMB: heapMB,
+            heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+            externalMB: Math.round(mem.external / 1024 / 1024),
+        },
+    };
+
+    // ── 4. Process ─────────────────────────────────────────────────────────
+    const uptimeSeconds = Math.round(process.uptime());
+    const processAlert = uptimeSeconds < 60 ? 'warn' : 'ok';
+
+    checks.process = {
+        status: processAlert,
+        details: {
+            uptimeSeconds,
+            uptimeHuman: `${Math.floor(uptimeSeconds / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`,
+            pid: process.pid,
+            nodeVersion: process.version,
+            ...(uptimeSeconds < 60 && { alert: 'Recent restart detected (<60s)' }),
+        },
+    };
+
+    // ── Determine overall status ──────────────────────────────────────────
+    for (const check of Object.values(checks)) {
+        if (check.status === 'critical') { overallStatus = 'unhealthy'; break; }
+        if (check.status === 'warn') { overallStatus = 'degraded'; }
+    }
+
+    const totalLatencyNs = process.hrtime.bigint() - startTime;
+    const totalLatencyMs = Number(totalLatencyNs) / 1_000_000;
+
+    res.status(overallStatus === 'unhealthy' ? 503 : 200).json({
+        status: overallStatus,
+        service: 'nammerha-backend',
+        version: PKG_VERSION,
+        timestamp: new Date().toISOString(),
+        checkLatencyMs: Math.round(totalLatencyMs * 100) / 100,
+        checks,
+    });
+});
+
+
 registerRoutes(app);
 
 // ─── GraphQL Gateway (Phase 1: Strangler Fig Pattern) ────────────────────────
