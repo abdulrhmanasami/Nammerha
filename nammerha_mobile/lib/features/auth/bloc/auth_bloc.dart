@@ -81,6 +81,20 @@ class AuthResetPassword extends AuthEvent {
   List<Object?> get props => [token, newPassword];
 }
 
+/// Social login (Google, Apple, Facebook)
+class AuthSocialLoginRequested extends AuthEvent {
+  final String provider; // 'google' | 'apple' | 'facebook'
+  final String idToken;
+  final String? fullName; // Apple first-login only
+  const AuthSocialLoginRequested({
+    required this.provider,
+    required this.idToken,
+    this.fullName,
+  });
+  @override
+  List<Object?> get props => [provider, idToken, fullName];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // STATES
 // ═══════════════════════════════════════════════════════════════════════════
@@ -173,6 +187,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthForgotPassword>(_onForgotPassword);
     on<AuthChangePasswordRequested>(_onChangePassword);
     on<AuthResetPassword>(_onResetPassword);
+    on<AuthSocialLoginRequested>(_onSocialLogin);
 
     // Listen for 401 from API client
     NammerhaApiClient.instance.onAuthExpired = () {
@@ -191,6 +206,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (_) {
       emit(AuthUnauthenticated());
+    }
+  }
+
+  /// OAuth-001: Social login via provider's ID token
+  Future<void> _onSocialLogin(AuthSocialLoginRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.loginWithSocial(
+        provider: event.provider,
+        idToken: event.idToken,
+        fullName: event.fullName,
+      );
+      emit(AuthAuthenticated(user));
+    } on ApiException catch (e) {
+      // Apply same i18n defense as email login
+      final translatedMsg = _localizeError(e.message);
+      emit(AuthError(translatedMsg));
+    } catch (e) {
+      emit(AuthError(_localizeError(e.toString())));
     }
   }
 

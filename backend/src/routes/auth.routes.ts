@@ -424,6 +424,34 @@ router.post(
                 return;
             }
 
+            // ── Social-Only Account Guard (Migration 042) ──────────────────────
+            // Users who registered via Google/Apple/Facebook have no password_hash.
+            // Attempting bcrypt.compare(password, null) would throw. Instead,
+            // return a clear error telling the user to use their social provider.
+            if (!user.password_hash) {
+                // Look up which social provider they used
+                const oauthResult = await query<{ provider: string }>(
+                    'SELECT provider FROM oauth_providers WHERE user_id = $1 LIMIT 1',
+                    [user.user_id]
+                );
+                const providerName = oauthResult.rows[0]?.provider ?? 'social';
+                const providerDisplay: Record<string, string> = {
+                    google: 'Google',
+                    apple: 'Apple',
+                    facebook: 'Facebook',
+                };
+                const displayName = providerDisplay[providerName] ?? providerName;
+
+                res.status(401).json({
+                    success: false,
+                    error: loginLocale === 'ar'
+                        ? `هذا الحساب مسجّل عبر ${displayName}. يرجى تسجيل الدخول باستخدام ${displayName}.`
+                        : `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
+                    code: 'SOCIAL_ONLY_ACCOUNT',
+                } as ApiResponse);
+                return;
+            }
+
             // Verify password
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
             if (!isPasswordValid) {
@@ -989,6 +1017,17 @@ router.post(
                 res.status(404).json({
                     success: false,
                     error: 'User not found',
+                } as ApiResponse);
+                return;
+            }
+
+            // ── Social-Only Account Guard (Migration 042) ─────────────
+            // Social-only users have no password_hash — they cannot
+            // "change" a password that doesn't exist.
+            if (!user.password_hash) {
+                res.status(400).json({
+                    success: false,
+                    error: 'This account uses social login and does not have a password. Use your social provider to sign in.',
                 } as ApiResponse);
                 return;
             }

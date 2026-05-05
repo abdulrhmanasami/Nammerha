@@ -4518,3 +4518,198 @@ html[data-theme="dark"] .nm-dashboard-home-link {
         display: none !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Social OAuth Login Buttons (OAuth-001)
+   ═══════════════════════════════════════════════════════════════════════════
+   Branded buttons per Google Sign-In Branding Guidelines, Apple HIG,
+   and Meta Login Button Branding. Uses logical properties for RTL.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Divider ("or continue with") ───────────────────────────────────────── */
+.nm-social-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-block: 20px 16px;
+    color: var(--color-text-muted, #94a3b8);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.nm-social-divider::before,
+.nm-social-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-border, #e2e8f0);
+}
+
+.nm-social-divider--compact {
+    margin-block: 12px 8px;
+    font-size: 0.75rem;
+}
+
+html[data-theme="dark"] .nm-social-divider::before,
+html[data-theme="dark"] .nm-social-divider::after {
+    background: var(--color-dark-border, #374151);
+}
+
+/* ─── Button Container ───────────────────────────────────────────────────── */
+.nm-social-buttons {
+    display: flex;
+    gap: 10px;
+    margin-block-end: 4px;
+}
+
+.nm-social-buttons--compact {
+    margin-block-end: 0;
+}
+
+/* ─── Individual Social Button ───────────────────────────────────────────── */
+.nm-social-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-block: 12px;
+    padding-inline: 12px;
+    border-radius: 12px;
+    border: 1.5px solid var(--color-border, #e2e8f0);
+    background: var(--color-surface, #ffffff);
+    color: var(--color-text, #1e293b);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 48px; /* Touch target: WCAG 2.5.8 */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.nm-social-btn:hover {
+    border-color: var(--color-border-hover, #cbd5e1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+.nm-social-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.nm-social-btn:focus-visible {
+    outline: 2px solid #1558D6;
+    outline-offset: 2px;
+}
+
+/* ─── Social Icon ────────────────────────────────────────────────────────── */
+.nm-social-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* ─── Google Button — White bg, colored logo ─────────────────────────────── */
+.nm-social-btn--google {
+    background: #ffffff;
+    border-color: #dadce0;
+    color: #3c4043;
+}
+
+.nm-social-btn--google:hover {
+    background: #f8f9fa;
+    border-color: #dadce0;
+}
+
+/* ─── Apple Button — Black bg, white logo ────────────────────────────────── */
+.nm-social-btn--apple {
+    background: #000000;
+    border-color: #000000;
+    color: #ffffff;
+}
+
+.nm-social-btn--apple:hover {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+}
+
+/* ─── Facebook Button — Blue bg, white logo ──────────────────────────────── */
+.nm-social-btn--facebook {
+    background: #1877f2;
+    border-color: #1877f2;
+    color: #ffffff;
+}
+
+.nm-social-btn--facebook:hover {
+    background: #166fe5;
+    border-color: #166fe5;
+}
+
+/* ─── Dark Mode ──────────────────────────────────────────────────────────── */
+html[data-theme="dark"] .nm-social-btn {
+    background: var(--color-dark-surface, #1e1e1e);
+    border-color: var(--color-dark-border, #374151);
+    color: var(--color-dark-text, #e5e7eb);
+}
+
+html[data-theme="dark"] .nm-social-btn:hover {
+    border-color: var(--color-dark-border-hover, #4b5563);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .nm-social-btn--google {
+    background: var(--color-dark-surface, #1e1e1e);
+    border-color: var(--color-dark-border, #374151);
+    color: var(--color-dark-text, #e5e7eb);
+}
+
+html[data-theme="dark"] .nm-social-btn--apple {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #000000;
+}
+
+html[data-theme="dark"] .nm-social-btn--facebook {
+    background: #1877f2;
+    border-color: #1877f2;
+    color: #ffffff;
+}
+
+/* ─── Loading State ──────────────────────────────────────────────────────── */
+.nm-social-btn.btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.nm-social-btn.btn-loading .nm-social-icon {
+    display: none;
+}
+
+.nm-social-btn.btn-loading::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border: 2px solid currentColor;
+    border-block-start-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .nm-social-btn {
+        transition: none;
+    }
+    .nm-social-btn:hover {
+        transform: none;
+    }
+    .nm-social-btn.btn-loading::before {
+        animation: none;
+    }
+}
+

@@ -58,6 +58,14 @@ export const auth = {
     // SEC-001/LOGOUT-001 FIX: Server-side logout — invalidates JWT + clears httpOnly cookie
     logout: () =>
         request('/auth/logout', { method: 'POST' }),
+
+    // OAuth-001: Social login — calls POST /api/auth/social
+    // Same response shape as login (JWT in httpOnly cookie + user data)
+    socialLogin: (data: { provider: 'google' | 'apple' | 'facebook'; id_token: string; full_name?: string }) =>
+        request<{ user: unknown }>('/auth/social', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
 };
 
 // ─── SEC-001 FIX: Role Management (centralized) ────────────────────────────

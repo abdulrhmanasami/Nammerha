@@ -8,6 +8,8 @@
 
 export type UserRole = 'donor' | 'homeowner' | 'engineer' | 'contractor' | 'tradesperson' | 'supplier' | 'admin' | 'auditor';
 
+export type SocialProvider = 'google' | 'apple' | 'facebook';
+
 export type KycStatus = 'pending' | 'submitted' | 'verified' | 'rejected' | 'suspended';
 
 export type DamageType = 'structural' | 'plumbing' | 'electrical' | 'mixed';
@@ -67,7 +69,7 @@ export interface User {
     phone: string | null;
     full_name: string;
     role: UserRole;
-    password_hash: string;
+    password_hash: string | null;  // null for social-only users (Migration 042)
     avatar_url: string | null;
     kyc_verification_status: KycStatus;
     kyc_document_url: string | null;
@@ -89,6 +91,16 @@ export interface User {
     token_invalidated_at: Date | null;
     created_at: Date;
     updated_at: Date;
+}
+
+export interface OAuthProvider {
+    id: string;
+    user_id: string;
+    provider: SocialProvider;
+    provider_user_id: string;
+    provider_email: string | null;
+    provider_avatar_url: string | null;
+    created_at: Date;
 }
 
 export interface Project {

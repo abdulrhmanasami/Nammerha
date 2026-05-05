@@ -58,6 +58,7 @@ import impactRoutes from './impact.routes';
 import monetizationRoutes from './monetization.routes';
 import subscriptionRoutes from './subscription.routes';
 import enterpriseRoutes from './enterprise.routes';
+import socialAuthRoutes from './social-auth.routes';
 
 /**
  * Register all API routes on the Express app.
@@ -71,6 +72,9 @@ export function registerRoutes(app: Express): void {
     // No legitimate auth payload exceeds 10KB (login: ~200B, register: ~500B).
     // Prevents memory exhaustion from oversized payloads on public endpoints.
     app.use('/api/auth', express.json({ limit: '10kb' }), authLimiter, authRoutes);
+
+    // ── Social OAuth (Google, Apple, Facebook) — same limiter as auth ────────
+    app.use('/api/auth', express.json({ limit: '10kb' }), authLimiter, socialAuthRoutes);
 
     // ── Path 1: Homeowner → Engineer ─────────────────────────────────────────
     app.use('/api/projects', projectRoutes);

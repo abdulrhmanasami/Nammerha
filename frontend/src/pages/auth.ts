@@ -869,23 +869,290 @@ forgotBtn?.addEventListener('click', async (e) => {
     }
 });
 
-// ─── C-AUD-002 FIX: SSO "Coming Soon" Click Handlers ──────────────────────────
-// SSO buttons were silent dead ends — no JS handler, no feedback on click.
-// PLAT-M01 FIX: Changed from 'error' (red) to 'info' (blue) — SSO coming-soon
-// is informational, not an error. Red banner was alarming for a non-error state.
-// Standard: Nielsen #9 (Help Users Recognize Errors), Material Design 3.
-// ───────────────────────────────────────────────────────────────────────────────
-document.querySelectorAll<HTMLButtonElement>('[data-sso-provider]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const provider = btn.dataset.ssoProvider === 'apple' ? 'Apple' : 'Google';
-        showBanner('info', t('auth_sso_coming_soon', `Sign in with ${provider} is coming soon. Please register with email for now.`));
-        haptic.light();
-        // PLAT-P3-002 FIX: Auto-dismiss "Coming Soon" banner after 4s.
-        // Previous: Banner stayed until next user interaction, blocking form view.
-        // Standard: Material Design 3 (Snackbar Auto-Dismiss), Nielsen #1.
-        setTimeout(() => hideBanner(), 4000);
+// ─── OAuth-001: Social Login Integration ──────────────────────────────────────
+// Replaces the old "Coming Soon" banners with real OAuth flows.
+// Each provider's SDK obtains an ID token, which is sent to POST /api/auth/social.
+// Backend verifies server-side and returns JWT + user (same as email login).
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Shared handler: after POST /api/auth/social returns successfully,
+ * set user context and redirect — identical to email login success path.
+ */
+async function handleSocialLoginSuccess(
+    response: { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+    provider: string,
+): Promise<void> {
+    if (!response.success || !response.data?.user) {
+        showBanner('error', response.error ?? t('auth_login_failed', 'Authentication failed. Please try again.'));
+        return;
+    }
+
+    const userData = response.data.user as {
+        user_id: string;
+        full_name: string;
+        role: string;
+        roles?: string[];
+        activeRole?: string;
+        email: string;
+        is_active: boolean;
+    };
+
+    const { setCurrentUser } = await import('../auth');
+    const userRole = userData.role as import('../auth').UserRole;
+    setCurrentUser({
+        user_id: userData.user_id,
+        full_name: userData.full_name,
+        role: userRole,
+        roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
+        activeRole: (userData.activeRole ?? userData.role) as import('../auth').UserRole,
+        email: userData.email,
+        kyc_verified: userData.is_active,
     });
-});
+
+    showBanner('success', t('auth_welcome_social', `Welcome! Signed in with ${provider}. Redirecting...`));
+
+    // Same role-based redirect as email login
+    const ROLE_DASHBOARD: Record<string, string> = {
+        homeowner: '/homeowner-portal.html',
+        donor: '/donor-portal.html',
+        contractor: '/contractor-portal.html',
+        supplier: '/supplier-dashboard.html',
+        tradesperson: '/tradesperson-portal.html',
+        engineer: '/engineer-camera.html',
+        admin: '/admin-dashboard.html',
+        auditor: '/compliance-dashboard.html',
+    };
+    const activeRole = userData.activeRole ?? userData.role;
+    const target = ROLE_DASHBOARD[activeRole] ?? '/';
+
+    const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+    let finalTarget = redirectParam ? decodeURIComponent(redirectParam) : target;
+    if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
+        finalTarget = target;
+    }
+
+    try {
+        if (localStorage.getItem('nmh_onboarding_pending') === '1') {
+            localStorage.removeItem('nmh_onboarding_pending');
+            finalTarget += (finalTarget.includes('?') ? '&' : '?') + 'onboarding=1';
+        }
+    } catch { /* Safari private mode */ }
+
+    setTimeout(() => { window.location.href = finalTarget; }, 800);
+}
+
+/**
+ * Set loading state on a social button.
+ */
+function setSocialBtnLoading(btn: HTMLButtonElement, loading: boolean): void {
+    if (loading) {
+        btn.classList.add('btn-loading');
+        state.isSubmitting = true;
+    } else {
+        btn.classList.remove('btn-loading');
+        state.isSubmitting = false;
+    }
+}
+
+// ─── Google Sign-In (GSI) ───────────────────────────────────────────────────
+// Uses Google Identity Services library loaded in auth.html.
+// Docs: https://developers.google.com/identity/gsi/web/reference/js-reference
+
+// Declare GSI types
+declare const google: {
+    accounts: {
+        id: {
+            initialize: (config: { client_id: string; callback: (response: { credential: string }) => void; auto_select?: boolean }) => void;
+            prompt: (notification?: (status: { isNotDisplayed: () => boolean; isSkippedMoment: () => boolean }) => void) => void;
+            renderButton: (element: HTMLElement, config: { type: string; theme: string; size: string; logo_alignment: string }) => void;
+        };
+    };
+};
+
+function initGoogleSignIn(): void {
+    // GOOGLE_CLIENT_ID injected from environment at build time, or hardcoded for now
+    // Will be configured via .env when credentials are created
+    const googleClientId = (window as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as string | undefined;
+    if (!googleClientId) {
+        // Not configured yet — buttons remain functional but will get a server error
+        console.info('[OAuth] Google Client ID not configured. Sign-in will fail gracefully.');
+    }
+
+    // All Google SSO buttons (login + register forms)
+    document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="google"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (state.isSubmitting) return;
+            haptic.light();
+
+            // If GSI SDK isn't loaded, show error
+            if (typeof google === 'undefined' || !google?.accounts?.id) {
+                showBanner('error', t('auth_sso_unavailable', 'Google Sign-In is temporarily unavailable. Please use email.'));
+                return;
+            }
+
+            setSocialBtnLoading(btn, true);
+
+            try {
+                google.accounts.id.initialize({
+                    client_id: googleClientId ?? '',
+                    callback: async (credentialResponse) => {
+                        try {
+                            const response = await auth.socialLogin({
+                                provider: 'google',
+                                id_token: credentialResponse.credential,
+                            });
+                            await handleSocialLoginSuccess(
+                                response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+                                'Google',
+                            );
+                        } catch (err) {
+                            const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
+                            showBanner('error', msg);
+                        } finally {
+                            setSocialBtnLoading(btn, false);
+                        }
+                    },
+                });
+
+                // Trigger One Tap prompt
+                google.accounts.id.prompt((notification) => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        // Fallback: GSI popup was blocked or not shown
+                        // This happens in incognito, when cookies disabled, etc.
+                        setSocialBtnLoading(btn, false);
+                        showBanner('info', t('auth_google_popup_blocked', 'Google popup was blocked. Please allow popups and try again.'));
+                    }
+                });
+            } catch {
+                setSocialBtnLoading(btn, false);
+                showBanner('error', t('auth_sso_unavailable', 'Google Sign-In is temporarily unavailable. Please use email.'));
+            }
+        });
+    });
+}
+
+// ─── Apple Sign-In ──────────────────────────────────────────────────────────
+// Apple Sign-In uses a popup/redirect flow. The JWT is returned directly.
+// Docs: https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js
+
+function initAppleSignIn(): void {
+    document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="apple"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (state.isSubmitting) return;
+            haptic.light();
+            setSocialBtnLoading(btn, true);
+
+            try {
+                // Apple Sign In JS SDK check
+                const AppleID = (window as Record<string, unknown>).AppleID as {
+                    auth: {
+                        init: (config: Record<string, unknown>) => void;
+                        signIn: () => Promise<{ authorization: { id_token: string; code: string }; user?: { name?: { firstName?: string; lastName?: string }; email?: string } }>;
+                    };
+                } | undefined;
+
+                if (!AppleID?.auth) {
+                    // Apple SDK not loaded — provide instructions
+                    showBanner('info', t('auth_apple_not_configured', 'Apple Sign-In is being set up. Please use email for now.'));
+                    setSocialBtnLoading(btn, false);
+                    return;
+                }
+
+                const appleClientId = (window as Record<string, unknown>).__APPLE_CLIENT_ID__ as string | undefined;
+                AppleID.auth.init({
+                    clientId: appleClientId ?? '',
+                    scope: 'name email',
+                    redirectURI: `${window.location.origin}/auth.html`,
+                    usePopup: true,
+                });
+
+                const appleResponse = await AppleID.auth.signIn();
+                const fullName = appleResponse.user?.name
+                    ? `${appleResponse.user.name.firstName ?? ''} ${appleResponse.user.name.lastName ?? ''}`.trim()
+                    : undefined;
+
+                const response = await auth.socialLogin({
+                    provider: 'apple',
+                    id_token: appleResponse.authorization.id_token,
+                    full_name: fullName || undefined,
+                });
+
+                await handleSocialLoginSuccess(
+                    response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+                    'Apple',
+                );
+            } catch (err) {
+                // User cancelled Apple popup — not an error
+                if (err instanceof Error && err.message.includes('popup_closed')) {
+                    // Silent — user just closed the popup
+                } else {
+                    const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
+                    showBanner('error', msg);
+                }
+            } finally {
+                setSocialBtnLoading(btn, false);
+            }
+        });
+    });
+}
+
+// ─── Facebook Login ─────────────────────────────────────────────────────────
+// Facebook uses their JavaScript SDK + Login Dialog popup.
+// Docs: https://developers.facebook.com/docs/facebook-login/web
+
+function initFacebookLogin(): void {
+    document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="facebook"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (state.isSubmitting) return;
+            haptic.light();
+            setSocialBtnLoading(btn, true);
+
+            try {
+                const FB = (window as Record<string, unknown>).FB as {
+                    login: (callback: (response: { authResponse?: { accessToken: string } }) => void, options: { scope: string }) => void;
+                } | undefined;
+
+                if (!FB?.login) {
+                    showBanner('info', t('auth_facebook_not_configured', 'Facebook Login is being set up. Please use email for now.'));
+                    setSocialBtnLoading(btn, false);
+                    return;
+                }
+
+                FB.login(async (fbResponse) => {
+                    if (!fbResponse.authResponse?.accessToken) {
+                        setSocialBtnLoading(btn, false);
+                        return; // User cancelled
+                    }
+
+                    try {
+                        const response = await auth.socialLogin({
+                            provider: 'facebook',
+                            id_token: fbResponse.authResponse.accessToken,
+                        });
+                        await handleSocialLoginSuccess(
+                            response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+                            'Facebook',
+                        );
+                    } catch (err) {
+                        const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
+                        showBanner('error', msg);
+                    } finally {
+                        setSocialBtnLoading(btn, false);
+                    }
+                }, { scope: 'email,public_profile' });
+            } catch {
+                setSocialBtnLoading(btn, false);
+                showBanner('error', t('auth_sso_unavailable', 'Facebook Login is temporarily unavailable. Please use email.'));
+            }
+        });
+    });
+}
+
+// Initialize all social providers
+initGoogleSignIn();
+initAppleSignIn();
+initFacebookLogin();
 
 // ─── P0-PLAT-001 FIX: Native-App Mobile Utilities ──────────────────────────
 // Three critical mobile utilities existed in the codebase but were NEVER wired

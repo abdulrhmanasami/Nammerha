@@ -257,6 +257,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                           const SizedBox(height: 20),
 
+                          // ─── Social OAuth Divider + Buttons ──────────────
+                          _buildSocialDivider(),
+                          const SizedBox(height: 12),
+                          _buildSocialButtons(),
+                          const SizedBox(height: 20),
+
                           // Toggle Login/Register
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -543,5 +549,145 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ],
       ),
     );
+  }
+
+  // ═══ Social OAuth Buttons ═══════════════════════════════════════════════
+  // OAuth-001: Branded social login buttons for Google, Apple, Facebook.
+  // Each triggers the native SDK flow → obtains ID token → dispatches
+  // AuthSocialLoginRequested to the BLoC.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  Widget _buildSocialDivider() {
+    final colors = context.colors;
+    return Row(
+      children: [
+        Expanded(child: Divider(color: colors.strokeSubtle, thickness: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'أو تسجيل الدخول عبر',
+            style: TextStyle(
+              fontSize: 13,
+              color: colors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: colors.strokeSubtle, thickness: 1)),
+      ],
+    );
+  }
+
+  Widget _buildSocialButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSocialButton(
+            label: 'Google',
+            icon: Icons.g_mobiledata_rounded,
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF3C4043),
+            borderColor: const Color(0xFFDADCE0),
+            onPressed: () => _handleSocialLogin('google'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildSocialButton(
+            label: 'Apple',
+            icon: Icons.apple_rounded,
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            borderColor: Colors.black,
+            onPressed: () => _handleSocialLogin('apple'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildSocialButton(
+            label: 'Facebook',
+            icon: Icons.facebook_rounded,
+            backgroundColor: const Color(0xFF1877F2),
+            foregroundColor: Colors.white,
+            borderColor: const Color(0xFF1877F2),
+            onPressed: () => _handleSocialLogin('facebook'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialButton({
+    required String label,
+    required IconData icon,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color borderColor,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: 1.5),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 22, color: foregroundColor),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: foregroundColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Handle social login — will integrate native SDKs when packages are configured.
+  /// For now: dispatches the event with a placeholder. Real SDK integration
+  /// requires google_sign_in, sign_in_with_apple, flutter_facebook_auth packages.
+  Future<void> _handleSocialLogin(String provider) async {
+    if (_isSubmitting) return;
+
+    // Provider SDK labels for user messages
+    final providerNames = {
+      'google': 'Google',
+      'apple': 'Apple',
+      'facebook': 'Facebook',
+    };
+    final displayName = providerNames[provider] ?? provider;
+
+    // TODO: Replace with actual native SDK flow when packages are configured.
+    // Each SDK returns an ID token which we pass to the BLoC.
+    // For now, show a clear message that configuration is needed.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'تسجيل الدخول عبر $displayName — قيد الإعداد. استخدم البريد الإلكتروني حالياً.',
+        ),
+        backgroundColor: context.colors.primaryBrand,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+    // When native SDKs are configured, the flow will be:
+    // 1. Call provider SDK → get idToken
+    // 2. Dispatch: context.read<AuthBloc>().add(
+    //      AuthSocialLoginRequested(provider: provider, idToken: token),
+    //    );
   }
 }

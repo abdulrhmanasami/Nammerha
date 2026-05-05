@@ -99,6 +99,41 @@ class AuthRepository {
     return NammerhaUser.fromJson(userData);
   }
 
+  /// POST /api/auth/social
+  /// Universal social login — works for Google, Apple, Facebook.
+  /// Backend verifies ID token server-side, creates/links user, returns JWT.
+  Future<NammerhaUser> loginWithSocial({
+    required String provider, // 'google' | 'apple' | 'facebook'
+    required String idToken,
+    String? fullName, // Apple first-login only
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/auth/social',
+      method: 'POST',
+      body: {
+        'provider': provider,
+        'id_token': idToken,
+        if (fullName != null) 'full_name': fullName,
+      },
+      fromData: (data) => data as Map<String, dynamic>,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(response.error ?? 'فشل تسجيل الدخول');
+    }
+
+    final data = response.data!;
+    final userData = data['user'] as Map<String, dynamic>;
+    final token = data['token'] as String?;
+
+    // Store JWT token securely
+    if (token != null) {
+      await _api.setToken(token);
+    }
+
+    return NammerhaUser.fromJson(userData);
+  }
+
   /// POST /api/auth/logout
   Future<void> logout() async {
     try {
