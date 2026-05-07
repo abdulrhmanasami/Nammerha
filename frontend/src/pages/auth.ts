@@ -976,7 +976,7 @@ declare const google: {
 };
 
 function initGoogleSignIn(): void {
-    const googleClientId = (window as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as string | undefined;
+    const googleClientId = (window as unknown as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as string | undefined;
     if (!googleClientId) {
         console.info('[OAuth] Google Client ID not configured.');
     }
@@ -986,7 +986,9 @@ function initGoogleSignIn(): void {
             if (state.isSubmitting) return;
             haptic.light();
 
-            // Strategy 1: Use GSI SDK if loaded (renderButton approach via hidden element)
+            // PLATINUM-001: Clean two-strategy flow (dead renderButton hack removed).
+            // Strategy 1: GSI SDK loaded → use prompt() for native One Tap UX.
+            // If prompt fails (incognito, ad blockers, cookies) → immediate manual popup fallback.
             if (typeof google !== 'undefined' && google?.accounts?.id) {
                 setSocialBtnLoading(btn, true);
                 try {
@@ -1011,48 +1013,24 @@ function initGoogleSignIn(): void {
                         },
                     });
 
-                    // Use renderButton with a hidden container, then programmatically click
-                    let hiddenContainer = document.getElementById('__gsi_hidden_btn');
-                    if (!hiddenContainer) {
-                        hiddenContainer = document.createElement('div');
-                        hiddenContainer.id = '__gsi_hidden_btn';
-                        hiddenContainer.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
-                        document.body.appendChild(hiddenContainer);
-                    }
-                    hiddenContainer.innerHTML = '';
-
-                    google.accounts.id.renderButton(hiddenContainer, {
-                        type: 'standard',
-                        theme: 'outline',
-                        size: 'large',
-                        logo_alignment: 'center',
-                        width: 300,
+                    // Trigger Google One Tap prompt — best UX when it works.
+                    // On failure (incognito, ad blockers, 3rd-party cookies blocked),
+                    // immediately fall back to manual OAuth popup.
+                    google.accounts.id.prompt((notification) => {
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                            setSocialBtnLoading(btn, false);
+                            openGoogleOAuthPopup(googleClientId ?? '');
+                        }
                     });
-
-                    // Wait for render then click the Google button
-                    await new Promise(r => setTimeout(r, 300));
-                    const gsiBtn = hiddenContainer.querySelector<HTMLElement>('[role="button"], div[tabindex="0"], iframe');
-                    if (gsiBtn) {
-                        gsiBtn.click();
-                    } else {
-                        // Fallback: try One Tap prompt
-                        google.accounts.id.prompt((notification) => {
-                            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                                setSocialBtnLoading(btn, false);
-                                // Last resort: manual OAuth popup
-                                openGoogleOAuthPopup(googleClientId ?? '');
-                            }
-                        });
-                    }
                 } catch {
                     setSocialBtnLoading(btn, false);
-                    // Fallback: manual OAuth popup
+                    // GSI SDK threw — fall back to manual popup
                     openGoogleOAuthPopup(googleClientId ?? '');
                 }
                 return;
             }
 
-            // Strategy 2: GSI SDK not loaded — use manual OAuth popup
+            // Strategy 2: GSI SDK not loaded (blocked by ad blocker/network) — manual popup
             openGoogleOAuthPopup(googleClientId ?? '');
         });
     });
@@ -1060,8 +1038,10 @@ function initGoogleSignIn(): void {
 
 /**
  * OAUTH-FIX-001: Manual Google OAuth popup — works even when GSI SDK is blocked.
- * Opens Google's OAuth consent screen in a popup window, receives the auth code
- * via postMessage from the redirect page, then exchanges it server-side.
+ * Opens Google's OAuth consent screen in a popup window, polls for the redirect
+ * back to our origin, and extracts the id_token from the hash fragment.
+ *
+ * PLATINUM-002: Full CSRF protection via one-time-use state parameter.
  */
 function openGoogleOAuthPopup(clientId: string): void {
     if (!clientId) {
@@ -1071,18 +1051,25 @@ function openGoogleOAuthPopup(clientId: string): void {
 
     const redirectUri = `${window.location.origin}/auth.html`;
     const scope = 'openid email profile';
-    const state = Math.random().toString(36).substring(2, 15);
 
-    // Store state for CSRF validation
-    try { sessionStorage.setItem('__google_oauth_state', state); } catch { /* ignore */ }
+    // PLATINUM-002: Cryptographically random state for CSRF protection.
+    // Uses crypto.getRandomValues for unpredictability (not Math.random).
+    const stateArray = new Uint8Array(16);
+    crypto.getRandomValues(stateArray);
+    const oauthState = Array.from(stateArray, b => b.toString(16).padStart(2, '0')).join('');
+
+    // Store state for validation in the polling callback (one-time use).
+    try { sessionStorage.setItem('__google_oauth_state', oauthState); } catch { /* incognito — degrade gracefully */ }
+
+    const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(clientId)}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
         `&response_type=id_token` +
         `&scope=${encodeURIComponent(scope)}` +
-        `&state=${encodeURIComponent(state)}` +
-        `&nonce=${Math.random().toString(36).substring(2)}` +
+        `&state=${encodeURIComponent(oauthState)}` +
+        `&nonce=${encodeURIComponent(nonce)}` +
         `&prompt=select_account`;
 
     const width = 500, height = 600;
@@ -1110,6 +1097,22 @@ function openGoogleOAuthPopup(clientId: string): void {
 
                 const params = new URLSearchParams(hash);
                 const idToken = params.get('id_token');
+                const returnedState = params.get('state');
+
+                // PLATINUM-002: CSRF state validation — reject mismatched tokens.
+                let storedState: string | null = null;
+                try { storedState = sessionStorage.getItem('__google_oauth_state'); } catch { /* ignore */ }
+
+                if (storedState && returnedState !== storedState) {
+                    console.error('[OAuth] CSRF state mismatch — rejecting token. Expected:', storedState, 'Got:', returnedState);
+                    showBanner('error', t('auth_csrf_error', 'Security validation failed. Please try again.'));
+                    // Clear one-time state
+                    try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
+                    return;
+                }
+
+                // Clear one-time state after successful validation
+                try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
 
                 if (idToken) {
                     try {
@@ -1133,7 +1136,11 @@ function openGoogleOAuthPopup(clientId: string): void {
     }, 500);
 
     // Safety timeout: stop polling after 5 minutes
-    setTimeout(() => { clearInterval(pollTimer); }, 300000);
+    setTimeout(() => {
+        clearInterval(pollTimer);
+        // Clean up stale state if popup was abandoned
+        try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
+    }, 300000);
 }
 
 // ─── Apple Sign-In ──────────────────────────────────────────────────────────
@@ -1149,7 +1156,7 @@ function initAppleSignIn(): void {
 
             try {
                 // Apple Sign In JS SDK check — poll briefly for async load
-                let AppleID = (window as Record<string, unknown>).AppleID as {
+                let AppleID = (window as unknown as Record<string, unknown>).AppleID as {
                     auth: {
                         init: (config: Record<string, unknown>) => void;
                         signIn: () => Promise<{ authorization: { id_token: string; code: string }; user?: { name?: { firstName?: string; lastName?: string }; email?: string } }>;
@@ -1160,7 +1167,7 @@ function initAppleSignIn(): void {
                 if (!AppleID?.auth) {
                     for (let i = 0; i < 10; i++) {
                         await new Promise(r => setTimeout(r, 200));
-                        AppleID = (window as Record<string, unknown>).AppleID as typeof AppleID;
+                        AppleID = (window as unknown as Record<string, unknown>).AppleID as typeof AppleID;
                         if (AppleID?.auth) break;
                     }
                 }
@@ -1171,7 +1178,7 @@ function initAppleSignIn(): void {
                     return;
                 }
 
-                const appleClientId = (window as Record<string, unknown>).__APPLE_CLIENT_ID__ as string | undefined;
+                const appleClientId = (window as unknown as Record<string, unknown>).__APPLE_CLIENT_ID__ as string | undefined;
                 AppleID.auth.init({
                     clientId: appleClientId ?? '',
                     scope: 'name email',
@@ -1217,12 +1224,12 @@ function initAppleSignIn(): void {
 
 // Initialize Facebook SDK
 (function initFBSDK() {
-    const fbAppId = (window as Record<string, unknown>).__FACEBOOK_APP_ID__ as string | undefined;
+    const fbAppId = (window as unknown as Record<string, unknown>).__FACEBOOK_APP_ID__ as string | undefined;
     if (!fbAppId) return;
 
     // fbAsyncInit is called by the Facebook SDK when it finishes loading
-    (window as Record<string, unknown>).fbAsyncInit = function() {
-        const FB = (window as Record<string, unknown>).FB as {
+    (window as unknown as Record<string, unknown>).fbAsyncInit = function() {
+        const FB = (window as unknown as Record<string, unknown>).FB as {
             init: (config: Record<string, unknown>) => void;
         } | undefined;
         FB?.init({
@@ -1234,7 +1241,7 @@ function initAppleSignIn(): void {
     };
 
     // If FB SDK already loaded before this code ran
-    const FB = (window as Record<string, unknown>).FB as {
+    const FB = (window as unknown as Record<string, unknown>).FB as {
         init: (config: Record<string, unknown>) => void;
     } | undefined;
     if (FB?.init) {
@@ -1256,7 +1263,7 @@ function initFacebookLogin(): void {
 
             try {
                 // Wait up to 2s for FB SDK to initialize
-                let FB = (window as Record<string, unknown>).FB as {
+                let FB = (window as unknown as Record<string, unknown>).FB as {
                     login: (callback: (response: { authResponse?: { accessToken: string } }) => void, options: { scope: string }) => void;
                     getLoginStatus: (callback: (response: { status: string; authResponse?: { accessToken: string } }) => void) => void;
                 } | undefined;
@@ -1264,7 +1271,7 @@ function initFacebookLogin(): void {
                 if (!FB?.login) {
                     for (let i = 0; i < 10; i++) {
                         await new Promise(r => setTimeout(r, 200));
-                        FB = (window as Record<string, unknown>).FB as typeof FB;
+                        FB = (window as unknown as Record<string, unknown>).FB as typeof FB;
                         if (FB?.login) break;
                     }
                 }
