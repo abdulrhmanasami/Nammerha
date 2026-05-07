@@ -26,7 +26,8 @@ const TOOLTIP_ID         = 'nmr-tour-tooltip';
 const SPOTLIGHT_PADDING  = 8;
 
 function getLocale(): 'en' | 'ar' {
-    const lang = document.documentElement.lang || 'en';
+    // LOCALE-001: Default to Arabic — Nammerha's primary audience is Syrian.
+    const lang = document.documentElement.lang || 'ar';
     return lang.startsWith('ar') ? 'ar' : 'en';
 }
 

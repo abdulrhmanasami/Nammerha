@@ -692,7 +692,8 @@
     };
 
         // ─── State ────────────────────────────────────────────────────────────
-    var currentLang = getStored() || detectBrowserLang() || 'en';
+    // LOCALE-001: Default to Arabic — Nammerha's primary audience is Syrian.
+    var currentLang = getStored() || detectBrowserLang() || 'ar';
     var dropdownOpen = false;
 
     function getStored() {
@@ -705,7 +706,7 @@
         for (var i = 0; i < LANGS.length; i++) {
             if (LANGS[i].code === code) return LANGS[i];
         }
-        return LANGS[1]; // English default
+        return LANGS[0]; // Arabic default (Syrian audience)
     }
     function detectBrowserLang() {
         var navLang = (navigator.language || '').split('-')[0];

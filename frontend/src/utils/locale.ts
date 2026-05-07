@@ -16,7 +16,8 @@ import { tryApplyI18n } from './i18n-apply';
  *   default → 'en-US'
  */
 export function getLocale(): string {
-    const lang = document.documentElement.lang || 'en';
+    // LOCALE-001: Default to Arabic — Nammerha's primary audience is Syrian.
+    const lang = document.documentElement.lang || 'ar';
     if (lang === 'ar') { return 'ar-SY'; }
     if (lang === 'tr') { return 'tr-TR'; }
     return 'en-US';
