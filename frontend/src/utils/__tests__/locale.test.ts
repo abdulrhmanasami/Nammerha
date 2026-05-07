@@ -45,13 +45,14 @@ describe('Locale Utility', () => {
             expect(getLocale()).toBe('en-US');
         });
 
-        it('should default to en-US for empty lang', () => {
+        it('should default to ar-SY for empty lang (LOCALE-001: Arabic default)', () => {
             mockDocumentElement.lang = '';
-            expect(getLocale()).toBe('en-US');
+            expect(getLocale()).toBe('ar-SY');
         });
 
         it('should default to en-US for unknown locale', () => {
             mockDocumentElement.lang = 'de';
+            // Unknown locale still falls through to en-US (only '', undefined, null → Arabic)
             expect(getLocale()).toBe('en-US');
         });
     });
