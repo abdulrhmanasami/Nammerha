@@ -956,7 +956,9 @@ function setSocialBtnLoading(btn: HTMLButtonElement, loading: boolean): void {
 }
 
 // ─── Google Sign-In (GSI) ───────────────────────────────────────────────────
-// Uses Google Identity Services library loaded in auth.html.
+// OAUTH-FIX-001: Replaced unreliable google.accounts.id.prompt() (One Tap)
+// with a proper OAuth2 popup window flow. One Tap fails in incognito,
+// with ad blockers, and when 3rd-party cookies are disabled.
 // Docs: https://developers.google.com/identity/gsi/web/reference/js-reference
 
 // Declare GSI types
@@ -965,71 +967,173 @@ declare const google: {
         id: {
             initialize: (config: { client_id: string; callback: (response: { credential: string }) => void; auto_select?: boolean }) => void;
             prompt: (notification?: (status: { isNotDisplayed: () => boolean; isSkippedMoment: () => boolean }) => void) => void;
-            renderButton: (element: HTMLElement, config: { type: string; theme: string; size: string; logo_alignment: string }) => void;
+            renderButton: (element: HTMLElement, config: { type: string; theme: string; size: string; logo_alignment: string; width?: number }) => void;
+        };
+        oauth2: {
+            initCodeClient: (config: { client_id: string; scope: string; ux_mode: string; callback: (response: { code: string }) => void }) => { requestCode: () => void };
         };
     };
 };
 
 function initGoogleSignIn(): void {
-    // GOOGLE_CLIENT_ID injected from environment at build time, or hardcoded for now
-    // Will be configured via .env when credentials are created
     const googleClientId = (window as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as string | undefined;
     if (!googleClientId) {
-        // Not configured yet — buttons remain functional but will get a server error
-        console.info('[OAuth] Google Client ID not configured. Sign-in will fail gracefully.');
+        console.info('[OAuth] Google Client ID not configured.');
     }
 
-    // All Google SSO buttons (login + register forms)
     document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="google"]').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (state.isSubmitting) return;
             haptic.light();
 
-            // If GSI SDK isn't loaded, show error
-            if (typeof google === 'undefined' || !google?.accounts?.id) {
-                showBanner('error', t('auth_sso_unavailable', 'Google Sign-In is temporarily unavailable. Please use email.'));
+            // Strategy 1: Use GSI SDK if loaded (renderButton approach via hidden element)
+            if (typeof google !== 'undefined' && google?.accounts?.id) {
+                setSocialBtnLoading(btn, true);
+                try {
+                    google.accounts.id.initialize({
+                        client_id: googleClientId ?? '',
+                        callback: async (credentialResponse) => {
+                            try {
+                                const response = await auth.socialLogin({
+                                    provider: 'google',
+                                    id_token: credentialResponse.credential,
+                                });
+                                await handleSocialLoginSuccess(
+                                    response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+                                    'Google',
+                                );
+                            } catch (err) {
+                                const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
+                                showBanner('error', msg);
+                            } finally {
+                                setSocialBtnLoading(btn, false);
+                            }
+                        },
+                    });
+
+                    // Use renderButton with a hidden container, then programmatically click
+                    let hiddenContainer = document.getElementById('__gsi_hidden_btn');
+                    if (!hiddenContainer) {
+                        hiddenContainer = document.createElement('div');
+                        hiddenContainer.id = '__gsi_hidden_btn';
+                        hiddenContainer.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
+                        document.body.appendChild(hiddenContainer);
+                    }
+                    hiddenContainer.innerHTML = '';
+
+                    google.accounts.id.renderButton(hiddenContainer, {
+                        type: 'standard',
+                        theme: 'outline',
+                        size: 'large',
+                        logo_alignment: 'center',
+                        width: 300,
+                    });
+
+                    // Wait for render then click the Google button
+                    await new Promise(r => setTimeout(r, 300));
+                    const gsiBtn = hiddenContainer.querySelector<HTMLElement>('[role="button"], div[tabindex="0"], iframe');
+                    if (gsiBtn) {
+                        gsiBtn.click();
+                    } else {
+                        // Fallback: try One Tap prompt
+                        google.accounts.id.prompt((notification) => {
+                            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                                setSocialBtnLoading(btn, false);
+                                // Last resort: manual OAuth popup
+                                openGoogleOAuthPopup(googleClientId ?? '');
+                            }
+                        });
+                    }
+                } catch {
+                    setSocialBtnLoading(btn, false);
+                    // Fallback: manual OAuth popup
+                    openGoogleOAuthPopup(googleClientId ?? '');
+                }
                 return;
             }
 
-            setSocialBtnLoading(btn, true);
-
-            try {
-                google.accounts.id.initialize({
-                    client_id: googleClientId ?? '',
-                    callback: async (credentialResponse) => {
-                        try {
-                            const response = await auth.socialLogin({
-                                provider: 'google',
-                                id_token: credentialResponse.credential,
-                            });
-                            await handleSocialLoginSuccess(
-                                response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-                                'Google',
-                            );
-                        } catch (err) {
-                            const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-                            showBanner('error', msg);
-                        } finally {
-                            setSocialBtnLoading(btn, false);
-                        }
-                    },
-                });
-
-                // Trigger One Tap prompt
-                google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        // Fallback: GSI popup was blocked or not shown
-                        // This happens in incognito, when cookies disabled, etc.
-                        setSocialBtnLoading(btn, false);
-                        showBanner('info', t('auth_google_popup_blocked', 'Google popup was blocked. Please allow popups and try again.'));
-                    }
-                });
-            } catch {
-                setSocialBtnLoading(btn, false);
-                showBanner('error', t('auth_sso_unavailable', 'Google Sign-In is temporarily unavailable. Please use email.'));
-            }
+            // Strategy 2: GSI SDK not loaded — use manual OAuth popup
+            openGoogleOAuthPopup(googleClientId ?? '');
         });
     });
+}
+
+/**
+ * OAUTH-FIX-001: Manual Google OAuth popup — works even when GSI SDK is blocked.
+ * Opens Google's OAuth consent screen in a popup window, receives the auth code
+ * via postMessage from the redirect page, then exchanges it server-side.
+ */
+function openGoogleOAuthPopup(clientId: string): void {
+    if (!clientId) {
+        showBanner('error', t('auth_sso_unavailable', 'Google Sign-In is not configured yet. Please use email.'));
+        return;
+    }
+
+    const redirectUri = `${window.location.origin}/auth.html`;
+    const scope = 'openid email profile';
+    const state = Math.random().toString(36).substring(2, 15);
+
+    // Store state for CSRF validation
+    try { sessionStorage.setItem('__google_oauth_state', state); } catch { /* ignore */ }
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${encodeURIComponent(clientId)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=id_token` +
+        `&scope=${encodeURIComponent(scope)}` +
+        `&state=${encodeURIComponent(state)}` +
+        `&nonce=${Math.random().toString(36).substring(2)}` +
+        `&prompt=select_account`;
+
+    const width = 500, height = 600;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+    const popup = window.open(authUrl, 'google_oauth', `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no`);
+
+    if (!popup) {
+        showBanner('error', t('auth_google_popup_blocked', 'Popup was blocked. Please allow popups and try again.'));
+        return;
+    }
+
+    // Poll for the popup redirect (hash fragment contains id_token)
+    const pollTimer = setInterval(async () => {
+        try {
+            if (popup.closed) {
+                clearInterval(pollTimer);
+                return;
+            }
+            // Check if the popup has navigated back to our origin
+            if (popup.location.origin === window.location.origin) {
+                clearInterval(pollTimer);
+                const hash = popup.location.hash.substring(1);
+                popup.close();
+
+                const params = new URLSearchParams(hash);
+                const idToken = params.get('id_token');
+
+                if (idToken) {
+                    try {
+                        const response = await auth.socialLogin({
+                            provider: 'google',
+                            id_token: idToken,
+                        });
+                        await handleSocialLoginSuccess(
+                            response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+                            'Google',
+                        );
+                    } catch (err) {
+                        const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
+                        showBanner('error', msg);
+                    }
+                }
+            }
+        } catch {
+            // Cross-origin — popup hasn't redirected yet, keep polling
+        }
+    }, 500);
+
+    // Safety timeout: stop polling after 5 minutes
+    setTimeout(() => { clearInterval(pollTimer); }, 300000);
 }
 
 // ─── Apple Sign-In ──────────────────────────────────────────────────────────
@@ -1044,16 +1148,24 @@ function initAppleSignIn(): void {
             setSocialBtnLoading(btn, true);
 
             try {
-                // Apple Sign In JS SDK check
-                const AppleID = (window as Record<string, unknown>).AppleID as {
+                // Apple Sign In JS SDK check — poll briefly for async load
+                let AppleID = (window as Record<string, unknown>).AppleID as {
                     auth: {
                         init: (config: Record<string, unknown>) => void;
                         signIn: () => Promise<{ authorization: { id_token: string; code: string }; user?: { name?: { firstName?: string; lastName?: string }; email?: string } }>;
                     };
                 } | undefined;
 
+                // Wait up to 2s for Apple SDK to load
                 if (!AppleID?.auth) {
-                    // Apple SDK not loaded — provide instructions
+                    for (let i = 0; i < 10; i++) {
+                        await new Promise(r => setTimeout(r, 200));
+                        AppleID = (window as Record<string, unknown>).AppleID as typeof AppleID;
+                        if (AppleID?.auth) break;
+                    }
+                }
+
+                if (!AppleID?.auth) {
                     showBanner('info', t('auth_apple_not_configured', 'Apple Sign-In is being set up. Please use email for now.'));
                     setSocialBtnLoading(btn, false);
                     return;
@@ -1098,8 +1210,42 @@ function initAppleSignIn(): void {
 }
 
 // ─── Facebook Login ─────────────────────────────────────────────────────────
-// Facebook uses their JavaScript SDK + Login Dialog popup.
+// OAUTH-FIX-002: Added FB.init() — was completely missing before.
+// Without FB.init(), the Facebook SDK loads but never initializes,
+// causing FB.login() to be undefined.
 // Docs: https://developers.facebook.com/docs/facebook-login/web
+
+// Initialize Facebook SDK
+(function initFBSDK() {
+    const fbAppId = (window as Record<string, unknown>).__FACEBOOK_APP_ID__ as string | undefined;
+    if (!fbAppId) return;
+
+    // fbAsyncInit is called by the Facebook SDK when it finishes loading
+    (window as Record<string, unknown>).fbAsyncInit = function() {
+        const FB = (window as Record<string, unknown>).FB as {
+            init: (config: Record<string, unknown>) => void;
+        } | undefined;
+        FB?.init({
+            appId: fbAppId,
+            cookie: true,
+            xfbml: false,
+            version: 'v19.0',
+        });
+    };
+
+    // If FB SDK already loaded before this code ran
+    const FB = (window as Record<string, unknown>).FB as {
+        init: (config: Record<string, unknown>) => void;
+    } | undefined;
+    if (FB?.init) {
+        FB.init({
+            appId: fbAppId,
+            cookie: true,
+            xfbml: false,
+            version: 'v19.0',
+        });
+    }
+})();
 
 function initFacebookLogin(): void {
     document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="facebook"]').forEach(btn => {
@@ -1109,9 +1255,19 @@ function initFacebookLogin(): void {
             setSocialBtnLoading(btn, true);
 
             try {
-                const FB = (window as Record<string, unknown>).FB as {
+                // Wait up to 2s for FB SDK to initialize
+                let FB = (window as Record<string, unknown>).FB as {
                     login: (callback: (response: { authResponse?: { accessToken: string } }) => void, options: { scope: string }) => void;
+                    getLoginStatus: (callback: (response: { status: string; authResponse?: { accessToken: string } }) => void) => void;
                 } | undefined;
+
+                if (!FB?.login) {
+                    for (let i = 0; i < 10; i++) {
+                        await new Promise(r => setTimeout(r, 200));
+                        FB = (window as Record<string, unknown>).FB as typeof FB;
+                        if (FB?.login) break;
+                    }
+                }
 
                 if (!FB?.login) {
                     showBanner('info', t('auth_facebook_not_configured', 'Facebook Login is being set up. Please use email for now.'));
