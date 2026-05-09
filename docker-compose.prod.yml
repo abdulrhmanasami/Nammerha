@@ -250,6 +250,8 @@ services:
       - APPLE_BUNDLE_ID=${APPLE_BUNDLE_ID:-}
       - FACEBOOK_APP_ID=${FACEBOOK_APP_ID:-}
       - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET:-}
+      # ── Testing Controls (NEVER enable in production) ────────────
+      - SKIP_KYC_VERIFICATION=${SKIP_KYC_VERIFICATION:-}
     labels:
       - 'com.nammerha.project=nammerha'
       - 'com.nammerha.component=backend'
