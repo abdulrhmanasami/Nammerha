@@ -7,22 +7,10 @@ class DonorRepository {
   DonorRepository({DonorApi? api}) : _api = api ?? DonorApi();
 
   Future<DonorDashboardModel> loadDashboard() async {
-    Map<String, dynamic> stats = {};
-    List<Map<String, dynamic>> impact = [];
-
-    try {
-      stats = await _api.getStats();
-    } catch (_) {}
-
-    try {
-      final raw = await _api.getImpact();
-      impact = raw;
-    } catch (_) {}
-
-    return DonorDashboardModel(
-      stats: stats,
-      fundedProjects: impact,
-    );
+    // C2 FIX: Errors propagate to BLoC → user sees SnackBar (no more silent swallowing)
+    final stats = await _api.getStats();
+    final impact = await _api.getImpact();
+    return DonorDashboardModel(stats: stats, fundedProjects: impact);
   }
 
   Future<DonorDashboardModel> loadMarketplace(DonorDashboardModel current) async {
@@ -46,7 +34,7 @@ class DonorRepository {
   }
 
   /// Specialized call for the standalone Proof screen
-  Future<List<Map<String, dynamic>>> loadStandaloneProofs() async {
+  Future<List<DonorProofModel>> loadStandaloneProofs() async {
     return await _api.getProofs();
   }
 }

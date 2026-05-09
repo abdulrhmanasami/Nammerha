@@ -11,22 +11,11 @@ class HomeownerRepository {
         _apiClient = apiClient ?? NammerhaApiClient.instance;
 
   Future<HomeownerDashboardModel> loadDashboard() async {
-    Map<String, dynamic> stats = {};
-    List<Map<String, dynamic>> projects = [];
-
-    try {
-      stats = await _api.getStats();
-    } catch (_) {}
-
-    try {
-      final raw = await _api.getProjects();
-      projects = raw;
-    } catch (_) {}
-
-    return HomeownerDashboardModel(
-      stats: stats,
-      projects: projects,
-    );
+    // H1 FIX: Errors now propagate to BLoC instead of being silently swallowed.
+    // BLoC handles them via HomeownerError state → user sees SnackBar feedback.
+    final stats = await _api.getStats();
+    final projects = await _api.getProjects();
+    return HomeownerDashboardModel(stats: stats, projects: projects);
   }
 
   Future<HomeownerDashboardModel> loadProjects(HomeownerDashboardModel current) async {
@@ -57,4 +46,14 @@ class HomeownerRepository {
       body: {'decision': decision},
     );
   }
+
+  // C4 FIX: Cancel service request via API
+  Future<void> cancelServiceRequest(String requestId) async {
+    await _apiClient.request(
+      '/homeowner/service-requests/$requestId/cancel',
+      method: 'POST',
+      idempotent: true,
+    );
+  }
 }
+

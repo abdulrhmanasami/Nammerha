@@ -59,7 +59,30 @@
         'supplier_no_orders': { ar: 'لا توجد طلبات', de: 'Keine Bestellungen', fr: 'Aucune commande', tr: 'Sipariş yok' },
         'supplier_inactive': { ar: 'غير نشط', de: 'Inaktiv', fr: 'Inactif', tr: 'Pasif' },
         'supplier_days': { ar: 'أيام', de: 'Tage', fr: 'jours', tr: 'gün' },
-        'supplier_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' }
+        'supplier_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
+
+        // F4 AUDIT FIX: PO status badge translations
+        'supplier_status_pending': { ar: 'بانتظار الاستلام', de: 'Ausstehend', fr: 'En attente', tr: 'Bekliyor' },
+        'supplier_status_sent': { ar: 'مُرسَل', de: 'Gesendet', fr: 'Envoyé', tr: 'Gönderildi' },
+        'supplier_status_acknowledged': { ar: 'تم الاستلام', de: 'Bestätigt', fr: 'Confirmé', tr: 'Onaylandı' },
+        'supplier_status_shipped': { ar: 'في الطريق', de: 'Versendet', fr: 'Expédié', tr: 'Sevk edildi' },
+        'supplier_status_delivered': { ar: 'تم التسليم', de: 'Geliefert', fr: 'Livré', tr: 'Teslim edildi' },
+        'supplier_status_cancelled': { ar: 'ملغى', de: 'Storniert', fr: 'Annulé', tr: 'İptal edildi' },
+
+        /* S2: Missing TS t() keys — form fields + confirmation dialog */
+        'common_amount': { ar: 'المبلغ', de: 'Betrag', fr: 'Montant', tr: 'Tutar' },
+        'common_qty': { ar: 'الكمية', de: 'Menge', fr: 'Quantité', tr: 'Miktar' },
+        'description': { ar: 'الوصف', de: 'Beschreibung', fr: 'Description', tr: 'Açıklama' },
+        'lead_time_days': { ar: 'مدة التسليم (أيام)', de: 'Lieferzeit (Tage)', fr: 'Délai de livraison (jours)', tr: 'Teslimat Süresi (gün)' },
+        'material_category': { ar: 'فئة المادة', de: 'Materialkategorie', fr: 'Catégorie du matériau', tr: 'Malzeme Kategorisi' },
+        'material_name': { ar: 'اسم المادة', de: 'Materialname', fr: 'Nom du matériau', tr: 'Malzeme Adı' },
+        'min_order_qty': { ar: 'الحد الأدنى للطلب', de: 'Mindestbestellmenge', fr: 'Quantité minimum', tr: 'Minimum Sipariş' },
+        'unit': { ar: 'الوحدة', de: 'Einheit', fr: 'Unité', tr: 'Birim' },
+        'unit_price_guide': { ar: 'السعر التوجيهي', de: 'Richtpreis', fr: 'Prix indicatif', tr: 'Yönlendirici Fiyat' },
+        'supplier_no_project': { ar: 'لا يوجد مشروع مرتبط', de: 'Kein verknüpftes Projekt', fr: 'Aucun projet associé', tr: 'İlişkili proje yok' },
+        'supplier_remove_btn': { ar: 'حذف المادة', de: 'Material entfernen', fr: 'Supprimer le matériau', tr: 'Malzemeyi Kaldır' },
+        'supplier_remove_desc': { ar: 'هل أنت متأكد من حذف هذه المادة من كتالوجك؟', de: 'Möchten Sie dieses Material wirklich aus Ihrem Katalog entfernen?', fr: 'Êtes-vous sûr de vouloir supprimer ce matériau de votre catalogue ?', tr: 'Bu malzemeyi katalogunuzdan kaldırmak istediğinizden emin misiniz?' },
+        'dialog': { ar: 'حوار', de: 'Dialog', fr: 'Dialogue', tr: 'Diyalog' }
         });
     }
 })();

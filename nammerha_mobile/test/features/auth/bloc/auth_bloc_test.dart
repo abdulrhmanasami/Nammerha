@@ -339,7 +339,7 @@ void main() {
 
   group('AuthBloc — Role Switch', () {
     blocTest<AuthBloc, AuthState>(
-      'emits [Authenticated] with new role on successful switch',
+      'emits [Loading, Authenticated] with new role on successful switch',
       build: () {
         when(() => mockRepo.switchRole(any()))
             .thenAnswer((_) async {});
@@ -349,19 +349,26 @@ void main() {
       },
       act: (bloc) => bloc.add(const AuthRoleSwitched('homeowner')),
       expect: () => [
+        isA<AuthLoading>(),
         isA<AuthAuthenticated>(),
       ],
     );
 
     blocTest<AuthBloc, AuthState>(
-      'emits nothing on role switch failure (stays on current role)',
+      'emits [Loading, Error, Authenticated] on role switch failure (recovers current user)',
       build: () {
         when(() => mockRepo.switchRole(any()))
             .thenThrow(const ApiException('Role not available'));
+        when(() => mockRepo.getCurrentUser())
+            .thenAnswer((_) async => _testUser);
         return buildBloc();
       },
       act: (bloc) => bloc.add(const AuthRoleSwitched('admin')),
-      expect: () => [],
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthError>(),
+        isA<AuthAuthenticated>(),
+      ],
     );
   });
 }

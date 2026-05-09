@@ -135,7 +135,7 @@ function showStep(step: number): void {
     // Hide all steps, show current
     steps.forEach((el, i) => {
         if (el) {
-            el.classList.toggle('hidden', i !== step - 1);
+            el.classList.toggle('nm-hidden', i !== step - 1);
         }
     });
 
@@ -163,7 +163,7 @@ function showStep(step: number): void {
         }
     } else if (step === 4) {
         // Confirmation step — hide footer
-        if (wizardFooter) { wizardFooter.classList.add('hidden'); }
+        if (wizardFooter) { wizardFooter.classList.add('nm-hidden'); }
         if (stepLabel) { stepLabel.textContent = t('hr_done', 'Done!'); }
         if (progressFill) { progressFill.style.setProperty('--progress', '100%'); }
         populateSummary();
@@ -360,9 +360,9 @@ if (detectLocationBtn) {
                 state.gpsCoords = `${lat}° N, ${lon}° E`;
 
                 if (gpsDisplay) { gpsDisplay.textContent = state.gpsCoords; }
-                if (gpsResult) { gpsResult.classList.remove('hidden'); }
+                if (gpsResult) { gpsResult.classList.remove('nm-hidden'); }
                 // GAP-AUD-04: Hide error state on success
-                if (gpsError) { gpsError.classList.add('hidden'); }
+                if (gpsError) { gpsError.classList.add('nm-hidden'); }
                 if (btnIcon) {
                     btnIcon.classList.remove('ph-spinner');
                     btnIcon.classList.add('ph-check-circle');
@@ -384,7 +384,7 @@ if (detectLocationBtn) {
                 // GAP-AUD-04 FIX: Show visible GPS error state with contextual message.
                 // Previous: Only changed button text — easy to miss on mobile.
                 // Standard: Nielsen #1 (System Status Visibility), Apple HIG (Error Feedback).
-                if (gpsError) { gpsError.classList.remove('hidden'); }
+                if (gpsError) { gpsError.classList.remove('nm-hidden'); }
                 if (gpsErrorMsg && err) {
                     const errorMessages: Record<number, string> = {
                         1: t('gps_error_permission', 'Location permission denied. Please enable it in your browser settings.'),
@@ -444,7 +444,7 @@ let voiceStart = 0;
 
 function startVoice(): void {
     voiceStart = Date.now();
-    if (voiceOverlay) { voiceOverlay.classList.remove('hidden'); }
+    if (voiceOverlay) { voiceOverlay.classList.remove('nm-hidden'); }
 
     voiceInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - voiceStart) / 1000);
@@ -459,7 +459,7 @@ function startVoice(): void {
 
 function stopVoice(): void {
     if (voiceInterval) { clearInterval(voiceInterval); }
-    if (voiceOverlay) { voiceOverlay.classList.add('hidden'); }
+    if (voiceOverlay) { voiceOverlay.classList.add('nm-hidden'); }
     if (voiceTimerEl) { voiceTimerEl.textContent = '00:00'; }
 
     const dur = Math.floor((Date.now() - voiceStart) / 1000);
@@ -587,7 +587,7 @@ if (photoUploadZone && photoInput) {
                         const photoCountEl = document.getElementById('photo-count');
                         if (photoCountEl) { photoCountEl.textContent = String(state.photoCount); }
                     } else { throw new Error('No upload token'); }
-                } catch (err) {
+                } catch {
                     thumb.remove();
                     // HIGH-002 FIX: Replace alert() with inline error banner
                     const errDiv = document.createElement('div');
@@ -694,7 +694,7 @@ if (hasRestoredState && state.currentStep > 1) {
         const gpsDisplay = document.getElementById('gps-display');
         const gpsResult = document.getElementById('gps-result');
         if (gpsDisplay) { gpsDisplay.textContent = state.gpsCoords; }
-        if (gpsResult) { gpsResult.classList.remove('hidden'); }
+        if (gpsResult) { gpsResult.classList.remove('nm-hidden'); }
     }
     // Step 3: Restore description
     if (state.description) {

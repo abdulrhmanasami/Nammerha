@@ -42,11 +42,11 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
         estimatedDays: event.estimatedDays,
         coverLetter: event.coverLetter,
       );
-      emit(const ContractorActionSuccess('تم إرسال العرض بنجاح.'));
+      emit(const ContractorActionSuccess('Bid submitted successfully.'));
       // Reload dashboard to reflect the new bid
       add(LoadContractorDashboard());
     } catch (e) {
-      emit(ContractorError('فشل إرسال العرض: ${e.toString()}'));
+      emit(ContractorError('Failed to submit bid: ${e.toString()}'));
     }
   }
 }

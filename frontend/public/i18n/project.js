@@ -136,7 +136,39 @@
         'proof_delivery_photo': { ar: 'صورة إثبات التسليم', de: 'Liefernachweis-Foto', fr: 'Photo de preuve de livraison', tr: 'Teslimat kanıt fotoğrafı' },
         'proof_share_title': { ar: 'أثري — نعمّرها', de: 'Meine Wirkung — Nammerha', fr: 'Mon impact — Nammerha', tr: 'Etkilerim — Nammerha' },
         'proof_share_text': { ar: 'تحققت أن مساهمتي وصلت للموقع عبر إثبات GPS. إعادة إعمار شفافة!', de: 'Ich habe bestätigt, dass mein Beitrag per GPS-Nachweis vor Ort geliefert wurde. Transparenter Wiederaufbau!', fr: 'J\'ai vérifié que ma contribution a été livrée sur site via preuve GPS. Reconstruction transparente !', tr: 'Katkımın GPS kanıtıyla sahaya teslim edildiğini doğruladım. Şeffaf yeniden yapım!' },
-        'proof_no_hash': { ar: 'قيد المعالجة…', de: 'Ausstehend…', fr: 'En attente…', tr: 'Bekliyor…' }
+        'proof_no_hash': { ar: 'قيد المعالجة…', de: 'Ausstehend…', fr: 'En attente…', tr: 'Bekliyor…' },
+
+        // ═══ PB4: project-details HTML keys ═══
+        '64_raised': { ar: '٦٤٪ مموّل', de: '64 % finanziert', fr: '64 % financé', tr: '%64 finanse edildi' },
+        'added_to_cart': { ar: 'تمت الإضافة للسلة', de: 'Zum Warenkorb hinzugefügt', fr: 'Ajouté au panier', tr: 'Sepete eklendi' },
+        'funds_held_in_escrow_released_only_upo': { ar: 'الأموال محتجزة في ضمان — تُحرر فقط بعد التحقق', de: 'Gelder in Treuhand — Freigabe nur nach Verifizierung', fr: 'Fonds en séquestre — libérés uniquement après vérification', tr: 'Fonlar emanette — yalnızca doğrulamadan sonra serbest' },
+        'harbor_view_reconstruction': { ar: 'إعادة إعمار إطلالة المرفأ', de: 'Hafenblick-Wiederaufbau', fr: 'Reconstruction Vue sur le Port', tr: 'Liman Manzarası Yeniden Yapımı' },
+        'in_progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        'map_region_aleppo': { ar: 'حلب', de: 'Aleppo', fr: 'Alep', tr: 'Halep' },
+        'of_delivery': { ar: 'من التسليم', de: 'der Lieferung', fr: 'de la livraison', tr: 'teslimatın' },
+        'retry': { ar: 'إعادة المحاولة', de: 'Wiederholen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'view_basket': { ar: 'عرض السلة', de: 'Warenkorb anzeigen', fr: 'Voir le panier', tr: 'Sepeti Gör' },
+
+        // ═══ PB5: projects.ts runtime keys ═══
+        'projects_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'projects_count': { ar: 'مشاريع', de: 'Projekte', fr: 'projets', tr: 'proje' },
+        'projects_funded': { ar: 'مموّل', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
+        'projects_most_needed': { ar: 'الأكثر احتياجاً', de: 'Am dringendsten', fr: 'Le plus urgent', tr: 'En çok ihtiyaç duyulan' },
+        'projects_unknown_location': { ar: 'موقع غير محدد', de: 'Unbekannter Standort', fr: 'Emplacement inconnu', tr: 'Bilinmeyen konum' },
+
+        // ═══ PB6: project-details.ts runtime keys ═══
+        'copy_link_prompt': { ar: 'نسخ رابط المشروع', de: 'Projektlink kopieren', fr: 'Copier le lien du projet', tr: 'Proje bağlantısını kopyala' },
+        'link_copied': { ar: 'تم نسخ الرابط!', de: 'Link kopiert!', fr: 'Lien copié !', tr: 'Bağlantı kopyalandı!' },
+        'fully_funded': { ar: 'مموّل بالكامل', de: 'Vollständig finanziert', fr: 'Entièrement financé', tr: 'Tamamen finanse edildi' },
+        'funded_suffix': { ar: 'مموّل', de: 'finanziert', fr: 'financé', tr: 'finanse edildi' },
+        'of_total': { ar: 'من الإجمالي', de: 'von Gesamt', fr: 'du total', tr: 'toplamın' },
+        'raised_suffix': { ar: 'تم جمعه', de: 'gesammelt', fr: 'collecté', tr: 'toplandı' },
+        'project_added_to_cart': { ar: 'تمت إضافة المادة للسلة', de: 'Material zum Warenkorb hinzugefügt', fr: 'Matériau ajouté au panier', tr: 'Malzeme sepete eklendi' },
+        'share_project_text': { ar: 'ساعدوا في إعادة إعمار سوريا — موّلوا هذا المشروع!', de: 'Helfen Sie beim Wiederaufbau Syriens — finanzieren Sie dieses Projekt!', fr: 'Aidez à reconstruire la Syrie — financez ce projet !', tr: 'Suriye\'nin yeniden yapımına yardım edin — bu projeyi finanse edin!' },
+        'uncategorized': { ar: 'غير مصنف', de: 'Unkategorisiert', fr: 'Non classé', tr: 'Kategorisiz' },
+        'unit_label': { ar: 'الوحدة', de: 'Einheit', fr: 'Unité', tr: 'Birim' },
+        'whatsapp_cta_title': { ar: 'شارك عبر واتساب', de: 'Über WhatsApp teilen', fr: 'Partager via WhatsApp', tr: 'WhatsApp ile paylaş' },
+        'whatsapp_cta_desc': { ar: 'أرسل رابط المشروع لأصدقائك', de: 'Projektlink an Freunde senden', fr: 'Envoyer le lien du projet à vos amis', tr: 'Proje bağlantısını arkadaşlarınıza gönderin' }
         });
     }
 })();

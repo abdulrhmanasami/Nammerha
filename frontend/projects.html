@@ -110,9 +110,9 @@
     </div>
     <!-- Project cards rendered here -->
     <!-- FRC-A01 FIX: animate-fade-in-up for smooth skeleton→content transition -->
-    <div id="projects-grid" class="flex flex-col gap-4 hidden animate-fade-in-up"></div>
+    <div id="projects-grid" class="flex flex-col gap-4 nm-hidden animate-fade-in-up"></div>
     <!-- Empty state -->
-    <div id="projects-empty" class="text-center py-16 hidden">
+    <div id="projects-empty" class="text-center py-16 nm-hidden">
       <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
         <i class="ph ph-buildings text-warm-earth nm-icon-32" aria-hidden="true"></i>
       </div>
@@ -120,7 +120,7 @@
       <p class="text-xs text-slate-400 max-w-xs mx-auto dark:text-slate-500" data-i18n="projects_empty_desc">Try adjusting your filters or check back later for new reconstruction projects.</p>
     </div>
     <!-- Error state -->
-    <div id="projects-error" class="text-center py-16 hidden">
+    <div id="projects-error" class="text-center py-16 nm-hidden">
       <div class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10">
         <i class="ph ph-warning-circle text-red-400 nm-icon-32" aria-hidden="true"></i>
       </div>
@@ -133,7 +133,7 @@
     </div>
     <!-- Load more -->
     <!-- GAP-NEW-07 FIX: Added visible progress indicator above load-more button. -->
-    <div id="load-more-container" class="text-center py-6 hidden">
+    <div id="load-more-container" class="text-center py-6 nm-hidden">
       <p class="text-3xs text-slate-400 mb-2 dark:text-slate-500" id="load-more-context"></p>
       <button type="button" id="load-more-btn" class="text-xs font-semibold text-trust-blue border border-trust-blue/30 px-6 py-2.5 rounded-lg hover:bg-trust-blue/5 transition-colors inline-flex items-center gap-2">
         <i class="ph ph-arrow-down" aria-hidden="true"></i>
@@ -159,6 +159,7 @@
   </footer>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/project.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

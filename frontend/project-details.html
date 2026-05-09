@@ -58,7 +58,7 @@
       <div class="flex items-center gap-1">
         <a href="donor-basket.html" id="header-cart-btn" class="relative flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart" aria-hidden="true"></i>
-          <span class="cart-badge hidden" id="header-cart-badge">0</span>
+          <span class="cart-badge nm-hidden" id="header-cart-badge">0</span>
         </a>
         <button type="button" id="share-project-btn" class="flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Share project" data-i18n-aria="aria_share_project">
           <i class="ph ph-share-network" aria-hidden="true"></i>
@@ -74,7 +74,7 @@
              The gradient+icon serve as fallback until API injects image src.
              Standard: Crowdfunding UX (image-first design), Emotional Design. -->
         <img id="project-hero-img" data-project-image
-          class="absolute inset-0 w-full h-full object-cover hidden"
+          class="absolute inset-0 w-full h-full object-cover nm-hidden"
           alt="Project site photograph" loading="lazy" />
         <div class="absolute inset-0 flex items-center justify-center" id="project-hero-placeholder">
           <i class="ph ph-hard-hat text-warm-earth/40 nm-icon-64" aria-hidden="true"></i>
@@ -196,10 +196,10 @@
       </div>
 
       <!-- BOQ Dynamic Content Container (populated by project-details.ts renderBOQ) -->
-      <div id="boq-container" class="hidden"></div>
+      <div id="boq-container" class="nm-hidden"></div>
 
       <!-- BOQ Empty State -->
-      <div id="boq-empty" class="hidden text-center py-12">
+      <div id="boq-empty" class="nm-hidden text-center py-12">
         <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
           <i class="ph ph-clipboard-text text-warm-earth nm-icon-32" aria-hidden="true"></i>
         </div>
@@ -210,7 +210,7 @@
       </div>
 
       <!-- BOQ Error State -->
-      <div id="boq-error" class="hidden text-center py-12">
+      <div id="boq-error" class="nm-hidden text-center py-12">
         <div class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10">
           <i class="ph ph-warning-circle text-red-400 nm-icon-32" aria-hidden="true"></i>
         </div>
@@ -249,7 +249,7 @@
     <!-- GAP-NEW-04 FIX: Cart feedback toast — was no visible confirmation after 'Add to Cart'.
          Hidden by default; JS shows it with item name and a link to the basket.
          Standard: Nielsen #1 (Visibility of System Status), E-commerce UX. -->
-    <div id="cart-toast" class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 hidden animate-fade-in-up">
+    <div id="cart-toast" class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 nm-hidden animate-fade-in-up">
       <div class="glass-card p-4 rounded-xl border border-smoky-jade/20 shadow-lg flex items-center gap-3">
         <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
           <i class="ph ph-check-circle text-smoky-jade nm-icon-22 dark:text-emerald-400" aria-hidden="true"></i>
@@ -290,6 +290,7 @@
     </footer>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/project.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

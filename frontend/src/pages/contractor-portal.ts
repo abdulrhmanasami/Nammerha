@@ -153,11 +153,11 @@ async function loadStats(): Promise<void> {
         if (!res.data) { return; }
         const s = res.data;
 
-        setText('kpi-active', String(s.assigned_projects));
-        setText('kpi-pending', String(s.active_bids));
-        setText('kpi-won', String(s.completed_projects));
-        setText('kpi-escrow', formatCents(s.total_earnings));
-        setText('pending-bids-count', String(s.active_bids));
+        setText('kpi-active', String(s.active_projects));
+        setText('kpi-pending', String(s.pending_bids));
+        setText('kpi-won', String(s.won_bids));
+        setText('kpi-escrow', formatCents(s.total_escrow_received));
+        setText('pending-bids-count', String(s.pending_bids));
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-active', 'kpi-pending', 'kpi-won', 'kpi-escrow'].forEach(id => setText(id, '—'));
@@ -189,7 +189,7 @@ async function loadProjects(): Promise<void> {
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
-                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(p.phase)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(ctPhaseLabel(p.phase))}</span>
                 </div>
                 <div class="text-xs text-slate-500 flex items-center gap-1.5 mb-4 dark:text-slate-400">
                     <i class="ph ph-map-pin text-sm" aria-hidden="true"></i>
@@ -319,7 +319,7 @@ async function loadBids(): Promise<void> {
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
-                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(b.status)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(ctBidStatusLabel(b.status))}</span>
                 </div>
                 
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 dark:border-dark-border">
@@ -333,7 +333,7 @@ async function loadBids(): Promise<void> {
                     </div>
                     <div class="text-end">
                         <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_submitted">Submitted</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(b.created_at)}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(b.submitted_at)}</p>
                     </div>
                 </div>
             </div>
@@ -367,7 +367,7 @@ async function loadPayments(): Promise<void> {
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.project_title)}</h3>
-                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(p.transaction_type)}">${esc(p.transaction_type)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(p.transaction_type)}">${esc(ctEscrowStatusLabel(p.transaction_type))}</span>
                 </div>
                 
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3 mt-3 dark:border-dark-border">
@@ -420,7 +420,7 @@ function openBidModal(projectId: string): void {
                 <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:text-slate-400" data-i18n="btn_cancel">Cancel</button>
                 <button type="button" id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
             </div>
-            <p id="bid-error" class="text-red-500 text-xs hidden"></p>
+            <p id="bid-error" class="text-red-500 text-xs nm-hidden"></p>
         </div>
     `;
     document.body.appendChild(modal);
@@ -475,7 +475,7 @@ function openBidModal(projectId: string): void {
         const errorEl = document.getElementById('bid-error');
 
         if (!cost || !days || cost <= 0 || days <= 0) {
-            if (errorEl) { errorEl.textContent = t('ct_fill_cost_days', 'Please fill in cost and days'); errorEl.classList.remove('hidden'); }
+            if (errorEl) { errorEl.textContent = t('ct_fill_cost_days', 'Please fill in cost and days'); errorEl.classList.remove('nm-hidden'); }
             return;
         }
 
@@ -502,7 +502,7 @@ function openBidModal(projectId: string): void {
         } catch (err) {
             if (errorEl) {
                 errorEl.textContent = err instanceof Error ? err.message : t('ct_submission_failed', 'Submission failed');
-                errorEl.classList.remove('hidden');
+                errorEl.classList.remove('nm-hidden');
             }
             submitBtn.disabled = false;
             submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
@@ -521,4 +521,36 @@ if (import.meta.env.DEV) {
         loadStats,
         loadMarketplace,
     };
+}
+
+// ─── G8 FIX: Status badge translators (i18n parity) ────────────────────────
+function ctPhaseLabel(phase: string): string {
+    switch (phase?.toLowerCase()) {
+        case 'planning': return t('ct_phase_planning', 'Planning');
+        case 'in_progress': return t('ct_phase_in_progress', 'In Progress');
+        case 'construction': return t('ct_phase_construction', 'Construction');
+        case 'completed': return t('ct_phase_completed', 'Completed');
+        case 'delivered': return t('ct_phase_delivered', 'Delivered');
+        case 'published': return t('ct_phase_published', 'Published');
+        default: return phase;
+    }
+}
+
+function ctBidStatusLabel(status: string): string {
+    switch (status?.toLowerCase()) {
+        case 'pending': return t('ct_bid_pending', 'Pending');
+        case 'accepted': return t('ct_bid_accepted', 'Accepted');
+        case 'rejected': return t('ct_bid_rejected', 'Rejected');
+        case 'withdrawn': return t('ct_bid_withdrawn', 'Withdrawn');
+        default: return status;
+    }
+}
+
+function ctEscrowStatusLabel(status: string): string {
+    switch (status?.toLowerCase()) {
+        case 'locked': return t('ct_escrow_locked', 'Locked');
+        case 'released': return t('ct_escrow_released_label', 'Released');
+        case 'refunded': return t('ct_escrow_refunded', 'Refunded');
+        default: return status;
+    }
 }

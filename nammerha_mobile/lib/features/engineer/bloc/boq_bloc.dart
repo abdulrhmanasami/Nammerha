@@ -21,8 +21,9 @@ class BoqBloc extends Bloc<BoqEvent, BoqState> {
       final items = await repository.loadExistingBOQ(event.projectId);
       emit(BoqLoaded(items));
     } catch (e) {
-      // In case of error, we can still allow them to build a new BOQ
-      emit(BoqLoaded(const []));
+      // H1 FIX: Surface error instead of silent fallback — user sees SnackBar
+      emit(BoqError(const [], 'Failed to load BOQ — starting fresh'));
+      emit(const BoqLoaded([]));
     }
   }
 
@@ -55,7 +56,8 @@ class BoqBloc extends Bloc<BoqEvent, BoqState> {
       await repository.publishBOQ(event.projectId, state.items);
       emit(BoqPublishSuccess(state.items));
     } catch (e) {
-      emit(BoqError(state.items, 'فشل النشر — حاول مرة أخرى'));
+      // H1 FIX: English generic error message
+      emit(BoqError(state.items, 'Publish failed — please try again'));
       emit(BoqLoaded(state.items)); // Revert to loaded so they can retry
     }
   }

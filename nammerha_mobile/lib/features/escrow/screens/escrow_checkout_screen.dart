@@ -118,7 +118,7 @@ class EscrowCheckoutView extends StatelessWidget {
                       ),
                       child: ListView.separated(
                         itemCount: basketItems.length,
-                        separatorBuilder: (_, __) => Divider(height: 1, color: colors.strokeSubtle),
+                        separatorBuilder: (_, _) => Divider(height: 1, color: colors.strokeSubtle),
                         itemBuilder: (context, index) {
                           final item = basketItems[index];
                           final lineTotal = ((item['unit_price'] as num?) ?? 0) * ((item['quantity'] as num?) ?? 1);

@@ -66,7 +66,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('بوابة المتبرع'),
+        title: Text(context.tr('dn_portal_title')),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -74,12 +74,12 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
           labelColor: colors.primaryBrand,
           unselectedLabelColor: colors.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'لوحة التحكم'),
-            Tab(text: 'السوق'),
-            Tab(text: 'تبرعاتي'),
-            Tab(text: 'الأثر'),
-            Tab(text: 'الإثباتات'),
+          tabs: [
+            Tab(text: context.tr('dn_tab_dashboard')),
+            Tab(text: context.tr('dn_tab_marketplace')),
+            Tab(text: context.tr('dn_tab_donations')),
+            Tab(text: context.tr('dn_tab_impact')),
+            Tab(text: context.tr('dn_tab_proofs')),
           ],
         ),
       ),
@@ -121,7 +121,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
   // ─── Tab 1: Dashboard ─────────────────────────────────────────────────
 
   Widget _buildDashboard(SemanticColors colors, DonorDashboardModel data, bool isLoading) {
-    if (isLoading && data.stats.isEmpty) {
+    if (isLoading && data.stats == const DonorStatsModel()) {
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     return RefreshIndicator(
@@ -142,18 +142,18 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
             ),
             child: Column(
               children: [
-                Text('إجمالي التبرعات', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(180))),
+                Text(context.tr('dn_total_donated'), style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(180))),
                 const SizedBox(height: 6),
-                Text(formatCurrency(data.stats['total_donated'] ?? 0), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white)),
+                Text(formatCurrency(data.stats.totalDonated), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white)),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _heroStat(context.tr('str_aac24d04'), '${data.stats['projects_supported'] ?? 0}'),
+                    _heroStat(context.tr('dn_projects_count'), '${data.stats.projectsSupported}'),
                     Container(width: 1, height: 30, color: Colors.white.withAlpha(30)),
-                    _heroStat(context.tr('str_46648494'), '${data.stats['items_funded'] ?? 0}'),
+                    _heroStat(context.tr('dn_items_funded'), '${data.stats.itemsFunded}'),
                     Container(width: 1, height: 30, color: Colors.white.withAlpha(30)),
-                    _heroStat(context.tr('str_98a766ca'), '${data.stats['impact_score'] ?? 0}%'),
+                    _heroStat(context.tr('dn_impact_score'), '${data.stats.impactScore}%'),
                   ],
                 ),
               ],
@@ -165,19 +165,19 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
           // Escrow stats
           Row(
             children: [
-              _statCard(context.tr('str_f013adbb'), formatCurrency(data.stats['escrow_locked'] ?? 0), colors.warning, colors),
+              _statCard(context.tr('dn_escrow_locked'), formatCurrency(data.stats.escrowLocked), colors.warning, colors),
               const SizedBox(width: 10),
-              _statCard(context.tr('str_233a60b2'), formatCurrency(data.stats['escrow_released'] ?? 0), colors.success, colors),
+              _statCard(context.tr('dn_escrow_released'), formatCurrency(data.stats.escrowReleased), colors.success, colors),
             ],
           ).animate(delay: 200.ms).fadeIn(),
 
           const SizedBox(height: 24),
 
           // Funded projects preview
-          Text('المشاريع المموّلة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text(context.tr('dn_funded_projects'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 12),
           if (data.fundedProjects.isEmpty)
-            _emptyState(colors, Icons.volunteer_activism_rounded, 'لم تموّل أي مشاريع بعد', 'تصفح السوق وابدأ بدعم إعادة الإعمار')
+            _emptyState(colors, Icons.volunteer_activism_rounded, context.tr('dn_no_funded'), context.tr('dn_browse_start'))
           else
             ...data.fundedProjects.take(3).toList().asMap().entries.map((e) => _fundedProjectCard(e.value, colors, e.key)),
         ],
@@ -215,8 +215,8 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
     );
   }
 
-  Widget _fundedProjectCard(Map<String, dynamic> p, SemanticColors colors, int index) {
-    final fundedPct = (p['funded_percentage'] ?? 0) as num;
+  Widget _fundedProjectCard(DonorFundedProjectModel p, SemanticColors colors, int index) {
+    final fundedPct = p.fundedPercentage;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -230,17 +230,17 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
         children: [
           Row(
             children: [
-              Expanded(child: Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-              _statusBadge(p['status']?.toString() ?? '', colors),
+              Expanded(child: Text(p.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+              _statusBadge(p.status, colors),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('مساهمتي: ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-              Text(formatCurrency(p['my_total_donated'] ?? 0), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.success)),
+              Text('${context.tr('dn_my_contribution')}: ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+              Text(formatCurrency(p.myTotalDonated), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.success)),
               const SizedBox(width: 12),
-              Text('${p['items_i_funded'] ?? 0} عناصر', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+              Text('${p.itemsIFunded} ${context.tr('dn_items_label')}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
             ],
           ),
           const SizedBox(height: 10),
@@ -250,7 +250,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: (fundedPct / 100).clamp(0.0, 1.0).toDouble(),
+                    value: (fundedPct / 100).clamp(0.0, 1.0),
                     backgroundColor: colors.backgroundSecondary,
                     valueColor: AlwaysStoppedAnimation(fundedPct >= 100 ? colors.success : colors.secondaryAccent),
                     minHeight: 8,
@@ -273,7 +273,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.marketplace.isEmpty) {
-      return _emptyState(colors, Icons.store_rounded, 'لا توجد مشاريع متاحة حالياً', '');
+      return _emptyState(colors, Icons.store_rounded, context.tr('dn_no_marketplace'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -285,7 +285,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
         itemCount: data.marketplace.length,
         itemBuilder: (_, i) {
           final p = data.marketplace[i];
-          final pct = (p['funded_percentage'] ?? 0) as num;
+          final pct = p.fundedPercentage;
           final isFullyFunded = pct >= 100;
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
@@ -298,12 +298,12 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                Text(p.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                 const SizedBox(height: 6),
                 Wrap(spacing: 10, children: [
-                  _infoChip(Icons.label_rounded, p['damage_type']?.toString() ?? '', colors),
-                  if (p['region'] != null) _infoChip(Icons.location_on_rounded, p['region'].toString(), colors),
-                  _infoChip(Icons.inventory_2_rounded, '${p['items_count'] ?? 0} عناصر', colors),
+                  _infoChip(Icons.label_rounded, p.damageType, colors),
+                  if (p.region != null) _infoChip(Icons.location_on_rounded, p.region!, colors),
+                  _infoChip(Icons.inventory_2_rounded, '${p.itemsCount} ${context.tr('dn_items_label')}', colors),
                 ]),
                 const SizedBox(height: 10),
                 Row(
@@ -312,7 +312,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
-                          value: (pct / 100).clamp(0.0, 1.0).toDouble(),
+                          value: (pct / 100).clamp(0.0, 1.0),
                           backgroundColor: colors.backgroundSecondary,
                           valueColor: AlwaysStoppedAnimation(isFullyFunded ? colors.success : colors.secondaryAccent),
                           minHeight: 8,
@@ -327,24 +327,24 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${formatCurrency(p['total_funded'] ?? 0)} / ${formatCurrency(p['total_cost'] ?? 0)}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                    Text('${formatCurrency(p.totalFunded)} / ${formatCurrency(p.totalCost)}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                     if (!isFullyFunded)
                       GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProjectDetailsScreen(projectId: p['project_id']?.toString() ?? ''))),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProjectDetailsScreen(projectId: p.projectId))),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
                             gradient: NammerhaGradients.ctaPrimary,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('موّل هذا', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                          child: Text(context.tr('dn_fund_this'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
                         ),
                       )
                     else
                       Row(children: [
                         Icon(Icons.check_circle_rounded, size: 16, color: colors.success),
                         const SizedBox(width: 4),
-                        Text('مموَّل بالكامل', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.success)),
+                        Text(context.tr('dn_fully_funded'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.success)),
                       ]),
                   ],
                 ),
@@ -363,7 +363,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.donations.isEmpty) {
-      return _emptyState(colors, Icons.volunteer_activism_rounded, 'لم تقم بأي تبرع بعد', '');
+      return _emptyState(colors, Icons.volunteer_activism_rounded, context.tr('dn_no_donations'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -375,7 +375,6 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
         itemCount: data.donations.length,
         itemBuilder: (_, i) {
           final d = data.donations[i];
-          final status = d['status']?.toString() ?? '';
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(16),
@@ -389,18 +388,18 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(d['material_name']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-                    _escrowBadge(status, colors),
+                    Expanded(child: Text(d.materialName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+                    _escrowBadge(d.status, colors),
                   ],
                 ),
                 const SizedBox(height: 6),
-                _infoChip(Icons.business_rounded, d['project_title']?.toString() ?? '', colors),
+                _infoChip(Icons.business_rounded, d.projectTitle, colors),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(formatCurrency(d['amount_locked'] ?? 0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
-                    Text(_formatDate(d['locked_at']?.toString() ?? ''), style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+                    Text(formatCurrency(d.amountLocked), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
+                    Text(_formatDate(d.lockedAt), style: TextStyle(fontSize: 12, color: colors.textSubtle)),
                   ],
                 ),
               ],
@@ -433,7 +432,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.impact.isEmpty) {
-      return _emptyState(colors, Icons.insights_rounded, 'لا توجد بيانات أثر بعد', '');
+      return _emptyState(colors, Icons.insights_rounded, context.tr('dn_no_impact'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -445,8 +444,8 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
         itemCount: data.impact.length,
         itemBuilder: (_, i) {
           final p = data.impact[i];
-          final isCompleted = p['status']?.toString().toLowerCase() == 'completed';
-          final pct = (p['funded_percentage'] ?? 0) as num;
+          final isCompleted = p.status.toLowerCase() == 'completed';
+          final pct = p.fundedPercentage;
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -476,14 +475,14 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                     children: [
                       Row(
                         children: [
-                          Expanded(child: Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary))),
-                          _statusBadge(p['status']?.toString() ?? '', colors),
+                          Expanded(child: Text(p.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary))),
+                          _statusBadge(p.status, colors),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Wrap(spacing: 10, children: [
-                        Text('تبرعي: ${formatCurrency(p['my_total_donated'] ?? 0)}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: colors.success)),
-                        Text('${p['items_i_funded'] ?? 0} عنصر', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                        Text('${context.tr('dn_my_donation')}: ${formatCurrency(p.myTotalDonated)}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: colors.success)),
+                        Text('${p.itemsIFunded} ${context.tr('dn_item_label')}', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                         Text('${pct.toInt()}%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: pct >= 100 ? colors.success : colors.secondaryAccent)),
                       ]),
                     ],
@@ -504,7 +503,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.proofs.isEmpty) {
-      return _emptyState(colors, Icons.camera_alt_rounded, 'لا توجد إثباتات بعد', 'ستظهر الصور المُوثّقة بـ GPS هنا بعد التحقق الميداني');
+      return _emptyState(colors, Icons.camera_alt_rounded, context.tr('dn_no_proofs'), context.tr('dn_proofs_hint'));
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -522,8 +521,8 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
         itemCount: data.proofs.length,
         itemBuilder: (_, i) {
           final proof = data.proofs[i];
-          final hasPhoto = proof['photo_url'] != null && (proof['photo_url'] as String).isNotEmpty;
-          final hasGps = proof['gps_lat'] != null;
+          final hasPhoto = proof.photoUrl != null && proof.photoUrl!.isNotEmpty;
+          final hasGps = proof.gpsLat != null;
           return Container(
             decoration: BoxDecoration(
               color: colors.surfaceElevated,
@@ -542,7 +541,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                         width: double.infinity,
                         color: colors.backgroundSecondary,
                         child: hasPhoto
-                            ? Image.network(proof['photo_url'], fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: Icon(Icons.broken_image_rounded, color: colors.textSubtle)))
+                            ? Image.network(proof.photoUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Center(child: Icon(Icons.broken_image_rounded, color: colors.textSubtle)))
                             : Center(child: Icon(Icons.image_rounded, size: 32, color: colors.textSubtle)),
                       ),
                       if (hasGps)
@@ -561,7 +560,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                                 const Icon(Icons.gps_fixed_rounded, size: 10, color: Colors.white),
                                 const SizedBox(width: 3),
                                 Text(
-                                  '${(proof['gps_lat'] as num).toStringAsFixed(3)}, ${(proof['gps_lng'] as num?)?.toStringAsFixed(3) ?? ''}',
+                                  '${proof.gpsLat!.toStringAsFixed(3)}, ${proof.gpsLng?.toStringAsFixed(3) ?? ''}',
                                   style: const TextStyle(fontSize: 8, fontFamily: 'monospace', color: Colors.white),
                                 ),
                               ],
@@ -577,13 +576,13 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(proof['project_title']?.toString() ?? '', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text(proof['material_name']?.toString() ?? '', style: TextStyle(fontSize: 10, color: colors.textSubtle), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      if (proof['verified_by'] != null)
+                      Text(proof.projectTitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(proof.materialName ?? '', style: TextStyle(fontSize: 10, color: colors.textSubtle), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      if (proof.verifiedBy != null)
                         Row(children: [
                           Icon(Icons.verified_rounded, size: 12, color: colors.success),
                           const SizedBox(width: 3),
-                          Expanded(child: Text(proof['verified_by'].toString(), style: TextStyle(fontSize: 10, color: colors.success), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                          Expanded(child: Text(proof.verifiedBy!, style: TextStyle(fontSize: 10, color: colors.success), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         ]),
                     ],
                   ),

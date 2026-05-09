@@ -21,14 +21,14 @@ export const dashboardQueryResolvers = {
 
     supplierCatalog: async (_: unknown, __: unknown, context: GQLContext) => {
         const user = requireRole(context, 'supplier');
-        const items = await supplierService.getMyCatalog(user.user_id);
-        return items.map(item => mapSupplierCatalogItem(item as unknown as Record<string, unknown>));
+        const result = await supplierService.getMyCatalog(user.user_id);
+        return result.items.map(item => mapSupplierCatalogItem(item as unknown as Record<string, unknown>));
     },
 
     supplierOrders: async (_: unknown, __: unknown, context: GQLContext) => {
         const user = requireRole(context, 'supplier');
-        const orders = await supplierService.getMyOrders(user.user_id);
-        return orders.map(o => mapPurchaseOrder(o as unknown as Record<string, unknown>));
+        const result = await supplierService.getMyOrders(user.user_id);
+        return result.items.map(o => mapPurchaseOrder(o as unknown as Record<string, unknown>));
     },
 
     engineerStats: async (_: unknown, __: unknown, context: GQLContext) => {

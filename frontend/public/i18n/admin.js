@@ -212,7 +212,104 @@
         'ct_label_days': { ar: 'الأيام', de: 'Tage', fr: 'Jours', tr: 'Gün' },
         'ct_label_letter': { ar: 'خطاب التقديم', de: 'Anschreiben', fr: 'Lettre de motivation', tr: 'Ön yazı' },
         'ct_placeholder_letter': { ar: 'اشرح لماذا أنت مناسب لهذا المشروع…', de: 'Erklären Sie, warum Sie für dieses Projekt geeignet sind…', fr: 'Expliquez pourquoi vous êtes adapté à ce projet…', tr: 'Bu proje için neden uygun olduğunuzu açıklayın…' },
-        'ct_submission_failed': { ar: 'فشل تقديم العرض', de: 'Angebotseinreichung fehlgeschlagen', fr: 'Échec de la soumission de l\'offre', tr: 'Teklif gönderim başarısız' }
+        'ct_submission_failed': { ar: 'فشل تقديم العرض', de: 'Angebotseinreichung fehlgeschlagen', fr: 'Échec de la soumission de l\'offre', tr: 'Teklif gönderim başarısız' },
+
+        // ═══ A1: Shared sidebar/nav keys (used across all 6 admin pages) ═══
+        'admin_portal': { ar: 'بوابة المشرف', de: 'Admin-Portal', fr: 'Portail Admin', tr: 'Yönetici Portalı' },
+        'admin_escrow_mgmt': { ar: 'إدارة الضمان', de: 'Treuhandverwaltung', fr: 'Gestion du séquestre', tr: 'Emanet Yönetimi' },
+        'admin_kyc_verify': { ar: 'التحقق من الهوية', de: 'KYC-Verifizierung', fr: 'Vérification KYC', tr: 'KYC Doğrulaması' },
+        'admin_pricing_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' },
+        'admin_institutional': { ar: 'مؤسسي', de: 'Institutionell', fr: 'Institutionnel', tr: 'Kurumsal' },
+        'admin_settings': { ar: 'الإعدادات', de: 'Einstellungen', fr: 'Paramètres', tr: 'Ayarlar' },
+        'coming_soon': { ar: 'قريباً', de: 'Demnächst', fr: 'Bientôt', tr: 'Yakında' },
+
+        // ═══ A2: Dashboard-specific KPIs ═══
+        'admin_command_center': { ar: 'مركز القيادة', de: 'Kommandozentrale', fr: 'Centre de commande', tr: 'Komuta Merkezi' },
+        'admin_active_projects': { ar: 'المشاريع النشطة', de: 'Aktive Projekte', fr: 'Projets actifs', tr: 'Aktif Projeler' },
+        'admin_pending_verify': { ar: 'بانتظار التحقق', de: 'Ausstehende Verifizierung', fr: 'En attente de vérification', tr: 'Doğrulama Bekliyor' },
+        'admin_registered_eng': { ar: 'المهندسون المسجلون', de: 'Registrierte Ingenieure', fr: 'Ingénieurs inscrits', tr: 'Kayıtlı Mühendisler' },
+        'admin_projects_desc': { ar: 'نظرة عامة على المشاريع النشطة', de: 'Übersicht aktiver Projekte', fr: 'Aperçu des projets actifs', tr: 'Aktif proje genel bakışı' },
+        'admin_escrow_queue': { ar: 'قائمة الضمان', de: 'Treuhandwarteschlange', fr: 'File du séquestre', tr: 'Emanet Kuyruğu' },
+        'admin_escrow_queue_desc': { ar: 'معاملات بانتظار الإفراج', de: 'Transaktionen ausstehend zur Freigabe', fr: 'Transactions en attente de libération', tr: 'Serbest bırakma bekleyen işlemler' },
+        'admin_pricing_oracle_epa': { ar: 'مؤشر الأسعار EPA', de: 'Preisorakel EPA', fr: 'Oracle des prix EPA', tr: 'Fiyat Kehaneti EPA' },
+        'admin_pricing_desc': { ar: 'ضبط أسعار المواد حسب السوق', de: 'Materialpreise nach Marktlage anpassen', fr: 'Ajuster les prix des matériaux selon le marché', tr: 'Malzeme fiyatlarını piyasaya göre ayarla' },
+        'admin_ocds_compliant': { ar: 'متوافق مع OCDS', de: 'OCDS-konform', fr: 'Conforme OCDS', tr: 'OCDS Uyumlu' },
+        'admin_ocds_desc': { ar: 'معيار البيانات المفتوحة للعقود', de: 'Open Contracting Data Standard', fr: 'Standard de données ouvertes sur les contrats', tr: 'Açık Sözleşme Veri Standardı' },
+        'total_impact_funded': { ar: 'إجمالي التأثير المموّل', de: 'Gesamte finanzierte Wirkung', fr: 'Impact total financé', tr: 'Toplam Finanse Edilen Etki' },
+
+        // ═══ A3: Badge/Status labels ═══
+        'badge_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },
+        'badge_urgent': { ar: 'عاجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
+        'badge_verified': { ar: 'موثق', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulanmış' },
+
+        // ═══ A4: Escrow verification page ═══
+        'escrow_release_verification': { ar: 'التحقق من إفراج الضمان', de: 'Treuhand-Freigabeverifizierung', fr: 'Vérification de la libération du séquestre', tr: 'Emanet Serbest Bırakma Doğrulaması' },
+        'escrow_release_desc': { ar: 'مراجعة الأدلة والإفراج عن الأموال المحتجزة', de: 'Nachweise prüfen und gesperrte Gelder freigeben', fr: 'Examiner les preuves et libérer les fonds bloqués', tr: 'Kanıtları inceleyin ve bloke fonları serbest bırakın' },
+        'escrow_breadcrumb': { ar: 'الضمان', de: 'Treuhand', fr: 'Séquestre', tr: 'Emanet' },
+        'verification_breadcrumb': { ar: 'التحقق', de: 'Verifizierung', fr: 'Vérification', tr: 'Doğrulama' },
+        'escrow_compliance_footer': { ar: 'سجلات الضمان ثابتة — لا حذف ولا تعديل', de: 'Treuhandprotokolle sind unveränderlich', fr: 'Les registres de séquestre sont immuables', tr: 'Emanet kayıtları değiştirilemez' },
+        'funds_locked_escrow': { ar: 'أموال محجوزة في الضمان', de: 'Im Treuhand gesperrte Gelder', fr: 'Fonds bloqués en séquestre', tr: 'Emanette kilitli fonlar' },
+        'purchase_order': { ar: 'أمر الشراء', de: 'Bestellung', fr: 'Bon de commande', tr: 'Satın Alma Emri' },
+        'item_description': { ar: 'وصف البند', de: 'Artikelbeschreibung', fr: 'Description de l\'article', tr: 'Kalem Açıklaması' },
+        'vendor_id': { ar: 'معرّف المورّد', de: 'Lieferanten-ID', fr: 'ID Fournisseur', tr: 'Tedarikçi No' },
+        'invoice_label': { ar: 'الفاتورة', de: 'Rechnung', fr: 'Facture', tr: 'Fatura' },
+        'invoice_preview': { ar: 'معاينة الفاتورة', de: 'Rechnungsvorschau', fr: 'Aperçu de la facture', tr: 'Fatura Önizleme' },
+        'field_photo_proof': { ar: 'إثبات صوري ميداني', de: 'Feld-Fotonachweis', fr: 'Preuve photo sur site', tr: 'Saha Fotoğraf Kanıtı' },
+        'gps_stamped_delivery': { ar: 'تسليم مختوم بـ GPS', de: 'GPS-gestempelte Lieferung', fr: 'Livraison horodatée GPS', tr: 'GPS Damgalı Teslimat' },
+        'gps_coordinates': { ar: 'إحداثيات GPS', de: 'GPS-Koordinaten', fr: 'Coordonnées GPS', tr: 'GPS Koordinatları' },
+        'timestamp_label': { ar: 'الطابع الزمني', de: 'Zeitstempel', fr: 'Horodatage', tr: 'Zaman Damgası' },
+        'signature_label': { ar: 'التوقيع', de: 'Unterschrift', fr: 'Signature', tr: 'İmza' },
+        'site_validation': { ar: 'التحقق الميداني', de: 'Standortvalidierung', fr: 'Validation sur site', tr: 'Saha Doğrulaması' },
+        'verified_field_engineer': { ar: 'تم التحقق بواسطة المهندس الميداني', de: 'Vom Feldingenieur verifiziert', fr: 'Vérifié par l\'ingénieur de terrain', tr: 'Saha mühendisi tarafından doğrulandı' },
+        'verified_by_oracle': { ar: 'تم التحقق بواسطة Oracle', de: 'Von Oracle verifiziert', fr: 'Vérifié par Oracle', tr: 'Oracle tarafından doğrulandı' },
+        'financial_audit_docs': { ar: 'وثائق التدقيق المالي', de: 'Finanzprüfungsdokumente', fr: 'Documents d\'audit financier', tr: 'Mali Denetim Belgeleri' },
+        'esc_release_funds': { ar: 'الإفراج عن الأموال', de: 'Gelder freigeben', fr: 'Libérer les fonds', tr: 'Fonları serbest bırak' },
+        'esc_flag_discrepancy': { ar: 'إبلاغ عن تناقض', de: 'Abweichung melden', fr: 'Signaler un écart', tr: 'Tutarsızlık bildir' },
+
+        // ═══ A5: Escrow TS runtime keys ═══
+        'esc_accuracy': { ar: 'الدقة', de: 'Genauigkeit', fr: 'Précision', tr: 'Doğruluk' },
+        'esc_all_cleared': { ar: 'تم تصفية الكل', de: 'Alle freigegeben', fr: 'Tout libéré', tr: 'Tümü temizlendi' },
+        'esc_discrepancy_flagged': { ar: 'تم الإبلاغ عن تناقض', de: 'Abweichung gemeldet', fr: 'Écart signalé', tr: 'Tutarsızlık bildirildi' },
+        'esc_flag_error': { ar: 'فشل الإبلاغ', de: 'Meldung fehlgeschlagen', fr: 'Échec du signalement', tr: 'Bildirim başarısız' },
+        'esc_flagging': { ar: 'جاري الإبلاغ…', de: 'Wird gemeldet…', fr: 'Signalement en cours…', tr: 'Bildiriliyor…' },
+        'esc_funds_released': { ar: 'تم الإفراج عن الأموال', de: 'Gelder freigegeben', fr: 'Fonds libérés', tr: 'Fonlar serbest bırakıldı' },
+        'esc_no_pending': { ar: 'لا توجد معاملات معلقة', de: 'Keine ausstehenden Transaktionen', fr: 'Aucune transaction en attente', tr: 'Bekleyen işlem yok' },
+        'esc_release_error': { ar: 'فشل الإفراج', de: 'Freigabe fehlgeschlagen', fr: 'Échec de la libération', tr: 'Serbest bırakma başarısız' },
+        'esc_releasing': { ar: 'جاري الإفراج…', de: 'Wird freigegeben…', fr: 'Libération en cours…', tr: 'Serbest bırakılıyor…' },
+        'esc_signal_high': { ar: 'إشارة عالية', de: 'Hohes Signal', fr: 'Signal élevé', tr: 'Yüksek Sinyal' },
+        'esc_signal_low': { ar: 'إشارة منخفضة', de: 'Niedriges Signal', fr: 'Signal faible', tr: 'Düşük Sinyal' },
+        'esc_signal_medium': { ar: 'إشارة متوسطة', de: 'Mittleres Signal', fr: 'Signal moyen', tr: 'Orta Sinyal' },
+
+        // ═══ A6: KYC runtime keys ═══
+        'common_retry': { ar: 'إعادة المحاولة', de: 'Wiederholen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'kyc_rejected': { ar: 'مرفوض', de: 'Abgelehnt', fr: 'Rejeté', tr: 'Reddedildi' },
+        'kyc_verified': { ar: 'تم التحقق', de: 'Verifiziert', fr: 'Vérifié', tr: 'Doğrulandı' },
+        'kyc_view_doc_action': { ar: 'عرض الوثيقة', de: 'Dokument anzeigen', fr: 'Voir le document', tr: 'Belgeyi görüntüle' },
+
+        // ═══ A7: Oracle page labels ═══
+        'pricing_oracle_epa': { ar: 'مؤشر الأسعار EPA', de: 'Preisorakel \u0026 EPA', fr: 'Oracle des prix \u0026 EPA', tr: 'Fiyat Kehaneti \u0026 EPA' },
+        'pricing_oracle_desc': { ar: 'ضبط أسعار المواد حسب ظروف السوق — FIDIC 13.8', de: 'Materialpreise nach Marktlage anpassen — FIDIC 13.8', fr: 'Ajuster les prix selon les conditions du marché — FIDIC 13.8', tr: 'Piyasa koşullarına göre fiyatları ayarla — FIDIC 13.8' },
+        'live_market': { ar: 'السوق المباشر', de: 'Live-Markt', fr: 'Marché en direct', tr: 'Canlı Piyasa' },
+        'oracle_feed_sources': { ar: 'مصادر بيانات Oracle', de: 'Oracle-Datenquellen', fr: 'Sources de données Oracle', tr: 'Oracle Veri Kaynakları' },
+        'material_inflation_curves': { ar: 'منحنيات تضخم المواد', de: 'Material-Inflationskurven', fr: 'Courbes d\'inflation des matériaux', tr: 'Malzeme Enflasyon Eğrileri' },
+        'steel_index_volatility': { ar: 'تقلب مؤشر الحديد', de: 'Stahlindex-Volatilität', fr: 'Volatilité de l\'indice acier', tr: 'Çelik Endeks Oynaklığı' },
+        'regional_supply_forecast': { ar: 'توقعات العرض الإقليمي', de: 'Regionale Angebotsprognose', fr: 'Prévision d\'offre régionale', tr: 'Bölgesel Arz Tahmini' },
+        'price_index_adjustment': { ar: 'تعديل مؤشر الأسعار', de: 'Preisindex-Anpassung', fr: 'Ajustement de l\'indice des prix', tr: 'Fiyat Endeksi Ayarlaması' },
+        'fidic_formula': { ar: 'صيغة FIDIC 13.8', de: 'FIDIC 13.8 Formel', fr: 'Formule FIDIC 13.8', tr: 'FIDIC 13.8 Formülü' },
+        'original_boq_cost': { ar: 'التكلفة الأصلية BOQ', de: 'Ursprüngliche LV-Kosten', fr: 'Coût DQE original', tr: 'Orijinal BOQ Maliyeti' },
+        'mean_adjustment': { ar: 'متوسط التعديل', de: 'Durchschnittliche Anpassung', fr: 'Ajustement moyen', tr: 'Ortalama Ayarlama' },
+        'total_adjusted_cost': { ar: 'التكلفة المعدّلة الإجمالية', de: 'Angepasste Gesamtkosten', fr: 'Coût total ajusté', tr: 'Toplam Ayarlanmış Maliyet' },
+        'approve_adjustment': { ar: 'اعتماد التعديل', de: 'Anpassung genehmigen', fr: 'Approuver l\'ajustement', tr: 'Ayarlamayı Onayla' },
+        'configure_indices': { ar: 'تهيئة المؤشرات', de: 'Indizes konfigurieren', fr: 'Configurer les indices', tr: 'Endeksleri Yapılandır' },
+        'export_report': { ar: 'تصدير التقرير', de: 'Bericht exportieren', fr: 'Exporter le rapport', tr: 'Raporu Dışa Aktar' },
+        'automated_audit_log': { ar: 'سجل التدقيق الآلي', de: 'Automatisches Prüfprotokoll', fr: 'Journal d\'audit automatisé', tr: 'Otomatik Denetim Günlüğü' },
+        'epa_approval_disclaimer': { ar: 'تنويه: تعديلات EPA تتطلب اعتماد المشرف', de: 'Hinweis: EPA-Anpassungen erfordern Admin-Genehmigung', fr: 'Avertissement: les ajustements EPA nécessitent l\'approbation de l\'admin', tr: 'Uyarı: EPA ayarlamaları yönetici onayı gerektirir' },
+        'smart_contract_ready': { ar: 'جاهز للعقد الذكي', de: 'Smart-Contract-bereit', fr: 'Prêt pour contrat intelligent', tr: 'Akıllı Sözleşme Hazır' },
+        'oracle_approved': { ar: 'تم الاعتماد', de: 'Genehmigt', fr: 'Approuvé', tr: 'Onaylandı' },
+
+        // ═══ A8: Revenue + misc ═══
+        'rev_loading': { ar: 'جاري التحميل...', de: 'Wird geladen...', fr: 'Chargement...', tr: 'Yükleniyor...' },
+        'failed_to_load': { ar: 'فشل التحميل', de: 'Laden fehlgeschlagen', fr: 'Échec du chargement', tr: 'Yükleme başarısız' }
         });
     }
 })();

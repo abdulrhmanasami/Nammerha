@@ -88,14 +88,17 @@ export function bidColor(status: string): string {
  */
 export function phaseColor(phase: string): string {
     const colors: Record<string, string> = {
+        planning: 'bg-trust-blue/10 text-trust-blue',
         pending_execution: 'bg-amber-100 text-amber-700',
         assessment: 'bg-indigo-100 text-indigo-700',
         in_progress: 'bg-blue-100 text-blue-700',
+        construction: 'bg-amber-100 text-amber-700',
         // GAP-07 FIX: Extended milestone statuses
         under_review: 'bg-purple-100 text-purple-700',
         completed: 'bg-green-100 text-green-700',
         verified: 'bg-emerald-100 text-emerald-700',
         delivered: 'bg-emerald-100 text-emerald-700',
+        published: 'bg-purple-100 text-purple-700',
     };
     return colors[phase] ?? 'bg-slate-100 text-slate-600';
 }
@@ -106,13 +109,16 @@ export function phaseColor(phase: string): string {
  */
 export function phaseIcon(phase: string): string {
     const icons: Record<string, string> = {
+        planning: 'ph-note-pencil',
         pending_execution: 'ph-hourglass-medium',
         assessment: 'ph-magnifying-glass',
         in_progress: 'ph-spinner-gap',
+        construction: 'ph-hard-hat',
         under_review: 'ph-eye',
         completed: 'ph-check-circle',
         verified: 'ph-seal-check',
         delivered: 'ph-package',
+        published: 'ph-megaphone-simple',
     };
     return icons[phase] ?? 'ph-circle';
 }

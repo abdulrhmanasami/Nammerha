@@ -331,7 +331,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                 const SizedBox(height: 10),
                 _resultRow('المبلغ الأصلي', formatCurrency(state.calculationResult!['original_amount'] ?? 0), colors),
                 _resultRow('المبلغ المعدّل', formatCurrency(state.calculationResult!['adjusted_amount'] ?? 0), colors),
-                _resultRow('نسبة التغيير', '${(state.calculationResult!['adjustment_factor'] as num?)?.toStringAsFixed(4) ?? '—'}', colors),
+                _resultRow('نسبة التغيير', (state.calculationResult!['adjustment_factor'] as num?)?.toStringAsFixed(4) ?? '—', colors),
                 _resultRow(context.tr('str_0b79cb24'), formatCurrency((state.calculationResult!['adjusted_amount'] ?? 0) - (state.calculationResult!['original_amount'] ?? 0)), colors),
               ],
             ),

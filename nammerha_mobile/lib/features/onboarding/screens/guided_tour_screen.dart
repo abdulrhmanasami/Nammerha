@@ -54,8 +54,8 @@ Future<void> showGuidedTour(BuildContext context) async {
   await Navigator.of(context).push(
     PageRouteBuilder(
       opaque: false,
-      pageBuilder: (_, __, ___) => const _GuidedTourOverlay(),
-      transitionsBuilder: (_, anim, __, child) =>
+      pageBuilder: (_, _, _) => const _GuidedTourOverlay(),
+      transitionsBuilder: (_, anim, _, child) =>
           FadeTransition(opacity: anim, child: child),
     ),
   );

@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/impact_repository.dart';
-import '../models/impact_message_model.dart';
 import 'impact_event.dart';
 import 'impact_state.dart';
 

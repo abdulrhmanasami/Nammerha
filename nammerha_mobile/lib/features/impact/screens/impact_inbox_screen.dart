@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -73,7 +72,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
             builder: (context, state) {
               if (state is ImpactLoaded && state.unreadCount > 0) {
                 return IconButton(
-                  icon: Icon(PhosphorIcons.checkDouble(PhosphorIconsStyle.regular)),
+                  icon: const Icon(Icons.done_all_rounded),
                   tooltip: 'تحديد الكل كمقروء',
                   onPressed: () {
                     context.read<ImpactBloc>().add(MarkAllMessagesAsRead());
@@ -135,7 +134,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            PhosphorIcons.envelopeOpen(PhosphorIconsStyle.light),
+            Icons.mark_email_read_outlined,
             size: 64,
             color: colors.textMuted,
           ),
@@ -156,7 +155,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(PhosphorIcons.warning(PhosphorIconsStyle.regular), color: colors.error, size: 48),
+          Icon(Icons.warning_amber_rounded, color: colors.error, size: 48),
           const SizedBox(height: NammerhaTheme.spaceMd),
           Text('فشل تحميل رسائل الأثر', style: Theme.of(context).textTheme.titleMedium),
           TextButton(
@@ -181,21 +180,19 @@ class _MessageCard extends StatelessWidget {
     final colors = Theme.of(context).extension<SemanticColors>()!;
     final theme = Theme.of(context);
 
-    // Enforcing Logical CSS for RTL languages
     return GestureDetector(
       onTap: () {
         if (!message.isRead) {
           context.read<ImpactBloc>().add(MarkMessageAsRead(message.id));
         }
-        // Could navigate to full screen image or project details here
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: NammerhaTheme.spaceMd),
         decoration: BoxDecoration(
-          color: message.isRead ? colors.surfaceElevated : colors.primaryBrandLight.withOpacity(0.3),
+          color: message.isRead ? colors.surfaceElevated : colors.primaryBrandLight.withAlpha(77),
           borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
           border: Border.all(
-            color: message.isRead ? colors.strokeBorder : colors.primaryBrand.withOpacity(0.5),
+            color: message.isRead ? colors.strokeBorder : colors.primaryBrand.withAlpha(128),
             width: 1,
           ),
           boxShadow: const [NammerhaShadows.elevation],
@@ -215,7 +212,7 @@ class _MessageCard extends StatelessWidget {
                     height: 160,
                     color: colors.backgroundPrimary,
                     child: Center(
-                      child: Icon(PhosphorIcons.imageBroken(PhosphorIconsStyle.regular), color: colors.textMuted),
+                      child: Icon(Icons.broken_image_outlined, color: colors.textMuted),
                     ),
                   ),
                 ),
@@ -254,7 +251,7 @@ class _MessageCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              timeago.format(message.createdAt, locale: 'ar'),
+                              _formatTimeAgo(message.createdAt),
                               style: theme.textTheme.bodySmall,
                             ),
                           ],
@@ -286,16 +283,29 @@ class _MessageCard extends StatelessWidget {
     );
   }
 
+  /// Formats a DateTime as a human-readable Arabic relative time string.
+  /// Uses intl (already in pubspec) instead of the unavailable timeago package.
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inMinutes < 1) return 'الآن';
+    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
+    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
+    if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
+    return DateFormat('yyyy/MM/dd', 'ar').format(dateTime);
+  }
+
   IconData _getIconForType() {
     switch (message.type) {
       case 'milestone':
-        return PhosphorIcons.flag(PhosphorIconsStyle.fill);
+        return Icons.flag_rounded;
       case 'completion':
-        return PhosphorIcons.checkCircle(PhosphorIconsStyle.fill);
+        return Icons.check_circle_rounded;
       case 'thank_you':
-        return PhosphorIcons.heart(PhosphorIconsStyle.fill);
+        return Icons.favorite_rounded;
       default:
-        return PhosphorIcons.info(PhosphorIconsStyle.fill);
+        return Icons.info_rounded;
     }
   }
 
@@ -313,6 +323,6 @@ class _MessageCard extends StatelessWidget {
   }
 
   Color _getIconBackgroundColor(SemanticColors colors) {
-    return _getIconColor(colors).withOpacity(0.1);
+    return _getIconColor(colors).withAlpha(26);
   }
 }

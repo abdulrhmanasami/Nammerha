@@ -314,13 +314,13 @@
             </div>
 
             <!-- ═══ Step 2: Details (progressive disclosure) ═══ -->
-            <div id="sr-details-wrap" class="hidden space-y-4 animate-fade-in-up">
+            <div id="sr-details-wrap" class="nm-hidden space-y-4 animate-fade-in-up">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label for="sr-urgency" class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="ho_lbl_urgency">Urgency</label>
                   <select id="sr-urgency" class="nm-select mt-1">
-                    <option value="low" data-i18n="urgency_routine">Routine</option>
-                    <option value="high" data-i18n="urgency_urgent">Urgent</option>
+                    <option value="routine" data-i18n="urgency_routine">Routine</option>
+                    <option value="urgent" data-i18n="urgency_urgent">Urgent</option>
                     <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
                   </select>
                   <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="ho_urgency_hint">Routine: 5-7 days · Urgent: 24-48 hrs · Emergency: Same day</p>
@@ -465,7 +465,9 @@
 </template>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/homeowner.js" defer></script>
+<script src="/i18n/tradesperson.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
 <script src="/load-guard.js" defer></script>

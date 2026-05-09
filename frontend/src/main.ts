@@ -113,7 +113,8 @@ function buildProjectCard(project: ProjectCard, index: number): string {
     const delay = `--anim-delay:${index * 0.1}s`;
 
     // PLATINUM UX FIX: Strict typeguarding replaces unsafe `as unknown` hack
-    const region = typeof (project as any).region === 'string' ? (project as any).region : '';
+    const projectRecord = project as unknown as Record<string, unknown>;
+    const region = typeof projectRecord.region === 'string' ? projectRecord.region : '';
     
     // UXA-027 FIX: snap-start snap-always → magnetic card snapping during swipe.
     return `
@@ -171,7 +172,7 @@ async function loadFeaturedProjects(): Promise<void> {
             // don't rely solely on MutationObserver which may have timing gaps.
             applyI18n();
             // Store fallback in case of future network interruption
-            try { sessionStorage.setItem('fallback_featured_projects', carousel.innerHTML); } catch (e) { /* ignore */ }
+            try { sessionStorage.setItem('fallback_featured_projects', carousel.innerHTML); } catch { /* ignore */ }
         } else {
             // NMR-AUD-H002 FIX: Show empty state instead of infinite skeleton.
             // Previous code kept the skeleton visible when API returned empty data.
@@ -293,7 +294,7 @@ function initDashboard(): void {
 
 function initGlassNavScroll(): void {
     const nav = document.querySelector('.glass-nav');
-    if (!nav) return;
+    if (!nav) {return;}
     window.addEventListener('scroll', () => {
         if (window.scrollY > 10) {
             nav.classList.add('scrolled');

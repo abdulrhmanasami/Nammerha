@@ -60,7 +60,7 @@ class DonorBloc extends Bloc<DonorEvent, DonorState> {
       }
       emit(DonorLoaded(data: newData));
     } catch (e) {
-      emit(DonorError(message: 'حدث خطأ في مزامنة البيانات', currentData: currentData));
+      emit(DonorError(message: 'Failed to sync data', currentData: currentData));
     }
   }
 
@@ -71,17 +71,17 @@ class DonorBloc extends Bloc<DonorEvent, DonorState> {
       final proofs = await _repository.loadStandaloneProofs();
       emit(DonorStandaloneProofsLoaded(proofs: proofs));
     } catch (e) {
-      emit(const DonorError(message: 'حدث خطأ في تحميل الإثباتات'));
+      emit(const DonorError(message: 'Failed to load proofs'));
     }
   }
 
-  bool forceRefreshCheck(Map<String, dynamic> data, bool force) {
+  bool forceRefreshCheck(DonorStatsModel data, bool force) {
     if (force) return true;
-    if (data.isEmpty) return true;
+    if (data == const DonorStatsModel()) return true;
     return false;
   }
 
-  bool forceRefreshCheckList(List<Map<String, dynamic>> data, bool force) {
+  bool forceRefreshCheckList(List<Object> data, bool force) {
     if (force) return true;
     if (data.isEmpty) return true;
     return false;

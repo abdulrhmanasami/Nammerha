@@ -140,7 +140,7 @@
       </div>
 
       <!-- Captured state (hidden by default) -->
-      <div id="camera-captured" class="hidden absolute inset-0 bg-neutral-900 flex items-center justify-center">
+      <div id="camera-captured" class="nm-hidden absolute inset-0 bg-neutral-900 flex items-center justify-center">
         <div class="text-center">
           <div class="size-20 mx-auto rounded-full bg-smoky-jade/20 flex items-center justify-center mb-4">
             <i class="ph ph-check-circle text-smoky-jade nm-icon-48 dark:text-emerald-400" aria-hidden="true"></i>
@@ -246,7 +246,7 @@
 
   <!-- Voice Snagging Active Overlay (hidden by default) -->
   <!-- SWEEP-W8-002: bg-[#242424]/98 → bg-slate-900/98. -->
-  <div id="voice-overlay" class="hidden fixed inset-0 z-50 bg-slate-900/98 flex flex-col items-center justify-center">
+  <div id="voice-overlay" class="nm-hidden fixed inset-0 z-50 bg-slate-900/98 flex flex-col items-center justify-center">
     <div class="text-center">
       <div id="voice-pulse" class="size-32 rounded-full bg-warning-yellow/20 flex items-center justify-center mb-6 animate-pulse">
         <div class="size-24 rounded-full bg-warning-yellow/30 flex items-center justify-center">
@@ -283,6 +283,7 @@
 </footer>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/engineer.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

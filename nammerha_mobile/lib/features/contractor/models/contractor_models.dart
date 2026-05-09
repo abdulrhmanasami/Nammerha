@@ -10,37 +10,46 @@ import 'package:equatable/equatable.dart';
 
 /// KPI statistics for the contractor dashboard header.
 class ContractorStatsModel extends Equatable {
-  final int assignedProjects;
-  final int activeBids;
-  final int completedProjects;
-  final num totalEarnings;
+  final int activeProjects;
+  final int pendingBids;
+  final int wonBids;
+  final num totalEscrowReceived;
+  final int totalBids;
+  final double bidWinRate;
 
   const ContractorStatsModel({
-    required this.assignedProjects,
-    required this.activeBids,
-    required this.completedProjects,
-    required this.totalEarnings,
+    required this.activeProjects,
+    required this.pendingBids,
+    required this.wonBids,
+    required this.totalEscrowReceived,
+    required this.totalBids,
+    required this.bidWinRate,
   });
 
   factory ContractorStatsModel.fromJson(Map<String, dynamic> json) {
     return ContractorStatsModel(
-      assignedProjects: json['assigned_projects'] ?? json['assignedProjects'] ?? 0,
-      activeBids: json['active_bids'] ?? json['activeBids'] ?? 0,
-      completedProjects: json['completed_projects'] ?? json['completedProjects'] ?? 0,
-      totalEarnings: json['total_earnings'] ?? json['totalEarnings'] ?? 0,
+      // New backend keys → old keys as fallback
+      activeProjects: json['active_projects'] ?? json['assigned_projects'] ?? 0,
+      pendingBids: json['pending_bids'] ?? json['active_bids'] ?? 0,
+      wonBids: json['won_bids'] ?? json['completed_projects'] ?? 0,
+      totalEscrowReceived: json['total_escrow_received'] ?? json['total_earnings'] ?? 0,
+      totalBids: json['total_bids'] ?? 0,
+      bidWinRate: (json['bid_win_rate'] ?? 0).toDouble(),
     );
   }
 
   /// Fallback instance for when the API call fails — prevents null propagation.
   static const empty = ContractorStatsModel(
-    assignedProjects: 0,
-    activeBids: 0,
-    completedProjects: 0,
-    totalEarnings: 0,
+    activeProjects: 0,
+    pendingBids: 0,
+    wonBids: 0,
+    totalEscrowReceived: 0,
+    totalBids: 0,
+    bidWinRate: 0.0,
   );
 
   @override
-  List<Object?> get props => [assignedProjects, activeBids, completedProjects, totalEarnings];
+  List<Object?> get props => [activeProjects, pendingBids, wonBids, totalEscrowReceived, totalBids, bidWinRate];
 }
 
 /// A project assigned to or available for the contractor.
@@ -145,10 +154,10 @@ class ContractorPaymentModel extends Equatable {
 
   factory ContractorPaymentModel.fromJson(Map<String, dynamic> json) {
     return ContractorPaymentModel(
-      paymentId: (json['payment_id'] ?? json['paymentId'] ?? '').toString(),
+      paymentId: (json['transaction_id'] ?? json['payment_id'] ?? json['paymentId'] ?? '').toString(),
       projectTitle: json['project_title']?.toString() ?? json['projectTitle']?.toString() ?? '',
       amount: json['amount'] ?? 0,
-      status: json['status']?.toString() ?? '',
+      status: json['transaction_type']?.toString() ?? json['status']?.toString() ?? '',
       createdAt: json['created_at']?.toString() ?? json['createdAt']?.toString() ?? '',
     );
   }

@@ -62,7 +62,8 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
     return '${amount.toStringAsFixed(0)} ل.س';
   }
 
-  String _formatDate(String dateStr) {
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '—';
     try {
       final dt = DateTime.parse(dateStr);
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
@@ -78,7 +79,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('بوابة الحرفي'),
+        title: Text(context.tr('tp_portal_title')),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -86,12 +87,12 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
           labelColor: colors.primaryBrand,
           unselectedLabelColor: colors.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'لوحة التحكم'),
-            Tab(text: 'الطلبات'),
-            Tab(text: 'المهام'),
-            Tab(text: 'الأرباح'),
-            Tab(text: 'الملف'),
+          tabs: [
+            Tab(text: context.tr('ct_tab_dashboard')),
+            Tab(text: context.tr('tp_tab_requests')),
+            Tab(text: context.tr('tp_tab_tasks')),
+            Tab(text: context.tr('tp_tab_earnings')),
+            Tab(text: context.tr('tp_tab_profile')),
           ],
         ),
       ),
@@ -125,7 +126,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
   // ─── Tab 1: Dashboard ─────────────────────────────────────────────────
 
   Widget _buildDashboard(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.stats.isEmpty) {
+    if (isLoading && data.stats == TradespersonStatsModel.empty) {
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     return RefreshIndicator(
@@ -137,21 +138,21 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
           _buildAvailabilityRow(data.availability, colors),
           const SizedBox(height: 16),
           Row(children: [
-            _kpiCard('مهام نشطة', '${data.stats['active_jobs'] ?? 0}', colors.primaryBrand, colors),
+            _kpiCard(context.tr('tp_active_jobs'), '${data.stats.activeJobs}', colors.primaryBrand, colors),
             const SizedBox(width: 8),
-            _kpiCard(context.tr('str_03eacf6f'), '${data.stats['completed_jobs'] ?? 0}', colors.success, colors),
+            _kpiCard(context.tr('ct_completed'), '${data.stats.completedJobs}', colors.success, colors),
           ]).animate().fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
-            _kpiCard(context.tr('str_e3a4dbca'), _formatCurrency(data.stats['total_earnings'] ?? 0), colors.secondaryAccent, colors),
+            _kpiCard(context.tr('ct_earnings'), _formatCurrency(data.stats.totalEarnings), colors.secondaryAccent, colors),
             const SizedBox(width: 8),
-            _kpiCard(context.tr('str_e0efcd03'), data.stats['average_rating'] != null ? '${(data.stats['average_rating'] as num).toStringAsFixed(1)} ★' : '—', colors.warning, colors),
+            _kpiCard(context.tr('tp_avg_rating'), data.stats.averageRating != null ? '${data.stats.averageRating!.toStringAsFixed(1)} ★' : '—', colors.warning, colors),
           ]).animate(delay: 100.ms).fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
-            _kpiCard('طلبات معلقة', '${data.stats['pending_requests'] ?? 0}', colors.info, colors),
+            _kpiCard(context.tr('tp_pending_requests'), '${data.stats.pendingRequests}', colors.info, colors),
             const SizedBox(width: 8),
-            _kpiCard('مهام نشطة', '${data.stats['active_assignments'] ?? 0}', colors.warning, colors),
+            _kpiCard(context.tr('tp_active_assignments'), '${data.stats.activeAssignments}', colors.warning, colors),
           ]).animate(delay: 200.ms).fadeIn(),
         ],
       ),
@@ -169,7 +170,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('حالة التواجد', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text(context.tr('tp_availability'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 10),
           Row(
             children: ['available', 'busy', 'offline'].map((s) {
@@ -177,9 +178,9 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
               Color c;
               String label;
               switch (s) {
-                case 'available': c = colors.success; label = context.tr('str_e73a19f1'); break;
-                case 'busy': c = colors.warning; label = context.tr('str_005a79cf'); break;
-                default: c = colors.textSecondary; label = 'غير متصل';
+                case 'available': c = colors.success; label = context.tr('tp_available'); break;
+                case 'busy': c = colors.warning; label = context.tr('tp_busy'); break;
+                default: c = colors.textSecondary; label = context.tr('tp_offline');
               }
               return Expanded(
                 child: GestureDetector(
@@ -233,7 +234,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.requests.isEmpty) {
-      return _emptyState(colors, Icons.search_rounded, 'لا توجد طلبات تتناسب مع حرفتك', 'ستظهر الطلبات الجديدة تلقائياً');
+      return _emptyState(colors, Icons.search_rounded, context.tr('tp_no_requests'), context.tr('tp_requests_hint'));
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(1)); },
@@ -256,21 +257,21 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(r['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-                    _urgencyBadge(r['urgency']?.toString() ?? '', colors),
+                    Expanded(child: Text(r.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+                    _urgencyBadge(r.urgency, colors),
                   ],
                 ),
-                if (r['description'] != null) ...[
+                if (r.description != null) ...[
                   const SizedBox(height: 6),
-                  Text(r['description'].toString(), style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(r.description!, style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
                 ],
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 12,
                   children: [
-                    _infoChip(Icons.person_rounded, r['homeowner_name']?.toString() ?? '', colors),
-                    if (r['address_text'] != null) _infoChip(Icons.location_on_rounded, r['address_text'].toString(), colors),
-                    if (r['budget_max'] != null) _infoChip(Icons.monetization_on_rounded, _formatCurrency(r['budget_max']), colors),
+                    _infoChip(Icons.person_rounded, r.homeownerName, colors),
+                    if (r.addressText != null) _infoChip(Icons.location_on_rounded, r.addressText!, colors),
+                    if (r.budgetMax != null) _infoChip(Icons.monetization_on_rounded, _formatCurrency(r.budgetMax!), colors),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -278,10 +279,10 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      context.read<TradespersonBloc>().add(AcceptRequestEvent(r['request_id']?.toString() ?? ''));
+                      context.read<TradespersonBloc>().add(AcceptRequestEvent(r.requestId));
                     },
                     icon: const Icon(Icons.check_rounded, size: 18),
-                    label: const Text('قبول المهمة'),
+                    label: Text(context.tr('tp_accept_task')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.secondaryAccent,
                       foregroundColor: const Color(0xFFFFFFFF),
@@ -302,6 +303,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
     Color c;
     switch (urgency.toLowerCase()) {
       case 'urgent': c = colors.error; break;
+      case 'emergency': c = colors.error; break;
       case 'high': c = colors.warning; break;
       default: c = colors.info;
     }
@@ -330,7 +332,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.assignments.isEmpty) {
-      return _emptyState(colors, Icons.assignment_rounded, 'لا توجد مهام من المقاولين', '');
+      return _emptyState(colors, Icons.assignment_rounded, context.tr('tp_no_assignments'), '');
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(2)); },
@@ -340,8 +342,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
         itemCount: data.assignments.length,
         itemBuilder: (_, i) {
           final a = data.assignments[i];
-          final status = a['status']?.toString() ?? '';
-          final isPending = status.toLowerCase() == 'pending';
+          final isPending = a.status.toLowerCase() == 'pending';
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -355,35 +356,35 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(a['project_title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-                    _statusBadge(status, colors),
+                    Expanded(child: Text(a.projectTitle, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+                    _statusBadge(a.status, colors),
                   ],
                 ),
                 const SizedBox(height: 6),
-                _infoChip(Icons.business_rounded, a['contractor_name']?.toString() ?? '', colors),
-                if (a['scope_description'] != null) ...[
+                _infoChip(Icons.business_rounded, a.contractorName, colors),
+                if (a.scopeDescription.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(color: colors.backgroundSecondary, borderRadius: BorderRadius.circular(8)),
-                    child: Text(a['scope_description'].toString(), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                    child: Text(a.scopeDescription, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                   ),
                 ],
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_formatCurrency(a['agreed_rate'] ?? 0)}/${a['rate_type'] ?? context.tr('str_10954620')}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
+                    Text('${_formatCurrency(a.agreedRate)}/${a.rateType}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
                     if (isPending)
                       Row(
                         children: [
                           _actionChip(context.tr('admin_reject'), colors.error, () {
-                            context.read<TradespersonBloc>().add(RespondToAssignmentEvent(a['assignment_id']?.toString() ?? '', false));
+                            context.read<TradespersonBloc>().add(RespondToAssignmentEvent(a.assignmentId, false));
                           }),
                           const SizedBox(width: 8),
                           _actionChip(context.tr('admin_approve'), colors.primaryBrand, () {
-                            context.read<TradespersonBloc>().add(RespondToAssignmentEvent(a['assignment_id']?.toString() ?? '', true));
+                            context.read<TradespersonBloc>().add(RespondToAssignmentEvent(a.assignmentId, true));
                           }),
                         ],
                       ),
@@ -430,7 +431,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     if (data.earnings.isEmpty) {
-      return _emptyState(colors, Icons.monetization_on_rounded, 'لا توجد أرباح بعد', '');
+      return _emptyState(colors, Icons.monetization_on_rounded, context.tr('tp_no_earnings'), '');
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(3)); },
@@ -440,7 +441,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
         itemCount: data.earnings.length,
         itemBuilder: (_, i) {
           final e = data.earnings[i];
-          final isContractor = e['source_type'] == 'assignment';
+          final isContractor = e.sourceType == 'assignment';
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(16),
@@ -455,23 +456,23 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(e['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                      Text(e.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                       const SizedBox(height: 4),
                       Row(children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(color: (isContractor ? colors.primaryBrand : colors.secondaryAccent).withAlpha(15), borderRadius: BorderRadius.circular(4)),
-                          child: Text(isContractor ? context.tr('role_contractor') : context.tr('str_d9e423c5'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isContractor ? colors.primaryBrand : colors.secondaryAccent)),
+                          child: Text(isContractor ? context.tr('role_contractor') : context.tr('tp_direct_request'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isContractor ? colors.primaryBrand : colors.secondaryAccent)),
                         ),
-                        if (e['completed_at'] != null) ...[
+                        if (e.completedAt != null) ...[
                           const SizedBox(width: 8),
-                          Text(_formatDate(e['completed_at'].toString()), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                          Text(_formatDate(e.completedAt), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                         ],
                       ]),
                     ],
                   ),
                 ),
-                Text(_formatCurrency(e['amount'] ?? 0), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
+                Text(_formatCurrency(e.amount), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
               ],
             ),
           ).animate(delay: (i * 80).ms).fadeIn();
@@ -483,9 +484,10 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
   // ─── Tab 5: Profile ───────────────────────────────────────────────────
 
   Widget _buildProfile(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.profile.isEmpty) {
+    if (isLoading && data.profile == TradespersonProfileModel.empty) {
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
+    final p = data.profile;
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(4)); },
       color: colors.primaryBrand,
@@ -500,21 +502,21 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
             ),
             child: Column(
               children: [
-                CircleAvatar(radius: 36, backgroundColor: const Color(0xFFFFFFFF).withAlpha(25), child: Text((data.profile['full_name']?.toString() ?? '?')[0], style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Color(0xFFFFFFFF)))),
+                CircleAvatar(radius: 36, backgroundColor: const Color(0xFFFFFFFF).withAlpha(25), child: Text(p.fullName.isNotEmpty ? p.fullName[0] : '?', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Color(0xFFFFFFFF)))),
                 const SizedBox(height: 12),
-                Text(data.profile['full_name']?.toString() ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFFFFFFFF))),
+                Text(p.fullName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFFFFFFFF))),
                 const SizedBox(height: 4),
-                Text(data.profile['trade']?.toString() ?? 'غير محدد', style: TextStyle(fontSize: 14, color: const Color(0xFFFFFFFF).withAlpha(200))),
+                Text(p.trade ?? context.tr('tp_unspecified'), style: TextStyle(fontSize: 14, color: const Color(0xFFFFFFFF).withAlpha(200))),
               ],
             ),
           ).animate().fadeIn(duration: 500.ms),
           const SizedBox(height: 16),
-          _profileRow('سنوات الخبرة', '${data.profile['years_experience'] ?? '—'}', colors),
-          _profileRow('الأجر بالساعة', data.profile['hourly_rate'] != null ? _formatCurrency(data.profile['hourly_rate']) : '—', colors),
-          _profileRow('الأجر اليومي', data.profile['daily_rate'] != null ? _formatCurrency(data.profile['daily_rate']) : '—', colors),
-          _profileRow('نقاط الأداء', '${data.profile['dynamic_score'] ?? 0}/100', colors),
-          _profileRow('المهام المكتملة', '${data.profile['completed_jobs_count'] ?? 0}', colors),
-          _profileRow(context.tr('str_e0efcd03'), data.profile['average_rating'] != null ? '${(data.profile['average_rating'] as num).toStringAsFixed(1)} ★' : 'لا تقييمات بعد', colors),
+          _profileRow(context.tr('tp_experience_years'), '${p.yearsExperience ?? '—'}', colors),
+          _profileRow(context.tr('tp_hourly_rate'), p.hourlyRate != null ? _formatCurrency(p.hourlyRate!) : '—', colors),
+          _profileRow(context.tr('tp_daily_rate'), p.dailyRate != null ? _formatCurrency(p.dailyRate!) : '—', colors),
+          _profileRow(context.tr('tp_performance'), '${p.dynamicScore.toStringAsFixed(0)}/100', colors),
+          _profileRow(context.tr('tp_completed_jobs'), '${p.completedJobsCount}', colors),
+          _profileRow(context.tr('tp_avg_rating'), p.averageRating != null ? '${p.averageRating!.toStringAsFixed(1)} ★' : context.tr('tp_no_ratings'), colors),
         ],
       ),
     );

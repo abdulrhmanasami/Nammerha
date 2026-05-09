@@ -38,7 +38,7 @@ export const spatialProof = {
         gps_lng: number;
         gps_accuracy_meters?: number;
         description?: string;
-    }) => request('/spatial-proof', { method: 'POST', body: JSON.stringify(data) }),
+    }) => request('/spatial-proof', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
 
     getProjectPOs: (projectId: string) =>
         request(`/spatial-proof/project/${projectId}`),

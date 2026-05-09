@@ -5,7 +5,7 @@ import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
-import { statusColor, tradeColor, urgencyColor, availabilityColor as availabilityBadge } from '../utils/status-colors';
+import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { tradesperson } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { formatDate } from '../utils/locale';
@@ -28,16 +28,17 @@ initBackToTop();
 autoTriggerTour();
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Tradesperson Portal — Dashboard, Requests, Assignments, Earnings, Profile
+   Tradesperson Portal — Dashboard, Requests, Assignments, Earnings
    P2-FE-004: All API calls delegated to centralized api.ts client.
    Auth (JWT, dev-mode X-User-Id) is handled by the canonical request() wrapper.
+   PLT-AUD-R2-001 FIX: Removed dead 'profile' tab — profile moved to profile.html.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 // ─── State ──────────────────────────────────────────────────────────────────
-type TabName = 'dashboard' | 'requests' | 'assignments' | 'earnings' | 'profile';
+type TabName = 'dashboard' | 'requests' | 'assignments' | 'earnings';
 
 // LOW-AUD-001 FIX: Module-level constant instead of duplicating in setupTabs() and switchTab()
-const ALL_TABS: TabName[] = ['dashboard', 'requests', 'assignments', 'earnings', 'profile'];
+const ALL_TABS: TabName[] = ['dashboard', 'requests', 'assignments', 'earnings'];
 
 // P1-003 FIX: Hash-based tab routing
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
@@ -111,7 +112,6 @@ function switchTab(tab: TabName): void {
     if (tab === 'requests') {loadRequests();}
     if (tab === 'assignments') {loadAssignments();}
     if (tab === 'earnings') {loadEarnings();}
-    if (tab === 'profile') {loadProfile();}
 }
 
 // ─── Availability Toggle ────────────────────────────────────────────────────
@@ -169,16 +169,44 @@ function updateAvailabilityUI(status: string): void {
 // ─── KPIs ───────────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
     try {
-        const res = await tradesperson.getStats();
-        if (!res.data) {return;}
-        const s = res.data;
+        // PLT-AUD-R2-002: Concurrent stats + profile fetch for header badges.
+        // Profile was previously only loaded in the dead loadProfile() tab handler,
+        // leaving availability-badge and trade-badge stuck at "—" forever.
+        const [statsRes, profileRes] = await Promise.allSettled([
+            tradesperson.getStats(),
+            tradesperson.getProfile(),
+        ]);
 
-        setText('kpi-active', String(s.active_jobs));
-        setText('kpi-completed', String(s.completed_jobs));
-        setText('kpi-earnings', formatCents(s.total_earnings));
-        const ratingEl = document.getElementById('kpi-rating');
-        if (ratingEl) { ratingEl.innerHTML = s.average_rating ? `${s.average_rating.toFixed(1)} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '—'; }
-        setText('pending-count', String(s.pending_requests));
+        // ── Stats KPIs ──
+        if (statsRes.status === 'fulfilled' && statsRes.value.data) {
+            const s = statsRes.value.data;
+            setText('kpi-active', String(s.active_jobs));
+            setText('kpi-completed', String(s.completed_jobs));
+            setText('kpi-earnings', formatCents(s.total_earnings));
+            const ratingEl = document.getElementById('kpi-rating');
+            if (ratingEl) { ratingEl.innerHTML = s.average_rating ? `${s.average_rating.toFixed(1)} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '—'; }
+            setText('pending-count', String(s.pending_requests));
+        } else {
+            ['kpi-active', 'kpi-completed', 'kpi-earnings', 'kpi-rating'].forEach(id => setText(id, '—'));
+            if (statsRes.status === 'rejected') {
+                reportWarning('[Tradesperson] Stats load failed', { error: String(statsRes.reason) });
+            }
+        }
+
+        // ── Profile → Header Badges ──
+        if (profileRes.status === 'fulfilled' && profileRes.value.data) {
+            const p = profileRes.value.data;
+            updateAvailabilityUI(p.availability);
+            const tradeBadge = document.getElementById('trade-badge');
+            if (tradeBadge && p.trade) {
+                tradeBadge.textContent = p.trade;
+                tradeBadge.setAttribute('data-i18n', `trade_${p.trade}`);
+            } else if (tradeBadge) {
+                tradeBadge.textContent = '—';
+            }
+        } else if (profileRes.status === 'rejected') {
+            reportWarning('[Tradesperson] Profile load failed', { error: String(profileRes.reason) });
+        }
     } catch (err) {
         reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
         // W12-001 FIX: Show em-dash on KPI failure — visible error signal.
@@ -481,43 +509,9 @@ async function loadEarnings(): Promise<void> {
 }
 
 // ─── Profile ────────────────────────────────────────────────────────────────
-async function loadProfile(): Promise<void> {
-    const container = document.getElementById('profile-content');
-    if (!container) {return;}
-
-    try {
-        const res = await tradesperson.getProfile();
-        if (!res.data) {throw new Error('Profile not found');}
-        const p = res.data;
-
-        updateAvailabilityUI(p.availability);
-        // P2-FE-003 FIX: Use trade-badge element with data-i18n for locale-aware display
-        const tradeBadge = document.getElementById('trade-badge');
-        if (tradeBadge && p.trade) {
-            tradeBadge.textContent = p.trade;
-            tradeBadge.setAttribute('data-i18n', `trade_${p.trade}`);
-        } else if (tradeBadge) {
-            tradeBadge.textContent = '—';
-        }
-
-        container.innerHTML = `
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_name">Name</p><p class="font-medium mt-0.5">${esc(p.full_name)}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_primary_trade">Primary Trade</p><p class="font-medium mt-0.5">${tradeLabel(p.trade ?? '')}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_experience">Experience</p><p class="font-medium mt-0.5">${esc(String(p.years_experience ?? '—'))} ${esc(t('tp_years', 'years'))}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_hourly_rate">Hourly Rate</p><p class="font-medium mt-0.5">${p.hourly_rate ? `${formatCents(p.hourly_rate)}${esc(t('tp_per_hour', '/hr'))}` : '—'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_daily_rate">Daily Rate</p><p class="font-medium mt-0.5">${p.daily_rate ? `${formatCents(p.daily_rate)}${esc(t('tp_per_day', '/day'))}` : '—'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_dynamic_score">Dynamic Score</p><p class="font-medium mt-0.5">${esc(String(p.dynamic_score))}/100</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_jobs_completed">Jobs Completed</p><p class="font-medium mt-0.5">${esc(String(p.completed_jobs_count))}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_rating">Rating</p><p class="font-medium mt-0.5">${p.average_rating ? `${esc(String(p.average_rating))} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '<span data-i18n="tp_no_ratings">No ratings yet</span>'}</p></div>
-                <div><p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="tp_availability">Availability</p><p class="font-medium mt-0.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${availabilityBadge(p.availability)}">${esc(p.availability)}</span></p></div>
-            </div>
-        `;
-    } catch (err) {
-        reportError(err instanceof Error ? err : new Error('[Tradesperson] Profile load failed'), { component: 'tradesperson', action: 'load_profile' });
-        renderErrorWithRetry(container, loadProfile, 'failed_to_load', 'Failed to load profile');
-    }
-}
+// PLT-AUD-R2-001: loadProfile() REMOVED — dead code.
+// Profile tab was moved to profile.html (RES-002). The profile data bootstrap
+// (availability-badge + trade-badge) is now handled inside loadStats().
 
 // TICK-016: Local setText() removed — now imported from ../utils/dom (line 19).
 // Previous: Duplicate of shared utility, violating DRY principle.

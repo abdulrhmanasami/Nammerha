@@ -24,3 +24,12 @@ class RespondToApprovalEvent extends HomeownerEvent {
   @override
   List<Object?> get props => [approvalId, decision];
 }
+
+// C4 FIX: Cancel service request from mobile portal
+class CancelServiceRequestEvent extends HomeownerEvent {
+  final String requestId;
+  const CancelServiceRequestEvent(this.requestId);
+
+  @override
+  List<Object?> get props => [requestId];
+}

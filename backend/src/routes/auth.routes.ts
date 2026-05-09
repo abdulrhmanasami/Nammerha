@@ -1120,14 +1120,20 @@ router.get(
                 return;
             }
 
-            // FIX-002: Fetch all active roles (mirrors login endpoint at L361-367)
-            const rolesResult = await query<{ role_name: string }>(
-                `SELECT r.role_name FROM user_roles ur
+            // H1 FIX: Fetch all active roles AND determine primary role.
+            // Previous: activeRole was always `user.role` from the users table,
+            // which becomes stale after role switches. Now mirrors the login
+            // endpoint's primaryRole logic (L516-525) for consistency.
+            const rolesResult = await query<{ role_name: string; is_primary: boolean }>(
+                `SELECT r.role_name, ur.is_primary FROM user_roles ur
                  JOIN roles r ON r.role_id = ur.role_id
-                 WHERE ur.user_id = $1 AND ur.status = 'active'`,
+                 WHERE ur.user_id = $1 AND ur.status = 'active'
+                 ORDER BY ur.is_primary DESC, r.sort_order`,
                 [userId]
             );
             const allRoles = rolesResult.rows.map(r => r.role_name);
+            // H1 FIX: Use the primary role from user_roles, fallback to users.role
+            const primaryRole = rolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
 
             res.json({
                 success: true,
@@ -1135,7 +1141,7 @@ router.get(
                     user: {
                         ...user,
                         roles: allRoles.length > 0 ? allRoles : [user.role],
-                        activeRole: user.role,
+                        activeRole: primaryRole,
                     },
                 },
             } as ApiResponse);

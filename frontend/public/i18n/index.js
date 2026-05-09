@@ -23,7 +23,31 @@
         'fund_materials': { ar: 'تمويل المواد', de: 'Materialien finanzieren', fr: 'Financer les matériaux', tr: 'Malzemeleri Finanse Et' },
         'price_oracle': { ar: 'مؤشر الأسعار', de: 'Preisorakel', fr: 'Oracle des prix', tr: 'Fiyat Kehaneti' },
         /* DEFER-P0-003: sr-only h1 heading for SEO + screen readers */
-        'homepage_heading': { ar: 'نعمِّرها — نعيد بناء سوريا معاً', de: 'Nammerha — Syrien gemeinsam wiederaufbauen', fr: 'Nammerha — Reconstruire la Syrie ensemble', tr: 'Nammerha — Suriye\'yi Birlikte Yeniden İnşa Edelim' }
+        'homepage_heading': { ar: 'نعمِّرها — نعيد بناء سوريا معاً', de: 'Nammerha — Syrien gemeinsam wiederaufbauen', fr: 'Nammerha — Reconstruire la Syrie ensemble', tr: 'Nammerha — Suriye\'yi Birlikte Yeniden İnşa Edelim' },
+
+        // ═══ PB1: Index HTML missing keys ═══
+        'about_learn_more': { ar: 'تعرّف علينا أكثر', de: 'Mehr erfahren', fr: 'En savoir plus', tr: 'Daha fazla bilgi' },
+        'about_nammerha': { ar: 'من نحن', de: 'Über uns', fr: 'Qui sommes-nous', tr: 'Hakkımızda' },
+        'build_boq_desc': { ar: 'أنشئ جدول كميات تفصيلي', de: 'Detailliertes Leistungsverzeichnis erstellen', fr: 'Créer un DQE détaillé', tr: 'Detaylı BOQ oluşturun' },
+        'detecting_region': { ar: 'جاري كشف المنطقة...', de: 'Region wird erkannt...', fr: 'Détection de la région...', tr: 'Bölge algılanıyor...' },
+        'fund_materials_desc': { ar: 'ساهم في تمويل مواد البناء', de: 'Baustoffe finanzieren', fr: 'Financer les matériaux de construction', tr: 'İnşaat malzemelerini finanse edin' },
+        'hero_map_context': { ar: 'خريطة حية لمناطق إعادة الإعمار', de: 'Live-Karte der Wiederaufbaugebiete', fr: 'Carte en direct des zones de reconstruction', tr: 'Yeniden yapım bölgelerinin canlı haritası' },
+        'join_community': { ar: 'انضم للمجتمع', de: 'Community beitreten', fr: 'Rejoindre la communauté', tr: 'Topluluğa Katıl' },
+        'join_community_desc': { ar: 'كن جزءاً من حركة إعادة الإعمار', de: 'Werden Sie Teil der Wiederaufbaubewegung', fr: 'Faites partie du mouvement de reconstruction', tr: 'Yeniden yapım hareketinin parçası olun' },
+        'map_fallback_desc': { ar: 'يتم تحميل الخريطة...', de: 'Karte wird geladen...', fr: 'Chargement de la carte...', tr: 'Harita yükleniyor...' },
+        'map_load_failed': { ar: 'فشل تحميل الخريطة', de: 'Karte konnte nicht geladen werden', fr: 'Échec du chargement de la carte', tr: 'Harita yüklenemedi' },
+        'no_projects_yet': { ar: 'لا توجد مشاريع بعد', de: 'Noch keine Projekte', fr: 'Pas encore de projets', tr: 'Henüz proje yok' },
+        'price_oracle_desc': { ar: 'أسعار مواد البناء المحدّثة', de: 'Aktuelle Baumaterialpreise', fr: 'Prix actuels des matériaux', tr: 'Güncel inşaat malzeme fiyatları' },
+        'report_damage_desc': { ar: 'أبلغ عن أضرار في منطقتك', de: 'Schäden in Ihrer Region melden', fr: 'Signaler des dégâts dans votre zone', tr: 'Bölgenizdeki hasarları bildirin' },
+        'retry': { ar: 'إعادة المحاولة', de: 'Wiederholen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'total_impact_funded': { ar: 'إجمالي التأثير المموّل', de: 'Gesamte finanzierte Wirkung', fr: 'Impact total financé', tr: 'Toplam Finanse Edilen Etki' },
+        'transparency_body': { ar: 'كل تبرع مُتتبّع ومُوثّق بشفافية كاملة', de: 'Jede Spende wird transparent nachverfolgt und dokumentiert', fr: 'Chaque don est suivi et documenté en toute transparence', tr: 'Her bağış şeffaf şekilde izlenir ve belgelenir' },
+
+        // ═══ PB2: homepage-map.ts runtime keys ═══
+        'map_data_error': { ar: 'فشل تحميل بيانات الخريطة', de: 'Kartendaten konnten nicht geladen werden', fr: 'Échec du chargement des données de la carte', tr: 'Harita verileri yüklenemedi' },
+        'map_init_error': { ar: 'فشل تهيئة الخريطة', de: 'Karteninitialisierung fehlgeschlagen', fr: 'Échec de l\'initialisation de la carte', tr: 'Harita başlatılamadı' },
+        'map_projects_syncing': { ar: 'جاري مزامنة المشاريع...', de: 'Projekte werden synchronisiert...', fr: 'Synchronisation des projets...', tr: 'Projeler senkronize ediliyor...' },
+        'map_region_syria': { ar: 'سوريا', de: 'Syrien', fr: 'Syrie', tr: 'Suriye' }
         });
     }
 })();

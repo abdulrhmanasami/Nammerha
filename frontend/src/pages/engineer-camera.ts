@@ -192,8 +192,8 @@ function setupCapture(): void {
 
         // Visual feedback: Flash + button state
         if (cameraReady && cameraCaptured) {
-            cameraReady.classList.add('hidden');
-            cameraCaptured.classList.remove('hidden');
+            cameraReady.classList.add('nm-hidden');
+            cameraCaptured.classList.remove('nm-hidden');
 
             captureBtn.classList.add('captured');
             const iconEl = captureBtn.querySelector('.ph-camera');
@@ -205,8 +205,8 @@ function setupCapture(): void {
             if (textEl) { textEl.innerHTML = `${esc(t('cam_captured', 'Captured'))} #${captureCount} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`; }
 
             setTimeout(() => {
-                cameraReady.classList.remove('hidden');
-                cameraCaptured.classList.add('hidden');
+                cameraReady.classList.remove('nm-hidden');
+                cameraCaptured.classList.add('nm-hidden');
                 captureBtn.classList.remove('captured');
                 const icon = captureBtn.querySelector('.ph-check-circle');
                 if (icon) {
@@ -354,7 +354,7 @@ function setupVoice(): void {
         isRecording = true;
         recordingStart = Date.now();
 
-        if (voiceOverlay) { voiceOverlay.classList.remove('hidden'); }
+        if (voiceOverlay) { voiceOverlay.classList.remove('nm-hidden'); }
         if (voicePulseEl) { voicePulseEl.classList.add('voice-recording'); }
 
         recordingInterval = setInterval(() => {
@@ -372,7 +372,7 @@ function setupVoice(): void {
         isRecording = false;
 
         if (recordingInterval) { clearInterval(recordingInterval); recordingInterval = null; }
-        if (voiceOverlay) { voiceOverlay.classList.add('hidden'); }
+        if (voiceOverlay) { voiceOverlay.classList.add('nm-hidden'); }
         if (voicePulseEl) { voicePulseEl.classList.remove('voice-recording'); }
         if (voiceTimerEl) { voiceTimerEl.textContent = '00:00'; }
 

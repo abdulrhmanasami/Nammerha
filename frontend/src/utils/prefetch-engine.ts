@@ -10,7 +10,7 @@ const prefetchCache = new Set<string>();
  * Only prefetches once per URL.
  */
 export function prefetchUrl(url: string): void {
-    if (prefetchCache.has(url)) return;
+    if (prefetchCache.has(url)) {return;}
     
     // Don't prefetch if the user is on a slow network or has data saver enabled
     // @ts-expect-error navigator.connection is non-standard but heavily supported
@@ -35,10 +35,10 @@ export function initPrefetchEngine(): void {
     document.addEventListener('mouseover', (e: MouseEvent) => {
         const target = e.target as HTMLElement;
         const anchor = target.closest('a');
-        if (!anchor || !anchor.href) return;
+        if (!anchor || !anchor.href) {return;}
 
         // Skip absolute external URLs (cross-origin)
-        if (anchor.origin !== window.location.origin) return;
+        if (anchor.origin !== window.location.origin) {return;}
 
         hoverTimer = setTimeout(() => {
             prefetchUrl(anchor.href);

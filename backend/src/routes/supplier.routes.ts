@@ -62,6 +62,18 @@ router.post('/catalog', requireAttributes('supplier:manage_catalog'), async (req
             return;
         }
 
+        // F1 AUDIT FIX: Validate min_order_qty when provided (POST had 0 checks on this).
+        if (dto.min_order_qty !== undefined && (!Number.isInteger(dto.min_order_qty) || dto.min_order_qty < 1)) {
+            res.status(400).json({ success: false, error: 'min_order_qty must be a positive integer (>= 1)' } as ApiResponse);
+            return;
+        }
+
+        // F1 AUDIT FIX: Validate lead_time_days when provided.
+        if (dto.lead_time_days !== undefined && (!Number.isInteger(dto.lead_time_days) || dto.lead_time_days < 1)) {
+            res.status(400).json({ success: false, error: 'lead_time_days must be a positive integer (>= 1)' } as ApiResponse);
+            return;
+        }
+
         const item = await supplierService.addCatalogItem(getAuthUser(req).user_id, dto);
         res.status(201).json({
             success: true,
@@ -73,20 +85,60 @@ router.post('/catalog', requireAttributes('supplier:manage_catalog'), async (req
     }
 });
 
-// ─── GET /api/supplier/catalog — View My Catalog ────────────────────────────
+// ─── GET /api/supplier/catalog — View My Catalog (paginated) ────────────────
 router.get('/catalog', async (req: Request, res: Response) => {
     try {
-        const items = await supplierService.getMyCatalog(getAuthUser(req).user_id);
-        res.json({ success: true, data: items } as ApiResponse);
+        const rawLimit = parseInt(String(req.query['limit'] ?? ''), 10);
+        const rawOffset = parseInt(String(req.query['offset'] ?? ''), 10);
+        const limit = Number.isNaN(rawLimit) ? undefined : rawLimit;
+        const offset = Number.isNaN(rawOffset) ? undefined : rawOffset;
+        const search = req.query['search'] as string | undefined;
+        const result = await supplierService.getMyCatalog(getAuthUser(req).user_id, { limit, offset, search });
+        res.json({ success: true, data: result.items, meta: { total: result.total, limit: limit ?? 50, offset: offset ?? 0 } } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'Supplier.GetCatalog');
     }
 });
 
 // ─── PATCH /api/supplier/catalog/:id — Update Catalog Item ──────────────────
-router.patch('/catalog/:id', async (req: Request, res: Response) => {
+// E1 AUDIT FIX: Added field validation — was completely missing (POST had 4 checks, PATCH had 0).
+router.patch('/catalog/:id', requireAttributes('supplier:manage_catalog'), async (req: Request, res: Response) => {
     try {
         const dto = req.body as UpdateCatalogItemDTO;
+
+        // Validate unit_price_guide if provided
+        if (dto.unit_price_guide !== undefined) {
+            if (dto.unit_price_guide <= 0) {
+                res.status(400).json({ success: false, error: 'unit_price_guide must be a positive integer (cents)' } as ApiResponse);
+                return;
+            }
+            if (!Number.isInteger(dto.unit_price_guide)) {
+                res.status(400).json({ success: false, error: 'unit_price_guide must be an integer (cents)' } as ApiResponse);
+                return;
+            }
+            const MAX_UNIT_PRICE_CENTS = 100_000_000;
+            if (dto.unit_price_guide > MAX_UNIT_PRICE_CENTS) {
+                res.status(400).json({ success: false, error: `unit_price_guide exceeds maximum (${MAX_UNIT_PRICE_CENTS} cents / $1M)` } as ApiResponse);
+                return;
+            }
+        }
+
+        // Validate min_order_qty if provided
+        if (dto.min_order_qty !== undefined) {
+            if (!Number.isInteger(dto.min_order_qty) || dto.min_order_qty < 1) {
+                res.status(400).json({ success: false, error: 'min_order_qty must be a positive integer (>= 1)' } as ApiResponse);
+                return;
+            }
+        }
+
+        // Validate lead_time_days if provided
+        if (dto.lead_time_days !== undefined) {
+            if (!Number.isInteger(dto.lead_time_days) || dto.lead_time_days < 1) {
+                res.status(400).json({ success: false, error: 'lead_time_days must be a positive integer (>= 1)' } as ApiResponse);
+                return;
+            }
+        }
+
         const item = await supplierService.updateCatalogItem(
             getAuthUser(req).user_id,
             String(req.params['id']),
@@ -94,12 +146,12 @@ router.patch('/catalog/:id', async (req: Request, res: Response) => {
         );
         res.json({ success: true, data: item, message: 'Catalog item updated' } as ApiResponse);
     } catch (error) {
-        safeRouteError(res, error, 'Supplier');
+        safeRouteError(res, error, 'Supplier.UpdateCatalog');
     }
 });
 
 // ─── DELETE /api/supplier/catalog/:id — Deactivate Catalog Item ─────────────
-router.delete('/catalog/:id', async (req: Request, res: Response) => {
+router.delete('/catalog/:id', requireAttributes('supplier:manage_catalog'), async (req: Request, res: Response) => {
     try {
         await supplierService.deactivateCatalogItem(
             getAuthUser(req).user_id,
@@ -111,12 +163,29 @@ router.delete('/catalog/:id', async (req: Request, res: Response) => {
     }
 });
 
-// ─── GET /api/supplier/orders — My Purchase Orders ──────────────────────────
+// ─── POST /api/supplier/catalog/:id/reactivate — Re-enable Catalog Item ─────
+router.post('/catalog/:id/reactivate', requireAttributes('supplier:manage_catalog'), async (req: Request, res: Response) => {
+    try {
+        const item = await supplierService.reactivateCatalogItem(
+            getAuthUser(req).user_id,
+            String(req.params['id']),
+        );
+        res.json({ success: true, data: item, message: 'Catalog item reactivated' } as ApiResponse);
+    } catch (error) {
+        safeRouteError(res, error, 'Supplier.Reactivate');
+    }
+});
+
+// ─── GET /api/supplier/orders — My Purchase Orders (paginated) ──────────────
 router.get('/orders', async (req: Request, res: Response) => {
     try {
         const status = req.query['status'] as string | undefined;
-        const orders = await supplierService.getMyOrders(getAuthUser(req).user_id, status);
-        res.json({ success: true, data: orders } as ApiResponse);
+        const rawLimit = parseInt(String(req.query['limit'] ?? ''), 10);
+        const rawOffset = parseInt(String(req.query['offset'] ?? ''), 10);
+        const limit = Number.isNaN(rawLimit) ? undefined : rawLimit;
+        const offset = Number.isNaN(rawOffset) ? undefined : rawOffset;
+        const result = await supplierService.getMyOrders(getAuthUser(req).user_id, status, { limit, offset });
+        res.json({ success: true, data: result.items, meta: { total: result.total, limit: limit ?? 50, offset: offset ?? 0 } } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'Supplier.GetOrders');
     }
@@ -176,6 +245,16 @@ router.get('/stats', async (req: Request, res: Response) => {
         res.json({ success: true, data: stats } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'Supplier.GetStats');
+    }
+});
+
+// ─── GET /api/supplier/analytics — Monthly Revenue Analytics ────────────────
+router.get('/analytics', async (req: Request, res: Response) => {
+    try {
+        const data = await supplierService.getMonthlyAnalytics(getAuthUser(req).user_id);
+        res.json({ success: true, data } as ApiResponse);
+    } catch (error) {
+        safeRouteError(res, error, 'Supplier.Analytics');
     }
 });
 

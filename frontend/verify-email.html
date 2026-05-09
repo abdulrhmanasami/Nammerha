@@ -70,7 +70,7 @@
          Standard: WCAG 4.1.3 (Status Messages), parity with auth.html/reset-password.html. -->
     <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
          Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
-    <div class="px-6 mb-4 relative z-10 hidden" id="verify-banner" role="alert" aria-live="assertive">
+    <div class="px-6 mb-4 relative z-10 nm-hidden" id="verify-banner" role="alert" aria-live="assertive">
       <div class="rounded-xl p-4 text-sm font-medium flex items-start gap-3" id="verify-banner-inner">
         <i class="ph mt-0.5 text-xl" id="verify-banner-icon" aria-hidden="true"></i>
         <div>
@@ -82,7 +82,7 @@
 
     <!-- Action Buttons (shown after verification) -->
     <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
-    <div class="px-6 relative z-10 hidden" id="verify-actions">
+    <div class="px-6 relative z-10 nm-hidden" id="verify-actions">
       <a href="/auth.html" class="btn-primary w-full flex items-center justify-center gap-2" id="verify-action-btn">
         <i class="ph ph-sign-in" aria-hidden="true"></i>
         <span data-i18n="sign_in_btn">Sign In</span>
@@ -90,7 +90,7 @@
 
       <!-- FIX-07: Resend verification email — shown when token expires -->
       <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
-      <div id="verify-resend" class="mt-4 hidden">
+      <div id="verify-resend" class="mt-4 nm-hidden">
         <p class="text-xs text-slate-500 mb-2 text-center dark:text-slate-400" data-i18n="verify_resend_label">Need a new verification link?</p>
         <div class="flex gap-2">
           <!-- DEF-VERIFY-001 FIX: Added enterkeyhint, inputmode, autocomplete for mobile keyboard.
@@ -109,7 +109,7 @@
           </button>
         </div>
         <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
-        <div id="verify-resend-feedback" class="mt-2 hidden"></div>
+        <div id="verify-resend-feedback" class="mt-2 nm-hidden"></div>
       </div>
     </div>
 
@@ -153,6 +153,7 @@
 </footer>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/auth.js" defer></script>
 <!-- PLAT-M06 FIX: Added load-guard.js, theme-toggle.js, nav.js — were missing.
      Standard: Progressive Enhancement, consistency with all other pages. -->

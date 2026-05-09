@@ -40,7 +40,11 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  static const _stepLabels = ['نوع الضرر', 'الموقع', 'الصور', 'المراجعة'];
+  // C2 FIX: Step labels use i18n keys — cannot be const (runtime resolved)
+  List<String> _stepLabels(BuildContext context) => [
+    context.tr('dr_step_type'), context.tr('dr_step_location'),
+    context.tr('dr_step_photos'), context.tr('dr_step_review'),
+  ];
 
   static const _governorates = [
     'دمشق', 'ريف دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية',
@@ -75,7 +79,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('تقرير الأضرار'),
+        title: Text(context.tr('dr_title')),
         leading: BlocBuilder<DamageReportBloc, DamageReportState>(
           buildWhen: (p, c) => p.formData.currentStep != c.formData.currentStep,
           builder: (context, state) {
@@ -107,7 +111,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
 
           if (state is DamageReportSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: const Text('✅ تم تقديم طلب الإعمار بنجاح!'), backgroundColor: colors.success),
+              SnackBar(content: Text(context.tr('dr_success_msg')), backgroundColor: colors.success),
             );
             Navigator.of(context).pop(true);
           }
@@ -118,7 +122,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             children: [
               WizardStepper(
                 currentStep: data.currentStep,
-                stepLabels: _stepLabels,
+                stepLabels: _stepLabels(context),
               ),
 
               Expanded(
@@ -151,12 +155,12 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ما نوع الضرر؟',
+            context.tr('dr_what_damage'),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary),
           ),
           const SizedBox(height: 8),
           Text(
-            'اختر نوع الضرر الرئيسي في منزلك',
+            context.tr('dr_select_damage_hint'),
             style: TextStyle(fontSize: 14, color: colors.textSecondary),
           ),
           const SizedBox(height: 24),
@@ -180,7 +184,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'أين يقع العقار؟',
+            context.tr('dr_where_property'),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary),
           ),
           const SizedBox(height: 20),
@@ -209,7 +213,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          data.gpsPosition != null ? 'تم تحديد الموقع ✓' : 'تحديد الموقع تلقائياً',
+                          data.gpsPosition != null ? context.tr('dr_location_detected') : context.tr('dr_detect_location'),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -233,7 +237,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           DropdownButtonFormField<String>(
             initialValue: data.governorate.isNotEmpty ? data.governorate : null,
             decoration: InputDecoration(
-              labelText: 'المحافظة *',
+              labelText: '${context.tr('dr_governorate')} *',
               filled: true,
               fillColor: colors.surfaceElevated,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
@@ -252,7 +256,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             },
             decoration: InputDecoration(
               labelText: context.tr('str_c9256712'),
-              hintText: 'مثال: المزة، الشعلان',
+              hintText: context.tr('dr_neighborhood_hint'),
               filled: true,
               fillColor: colors.surfaceElevated,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
@@ -264,8 +268,8 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             controller: _addressController,
             onChanged: (_) => _updateTextData(context, data),
             decoration: InputDecoration(
-              labelText: 'العنوان التفصيلي (اختياري)',
-              hintText: 'شارع، بناء، طابق',
+              labelText: context.tr('dr_address_detail'),
+              hintText: context.tr('dr_address_hint'),
               filled: true,
               fillColor: colors.surfaceElevated,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
@@ -285,12 +289,12 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'صوّر الأضرار',
+            context.tr('dr_capture_photos'),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary),
           ),
           const SizedBox(height: 8),
           Text(
-            'التقط صوراً واضحة للأضرار من زوايا مختلفة',
+            context.tr('dr_capture_hint'),
             style: TextStyle(fontSize: 14, color: colors.textSecondary),
           ),
           const SizedBox(height: 24),
@@ -320,7 +324,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'مراجعة وإرسال',
+            context.tr('dr_review_submit'),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary),
           ),
           const SizedBox(height: 20),
@@ -334,11 +338,11 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             ),
             child: Column(
               children: [
-                _reviewRow('نوع الضرر', damageLabel, colors),
+                _reviewRow(context.tr('dr_damage_type'), damageLabel, colors),
                 _reviewRow(context.tr('str_d5113593'), data.governorate, colors),
                 if (data.neighborhood.isNotEmpty)
                   _reviewRow(context.tr('str_c9256712'), data.neighborhood, colors),
-                _reviewRow(context.tr('str_5ed92505'), '${data.photos.length} صور', colors),
+                _reviewRow(context.tr('str_5ed92505'), '${data.photos.length} ${context.tr('dr_photos')}', colors),
                 if (data.gpsPosition != null)
                   _reviewRow(
                     context.tr('str_3cf6c7a4'),
@@ -355,8 +359,8 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             maxLines: 4,
             onChanged: (_) => _updateTextData(context, data),
             decoration: InputDecoration(
-              labelText: 'وصف الأضرار *',
-              hintText: 'اشرح طبيعة الأضرار بالتفصيل...',
+              labelText: '${context.tr('dr_damage_desc')} *',
+              hintText: context.tr('dr_damage_desc_hint'),
               filled: true,
               fillColor: colors.surfaceElevated,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
@@ -405,7 +409,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
       child: SafeArea(
         child: data.currentStep == 3
             ? GradientButton(
-                label: loadingMessage ?? 'تقديم طلب الإعمار',
+                label: loadingMessage ?? context.tr('dr_submit_btn'),
                 icon: Icons.send_rounded,
                 isLoading: isLoading,
                 onPressed: data.canProceed && !isLoading ? () => context.read<DamageReportBloc>().add(SubmitReportEvent()) : null,

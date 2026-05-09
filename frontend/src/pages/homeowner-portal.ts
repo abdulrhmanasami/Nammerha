@@ -134,10 +134,10 @@ function setupToggleDetails(): void {
         // MED-008 FIX: Light haptic on toggle — item selection feedback.
         haptic.light();
         if (isExpanded) {
-            wrap.classList.remove('hidden');
+            wrap.classList.remove('nm-hidden');
             btn.innerHTML = '<i class="ph ph-minus-circle" aria-hidden="true"></i> <span data-i18n="ho_fewer_details">Fewer Details</span>';
         } else {
-            wrap.classList.add('hidden');
+            wrap.classList.add('nm-hidden');
             btn.innerHTML = originalBtnHTML;
         }
         // FRC-N06 FIX: Re-translate the newly injected data-i18n spans
@@ -313,7 +313,7 @@ async function loadProjects(): Promise<void> {
 
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
                     <div class="flex items-center gap-2">
-                        <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="th_bids">Bids</span>
+                        <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="ho_bids">Bids</span>
                         <span class="text-trust-blue font-bold text-xs">${esc(String(p.bid_count))}</span>
                     </div>
                 </div>
@@ -365,7 +365,9 @@ function setupServiceRequestForm(): void {
                 title,
                 description: desc || undefined,
                 address_text: address || undefined,
-                urgency: (urgency || 'low') as 'low' | 'medium' | 'high' | 'emergency',
+                // PLT-HO-001 FIX: Aligned with DB request_urgency enum.
+                // Previous: 'low' | 'medium' | 'high' — rejected by PostgreSQL.
+                urgency: (urgency || 'routine') as 'routine' | 'urgent' | 'emergency',
                 budget_max: budget ? parseInt(budget, 10) * 100 : undefined,
             });
 
@@ -428,8 +430,8 @@ async function loadServiceRequests(): Promise<void> {
                 
                 <div class="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-dark-border">
                     <div>
-                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="th_matched_to">Matched To</p>
-                        <p class="text-xs font-medium text-slate-700 dark:text-slate-300">—</p>
+                        <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="ho_matched_to">Matched To</p>
+                        <p class="text-xs font-medium text-slate-700 dark:text-slate-300">${esc(r.tradesperson_name ?? '—')}</p>
                     </div>
                     <div>
                         ${['open', 'matched'].includes(r.status) ? `

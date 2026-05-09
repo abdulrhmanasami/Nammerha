@@ -63,12 +63,12 @@ class _ComplianceDashboardView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('لوحة الامتثال'),
+        title: Text(context.tr('co_dashboard_title')),
         actions: [
           IconButton(
             icon: Icon(Icons.shield_rounded, color: colors.primaryBrand),
             onPressed: () => context.read<ComplianceBloc>().add(RunSdnCheckEvent()),
-            tooltip: 'فحص العقوبات SDN',
+            tooltip: context.tr('co_sdn_check'),
           ),
         ],
       ),
@@ -99,12 +99,12 @@ class _ComplianceDashboardView extends StatelessWidget {
                 children: [
                   Icon(Icons.error_outline, size: 64, color: colors.error),
                   const SizedBox(height: 16),
-                  Text('فشل تحميل بيانات الامتثال',
+                  Text(context.tr('co_load_error'),
                       style: TextStyle(color: colors.textPrimary, fontSize: 16)),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => context.read<ComplianceBloc>().add(LoadComplianceDashboard()),
-                    child: const Text('إعادة المحاولة'),
+                    child: Text(context.tr('ct_retry')),
                   ),
                 ],
               ),
@@ -122,11 +122,11 @@ class _ComplianceDashboardView extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // ─── Section 1: KPIs ──────────────────────────
-                  _buildKpiSection(dashboard.stats, colors),
+                  _buildKpiSection(context, dashboard.stats, colors),
                   const SizedBox(height: 20),
 
                   // ─── Section 2: OCDS Metrics ──────────────────
-                  _buildMetricsSection(dashboard.stats, colors),
+                  _buildMetricsSection(context, dashboard.stats, colors),
                   const SizedBox(height: 20),
 
                   // ─── Section 3: Escrow Review Queue ───────────
@@ -144,23 +144,23 @@ class _ComplianceDashboardView extends StatelessWidget {
 
   // ─── Section 1: KPIs ──────────────────────────────────────────────────
 
-  Widget _buildKpiSection(ComplianceStatsModel stats, SemanticColors colors) {
+  Widget _buildKpiSection(BuildContext context, ComplianceStatsModel stats, SemanticColors colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('نظرة عامة',
+        Text(context.tr('co_overview'),
             style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const SizedBox(height: 12),
         Row(
           children: [
-            _kpiCard('إجمالي المدقق', '${stats.totalAudited}', colors.primaryBrand, colors),
+            _kpiCard(context.tr('co_total_audited'), '${stats.totalAudited}', colors.primaryBrand, colors),
             const SizedBox(width: 8),
-            _kpiCard('مراجعات معلقة', '${stats.pendingReviews}', colors.warning, colors),
+            _kpiCard(context.tr('co_pending_reviews'), '${stats.pendingReviews}', colors.warning, colors),
             const SizedBox(width: 8),
-            _kpiCard('مشاكل', '${stats.flaggedIssues}', colors.error, colors),
+            _kpiCard(context.tr('co_flagged'), '${stats.flaggedIssues}', colors.error, colors),
             const SizedBox(width: 8),
-            _kpiCard('تم حلها', '${stats.resolvedThisMonth}', colors.success, colors),
+            _kpiCard(context.tr('co_resolved'), '${stats.resolvedThisMonth}', colors.success, colors),
           ],
         ).animate().fadeIn(duration: 400.ms),
       ],
@@ -195,7 +195,7 @@ class _ComplianceDashboardView extends StatelessWidget {
 
   // ─── Section 2: OCDS Compliance Metrics ───────────────────────────────
 
-  Widget _buildMetricsSection(ComplianceStatsModel stats, SemanticColors colors) {
+  Widget _buildMetricsSection(BuildContext context, ComplianceStatsModel stats, SemanticColors colors) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -210,7 +210,7 @@ class _ComplianceDashboardView extends StatelessWidget {
             children: [
               Icon(Icons.verified_rounded, size: 20, color: colors.primaryBrand),
               const SizedBox(width: 8),
-              Text('مقاييس OCDS',
+              Text(context.tr('co_ocds_metrics'),
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             ],
@@ -219,7 +219,7 @@ class _ComplianceDashboardView extends StatelessWidget {
 
           // Compliance Rate Bar
           _metricBar(
-            label: 'معدل الامتثال',
+            label: context.tr('co_compliance_rate'),
             value: stats.complianceRate,
             color: stats.complianceRate >= 90
                 ? colors.success
@@ -232,7 +232,7 @@ class _ComplianceDashboardView extends StatelessWidget {
 
           // Spatial Accuracy Bar
           _metricBar(
-            label: 'دقة الإثبات المكاني',
+            label: context.tr('co_spatial_accuracy'),
             value: stats.spatialAccuracy,
             color: stats.spatialAccuracy >= 90
                 ? colors.success
@@ -287,7 +287,7 @@ class _ComplianceDashboardView extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('طابور مراجعة الضمان',
+            Text(context.tr('co_escrow_queue'),
                 style: TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(width: 8),
@@ -303,7 +303,7 @@ class _ComplianceDashboardView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (reviews.isEmpty)
-          _emptyState(colors)
+          _emptyState(context, colors)
         else
           ...reviews.asMap().entries.map(
               (e) => _reviewCard(context, e.value, colors, e.key)),
@@ -429,7 +429,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                       context.read<ComplianceBloc>().add(ApproveEscrowReview(review.reference));
                     },
                     icon: const Icon(Icons.check_circle_rounded, size: 16),
-                    label: const Text('موافقة'),
+                    label: Text(context.tr('co_approve')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.success,
                       foregroundColor: Colors.white,
@@ -445,7 +445,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                       context.read<ComplianceBloc>().add(FlagEscrowReview(review.reference));
                     },
                     icon: const Icon(Icons.flag_rounded, size: 16),
-                    label: const Text('إبلاغ'),
+                    label: Text(context.tr('co_flag')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colors.error,
                       side: BorderSide(color: colors.error),
@@ -462,7 +462,7 @@ class _ComplianceDashboardView extends StatelessWidget {
     ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  Widget _emptyState(SemanticColors colors) {
+  Widget _emptyState(BuildContext context, SemanticColors colors) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -471,14 +471,14 @@ class _ComplianceDashboardView extends StatelessWidget {
           children: [
             Icon(Icons.verified_rounded, size: 56, color: colors.success.withAlpha(100)),
             const SizedBox(height: 16),
-            Text('لا توجد مراجعات معلقة',
+            Text(context.tr('co_no_pending'),
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: colors.textPrimary),
                 textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            Text('جميع تحريرات الضمان تمت مراجعتها',
+            Text(context.tr('co_all_reviewed'),
                 style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 textAlign: TextAlign.center),
           ],

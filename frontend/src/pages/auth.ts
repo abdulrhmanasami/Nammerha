@@ -1,5 +1,6 @@
 import '../styles/main.css';
 import { auth } from '../api';
+import { reportWarning } from '../error-reporter';
 import { t } from '../utils/i18n';
 import { escapeHtml as esc } from '../utils/xss';
 import { showStructuredBanner, hideStructuredBanner, type StructuredBannerElements } from '../utils/banner';
@@ -28,6 +29,26 @@ const state: AuthState = {
     mode: 'login',
     isSubmitting: false,
 };
+
+// ─── DRY-001: Single Source of Truth Constants ────────────────────────────────
+// C1 FIX: ROLE_DASHBOARD was duplicated in email login (L663) and social login
+// (L916) handlers — adding/changing a role required editing two identical maps.
+// Now a single module-level constant governs all post-login redirects.
+const ROLE_DASHBOARD: Readonly<Record<string, string>> = {
+    homeowner: '/homeowner-portal.html',
+    donor: '/donor-portal.html',
+    contractor: '/contractor-portal.html',
+    supplier: '/supplier-dashboard.html',
+    tradesperson: '/tradesperson-portal.html',
+    engineer: '/engineer-camera.html',
+    admin: '/admin-dashboard.html',
+    auditor: '/compliance-dashboard.html',
+};
+
+// H2 FIX: Mirror backend SEC-003 — bcrypt truncates at 72 bytes but still
+// processes the full input. Without this check, a 1MB password from the
+// frontend would cause CPU starvation on the backend.
+const MAX_PASSWORD_LENGTH = 128;
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const tabLogin = document.getElementById('tab-login') as HTMLButtonElement | null;
@@ -230,7 +251,7 @@ function goToRegStep(targetStep: number): void {
         if (reviewPwStrength && strengthLabel) {
             const strengthText = strengthLabel.textContent?.trim() ?? '';
             if (strengthText) {
-                reviewPwStrength.classList.remove('hidden');
+                reviewPwStrength.classList.remove('nm-hidden');
             }
         }
     }
@@ -282,6 +303,14 @@ function validateCurrentStep(): boolean {
         const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
         if (pw.length < 8) {
             showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
+            document.getElementById('reg-password')?.focus();
+            return false;
+        }
+        // H2 FIX: Max length check — mirrors backend SEC-003 (bcrypt DoS prevention).
+        // Without this gate, a user could submit a 1MB password that passes all other
+        // checks but causes CPU starvation during bcrypt hashing on the server.
+        if (pw.length > MAX_PASSWORD_LENGTH) {
+            showBanner('error', t('auth_password_too_long', `Password must not exceed ${MAX_PASSWORD_LENGTH} characters.`));
             document.getElementById('reg-password')?.focus();
             return false;
         }
@@ -500,7 +529,7 @@ function updateRegisterButton(): void {
     // FRC-002: Show/hide real-time mismatch error
     const mismatchEl = document.getElementById('pw-mismatch-error');
     if (mismatchEl && confirmPw.length > 0) {
-        mismatchEl.classList.toggle('hidden', password === confirmPw);
+        mismatchEl.classList.toggle('nm-hidden', password === confirmPw);
     }
 }
 
@@ -566,6 +595,14 @@ function validateRegisterForm(): boolean {
         return false;
     }
 
+    // H2 FIX: Max length check — mirrors backend SEC-003.
+    if (password.length > MAX_PASSWORD_LENGTH) {
+        goToRegStep(2);
+        showBanner('error', t('auth_password_too_long', `Password must not exceed ${MAX_PASSWORD_LENGTH} characters.`));
+        passwordInput?.focus();
+        return false;
+    }
+
     // Check password complexity
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
         goToRegStep(2); // PLAT-C01: Navigate to failing step
@@ -591,13 +628,13 @@ function validateRegisterForm(): boolean {
     const termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
     if (!termsCheckbox?.checked) {
         const termsError = document.getElementById('reg-terms-error');
-        if (termsError) { termsError.classList.remove('hidden'); }
+        if (termsError) { termsError.classList.remove('nm-hidden'); }
         showBanner('error', t('auth_terms_required', 'Please accept the Terms and Privacy Policy.'));
         return false;
     }
     // P0-UXA-004: Hide terms error if it was previously shown
     const termsErrorEl = document.getElementById('reg-terms-error');
-    if (termsErrorEl) { termsErrorEl.classList.add('hidden'); }
+    if (termsErrorEl) { termsErrorEl.classList.add('nm-hidden'); }
 
     return true;
 }
@@ -636,68 +673,13 @@ formLogin?.addEventListener('submit', async (e) => {
     try {
         const response = await auth.login({ email, password, remember: (document.getElementById('remember-me') as HTMLInputElement)?.checked ?? false });
         if (response.success && response.data) {
-            // V1-AUDIT FIX: JWT is now in httpOnly cookie set by backend.
-            // Only store non-sensitive user profile data for UI rendering.
-            const userData = response.data.user as {
-                user_id: string;
-                full_name: string;
-                role: string;
-                roles?: string[];
-                activeRole?: string;
-                email: string;
-                is_active: boolean;
-            };
-            const { setCurrentUser } = await import('../auth');
-            const userRole = userData.role as import('../auth').UserRole;
-            setCurrentUser({
-                user_id: userData.user_id,
-                full_name: userData.full_name,
-                role: userRole,
-                roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
-                activeRole: (userData.activeRole ?? userData.role) as import('../auth').UserRole,
-                email: userData.email,
-                kyc_verified: userData.is_active,
-            });
-            showBanner('success', t('auth_welcome_back', 'Welcome back! Redirecting...'));
-            // GAP-008 FIX: Role-based redirect — each role goes to their dashboard
-            const ROLE_DASHBOARD: Record<string, string> = {
-                homeowner: '/homeowner-portal.html',
-                donor: '/donor-portal.html',
-                contractor: '/contractor-portal.html',
-                supplier: '/supplier-dashboard.html',
-                tradesperson: '/tradesperson-portal.html',
-                engineer: '/engineer-camera.html',
-                admin: '/admin-dashboard.html',
-                auditor: '/compliance-dashboard.html',
-            };
-            const activeRole = userData.activeRole ?? userData.role;
-            const target = ROLE_DASHBOARD[activeRole] ?? '/';
-
-            // BLOCKER-2 FIX: Respect ?redirect= query param from auth guard.
-            // When requireAuth() bounces a user to /auth.html?redirect=/original-page,
-            // successful login should return them to that page, not the generic dashboard.
-            const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-            let finalTarget = redirectParam
-                ? decodeURIComponent(redirectParam)
-                : target;
-
-            // Security: Only allow relative paths (prevent open redirect vulnerability)
-            if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
-                finalTarget = target;
-            }
-
-            // GAP-002 FIX: Detect first login after registration → append onboarding param.
-            // Each portal reads ?onboarding=1 to trigger its guided tour.
-            try {
-                if (localStorage.getItem('nmh_onboarding_pending') === '1') {
-                    localStorage.removeItem('nmh_onboarding_pending');
-                    finalTarget += (finalTarget.includes('?') ? '&' : '?') + 'onboarding=1';
-                }
-            } catch { /* Safari private mode */ }
-
-            setTimeout(() => {
-                window.location.href = finalTarget;
-            }, 800);
+            // C2 FIX: Use shared handleLoginRedirect — single source of truth
+            // for user context setting, role-based routing, redirect params,
+            // and onboarding detection. Previously duplicated across email + social login.
+            await handleLoginRedirect(
+                response.data.user as Record<string, unknown>,
+                t('auth_welcome_back', 'Welcome back! Redirecting...'),
+            );
         } else {
             showBanner('error', response.error ?? t('auth_login_failed', 'Invalid credentials. Please try again.'));
         }
@@ -718,7 +700,7 @@ const _termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement 
 _termsCheckbox?.addEventListener('change', () => {
     const termsErr = document.getElementById('reg-terms-error');
     if (_termsCheckbox.checked && termsErr) {
-        termsErr.classList.add('hidden');
+        termsErr.classList.add('nm-hidden');
     }
 });
 
@@ -788,7 +770,7 @@ formRegister?.addEventListener('submit', async (e) => {
                     loginEmail.value = email;
                     loginEmail.focus();
                 }
-            }, 2000);
+            }, 1200); // M4 FIX: Reduced from 2000ms → 1200ms (MD3 transition standard)
         } else {
             showBanner('error', response.error ?? t('auth_reg_failed', 'Registration failed. Please try again.'));
         }
@@ -875,20 +857,18 @@ forgotBtn?.addEventListener('click', async (e) => {
 // Backend verifies server-side and returns JWT + user (same as email login).
 // ──────────────────────────────────────────────────────────────────────────────
 
-/**
- * Shared handler: after POST /api/auth/social returns successfully,
- * set user context and redirect — identical to email login success path.
- */
-async function handleSocialLoginSuccess(
-    response: { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-    provider: string,
+// ─── C2 FIX: Shared Post-Login Redirect Handler ─────────────────────────────
+// DRY-001: Previously, the entire user context setting + role-based routing +
+// redirect param handling + onboarding detection was duplicated across:
+//   - Email login success (40 lines)
+//   - Social login success (40 lines)
+// Now a single function governs all post-authentication redirects.
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleLoginRedirect(
+    rawUserData: Record<string, unknown>,
+    successMessage: string,
 ): Promise<void> {
-    if (!response.success || !response.data?.user) {
-        showBanner('error', response.error ?? t('auth_login_failed', 'Authentication failed. Please try again.'));
-        return;
-    }
-
-    const userData = response.data.user as {
+    const userData = rawUserData as {
         user_id: string;
         full_name: string;
         role: string;
@@ -910,28 +890,24 @@ async function handleSocialLoginSuccess(
         kyc_verified: userData.is_active,
     });
 
-    showBanner('success', t('auth_welcome_social', `Welcome! Signed in with ${provider}. Redirecting...`));
+    showBanner('success', successMessage);
 
-    // Same role-based redirect as email login
-    const ROLE_DASHBOARD: Record<string, string> = {
-        homeowner: '/homeowner-portal.html',
-        donor: '/donor-portal.html',
-        contractor: '/contractor-portal.html',
-        supplier: '/supplier-dashboard.html',
-        tradesperson: '/tradesperson-portal.html',
-        engineer: '/engineer-camera.html',
-        admin: '/admin-dashboard.html',
-        auditor: '/compliance-dashboard.html',
-    };
+    // C1 FIX: Uses module-level ROLE_DASHBOARD constant — single source of truth.
     const activeRole = userData.activeRole ?? userData.role;
     const target = ROLE_DASHBOARD[activeRole] ?? '/';
 
+    // BLOCKER-2 FIX: Respect ?redirect= query param from auth guard.
     const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-    let finalTarget = redirectParam ? decodeURIComponent(redirectParam) : target;
+    let finalTarget = redirectParam
+        ? decodeURIComponent(redirectParam)
+        : target;
+
+    // Security: Only allow relative paths (prevent open redirect vulnerability)
     if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
         finalTarget = target;
     }
 
+    // GAP-002 FIX: Detect first login after registration → append onboarding param.
     try {
         if (localStorage.getItem('nmh_onboarding_pending') === '1') {
             localStorage.removeItem('nmh_onboarding_pending');
@@ -940,6 +916,26 @@ async function handleSocialLoginSuccess(
     } catch { /* Safari private mode */ }
 
     setTimeout(() => { window.location.href = finalTarget; }, 800);
+}
+
+/**
+ * Shared handler: after POST /api/auth/social returns successfully,
+ * set user context and redirect via the shared handleLoginRedirect.
+ * C2 FIX: No longer duplicates the entire redirect logic.
+ */
+async function handleSocialLoginSuccess(
+    response: { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+    provider: string,
+): Promise<void> {
+    if (!response.success || !response.data?.user) {
+        showBanner('error', response.error ?? t('auth_login_failed', 'Authentication failed. Please try again.'));
+        return;
+    }
+
+    await handleLoginRedirect(
+        response.data.user,
+        t('auth_welcome_social', `Welcome! Signed in with ${provider}. Redirecting...`),
+    );
 }
 
 /**
@@ -978,12 +974,12 @@ declare const google: {
 function initGoogleSignIn(): void {
     const googleClientId = (window as unknown as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as string | undefined;
     if (!googleClientId) {
-        console.info('[OAuth] Google Client ID not configured.');
+        reportWarning('[OAuth] Google Client ID not configured.', { component: 'auth', action: 'init_google' });
     }
 
     document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="google"]').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (state.isSubmitting) return;
+            if (state.isSubmitting) {return;}
             haptic.light();
 
             // PLATINUM-001: Clean two-strategy flow (dead renderButton hack removed).
@@ -1150,7 +1146,7 @@ function openGoogleOAuthPopup(clientId: string): void {
 function initAppleSignIn(): void {
     document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="apple"]').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (state.isSubmitting) return;
+            if (state.isSubmitting) {return;}
             haptic.light();
             setSocialBtnLoading(btn, true);
 
@@ -1168,7 +1164,7 @@ function initAppleSignIn(): void {
                     for (let i = 0; i < 10; i++) {
                         await new Promise(r => setTimeout(r, 200));
                         AppleID = (window as unknown as Record<string, unknown>).AppleID as typeof AppleID;
-                        if (AppleID?.auth) break;
+                        if (AppleID?.auth) {break;}
                     }
                 }
 
@@ -1225,7 +1221,7 @@ function initAppleSignIn(): void {
 // Initialize Facebook SDK
 (function initFBSDK() {
     const fbAppId = (window as unknown as Record<string, unknown>).__FACEBOOK_APP_ID__ as string | undefined;
-    if (!fbAppId) return;
+    if (!fbAppId) {return;}
 
     // fbAsyncInit is called by the Facebook SDK when it finishes loading
     (window as unknown as Record<string, unknown>).fbAsyncInit = function() {
@@ -1257,7 +1253,7 @@ function initAppleSignIn(): void {
 function initFacebookLogin(): void {
     document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="facebook"]').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (state.isSubmitting) return;
+            if (state.isSubmitting) {return;}
             haptic.light();
             setSocialBtnLoading(btn, true);
 
@@ -1272,7 +1268,7 @@ function initFacebookLogin(): void {
                     for (let i = 0; i < 10; i++) {
                         await new Promise(r => setTimeout(r, 200));
                         FB = (window as unknown as Record<string, unknown>).FB as typeof FB;
-                        if (FB?.login) break;
+                        if (FB?.login) {break;}
                     }
                 }
 

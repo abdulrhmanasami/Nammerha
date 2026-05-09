@@ -123,9 +123,23 @@ class DashboardHomeBloc extends Bloc<DashboardHomeEvent, DashboardHomeState> {
       case 'SUPPLIER':
         return SupplierApi().getStats();
       case 'HOMEOWNER':
-        return HomeownerApi().getStats();
+        return HomeownerApi().getStats().then((s) => <String, dynamic>{
+          'active_projects': s.activeProjects,
+          'completed_projects': s.completedProjects,
+          'pending_approvals': s.pendingApprovals,
+          'active_service_requests': s.activeServiceRequests,
+          'total_invested': s.totalInvested,
+          'total_bids_received': s.totalBidsReceived,
+        });
       default:
-        return DonorApi().getStats();
+        return DonorApi().getStats().then((s) => <String, dynamic>{
+          'totalDonated': s.totalDonated,
+          'projectsSupported': s.projectsSupported,
+          'itemsFunded': s.itemsFunded,
+          'escrowLocked': s.escrowLocked,
+          'escrowReleased': s.escrowReleased,
+          'impactScore': s.impactScore,
+        });
     }
   }
 

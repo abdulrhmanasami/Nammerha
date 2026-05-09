@@ -121,7 +121,7 @@
     <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
          banner.ts now uses classList.add/remove('hidden') for show/hide.
          Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
-    <div class="px-6 mb-4 relative z-10 hidden" id="auth-banner" role="alert" aria-live="assertive">
+    <div class="px-6 mb-4 relative z-10 nm-hidden" id="auth-banner" role="alert" aria-live="assertive">
       <div class="rounded-xl p-3 text-sm font-medium flex items-center gap-2" id="auth-banner-inner">
         <i class="ph" id="auth-banner-icon" aria-hidden="true"></i>
         <span id="auth-banner-text"></span>
@@ -377,7 +377,7 @@
                At 10px on 375px mobile at 2x DPI, error text was ~5pt physical — below readable threshold.
                Errors must be the ONE thing that is clearly readable.
                Standard: Mobile Typography, WCAG 1.4.4 (Resize Text). -->
-          <p class="text-xs text-red-500 mt-1 hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>
+          <p class="text-xs text-red-500 mt-1 nm-hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>
         </div>
         <!-- Navigation -->
         <div class="flex gap-3">
@@ -423,7 +423,7 @@
                    Previous: Only name + email shown — no confirmation that password met requirements.
                    Reduces user anxiety about password acceptance at final step.
                    Standard: Nielsen #1 (System Status Visibility), Material Design 3. -->
-              <p id="reg-review-pw-strength" class="text-xs text-smoky-jade font-semibold mt-0.5 hidden dark:text-emerald-400">
+              <p id="reg-review-pw-strength" class="text-xs text-smoky-jade font-semibold mt-0.5 nm-hidden dark:text-emerald-400">
                 <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                 <span data-i18n="pw_strength_strong">Strong</span> ✓
               </p>
@@ -445,7 +445,7 @@
         </div>
         <!-- GAP-2026-B07 FIX: Custom validation error -->
         <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs to text-xs for readability -->
-        <p id="reg-terms-error" class="text-xs text-red-500 font-semibold mt-1 hidden" role="alert" data-i18n="auth_terms_required">Please accept the Terms and Privacy Policy to continue.</p>
+        <p id="reg-terms-error" class="text-xs text-red-500 font-semibold mt-1 nm-hidden" role="alert" data-i18n="auth_terms_required">Please accept the Terms and Privacy Policy to continue.</p>
 
         <!-- Navigation -->
         <div class="flex gap-3 mt-4">
@@ -513,6 +513,7 @@
 
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/auth.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

@@ -40,3 +40,24 @@ class SupplierActionSuccess extends SupplierState {
   @override
   List<Object?> get props => [message];
 }
+
+/// W4 FEATURE: Analytics chart data loaded.
+class SupplierAnalyticsLoaded extends SupplierState {
+  final List<MonthlyRevenuePoint> analytics;
+
+  const SupplierAnalyticsLoaded(this.analytics);
+
+  @override
+  List<Object?> get props => [analytics];
+}
+
+/// W4 FEATURE: Analytics load failed — contained within the analytics tab
+/// so it doesn't replace the loaded dashboard.
+class SupplierAnalyticsError extends SupplierState {
+  final String message;
+
+  const SupplierAnalyticsError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

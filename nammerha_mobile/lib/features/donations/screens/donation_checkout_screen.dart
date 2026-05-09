@@ -10,7 +10,7 @@ import '../bloc/donation_form_cubit.dart';
 /// DonationCheckoutScreen — Platinum Standard (Absolute Zero setState)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BlocProvider MUST be an ancestor of the StatefulWidget so that
-/// context.read<DonationFormCubit>() resolves correctly in async methods.
+/// `context.read<DonationFormCubit>()` resolves correctly in async methods.
 /// ═══════════════════════════════════════════════════════════════════════════
 
 class DonationCheckoutScreen extends StatelessWidget {

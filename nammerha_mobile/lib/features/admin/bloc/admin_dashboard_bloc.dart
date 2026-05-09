@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../api/admin_api.dart';
@@ -136,7 +137,7 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
   void _logError(String endpoint, Object error) {
     assert(() {
       // ignore: avoid_print
-      print('[AdminDashboardBloc] $endpoint failed: $error');
+      debugPrint('[AdminDashboardBloc] $endpoint failed: $error');
       return true;
     }());
   }

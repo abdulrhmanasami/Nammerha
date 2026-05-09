@@ -137,7 +137,27 @@
         'reset_timeout': { ar: 'انقطع الاتصال', de: 'Zeitüberschreitung', fr: 'Délai expiré', tr: 'Zaman aşımı' },
         'reset_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
         'reset_password_mismatch': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' },
-        'reset_password_weak': { ar: 'كلمة المرور ضعيفة جداً', de: 'Passwort zu schwach', fr: 'Mot de passe trop faible', tr: 'Şifre çok zayıf' }
+        'reset_password_weak': { ar: 'كلمة المرور ضعيفة جداً', de: 'Passwort zu schwach', fr: 'Mot de passe trop faible', tr: 'Şifre çok zayıf' },
+
+        // ═══ AF2: Social SSO button labels (auth.html) ═══
+        'auth_google': { ar: 'Google', de: 'Google', fr: 'Google', tr: 'Google' },
+        'auth_apple': { ar: 'Apple', de: 'Apple', fr: 'Apple', tr: 'Apple' },
+        'auth_facebook': { ar: 'Facebook', de: 'Facebook', fr: 'Facebook', tr: 'Facebook' },
+        'auth_or_continue_with': { ar: 'أو تابع بحساب', de: 'Oder weiter mit', fr: 'Ou continuer avec', tr: 'Veya şununla devam et' },
+        'auth_or_email': { ar: 'أو بالبريد الإلكتروني', de: 'Oder per E-Mail', fr: 'Ou par e-mail', tr: 'Veya e-posta ile' },
+
+        // ═══ AF3: auth.ts SSO error keys ═══
+        'auth_google_popup_blocked': { ar: 'نافذة Google المنبثقة محظورة', de: 'Google-Popup blockiert', fr: 'Popup Google bloqué', tr: 'Google açılır penceresi engellendi' },
+        'auth_apple_not_configured': { ar: 'تسجيل Apple غير مهيأ بعد', de: 'Apple-Login noch nicht konfiguriert', fr: 'Connexion Apple pas encore configurée', tr: 'Apple giriş henüz yapılandırılmadı' },
+        'auth_facebook_not_configured': { ar: 'تسجيل Facebook غير مهيأ بعد', de: 'Facebook-Login noch nicht konfiguriert', fr: 'Connexion Facebook pas encore configurée', tr: 'Facebook giriş henüz yapılandırılmadı' },
+        'auth_sso_unavailable': { ar: 'تسجيل الدخول الاجتماعي غير متاح حالياً', de: 'Social Login derzeit nicht verfügbar', fr: 'Connexion sociale actuellement indisponible', tr: 'Sosyal giriş şu anda kullanılamıyor' },
+        'auth_csrf_error': { ar: 'خطأ أمني — يرجى تحديث الصفحة', de: 'Sicherheitsfehler — bitte Seite neu laden', fr: 'Erreur de sécurité — veuillez recharger', tr: 'Güvenlik hatası — sayfayı yenileyin' },
+        'auth_password_too_long': { ar: 'كلمة المرور طويلة جداً (الحد ١٢٨)', de: 'Passwort zu lang (max. 128)', fr: 'Mot de passe trop long (max 128)', tr: 'Şifre çok uzun (maks 128)' },
+        'auth_welcome_social': { ar: 'مرحباً! تم تسجيل دخولك', de: 'Willkommen! Sie sind angemeldet', fr: 'Bienvenue ! Vous êtes connecté', tr: 'Hoş geldiniz! Giriş yapıldı' },
+
+        // ═══ AF4: verify-email.html labels ═══
+        'verify_resend_btn': { ar: 'إعادة إرسال رابط التحقق', de: 'Verifizierungslink erneut senden', fr: 'Renvoyer le lien de vérification', tr: 'Doğrulama bağlantısını yeniden gönder' },
+        'verify_resend_label': { ar: 'لم تستلم رسالة التحقق؟', de: 'Keine Verifizierungs-E-Mail erhalten?', fr: 'Vous n\'avez pas reçu l\'e-mail ?', tr: 'Doğrulama e-postası almadınız mı?' }
         });
     }
 })();

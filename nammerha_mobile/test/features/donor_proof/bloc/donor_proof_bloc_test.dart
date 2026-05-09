@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:nammerha_mobile/features/donor_proof/bloc/donor_proof_bloc.dart';
 import 'package:nammerha_mobile/core/services/api_services.dart';
+import 'package:nammerha_mobile/features/donor/models/donor_models.dart';
 
 class MockDonorApi extends Mock implements DonorApi {}
 
@@ -29,7 +30,7 @@ void main() {
       'emits [isLoading=true, proofs] when LoadDonorProofs is successful',
       build: () {
         when(() => mockApi.getProofs())
-            .thenAnswer((_) async => [{'id': 'proof_1'}]);
+            .thenAnswer((_) async => [const DonorProofModel(proofId: 'proof_1', projectTitle: 'Test Project')]);
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadDonorProofs()),

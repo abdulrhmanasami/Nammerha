@@ -1,9 +1,9 @@
-/// ═══════════════════════════════════════════════════════════════════════════
-/// CartItem — Immutable data model mirroring web CartStore interface
-/// ═══════════════════════════════════════════════════════════════════════════
-/// Web reference: frontend/src/components/cart.ts → CartItem interface
-/// Fields: id, name, unitPrice (cents), quantity, category, projectId
-/// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// CartItem — Immutable data model mirroring web CartStore interface
+// ═══════════════════════════════════════════════════════════════════════════
+// Web reference: frontend/src/components/cart.ts → CartItem interface
+// Fields: id, name, unitPrice (cents), quantity, category, projectId
+// ═══════════════════════════════════════════════════════════════════════════
 
 class CartItem {
   final String id;

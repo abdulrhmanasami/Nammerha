@@ -690,24 +690,24 @@ class _DashboardHomeView extends StatelessWidget {
     );
   }
 
-  _ActivityMeta _activityMeta(String type, dynamic colors) {
+  _ActivityMeta _activityMeta(String type, SemanticColors colors) {
     switch (type) {
       case 'escrow_locked': case 'donation_received': case 'escrow_released': case 'payment_completed':
-        return _ActivityMeta(Icons.lock_rounded, colors.success as Color);
+        return _ActivityMeta(Icons.lock_rounded, colors.success);
       case 'proof_submitted': case 'proof_verified':
-        return _ActivityMeta(Icons.verified_rounded, colors.primaryBrand as Color);
+        return _ActivityMeta(Icons.verified_rounded, colors.primaryBrand);
       case 'bid_received': case 'bid_accepted':
-        return _ActivityMeta(Icons.gavel_rounded, colors.goldFunding as Color);
+        return _ActivityMeta(Icons.gavel_rounded, colors.goldFunding);
       case 'project_published': case 'project_funded':
-        return _ActivityMeta(Icons.home_work_rounded, colors.info as Color);
+        return _ActivityMeta(Icons.home_work_rounded, colors.info);
       case 'kyc_verified':
-        return _ActivityMeta(Icons.badge_rounded, colors.success as Color);
+        return _ActivityMeta(Icons.badge_rounded, colors.success);
       case 'kyc_rejected':
-        return _ActivityMeta(Icons.badge_rounded, colors.error as Color);
+        return _ActivityMeta(Icons.badge_rounded, colors.error);
       case 'order_status':
-        return _ActivityMeta(Icons.local_shipping_rounded, colors.info as Color);
+        return _ActivityMeta(Icons.local_shipping_rounded, colors.info);
       default:
-        return _ActivityMeta(Icons.notifications_rounded, colors.textSecondary as Color);
+        return _ActivityMeta(Icons.notifications_rounded, colors.textSecondary);
     }
   }
 

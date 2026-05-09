@@ -48,11 +48,25 @@ interface CatalogItem {
     catalog_id: string;
     material_name: string;
     material_category: string;
+    description: string | null;
     unit: string;
     unit_price_guide: number;
     min_order_qty: number;
     lead_time_days: number;
     is_active: boolean;
+}
+
+// F4 AUDIT FIX: Translate PO status strings for Arabic parity.
+function statusLabel(status: string): string {
+    const map: Record<string, string> = {
+        generated: t('supplier_status_pending', 'Pending'),
+        sent_to_supplier: t('supplier_status_sent', 'Sent'),
+        acknowledged: t('supplier_status_acknowledged', 'Acknowledged'),
+        shipped: t('supplier_status_shipped', 'Shipped'),
+        delivered: t('supplier_status_delivered', 'Delivered'),
+        cancelled: t('supplier_status_cancelled', 'Cancelled'),
+    };
+    return map[status] ?? status;
 }
 
 // PLT-AUD-E001: Guards prevent duplicate event delegation on re-render.
@@ -156,9 +170,9 @@ async function loadKPIs(): Promise<void> {
         const data = res.data;
 
         setKPI('pending-bids', data.pending_orders ?? 0);
-        setKPI('won-contracts', (data as unknown as Record<string, number>)['won_contracts'] ?? 0);
-        setKPI('in-transit', (data as unknown as Record<string, number>)['in_transit'] ?? 0);
-        setKPI('total-revenue', (data as unknown as Record<string, number>)['total_revenue'] ?? 0, '$');
+        setKPI('won-contracts', data.won_contracts ?? 0);
+        setKPI('in-transit', data.in_transit ?? 0);
+        setKPI('total-revenue', data.total_revenue ?? 0, '$');
 
         // Badge count
         const bidCount = document.getElementById('bid-count');
@@ -199,7 +213,7 @@ async function loadOrders(): Promise<void> {
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-mono text-3xs text-slate-500 font-bold dark:text-slate-400">${esc(item.po_number)}</span>
-                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${statusColor(item.status)}">${esc(item.status)}</span>
+                    <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${statusColor(item.status)}">${esc(statusLabel(item.status))}</span>
                 </div>
                 <h3 class="font-bold text-sm text-slate-900 mb-1 dark:text-slate-100">${esc(item.material_name)}</h3>
                 <p class="text-xs text-slate-500 mb-4 flex items-center gap-1.5 dark:text-slate-400"><i class="ph ph-buildings text-sm" aria-hidden="true"></i> ${esc(item.project_title ?? t('supplier_no_project', 'Direct Request'))}</p>
@@ -358,6 +372,8 @@ function setupCatalogModal(): void {
     });
 
     cancelBtn?.addEventListener('click', closeModal);
+    // I1 FIX: Wire the bottom Cancel button too.
+    document.getElementById('modal-cancel-alt')?.addEventListener('click', closeModal);
 
     // Native <dialog> handles Escape key automatically — no manual keydown listener needed.
     // G-005 FIX retained: backdrop click dismissal (::backdrop doesn't auto-close).
@@ -377,8 +393,9 @@ function setupCatalogModal(): void {
                 material_category: fd.get('material_category') as string,
                 unit: fd.get('unit') as string,
                 unit_price_guide: Math.round(Number(fd.get('unit_price_guide')) * 100), // dollars→cents
-                minimum_order: Number(fd.get('min_order_qty')) || 1,
+                min_order_qty: Number(fd.get('min_order_qty')) || 1,
                 lead_time_days: Number(fd.get('lead_time_days')) || 7,
+                description: (fd.get('description') as string) || undefined,
             });
 
             if (!res.success) {

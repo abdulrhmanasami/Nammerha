@@ -26,6 +26,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController(); // C4 FIX: Confirm password
   final _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -50,14 +51,39 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose(); // C4 FIX: Dispose confirm password controller
     _nameController.dispose();
     _animController.dispose();
     super.dispose();
   }
 
-  void _submit(bool isLoginMode, String selectedRole) {
+  void _submit(bool isLoginMode, String selectedRole, bool termsAccepted) {
     if (_isSubmitting) return; // UX-001: Block rapid multi-tap
     if (!_formKey.currentState!.validate()) return;
+
+    // C4 FIX: Validate confirm password match in registration mode.
+    if (!isLoginMode) {
+      if (_passwordController.text != _confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr('auth_pw_mismatch')),
+            backgroundColor: context.colors.error,
+          ),
+        );
+        return;
+      }
+
+      // C5 FIX: Validate Terms & Privacy acceptance (GDPR Art. 7).
+      if (!termsAccepted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr('auth_terms_required')),
+            backgroundColor: context.colors.error,
+          ),
+        );
+        return;
+      }
+    }
 
     _isSubmitting = true;
     // Release lock after 500ms — BLoC will have emitted AuthLoading by then,
@@ -153,7 +179,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            formState.isLoginMode ? 'تسجيل الدخول إلى حسابك' : 'إنشاء حساب جديد',
+                            formState.isLoginMode
+                                ? context.tr('auth_login_subtitle')
+                                : context.tr('auth_register_subtitle'),
                             style: TextStyle(fontSize: 16, color: colors.textSecondary),
                             textAlign: TextAlign.center,
                           ),
@@ -163,11 +191,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           if (!formState.isLoginMode) ...[
                             _buildTextField(
                               controller: _nameController,
-                              label: 'الاسم الكامل',
+                              label: context.tr('auth_full_name'),
                               icon: Icons.person_rounded,
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'الاسم مطلوب';
-                                if (v.trim().length < 3) return 'يجب أن يكون الاسم 3 أحرف على الأقل';
+                                if (v == null || v.trim().isEmpty) return context.tr('auth_name_required');
+                                if (v.trim().length < 3) return context.tr('auth_name_min_length');
                                 return null;
                               },
                             ),
@@ -177,13 +205,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           // Email
                           _buildTextField(
                             controller: _emailController,
-                            label: 'البريد الإلكتروني',
+                            label: context.tr('auth_email_label'),
                             icon: Icons.email_rounded,
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'البريد الإلكتروني مطلوب';
+                              if (v == null || v.trim().isEmpty) return context.tr('auth_email_required');
                               if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
-                                return 'صيغة البريد غير صحيحة';
+                                return context.tr('auth_email_invalid');
                               }
                               return null;
                             },
@@ -193,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           // Password
                           _buildTextField(
                             controller: _passwordController,
-                            label: 'كلمة المرور',
+                            label: context.tr('auth_password_label'),
                             icon: Icons.lock_rounded,
                             obscureText: formState.obscurePassword,
                             suffixIcon: IconButton(
@@ -204,17 +232,44 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               onPressed: () => context.read<LoginFormCubit>().togglePasswordVisibility(),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'كلمة المرور مطلوبة';
+                              if (v == null || v.isEmpty) return context.tr('auth_password_required');
                               if (!formState.isLoginMode) {
-                                if (v.length < 8) return 'يجب أن تكون 8 أحرف على الأقل';
-                                if (!RegExp(r'[A-Z]').hasMatch(v)) return 'يجب أن تحتوي على حرف كبير';
-                                if (!RegExp(r'[a-z]').hasMatch(v)) return 'يجب أن تحتوي على حرف صغير';
-                                if (!RegExp(r'[0-9]').hasMatch(v)) return 'يجب أن تحتوي على رقم';
-                                if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return 'يجب أن تحتوي على رمز خاص';
+                                if (v.length < 8) return context.tr('auth_password_min_length');
+                                if (v.length > 128) return context.tr('auth_password_max_length');
+                                if (!RegExp(r'[A-Z]').hasMatch(v)) return context.tr('auth_password_uppercase');
+                                if (!RegExp(r'[a-z]').hasMatch(v)) return context.tr('auth_password_lowercase');
+                                if (!RegExp(r'[0-9]').hasMatch(v)) return context.tr('auth_password_digit');
+                                if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return context.tr('auth_password_special');
                               }
                               return null;
                             },
                           ),
+
+                          // C4 FIX: Confirm Password (register only)
+                          // Mirrors web's reg-password-confirm field.
+                          // Without this, users could register with a typo in their
+                          // password and be permanently locked out.
+                          if (!formState.isLoginMode) ...[
+                            const SizedBox(height: 16),
+                            _buildTextField(
+                              controller: _confirmPasswordController,
+                              label: context.tr('auth_confirm_password'),
+                              icon: Icons.lock_outline_rounded,
+                              obscureText: formState.obscureConfirmPassword,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  formState.obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                  color: colors.textSecondary,
+                                ),
+                                onPressed: () => context.read<LoginFormCubit>().toggleConfirmPasswordVisibility(),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) return context.tr('auth_confirm_password_required');
+                                if (v != _passwordController.text) return context.tr('auth_pw_mismatch');
+                                return null;
+                              },
+                            ),
+                          ],
 
                           // Forgot Password
                           if (formState.isLoginMode) ...[
@@ -223,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               child: TextButton(
                                 onPressed: () => _showForgotPasswordDialog(),
                                 child: Text(
-                                  'نسيت كلمة المرور؟',
+                                  context.tr('auth_forgot_password'),
                                   style: TextStyle(color: colors.primaryBrand, fontSize: 14),
                                 ),
                               ),
@@ -234,11 +289,46 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           if (!formState.isLoginMode) ...[
                             const SizedBox(height: 20),
                             Text(
-                              'اختر دورك في المنصة',
+                              context.tr('auth_select_role'),
                               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
                             ),
                             const SizedBox(height: 12),
                             _buildRoleSelector(formState.selectedRole),
+
+                            // C5 FIX: Terms & Privacy acceptance (GDPR Art. 7).
+                            // Mirrors web's Step 3 consent checkbox.
+                            // Without this, registration on mobile lacks legally
+                            // required consent capture.
+                            const SizedBox(height: 20),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: formState.termsAccepted,
+                                    onChanged: (_) => context.read<LoginFormCubit>().toggleTerms(),
+                                    activeColor: colors.primaryBrand,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => context.read<LoginFormCubit>().toggleTerms(),
+                                    child: Text(
+                                      context.tr('auth_terms_text'),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: colors.textSecondary,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
 
                           const SizedBox(height: 28),
@@ -247,10 +337,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           BlocBuilder<AuthBloc, AuthState>(
                             builder: (context, state) {
                               return GradientButton(
-                                label: formState.isLoginMode ? 'تسجيل الدخول' : 'إنشاء حساب',
+                                label: formState.isLoginMode
+                                    ? context.tr('auth_sign_in_btn')
+                                    : context.tr('auth_create_account_btn'),
                                 icon: formState.isLoginMode ? Icons.login_rounded : Icons.person_add_rounded,
                                 isLoading: state is AuthLoading,
-                                onPressed: () => _submit(formState.isLoginMode, formState.selectedRole),
+                                onPressed: () => _submit(
+                                  formState.isLoginMode,
+                                  formState.selectedRole,
+                                  formState.termsAccepted,
+                                ),
                               );
                             },
                           ),
@@ -268,16 +364,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                formState.isLoginMode ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟',
+                                formState.isLoginMode
+                                    ? context.tr('auth_no_account')
+                                    : context.tr('auth_have_account'),
                                 style: TextStyle(color: colors.textSecondary),
                               ),
                               TextButton(
                                 onPressed: () {
                                   context.read<LoginFormCubit>().toggleMode();
                                   _formKey.currentState?.reset();
+                                  _confirmPasswordController.clear(); // C4: Clear on mode toggle
                                 },
                                 child: Text(
-                                  formState.isLoginMode ? 'أنشئ حساباً' : 'سجّل دخولك',
+                                  formState.isLoginMode
+                                      ? context.tr('auth_create_account_link')
+                                      : context.tr('auth_sign_in_link'),
                                   style: TextStyle(
                                     color: colors.primaryBrand,
                                     fontWeight: FontWeight.w700,
@@ -408,12 +509,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('نسيت كلمة المرور', style: TextStyle(color: colors.textPrimary)),
+        title: Text(context.tr('auth_forgot_password'), style: TextStyle(color: colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور',
+              context.tr('auth_forgot_password_desc'),
               style: TextStyle(color: colors.textSecondary, fontSize: 14),
             ),
             const SizedBox(height: 16),
@@ -441,7 +542,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('تم إرسال رابط إعادة تعيين كلمة المرور'),
+                    content: Text(context.tr('auth_reset_link_sent')),
                     backgroundColor: colors.success,
                   ),
                 );
@@ -451,7 +552,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               backgroundColor: colors.primaryBrand,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('إرسال', style: TextStyle(color: Colors.white)),
+            child: Text(context.tr('auth_send_btn'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -466,7 +567,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     ScaffoldMessenger.of(context).showMaterialBanner(
       MaterialBanner(
-        backgroundColor: const Color(0xFFFFF3E0), // Warm amber background
+        backgroundColor: colors.warningLight,
         leading: Icon(Icons.mark_email_unread_rounded, color: colors.warning, size: 28),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +666,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'أو تسجيل الدخول عبر',
+            context.tr('auth_social_divider'),
             style: TextStyle(
               fontSize: 13,
               color: colors.textSecondary,
@@ -671,7 +772,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     };
     final displayName = providerNames[provider] ?? provider;
 
-    // TODO: Replace with actual native SDK flow when packages are configured.
+    // NOTE(OAuth): Replace with actual native SDK flow when packages are configured.
     // Each SDK returns an ID token which we pass to the BLoC.
     // For now, show a clear message that configuration is needed.
     ScaffoldMessenger.of(context).showSnackBar(

@@ -131,16 +131,16 @@ async function loadKPIs(): Promise<void> {
         if (!res.data) { return; }
         const data = res.data;
 
-        setKPI('assigned-projects', data.assigned_projects ?? 0);
-        setKPI('active-bids', data.active_bids ?? 0);
-        setKPI('completed-projects', data.completed_projects ?? 0);
-        setKPI('total-earnings', data.total_earnings ?? 0, '$');
+        setKPI('assigned-projects', data.active_projects ?? 0);
+        setKPI('active-bids', data.pending_bids ?? 0);
+        setKPI('completed-projects', data.won_bids ?? 0);
+        setKPI('total-earnings', data.total_escrow_received ?? 0, '$');
 
         // Badge counts
         const projectCount = document.getElementById('project-count');
-        if (projectCount) { projectCount.textContent = String(data.assigned_projects ?? 0); }
+        if (projectCount) { projectCount.textContent = String(data.active_projects ?? 0); }
         const bidCount = document.getElementById('bid-count');
-        if (bidCount) { bidCount.textContent = String(data.active_bids ?? 0); }
+        if (bidCount) { bidCount.textContent = String(data.pending_bids ?? 0); }
     } catch (err) {
         // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
         reportWarning('[ContractorDashboard] KPI load failed', {
@@ -188,7 +188,7 @@ async function loadProjectTimeline(): Promise<void> {
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(p['title'] ?? ''))}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1 uppercase">
                         <i class="ph ${phaseIcon(String(p['phase'] ?? ''))}" aria-hidden="true"></i>
-                        ${esc(String(p['phase'] ?? ''))}
+                        ${esc(ctPhaseLabel(String(p['phase'] ?? '')))}
                     </span>
                 </div>
                 <div class="text-xs text-slate-500 mb-4 flex items-center gap-1.5 dark:text-slate-400">
@@ -262,7 +262,7 @@ async function loadBids(): Promise<void> {
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(b['project_title'] ?? ''))}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(String(b['status'] ?? ''))}">
-                        ${esc(String(b['status'] ?? ''))}
+                        ${esc(ctBidStatusLabel(String(b['status'] ?? '')))}
                     </span>
                 </div>
                 
@@ -323,3 +323,26 @@ function setKPI(name: string, value: number, prefix = ''): void {
 }
 
 // PLAT-AUD-005 FIX: formatDate and applyI18n are now imported from utils/locale.
+
+// ─── G8 WEB FIX: Translate phase + bid status badges ────────────────────────
+function ctPhaseLabel(phase: string): string {
+    switch (phase?.toLowerCase()) {
+        case 'planning': return t('ct_phase_planning', 'Planning');
+        case 'in_progress': return t('ct_phase_in_progress', 'In Progress');
+        case 'construction': return t('ct_phase_construction', 'Construction');
+        case 'completed': return t('ct_phase_completed', 'Completed');
+        case 'delivered': return t('ct_phase_delivered', 'Delivered');
+        case 'published': return t('ct_phase_published', 'Published');
+        default: return phase;
+    }
+}
+
+function ctBidStatusLabel(status: string): string {
+    switch (status?.toLowerCase()) {
+        case 'pending': return t('ct_bid_pending', 'Pending');
+        case 'accepted': return t('ct_bid_accepted', 'Accepted');
+        case 'rejected': return t('ct_bid_rejected', 'Rejected');
+        case 'withdrawn': return t('ct_bid_withdrawn', 'Withdrawn');
+        default: return status;
+    }
+}

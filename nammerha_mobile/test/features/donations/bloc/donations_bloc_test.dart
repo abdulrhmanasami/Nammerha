@@ -7,6 +7,7 @@ import 'package:nammerha_mobile/core/services/api_services.dart';
 import 'package:nammerha_mobile/features/donations/bloc/donations_bloc.dart';
 import 'package:nammerha_mobile/features/donations/bloc/donations_event.dart';
 import 'package:nammerha_mobile/features/donations/bloc/donations_state.dart';
+import 'package:nammerha_mobile/features/donor/models/donor_models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Donations BLoC Tests — REM-003 Platinum Financial Testing
@@ -44,7 +45,14 @@ void main() {
       build: () {
         when(() => mockDonorApi.getDonations())
             .thenAnswer((_) async => [
-                  {'transactionId': 'tx-001', 'amount': 5000, 'currency': 'USD'},
+                  const DonorDonationModel(
+                    escrowId: 'tx-001',
+                    projectTitle: 'Test Project',
+                    materialName: 'Cement',
+                    amountLocked: 5000,
+                    status: 'LOCKED',
+                    lockedAt: '2024-01-01T00:00:00Z',
+                  ),
                 ]);
         when(() => mockDonationsApi.getMyEscrow())
             .thenAnswer((_) async => {
@@ -102,7 +110,14 @@ void main() {
       build: () {
         when(() => mockDonorApi.getDonations())
             .thenAnswer((_) async => [
-                  {'transactionId': 'tx-002', 'amount': 3000, 'currency': 'USD'},
+                  const DonorDonationModel(
+                    escrowId: 'tx-002',
+                    projectTitle: 'Test Project 2',
+                    materialName: 'Steel',
+                    amountLocked: 3000,
+                    status: 'LOCKED',
+                    lockedAt: '2024-01-02T00:00:00Z',
+                  ),
                 ]);
         when(() => mockDonationsApi.getMyEscrow())
             .thenThrow(const ApiException('Server error'));

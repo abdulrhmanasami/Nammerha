@@ -7,9 +7,9 @@ import 'package:crypto/crypto.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/package:path_provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+
 
 import '../../../core/network/api_client.dart';
 import '../../../core/services/api_services.dart';

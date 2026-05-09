@@ -35,8 +35,8 @@ async function initHomepageMap(): Promise<void> {
     const regionEl = document.getElementById('map-active-region');
     const countEl = document.getElementById('map-active-count');
     const loadGuard = setTimeout(() => {
-        if (regionEl) regionEl.textContent = t('map_region_syria', 'Syrian Recovery Grid');
-        if (countEl && countEl.textContent?.includes('…')) countEl.textContent = t('map_projects_syncing', 'Syncing Data...');
+        if (regionEl) {regionEl.textContent = t('map_region_syria', 'Syrian Recovery Grid');}
+        if (countEl && countEl.textContent?.includes('…')) {countEl.textContent = t('map_projects_syncing', 'Syncing Data...');}
     }, 4000);
 
     try {

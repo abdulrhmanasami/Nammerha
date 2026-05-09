@@ -279,7 +279,7 @@
             </div>
 
             <!-- Document Content (hidden by default) -->
-            <div class="p-5 space-y-4 hidden" id="viewer-content">
+            <div class="p-5 space-y-4 nm-hidden" id="viewer-content">
               <!-- Document List -->
               <div class="space-y-2" id="doc-list">
                 <!-- Documents populated by JS -->
@@ -288,7 +288,7 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="space-y-2 hidden" id="action-buttons">
+          <div class="space-y-2 nm-hidden" id="action-buttons">
             <button type="button" id="verify-btn" class="w-full bg-smoky-jade text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-smoky-jade/90 transition-colors">
               <i class="ph ph-seal-check text-lg" aria-hidden="true"></i>
               <span data-i18n="kyc_grant_verified">Grant Verified Badge</span>
@@ -331,6 +331,7 @@
 </template>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/admin.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

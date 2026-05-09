@@ -113,8 +113,8 @@ function renderHero(project: ProjectData): void {
     document.title = `${project.title} — Nammerha`;
 
     // Transition: skeleton → content
-    if (skeleton) { skeleton.classList.add('hidden'); }
-    content.classList.remove('hidden');
+    if (skeleton) { skeleton.classList.add('nm-hidden'); }
+    content.classList.remove('nm-hidden');
 }
 
 // ─── Progress Rendering ─────────────────────────────────────────────────────
@@ -230,8 +230,8 @@ function renderBOQ(items: BOQItem[], projectId: string): void {
     if (!container) { return; }
 
     if (items.length === 0) {
-        if (skeleton) { skeleton.classList.add('hidden'); }
-        if (empty) { empty.classList.remove('hidden'); }
+        if (skeleton) { skeleton.classList.add('nm-hidden'); }
+        if (empty) { empty.classList.remove('nm-hidden'); }
         return;
     }
 
@@ -253,8 +253,8 @@ function renderBOQ(items: BOQItem[], projectId: string): void {
     container.innerHTML = html;
 
     // Transition: skeleton → content
-    if (skeleton) { skeleton.classList.add('hidden'); }
-    container.classList.remove('hidden');
+    if (skeleton) { skeleton.classList.add('nm-hidden'); }
+    container.classList.remove('nm-hidden');
 
     // Re-apply i18n to dynamic content
     applyI18n();
@@ -266,9 +266,9 @@ function showError(): void {
     const boqSkeleton = document.getElementById('boq-skeleton');
     const boqError = document.getElementById('boq-error');
 
-    if (heroSkeleton) { heroSkeleton.classList.add('hidden'); }
-    if (boqSkeleton) { boqSkeleton.classList.add('hidden'); }
-    if (boqError) { boqError.classList.remove('hidden'); }
+    if (heroSkeleton) { heroSkeleton.classList.add('nm-hidden'); }
+    if (boqSkeleton) { boqSkeleton.classList.add('nm-hidden'); }
+    if (boqError) { boqError.classList.remove('nm-hidden'); }
 }
 
 // ─── Cart Interactivity (unchanged from original) ───────────────────────────
@@ -392,8 +392,8 @@ function initTransparencyToggle(): void {
     if (!toggle || !detail) { return; }
 
     toggle.addEventListener('click', () => {
-        const isExpanded = !detail.classList.contains('hidden');
-        detail.classList.toggle('hidden');
+        const isExpanded = !detail.classList.contains('nm-hidden');
+        detail.classList.toggle('nm-hidden');
         toggle.setAttribute('aria-expanded', String(!isExpanded));
         // DEF-REM-002 FIX: CSS class toggle replaces inline style.transform.
         // Previous: chevron.style.transform = 'rotate(180deg)' — violated P1-SST-001.

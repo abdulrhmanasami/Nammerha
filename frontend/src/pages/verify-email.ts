@@ -52,7 +52,7 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
     // Show banner
     if (banner && bannerInner && bannerIcon && bannerTitle && bannerText) {
         // DEF-VIS-002 FIX: Replaced style.display with classList toggle.
-        banner.classList.remove('hidden');
+        banner.classList.remove('nm-hidden');
         bannerTitle.textContent = titleText;
         bannerText.textContent = message;
 
@@ -70,10 +70,10 @@ function showResult(type: 'success' | 'error' | 'expired', titleText: string, me
 
     // Show sign-in action + resend section for expired/error states
     // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
-    if (actions) { actions.classList.remove('hidden'); }
+    if (actions) { actions.classList.remove('nm-hidden'); }
     const resendSection = document.getElementById('verify-resend');
     if (resendSection && (type === 'expired' || type === 'error')) {
-        resendSection.classList.remove('hidden');
+        resendSection.classList.remove('nm-hidden');
     }
 }
 
@@ -159,7 +159,7 @@ resendBtn?.addEventListener('click', async () => {
 function showResendFeedback(type: 'success' | 'error', message: string): void {
     if (!resendFeedback) { return; }
     // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
-    resendFeedback.classList.remove('hidden');
+    resendFeedback.classList.remove('nm-hidden');
     resendFeedback.className = `mt-2 rounded-lg p-2 text-xs font-medium ${type === 'success'
         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
         : 'bg-red-50 text-red-700 border border-red-200'}`;

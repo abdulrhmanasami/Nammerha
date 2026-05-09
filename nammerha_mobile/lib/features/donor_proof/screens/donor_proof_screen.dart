@@ -7,6 +7,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../bloc/donor_proof_bloc.dart';
 import '../../pdf/screens/pdf_viewer_screen.dart';
 import '../../../core/i18n/t.dart';
+import '../../donor/models/donor_models.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Proof Screen — Proof of Delivery with GPS Verification
@@ -130,44 +131,35 @@ class _DonorProofScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildProofCard(BuildContext context, Map<String, dynamic> proof, SemanticColors colors, int index, bool isDownloading) {
-    final materialName = proof['material_name'] ?? '';
-    final projectTitle = proof['project_title'] ?? '';
-    final status = (proof['payment_status'] ?? '') as String;
-    final gpsLat = proof['gps_lat'];
-    final gpsLng = proof['gps_lng'];
-    final gpsAccuracy = proof['gps_accuracy_meters'];
-    final imageUrl = proof['image_url'] as String?;
-    final clientHash = proof['client_hash'] as String?;
-    final proofDate = proof['proof_date'] ?? proof['created_at'] ?? '';
+  Widget _buildProofCard(BuildContext context, DonorProofModel proof, SemanticColors colors, int index, bool isDownloading) {
+    final materialName = proof.materialName ?? '';
+    final projectTitle = proof.projectTitle;
+    // DonorProofModel doesn't have payment_status, so we'll use a generic status
+    final gpsLat = proof.gpsLat;
+    final gpsLng = proof.gpsLng;
+    final imageUrl = proof.photoUrl;
+    final verifiedBy = proof.verifiedBy;
 
     final bool hasGpsProof = gpsLat != null && gpsLng != null;
     final bool hasImageProof = imageUrl != null && imageUrl.isNotEmpty;
+    final bool isVerified = verifiedBy != null && verifiedBy.isNotEmpty;
 
     Color statusColor;
     String statusLabel;
     IconData statusIcon;
 
-    switch (status.toLowerCase()) {
-      case 'released':
-        statusColor = colors.success;
-        statusLabel = 'تم التسليم والتحرير';
-        statusIcon = Icons.verified_rounded;
-        break;
-      case 'locked':
-        statusColor = colors.warning;
-        statusLabel = 'بانتظار التسليم';
-        statusIcon = Icons.hourglass_top_rounded;
-        break;
-      case 'refunded':
-        statusColor = colors.info;
-        statusLabel = 'تم الاسترداد';
-        statusIcon = Icons.replay_rounded;
-        break;
-      default:
-        statusColor = colors.textSecondary;
-        statusLabel = status;
-        statusIcon = Icons.circle;
+    if (isVerified) {
+      statusColor = colors.success;
+      statusLabel = 'تم التسليم والتحرير';
+      statusIcon = Icons.verified_rounded;
+    } else if (hasGpsProof || hasImageProof) {
+      statusColor = colors.warning;
+      statusLabel = 'بانتظار التحقق';
+      statusIcon = Icons.hourglass_top_rounded;
+    } else {
+      statusColor = colors.textSecondary;
+      statusLabel = 'بانتظار التسليم';
+      statusIcon = Icons.circle;
     }
 
     return Container(
@@ -201,7 +193,7 @@ class _DonorProofScreenContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        materialName.toString(),
+                        materialName,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -209,7 +201,7 @@ class _DonorProofScreenContent extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        projectTitle.toString(),
+                        projectTitle,
                         style: TextStyle(fontSize: 13, color: colors.textSecondary),
                       ),
                     ],
@@ -244,7 +236,7 @@ class _DonorProofScreenContent extends StatelessWidget {
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Center(
+                  errorBuilder: (_, _, _) => Center(
                     child: Icon(Icons.broken_image_rounded, color: colors.textSubtle, size: 40),
                   ),
                 ),
@@ -279,18 +271,12 @@ class _DonorProofScreenContent extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _gpsRow('خط العرض', '$gpsLat', colors),
-                  _gpsRow('خط الطول', '$gpsLng', colors),
-                  if (gpsAccuracy != null)
-                    _gpsRow(context.tr('str_ccac5b98'), '±${gpsAccuracy}م', colors),
-                  if (clientHash != null && clientHash.isNotEmpty)
-                    _gpsRow(
-                      'التوقيع الرقمي',
-                      '${clientHash.substring(0, clientHash.length > 16 ? 16 : clientHash.length)}...',
-                      colors,
-                    ),
-                  if (proofDate.toString().isNotEmpty)
-                    _gpsRow(context.tr('date'), _formatDate(proofDate.toString()), colors),
+                  _gpsRow('خط العرض', gpsLat.toStringAsFixed(6), colors),
+                  _gpsRow('خط الطول', gpsLng.toStringAsFixed(6), colors),
+                  if (proof.description != null && proof.description!.isNotEmpty)
+                    _gpsRow('الوصف', proof.description!, colors),
+                  if (proof.verifiedAt != null)
+                    _gpsRow(context.tr('date'), _formatDate(proof.verifiedAt!), colors),
                 ],
               ),
             ),
@@ -322,7 +308,7 @@ class _DonorProofScreenContent extends StatelessWidget {
               ),
             ),
           // Receipt download button
-          if (status.toLowerCase() == 'released') ...[
+          if (isVerified) ...[
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
               child: SizedBox(
@@ -347,16 +333,16 @@ class _DonorProofScreenContent extends StatelessWidget {
     ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.06, end: 0);
   }
 
-  void _openReceipt(BuildContext context, Map<String, dynamic> proof, SemanticColors colors) {
-    final escrowId = proof['escrow_id']?.toString() ?? proof['id']?.toString();
-    if (escrowId == null || escrowId.isEmpty) {
+  void _openReceipt(BuildContext context, DonorProofModel proof, SemanticColors colors) {
+    final proofId = proof.proofId;
+    if (proofId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: const Text('لا يوجد معرّف للضمان'), backgroundColor: colors.error),
       );
       return;
     }
 
-    context.read<DonorProofBloc>().add(DownloadReceipt(escrowId));
+    context.read<DonorProofBloc>().add(DownloadReceipt(proofId));
   }
 
   Widget _gpsRow(String label, String value, SemanticColors colors) {

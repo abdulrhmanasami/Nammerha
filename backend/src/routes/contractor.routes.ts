@@ -22,11 +22,19 @@ router.use(requireRole('contractor'));
 
 // ─── GET /api/contractor/projects — My Assigned Projects ────────────────────
 router.get('/projects', async (req: Request, res: Response) => {
+    // G4 AUDIT FIX: Was calling getMyProjects without pagination params
+    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
+    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
+    const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
+
     try {
         const status = req.query['status'] as string | undefined;
         const projects = await contractorService.getMyProjects(
             getAuthUser(req).user_id,
             status,
+            safeLim,
+            safeOff,
         );
         res.json({ success: true, data: projects } as ApiResponse);
     } catch (error) {
@@ -46,11 +54,19 @@ router.get('/stats', async (req: Request, res: Response) => {
 
 // ─── GET /api/contractor/bids — My Bid History ──────────────────────────────
 router.get('/bids', async (req: Request, res: Response) => {
+    // G4 FIX: Accept pagination params
+    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
+    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
+    const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
+
     try {
         const status = req.query['status'] as string | undefined;
         const bids = await contractorService.getMyBids(
             getAuthUser(req).user_id,
             status,
+            safeLim,
+            safeOff,
         );
         res.json({ success: true, data: bids } as ApiResponse);
     } catch (error) {
@@ -60,9 +76,17 @@ router.get('/bids', async (req: Request, res: Response) => {
 
 // ─── GET /api/contractor/marketplace — Available Projects for Bidding ───────
 router.get('/marketplace', async (req: Request, res: Response) => {
+    // G4 FIX: Accept pagination params
+    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
+    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
+    const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
+
     try {
         const projects = await contractorService.getAvailableProjects(
             getAuthUser(req).user_id,
+            safeLim,
+            safeOff,
         );
         res.json({ success: true, data: projects } as ApiResponse);
     } catch (error) {
@@ -82,8 +106,18 @@ router.get('/profile', async (req: Request, res: Response) => {
 
 // ─── GET /api/contractor/payments — My Escrow Payments ──────────────────────
 router.get('/payments', async (req: Request, res: Response) => {
+    // G4 AUDIT FIX: Was calling getMyPayments without pagination params
+    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
+    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
+    const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
+
     try {
-        const payments = await contractorService.getMyPayments(getAuthUser(req).user_id);
+        const payments = await contractorService.getMyPayments(
+            getAuthUser(req).user_id,
+            safeLim,
+            safeOff,
+        );
         res.json({ success: true, data: payments } as ApiResponse);
     } catch (error) {
         safeRouteError(res, error, 'Contractor.GetPayments');

@@ -178,8 +178,8 @@ router.get('/my/summary', requireRole('donor'), async (req: Request, res: Respon
     try {
         const summary = await crowdfundingService.getDonorEscrowSummary(getAuthUser(req).user_id);
         res.json({ success: true, data: summary } as ApiResponse);
-            } catch (error) {
-                safeRouteError(res, error, 'Donation');
+    } catch (error) {
+        safeRouteError(res, error, 'Donation');
     }
 });
 
@@ -188,8 +188,8 @@ router.get('/my/history', requireRole('donor'), async (req: Request, res: Respon
     try {
         const donations = await crowdfundingService.getDonorDonations(getAuthUser(req).user_id);
         res.json({ success: true, data: donations } as ApiResponse);
-            } catch (error) {
-                safeRouteError(res, error, 'Donation');
+    } catch (error) {
+        safeRouteError(res, error, 'Donation');
     }
 });
 

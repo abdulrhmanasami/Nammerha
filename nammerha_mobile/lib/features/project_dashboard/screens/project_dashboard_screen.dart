@@ -379,7 +379,7 @@ class _ProjectDashboardView extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: images.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (_, i) => ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
@@ -387,7 +387,7 @@ class _ProjectDashboardView extends StatelessWidget {
                     width: 64,
                     height: 64,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       width: 64,
                       height: 64,
                       color: colors.backgroundSecondary,
@@ -649,7 +649,7 @@ class _KPICard extends StatelessWidget {
 class _MetaChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final dynamic colors;
+  final SemanticColors colors;
 
   const _MetaChip({required this.icon, required this.label, required this.colors});
 
@@ -658,15 +658,15 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (colors.backgroundSecondary as Color),
+        color: colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: colors.textSubtle as Color),
+          Icon(icon, size: 12, color: colors.textSubtle),
           const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 11, color: colors.textSubtle as Color)),
+          Text(label, style: TextStyle(fontSize: 11, color: colors.textSubtle)),
         ],
       ),
     );
@@ -677,7 +677,7 @@ class _DialogTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final int maxLines;
-  final dynamic colors;
+  final SemanticColors colors;
 
   const _DialogTextField({
     required this.controller,
@@ -691,23 +691,23 @@ class _DialogTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      style: TextStyle(color: colors.textPrimary as Color, fontSize: 14),
+      style: TextStyle(color: colors.textPrimary, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: colors.textSecondary as Color, fontSize: 13),
+        labelStyle: TextStyle(color: colors.textSecondary, fontSize: 13),
         filled: true,
-        fillColor: colors.backgroundSecondary as Color,
+        fillColor: colors.backgroundSecondary,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.strokeSubtle as Color),
+          borderSide: BorderSide(color: colors.strokeSubtle),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.strokeSubtle as Color),
+          borderSide: BorderSide(color: colors.strokeSubtle),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.primaryBrand as Color, width: 2),
+          borderSide: BorderSide(color: colors.primaryBrand, width: 2),
         ),
       ),
     );

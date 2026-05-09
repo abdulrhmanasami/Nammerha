@@ -37,7 +37,7 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
       }
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
-      emit(TradespersonError(state.data, 'حدث خطأ أثناء تحميل البيانات'));
+      emit(TradespersonError(state.data, 'Failed to load data'));
       emit(TradespersonLoaded(state.data));
     }
   }
@@ -46,7 +46,11 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
     try {
       final updatedData = await repository.loadProfile(state.data);
       emit(TradespersonLoaded(updatedData));
-    } catch (_) {}
+    } catch (e) {
+      // C3 FIX: Silent catch eliminated — surface error
+      emit(TradespersonError(state.data, 'Failed to load profile'));
+      emit(TradespersonLoaded(state.data));
+    }
   }
 
   Future<void> _onUpdateAvailability(UpdateAvailabilityEvent event, Emitter<TradespersonState> emit) async {
@@ -55,7 +59,7 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
       final updatedData = state.data.copyWith(availability: event.availability);
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
-      emit(TradespersonError(state.data, 'حدث خطأ أثناء تحديث حالة التواجد'));
+      emit(TradespersonError(state.data, 'Failed to update availability'));
       emit(TradespersonLoaded(state.data));
     }
   }
@@ -64,12 +68,12 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
     emit(TradespersonLoading(state.data));
     try {
       await repository.acceptRequest(event.requestId);
-      emit(ActionSuccess(state.data, 'تم قبول المهمة بنجاح'));
+      emit(ActionSuccess(state.data, 'Task accepted successfully'));
       // Reload requests
       final updatedData = await repository.loadRequests(state.data);
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
-      emit(TradespersonError(state.data, 'فشل قبول المهمة'));
+      emit(TradespersonError(state.data, 'Failed to accept task'));
       emit(TradespersonLoaded(state.data));
     }
   }
@@ -78,12 +82,12 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
     emit(TradespersonLoading(state.data));
     try {
       await repository.respondToAssignment(event.assignmentId, event.accept);
-      emit(ActionSuccess(state.data, event.accept ? 'تم قبول المهمة' : 'تم رفض المهمة'));
+      emit(ActionSuccess(state.data, event.accept ? 'Task accepted' : 'Task rejected'));
       // Reload assignments
       final updatedData = await repository.loadAssignments(state.data);
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
-      emit(TradespersonError(state.data, 'فشل تنفيذ الإجراء'));
+      emit(TradespersonError(state.data, 'Action failed'));
       emit(TradespersonLoaded(state.data));
     }
   }

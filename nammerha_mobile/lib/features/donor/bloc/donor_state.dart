@@ -27,7 +27,7 @@ class DonorLoaded extends DonorState {
 }
 
 class DonorStandaloneProofsLoaded extends DonorState {
-  final List<Map<String, dynamic>> proofs;
+  final List<DonorProofModel> proofs;
   const DonorStandaloneProofsLoaded({required this.proofs});
 
   @override

@@ -197,8 +197,8 @@ function renderDocumentViewer(index: number): void {
     const docList = document.getElementById('doc-list');
     const actionButtons = document.getElementById('action-buttons');
 
-    if (empty) { empty.classList.add('hidden'); }
-    if (content) { content.classList.remove('hidden'); }
+    if (empty) { empty.classList.add('nm-hidden'); }
+    if (content) { content.classList.remove('nm-hidden'); }
     if (title) { title.textContent = entry.full_name; }
     if (subtitle) {
         const roleLabel = entry.role === 'engineer'

@@ -159,7 +159,7 @@
       <!-- Cart Badge -->
       <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-cart-btn" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
         <i class="ph ph-shopping-cart text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
-        <span class="cart-badge hidden" id="nav-cart-badge">0</span>
+        <span class="cart-badge nm-hidden" id="nav-cart-badge">0</span>
       </a>
       <!-- FRIC-2026-D05 FIX: Notification bell — parity with dashboard portals (MED-008).
            Previous: Homepage navbar had no notification bell — users received notifications
@@ -167,7 +167,7 @@
            Standard: Nielsen #1 (Visibility of System Status), Apple HIG (Navigation Bar). -->
       <button type="button" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-notification-btn" aria-label="Notifications" data-i18n-aria="aria_notifications">
         <i class="ph ph-bell text-slate-700 text-xl dark:text-slate-300" aria-hidden="true"></i>
-        <span class="cart-badge hidden" id="nav-notif-badge"></span>
+        <span class="cart-badge nm-hidden" id="nav-notif-badge"></span>
       </button>
       <!-- Multi-Role Architecture: Role Switcher Mount Point -->
       <div id="role-switcher-mount"></div>
@@ -198,7 +198,7 @@
           <i class="ph ph-bell text-slate-700 text-xl dark:text-slate-300" aria-hidden="true"></i>
           <!-- UXD-004 FIX: Removed misleading '0' — numeric count implies functional notification
                system. Empty badge with hidden class is honest. -->
-          <span class="cart-badge hidden" id="mobile-notif-badge"></span>
+          <span class="cart-badge nm-hidden" id="mobile-notif-badge"></span>
         </button>
         <!-- DEF-002 FIX (Wave 4): Removed inline mobile header theme toggle.
              Previous: 5 controls in 343px at 375px — touch target density exceeded Apple HIG spacing.
@@ -213,7 +213,7 @@
           <!-- PLAT-UX-005 FIX: Removed hardcoded '0' — JS populates count when unhiding.
                Previous: '0' inside span + hidden class → if JS bug removes hidden, shows '0'.
                Standard: Honest Affordances, Code Hygiene. -->
-          <span class="cart-badge hidden" id="mobile-cart-badge"></span>
+          <span class="cart-badge nm-hidden" id="mobile-cart-badge"></span>
         </a>
       </div>
     </header>
@@ -526,6 +526,7 @@
 
     <!-- Bottom Navigation: injected by nav.js (canonical source) -->
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/index.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

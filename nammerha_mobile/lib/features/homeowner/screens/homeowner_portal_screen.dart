@@ -68,12 +68,12 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('بوابة المتضرر'),
+        title: Text(context.tr('ho_portal_title')),
         actions: [
           IconButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DamageReportScreen())),
             icon: Icon(Icons.add_circle_rounded, color: colors.primaryBrand),
-            tooltip: 'تقرير أضرار',
+            tooltip: context.tr('ho_damage_report'),
           ),
         ],
         bottom: TabBar(
@@ -83,12 +83,12 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
           labelColor: colors.primaryBrand,
           unselectedLabelColor: colors.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'لوحة التحكم'),
-            Tab(text: 'مشاريعي'),
-            Tab(text: 'طلبات الخدمة'),
-            Tab(text: 'الموافقات'),
-            Tab(text: 'الضمان المالي'),
+          tabs: [
+            Tab(text: context.tr('ho_tab_dashboard')),
+            Tab(text: context.tr('ho_tab_projects')),
+            Tab(text: context.tr('ho_tab_requests')),
+            Tab(text: context.tr('ho_tab_approvals')),
+            Tab(text: context.tr('ho_tab_escrow')),
           ],
         ),
       ),
@@ -97,7 +97,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
           if (state is HomeownerError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error), backgroundColor: colors.error));
           } else if (state is ApprovalResponseSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('تم تسجيل استجابتك بنجاح'), backgroundColor: colors.success));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.tr('ho_response_success')), backgroundColor: colors.success));
           }
         },
         builder: (context, state) {
@@ -122,7 +122,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
   // ─── Tab 1: Dashboard ─────────────────────────────────────────────────
 
   Widget _buildDashboard(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.stats.isEmpty) {
+    if (isLoading && data.stats.activeProjects == 0 && data.projects.isEmpty) {
       return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     }
     return RefreshIndicator(
@@ -132,25 +132,25 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         padding: const EdgeInsets.all(16),
         children: [
           Row(children: [
-            _kpiCard('مشاريع نشطة', '${data.stats['active_projects'] ?? 0}', colors.primaryBrand, Icons.business_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_active'), '${data.stats.activeProjects}', colors.primaryBrand, Icons.business_rounded, colors),
             const SizedBox(width: 8),
-            _kpiCard('عروض واردة', '${data.stats['total_bids_received'] ?? 0}', colors.info, Icons.gavel_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_bids'), '${data.stats.totalBidsReceived}', colors.info, Icons.gavel_rounded, colors),
           ]).animate().fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
-            _kpiCard('موافقات معلقة', '${data.stats['pending_approvals'] ?? 0}', colors.warning, Icons.pending_actions_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_approvals'), '${data.stats.pendingApprovals}', colors.warning, Icons.pending_actions_rounded, colors),
             const SizedBox(width: 8),
-            _kpiCard('المبلغ المودع', _formatCurrency(data.stats['total_invested'] ?? 0), colors.secondaryAccent, Icons.account_balance_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_invested'), _formatCurrency(data.stats.totalInvested), colors.secondaryAccent, Icons.account_balance_rounded, colors),
           ]).animate(delay: 100.ms).fadeIn(),
           const SizedBox(height: 20),
 
-          Text('المشاريع النشطة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text(context.tr('ho_active_projects'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 12),
-          ...data.projects.where((p) => !['completed', 'cancelled'].contains(p['status'])).toList().asMap().entries.map(
+          ...data.projects.where((p) => !['completed', 'cancelled'].contains(p.status)).toList().asMap().entries.map(
             (e) => _activeProjectCard(e.value, colors, e.key),
           ),
-          if (data.projects.where((p) => !['completed', 'cancelled'].contains(p['status'])).isEmpty)
-            _emptyState(colors, Icons.house_rounded, 'لا توجد مشاريع نشطة', 'أبلغ عن أضرار لبدء مشروع جديد'),
+          if (data.projects.where((p) => !['completed', 'cancelled'].contains(p.status)).isEmpty)
+            _emptyState(colors, Icons.house_rounded, context.tr('ho_no_active'), context.tr('ho_report_to_start')),
         ],
       ),
     );
@@ -188,7 +188,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
     );
   }
 
-  Widget _activeProjectCard(Map<String, dynamic> p, SemanticColors colors, int index) {
+  Widget _activeProjectCard(HomeownerProjectModel p, SemanticColors colors, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -201,27 +201,27 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Expanded(child: Text(p['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-            _statusBadge(p['status']?.toString() ?? '', colors),
+            Expanded(child: Text(p.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+            _statusBadge(p.status, colors),
           ]),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: colors.backgroundSecondary, borderRadius: BorderRadius.circular(8)),
             child: Row(children: [
-              _infoChip(Icons.label_rounded, p['damage_type']?.toString() ?? '', colors),
+              _infoChip(Icons.label_rounded, p.damageType, colors),
               const SizedBox(width: 12),
-              if (p['engineer_name'] != null) _infoChip(Icons.engineering_rounded, p['engineer_name'].toString(), colors),
+              if (p.engineerName != null) _infoChip(Icons.engineering_rounded, p.engineerName!, colors),
               const SizedBox(width: 12),
-              if (p['contractor_name'] != null) _infoChip(Icons.construction_rounded, p['contractor_name'].toString(), colors),
+              if (p.contractorName != null) _infoChip(Icons.construction_rounded, p.contractorName!, colors),
             ]),
           ),
           const SizedBox(height: 8),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            if ((p['bid_count'] as int?) != null && p['bid_count']! > 0)
-              Text('${p['bid_count']} عروض', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.primaryBrand)),
-            if ((p['total_boq_cost'] as num?) != null && p['total_boq_cost']! > 0)
-              Text(_formatCurrency(p['total_boq_cost']), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.secondaryAccent)),
+            if (p.bidCount > 0)
+              Text('${p.bidCount} ${context.tr('ho_bids_label')}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.primaryBrand)),
+            if (p.totalBoqCost > 0)
+              Text(_formatCurrency(p.totalBoqCost), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.secondaryAccent)),
           ]),
         ],
       ),
@@ -232,7 +232,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
 
   Widget _buildProjects(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.projects.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    if (data.projects.isEmpty) return _emptyState(colors, Icons.house_siding_rounded, 'لا توجد مشاريع بعد', '');
+    if (data.projects.isEmpty) return _emptyState(colors, Icons.house_siding_rounded, context.tr('ho_no_projects'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(1)); },
       color: colors.primaryBrand,
@@ -252,7 +252,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(2)); },
       color: colors.primaryBrand,
       child: data.serviceRequests.isEmpty
-          ? ListView(children: [_emptyState(colors, Icons.handyman_rounded, 'لا توجد طلبات خدمة', 'أنشئ طلباً للحصول على خدمة من الحرفيين')])
+          ? ListView(children: [_emptyState(colors, Icons.handyman_rounded, context.tr('ho_no_requests'), context.tr('ho_create_request_hint'))])
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: data.serviceRequests.length,
@@ -270,17 +270,50 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Expanded(child: Text(r['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-                        _statusBadge(r['status']?.toString() ?? '', colors),
+                        Expanded(child: Text(r.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+                        _statusBadge(r.status, colors),
                       ]),
                       const SizedBox(height: 8),
                       Wrap(spacing: 8, children: [
-                        _tradeBadge(r['trade_needed']?.toString() ?? '', colors),
-                        _urgencyBadge(r['urgency']?.toString() ?? '', colors),
+                        _tradeBadge(r.tradeNeeded, colors),
+                        _urgencyBadge(r.urgency, colors),
                       ]),
-                      if (r['description'] != null) ...[
+                      if (r.description != null) ...[
                         const SizedBox(height: 6),
-                        Text(r['description'].toString(), style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        Text(r.description!, style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                      ],
+                      // C4 FIX: Cancel button for open/matched service requests
+                      if (['open', 'matched'].contains(r.status.toLowerCase())) ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: GestureDetector(
+                            onTap: () => _showConfirmDialog(
+                              context,
+                              title: context.tr('ho_cancel_request_title'),
+                              message: context.tr('ho_cancel_request_msg'),
+                              confirmLabel: context.tr('ho_cancel_request'),
+                              confirmColor: colors.error,
+                              onConfirm: () {
+                                context.read<HomeownerBloc>().add(CancelServiceRequestEvent(r.requestId));
+                              },
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: colors.error.withAlpha(10),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: colors.error.withAlpha(30)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  context.tr('ho_cancel_request'),
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.error),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -302,8 +335,8 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
     Color c;
     switch (urgency.toLowerCase()) {
       case 'emergency': c = colors.error; break;
-      case 'high': c = colors.warning; break;
-      case 'medium': c = colors.info; break;
+      case 'urgent': c = colors.warning; break;
+      case 'routine': c = colors.info; break;
       default: c = colors.textSecondary;
     }
     return Container(
@@ -317,7 +350,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
 
   Widget _buildApprovals(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.approvals.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
-    if (data.approvals.isEmpty) return _emptyState(colors, Icons.check_circle_rounded, 'لا توجد موافقات معلقة', '');
+    if (data.approvals.isEmpty) return _emptyState(colors, Icons.check_circle_rounded, context.tr('ho_no_approvals'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(3)); },
       color: colors.primaryBrand,
@@ -326,7 +359,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         itemCount: data.approvals.length,
         itemBuilder: (_, i) {
           final a = data.approvals[i];
-          final isPending = a['status']?.toString().toLowerCase() == 'pending';
+          final isPending = a.status.toLowerCase() == 'pending';
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -339,29 +372,40 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  Expanded(child: Text(a['title']?.toString() ?? '', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
-                  _statusBadge(a['status']?.toString() ?? '', colors),
+                  Expanded(child: Text(a.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary))),
+                  _statusBadge(a.status, colors),
                 ]),
                 const SizedBox(height: 6),
-                if (a['description'] != null)
-                  Text(a['description'].toString(), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                if (a.description != null)
+                  Text(a.description!, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                 const SizedBox(height: 6),
                 Wrap(spacing: 10, children: [
-                  _infoChip(Icons.business_rounded, a['project_title']?.toString() ?? '', colors),
-                  _infoChip(Icons.engineering_rounded, a['engineer_name']?.toString() ?? '', colors),
+                  _infoChip(Icons.business_rounded, a.projectTitle, colors),
+                  _infoChip(Icons.engineering_rounded, a.engineerName, colors),
                 ]),
                 if (isPending) ...[
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(
-                      child: _actionButton(context.tr('admin_reject'), colors.error, () {
-                        context.read<HomeownerBloc>().add(RespondToApprovalEvent(a['approval_id'].toString(), 'rejected'));
+                      // C3 FIX: Confirmation dialog for destructive rejection
+                      child: _actionButton(context.tr('ho_reject'), colors.error, () {
+                        _showConfirmDialog(
+                          context,
+                          title: context.tr('ho_reject_title'),
+                          message: context.tr('ho_reject_msg'),
+                          confirmLabel: context.tr('ho_reject'),
+                          confirmColor: colors.error,
+                          onConfirm: () {
+                            context.read<HomeownerBloc>().add(RespondToApprovalEvent(a.approvalId, 'rejected'));
+                          },
+                        );
                       }),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: _actionButton(context.tr('str_bd78c08e'), colors.success, () {
-                        context.read<HomeownerBloc>().add(RespondToApprovalEvent(a['approval_id'].toString(), 'approved'));
+                      // H3 FIX: Semantic key replaces hash key 'str_bd78c08e'
+                      child: _actionButton(context.tr('ho_approve'), colors.success, () {
+                        context.read<HomeownerBloc>().add(RespondToApprovalEvent(a.approvalId, 'approved'));
                       }),
                     ),
                   ]),
@@ -392,7 +436,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
   // ─── Tab 5: Escrow ────────────────────────────────────────────────────
 
   Widget _buildEscrow(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.escrow.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (isLoading && data.escrow.totalDeposited == 0 && data.escrow.heldInEscrow == 0) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(4)); },
       color: colors.primaryBrand,
@@ -400,18 +444,18 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         padding: const EdgeInsets.all(16),
         children: [
           Row(children: [
-            _escrowCard(context.tr('str_ab95b0d8'), _formatCurrency(data.escrow['total_deposited'] ?? 0), colors.primaryBrand, colors),
+            _escrowCard(context.tr('ho_total_deposited'), _formatCurrency(data.escrow.totalDeposited), colors.primaryBrand, colors),
             const SizedBox(width: 10),
-            _escrowCard(context.tr('str_99ef4a75'), _formatCurrency(data.escrow['total_released'] ?? 0), colors.success, colors),
+            _escrowCard(context.tr('ho_released'), _formatCurrency(data.escrow.totalReleased), colors.success, colors),
           ]).animate().fadeIn(),
           const SizedBox(height: 10),
           Row(children: [
-            _escrowCard(context.tr('str_f013adbb'), _formatCurrency(data.escrow['held_in_escrow'] ?? 0), colors.warning, colors),
+            _escrowCard(context.tr('ho_held_escrow'), _formatCurrency(data.escrow.heldInEscrow), colors.warning, colors),
             const SizedBox(width: 10),
-            _escrowCard(context.tr('str_aac24d04'), '${data.escrow['projects_with_escrow'] ?? 0}', colors.textPrimary, colors),
+            _escrowCard(context.tr('ho_escrow_projects'), '${data.escrow.projectsWithEscrow}', colors.textPrimary, colors),
           ]).animate(delay: 100.ms).fadeIn(),
 
-          if ((data.escrow['held_in_escrow'] as num?) != null && (data.escrow['held_in_escrow'] as num) > 0) ...[
+          if (data.escrow.heldInEscrow > 0) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(14),
@@ -426,7 +470,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'أموالك محفوظة في حساب الضمان وسيتم تحريرها عند الموافقة على مراحل البناء.',
+                      context.tr('ho_escrow_guarantee'),
                       style: TextStyle(fontSize: 12, color: colors.primaryBrand, fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -501,6 +545,45 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
             if (subtitle.isNotEmpty) ...[const SizedBox(height: 6), Text(subtitle, style: TextStyle(fontSize: 13, color: colors.textSecondary), textAlign: TextAlign.center)],
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── C3 FIX: Confirmation Dialog (Nielsen #5 — Error Prevention) ───────
+  void _showConfirmDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required Color confirmColor,
+    required VoidCallback onConfirm,
+  }) {
+    final colors = context.colors;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surfaceElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusLg)),
+        title: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        content: Text(message, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onConfirm();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: confirmColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(confirmLabel),
+          ),
+        ],
       ),
     );
   }

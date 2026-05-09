@@ -86,6 +86,10 @@ export async function updateCatalogItem(
         throw new Error('No fields to update');
     }
 
+    // G1 AUDIT FIX: Always update the timestamp when any field changes.
+    // Was missing — deactivate/reactivate had it, but main edit path didn't.
+    updates.push('updated_at = NOW()');
+
     // Add ownership + ID params
     params.push(catalogId);    // $N
     params.push(supplierId);   // $N+1
@@ -118,7 +122,7 @@ export async function deactivateCatalogItem(
     catalogId: string,
 ): Promise<void> {
     const result = await query(
-        `UPDATE supplier_catalog SET is_active = false
+        `UPDATE supplier_catalog SET is_active = false, updated_at = NOW()
          WHERE catalog_id = $1 AND supplier_id = $2`,
         [catalogId, supplierId],
     );
@@ -129,21 +133,73 @@ export async function deactivateCatalogItem(
 }
 
 /**
+ * Re-enable a previously deactivated catalog item (set is_active = true).
+ * Only the owning supplier can reactivate.
+ */
+export async function reactivateCatalogItem(
+    supplierId: string,
+    catalogId: string,
+): Promise<SupplierCatalogItem> {
+    const result = await query<SupplierCatalogItem>(
+        `UPDATE supplier_catalog SET is_active = true, updated_at = NOW()
+         WHERE catalog_id = $1 AND supplier_id = $2
+         RETURNING catalog_id, supplier_id, material_name, material_category,
+                   description, image_url, unit, unit_price_guide,
+                   min_order_qty, lead_time_days, is_active, created_at, updated_at`,
+        [catalogId, supplierId],
+    );
+
+    if (result.rows.length === 0) {
+        throw new Error('Catalog item not found or not owned by you');
+    }
+
+    const row = result.rows[0];
+    if (!row) { throw new Error('Update returned no rows'); }
+    return row;
+}
+
+/**
  * Get the supplier's own catalog (includes inactive items for management).
+ * W4 FIX: Added pagination support.
  */
 export async function getMyCatalog(
     supplierId: string,
-): Promise<SupplierCatalogItem[]> {
+    options?: { limit?: number; offset?: number; search?: string },
+): Promise<{ items: SupplierCatalogItem[]; total: number }> {
+    const limit = Math.min(Math.max(options?.limit ?? 50, 1), 200);
+    const offset = Math.max(options?.offset ?? 0, 0);
+    const search = options?.search?.trim();
+
+    let whereClauses = `WHERE supplier_id = $1`;
+    const params: unknown[] = [supplierId];
+    let paramIdx = 2;
+
+    if (search) {
+        whereClauses += ` AND (material_name ILIKE $${paramIdx} OR material_category ILIKE $${paramIdx})`;
+        params.push(`%${search}%`);
+        paramIdx++;
+    }
+
+    // Count query
+    const countResult = await query<{ count: string }>(
+        `SELECT COUNT(*) FROM supplier_catalog ${whereClauses}`,
+        params,
+    );
+    const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
+
+    // Data query
     const result = await query<SupplierCatalogItem>(
         `SELECT catalog_id, supplier_id, material_name, material_category,
                 description, image_url, unit, unit_price_guide,
                 min_order_qty, lead_time_days, is_active, created_at, updated_at
          FROM supplier_catalog
-         WHERE supplier_id = $1
-         ORDER BY material_category ASC, material_name ASC`,
-        [supplierId],
+         ${whereClauses}
+         ORDER BY material_category ASC, material_name ASC
+         LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+        [...params, limit, offset],
     );
-    return result.rows;
+
+    return { items: result.rows, total };
 }
 
 /**
@@ -176,27 +232,45 @@ export async function getSupplierCatalog(
 
 /**
  * Get all purchase orders assigned to this supplier.
- * Includes project title and BOQ item details for context.
+ * W4 FIX: Added pagination support.
  */
 export async function getMyOrders(
     supplierId: string,
     status?: string,
-): Promise<PurchaseOrder[]> {
-    let sql = `SELECT po.*, p.title AS project_title
-               FROM purchase_orders po
-               JOIN projects p ON p.project_id = po.project_id
-               WHERE po.supplier_id = $1`;
+    options?: { limit?: number; offset?: number },
+): Promise<{ items: PurchaseOrder[]; total: number }> {
+    const limit = Math.min(Math.max(options?.limit ?? 50, 1), 200);
+    const offset = Math.max(options?.offset ?? 0, 0);
+
+    let whereClauses = `WHERE po.supplier_id = $1`;
     const params: unknown[] = [supplierId];
+    let paramIdx = 2;
 
     if (status) {
-        sql += ` AND po.status = $2`;
+        whereClauses += ` AND po.status = $${paramIdx}`;
         params.push(status);
+        paramIdx++;
     }
 
-    sql += ` ORDER BY po.generated_at DESC`;
+    // Count query
+    const countResult = await query<{ count: string }>(
+        `SELECT COUNT(*) FROM purchase_orders po ${whereClauses}`,
+        params,
+    );
+    const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
 
-    const result = await query<PurchaseOrder>(sql, params);
-    return result.rows;
+    // Data query
+    const result = await query<PurchaseOrder>(
+        `SELECT po.*, p.title AS project_title
+         FROM purchase_orders po
+         JOIN projects p ON p.project_id = po.project_id
+         ${whereClauses}
+         ORDER BY po.generated_at DESC
+         LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+        [...params, limit, offset],
+    );
+
+    return { items: result.rows, total };
 }
 
 /**
@@ -379,4 +453,43 @@ export async function getMyStats(supplierId: string): Promise<SupplierStats> {
         catalog_items: parseInt(catalogResult.rows[0]?.count ?? '0', 10),
         total_orders: parseInt(stats?.total_orders ?? '0', 10),
     };
+}
+
+// ─── Monthly Revenue Analytics ──────────────────────────────────────────────
+
+interface MonthlyDataPoint {
+    month: string;        // ISO date: "2026-01-01T00:00:00.000Z"
+    order_count: number;
+    revenue: number;      // cents
+}
+
+/**
+ * Get aggregated monthly revenue & order count for the last 12 months.
+ * W4 FEATURE: Powers the supplier analytics chart.
+ */
+export async function getMonthlyAnalytics(
+    supplierId: string,
+): Promise<MonthlyDataPoint[]> {
+    const result = await query<{
+        month: string;
+        order_count: string;
+        revenue: string;
+    }>(
+        `SELECT
+            DATE_TRUNC('month', po.generated_at) AS month,
+            COUNT(*) AS order_count,
+            COALESCE(SUM(po.amount) FILTER (WHERE po.status = 'delivered'), 0) AS revenue
+         FROM purchase_orders po
+         WHERE po.supplier_id = $1
+           AND po.generated_at >= NOW() - INTERVAL '12 months'
+         GROUP BY month
+         ORDER BY month ASC`,
+        [supplierId],
+    );
+
+    return result.rows.map(row => ({
+        month: row.month,
+        order_count: parseInt(row.order_count ?? '0', 10),
+        revenue: parseInt(row.revenue ?? '0', 10),
+    }));
 }

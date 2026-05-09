@@ -1,6 +1,5 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
-import '../constants/theme.dart';
 
 class Home extends StatelessComponent {
   const Home({super.key});

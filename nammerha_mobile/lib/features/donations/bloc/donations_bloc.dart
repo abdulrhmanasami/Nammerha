@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/utils/error_localizer.dart';
+import '../../donor/models/donor_models.dart';
 import '../models/donation_model.dart';
 import 'donations_event.dart';
 import 'donations_state.dart';
@@ -12,7 +13,7 @@ import 'donations_state.dart';
 /// ═══════════════════════════════════════════════════════════════════════════
 /// P0-003 REMEDIATION: Created missing BLoC to replace raw setState usage
 /// in donations_screen.dart. Follows Platinum Standard:
-///   - Typed state emissions (no raw Map<String, dynamic> in UI)
+///   - Typed state emissions (no raw `Map<String, dynamic>` in UI)
 ///   - Parallel API calls with independent failure handling
 ///   - Isolate-safe model parsing for large datasets
 ///   - Localized error messages via error_localizer
@@ -61,7 +62,7 @@ class DonationsBloc extends Bloc<DonationsEvent, DonationsState> {
     try {
       // Load donations and escrow summary independently
       // One failing should NOT kill both
-      List<Map<String, dynamic>> rawDonations = [];
+      List<DonorDonationModel> rawDonations = [];
       Map<String, dynamic> rawSummary = {};
 
       try {
@@ -77,7 +78,16 @@ class DonationsBloc extends Bloc<DonationsEvent, DonationsState> {
       }
 
       // Parse into typed models (isolate-safe for large lists)
-      final donations = await DonationEntry.parseList(rawDonations);
+      // Convert typed models to raw maps for DonationEntry.parseList
+      final rawMaps = rawDonations.map((d) => {
+        'id': d.escrowId,
+        'amount': d.amountLocked,
+        'project_title': d.projectTitle,
+        'material_name': d.materialName,
+        'payment_status': d.status,
+        'created_at': d.lockedAt,
+      }).toList();
+      final donations = await DonationEntry.parseList(rawMaps);
       final summary = EscrowSummary.fromJson(rawSummary);
 
       emit(DonationsLoaded(

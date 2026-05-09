@@ -32,7 +32,7 @@ class _DashboardView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'لوحة القيادة',
+          context.tr('ad_command_center'),
           style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
         ),
         backgroundColor: colors.surfaceElevated,
@@ -75,7 +75,7 @@ class _DashboardView extends StatelessWidget {
           FilledButton.icon(
             onPressed: () => context.read<AdminDashboardBloc>().add(LoadDashboard()),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('إعادة المحاولة'),
+            label: Text(context.tr('ct_retry')),
             style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
           ),
         ],
@@ -105,14 +105,14 @@ class _DashboardView extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               AdminKpiCard(
-                title: 'إجمالي التمويل',
+                title: context.tr('ad_total_funding'),
                 value: overview.totalFundedAmount,
                 icon: Icons.attach_money_rounded,
                 accentColor: colors.primaryBrand,
                 isCurrency: true,
               ),
               AdminKpiCard(
-                title: 'المشاريع النشطة',
+                title: context.tr('ad_active_projects'),
                 value: overview.totalProjects,
                 icon: Icons.business_rounded,
                 accentColor: colors.secondaryAccent,
@@ -124,7 +124,7 @@ class _DashboardView extends StatelessWidget {
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
-                title: 'إثباتات محققة',
+                title: context.tr('ad_verified_proofs'),
                 value: overview.verifiedProofs,
                 icon: Icons.verified_rounded,
                 accentColor: colors.success,
@@ -157,7 +157,7 @@ class _DashboardView extends StatelessWidget {
 
           // ─── Charts ─────────────────────────────────────────
           AdminStatChart(
-            title: 'المشاريع حسب الشهر',
+            title: context.tr('ad_projects_by_month'),
             data: state.projectsByMonth.map((p) => ChartDataPoint(
               label: p.month,
               value: p.count.toDouble(),
@@ -168,7 +168,7 @@ class _DashboardView extends StatelessWidget {
           const SizedBox(height: 16),
 
           AdminStatChart(
-            title: 'التبرعات حسب الشهر',
+            title: context.tr('ad_donations_by_month'),
             data: state.donationsByMonth.map((d) => ChartDataPoint(
               label: d.month,
               value: (d.totalAmount / 100).toDouble(),
@@ -191,7 +191,7 @@ class _DashboardView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'سجل التدقيق',
+                    context.tr('ad_audit_trail'),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -204,13 +204,13 @@ class _DashboardView extends StatelessWidget {
                     padding: const EdgeInsets.all(24),
                     child: Center(
                       child: Text(
-                        'لا توجد إدخالات حديثة',
+                        context.tr('ad_no_audit_entries'),
                         style: TextStyle(color: colors.textMuted, fontSize: 13),
                       ),
                     ),
                   )
                 else
-                  ...state.recentAudit.map((c) => _buildAuditItem(colors, c)),
+                  ...state.recentAudit.map((c) => _buildAuditItem(context, colors, c)),
                 const SizedBox(height: 8),
               ],
             ),
@@ -249,7 +249,7 @@ class _DashboardView extends StatelessWidget {
     return Container(width: 1, height: 40, color: colors.strokeBorder);
   }
 
-  Widget _buildAuditItem(SemanticColors colors, EscrowCase c) {
+  Widget _buildAuditItem(BuildContext context, SemanticColors colors, EscrowCase c) {
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
       child: Row(
@@ -269,7 +269,7 @@ class _DashboardView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  c.poNumber.isNotEmpty ? c.poNumber : (c.description ?? 'تحقق معلّق'),
+                  c.poNumber.isNotEmpty ? c.poNumber : (c.description ?? context.tr('ad_pending_check')),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

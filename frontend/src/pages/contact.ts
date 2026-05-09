@@ -84,5 +84,5 @@ function showResult(type: 'success' | 'error', message: string): void {
             <p>${escapeHtml(message)}</p>
         </div>`;
     // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
-    resultBox.classList.remove('hidden');
+    resultBox.classList.remove('nm-hidden');
 }

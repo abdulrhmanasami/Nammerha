@@ -35,7 +35,7 @@ if (!resetToken) {
     showBanner('error', t('reset_invalid_token', 'Invalid or missing reset token. Please request a new password reset link.'));
     // DEF-RESET-002 FIX: Replaced form.style.display = 'none' with class toggle.
     // Standard: DEF-VIS-001 precedent — CSS Single Source of Truth.
-    if (form) { form.classList.add('hidden'); }
+    if (form) { form.classList.add('nm-hidden'); }
 }
 
 // ─── Form Validation ────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ form?.addEventListener('submit', async (e) => {
         if (data.success) {
             showBanner('success', data.message ?? t('reset_success', 'Password reset successfully! Redirecting to sign in...'));
             // DEF-RESET-002 FIX: Hide form via class toggle.
-            if (form) { form.classList.add('hidden'); }
+            if (form) { form.classList.add('nm-hidden'); }
             setTimeout(() => {
                 window.location.href = '/auth.html';
             }, 2000);

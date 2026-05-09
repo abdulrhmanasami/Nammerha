@@ -73,7 +73,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('بوابة المقاول'),
+        title: Text(context.tr('ct_portal_title')),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -81,11 +81,11 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           labelColor: colors.primaryBrand,
           unselectedLabelColor: colors.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'لوحة التحكم'),
-            Tab(text: 'السوق'),
-            Tab(text: 'عروضي'),
-            Tab(text: 'المدفوعات'),
+          tabs: [
+            Tab(text: context.tr('ct_tab_dashboard')),
+            Tab(text: context.tr('ct_tab_marketplace')),
+            Tab(text: context.tr('ct_tab_bids')),
+            Tab(text: context.tr('ct_tab_payments')),
           ],
         ),
       ),
@@ -109,19 +109,25 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             );
           }
 
-          if (state is ContractorError && state.message.contains(context.tr('str_a838e35c'))) {
+          // G10 FIX: Was `state.message.contains(context.tr('str_a838e35c'))` — magic string!
+          // Any ContractorError at this point means the dashboard failed to load.
+          if (state is ContractorError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error_outline, size: 64, color: colors.error),
                   const SizedBox(height: 16),
-                  Text('حدث خطأ أثناء تحميل البيانات',
+                  Text(context.tr('ct_load_error'),
                       style: TextStyle(color: colors.textPrimary)),
+                  const SizedBox(height: 8),
+                  Text(state.message,
+                      style: TextStyle(fontSize: 12, color: colors.textSubtle),
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => context.read<ContractorBloc>().add(LoadContractorDashboard()),
-                    child: const Text('إعادة المحاولة'),
+                    child: Text(context.tr('ct_retry')),
                   ),
                 ],
               ),
@@ -160,7 +166,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
         children: [
           _buildKpiRow(dashboard.stats, colors),
           const SizedBox(height: 20),
-          Text('المشاريع المُسندة',
+          Text(context.tr('ct_assigned_projects'),
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -168,7 +174,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           const SizedBox(height: 12),
           if (dashboard.projects.isEmpty)
             _emptyState(colors, Icons.assignment_rounded,
-                'لا توجد مشاريع مُسندة بعد', 'تصفح السوق وقدّم عروضك')
+                context.tr('ct_no_assigned'), context.tr('ct_browse_bid'))
           else
             ...dashboard.projects.asMap().entries.map(
                 (e) => _projectCard(e.value, colors, e.key)),
@@ -180,13 +186,13 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
   Widget _buildKpiRow(ContractorStatsModel stats, SemanticColors colors) {
     return Row(
       children: [
-        _kpiCard('مشاريع نشطة', '${stats.assignedProjects}', colors.primaryBrand, colors),
+        _kpiCard(context.tr('ct_active_projects'), '${stats.activeProjects}', colors.primaryBrand, colors),
         const SizedBox(width: 8),
-        _kpiCard('عروض معلقة', '${stats.activeBids}', colors.warning, colors),
+        _kpiCard(context.tr('ct_pending_bids'), '${stats.pendingBids}', colors.warning, colors),
         const SizedBox(width: 8),
-        _kpiCard(context.tr('str_03eacf6f'), '${stats.completedProjects}', colors.success, colors),
+        _kpiCard(context.tr('ct_completed'), '${stats.wonBids}', colors.success, colors),
         const SizedBox(width: 8),
-        _kpiCard(context.tr('str_e3a4dbca'), formatCurrency(stats.totalEarnings), colors.secondaryAccent, colors),
+        _kpiCard(context.tr('ct_earnings'), formatCurrency(stats.totalEscrowReceived), colors.secondaryAccent, colors),
       ],
     ).animate().fadeIn(duration: 400.ms);
   }
@@ -283,9 +289,11 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
         c = colors.info;
         break;
       case 'in_progress':
+      case 'construction':
         c = colors.warning;
         break;
       case 'completed':
+      case 'delivered':
         c = colors.success;
         break;
       default:
@@ -295,9 +303,49 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
           color: c.withAlpha(15), borderRadius: BorderRadius.circular(6)),
-      child: Text(phase,
+      // G8 FIX: Was raw `Text(phase)` — now i18n-translated.
+      child: Text(_translatePhase(phase),
           style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c)),
     );
+  }
+
+  /// G8 FIX: Translate raw phase strings to localized labels.
+  String _translatePhase(String phase) {
+    switch (phase.toLowerCase()) {
+      case 'planning': return context.tr('ct_phase_planning');
+      case 'in_progress': return context.tr('ct_phase_in_progress');
+      case 'construction': return context.tr('ct_phase_construction');
+      case 'completed': return context.tr('ct_phase_completed');
+      case 'delivered': return context.tr('ct_phase_delivered');
+      case 'published': return context.tr('ct_phase_published');
+      default: return phase;
+    }
+  }
+
+  /// G8 FIX: Translate raw damage type strings to localized labels.
+  String _translateDamageType(String type) {
+    switch (type.toLowerCase()) {
+      case 'structural': return context.tr('ct_dmg_structural');
+      case 'electrical': return context.tr('ct_dmg_electrical');
+      case 'plumbing': return context.tr('ct_dmg_plumbing');
+      case 'roofing': return context.tr('ct_dmg_roofing');
+      case 'fire': return context.tr('ct_dmg_fire');
+      case 'water': return context.tr('ct_dmg_water');
+      case 'foundation': return context.tr('ct_dmg_foundation');
+      case 'mixed': return context.tr('ct_dmg_mixed');
+      default: return type;
+    }
+  }
+
+  /// G8 FIX: Translate raw bid status strings to localized labels.
+  String _translateBidStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending': return context.tr('ct_bid_pending');
+      case 'accepted': return context.tr('ct_bid_accepted');
+      case 'rejected': return context.tr('ct_bid_rejected');
+      case 'withdrawn': return context.tr('ct_bid_withdrawn');
+      default: return status;
+    }
   }
 
   // ─── Tab 2: Marketplace ───────────────────────────────────────────────
@@ -305,7 +353,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
   Widget _buildMarketplace(List<ContractorProjectModel> marketplace, SemanticColors colors) {
     if (marketplace.isEmpty) {
       return _emptyState(
-          colors, Icons.search_rounded, 'لا توجد مشاريع متاحة', 'ستظهر المشاريع الجديدة هنا');
+          colors, Icons.search_rounded, context.tr('ct_no_marketplace'), context.tr('ct_new_projects_hint'));
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -365,7 +413,8 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                 const SizedBox(width: 12),
                 Icon(Icons.build_rounded, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
-                Text(p.damageType,
+                // G8 FIX: Was raw `Text(p.damageType)` — now i18n-translated.
+                Text(_translateDamageType(p.damageType),
                     style: TextStyle(fontSize: 12, color: colors.textSecondary)),
               ],
             ),
@@ -376,13 +425,13 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             children: [
               Row(
                 children: [
-                  _miniStat(context.tr('str_8d92d2d9'), '${p.boqCount}', colors),
+                  _miniStat(context.tr('ct_boq_items'), '${p.boqCount}', colors),
                   const SizedBox(width: 16),
-                  _miniStat(context.tr('str_21762fb2'), '${p.bidCount}', colors),
+                  _miniStat(context.tr('ct_bid_count'), '${p.bidCount}', colors),
                 ],
               ),
               GradientButton(
-                label: 'قدّم عرض',
+                label: context.tr('ct_submit_bid'),
                 icon: Icons.gavel_rounded,
                 onPressed: () => _openBidModal(p.projectId),
                 height: 36,
@@ -417,7 +466,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
 
   Widget _buildBids(List<ContractorBidModel> bids, SemanticColors colors) {
     if (bids.isEmpty) {
-      return _emptyState(colors, Icons.flag_rounded, 'لم تقدم أي عروض بعد', '');
+      return _emptyState(colors, Icons.flag_rounded, context.tr('ct_no_bids'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -471,7 +520,8 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                 decoration: BoxDecoration(
                     color: statusColor.withAlpha(15),
                     borderRadius: BorderRadius.circular(6)),
-                child: Text(b.status,
+                // G8 FIX: Was raw `Text(b.status)` — now i18n-translated.
+                child: Text(_translateBidStatus(b.status),
                     style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -483,8 +533,8 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _miniStat('التكلفة المقترحة', formatCurrency(b.proposedCost), colors),
-              _miniStat(context.tr('str_71aec9a4'), '${b.estimatedDays} يوم', colors),
+              _miniStat(context.tr('ct_proposed_cost'), formatCurrency(b.proposedCost), colors),
+              _miniStat(context.tr('ct_estimated_days'), '${b.estimatedDays} ${context.tr('ct_day')}', colors),
               _miniStat(context.tr('date'), _formatDate(b.createdAt), colors),
             ],
           ),
@@ -497,7 +547,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
 
   Widget _buildPayments(List<ContractorPaymentModel> payments, SemanticColors colors) {
     if (payments.isEmpty) {
-      return _emptyState(colors, Icons.wallet_rounded, 'لا توجد مدفوعات بعد', '');
+      return _emptyState(colors, Icons.wallet_rounded, context.tr('ct_no_payments'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -560,9 +610,6 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
   // ─── Bid Modal ────────────────────────────────────────────────────────
 
   void _openBidModal(String projectId) {
-    final costController = TextEditingController();
-    final daysController = TextEditingController();
-    final letterController = TextEditingController();
     final colors = context.colors;
     final bloc = context.read<ContractorBloc>();
 
@@ -572,74 +619,10 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
       backgroundColor: colors.surfaceElevated,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('تقديم عرض',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: colors.textPrimary)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: costController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: 'التكلفة المقترحة (ل.س)',
-                  filled: true,
-                  fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: daysController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: 'المدة التقديرية (أيام)',
-                  filled: true,
-                  fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: letterController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                  labelText: 'رسالة تعريفية',
-                  filled: true,
-                  fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 16),
-            GradientButton(
-              label: 'إرسال العرض',
-              icon: Icons.send_rounded,
-              onPressed: () {
-                final cost = int.tryParse(costController.text) ?? 0;
-                final days = int.tryParse(daysController.text) ?? 0;
-                if (cost <= 0 || days <= 0) return;
-
-                bloc.add(SubmitContractorBid(
-                  projectId: projectId,
-                  proposedCost: cost * 100,
-                  estimatedDays: days,
-                  coverLetter: letterController.text.isNotEmpty
-                      ? letterController.text
-                      : null,
-                ));
-
-                Navigator.pop(ctx);
-              },
-            ),
-          ],
-        ),
+      // G7 FIX: Extracted to StatefulWidget — controllers are now disposed properly.
+      builder: (ctx) => _BidSubmitForm(
+        projectId: projectId,
+        bloc: bloc,
       ),
     );
   }
@@ -681,5 +664,113 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
     } catch (_) {
       return dateStr;
     }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// G7 FIX: Bid Submit Form — Extracted StatefulWidget
+// ═══════════════════════════════════════════════════════════════════════════
+// Previously, 3 TextEditingControllers were created as local variables inside
+// _openBidModal(). When the bottom sheet was dismissed, the controllers were
+// NEVER disposed — leaking native resources with every modal open.
+// This StatefulWidget ensures dispose() is called on sheet dismissal.
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _BidSubmitForm extends StatefulWidget {
+  final String projectId;
+  final ContractorBloc bloc;
+
+  const _BidSubmitForm({required this.projectId, required this.bloc});
+
+  @override
+  State<_BidSubmitForm> createState() => _BidSubmitFormState();
+}
+
+class _BidSubmitFormState extends State<_BidSubmitForm> {
+  final _costController = TextEditingController();
+  final _daysController = TextEditingController();
+  final _letterController = TextEditingController();
+
+  @override
+  void dispose() {
+    _costController.dispose();
+    _daysController.dispose();
+    _letterController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(context.tr('ct_bid_title'),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: colors.textPrimary)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _costController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+                labelText: context.tr('ct_proposed_cost_label'),
+                filled: true,
+                fillColor: colors.backgroundSecondary,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12))),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _daysController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+                labelText: context.tr('ct_days_label'),
+                filled: true,
+                fillColor: colors.backgroundSecondary,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12))),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _letterController,
+            maxLines: 3,
+            decoration: InputDecoration(
+                labelText: context.tr('ct_cover_letter'),
+                filled: true,
+                fillColor: colors.backgroundSecondary,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12))),
+          ),
+          const SizedBox(height: 16),
+          GradientButton(
+            label: context.tr('ct_send_bid'),
+            icon: Icons.send_rounded,
+            onPressed: () {
+              final cost = int.tryParse(_costController.text) ?? 0;
+              final days = int.tryParse(_daysController.text) ?? 0;
+              if (cost <= 0 || days <= 0) return;
+
+              widget.bloc.add(SubmitContractorBid(
+                projectId: widget.projectId,
+                proposedCost: cost * 100,
+                estimatedDays: days,
+                coverLetter: _letterController.text.isNotEmpty
+                    ? _letterController.text
+                    : null,
+              ));
+
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

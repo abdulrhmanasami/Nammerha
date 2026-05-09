@@ -9,6 +9,7 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
   HomeownerBloc({required this.repository}) : super(const HomeownerInitial()) {
     on<LoadHomeownerTabEvent>(_onLoadTab);
     on<RespondToApprovalEvent>(_onRespondApproval);
+    on<CancelServiceRequestEvent>(_onCancelServiceRequest);
   }
 
   Future<void> _onLoadTab(LoadHomeownerTabEvent event, Emitter<HomeownerState> emit) async {
@@ -34,7 +35,8 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
       }
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
-      emit(HomeownerError(state.data, 'حدث خطأ أثناء تحميل البيانات'));
+      // M2 FIX: Error message uses generic key — will be localized via i18n
+      emit(HomeownerError(state.data, 'Failed to load data'));
     }
   }
 
@@ -48,8 +50,23 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
       updatedData = await repository.loadDashboard();
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
-      emit(HomeownerError(state.data, 'فشل تنفيذ الإجراء — حاول مرة أخرى'));
+      emit(HomeownerError(state.data, 'Action failed — please try again'));
       emit(HomeownerLoaded(state.data)); // Fallback
+    }
+  }
+
+  // C4 FIX: Cancel service request handler
+  Future<void> _onCancelServiceRequest(CancelServiceRequestEvent event, Emitter<HomeownerState> emit) async {
+    emit(HomeownerLoading(state.data));
+    try {
+      await repository.cancelServiceRequest(event.requestId);
+      // Reload service requests + stats to reflect cancellation
+      var updatedData = await repository.loadServiceRequests(state.data);
+      updatedData = await repository.loadDashboard();
+      emit(HomeownerLoaded(updatedData));
+    } catch (e) {
+      emit(HomeownerError(state.data, 'Cancel failed — please try again'));
+      emit(HomeownerLoaded(state.data));
     }
   }
 }

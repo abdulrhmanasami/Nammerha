@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -69,7 +69,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceLg),
               
               _ActionCard(
-                icon: PhosphorIcons.export(PhosphorIconsStyle.regular),
+                icon: Icons.file_download_outlined,
                 title: 'تصدير البيانات (GDPR)',
                 description: 'احصل على نسخة كاملة من جميع بياناتك المسجلة لدينا بصيغة JSON قابلة للقراءة.',
                 buttonText: 'طلب تصدير',
@@ -86,7 +86,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceMd),
 
               _ActionCard(
-                icon: PhosphorIcons.handPalm(PhosphorIconsStyle.regular),
+                icon: Icons.back_hand_outlined,
                 title: 'سحب الموافقة',
                 description: 'إيقاف معالجة بياناتك لأغراض التحليل وتحسين الخدمات. لن يؤثر ذلك على خدمات الضمان الأساسية (Escrow).',
                 buttonText: 'سحب الموافقة',
@@ -105,7 +105,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceMd),
 
               _ActionCard(
-                icon: PhosphorIcons.trash(PhosphorIconsStyle.regular),
+                icon: Icons.delete_forever_rounded,
                 title: 'حذف الحساب نهائياً',
                 description: 'سيتم مسح جميع بياناتك الشخصية من خوادمنا بشكل لا رجعة فيه. ستبقى السجلات المالية مجهولة الهوية لأغراض التدقيق القانوني.',
                 buttonText: 'حذف الحساب',
@@ -128,7 +128,7 @@ class _PrivacyCenterView extends StatelessWidget {
                   onPressed: () {
                     // Navigate to Cryptographic Consent Audit Logs (optional future expansion)
                   },
-                  icon: Icon(PhosphorIcons.lockKey(PhosphorIconsStyle.regular), size: 16),
+                   icon: const Icon(Icons.lock_outline_rounded, size: 16),
                   label: const Text('سجل الموافقة المشفر (HMAC)'),
                   style: TextButton.styleFrom(foregroundColor: colors.primaryBrand),
                 ),

@@ -279,7 +279,7 @@ async function activateRole(role: UserRole): Promise<void> {
 
         // Close modal + refresh
         const modal = document.getElementById('role-activation-modal');
-        if (modal) { modal.classList.add('hidden'); }
+        if (modal) { modal.classList.add('nm-hidden'); }
 
         await loadUserRoles();
         updateProfileCompletion(getCurrentUser());
@@ -345,8 +345,8 @@ document.getElementById('logout-btn')?.addEventListener('click', logout);
 document.getElementById('add-role-btn')?.addEventListener('click', () => {
     const modal = document.getElementById('role-activation-modal');
     if (modal) {
-        modal.classList.toggle('hidden');
-        if (!modal.classList.contains('hidden')) {
+        modal.classList.toggle('nm-hidden');
+        if (!modal.classList.contains('nm-hidden')) {
             loadAvailableRoles();
         }
     }
@@ -354,7 +354,7 @@ document.getElementById('add-role-btn')?.addEventListener('click', () => {
 
 document.getElementById('cancel-role-activation')?.addEventListener('click', () => {
     const modal = document.getElementById('role-activation-modal');
-    if (modal) { modal.classList.add('hidden'); }
+    if (modal) { modal.classList.add('nm-hidden'); }
 });
 
 // ─── GAP-003 FIX: Profile Edit Mode ────────────────────────────────────────
@@ -373,12 +373,12 @@ function toggleEditMode(show: boolean): void {
         if (nameInput) { nameInput.value = user?.full_name ?? ''; }
         if (emailInput) { emailInput.value = user?.email ?? ''; }
 
-        displayMode.classList.add('hidden');
-        editForm.classList.remove('hidden');
+        displayMode.classList.add('nm-hidden');
+        editForm.classList.remove('nm-hidden');
         document.getElementById('edit-name')?.focus();
     } else {
-        displayMode.classList.remove('hidden');
-        editForm.classList.add('hidden');
+        displayMode.classList.remove('nm-hidden');
+        editForm.classList.add('nm-hidden');
         hideEditBanner();
     }
 }
@@ -390,12 +390,12 @@ function showEditBanner(type: 'error' | 'success', message: string): void {
         type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
     }`;
     banner.textContent = message;
-    banner.classList.remove('hidden');
+    banner.classList.remove('nm-hidden');
 }
 
 function hideEditBanner(): void {
     const banner = document.getElementById('profile-edit-banner');
-    if (banner) { banner.classList.add('hidden'); }
+    if (banner) { banner.classList.add('nm-hidden'); }
 }
 
 // PLT-003 FIX: Double-submit guard — prevents re-entry on slow 3G double-tap.
@@ -483,12 +483,12 @@ function initPasswordChangeEngine(): void {
     if (!toggleBtn || !formPanel) { return; }
 
     toggleBtn.addEventListener('click', () => {
-        const isHidden = formPanel.classList.contains('hidden');
+        const isHidden = formPanel.classList.contains('nm-hidden');
         if (isHidden) {
-            formPanel.classList.remove('hidden');
+            formPanel.classList.remove('nm-hidden');
             caretIcon?.classList.add('rotate-180');
         } else {
-            formPanel.classList.add('hidden');
+            formPanel.classList.add('nm-hidden');
             caretIcon?.classList.remove('rotate-180');
         }
     });
@@ -528,7 +528,7 @@ function initPasswordChangeEngine(): void {
             }
             restoreBtn('success');
             showToast(t('password_changed_success', 'Password updated successfully.'), 'success');
-            formPanel.classList.add('hidden');
+            formPanel.classList.add('nm-hidden');
             caretIcon?.classList.remove('rotate-180');
             // Clean up fields
             if (currentInput) { currentInput.value = ''; }
@@ -606,7 +606,7 @@ function initPhotoPreview(): void {
             const result = e.target?.result;
             if (typeof result === 'string') {
                 previewImg.src = result;
-                previewWrap.classList.remove('hidden');
+                previewWrap.classList.remove('nm-hidden');
 
                 // Also update the main avatar circle for immediate in-page feedback
                 // PLT-004 FIX: DOM API replaces innerHTML for avatar preview.
@@ -633,7 +633,7 @@ function initPhotoPreview(): void {
     // Remove photo handler
     removeBtn?.addEventListener('click', () => {
         fileInput.value = '';
-        previewWrap.classList.add('hidden');
+        previewWrap.classList.add('nm-hidden');
         previewImg.src = '';
         if (filenameEl) {
             filenameEl.textContent = t('choose_photo', 'Choose a photo...');
@@ -661,7 +661,7 @@ function init(): void {
     if (params.get('tab') === 'roles') {
         const modal = document.getElementById('role-activation-modal');
         if (modal) {
-            modal.classList.remove('hidden');
+            modal.classList.remove('nm-hidden');
             loadAvailableRoles();
             modal.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -679,7 +679,7 @@ function init(): void {
             // Previous: Focus silently failed on hidden inputs (edit-name, edit-email, etc.).
             // Standard: WCAG 2.4.3 (Focus Order), Nielsen #3 (User Control & Freedom).
             const editForm = document.getElementById('profile-edit-form');
-            if (editForm?.classList.contains('hidden')) {
+            if (editForm?.classList.contains('nm-hidden')) {
                 const target = document.getElementById(targetId);
                 if (target && editForm.contains(target)) {
                     toggleEditMode(true);

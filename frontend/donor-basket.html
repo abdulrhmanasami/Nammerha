@@ -121,7 +121,7 @@
     </div>
 
     <!-- Empty Cart State (hidden by default) -->
-    <div class="px-6 hidden" id="empty-cart-state">
+    <div class="px-6 nm-hidden" id="empty-cart-state">
       <div class="empty-cart">
         <i class="ph ph-shopping-cart text-slate-300 nm-icon-64" aria-hidden="true"></i>
         <!-- M-AUD-002 FIX: Changed from h3 to h2 — sequential heading hierarchy (WCAG 1.3.1). -->
@@ -156,7 +156,7 @@
          Previous: checkout sheet was narrower than content on tablets (≥768px).
          Now: uses same responsive token as .mobile-container.
          Standard: Responsive Design, Layout Consistency. -->
-    <div class="glass-sheet fixed bottom-0 start-0 end-0 mobile-container mx-auto p-6 pb-8 z-checkout hidden" id="checkout-sheet" data-expanded="true">
+    <div class="glass-sheet fixed bottom-0 start-0 end-0 mobile-container mx-auto p-6 pb-8 z-checkout nm-hidden" id="checkout-sheet" data-expanded="true">
       <!-- Drag handle for visual affordance -->
       <div class="flex justify-center mb-3 cursor-pointer" id="checkout-handle" role="button" aria-label="Toggle checkout panel" tabindex="0">
         <div class="w-10 h-1 bg-slate-300 rounded-full"></div>
@@ -200,7 +200,7 @@
             <i class="ph ph-pencil-simple ph-xs" aria-hidden="true"></i>
           </button>
         </div>
-        <div id="tip-custom-input-wrap" class="hidden mb-3">
+        <div id="tip-custom-input-wrap" class="nm-hidden mb-3">
           <div class="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200 dark:bg-dark-elevated dark:border-dark-border">
             <span class="text-slate-400 text-sm font-bold dark:text-slate-500">$</span>
             <!-- FRC-X05 FIX: max='9999' prevents unreasonable tip amounts.
@@ -295,6 +295,8 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
     </footer>
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
+<script src="/i18n/donor.js" defer></script>
 <script src="/i18n/project.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

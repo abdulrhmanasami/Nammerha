@@ -104,7 +104,7 @@ class _ContactScreenState extends State<ContactScreen> {
         const SizedBox(height: 24),
         // Category
         DropdownButtonFormField<String>(
-          value: _category,
+          initialValue: _category,
           dropdownColor: colors.surfaceElevated,
           style: TextStyle(color: colors.textPrimary, fontSize: 14),
           decoration: _inputDecor(colors, context.tr('str_dc731208')),

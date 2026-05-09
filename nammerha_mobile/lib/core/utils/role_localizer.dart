@@ -1,8 +1,8 @@
-/// ══════════════════════════════════════════════════════════════════════
-/// Nammerha — Role Localizer Utility
-/// Maps English role codes to Arabic display names and metadata.
-/// Single source of truth — used by dashboard, profile, and role switcher.
-/// ══════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════
+// Nammerha — Role Localizer Utility
+// Maps English role codes to Arabic display names and metadata.
+// Single source of truth — used by dashboard, profile, and role switcher.
+// ══════════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 
 class RoleMeta {

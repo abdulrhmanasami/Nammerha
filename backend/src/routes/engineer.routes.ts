@@ -24,11 +24,19 @@ router.use(requireRole('engineer'));
 
 // ─── GET /api/engineer/projects — My Assigned Projects ──────────────────────
 router.get('/projects', async (req: Request, res: Response) => {
+    // AUDIT FIX: Was calling getMyProjects without pagination params
+    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
+    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
+    const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
+
     try {
         const status = req.query['status'] as string | undefined;
         const projects = await engineerService.getMyProjects(
             getAuthUser(req).user_id,
             status,
+            safeLim,
+            safeOff,
         );
         res.json({ success: true, data: projects } as ApiResponse);
     } catch (error) {
@@ -48,11 +56,19 @@ router.get('/stats', async (req: Request, res: Response) => {
 
 // ─── GET /api/engineer/bids — My Bid History ────────────────────────────────
 router.get('/bids', async (req: Request, res: Response) => {
+    // AUDIT FIX: Was calling getMyBids without pagination params
+    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
+    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
+    const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
+
     try {
         const status = req.query['status'] as string | undefined;
         const bids = await engineerService.getMyBids(
             getAuthUser(req).user_id,
             status,
+            safeLim,
+            safeOff,
         );
         res.json({ success: true, data: bids } as ApiResponse);
     } catch (error) {

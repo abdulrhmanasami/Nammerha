@@ -150,7 +150,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 2 — Where is your property? (Location)
        ═══════════════════════════════════════════════════════════════════════ -->
-  <section id="step-2" class="flex-1 px-6 flex flex-col wizard-step hidden">
+  <section id="step-2" class="flex-1 px-6 flex flex-col wizard-step nm-hidden">
     <!-- INC-AUD-01 FIX: Changed from <h1> to <h2>. Only one <h1> per page (step-1).
          Screen readers enumerate ALL headings regardless of CSS visibility.
          Standard: WCAG 1.3.1 — single <h1> per page. -->
@@ -203,7 +203,7 @@
     </button>
 
     <!-- GPS Result (hidden until detected) -->
-    <div id="gps-result" class="hidden bg-smoky-jade/10 border border-smoky-jade/20 rounded-xl p-4 flex items-center gap-3">
+    <div id="gps-result" class="nm-hidden bg-smoky-jade/10 border border-smoky-jade/20 rounded-xl p-4 flex items-center gap-3" role="status" aria-live="polite">
       <div class="size-10 rounded-full bg-smoky-jade/20 flex items-center justify-center shrink-0">
         <i class="ph ph-map-pin text-smoky-jade ph-md dark:text-emerald-400" aria-hidden="true"></i>
       </div>
@@ -217,7 +217,7 @@
          Previous: No visible error feedback when geolocation fails (permission denied,
          timeout, unavailable). User tapped the button and saw nothing.
          Standard: Nielsen #1 (System Status Visibility), Apple HIG (Error Feedback). -->
-    <div id="gps-error" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 dark:bg-red-500/10 dark:border-red-500/20" role="alert">
+    <div id="gps-error" class="nm-hidden bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 dark:bg-red-500/10 dark:border-red-500/20" role="alert" aria-live="assertive">
       <div class="size-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
         <i class="ph ph-map-pin-slash text-red-500 ph-md" aria-hidden="true"></i>
       </div>
@@ -231,7 +231,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 3 — Describe the damage + Upload photos
        ═══════════════════════════════════════════════════════════════════════ -->
-  <section id="step-3" class="flex-1 px-6 flex flex-col wizard-step hidden">
+  <section id="step-3" class="flex-1 px-6 flex flex-col wizard-step nm-hidden">
     <!-- INC-AUD-01 FIX: h2 — single h1 is on step-1 (WCAG 1.3.1). -->
     <h2 class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100" data-i18n="describe_the_damage">Describe the damage</h2>
     <p class="text-slate-500 text-sm text-center mb-6 dark:text-slate-400" data-i18n="type_or_use_voice_to_tell_us_what_happen">Type or use voice to tell us what happened</p>
@@ -279,7 +279,7 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        STEP 4 — Confirmation / Success
        ═══════════════════════════════════════════════════════════════════════ -->
-  <section id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step hidden">
+  <section id="step-4" class="flex-1 px-6 flex flex-col items-center justify-center wizard-step nm-hidden">
     <div class="text-center">
       <div class="size-24 mx-auto rounded-full bg-smoky-jade/15 flex items-center justify-center mb-6">
         <i class="ph ph-check-circle text-smoky-jade nm-icon-60 dark:text-emerald-400" aria-hidden="true"></i>
@@ -336,7 +336,7 @@
   </footer>
 
   <!-- Voice Recording Overlay -->
-  <div id="voice-overlay" class="hidden fixed inset-0 z-50 bg-white/98 backdrop-blur-sm flex flex-col items-center justify-center dark:bg-[#1e1e1e]/95">
+  <div id="voice-overlay" class="nm-hidden fixed inset-0 z-50 bg-white/98 backdrop-blur-sm flex flex-col items-center justify-center dark:bg-[#1e1e1e]/95">
     <div class="text-center">
       <div class="size-28 rounded-full bg-trust-blue/10 flex items-center justify-center mb-6 voice-recording">
         <div class="size-20 rounded-full bg-trust-blue/20 flex items-center justify-center">
@@ -372,6 +372,7 @@
     <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
   </footer>
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/homeowner.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

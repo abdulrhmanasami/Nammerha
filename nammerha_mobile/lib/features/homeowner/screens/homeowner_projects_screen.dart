@@ -42,7 +42,21 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
     cubit.setLoading();
     try {
       final projects = await _api.getProjects();
-      cubit.setLoaded(projects);
+      // Convert typed models to Map for cubit (screen uses map-access pattern)
+      final projectMaps = projects.map((p) => <String, dynamic>{
+        'id': p.projectId,
+        'title': p.title,
+        'damage_type': p.damageType,
+        'status': p.status,
+        'region': p.region,
+        'engineer_name': p.engineerName,
+        'contractor_name': p.contractorName,
+        'bid_count': p.bidCount,
+        'total_estimated_cost': p.totalBoqCost,
+        'totalEstimatedCost': p.totalBoqCost,
+        'created_at': p.createdAt,
+      }).toList();
+      cubit.setLoaded(projectMaps);
     } on ApiException catch (e) {
       cubit.setError(localizeApiError(e.message));
     } catch (e) {
@@ -292,7 +306,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
             _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), Icons.location_on_rounded),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: selectedDamage,
+              initialValue: selectedDamage,
               decoration: InputDecoration(
                 labelText: 'نوع الضرر',
                 prefixIcon: Icon(Icons.warning_rounded, color: colors.textSecondary),
@@ -349,7 +363,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                   if (permission == LocationPermission.denied ||
                       permission == LocationPermission.deniedForever) {
                     if (context.mounted) Navigator.pop(context); // dismiss spinner
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: const Text('يرجى السماح بالوصول للموقع لإنشاء المشروع'),
@@ -382,7 +396,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
 
                 // Validate we got real coordinates (not 0,0)
                 if (gpsLat == 0 && gpsLng == 0) {
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: const Text('تعذر تحديد الموقع — تأكد من تفعيل GPS'),
@@ -404,13 +418,13 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                     gpsLng: gpsLng,
                   );
                   await widget.onSuccess();
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: const Text('✅ تم إنشاء المشروع بنجاح'), backgroundColor: colors.success),
                     );
                   }
                 } on ApiException catch (e) {
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(localizeApiError(e.message)), backgroundColor: colors.error),
                     );

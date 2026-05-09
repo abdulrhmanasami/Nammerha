@@ -109,7 +109,7 @@ function initDonorBasket(): void {
                     isCustomTip = true;
                     customTipAmount = 0;
                     if (tipCustomInputWrap) {
-                        tipCustomInputWrap.classList.remove('hidden');
+                        tipCustomInputWrap.classList.remove('nm-hidden');
                     }
                     tipCustomInput?.focus();
                 } else {
@@ -117,7 +117,7 @@ function initDonorBasket(): void {
                     customTipAmount = null;
                     selectedTipPercentage = parseInt(tipValue ?? '0', 10);
                     if (tipCustomInputWrap) {
-                        tipCustomInputWrap.classList.add('hidden');
+                        tipCustomInputWrap.classList.add('nm-hidden');
                     }
                 }
 

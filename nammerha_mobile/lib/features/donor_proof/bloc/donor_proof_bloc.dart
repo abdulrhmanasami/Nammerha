@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/api_services.dart';
+import '../../donor/models/donor_models.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DONOR PROOF BLOC — GAP-S01 REMEDIATION
@@ -32,7 +33,7 @@ class DownloadReceipt extends DonorProofEvent {
 class DonorProofState {
   final bool isLoading;
   final String? error;
-  final List<Map<String, dynamic>> proofs;
+  final List<DonorProofModel> proofs;
   final List<Map<String, dynamic>> timeline;
   final Map<String, dynamic>? projectFunding;
   final String? receiptUrl;
@@ -51,7 +52,7 @@ class DonorProofState {
   DonorProofState copyWith({
     bool? isLoading,
     String? error,
-    List<Map<String, dynamic>>? proofs,
+    List<DonorProofModel>? proofs,
     List<Map<String, dynamic>>? timeline,
     Map<String, dynamic>? projectFunding,
     String? receiptUrl,

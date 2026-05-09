@@ -26,6 +26,8 @@ interface ContractorProject {
 export async function getMyProjects(
     contractorId: string,
     status?: string,
+    limit = 50,
+    offset = 0,
 ): Promise<ContractorProject[]> {
     let sql = `
         SELECT
@@ -44,11 +46,13 @@ export async function getMyProjects(
     const params: unknown[] = [contractorId];
 
     if (status) {
-        sql += ` AND p.status = $2`;
+        sql += ` AND p.status = $${params.length + 1}`;
         params.push(status);
     }
 
-    sql += ` ORDER BY p.created_at DESC`;
+    // G4 FIX: Added pagination (was missing entirely)
+    sql += ` ORDER BY p.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
 
     const result = await query<ContractorProject>(sql, params);
     return result.rows;
@@ -130,6 +134,8 @@ interface ContractorBid {
 export async function getMyBids(
     contractorId: string,
     status?: string,
+    limit = 50,
+    offset = 0,
 ): Promise<ContractorBid[]> {
     let sql = `
         SELECT
@@ -149,11 +155,13 @@ export async function getMyBids(
     const params: unknown[] = [contractorId];
 
     if (status) {
-        sql += ` AND cb.status = $2`;
+        sql += ` AND cb.status = $${params.length + 1}`;
         params.push(status);
     }
 
-    sql += ` ORDER BY cb.submitted_at DESC`;
+    // G4 FIX: Pagination prevents unbounded result sets at scale
+    sql += ` ORDER BY cb.submitted_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
 
     const result = await query<ContractorBid>(sql, params);
     return result.rows;
@@ -167,7 +175,10 @@ export async function getMyBids(
  */
 export async function getAvailableProjects(
     contractorId: string,
+    limit = 50,
+    offset = 0,
 ): Promise<AvailableProject[]> {
+    // G4 FIX: Added pagination parameters (was hardcoded LIMIT 50, no offset)
     const result = await query<AvailableProject>(
         `SELECT
             p.project_id,
@@ -189,8 +200,8 @@ export async function getAvailableProjects(
              AND (contractor_id = $1 OR engineer_id = $1)
          )
          ORDER BY p.published_at DESC
-         LIMIT 50`,
-        [contractorId],
+         LIMIT $2 OFFSET $3`,
+        [contractorId, limit, offset],
     );
     return result.rows;
 }
@@ -257,8 +268,10 @@ export async function getMyProfile(
 export async function getMyPayments(
     contractorId: string,
     limit = 50,
+    offset = 0,
 ): Promise<ContractorPayment[]> {
     // CRT-NEW-003 FIX: escrow_transactions → escrow_ledger (actual table)
+    // G4 FIX: Added offset parameter for pagination
     const result = await query<ContractorPayment>(
         `SELECT
             el.transaction_id,
@@ -271,8 +284,8 @@ export async function getMyPayments(
          JOIN projects p ON p.project_id = el.project_id
          WHERE p.assigned_contractor_id = $1
          ORDER BY el.locked_at DESC
-         LIMIT $2`,
-        [contractorId, limit],
+         LIMIT $2 OFFSET $3`,
+        [contractorId, limit, offset],
     );
     return result.rows;
 }

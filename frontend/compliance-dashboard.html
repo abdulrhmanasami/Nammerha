@@ -162,7 +162,7 @@
                Compliance was the sole outlier using bg-warning-yellow.
                Standard: Nielsen #4 (Consistency), Design System Color Token. -->
           <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -359,6 +359,8 @@
 </template>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
+<script src="/i18n/admin.js" defer></script>
 <script src="/i18n/compliance.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

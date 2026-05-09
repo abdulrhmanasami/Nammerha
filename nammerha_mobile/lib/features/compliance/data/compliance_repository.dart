@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/services/compliance_api.dart';
 import '../models/compliance_models.dart';
 
@@ -58,7 +59,7 @@ class ComplianceRepository {
   void _logError(String endpoint, Object error) {
     assert(() {
       // ignore: avoid_print
-      print('[ComplianceRepository] $endpoint failed: $error');
+      debugPrint('[ComplianceRepository] $endpoint failed: $error');
       return true;
     }());
   }

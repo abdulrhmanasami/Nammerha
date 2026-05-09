@@ -1,4 +1,6 @@
 import '../network/api_client.dart';
+import '../../features/homeowner/models/homeowner_models.dart';
+import '../../features/donor/models/donor_models.dart';
 
 /// Utility to format currency in Syrian Pounds
 String formatCurrency(num amountCents) {
@@ -64,49 +66,61 @@ class DonorApi {
   DonorApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
 
   /// GET /api/donor/stats
-  Future<Map<String, dynamic>> getStats() async {
+  Future<DonorStatsModel> getStats() async {
     final response = await _api.request<Map<String, dynamic>>(
       '/donor/stats',
       fromData: (d) => d as Map<String, dynamic>,
     );
-    return response.data ?? {};
+    return DonorStatsModel.fromJson(response.data ?? {});
   }
 
   /// GET /api/donor/donations
-  Future<List<Map<String, dynamic>>> getDonations({int? limit}) async {
+  Future<List<DonorDonationModel>> getDonations({int? limit}) async {
     final qs = limit != null ? '?limit=$limit' : '';
     final response = await _api.request<List<dynamic>>(
       '/donor/donations$qs',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(DonorDonationModel.fromJson)
+        .toList();
   }
 
   /// GET /api/donor/impact
-  Future<List<Map<String, dynamic>>> getImpact() async {
+  Future<List<DonorFundedProjectModel>> getImpact() async {
     final response = await _api.request<List<dynamic>>(
       '/donor/impact',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(DonorFundedProjectModel.fromJson)
+        .toList();
   }
 
   /// GET /api/donor/marketplace
-  Future<List<Map<String, dynamic>>> getMarketplace() async {
+  Future<List<DonorMarketplaceProjectModel>> getMarketplace() async {
     final response = await _api.request<List<dynamic>>(
       '/donor/marketplace',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(DonorMarketplaceProjectModel.fromJson)
+        .toList();
   }
 
   /// GET /api/donor/proofs
-  Future<List<Map<String, dynamic>>> getProofs() async {
+  Future<List<DonorProofModel>> getProofs() async {
     final response = await _api.request<List<dynamic>>(
       '/donor/proofs',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(DonorProofModel.fromJson)
+        .toList();
   }
 
   /// GET /api/donor/timeline
@@ -353,6 +367,7 @@ class SupplierApi {
     required int unitPriceGuide,
     int? leadTimeDays,
     int? minimumOrder,
+    String? description,
   }) async {
     final response = await _api.request<Map<String, dynamic>>(
       '/supplier/catalog',
@@ -364,7 +379,8 @@ class SupplierApi {
         'unit': unit,
         'unit_price_guide': unitPriceGuide,
         if (leadTimeDays != null) 'lead_time_days': leadTimeDays,
-        if (minimumOrder != null) 'minimum_order': minimumOrder,
+        if (minimumOrder != null) 'min_order_qty': minimumOrder,
+        if (description != null) 'description': description,
       },
       fromData: (d) => d as Map<String, dynamic>,
     );
@@ -381,8 +397,6 @@ class SupplierApi {
     return response.data?.cast<Map<String, dynamic>>() ?? [];
   }
 
-  /// PATCH /api/supplier/catalog/:id — Update catalog item
-  /// GAP-A01 REMEDIATION: Mobile parity with web supplier.updateCatalogItem()
   Future<Map<String, dynamic>?> updateCatalogItem(
     String itemId, {
     String? materialName,
@@ -391,6 +405,7 @@ class SupplierApi {
     int? unitPriceGuide,
     int? leadTimeDays,
     int? minimumOrder,
+    String? description,
   }) async {
     final response = await _api.request<Map<String, dynamic>>(
       '/supplier/catalog/$itemId',
@@ -401,7 +416,8 @@ class SupplierApi {
         if (unit != null) 'unit': unit,
         if (unitPriceGuide != null) 'unit_price_guide': unitPriceGuide,
         if (leadTimeDays != null) 'lead_time_days': leadTimeDays,
-        if (minimumOrder != null) 'minimum_order': minimumOrder,
+        if (minimumOrder != null) 'min_order_qty': minimumOrder,
+        if (description != null) 'description': description,
       },
       fromData: (d) => d as Map<String, dynamic>,
     );
@@ -425,6 +441,25 @@ class SupplierApi {
       body: {'status': status},
     );
   }
+
+  /// POST /api/supplier/catalog/:id/reactivate — Re-enable catalog item
+  /// C3 REMEDIATION: Was completely missing — no way to reactivate deactivated items.
+  Future<void> reactivateItem(String itemId) async {
+    await _api.request(
+      '/supplier/catalog/$itemId/reactivate',
+      method: 'POST',
+      idempotent: true,
+    );
+  }
+
+  /// W4 FEATURE: GET /api/supplier/analytics — Monthly revenue chart data
+  Future<List<Map<String, dynamic>>> getAnalytics() async {
+    final response = await _api.request<List<dynamic>>(
+      '/supplier/analytics',
+      fromData: (d) => d as List<dynamic>,
+    );
+    return response.data?.cast<Map<String, dynamic>>() ?? [];
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -436,21 +471,24 @@ class HomeownerApi {
   HomeownerApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
 
   /// GET /api/homeowner/stats
-  Future<Map<String, dynamic>> getStats() async {
+  Future<HomeownerStatsModel> getStats() async {
     final response = await _api.request<Map<String, dynamic>>(
       '/homeowner/stats',
       fromData: (d) => d as Map<String, dynamic>,
     );
-    return response.data ?? {};
+    return HomeownerStatsModel.fromJson(response.data ?? {});
   }
 
   /// GET /api/homeowner/projects
-  Future<List<Map<String, dynamic>>> getProjects() async {
+  Future<List<HomeownerProjectModel>> getProjects() async {
     final response = await _api.request<List<dynamic>>(
       '/homeowner/projects',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(HomeownerProjectModel.fromJson)
+        .toList();
   }
 
   /// POST /api/projects (Create project)
@@ -480,6 +518,7 @@ class HomeownerApi {
         if (images != null) 'images': images,
       },
       fromData: (d) => d as Map<String, dynamic>,
+      idempotent: true,
     );
     return response.data;
   }
@@ -522,22 +561,28 @@ class HomeownerApi {
   }
 
   /// GET /api/homeowner/service-requests
-  Future<List<Map<String, dynamic>>> getServiceRequests() async {
+  Future<List<HomeownerServiceRequestModel>> getServiceRequests() async {
     final response = await _api.request<List<dynamic>>(
       '/homeowner/service-requests',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(HomeownerServiceRequestModel.fromJson)
+        .toList();
   }
 
   /// GET /api/homeowner/approvals
-  Future<List<Map<String, dynamic>>> getApprovals({String? status}) async {
+  Future<List<HomeownerApprovalModel>> getApprovals({String? status}) async {
     final qs = status != null ? '?status=$status' : '';
     final response = await _api.request<List<dynamic>>(
       '/homeowner/approvals$qs',
       fromData: (d) => d as List<dynamic>,
     );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
+    return (response.data ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(HomeownerApprovalModel.fromJson)
+        .toList();
   }
 
   /// POST /api/homeowner/service-requests/:id/cancel — Cancel a service request
@@ -546,6 +591,7 @@ class HomeownerApi {
     await _api.request(
       '/homeowner/service-requests/$requestId/cancel',
       method: 'POST',
+      idempotent: true,
     );
   }
 
@@ -567,12 +613,12 @@ class HomeownerApi {
   }
 
   /// GET /api/homeowner/escrow
-  Future<Map<String, dynamic>> getEscrow() async {
+  Future<HomeownerEscrowModel> getEscrow() async {
     final response = await _api.request<Map<String, dynamic>>(
       '/homeowner/escrow',
       fromData: (d) => d as Map<String, dynamic>,
     );
-    return response.data ?? {};
+    return HomeownerEscrowModel.fromJson(response.data ?? {});
   }
 }
 
@@ -626,6 +672,7 @@ class NotificationsApi {
         'platform': platform,
         if (deviceId != null) 'device_id': deviceId,
       },
+      idempotent: true,
     );
   }
 
@@ -1158,6 +1205,7 @@ class EpaOracleApi {
         'base_price': basePrice,
         'current_price': currentPrice,
       },
+      idempotent: true,
     );
   }
 

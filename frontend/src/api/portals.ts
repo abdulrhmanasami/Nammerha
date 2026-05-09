@@ -20,48 +20,56 @@ export const tradesperson = {
 };
 
 // ── Supplier Types ──────────────────────────────────────────────────────────
-interface CatalogItem { catalog_item_id: string; supplier_id: string; material_name: string; material_category: string; unit: string; unit_price_guide: number; lead_time_days: number | null; minimum_order: number | null; is_active: boolean; created_at: string; }
-interface PurchaseOrder { order_id: string; project_id: string; project_title: string; material_name: string; quantity: number; unit_price: number; total_price: number; status: string; created_at: string; }
-interface SupplierStats { active_catalog_items: number; total_orders: number; pending_orders: number; total_revenue: number; }
+interface CatalogItem { catalog_id: string; supplier_id: string; material_name: string; material_category: string; description: string | null; unit: string; unit_price_guide: number; lead_time_days: number | null; min_order_qty: number | null; is_active: boolean; created_at: string; }
+// J1 AUDIT FIX: Was 'order_id' — backend returns 'po_id'. Added missing fields.
+interface PurchaseOrder { po_id: string; po_number: string; project_id: string; project_title: string; material_name: string; material_category: string | null; quantity: number; unit: string; unit_price: number; amount: number; status: string; generated_at: string; created_at: string; }
+interface SupplierStats { pending_orders: number; won_contracts: number; in_transit: number; total_revenue: number; catalog_items: number; total_orders: number; }
+interface MonthlyAnalyticsPoint { month: string; order_count: number; revenue: number; }
 
 export const supplier = {
-    addCatalogItem: (data: { material_name: string; material_category: string; unit: string; unit_price_guide: number; lead_time_days?: number; minimum_order?: number }) => request<CatalogItem>('/supplier/catalog', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
-    getCatalog: () => request<CatalogItem[]>('/supplier/catalog'),
-    updateCatalogItem: (itemId: string, data: { material_name?: string; material_category?: string; unit?: string; unit_price_guide?: number; lead_time_days?: number; minimum_order?: number }) => request<CatalogItem>(`/supplier/catalog/${itemId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    addCatalogItem: (data: { material_name: string; material_category: string; unit: string; unit_price_guide: number; lead_time_days?: number; min_order_qty?: number; description?: string }) => request<CatalogItem>('/supplier/catalog', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
+    getCatalog: (params?: { limit?: number; offset?: number; search?: string }) => { const qs = new URLSearchParams(); if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } if (params?.search) { qs.set('search', params.search); } const q = qs.toString(); return request<CatalogItem[]>(`/supplier/catalog${q ? `?${q}` : ''}`); },
+    updateCatalogItem: (itemId: string, data: { material_name?: string; material_category?: string; unit?: string; unit_price_guide?: number; lead_time_days?: number; min_order_qty?: number; description?: string }) => request<CatalogItem>(`/supplier/catalog/${itemId}`, { method: 'PATCH', body: JSON.stringify(data) }),
     deactivateItem: (itemId: string) => request(`/supplier/catalog/${itemId}`, { method: 'DELETE' }),
-    getOrders: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<PurchaseOrder[]>(`/supplier/orders${qs}`); },
+    reactivateItem: (itemId: string) => request<CatalogItem>(`/supplier/catalog/${itemId}/reactivate`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } }),
+    getOrders: (status?: string, params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (status) { qs.set('status', status); } if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<PurchaseOrder[]>(`/supplier/orders${q ? `?${q}` : ''}`); },
     updateOrderStatus: (orderId: string, status: 'acknowledged' | 'shipped' | 'delivered') => request<PurchaseOrder>(`/supplier/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
     getStats: () => request<SupplierStats>('/supplier/stats'),
+    getAnalytics: () => request<MonthlyAnalyticsPoint[]>('/supplier/analytics'),
 };
 
 // ── Engineer Types ──────────────────────────────────────────────────────────
-interface EngineerProject { project_id: string; title: string; status: string; damage_type: string; homeowner_name: string; created_at: string; }
-interface EngineerProfile { full_name: string; specialty: string | null; years_experience: number | null; score: number; completed_projects: number; average_rating: number | null; }
-interface EngineerBid { bid_id: string; project_title: string; proposed_cost: number; estimated_days: number; status: string; created_at: string; }
-interface EngineerStats { assigned_projects: number; completed_projects: number; active_bids: number; average_score: number; }
+// AUDIT FIX: Updated to match actual backend response (engineer.service.ts)
+interface EngineerProject { project_id: string; title: string; region: string; status: string; phase: string; progress: number; boq_count: number; next_proof_due: string | null; created_at: string; }
+interface EngineerProfile { user_id: string; full_name: string; specialty: string | null; engineering_license_number: string | null; guild_membership_id: string | null; dynamic_score: number; completed_projects_count: number; active_projects_count: number; total_bids: number; bid_win_rate: number; }
+interface EngineerBid { bid_id: string; project_id: string; project_title: string; proposed_cost: number; estimated_days: number; cover_letter: string | null; status: string; engineer_score_snapshot: number | null; submitted_at: string; responded_at: string | null; }
+interface EngineerStats { assigned_projects: number; proofs_pending: number; proofs_verified: number; escrow_released: number; active_bids: number; total_bids: number; }
+interface EngineerCapture { capture_id: string; project_id: string; project_title: string; capture_type: string; construction_phase: string; title: string | null; file_url: string; is_verified: boolean; captured_at: string; }
 
 export const engineer = {
-    getProjects: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<EngineerProject[]>(`/engineer/projects${qs}`); },
+    getProjects: (status?: string, params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (status) { qs.set('status', status); } if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<EngineerProject[]>(`/engineer/projects${q ? `?${q}` : ''}`); },
     getStats: () => request<EngineerStats>('/engineer/stats'),
-    getBids: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<EngineerBid[]>(`/engineer/bids${qs}`); },
+    getBids: (status?: string, params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (status) { qs.set('status', status); } if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<EngineerBid[]>(`/engineer/bids${q ? `?${q}` : ''}`); },
     getProfile: () => request<EngineerProfile>('/engineer/profile'),
-    getCaptures: (limit?: number) => { const qs = limit ? `?limit=${limit}` : ''; return request(`/engineer/captures${qs}`); },
+    getCaptures: (limit?: number) => { const qs = limit ? `?limit=${limit}` : ''; return request<EngineerCapture[]>(`/engineer/captures${qs}`); },
     submitCapture: (data: { project_id: string; file_url: string; construction_phase: string; capture_type?: string; title?: string; description?: string; thumbnail_url?: string; gps_lat?: number; gps_lng?: number; gps_accuracy_meters?: number }) => request('/engineer/camera/capture', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
     submitSpatialProof: (data: { item_id: string; project_id: string; image_url: string; gps_lat: number; gps_lng: number; gps_accuracy_meters?: number; description?: string; client_hash?: string }) => request('/engineer/camera/spatial-proof', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
 };
 
 // ── Contractor Types ────────────────────────────────────────────────────────
-interface ContractorProject { project_id: string; title: string; status: string; damage_type: string; homeowner_name: string; created_at: string; }
-interface ContractorBid { bid_id: string; project_title: string; proposed_cost: number; estimated_days: number; status: string; created_at: string; }
-interface ContractorProfile { full_name: string; specialty: string | null; years_experience: number | null; score: number; completed_projects: number; average_rating: number | null; }
-interface ContractorStats { assigned_projects: number; completed_projects: number; active_bids: number; total_earnings: number; }
-interface ContractorPayment { payment_id: string; project_title: string; amount: number; status: string; released_at: string | null; }
+// AUDIT FIX: Updated to match actual backend response (contractor.service.ts)
+interface ContractorProject { project_id: string; title: string; region: string; status: string; phase: string; progress: number; boq_count: number; engineer_name: string | null; created_at: string; }
+interface ContractorBid { bid_id: string; project_id: string; project_title: string; proposed_cost: number; estimated_days: number; cover_letter: string | null; status: string; engineer_score_snapshot: number | null; submitted_at: string; responded_at: string | null; }
+interface ContractorProfile { user_id: string; full_name: string; specialty: string | null; commercial_register_number: string | null; dynamic_score: number; completed_projects_count: number; active_projects_count: number; total_bids: number; bid_win_rate: number; }
+interface ContractorStats { active_projects: number; pending_bids: number; won_bids: number; total_escrow_received: number; total_bids: number; bid_win_rate: number; }
+interface ContractorPayment { transaction_id: string; project_id: string; project_title: string; amount: number; transaction_type: string; created_at: string; }
+interface AvailableProject { project_id: string; title: string; region: string; damage_type: string; total_estimated_cost: number; boq_count: number; published_at: string; bid_count: number; distance_km: number | null; }
 
 export const contractor = {
-    getProjects: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<ContractorProject[]>(`/contractor/projects${qs}`); },
+    getProjects: (status?: string, params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (status) { qs.set('status', status); } if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<ContractorProject[]>(`/contractor/projects${q ? `?${q}` : ''}`); },
     getStats: () => request<ContractorStats>('/contractor/stats'),
-    getBids: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<ContractorBid[]>(`/contractor/bids${qs}`); },
-    getMarketplace: () => request<ContractorProject[]>('/contractor/marketplace'),
+    getBids: (status?: string, params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (status) { qs.set('status', status); } if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<ContractorBid[]>(`/contractor/bids${q ? `?${q}` : ''}`); },
+    getMarketplace: (params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<AvailableProject[]>(`/contractor/marketplace${q ? `?${q}` : ''}`); },
     getProfile: () => request<ContractorProfile>('/contractor/profile'),
     getPayments: (params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<ContractorPayment[]>(`/contractor/payments${q ? `?${q}` : ''}`); },
     submitBid: (data: { project_id: string; proposed_cost: number; estimated_days: number; cover_letter?: string; methodology?: string }) => request('/contractor/bids', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
@@ -70,7 +78,7 @@ export const contractor = {
 // ── Homeowner Types ─────────────────────────────────────────────────────────
 interface HomeownerProject { project_id: string; title: string; status: string; damage_type: string; damage_severity: string; funded_percentage: number; created_at: string; }
 interface HomeownerStats { active_projects: number; completed_projects: number; pending_approvals: number; active_service_requests: number; total_invested: number; total_bids_received: number; }
-interface HomeownerServiceRequest { request_id: string; trade_needed: string; title: string; description: string | null; urgency: string; status: string; created_at: string; }
+interface HomeownerServiceRequest { request_id: string; trade_needed: string; title: string; description: string | null; address_text: string | null; urgency: string; budget_min: number | null; budget_max: number | null; status: string; tradesperson_name: string | null; tradesperson_trade: string | null; created_at: string; matched_at: string | null; }
 interface HomeownerApproval { approval_id: string; project_title: string; title: string; description: string | null; status: string; created_at: string; }
 interface HomeownerEscrowSummary { total_escrowed: number; total_released: number; pending_release: number; }
 
@@ -78,12 +86,12 @@ export const homeowner = {
     getProjects: () => request<HomeownerProject[]>('/homeowner/projects'),
     getStats: () => request<HomeownerStats>('/homeowner/stats'),
     getProjectBids: (projectId: string) => request(`/homeowner/projects/${projectId}/bids`),
-    createServiceRequest: (data: { trade_needed: string; title: string; description?: string; address_text?: string; urgency?: 'low' | 'medium' | 'high' | 'emergency'; budget_min?: number; budget_max?: number }) => request<HomeownerServiceRequest>('/homeowner/service-requests', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
+    createServiceRequest: (data: { trade_needed: string; title: string; description?: string; address_text?: string; urgency?: 'routine' | 'urgent' | 'emergency'; budget_min?: number; budget_max?: number }) => request<HomeownerServiceRequest>('/homeowner/service-requests', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
     getServiceRequests: () => request<HomeownerServiceRequest[]>('/homeowner/service-requests'),
-    cancelServiceRequest: (requestId: string) => request(`/homeowner/service-requests/${requestId}/cancel`, { method: 'POST' }),
+    cancelServiceRequest: (requestId: string) => request(`/homeowner/service-requests/${requestId}/cancel`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } }),
     getApprovals: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<HomeownerApproval[]>(`/homeowner/approvals${qs}`); },
     getEscrow: () => request<HomeownerEscrowSummary>('/homeowner/escrow'),
-    respondToApproval: (approvalId: string, decision: 'approved' | 'rejected') => request(`/dashboard/approvals/${approvalId}`, { method: 'PATCH', body: JSON.stringify({ decision }) }),
+    respondToApproval: (approvalId: string, decision: 'approved' | 'rejected') => request(`/dashboard/approvals/${approvalId}`, { method: 'PATCH', body: JSON.stringify({ decision }), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
 };
 
 // ── Donor Types ─────────────────────────────────────────────────────────────

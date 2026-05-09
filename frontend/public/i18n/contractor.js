@@ -69,7 +69,26 @@
         'ct_desc_bids': { ar: 'عروضك المقدمة والمعلقة', de: 'Ihre eingereichten und ausstehenden Angebote', fr: 'Vos offres soumises et en attente', tr: 'Verilen ve bekleyen teklifleriniz' },
         'ct_desc_marketplace': { ar: 'تصفح المشاريع المتاحة للمناقصة', de: 'Verfügbare Projekte für Angebote durchsuchen', fr: 'Parcourir les projets disponibles pour soumissionner', tr: 'Teklif verebileceğiniz projelere göz atın' },
         'ct_desc_my_projects': { ar: 'المشاريع المسندة إليك', de: 'Ihnen zugewiesene Projekte', fr: 'Projets qui vous sont assignés', tr: 'Size atanan projeler' },
-        'ct_desc_payments': { ar: 'سجل المدفوعات والضمان', de: 'Zahlungs- und Treuhandverlauf', fr: 'Historique des paiements et de l\'entiercement', tr: 'Ödeme ve emanet geçmişi' }
+        'ct_desc_payments': { ar: 'سجل المدفوعات والضمان', de: 'Zahlungs- und Treuhandverlauf', fr: "Historique des paiements et de l'entiercement", tr: 'Ödeme ve emanet geçmişi' },
+
+        /* G8 FIX: Phase status badges */
+        'ct_phase_planning': { ar: 'تخطيط', de: 'Planung', fr: 'Planification', tr: 'Planlama' },
+        'ct_phase_in_progress': { ar: 'قيد التنفيذ', de: 'In Bearbeitung', fr: 'En cours', tr: 'Devam Ediyor' },
+        'ct_phase_construction': { ar: 'بناء', de: 'Bau', fr: 'Construction', tr: 'İnşaat' },
+        'ct_phase_completed': { ar: 'مكتمل', de: 'Abgeschlossen', fr: 'Terminé', tr: 'Tamamlandı' },
+        'ct_phase_delivered': { ar: 'تم التسليم', de: 'Geliefert', fr: 'Livré', tr: 'Teslim Edildi' },
+        'ct_phase_published': { ar: 'منشور', de: 'Veröffentlicht', fr: 'Publié', tr: 'Yayınlandı' },
+
+        /* G8 FIX: Bid status badges */
+        'ct_bid_pending': { ar: 'قيد المراجعة', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' },
+        'ct_bid_accepted': { ar: 'مقبول', de: 'Akzeptiert', fr: 'Accepté', tr: 'Kabul Edildi' },
+        'ct_bid_rejected': { ar: 'مرفوض', de: 'Abgelehnt', fr: 'Refusé', tr: 'Reddedildi' },
+        'ct_bid_withdrawn': { ar: 'تم السحب', de: 'Zurückgezogen', fr: 'Retiré', tr: 'Geri Çekildi' },
+
+        /* G8 FIX: Escrow/payment status badges */
+        'ct_escrow_locked': { ar: 'محجوز', de: 'Gesperrt', fr: 'Verrouillé', tr: 'Kilitli' },
+        'ct_escrow_released_label': { ar: 'محرر', de: 'Freigegeben', fr: 'Libéré', tr: 'Serbest' },
+        'ct_escrow_refunded': { ar: 'مسترد', de: 'Erstattet', fr: 'Remboursé', tr: 'İade Edildi' }
         });
     }
 })();

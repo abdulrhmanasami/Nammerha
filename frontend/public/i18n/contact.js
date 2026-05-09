@@ -37,7 +37,14 @@
         'contact_cat_security': { ar: 'تنبيه أمني', de: 'Sicherheitswarnung', fr: 'Alerte de sécurité', tr: 'Güvenlik Uyarısı' },
         'contact_cat_partnership': { ar: 'شراكة', de: 'Partnerschaft', fr: 'Partenariat', tr: 'Ortaklık' },
         'contact_cat_media': { ar: 'إعلام وصحافة', de: 'Medien & Presse', fr: 'Médias & Presse', tr: 'Medya & Basın' },
-        'contact_cat_other': { ar: 'أخرى', de: 'Sonstiges', fr: 'Autre', tr: 'Diğer' }
+        'contact_cat_other': { ar: 'أخرى', de: 'Sonstiges', fr: 'Autre', tr: 'Diğer' },
+
+        // ═══ PB3: contact.ts runtime keys ═══
+        'contact_sending': { ar: 'جاري الإرسال...', de: 'Wird gesendet...', fr: 'Envoi en cours...', tr: 'Gönderiliyor...' },
+        'contact_success': { ar: 'تم استلام رسالتك. سنرد خلال SLA المنشور.', de: 'Ihre Nachricht wurde empfangen. Wir antworten innerhalb unserer SLA.', fr: 'Votre message a été reçu. Nous répondrons dans notre SLA.', tr: 'Mesajınız alındı. SLA süremizde yanıtlayacağız.' },
+        'contact_failed': { ar: 'فشل إرسال الرسالة. حاول مرة أخرى.', de: 'Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.', fr: 'Échec de l\'envoi. Veuillez réessayer.', tr: 'Mesaj gönderilemedi. Tekrar deneyin.' },
+        'contact_fill_required': { ar: 'يرجى ملء جميع الحقول المطلوبة', de: 'Bitte alle Pflichtfelder ausfüllen', fr: 'Veuillez remplir tous les champs obligatoires', tr: 'Lütfen tüm zorunlu alanları doldurun' },
+        'contact_network_error': { ar: 'خطأ في الشبكة. تحقق من اتصالك.', de: 'Netzwerkfehler. Überprüfen Sie Ihre Verbindung.', fr: 'Erreur réseau. Vérifiez votre connexion.', tr: 'Ağ hatası. Bağlantınızı kontrol edin.' }
         });
     }
 })();

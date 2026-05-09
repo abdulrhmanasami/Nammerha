@@ -8,7 +8,7 @@ import '../../../core/bloc/submit_form_cubit.dart';
 /// SubmitBidScreen — Platinum Standard (Absolute Zero setState)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BlocProvider MUST be an ancestor of the StatefulWidget so that
-/// context.read<SubmitFormCubit>() resolves correctly in async methods.
+/// `context.read<SubmitFormCubit>()` resolves correctly in async methods.
 /// ═══════════════════════════════════════════════════════════════════════════
 
 class SubmitBidScreen extends StatelessWidget {

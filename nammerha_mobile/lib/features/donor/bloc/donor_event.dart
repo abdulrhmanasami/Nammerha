@@ -17,4 +17,6 @@ class DonorLoadTabRequested extends DonorEvent {
   List<Object?> get props => [tabIndex, forceRefresh];
 }
 
-class DonorLoadStandaloneProofsRequested extends DonorEvent {}
+class DonorLoadStandaloneProofsRequested extends DonorEvent {
+  const DonorLoadStandaloneProofsRequested();
+}

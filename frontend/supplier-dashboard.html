@@ -139,7 +139,7 @@
         <button type="button" class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-orders" title="Jump to orders">
           <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500" aria-hidden="true"></i>
           <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden" id="notif-count"></span>
+          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden" id="notif-count"></span>
         </button>
       </div>
       </div>
@@ -158,7 +158,7 @@
       <!-- FINE-006 FIX: Removed redundant style="display:none" — class="hidden" is sufficient.
            Double-hide forces JS to remove BOTH .hidden AND inline style to show the banner.
            Standard: Single Source of Truth for visibility state. -->
-      <div id="dashboard-banner" class="hidden px-4 py-3 rounded-lg text-sm font-medium"></div>
+      <div id="dashboard-banner" class="nm-hidden px-4 py-3 rounded-lg text-sm font-medium"></div>
 
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -275,7 +275,7 @@
           </div>
           <!-- FRC-007 FIX: Empty state component — educates and encourages first material addition.
                Standard: Material Design — Empty states should guide action. -->
-          <div id="catalog-empty" class="col-span-full text-center py-12 hidden">
+          <div id="catalog-empty" class="col-span-full text-center py-12 nm-hidden">
             <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
               <i class="ph ph-package text-warm-earth nm-icon-32" aria-hidden="true"></i>
             </div>
@@ -295,6 +295,82 @@
     </div>
     </div>
   </main>
+
+<!-- I1 AUDIT FIX: This entire <dialog> was MISSING — the "Add Material" button did NOTHING.
+     TS code referenced 'modal-add-material' and 'form-add-material' but they didn't exist.
+     Standard: WAI-ARIA Authoring Practices §3.9 (Dialog Modal). -->
+<dialog id="modal-add-material" class="nm-dialog p-0 w-[90%] max-w-lg rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up">
+  <form id="form-add-material" class="p-6 space-y-4">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100" data-i18n="supplier_add_to_catalog">Add to Catalog</h3>
+      <button type="button" id="modal-cancel" class="size-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors dark:hover:bg-dark-elevated" aria-label="Close">
+        <i class="ph ph-x text-slate-500" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div>
+      <label for="inp-material-name" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_material_name">Material Name</label>
+      <input id="inp-material-name" name="material_name" type="text" required autocomplete="off"
+             class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"
+             placeholder="" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label for="inp-category" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_category_label">Category</label>
+        <input id="inp-category" name="material_category" type="text" required autocomplete="off"
+               class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"
+               value="general" />
+      </div>
+      <div>
+        <label for="inp-unit" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_unit_label">Unit</label>
+        <input id="inp-unit" name="unit" type="text" required autocomplete="off"
+               class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"
+               value="piece" />
+      </div>
+    </div>
+
+    <div>
+      <label for="inp-price" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_guide_price">Guide Price ($)</label>
+      <input id="inp-price" name="unit_price_guide" type="number" step="0.01" min="0.01" required
+             class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"
+             placeholder="0.00" />
+      <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="supplier_modal_guide_price_info">The EPA system will adjust the price based on market conditions</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label for="inp-min-order" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_min_order">Min Order</label>
+        <input id="inp-min-order" name="min_order_qty" type="number" min="1" step="1"
+               class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"
+               value="1" />
+      </div>
+      <div>
+        <label for="inp-lead-time" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_lead_time">Lead Time (days)</label>
+        <input id="inp-lead-time" name="lead_time_days" type="number" min="1" step="1"
+               class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"
+               value="7" />
+      </div>
+    </div>
+
+    <div>
+      <label for="inp-description" class="block text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400" data-i18n="supplier_desc_optional">Description (optional)</label>
+      <textarea id="inp-description" name="description" rows="2"
+                class="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-trust-blue focus:border-transparent outline-none resize-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100"></textarea>
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="button" id="modal-cancel-alt"
+              class="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400 dark:hover:bg-dark-elevated"
+              data-i18n="common_cancel">Cancel</button>
+      <button type="submit"
+              class="flex-1 px-4 py-2.5 rounded-lg bg-trust-blue text-white text-sm font-semibold hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
+        <i class="ph ph-plus-circle" aria-hidden="true"></i>
+        <span data-i18n="supplier_add_material">Add Material</span>
+      </button>
+    </div>
+  </form>
+</dialog>
 </div>
 
   <!-- CONF-NEW-02 FIX: Legal footer was missing from supplier dashboard.
@@ -330,6 +406,7 @@
 </template>
 
 <script src="/i18n.js?v=7" defer></script>
+<script src="/i18n/common.js" defer></script>
 <script src="/i18n/supplier.js" defer></script>
 <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->

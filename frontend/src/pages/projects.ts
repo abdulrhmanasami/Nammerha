@@ -153,11 +153,11 @@ function applySearch(projects: ProjectCard[]): ProjectCard[] {
 // VIEW MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
 function showView(view: 'skeleton' | 'grid' | 'empty' | 'error'): void {
-    skeleton?.classList.toggle('hidden', view !== 'skeleton');
-    grid?.classList.toggle('hidden', view !== 'grid');
-    emptyState?.classList.toggle('hidden', view !== 'empty');
-    errorState?.classList.toggle('hidden', view !== 'error');
-    loadMoreContainer?.classList.toggle('hidden', view !== 'grid' || !state.hasMore);
+    skeleton?.classList.toggle('nm-hidden', view !== 'skeleton');
+    grid?.classList.toggle('nm-hidden', view !== 'grid');
+    emptyState?.classList.toggle('nm-hidden', view !== 'empty');
+    errorState?.classList.toggle('nm-hidden', view !== 'error');
+    loadMoreContainer?.classList.toggle('nm-hidden', view !== 'grid' || !state.hasMore);
 
     // Update count
     if (countEl) {

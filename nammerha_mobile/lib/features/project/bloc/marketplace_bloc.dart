@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/marketplace_repository.dart';
+import '../models/project_model.dart';
 import 'marketplace_event.dart';
 import 'marketplace_state.dart';
 
@@ -34,7 +35,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
   ) {
     if (state is MarketplaceLoaded) {
       final currentState = state as MarketplaceLoaded;
-      List<ProjectModel> filtered = List.from(currentState.allProjects);
+      List<ProjectModel> filtered = List<ProjectModel>.from(currentState.allProjects);
 
       if (event.filter != null && event.filter != 'all') {
         filtered = filtered.where((p) => p.status.toLowerCase() == event.filter!.toLowerCase()).toList();

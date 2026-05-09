@@ -37,6 +37,16 @@
   font-display: swap;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS @import directives — CSS spec mandates these precede ALL other statements.
+   Partials extracted from main.css for SRP (Single Responsibility Principle).
+   ═══════════════════════════════════════════════════════════════════════════ */
+@import './_dashboard.css';  /* FRIC-AUD-F02: Dashboard sidebar system */
+@import './_nav.css';        /* DEF-CSS-001: Bottom navigation */
+@import './_dialogs.css';    /* FRIC-AUD-04: Dialogs & state components */
+@import './_about.css';      /* DEFECT-01: About page styles */
+@import './_wizard.css';     /* FRIC-AUD-F02: Registration wizard */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1324,8 +1334,7 @@ html[data-theme="dark"] .maplibregl-ctrl-group button:hover {
     touch-action: none;
 }
 
-/* FRIC-AUD-F02: Dashboard sidebar system extracted to _dashboard.css (165 lines → 1 line) */
-@import './_dashboard.css';
+/* FRIC-AUD-F02: Dashboard sidebar system — @import moved to top of file (CSS spec) */
 
 
 /* P2-FB-GHOST CSS FIX: Removed dead CSS for .nav-search-icon, .nav-search-full,
@@ -1575,8 +1584,7 @@ html[data-theme="dark"] .text-red-400 {
 /* DUP-002 FIX: Removed fragmented body{overflow-x:clip} — merged into canonical
    body block at L312. Standard: CSS Architecture — Single Definition Rule. */
 
-/* DEF-CSS-001 FIX: Bottom navigation extracted to _nav.css (155 lines → 1 line) */
-@import './_nav.css';
+/* DEF-CSS-001: Bottom navigation — @import moved to top of file (CSS spec) */
 
 /* ============================================================================
    INC-X06 FIX: Z-Index tokens consolidated into FIRST :root block (~L77).
@@ -2820,11 +2828,9 @@ html[data-theme="dark"] .page-header {
     scale: -1 1;
 }
 
-/* FRIC-AUD-04: Dialogs & state components extracted to _dialogs.css */
-@import './_dialogs.css';
+/* FRIC-AUD-04: Dialogs — @import moved to top of file (CSS spec) */
 
-/* DEFECT-01 FIX: About page styles extracted from internal <style> block */
-@import './_about.css';
+/* DEFECT-01: About page — @import moved to top of file (CSS spec) */
 
 /* ============================================================================
    FRC-P02 FIX: Add-to-Cart Visual Feedback Animation
@@ -3516,8 +3522,7 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
     }
 }
 
-/* FRIC-AUD-F02: Registration wizard extracted to _wizard.css (104 lines → 1 line) */
-@import './_wizard.css';
+/* FRIC-AUD-F02: Registration wizard — @import moved to top of file (CSS spec) */
 
 
 

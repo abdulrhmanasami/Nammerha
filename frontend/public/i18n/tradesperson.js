@@ -50,7 +50,38 @@
         'tradesperson_current_desc': { ar: 'المهام المسندة إليك حالياً', de: 'Ihre aktuell zugewiesenen Aufgaben', fr: 'Vos tâches actuellement assignées', tr: 'Şu anda size atanan görevler' },
         'tradesperson_assignments_hint': { ar: 'التكليفات ومهام العمل', de: 'Zuweisungen und Arbeitsaufgaben', fr: 'Affectations et tâches de travail', tr: 'Görevlendirmeler ve iş görevleri' },
         'tradesperson_earnings_hint': { ar: 'سجل الأرباح والمدفوعات', de: 'Verdienst- und Zahlungshistorie', fr: 'Historique des revenus et paiements', tr: 'Kazanç ve ödeme geçmişi' },
-        'tradesperson_requests_hint': { ar: 'طلبات الخدمة المتاحة', de: 'Verfügbare Serviceanfragen', fr: 'Demandes de service disponibles', tr: 'Mevcut hizmet talepleri' }
+        'tradesperson_requests_hint': { ar: 'طلبات الخدمة المتاحة', de: 'Verfügbare Serviceanfragen', fr: 'Demandes de service disponibles', tr: 'Mevcut hizmet talepleri' },
+
+        // PLT-TP-I18N-001: Remediation of 16 orphan TS-generated keys
+        'tp_no_active_work': { ar: 'لا يوجد عمل نشط', de: 'Keine aktive Arbeit', fr: 'Aucun travail actif', tr: 'Aktif iş yok' },
+        'tp_check_available': { ar: 'تحقق من الأعمال المتاحة لفرص جديدة', de: 'Prüfen Sie verfügbare Aufträge für neue Möglichkeiten', fr: 'Consultez les travaux disponibles pour de nouvelles opportunités', tr: 'Yeni fırsatlar için mevcut işlere bakın' },
+        'tp_no_requests': { ar: 'لا توجد طلبات مطابقة لمهنتك', de: 'Keine Anfragen passend zu Ihrem Gewerk', fr: 'Aucune demande correspondant à votre métier', tr: 'Mesleğinize uygun talep yok' },
+        'tp_new_requests_auto': { ar: 'ستظهر الطلبات الجديدة هنا تلقائياً', de: 'Neue Anfragen erscheinen hier automatisch', fr: 'Les nouvelles demandes apparaîtront ici automatiquement', tr: 'Yeni talepler burada otomatik olarak görünecek' },
+        'tp_no_assignments': { ar: 'لا توجد تكليفات من المقاولين', de: 'Keine Auftragnehmer-Zuweisungen', fr: 'Aucune affectation de contractant', tr: 'Müteahhit görevi yok' },
+        'tp_no_earnings': { ar: 'لا توجد أرباح بعد', de: 'Noch keine Verdienste', fr: 'Pas encore de revenus', tr: 'Henüz kazanç yok' },
+        'tp_accept_job': { ar: 'قبول المهمة', de: 'Auftrag annehmen', fr: 'Accepter la tâche', tr: 'İşi kabul et' },
+        'tp_direct': { ar: 'مباشر', de: 'Direkt', fr: 'Direct', tr: 'Doğrudan' },
+        'tp_agreed_rate': { ar: 'السعر المتفق عليه', de: 'Vereinbarter Satz', fr: 'Tarif convenu', tr: 'Anlaşılan ücret' },
+        'tp_budget': { ar: 'الميزانية', de: 'Budget', fr: 'Budget', tr: 'Bütçe' },
+        'tp_no_description': { ar: 'بدون وصف', de: 'Keine Beschreibung', fr: 'Pas de description', tr: 'Açıklama yok' },
+        'tp_availability_error': { ar: 'فشل تحديث الحالة. حاول مرة أخرى.', de: 'Statusaktualisierung fehlgeschlagen. Bitte erneut versuchen.', fr: 'Échec de la mise à jour. Veuillez réessayer.', tr: 'Durum güncellenemedi. Lütfen tekrar deneyin.' },
+        'tp_response_error': { ar: 'فشل الإجراء. حاول مرة أخرى.', de: 'Aktion fehlgeschlagen. Bitte erneut versuchen.', fr: 'Échec de l\'action. Veuillez réessayer.', tr: 'İşlem başarısız. Lütfen tekrar deneyin.' },
+        'tp_no_ratings': { ar: 'لا توجد تقييمات بعد', de: 'Noch keine Bewertungen', fr: 'Pas encore d\'évaluations', tr: 'Henüz değerlendirme yok' },
+        'tp_contractor_type': { ar: 'مقاول', de: 'Auftragnehmer', fr: 'Contractant', tr: 'Müteahhit' },
+        'tp_direct_type': { ar: 'مباشر', de: 'Direkt', fr: 'Direct', tr: 'Doğrudan' },
+
+        // PLT-AUD-R2-003: 10 trade_type labels — dynamic keys from tradeLabel()
+        // Mirrors DB enum trade_type from migration 012
+        'trade_tiling': { ar: 'بلاط', de: 'Fliesenleger', fr: 'Carrelage', tr: 'Fayans' },
+        'trade_painting': { ar: 'دهان', de: 'Maler', fr: 'Peinture', tr: 'Boya' },
+        'trade_plumbing': { ar: 'سباكة', de: 'Klempner', fr: 'Plomberie', tr: 'Tesisat' },
+        'trade_electrical': { ar: 'كهرباء', de: 'Elektriker', fr: 'Électricité', tr: 'Elektrik' },
+        'trade_carpentry': { ar: 'نجارة', de: 'Tischler', fr: 'Menuiserie', tr: 'Marangoz' },
+        'trade_welding': { ar: 'لحام', de: 'Schweißer', fr: 'Soudure', tr: 'Kaynak' },
+        'trade_masonry': { ar: 'بناء', de: 'Maurer', fr: 'Maçonnerie', tr: 'Duvar' },
+        'trade_plastering': { ar: 'قصارة', de: 'Verputzer', fr: 'Plâtrerie', tr: 'Sıva' },
+        'trade_hvac': { ar: 'تكييف وتدفئة', de: 'HLK-Techniker', fr: 'CVC', tr: 'İklimlendirme' },
+        'trade_general': { ar: 'أعمال عامة', de: 'Allgemein', fr: 'Général', tr: 'Genel' }
         });
     }
 })();

@@ -81,7 +81,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
-      appBar: AppBar(title: const Text('جدول الكميات (BOQ)')),
+      appBar: AppBar(title: Text(context.tr('eng_boq_title'))),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItemModal(context),
         backgroundColor: colors.primaryBrand,
@@ -91,7 +91,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
         listener: (context, state) {
           if (state is BoqPublishSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: const Text('تم نشر جدول الكميات بنجاح ✓'), backgroundColor: colors.success),
+              SnackBar(content: Text(context.tr('eng_boq_published')), backgroundColor: colors.success),
             );
             Navigator.pop(context);
           } else if (state is BoqError) {
@@ -184,7 +184,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                     Row(children: [
                       Icon(Icons.show_chart_rounded, size: 12, color: colors.primaryBrand),
                       const SizedBox(width: 3),
-                      Text('أوراكل: ${_formatCurrency(item.oraclePrice!)}/${item.unit}', style: TextStyle(fontSize: 11, color: colors.primaryBrand)),
+                      Text('${context.tr('eng_oracle')}: ${_formatCurrency(item.oraclePrice!)}/${item.unit}', style: TextStyle(fontSize: 11, color: colors.primaryBrand)),
                     ]),
                   const SizedBox(height: 6),
                   Row(
@@ -193,7 +193,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(context.tr('str_245e33ef'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
+                          Text(context.tr('eng_estimated'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: colors.textSubtle)),
                           Text(_formatCurrency(totalCents), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.primaryBrand)),
                         ],
                       ),
@@ -264,14 +264,14 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('${state.items.length} ${state.items.length == 1 ? context.tr('str_fd63841b') : context.tr('str_46648494')}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                  Text('${state.items.length} ${state.items.length == 1 ? context.tr('eng_item') : context.tr('eng_items')}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                   Text(_formatCurrency(totalCents), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)),
                 ],
               ),
             ),
             const SizedBox(width: 12),
             GradientButton(
-              label: isPublishing ? 'جارِ النشر...' : 'نشر في السوق',
+              label: isPublishing ? context.tr('eng_publishing') : context.tr('eng_publish_btn'),
               icon: isPublishing ? Icons.hourglass_top_rounded : Icons.publish_rounded,
               onPressed: (isPublishing || widget.projectId == null) ? null : () {
                 context.read<BoqBloc>().add(PublishBoqEvent(widget.projectId!));
@@ -290,9 +290,9 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
         children: [
           Icon(Icons.list_alt_rounded, size: 64, color: colors.textSubtle),
           const SizedBox(height: 16),
-          Text('لم تُضاف أي مواد بعد', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text(context.tr('eng_no_materials'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 6),
-          Text('اضغط + لإضافة مواد إلى جدول الكميات', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+          Text(context.tr('eng_add_hint'), style: TextStyle(fontSize: 13, color: colors.textSecondary)),
         ],
       ),
     );
@@ -309,7 +309,7 @@ class _AddBoqItemForm extends StatefulWidget {
 
 class _AddBoqItemFormState extends State<_AddBoqItemForm> {
   final nameC = TextEditingController();
-  final unitC = TextEditingController(text: 'قطعة');
+  final unitC = TextEditingController(text: 'piece');
   final priceC = TextEditingController();
   final categoryC = TextEditingController(text: 'general');
 
@@ -333,22 +333,22 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('إضافة مادة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+          Text(context.tr('eng_add_material'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.textPrimary)),
           const SizedBox(height: 16),
-          _field(nameC, 'اسم المادة', colors),
+          _field(nameC, context.tr('eng_material_name'), colors),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _field(unitC, context.tr('str_694ca78e'), colors)),
+              Expanded(child: _field(unitC, context.tr('eng_unit'), colors)),
               const SizedBox(width: 10),
-              Expanded(child: _field(categoryC, context.tr('str_cf143297'), colors)),
+              Expanded(child: _field(categoryC, context.tr('eng_category'), colors)),
             ],
           ),
           const SizedBox(height: 10),
-          _field(priceC, 'سعر الوحدة (ل.س)', colors, isNumber: true),
+          _field(priceC, context.tr('eng_unit_price'), colors, isNumber: true),
           const SizedBox(height: 16),
           GradientButton(
-            label: 'إضافة إلى القائمة',
+            label: context.tr('eng_add_to_list'),
             icon: Icons.add_rounded,
             onPressed: () {
               final name = nameC.text.trim();

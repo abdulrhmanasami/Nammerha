@@ -146,13 +146,73 @@
         'ho_sr_title_required': { ar: 'العنوان مطلوب', de: 'Titel erforderlich', fr: 'Titre requis', tr: 'Başlık gerekli' },
         'ho_sr_trade_required': { ar: 'اختيار المهنة مطلوب', de: 'Gewerksauswahl erforderlich', fr: 'Sélection du métier requise', tr: 'Meslek seçimi gerekli' },
 
+        // ═══ PLT-HO-002: Missing form label keys ═══
+        'ho_lbl_trade': { ar: 'المهنة المطلوبة', de: 'Benötigtes Gewerk', fr: 'Métier nécessaire', tr: 'Gerekli Meslek' },
+        'ho_lbl_title': { ar: 'العنوان', de: 'Titel', fr: 'Titre', tr: 'Başlık' },
+        'ho_lbl_urgency': { ar: 'الأولوية', de: 'Dringlichkeit', fr: 'Urgence', tr: 'Aciliyet' },
+        'ho_lbl_description': { ar: 'الوصف (اختياري)', de: 'Beschreibung (optional)', fr: 'Description (optionnel)', tr: 'Açıklama (isteğe bağlı)' },
+        'ho_lbl_location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        'ho_lbl_max_budget': { ar: 'الميزانية القصوى ($)', de: 'Max. Budget ($)', fr: 'Budget max ($)', tr: 'Maks. Bütçe ($)' },
+
+        // ═══ PLT-HO-003: Urgency enum i18n keys (aligned with DB request_urgency) ═══
+        'urgency_routine': { ar: 'عادي', de: 'Routine', fr: 'Routine', tr: 'Rutin' },
+        'urgency_urgent': { ar: 'مستعجل', de: 'Dringend', fr: 'Urgent', tr: 'Acil' },
+        'urgency_emergency': { ar: 'طارئ', de: 'Notfall', fr: 'Urgence', tr: 'Acil Durum' },
+
+        // ═══ PLT-HO-004: TS dynamic data-i18n keys ═══
+        'ho_fewer_details': { ar: 'تفاصيل أقل', de: 'Weniger Details', fr: 'Moins de détails', tr: 'Daha az detay' },
+        'ho_matched_to': { ar: 'مطابق مع', de: 'Zugewiesen an', fr: 'Assigné à', tr: 'Eşleştirildi' },
+
         // ═══ PLT-W8: Misc shared keys ═══
         'whatsapp_cta_title': { ar: 'تحدث معنا عبر واتساب', de: 'Kontaktieren Sie uns über WhatsApp', fr: 'Contactez-nous via WhatsApp', tr: 'WhatsApp ile iletişime geçin' },
         'whatsapp_cta_desc': { ar: 'فريقنا جاهز لمساعدتك', de: 'Unser Team ist bereit, Ihnen zu helfen', fr: 'Notre équipe est prête à vous aider', tr: 'Ekibimiz size yardıma hazır' },
         'photo_invalid_type': { ar: 'نوع الملف غير صالح', de: 'Ungültiger Dateityp', fr: 'Type de fichier invalide', tr: 'Geçersiz dosya türü' },
         'photo_too_large': { ar: 'حجم الصورة كبير جداً', de: 'Bild zu groß', fr: 'Image trop volumineuse', tr: 'Görsel çok büyük' },
         'role_activation_failed': { ar: 'فشل تفعيل الدور', de: 'Rollenaktivierung fehlgeschlagen', fr: 'Échec de l\'activation du rôle', tr: 'Rol etkinleştirme başarısız' },
-        'expired': { ar: 'منتهي الصلاحية', de: 'Abgelaufen', fr: 'Expiré', tr: 'Süresi dolmuş' }
+        'expired': { ar: 'منتهي الصلاحية', de: 'Abgelaufen', fr: 'Expiré', tr: 'Süresi dolmuş' },
+
+        // ═══ PLT-HO-R2: Damage Report Wizard — HTML data-i18n keys ═══
+        'detect_location_auto': { ar: 'كشف الموقع تلقائياً', de: 'Standort automatisch erkennen', fr: 'Détecter l\'emplacement automatiquement', tr: 'Konumu otomatik algıla' },
+        'electrical': { ar: 'كهربائي', de: 'Elektrisch', fr: 'Électrique', tr: 'Elektrik' },
+        'expected_response': { ar: 'الاستجابة المتوقعة', de: 'Erwartete Antwort', fr: 'Réponse attendue', tr: 'Beklenen yanıt' },
+        'general_repair': { ar: 'إصلاح عام', de: 'Allgemeine Reparatur', fr: 'Réparation générale', tr: 'Genel onarım' },
+        'go_to_dashboard': { ar: 'إلى لوحة التحكم', de: 'Zum Dashboard', fr: 'Aller au tableau de bord', tr: 'Panoya git' },
+        'governorate': { ar: 'المحافظة', de: 'Gouvernorat', fr: 'Gouvernorat', tr: 'İl' },
+        'location': { ar: 'الموقع', de: 'Standort', fr: 'Emplacement', tr: 'Konum' },
+        'photos': { ar: 'الصور', de: 'Fotos', fr: 'Photos', tr: 'Fotoğraflar' },
+        'plumbing': { ar: 'سباكة', de: 'Sanitär', fr: 'Plomberie', tr: 'Tesisat' },
+        'request_id': { ar: 'رقم الطلب', de: 'Anfrage-Nr.', fr: 'N° de demande', tr: 'Talep No.' },
+        'request_submitted': { ar: 'تم تقديم الطلب', de: 'Anfrage eingereicht', fr: 'Demande soumise', tr: 'Talep gönderildi' },
+        'request_summary': { ar: 'ملخص الطلب', de: 'Zusammenfassung', fr: 'Résumé de la demande', tr: 'Talep özeti' },
+        'select_damage_type': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dommage', tr: 'Hasar türünü seçin' },
+        'select_governorate': { ar: 'اختر المحافظة', de: 'Gouvernorat wählen', fr: 'Sélectionner le gouvernorat', tr: 'İl seçin' },
+        'structural_damage': { ar: 'أضرار هيكلية', de: 'Strukturelle Schäden', fr: 'Dommages structurels', tr: 'Yapısal hasar' },
+        'submit_another_report': { ar: 'تقديم بلاغ آخر', de: 'Weiteren Bericht einreichen', fr: 'Soumettre un autre rapport', tr: 'Başka rapor gönder' },
+        'type': { ar: 'النوع', de: 'Typ', fr: 'Type', tr: 'Tür' },
+
+        // ═══ PLT-HO-R3: Damage Report Wizard — TS t() keys ═══
+        'damage_type_structural': { ar: 'أضرار هيكلية', de: 'Strukturelle Schäden', fr: 'Dommages structurels', tr: 'Yapısal hasar' },
+        'damage_type_electrical': { ar: 'أضرار كهربائية', de: 'Elektrische Schäden', fr: 'Dommages électriques', tr: 'Elektrik hasarı' },
+        'damage_type_plumbing': { ar: 'أضرار السباكة', de: 'Sanitärschäden', fr: 'Dommages de plomberie', tr: 'Tesisat hasarı' },
+        'damage_type_general': { ar: 'أضرار عامة', de: 'Allgemeine Schäden', fr: 'Dommages généraux', tr: 'Genel hasar' },
+        'damage_type_mixed': { ar: 'أضرار متعددة', de: 'Gemischte Schäden', fr: 'Dommages mixtes', tr: 'Karma hasar' },
+        'hr_step': { ar: 'الخطوة', de: 'Schritt', fr: 'Étape', tr: 'Adım' },
+        'hr_of': { ar: 'من', de: 'von', fr: 'de', tr: 'of' },
+        'hr_next_step': { ar: 'الخطوة التالية', de: 'Nächster Schritt', fr: 'Étape suivante', tr: 'Sonraki adım' },
+        'hr_done': { ar: 'تم!', de: 'Fertig!', fr: 'Terminé !', tr: 'Tamam!' },
+        'hr_detecting': { ar: 'جاري الكشف...', de: 'Wird erkannt...', fr: 'Détection...', tr: 'Algılanıyor...' },
+        'hr_location_detected': { ar: 'تم رصد الموقع', de: 'Standort erkannt', fr: 'Emplacement détecté', tr: 'Konum algılandı' },
+        'hr_location_fallback': { ar: 'يرجى إدخال الموقع يدوياً', de: 'Bitte geben Sie den Standort manuell ein', fr: 'Veuillez entrer l\'emplacement manuellement', tr: 'Lütfen konumu manuel girin' },
+        'hr_enter_location': { ar: 'أدخل الموقع', de: 'Standort eingeben', fr: 'Entrer l\'emplacement', tr: 'Konumu girin' },
+        'hr_geo_not_supported': { ar: 'تحديد الموقع غير مدعوم', de: 'Geolokalisierung nicht unterstützt', fr: 'Géolocalisation non prise en charge', tr: 'Konum belirleme desteklenmiyor' },
+        'hr_select_damage': { ar: 'اختر نوع الضرر', de: 'Schadensart auswählen', fr: 'Sélectionner le type de dommage', tr: 'Hasar türünü seçin' },
+        'hr_submit_request': { ar: 'إرسال الطلب', de: 'Anfrage einreichen', fr: 'Soumettre la demande', tr: 'Talebi gönder' },
+        'hr_submitting': { ar: 'جاري الإرسال...', de: 'Wird eingereicht...', fr: 'Envoi en cours...', tr: 'Gönderiliyor...' },
+        'hr_submission_failed': { ar: 'فشل الإرسال', de: 'Einreichung fehlgeschlagen', fr: 'Échec de l\'envoi', tr: 'Gönderim başarısız' },
+        'hr_photos_none': { ar: 'لا توجد صور', de: 'Keine Fotos', fr: 'Aucune photo', tr: 'Fotoğraf yok' },
+        'hr_photos_uploaded': { ar: 'تم رفع الصور', de: 'Fotos hochgeladen', fr: 'Photos téléchargées', tr: 'Fotoğraflar yüklendi' },
+        'hr_upload_failed': { ar: 'فشل الرفع', de: 'Upload fehlgeschlagen', fr: 'Échec du téléchargement', tr: 'Yükleme başarısız' },
+        'hr_id_pending': { ar: 'معلق', de: 'Ausstehend', fr: 'En attente', tr: 'Beklemede' }
         });
     }
 })();

@@ -36,7 +36,15 @@
         'deposit_desc': { ar: 'أضف رصيداً إلى محفظتك', de: 'Guthaben zu Ihrer Geldbörse hinzufügen', fr: 'Ajoutez des fonds à votre portefeuille', tr: 'Cüzdanınıza bakiye ekleyin' },
         'deposit_info': { ar: 'تتم معالجة الإيداعات بشكل آمن عبر Stripe', de: 'Einzahlungen werden sicher über Stripe verarbeitet', fr: 'Les dépôts sont traités de manière sécurisée via Stripe', tr: 'Yatırımlar Stripe üzerinden güvenli şekilde işlenir' },
         'deposit_notify_me': { ar: 'أعلمني عند التوفر', de: 'Benachrichtigen wenn verfügbar', fr: 'Me prévenir quand disponible', tr: 'Kullanılabilir olduğunda bildir' },
-        'wallet_desc': { ar: 'إدارة رصيدك ومعاملاتك', de: 'Verwalten Sie Ihr Guthaben und Ihre Transaktionen', fr: 'Gérez votre solde et vos transactions', tr: 'Bakiyenizi ve işlemlerinizi yönetin' }
+        'wallet_desc': { ar: 'إدارة رصيدك ومعاملاتك', de: 'Verwalten Sie Ihr Guthaben und Ihre Transaktionen', fr: 'Gérez votre solde et vos transactions', tr: 'Bakiyenizi ve işlemlerinizi yönetin' },
+
+        // ═══ WL1: Wallet HTML + TS missing keys ═══
+        'close': { ar: 'إغلاق', de: 'Schließen', fr: 'Fermer', tr: 'Kapat' },
+        'coming_soon': { ar: 'قريباً', de: 'Demnächst', fr: 'Bientôt', tr: 'Yakında' },
+        'deposit': { ar: 'إيداع', de: 'Einzahlung', fr: 'Dépôt', tr: 'Yatırma' },
+        'escrow_explainer': { ar: 'أموالك محمية في حساب ضمان حتى اكتمال العمل', de: 'Ihr Geld wird auf einem Treuhandkonto geschützt, bis die Arbeit abgeschlossen ist', fr: 'Votre argent est protégé dans un compte séquestre jusqu\'à la fin des travaux', tr: 'Paranız iş tamamlanana kadar emanet hesabında korunur' },
+        'add_funds_coming_soon': { ar: 'إضافة الرصيد — قريباً', de: 'Guthaben aufladen — demnächst', fr: 'Ajouter des fonds — bientôt', tr: 'Bakiye ekleme — yakında' },
+        'deposit_notify_confirmed': { ar: 'سيتم إعلامك عند توفر الإيداع', de: 'Sie werden benachrichtigt, wenn die Einzahlung verfügbar ist', fr: 'Vous serez notifié quand le dépôt sera disponible', tr: 'Yatırma kullanılabilir olduğunda bildirileceksiniz' }
         });
     }
 })();

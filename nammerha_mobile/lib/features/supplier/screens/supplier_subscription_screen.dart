@@ -4,8 +4,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/i18n/t.dart';
 import '../../pricing/bloc/pricing_bloc.dart';
 import '../../../core/bloc/page_index_cubit.dart';
+
+/// Typed tier model — replaces raw `Map<String, dynamic>` for type safety.
+class SubscriptionTier {
+  final String slug;
+  final String name;
+  final String price;
+  final String period;
+  final List<String> features;
+  final bool isPopular;
+
+  const SubscriptionTier({
+    required this.slug,
+    required this.name,
+    required this.price,
+    required this.period,
+    required this.features,
+    this.isPopular = false,
+  });
+}
 
 class SupplierSubscriptionScreen extends StatelessWidget {
   const SupplierSubscriptionScreen({super.key});
@@ -31,51 +51,51 @@ class _SupplierSubscriptionScreenContent extends StatefulWidget {
 
 class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptionScreenContent> {
 
-  final List<Map<String, dynamic>> _tiers = [
-    {
-      'slug': 'basic',
-      'name': 'الأساسية',
-      'price': '0',
-      'period': 'مجاناً',
-      'features': [
-        'تلقي طلبات الشراء العادية',
-        'عرض 5 منتجات في الكتالوج',
-        'دعم فني عادي',
-      ],
-      'isPopular': false,
-    },
-    {
-      'slug': 'pro',
-      'name': 'البلاتينية (TaaS)',
-      'price': '99,000',
-      'period': 'شهرياً',
-      'features': [
-        'توثيق Trust-as-a-Service',
-        'أولوية في محرك التوفيق (Matchmaking)',
-        'تعديل أسعار آلي (تضخم FIDIC 13.8)',
-        'عدد غير محدود من المنتجات',
-        'دعم فني مخصص (24/7)',
-      ],
-      'isPopular': true,
-    },
-    {
-      'slug': 'business',
-      'name': 'الشركات الكبرى',
-      'price': '250,000',
-      'period': 'شهرياً',
-      'features': [
-        'جميع ميزات البلاتينية',
-        'إدارة المخزون الموزع (API)',
-        'تقارير OCDS متقدمة',
-        'حماية قانونية متقدمة',
-      ],
-      'isPopular': false,
-    },
-  ];
+  List<SubscriptionTier> _buildTiers(BuildContext context) {
+    return [
+      SubscriptionTier(
+        slug: 'basic',
+        name: context.tr('sp_sub_basic'),
+        price: '0',
+        period: context.tr('sp_sub_free'),
+        features: [
+          context.tr('sp_sub_basic_f1'),
+          context.tr('sp_sub_basic_f2'),
+          context.tr('sp_sub_basic_f3'),
+        ],
+      ),
+      SubscriptionTier(
+        slug: 'pro',
+        name: context.tr('sp_sub_platinum'),
+        price: '99,000',
+        period: context.tr('sp_sub_monthly'),
+        features: [
+          context.tr('sp_sub_pro_f1'),
+          context.tr('sp_sub_pro_f2'),
+          context.tr('sp_sub_pro_f3'),
+          context.tr('sp_sub_pro_f4'),
+          context.tr('sp_sub_pro_f5'),
+        ],
+        isPopular: true,
+      ),
+      SubscriptionTier(
+        slug: 'business',
+        name: context.tr('sp_sub_enterprise'),
+        price: '250,000',
+        period: context.tr('sp_sub_monthly'),
+        features: [
+          context.tr('sp_sub_biz_f1'),
+          context.tr('sp_sub_biz_f2'),
+          context.tr('sp_sub_biz_f3'),
+          context.tr('sp_sub_biz_f4'),
+        ],
+      ),
+    ];
+  }
 
-  void _processSubscription() {
+  void _processSubscription(List<SubscriptionTier> tiers) {
     final selectedIndex = context.read<PageIndexCubit>().state;
-    final slug = _tiers[selectedIndex]['slug'] as String;
+    final slug = tiers[selectedIndex].slug;
     context.read<PricingBloc>().add(SubscribeToPlan(slug));
   }
 
@@ -87,7 +107,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('إدارة الاشتراك (TaaS)'),
+        title: Text(context.tr('sp_sub_title')),
         elevation: 0,
       ),
       body: BlocConsumer<PricingBloc, PricingState>(
@@ -106,13 +126,14 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
         builder: (context, state) {
           return BlocBuilder<PageIndexCubit, int>(
             builder: (context, selectedTierIndex) {
+              final tiers = _buildTiers(context);
               return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'الارتقاء بمستوى الثقة',
+                  context.tr('sp_sub_headline'),
                   style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: colors.textPrimary,
@@ -121,7 +142,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                 ).animate().fadeIn().slideY(begin: -0.1),
                 const SizedBox(height: 8),
                 Text(
-                  'خدمة الثقة (Trust-as-a-Service) تمنحك الأولوية والموثوقية في المشاريع الاستراتيجية.',
+                  context.tr('sp_sub_description'),
                   style: textTheme.bodyMedium?.copyWith(
                     color: colors.textSecondary,
                     height: 1.5,
@@ -131,10 +152,10 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                 const SizedBox(height: 32),
 
                 // Tiers
-                ...List.generate(_tiers.length, (index) {
-                  final tier = _tiers[index];
+                ...List.generate(tiers.length, (index) {
+                  final tier = tiers[index];
                   final isSelected = selectedTierIndex == index;
-                  final isPopular = tier['isPopular'] as bool;
+                  final isPopular = tier.isPopular;
 
                   return GestureDetector(
                     onTap: () {
@@ -169,7 +190,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    tier['name'] as String,
+                                    tier.name,
                                     style: textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.w800,
                                       color: isSelected ? colors.primaryBrand : colors.textPrimary,
@@ -184,9 +205,9 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                                     color: colors.goldFunding,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const Text(
-                                    'الأكثر طلباً',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                  child: Text(
+                                    context.tr('sp_sub_popular'),
+                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
                                   ),
                                 ),
                             ],
@@ -196,7 +217,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                tier['price'] as String,
+                                tier.price,
                                 style: textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: colors.textPrimary,
@@ -206,7 +227,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(bottom: 6),
                                 child: Text(
-                                  'ل.س / ${tier['period']}',
+                                  'ل.س / ${tier.period}',
                                   style: textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: colors.textSecondary,
@@ -218,7 +239,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                           const SizedBox(height: 16),
                           Divider(color: colors.strokeSubtle),
                           const SizedBox(height: 16),
-                          ...(tier['features'] as List<String>).map((feature) {
+                          ...tier.features.map((feature) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Row(
@@ -244,10 +265,10 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
 
                 const SizedBox(height: 32),
                 GradientButton(
-                  label: selectedTierIndex == 0 ? 'استمرار بالباقة المجانية' : 'ترقية الحساب الآن',
+                  label: selectedTierIndex == 0 ? context.tr('sp_sub_free_btn') : context.tr('sp_sub_upgrade_btn'),
                   icon: selectedTierIndex == 0 ? Icons.arrow_forward_rounded : Icons.workspace_premium_rounded,
                   isLoading: state.isSubscribing,
-                  onPressed: _processSubscription,
+                  onPressed: () => _processSubscription(tiers),
                 ).animate(delay: 600.ms).fadeIn(),
                 const SizedBox(height: 24),
               ],

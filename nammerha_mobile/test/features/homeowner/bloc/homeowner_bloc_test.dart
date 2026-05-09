@@ -29,10 +29,19 @@ void main() {
 
   HomeownerBloc buildBloc() => HomeownerBloc(repository: mockRepo);
 
-  final sampleDashboard = HomeownerDashboardModel(
-    stats: {'active_projects': 3, 'completed_projects': 1},
+  final sampleDashboard = const HomeownerDashboardModel(
+    stats: HomeownerStatsModel(
+      activeProjects: 3,
+      completedProjects: 1,
+    ),
     projects: [
-      {'project_id': 'p-001', 'title': 'إعادة إعمار منزل', 'status': 'active'},
+      HomeownerProjectModel(
+        projectId: 'p-001',
+        title: 'إعادة إعمار منزل',
+        damageType: 'هيكلي جزئي',
+        status: 'active',
+        createdAt: '2024-01-01T00:00:00Z',
+      ),
     ],
   );
 
