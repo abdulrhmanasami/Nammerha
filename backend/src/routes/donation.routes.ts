@@ -12,8 +12,28 @@ import { safeRouteError } from '../utils/safe-error';
 
 const router = Router();
 
+// ─── FEATURE FLAG: Donations Module ─────────────────────────────────────────
+// When DONATIONS_ENABLED !== 'true', ALL donation endpoints return 503.
+// This allows disabling the entire donation flow without code deletion.
+// Set DONATIONS_ENABLED=true in .env to re-enable.
+const DONATIONS_ENABLED = process.env['DONATIONS_ENABLED'] === 'true';
+
 router.use(authMiddleware);
 router.use(requireActive);
+
+// Feature gate — blocks all routes below when donations are disabled
+router.use((_req: Request, res: Response, next) => {
+    if (!DONATIONS_ENABLED) {
+        res.status(503).json({
+            success: false,
+            error: 'Donations are temporarily disabled. This feature will be available soon.',
+            error_ar: 'التبرعات معطلة مؤقتاً. ستكون هذه الميزة متاحة قريباً.',
+            feature_flag: 'DONATIONS_ENABLED',
+        } as ApiResponse);
+        return;
+    }
+    next();
+});
 
 // ─── POST /api/donations — Fund Specific BOQ Items (Donor) ─────────────────
 // SEC-004 FIX: Idempotency-Key header prevents double-submit.

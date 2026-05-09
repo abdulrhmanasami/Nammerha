@@ -36,7 +36,7 @@ const state: AuthState = {
 // Now a single module-level constant governs all post-login redirects.
 const ROLE_DASHBOARD: Readonly<Record<string, string>> = {
     homeowner: '/homeowner-portal.html',
-    donor: '/donor-portal.html',
+    donor: '/homeowner-portal.html', // DONATIONS_DISABLED: Donor redirects to homeowner portal
     contractor: '/contractor-portal.html',
     supplier: '/supplier-dashboard.html',
     tradesperson: '/tradesperson-portal.html',

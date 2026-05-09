@@ -173,14 +173,19 @@ router.get('/supplier/commissions', authMiddleware, requireRole('supplier'), asy
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// DONOR ROUTES (require 'donor' role)
+// DONOR ROUTES (require 'donor' role) — GATED by DONATIONS_ENABLED flag
 // ═════════════════════════════════════════════════════════════════════════════
+const DONATIONS_ENABLED = process.env['DONATIONS_ENABLED'] === 'true';
 
 /**
  * POST /api/revenue/donor/tip
  * Record a voluntary platform tip from a donor.
  */
 router.post('/donor/tip', authMiddleware, requireRole('donor'), async (req, res) => {
+    if (!DONATIONS_ENABLED) {
+        res.status(503).json({ success: false, error: 'Donations are temporarily disabled.' });
+        return;
+    }
     try {
         const donorId = req.authUser?.user_id;
         if (!donorId) {
@@ -233,6 +238,10 @@ router.post('/donor/tip', authMiddleware, requireRole('donor'), async (req, res)
  * Get my tip history (donor view).
  */
 router.get('/donor/tips', authMiddleware, requireRole('donor'), async (req, res) => {
+    if (!DONATIONS_ENABLED) {
+        res.status(503).json({ success: false, error: 'Donations are temporarily disabled.' });
+        return;
+    }
     try {
         const donorId = req.authUser?.user_id;
         if (!donorId) {

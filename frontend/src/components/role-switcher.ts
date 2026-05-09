@@ -43,15 +43,16 @@ interface RoleMeta {
 }
 
 const ROLE_META: Record<string, RoleMeta> = {
-    donor: {
-        icon: 'ph-hand-heart',
-        labelKey: 'role_donor',
-        labelFallback: 'Donor',
-        colorToken: '--warm-earth',
-        colorFallback: '#D59F80',
-        dashboardUrl: '/donor-portal.html',
-        verificationLabel: 'Email Verified',
-    },
+    // DONATIONS_DISABLED: donor role hidden from role switcher
+    // donor: {
+    //     icon: 'ph-hand-heart',
+    //     labelKey: 'role_donor',
+    //     labelFallback: 'Donor',
+    //     colorToken: '--warm-earth',
+    //     colorFallback: '#D59F80',
+    //     dashboardUrl: '/donor-portal.html',
+    //     verificationLabel: 'Email Verified',
+    // },
     homeowner: {
         icon: 'ph-house',
         labelKey: 'role_homeowner',

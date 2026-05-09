@@ -89,27 +89,29 @@ const PASSWORD_RULES = [
     { test: (p: string) => /[^A-Za-z0-9]/.test(p), msg: 'at least one special character' },
 ];
 
-// Valid roles for self-registration (admin/auditor require manual creation)
-const SELF_REGISTER_ROLES: UserRole[] = ['donor', 'homeowner', 'engineer', 'supplier', 'contractor', 'tradesperson'];
+// UNIFIED-ROLES: All 5 roles are auto-assigned to every user at registration.
+// Donor excluded while DONATIONS_ENABLED=false.
+const AUTO_ASSIGN_ROLES: readonly string[] = ['homeowner', 'engineer', 'contractor', 'supplier', 'tradesperson'] as const;
 
 // ─── POST /api/auth/register ────────────────────────────────────────────────
 router.post(
     '/register',
     async (req: Request, res: Response): Promise<void> => {
         try {
-            const { email, password, full_name, role: rawRole, phone } = req.body as {
+            const { email, password, full_name, phone } = req.body as {
                 email: string;
                 password: string;
                 full_name: string;
-                role?: UserRole; // Now OPTIONAL — defaults to 'donor'
+                // UNIFIED-ROLES: role parameter is no longer accepted
                 phone?: string;
             };
 
             // I18N-004: Locale-aware error messages for mobile clients
             const regLocale = getEmailLocale(req);
 
-            // Multi-Role Architecture: role is optional, defaults to 'donor'
-            const role: UserRole = rawRole ?? 'donor';
+            // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
+            // Default primary role is 'homeowner' (most common use case).
+            const role: UserRole = 'homeowner';
 
             // Validate required fields
             if (!email || !password || !full_name) {
@@ -122,16 +124,8 @@ router.post(
                 return;
             }
 
-            // Validate role (if provided)
-            if (rawRole && !SELF_REGISTER_ROLES.includes(role)) {
-                res.status(400).json({
-                    success: false,
-                    error: regLocale === 'ar'
-                        ? `الدور غير صالح. الأدوار المسموحة: ${SELF_REGISTER_ROLES.join(', ')}`
-                        : `Invalid role. Allowed: ${SELF_REGISTER_ROLES.join(', ')}`,
-                } as ApiResponse);
-                return;
-            }
+            // UNIFIED-ROLES: Role validation removed — role parameter is ignored.
+            // All users get all 5 standard roles automatically.
 
             // Validate email format
             if (!EMAIL_REGEX.test(email)) {
@@ -276,30 +270,29 @@ router.post(
                 throw new Error('Failed to create user');
             }
 
-            // Multi-Role Architecture: Insert into user_roles junction table
+            // UNIFIED-ROLES: Auto-assign ALL 5 roles to every new user.
+            // This eliminates role switching — users see all features immediately.
+            // Each role gets status='active'. homeowner is the primary role.
             await query(
                 `INSERT INTO user_roles (user_id, role_id, status, is_primary)
-                 SELECT $1, r.role_id, 'active', TRUE
-                 FROM roles r WHERE r.role_name = $2
+                 SELECT $1, r.role_id, 'active', (r.role_name = 'homeowner')
+                 FROM roles r WHERE r.role_name = ANY($2::text[])
                  ON CONFLICT (user_id, role_id) DO NOTHING`,
-                [user.user_id, role]
+                [user.user_id, AUTO_ASSIGN_ROLES]
             );
 
-            // Create role-specific profile
-            // FIX-008: Explicit allowlist validation — mirrors CRIT-001 in role.routes.ts.
-            const profileMap: Record<string, string> = {
-                donor: 'donor_profiles',
-                contractor: 'contractor_profiles',
-                engineer: 'engineer_profiles',
-                supplier: 'supplier_profiles',
-                tradesperson: 'tradesperson_profiles',
-                homeowner: 'homeowner_profiles',
-            };
-            const ALLOWED_PROFILE_TABLES: ReadonlySet<string> = new Set(Object.values(profileMap));
-            const profileTable = profileMap[role];
-            if (profileTable && ALLOWED_PROFILE_TABLES.has(profileTable)) {
+            // Create ALL role-specific profiles at registration
+            // This ensures no "profile not found" errors when accessing any feature.
+            const profileTables = [
+                'homeowner_profiles',
+                'engineer_profiles',
+                'contractor_profiles',
+                'supplier_profiles',
+                'tradesperson_profiles',
+            ] as const;
+            for (const table of profileTables) {
                 await query(
-                    `INSERT INTO ${profileTable} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
+                    `INSERT INTO ${table} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
                     [user.user_id]
                 );
             }

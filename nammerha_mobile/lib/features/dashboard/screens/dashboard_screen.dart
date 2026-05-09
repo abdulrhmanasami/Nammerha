@@ -4,14 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/services/api_services.dart';
-import '../../../core/network/api_client.dart'; // NammerhaApiClient for role activation
-import '../../../core/utils/role_localizer.dart';
+// UNIFIED: NammerhaApiClient, role_localizer, AuthBloc imports removed
+// (were used by the now-removed role-switcher bottom sheet)
 import '../../auth/repositories/auth_repository.dart';
-import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/dashboard_home_bloc.dart';
 
-import '../../search/screens/search_screen.dart';
-import '../../donations/screens/donations_screen.dart';
+// UNIFIED: SearchScreen not used in unified tabs (accessible from Quick Actions)
+// DONATIONS_DISABLED: DonationsScreen import removed
 import '../../bids/screens/bids_screen.dart';
 import '../../supplier/screens/supplier_portal_screen.dart';
 import '../../profile/screens/profile_screen.dart';
@@ -19,17 +18,14 @@ import '../../profile/bloc/profile_bloc.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../homeowner/screens/homeowner_projects_screen.dart';
 import '../../spatial_proof/screens/spatial_camera_screen.dart';
-import '../../escrow/screens/escrow_summary_screen.dart';
-import '../../donor_proof/screens/donor_proof_screen.dart';
+// UNIFIED: EscrowSummaryScreen, DonorProofScreen, ProjectMapScreen moved to direct nav
 import '../../wallet/screens/wallet_screen.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
-import '../../map/screens/project_map_screen.dart';
 import '../../admin/screens/admin_hub_screen.dart';
 import '../../admin/screens/admin_dashboard_screen.dart';
 import '../../admin/screens/admin_escrow_screen.dart';
 import '../../admin/screens/admin_kyc_screen.dart';
-import '../../contractor/screens/contractor_portal_screen.dart';
-import '../../tradesperson/screens/tradesperson_portal_screen.dart';
+// UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
 import '../../../core/i18n/t.dart';
 import '../../../core/bloc/page_index_cubit.dart';
 
@@ -47,123 +43,54 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UNIFIED DASHBOARD: All users see the same navigation.
+  // Admin/Auditor get admin-specific pages. Everyone else gets unified tabs.
+  // No role switching — all tools accessible from Quick Actions.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  bool get _isAdmin => widget.role == 'ADMIN' || widget.role == 'AUDITOR';
+
   List<Widget> _getPages() {
-    switch (widget.role) {
-      case 'ADMIN':
-      case 'AUDITOR':
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const AdminHubScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
-      case 'ENGINEER':
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const BidsScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
-      case 'SUPPLIER':
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const SupplierPortalScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
-      case 'HOMEOWNER':
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const HomeownerProjectsScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
-      case 'CONTRACTOR':
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const ContractorPortalScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
-      case 'TRADESPERSON':
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const TradespersonPortalScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
-      default:
-        return [
-          _DashboardHome(role: widget.role, userName: widget.user.fullName),
-          const SearchScreen(),
-          const DonationsScreen(),
-          BlocProvider(
-            create: (_) => ProfileBloc(),
-            child: const ProfileScreen(),
-          ),
-        ];
+    if (_isAdmin) {
+      return [
+        _DashboardHome(role: widget.role, userName: widget.user.fullName),
+        const AdminHubScreen(),
+        BlocProvider(
+          create: (_) => ProfileBloc(),
+          child: const ProfileScreen(),
+        ),
+      ];
     }
+    // Unified layout for ALL non-admin users
+    return [
+      _DashboardHome(role: 'UNIFIED', userName: widget.user.fullName),
+      const HomeownerProjectsScreen(),   // عقاراتي / المشاريع
+      const BidsScreen(),                // العروض (هندسة + مقاولات)
+      const SupplierPortalScreen(),      // التوريد
+      BlocProvider(
+        create: (_) => ProfileBloc(),
+        child: const ProfileScreen(),
+      ),
+    ];
   }
 
   List<BottomNavigationBarItem> _getNavItems() {
-    switch (widget.role) {
-      case 'ADMIN':
-      case 'AUDITOR':
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.shield_rounded), label: 'الإدارة'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
-      case 'ENGINEER':
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.gavel_rounded), label: 'عروضي'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
-      case 'HOMEOWNER':
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.home_work_rounded), label: 'المشاريع'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
-      case 'SUPPLIER':
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.local_shipping_rounded), label: 'الطلبات'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
-      case 'CONTRACTOR':
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.construction_rounded), label: 'عروضي'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
-      case 'TRADESPERSON':
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.handyman_rounded), label: 'المهام'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
-      default:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-          BottomNavigationBarItem(icon: Icon(Icons.storefront_rounded), label: 'المشاريع'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_rounded), label: 'تبرعاتي'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
-        ];
+    if (_isAdmin) {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
+        BottomNavigationBarItem(icon: Icon(Icons.shield_rounded), label: 'الإدارة'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+      ];
     }
+    // Unified navigation for ALL non-admin users
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
+      BottomNavigationBarItem(icon: Icon(Icons.home_work_rounded), label: 'المشاريع'),
+      BottomNavigationBarItem(icon: Icon(Icons.gavel_rounded), label: 'العروض'),
+      BottomNavigationBarItem(icon: Icon(Icons.local_shipping_rounded), label: 'التوريد'),
+      BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+    ];
   }
 
   @override
@@ -286,29 +213,13 @@ class _DashboardHomeView extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              GestureDetector(
-                                onTap: () => _showRoleSwitcher(context),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: colors.successLight,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        _getRoleLabel(role),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: colors.success,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(Icons.swap_horiz_rounded, size: 14, color: colors.success),
-                                    ],
-                                  ),
+                              // UNIFIED: Simple welcome subtitle — no role switching
+                              Text(
+                                'مرحباً بك في نعمّرها',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ],
@@ -386,40 +297,14 @@ class _DashboardHomeView extends StatelessWidget {
   Widget _buildStatsSection(BuildContext context, Map<String, dynamic> stats, String role) {
     final colors = context.colors;
 
-    List<_StatItem> items;
-    switch (role) {
-      case 'ENGINEER':
-        items = [
-          _StatItem('مشاريع معيّنة', '${stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', Icons.architecture_rounded, colors.primaryBrand),
-          _StatItem('إثباتات معلّقة', '${stats['pendingProofs'] ?? stats['pending_proofs'] ?? 0}', Icons.pending_actions_rounded, colors.warning),
-          _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? 0}', Icons.verified_rounded, colors.success),
-          _StatItem(context.tr('admin_revenue'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
-        ];
-        break;
-      case 'SUPPLIER':
-        items = [
-          _StatItem('طلبات معلّقة', '${stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}', Icons.hourglass_top_rounded, colors.warning),
-          _StatItem('قيد التوصيل', '${stats['inTransit'] ?? stats['in_transit'] ?? 0}', Icons.local_shipping_rounded, colors.info),
-          _StatItem('تم التسليم', '${stats['delivered'] ?? 0}', Icons.check_circle_rounded, colors.success),
-          _StatItem(context.tr('admin_revenue'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
-        ];
-        break;
-      case 'HOMEOWNER':
-        items = [
-          _StatItem(context.tr('my_projects'), '${stats['total_projects'] ?? stats['totalProjects'] ?? 0}', Icons.home_work_rounded, colors.primaryBrand),
-          _StatItem('عروض واردة', '${stats['pending_bids'] ?? stats['pendingBids'] ?? 0}', Icons.gavel_rounded, colors.warning),
-          _StatItem(context.tr('str_00675587'), '${stats['funding_percentage'] ?? stats['fundingPercentage'] ?? 0}%', Icons.trending_up_rounded, colors.success),
-          _StatItem(context.tr('escrow_label'), formatCurrency(stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), Icons.lock_rounded, colors.goldFunding),
-        ];
-        break;
-      default:
-        items = [
-          _StatItem('إجمالي التبرعات', formatCurrency(stats['totalDonated'] ?? stats['total_donated'] ?? 0), Icons.favorite_rounded, colors.primaryBrand),
-          _StatItem('مشاريع نشطة', '${stats['activeProjects'] ?? stats['active_projects'] ?? 0}', Icons.home_work_rounded, colors.info),
-          _StatItem('إثباتات مُستلمة', '${stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}', Icons.verified_rounded, colors.success),
-          _StatItem('معدل الأثر', '${stats['impactScore'] ?? stats['impact_score'] ?? 0}%', Icons.trending_up_rounded, colors.goldFunding),
-        ];
-    }
+    // UNIFIED: Show combined stats for all users
+    // Admin/Auditor keep their specific stats via _isAdmin check above
+    final List<_StatItem> items = [
+      _StatItem(context.tr('my_projects'), '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', Icons.home_work_rounded, colors.primaryBrand),
+      _StatItem('عروض نشطة', '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}', Icons.gavel_rounded, colors.warning),
+      _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}', Icons.verified_rounded, colors.success),
+      _StatItem(context.tr('wallet'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
+    ];
 
     return GridView.builder(
       shrinkWrap: true,
@@ -493,42 +378,19 @@ class _DashboardHomeView extends StatelessWidget {
     final colors = context.colors;
     List<_QuickAction> actions;
 
-    switch (role) {
-      case 'ADMIN':
-      case 'AUDITOR':
-        actions = [
-          _QuickAction('لوحة القيادة', Icons.dashboard_rounded, colors.primaryBrand, const AdminDashboardScreen()),
-          _QuickAction(context.tr('escrow_label'), Icons.account_balance_wallet_rounded, colors.secondaryAccent, const AdminEscrowScreen()),
-          _QuickAction('التحقق KYC', Icons.verified_user_rounded, colors.warmEarth, const AdminKycScreen()),
-        ];
-        break;
-      case 'ENGINEER':
-        actions = [
-          _QuickAction('كاميرا مكانية', Icons.camera_alt_rounded, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
-          _QuickAction('بوابة العروض', Icons.gavel_rounded, colors.info, const BidsScreen()),
-          _QuickAction(context.tr('wallet'), Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
-        ];
-        break;
-      case 'SUPPLIER':
-        actions = [
-          _QuickAction('بوابة المورد', Icons.storefront_rounded, colors.warning, const SupplierPortalScreen()),
-          _QuickAction('حساب الضمان', Icons.lock_rounded, colors.primaryBrand, const EscrowSummaryScreen()),
-          _QuickAction('سجل التوصيل', Icons.receipt_long_rounded, colors.success, const WalletScreen()),
-        ];
-        break;
-      case 'HOMEOWNER':
-        actions = [
-          _QuickAction('تقرير ضرر', Icons.report_rounded, colors.warning, const DamageReportScreen()),
-          _QuickAction(context.tr('wallet'), Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
-          _QuickAction('خريطة المشاريع', Icons.map_rounded, colors.primaryBrand, const ProjectMapScreen()),
-        ];
-        break;
-      default:
-        actions = [
-          _QuickAction('تصفح المشاريع', Icons.search_rounded, colors.primaryBrand, const SearchScreen()),
-          _QuickAction('حساب الضمان', Icons.lock_rounded, colors.success, const EscrowSummaryScreen()),
-          _QuickAction('آخر الإثباتات', Icons.verified_user_rounded, colors.info, const DonorProofScreen()),
-        ];
+    if (role == 'ADMIN' || role == 'AUDITOR') {
+      actions = [
+        _QuickAction('لوحة القيادة', Icons.dashboard_rounded, colors.primaryBrand, const AdminDashboardScreen()),
+        _QuickAction(context.tr('escrow_label'), Icons.account_balance_wallet_rounded, colors.secondaryAccent, const AdminEscrowScreen()),
+        _QuickAction('التحقق KYC', Icons.verified_user_rounded, colors.warmEarth, const AdminKycScreen()),
+      ];
+    } else {
+      // UNIFIED: All tools available to everyone
+      actions = [
+        _QuickAction('كاميرا مكانية', Icons.camera_alt_rounded, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
+        _QuickAction('تقرير ضرر', Icons.report_rounded, colors.warning, const DamageReportScreen()),
+        _QuickAction(context.tr('wallet'), Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
+      ];
     }
 
     return Row(
@@ -711,351 +573,10 @@ class _DashboardHomeView extends StatelessWidget {
     }
   }
 
-  String _getRoleLabel(String role) {
-    switch (role) {
-      case 'ENGINEER':
-        return '🏗️ مهندس ميداني';
-      case 'SUPPLIER':
-        return '📦 مورّد معتمد';
-      case 'HOMEOWNER':
-        return '🏠 صاحب منزل';
-      case 'CONTRACTOR':
-        return '👷 مقاول';
-      case 'TRADESPERSON':
-        return '🔧 حرفي';
-      default:
-        return '💚 متبرع';
-    }
-  }
 
-  /// Opens a bottom sheet listing all user roles, allowing the user to switch.
-  /// BUG-7 FIX: Always shows the sheet (even for 1 role) and includes
-  /// an "Add new role" button at the bottom.
-  void _showRoleSwitcher(BuildContext context) {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) return;
-
-    final user = authState.user;
-    final userRoles = user.roles;
-    final activeRole = user.activeRole;
-    final colors = context.colors;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          decoration: BoxDecoration(
-            color: colors.surfaceElevated,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 16),
-              Text('تبديل الدور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
-              const SizedBox(height: 4),
-              Text(
-                userRoles.length > 1 ? 'اختر الدور الذي تريد العمل به' : 'لديك دور واحد حالياً — يمكنك إضافة أدوار جديدة',
-                style: TextStyle(fontSize: 13, color: colors.textSubtle),
-              ),
-              const SizedBox(height: 16),
-              // ─── Current Roles ───────────────────────────────
-              ...userRoles.map((role) {
-                final meta = getRoleMeta(role);
-                final isActive = role.toLowerCase() == activeRole.toLowerCase();
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: isActive ? null : () {
-                      Navigator.pop(sheetContext);
-                      context.read<AuthBloc>().add(AuthRoleSwitched(role.toLowerCase()));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: isActive ? colors.primaryBrand.withAlpha(12) : colors.backgroundPrimary,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isActive ? colors.primaryBrand.withAlpha(40) : colors.strokeSubtle,
-                          width: isActive ? 1.5 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(
-                              color: (meta?.color ?? colors.primaryBrand).withAlpha(15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(meta?.icon ?? Icons.person_rounded, size: 22, color: meta?.color ?? colors.primaryBrand),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  meta?.nameAr ?? role,
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
-                                ),
-                                Text(
-                                  meta?.nameEn ?? role,
-                                  style: TextStyle(fontSize: 11, color: colors.textSubtle),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (isActive)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(color: colors.success.withAlpha(15), borderRadius: BorderRadius.circular(6)),
-                              child: Text(context.tr('active'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: colors.success)),
-                            )
-                          else
-                            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.textSubtle),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-              // ─── Add New Role Button ────────────────────────
-              const SizedBox(height: 8),
-              Divider(color: colors.strokeSubtle, height: 1),
-              const SizedBox(height: 12),
-              InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showAddRoleSheet(context, userRoles);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: colors.backgroundPrimary,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: colors.primaryBrand.withAlpha(30), width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(
-                          color: colors.primaryBrand.withAlpha(10),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: colors.primaryBrand.withAlpha(25), width: 1.5),
-                        ),
-                        child: Icon(Icons.add_rounded, size: 24, color: colors.primaryBrand),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'إضافة دور جديد',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.primaryBrand),
-                            ),
-                            Text(
-                              'أضف دوراً إضافياً لحسابك',
-                              style: TextStyle(fontSize: 11, color: colors.textSubtle),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.primaryBrand),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// Shows the "Add New Role" bottom sheet with available roles to activate.
-  void _showAddRoleSheet(BuildContext context, List<String> existingRoles) {
-    final colors = context.colors;
-
-    // Self-registerable roles (excluding admin/auditor — server-only)
-    const availableRoles = ['donor', 'homeowner', 'engineer', 'contractor', 'supplier', 'tradesperson'];
-    final newRoles = availableRoles.where((r) => !existingRoles.map((e) => e.toLowerCase()).contains(r)).toList();
-
-    if (newRoles.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('لديك جميع الأدوار المتاحة بالفعل! 🎉'),
-          backgroundColor: colors.success,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-          decoration: BoxDecoration(
-            color: colors.surfaceElevated,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 16),
-              Text('إضافة دور جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
-              const SizedBox(height: 4),
-              Text('اختر الدور الذي تريد إضافته لحسابك', style: TextStyle(fontSize: 13, color: colors.textSubtle)),
-              const SizedBox(height: 16),
-              ...newRoles.map((role) {
-                final meta = getRoleMeta(role);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      _activateRole(context, role);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: colors.backgroundPrimary,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: colors.strokeSubtle),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(
-                              color: (meta?.color ?? colors.primaryBrand).withAlpha(15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(meta?.icon ?? Icons.person_rounded, size: 22, color: meta?.color ?? colors.primaryBrand),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  meta?.nameAr ?? role,
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
-                                ),
-                                Text(
-                                  meta?.nameEn ?? role,
-                                  style: TextStyle(fontSize: 11, color: colors.textSubtle),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(Icons.add_circle_outline_rounded, size: 22, color: colors.primaryBrand),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// Calls /api/roles/activate and shows result feedback.
-  Future<void> _activateRole(BuildContext context, String role) async {
-    final colors = context.colors;
-    final meta = getRoleMeta(role);
-    final authBloc = context.read<AuthBloc>();
-
-    try {
-      await authBloc.authRepository.switchRole(role); // Will fail if not activated
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم تفعيل دور ${meta?.nameAr ?? role} بنجاح! ✅'),
-          backgroundColor: colors.success,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-
-      // Refresh auth state to get updated roles
-      authBloc.add(AuthCheckSession());
-    } catch (_) {
-      // Role not activated — try the activate API
-      try {
-        final apiClient = NammerhaApiClient.instance;
-        final response = await apiClient.request<Map<String, dynamic>>(
-          '/roles/activate',
-          method: 'POST',
-          body: {'role': role},
-          fromData: (data) => data as Map<String, dynamic>,
-        );
-
-        if (!context.mounted) return;
-
-        if (response.success) {
-          final status = response.data?['status'] as String? ?? 'active';
-          if (status == 'active') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('تم تفعيل دور ${meta?.nameAr ?? role} بنجاح! ✅'),
-                backgroundColor: colors.success,
-              ),
-            );
-            // Refresh to get updated roles
-            authBloc.add(AuthCheckSession());
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('طلب تفعيل ${meta?.nameAr ?? role} قيد المراجعة — سيتم إعلامك عند الموافقة'),
-                backgroundColor: colors.warning,
-                duration: const Duration(seconds: 4),
-              ),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.error ?? 'فشل تفعيل الدور'),
-              backgroundColor: colors.error,
-            ),
-          );
-        }
-      } catch (e) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('تعذّر تفعيل الدور: ${e.toString()}'),
-            backgroundColor: colors.error,
-          ),
-        );
-      }
-    }
-  }
+  // UNIFIED: _showRoleSwitcher, _showAddRoleSheet, and _activateRole
+  // have been removed. Role switching is no longer a user-facing concept.
+  // All users see all features through the unified dashboard tabs.
 }
 
 class _StatItem {

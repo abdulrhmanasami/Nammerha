@@ -35,7 +35,8 @@ const PAGE_INDEX: SearchResult[] = [
     { title: 'Site Verification', subtitle: 'GPS-stamped field camera', href: 'engineer-camera.html', icon: 'camera', i18nTitle: 'site_verification' },
     { title: 'Proof of Delivery', subtitle: 'Verified delivery confirmation', href: 'donor-proof.html', icon: 'shield-check', i18nTitle: 'proof_of_delivery' },
     { title: 'Homeowner Portal', subtitle: 'Manage your property', href: 'homeowner-portal.html', icon: 'house-line', i18nTitle: 'homeowner_portal' },
-    { title: 'Donor Portal', subtitle: 'Your donations and impact', href: 'donor-portal.html', icon: 'heart', i18nTitle: 'donor_portal' },
+    // DONATIONS_DISABLED: Donor Portal hidden until donations feature is re-enabled
+    // { title: 'Donor Portal', subtitle: 'Your donations and impact', href: 'donor-portal.html', icon: 'heart', i18nTitle: 'donor_portal' },
     { title: 'Contractor Dashboard', subtitle: 'Manage projects and bids', href: 'contractor-dashboard.html', icon: 'hard-hat', i18nTitle: 'contractor_dashboard' },
     { title: 'Contractor Portal', subtitle: 'Contractor workspace', href: 'contractor-portal.html', icon: 'wrench', i18nTitle: 'contractor_portal' },
     { title: 'Supplier Dashboard', subtitle: 'Catalog and orders', href: 'supplier-dashboard.html', icon: 'storefront', i18nTitle: 'supplier_dashboard' },

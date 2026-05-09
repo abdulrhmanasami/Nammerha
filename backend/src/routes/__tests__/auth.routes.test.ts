@@ -124,23 +124,53 @@ describe('Auth Routes (HTTP Integration)', () => {
             expect(res.body.error).toContain('Missing required fields');
         });
 
-        it('should return 400 for invalid role (admin self-registration blocked)', async () => {
+        // UNIFIED-ROLES: role parameter is now ignored at registration.
+        // All users automatically get all 5 standard roles (homeowner, engineer,
+        // contractor, supplier, tradesperson). Sending role:'admin' is harmless —
+        // it's ignored, and the user gets the standard roles anyway.
+        it('should succeed even when role is admin (role parameter ignored in unified model)', async () => {
+            // DB: no existing user
+            mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+            // DB: INSERT user returns new user
+            mockQuery.mockResolvedValueOnce({
+                rows: [{
+                    user_id: 'admin-test-uuid', email: 'newuser@example.com',
+                    full_name: 'Test User', role: 'homeowner', is_active: false,
+                    is_email_verified: false,
+                }],
+                rowCount: 1,
+            });
+            // DB: INSERT INTO user_roles (returns empty - OK)
+            // DB: 5x INSERT INTO *_profiles (returns empty - OK)
+            // These all hit the default mock: { rows: [], rowCount: 0 }
+
             const res = await request(app)
                 .post('/api/auth/register')
                 .send({ ...VALID_BODY, role: 'admin' })
-                .expect(400);
+                .expect(200);
 
-            expect(res.body.success).toBe(false);
-            expect(res.body.error).toContain('Invalid role');
+            expect(res.body.success).toBe(true);
         });
 
-        it('should return 400 for auditor self-registration', async () => {
+        it('should succeed even when role is auditor (role parameter ignored in unified model)', async () => {
+            // DB: no existing user
+            mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+            // DB: INSERT user returns new user
+            mockQuery.mockResolvedValueOnce({
+                rows: [{
+                    user_id: 'auditor-test-uuid', email: 'auditor-test@example.com',
+                    full_name: 'Test User', role: 'homeowner', is_active: false,
+                    is_email_verified: false,
+                }],
+                rowCount: 1,
+            });
+
             const res = await request(app)
                 .post('/api/auth/register')
-                .send({ ...VALID_BODY, role: 'auditor' })
-                .expect(400);
+                .send({ ...VALID_BODY, role: 'auditor', email: 'auditor-test@example.com' })
+                .expect(200);
 
-            expect(res.body.success).toBe(false);
+            expect(res.body.success).toBe(true);
         });
 
         it('should return 400 for invalid email format', async () => {
