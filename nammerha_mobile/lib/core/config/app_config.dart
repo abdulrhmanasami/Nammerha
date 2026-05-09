@@ -61,6 +61,15 @@ class AppConfig {
   /// Platform identifier sent to backend
   static String get platform => Platform.isIOS ? 'ios' : 'android';
 
+  // ─── Social OAuth ──────────────────────────────────────────────────────
+  /// Google Sign-In server client ID (WEB client ID).
+  /// Required for requesting an ID token that the backend can verify.
+  /// Set via compile-time: --dart-define=GOOGLE_SERVER_CLIENT_ID=xxx
+  static const String googleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: '',
+  );
+
   // ─── Network Policy ────────────────────────────────────────────────────
   /// Request timeout (30s accounts for Syrian 2G/3G latency)
   static const Duration requestTimeout = Duration(seconds: 30);

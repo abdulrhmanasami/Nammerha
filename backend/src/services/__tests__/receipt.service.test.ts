@@ -28,8 +28,9 @@ vi.mock('pdfkit', () => {
         y = 100;
 
         on(event: string, handler: (...args: unknown[]) => void) {
-            this.handlers[event] = this.handlers[event] || [];
-            this.handlers[event]!.push(handler);
+            if (!this.handlers[event]) { this.handlers[event] = []; }
+            const list = this.handlers[event];
+            if (list) { list.push(handler); }
             return this;
         }
         fontSize() { return this; }

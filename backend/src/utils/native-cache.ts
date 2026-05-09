@@ -6,7 +6,7 @@
 // without introducing external dependencies (Redis) risking Day-1 infrastructure issues.
 
 interface CacheEntry {
-    data: any;
+    data: unknown;
     expiresAt: number;
 }
 
@@ -33,21 +33,21 @@ export class NativeCache {
         }
     }
 
-    set(key: string, data: any, ttlSeconds: number): void {
+    set(key: string, data: unknown, ttlSeconds: number): void {
         // Enforce max size to prevent memory blowout under investor stress testing
         if (this.cache.size >= this.maxSize) {
             // Evict oldest (Map guarantees insertion order)
             const firstKey = this.cache.keys().next().value;
-            if (firstKey) this.cache.delete(firstKey);
+            if (firstKey) {this.cache.delete(firstKey);}
         }
 
         const expiresAt = Date.now() + ttlSeconds * 1000;
         this.cache.set(key, { data, expiresAt });
     }
 
-    get(key: string): any | undefined {
+    get(key: string): unknown | undefined {
         const entry = this.cache.get(key);
-        if (!entry) return undefined;
+        if (!entry) {return undefined;}
 
         if (Date.now() > entry.expiresAt) {
             this.cache.delete(key);

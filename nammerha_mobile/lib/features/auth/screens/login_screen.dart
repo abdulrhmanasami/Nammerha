@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/network/api_client.dart'; // ApiException
+import '../../../core/services/social_auth_service.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
 import '../../../core/i18n/t.dart';
@@ -758,37 +759,57 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
-  /// Handle social login — will integrate native SDKs when packages are configured.
-  /// For now: dispatches the event with a placeholder. Real SDK integration
-  /// requires google_sign_in, sign_in_with_apple, flutter_facebook_auth packages.
+  /// Handle social login via native SDK → backend verification.
+  /// OAuth-001: Real SDK integration for Google and Apple.
+  /// Facebook: Coming soon (requires Meta App review).
   Future<void> _handleSocialLogin(String provider) async {
     if (_isSubmitting) return;
+    _isSubmitting = true;
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _isSubmitting = false;
+    });
 
-    // Provider SDK labels for user messages
-    final providerNames = {
-      'google': 'Google',
-      'apple': 'Apple',
-      'facebook': 'Facebook',
-    };
-    final displayName = providerNames[provider] ?? provider;
+    try {
+      final result = await SocialAuthService.instance.signIn(provider);
 
-    // NOTE(OAuth): Replace with actual native SDK flow when packages are configured.
-    // Each SDK returns an ID token which we pass to the BLoC.
-    // For now, show a clear message that configuration is needed.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'تسجيل الدخول عبر $displayName — قيد الإعداد. استخدم البريد الإلكتروني حالياً.',
-        ),
-        backgroundColor: context.colors.primaryBrand,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+      // Dispatch to AuthBloc — backend verifies the ID token server-side
+      if (mounted) {
+        context.read<AuthBloc>().add(AuthSocialLoginRequested(
+          provider: result.provider,
+          idToken: result.idToken,
+          fullName: result.fullName,
+        ));
+      }
+    } on SocialAuthCancelledException {
+      // User cancelled — no error message needed
+      return;
+    } on SocialAuthNotAvailableException catch (e) {
+      if (mounted) {
+        final providerNames = {'google': 'Google', 'apple': 'Apple', 'facebook': 'Facebook'};
+        final displayName = providerNames[provider] ?? provider;
 
-    // When native SDKs are configured, the flow will be:
-    // 1. Call provider SDK → get idToken
-    // 2. Dispatch: context.read<AuthBloc>().add(
-    //      AuthSocialLoginRequested(provider: provider, idToken: token),
-    //    );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              provider == 'facebook'
+                  ? 'تسجيل الدخول عبر $displayName — قريباً. استخدم Google أو Apple حالياً.'
+                  : 'تسجيل الدخول عبر $displayName غير متاح حالياً: ${e.reason}',
+            ),
+            backgroundColor: context.colors.primaryBrand,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل تسجيل الدخول: ${e.toString()}'),
+            backgroundColor: context.colors.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 }

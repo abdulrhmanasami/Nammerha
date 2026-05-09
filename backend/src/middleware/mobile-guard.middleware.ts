@@ -28,8 +28,8 @@ function isVersionGTE(clientVersion: string, minVersion: string): boolean {
     for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
         const p1 = v1[i] ?? 0;
         const p2 = v2[i] ?? 0;
-        if (p1 > p2) return true;
-        if (p1 < p2) return false;
+        if (p1 > p2) {return true;}
+        if (p1 < p2) {return false;}
     }
     return true; // equal
 }
@@ -92,7 +92,7 @@ export function mobileGuardMiddleware(
         }
 
         // Optionally store these in request for downstream telemetry
-        (req as any).clientTelemetry = {
+        (req as Request & { clientTelemetry?: Record<string, unknown> }).clientTelemetry = {
             platform,
             appVersion,
             apiVersion,

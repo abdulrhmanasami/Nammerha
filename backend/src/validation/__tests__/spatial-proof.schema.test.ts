@@ -49,27 +49,27 @@ describe('parseSpatialProof — Happy Path', () => {
 
 describe('parseSpatialProof — Required Fields', () => {
     it('should reject missing item_id', () => {
-        const { item_id: _, ...payload } = VALID_PAYLOAD;
+        const { item_id: _item_id, ...payload } = VALID_PAYLOAD;
         expect(() => parseSpatialProof(payload)).toThrow(ZodError);
     });
 
     it('should reject missing project_id', () => {
-        const { project_id: _, ...payload } = VALID_PAYLOAD;
+        const { project_id: _project_id, ...payload } = VALID_PAYLOAD;
         expect(() => parseSpatialProof(payload)).toThrow(ZodError);
     });
 
     it('should reject missing gps_lat', () => {
-        const { gps_lat: _, ...payload } = VALID_PAYLOAD;
+        const { gps_lat: _gps_lat, ...payload } = VALID_PAYLOAD;
         expect(() => parseSpatialProof(payload)).toThrow(ZodError);
     });
 
     it('should reject missing gps_lng', () => {
-        const { gps_lng: _, ...payload } = VALID_PAYLOAD;
+        const { gps_lng: _gps_lng, ...payload } = VALID_PAYLOAD;
         expect(() => parseSpatialProof(payload)).toThrow(ZodError);
     });
 
     it('should reject missing image_url', () => {
-        const { image_url: _, ...payload } = VALID_PAYLOAD;
+        const { image_url: _image_url, ...payload } = VALID_PAYLOAD;
         expect(() => parseSpatialProof(payload)).toThrow(ZodError);
     });
 

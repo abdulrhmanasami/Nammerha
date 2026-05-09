@@ -337,13 +337,10 @@ describe('Compliance Service', () => {
         });
 
         it('should return results with total count', async () => {
+            // F-005 FIX: Now a SINGLE query with COUNT(*) OVER() — total_count is included in each row
             mockQuery
                 .mockResolvedValueOnce({
-                    rows: [{ result_id: 'sr-1', status: 'potential_match' }],
-                    rowCount: 1,
-                })
-                .mockResolvedValueOnce({
-                    rows: [{ count: '42' }],
+                    rows: [{ result_id: 'sr-1', status: 'potential_match', total_count: '42' }],
                     rowCount: 1,
                 });
 

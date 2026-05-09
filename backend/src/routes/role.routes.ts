@@ -240,8 +240,12 @@ router.post('/activate', async (req: Request, res: Response) => {
 
         // MED-002 FIX: Use upsert pattern to eliminate TOCTOU race condition.
         // INSERT ... ON CONFLICT handles the check-and-insert atomically.
-        const initialStatus = roleData.requires_kyb ? 'pending_kyb'
-            : (roleData.requires_kyc ? 'pending_kyc' : 'active');
+        // TESTER-FIX: Skip KYC/KYB gating when SKIP_KYC_VERIFICATION=true.
+        // In production, this env var must NEVER be set.
+        const skipKyc = process.env['SKIP_KYC_VERIFICATION'] === 'true';
+        const initialStatus = skipKyc ? 'active'
+            : (roleData.requires_kyb ? 'pending_kyb'
+                : (roleData.requires_kyc ? 'pending_kyc' : 'active'));
 
         const upsertResult = await query<{ status: string; was_existing: boolean }>(
             `INSERT INTO user_roles (user_id, role_id, status, is_primary)
@@ -284,14 +288,14 @@ router.post('/activate', async (req: Request, res: Response) => {
 
         res.json({
             success: true,
-            message: roleData.requires_kyb || roleData.requires_kyc
+            message: (!skipKyc && (roleData.requires_kyb || roleData.requires_kyc))
                 ? 'Role activation pending verification'
                 : 'Role activated successfully',
             data: {
                 role,
                 status: resultRow?.status ?? initialStatus,
-                requires_kyc: roleData.requires_kyc,
-                requires_kyb: roleData.requires_kyb,
+                requires_kyc: skipKyc ? false : roleData.requires_kyc,
+                requires_kyb: skipKyc ? false : roleData.requires_kyb,
             },
         });
     } catch (error) {

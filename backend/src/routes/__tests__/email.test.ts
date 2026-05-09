@@ -18,19 +18,19 @@ vi.mock('../../utils/logger', () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-// ─── Mock Resend ────────────────────────────────────────────────────────────
-const mockSendMail = vi.fn();
+// ─── Mock Resend (vi.hoisted ensures persistence across resetModules) ───────
+const { mockSendMail } = vi.hoisted(() => {
+    const mockSendMail = vi.fn();
+    return { mockSendMail };
+});
 
-vi.mock('resend', () => ({
-    Resend: vi.fn().mockImplementation(() => ({
-        emails: {
-            send: mockSendMail
+vi.mock('resend', () => {
+    return {
+        Resend: class MockResend {
+            emails = { send: mockSendMail };
         }
-    }))
-}));
-
-// ─── Import type-only reference (functions are re-imported dynamically per test) ──
-import type {} from '../../services/email.service';
+    };
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Email Service Unit Tests

@@ -26,7 +26,7 @@ import { WebSocketServer } from 'ws';
 // L-1 AUDIT: @ts-ignore is required because graphql-ws uses Node16 exports map
 // (`exports["./use/ws"]`). TypeScript cannot resolve this without moduleResolution: Node16,
 // which would break the rest of the codebase. The runtime import is correct.
-// @ts-ignore - graphql-ws exports require moduleResolution: Node16
+// @ts-expect-error - graphql-ws exports require moduleResolution: Node16
 import { useServer } from 'graphql-ws/use/ws';
 
 import { schema } from './schema/index';

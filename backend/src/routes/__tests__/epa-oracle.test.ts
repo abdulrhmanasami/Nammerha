@@ -86,13 +86,15 @@ describe('calculateFIDIC() — FIDIC 13.8 Formula (Pure Unit)', () => {
         expect(calculateFIDIC(noChange)).toBe(1.0);
     });
 
-    it('should handle large escalation scenario (all indices doubled)', () => {
+    it('should handle large escalation scenario (all indices doubled) — rejects via safety bounds', () => {
         const largeEscalation: FIDICParams = {
             a: 0.10, b: 0.30, c: 0.20, d: 0.40,
             Ln: 200, Lo: 100, En: 200, Eo: 100, Mn: 200, Mo: 100,
         };
-        // Pn = 0.10 + 0.30*2 + 0.20*2 + 0.40*2 = 0.10 + 0.60 + 0.40 + 0.80 = 1.90
-        expect(calculateFIDIC(largeEscalation)).toBe(1.9);
+        // Pn = 0.10 + 0.30*2 + 0.20*2 + 0.40*2 = 1.90
+        // F-004 FIX: Pn=1.90 exceeds FIDIC_PN_CEILING (1.50) → throws safety violation
+        expect(() => calculateFIDIC(largeEscalation)).toThrow('FIDIC safety violation');
+        expect(() => calculateFIDIC(largeEscalation)).toThrow('outside safe bounds');
     });
 
     it('should handle deflation (indices decreased)', () => {

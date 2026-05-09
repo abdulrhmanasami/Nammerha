@@ -22,6 +22,21 @@ vi.mock('../../services/notification.service', () => ({
     createNotification: (...args: unknown[]) => mockCreateNotification(...args),
 }));
 
+// ─── Mock Redis Lock Manager (F-009) ────────────────────────────────────────
+vi.mock('../../config/redis.client', () => ({
+    redisLockManager: {
+        acquireLock: vi.fn().mockResolvedValue('mock-lock-token-uuid'),
+        releaseLock: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
+// ─── Mock Escrow Fee Service ────────────────────────────────────────────────
+vi.mock('../../services/escrow-fee.service', () => ({
+    calculateEscrowFee: vi.fn().mockReturnValue(0),
+    getActiveFeeConfig: vi.fn().mockResolvedValue(null),
+    recordEscrowFeeInTransaction: vi.fn().mockResolvedValue(undefined),
+}));
+
 // ─── Import AFTER mocks ────────────────────────────────────────────────────
 import {
     getPendingVerifications,
@@ -160,6 +175,8 @@ describe('Escrow Service', () => {
         it('should atomically release escrow, update BOQ, and notify donors', async () => {
             const mockClient = {
                 query: vi.fn()
+                    // 0. SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 })
                     // 1. Fetch proof (FOR UPDATE)
                     .mockResolvedValueOnce({
                         rows: [{
@@ -213,13 +230,13 @@ describe('Escrow Service', () => {
             expect(result.released_count).toBe(2);
             expect(result.total_released).toBe(500000); // 300000 + 200000
 
-            // Verify proof was marked as verified
-            const proofUpdateCall = mockClient.query.mock.calls[1] as unknown[];
+            // Verify proof was marked as verified (call index 2 due to SERIALIZABLE set)
+            const proofUpdateCall = mockClient.query.mock.calls[2] as unknown[];
             expect((proofUpdateCall[0] as string)).toContain("verification_status = 'verified'");
             expect(proofUpdateCall[1]).toContain('auditor-001');
 
-            // Verify BOQ was updated to delivered
-            const boqUpdateCall = mockClient.query.mock.calls[3] as unknown[];
+            // Verify BOQ was updated to delivered (call index 4)
+            const boqUpdateCall = mockClient.query.mock.calls[4] as unknown[];
             expect((boqUpdateCall[0] as string)).toContain("status = 'delivered'");
 
             // Verify notifications sent to both donors
@@ -242,7 +259,9 @@ describe('Escrow Service', () => {
 
         it('should throw when spatial proof does not exist', async () => {
             const mockClient = {
-                query: vi.fn().mockResolvedValueOnce({ rows: [], rowCount: 0 }),
+                query: vi.fn()
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }),
             };
 
             mockTransaction.mockImplementationOnce(
@@ -256,14 +275,16 @@ describe('Escrow Service', () => {
 
         it('should throw when proof is already processed (idempotency guard)', async () => {
             const mockClient = {
-                query: vi.fn().mockResolvedValueOnce({
-                    rows: [{
-                        proof_id: 'proof-001',
-                        item_id: 'item-001',
-                        verification_status: 'verified', // Already processed
-                    }],
-                    rowCount: 1,
-                }),
+                query: vi.fn()
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
+                    .mockResolvedValueOnce({
+                        rows: [{
+                            proof_id: 'proof-001',
+                            item_id: 'item-001',
+                            verification_status: 'verified', // Already processed
+                        }],
+                        rowCount: 1,
+                    }),
             };
 
             mockTransaction.mockImplementationOnce(
@@ -277,14 +298,16 @@ describe('Escrow Service', () => {
 
         it('should throw when proof item_id mismatches the requested item_id', async () => {
             const mockClient = {
-                query: vi.fn().mockResolvedValueOnce({
-                    rows: [{
-                        proof_id: 'proof-001',
-                        item_id: 'item-DIFFERENT',
-                        verification_status: 'submitted',
-                    }],
-                    rowCount: 1,
-                }),
+                query: vi.fn()
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
+                    .mockResolvedValueOnce({
+                        rows: [{
+                            proof_id: 'proof-001',
+                            item_id: 'item-DIFFERENT',
+                            verification_status: 'submitted',
+                        }],
+                        rowCount: 1,
+                    }),
             };
 
             mockTransaction.mockImplementationOnce(
@@ -299,6 +322,7 @@ describe('Escrow Service', () => {
         it('should deduplicate notifications for same donor with multiple escrow entries', async () => {
             const mockClient = {
                 query: vi.fn()
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
                     .mockResolvedValueOnce({
                         rows: [{
                             proof_id: 'proof-001', item_id: 'item-001',

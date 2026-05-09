@@ -10,6 +10,7 @@
 // ============================================================================
 
 import { describe, it, expect } from 'vitest';
+import crypto from 'crypto';
 
 // ─── Testable Utilities ─────────────────────────────────────────────────────
 // We test the token format contract that the circuit breaker relies on.
@@ -21,11 +22,11 @@ const PGLOCK_PREFIX = 'pglock:';
  * Duplicated here to test in isolation without triggering Redis/PG connections.
  */
 function parsePglockToken(token: string): { lockId1: number; lockId2: number } | null {
-    if (!token.startsWith(PGLOCK_PREFIX)) return null;
+    if (!token.startsWith(PGLOCK_PREFIX)) {return null;}
     const parts = token.slice(PGLOCK_PREFIX.length).split(':');
     const lockId1 = parseInt(parts[0] ?? '', 10);
     const lockId2 = parseInt(parts[1] ?? '', 10);
-    if (Number.isNaN(lockId1) || Number.isNaN(lockId2)) return null;
+    if (Number.isNaN(lockId1) || Number.isNaN(lockId2)) {return null;}
     return { lockId1, lockId2 };
 }
 
@@ -35,22 +36,25 @@ describe('parsePglockToken — Token Format Contract', () => {
     it('should parse valid pglock token', () => {
         const result = parsePglockToken('pglock:12345:-67890:550e8400-e29b-41d4-a716-446655440000');
         expect(result).not.toBeNull();
-        expect(result!.lockId1).toBe(12345);
-        expect(result!.lockId2).toBe(-67890);
+        if (!result) { throw new Error('Expected non-null result'); }
+        expect(result.lockId1).toBe(12345);
+        expect(result.lockId2).toBe(-67890);
     });
 
     it('should parse pglock token with negative lock IDs', () => {
         const result = parsePglockToken('pglock:-2147483648:-1:some-uuid');
         expect(result).not.toBeNull();
-        expect(result!.lockId1).toBe(-2147483648);
-        expect(result!.lockId2).toBe(-1);
+        if (!result) { throw new Error('Expected non-null result'); }
+        expect(result.lockId1).toBe(-2147483648);
+        expect(result.lockId2).toBe(-1);
     });
 
     it('should parse pglock token with zero lock IDs', () => {
         const result = parsePglockToken('pglock:0:0:some-uuid');
         expect(result).not.toBeNull();
-        expect(result!.lockId1).toBe(0);
-        expect(result!.lockId2).toBe(0);
+        if (!result) { throw new Error('Expected non-null result'); }
+        expect(result.lockId1).toBe(0);
+        expect(result.lockId2).toBe(0);
     });
 
     it('should return null for Redis UUID token', () => {
@@ -86,16 +90,18 @@ describe('parsePglockToken — Token Format Contract', () => {
         // which prevents SQL injection regardless of the original token content.
         const result = parsePglockToken("pglock:1'; DROP TABLE--:2:uuid");
         expect(result).not.toBeNull();
-        expect(result!.lockId1).toBe(1);
-        expect(result!.lockId2).toBe(2);
+        if (!result) { throw new Error('Expected non-null result'); }
+        expect(result.lockId1).toBe(1);
+        expect(result.lockId2).toBe(2);
     });
 
     it('should not parse float lock IDs (must be integer)', () => {
         // parseInt accepts "12.5" as 12, which is safe for advisory locks
         const result = parsePglockToken('pglock:12.5:67.8:uuid');
         expect(result).not.toBeNull();
-        expect(result!.lockId1).toBe(12); // parseInt truncates
-        expect(result!.lockId2).toBe(67);
+        if (!result) { throw new Error('Expected non-null result'); }
+        expect(result.lockId1).toBe(12); // parseInt truncates
+        expect(result.lockId2).toBe(67);
     });
 });
 
@@ -253,7 +259,6 @@ describe('Circuit Breaker State Machine — Contract Verification', () => {
 // ─── SHA-256 Deterministic Lock ID Tests ────────────────────────────────────
 
 describe('SHA-256 Lock ID Determinism', () => {
-    const crypto = require('crypto');
 
     function computeLockIds(key: string): { lockId1: number; lockId2: number } {
         const hash = crypto.createHash('sha256').update(key).digest();

@@ -26,6 +26,41 @@ vi.mock('bcrypt', () => ({
     },
 }));
 
+// ─── Mock email service ──────────────────────────────────────────────────────
+vi.mock('../../services/email.service', () => ({
+    sendVerificationEmail: vi.fn().mockResolvedValue({ success: true }),
+    sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true }),
+}));
+
+// ─── Mock logger ─────────────────────────────────────────────────────────────
+vi.mock('../../utils/logger', () => ({
+    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
+
+// ─── Mock safe-error ─────────────────────────────────────────────────────────
+vi.mock('../../utils/safe-error', () => ({
+    safeRouteError: (res: express.Response, error: unknown, _context: string) => {
+        const msg = error instanceof Error ? error.message : 'Internal server error';
+        res.status(500).json({ success: false, error: msg });
+    },
+}));
+
+// ─── Mock auth-guard utility ─────────────────────────────────────────────────
+vi.mock('../../utils/auth-guard', () => ({
+    getAuthUser: (req: express.Request) => req.authUser,
+}));
+
+// ─── Mock auth middleware ────────────────────────────────────────────────────
+vi.mock('../../middleware/auth.middleware', () => ({
+    authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        next();
+    },
+    requireActive: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        next();
+    },
+    generateToken: vi.fn().mockReturnValue('mock-jwt-token'),
+}));
+
 // ─── Import routes AFTER mocks ──────────────────────────────────────────────
 import authRoutes from '../../routes/auth.routes';
 
@@ -144,9 +179,9 @@ describe('Auth Routes (HTTP Integration)', () => {
         // real registration — so an attacker cannot distinguish "email
         // already exists" from "new account created."
         it('should return 200 with generic message when email already exists (anti-enumeration)', async () => {
-            // DB returns existing user for email check
+            // DB returns existing verified user for email check
             mockQuery.mockResolvedValueOnce({
-                rows: [{ user_id: 'existing-uuid' }],
+                rows: [{ user_id: 'existing-uuid', is_email_verified: true, email_token_expires_at: null }],
                 rowCount: 1,
             });
 
@@ -165,12 +200,12 @@ describe('Auth Routes (HTTP Integration)', () => {
 
             // Verify the query was called with lowercased email
             expect(mockQuery).toHaveBeenCalledWith(
-                'SELECT user_id FROM users WHERE email = $1',
+                'SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
                 ['newuser@example.com']
             );
 
             // Verify that only the SELECT query was called — no INSERT
-            // should have been executed for an existing email.
+            // should have been executed for an existing verified email.
             expect(mockQuery).toHaveBeenCalledTimes(1);
         });
 
@@ -224,7 +259,7 @@ describe('Auth Routes (HTTP Integration)', () => {
 
             // Verify email was lowercased in the SELECT query
             expect(mockQuery).toHaveBeenCalledWith(
-                'SELECT user_id FROM users WHERE email = $1',
+                'SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
                 ['user@example.com']
             );
         });

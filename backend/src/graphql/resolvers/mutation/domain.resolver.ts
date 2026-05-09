@@ -45,7 +45,7 @@ export const projectMutationResolvers = {
         );
 
         const row = result.rows[0] as Record<string, unknown>;
-        if (!row) throw new Error('Failed to create project');
+        if (!row) {throw new Error('Failed to create project');}
 
         const totalEstimated = Number(row['total_estimated_cost'] ?? 0);
         const totalFunded = Number(row['total_funded_amount'] ?? 0);
@@ -109,7 +109,7 @@ export const projectMutationResolvers = {
         );
 
         const row = result.rows[0] as Record<string, unknown>;
-        if (!row) throw new Error('Failed to add BOQ item');
+        if (!row) {throw new Error('Failed to add BOQ item');}
 
         const unitPrice = Number(row['unit_price'] ?? 0);
         const qty = Number(row['required_quantity'] ?? 0);
@@ -454,7 +454,7 @@ export const reviewMutationResolvers = {
         );
 
         const reviewRow = result.rows[0] as Record<string, unknown>;
-        if (!reviewRow) throw new Error('Failed to create review');
+        if (!reviewRow) {throw new Error('Failed to create review');}
 
         for (const rating of input.ratings) {
             await dbQuery(

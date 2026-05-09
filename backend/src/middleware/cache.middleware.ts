@@ -24,13 +24,13 @@ export function cacheResponse(ttlSeconds: number) {
             
             // Intercept res.json and res.send
             const originalJson = res.json.bind(res);
-            res.json = (body: any) => {
+            res.json = (body: unknown) => {
                 memoryCache.set(key, body, ttlSeconds);
                 return originalJson(body);
             };
 
             const originalSend = res.send.bind(res);
-            res.send = (body: any) => {
+            res.send = (body: unknown) => {
                 // If it's sent as a string (after JSON.stringify somewhere else), cache it as string.
                 if (typeof body === 'string' && res.statusCode >= 200 && res.statusCode < 300) {
                     memoryCache.set(key, body, ttlSeconds);

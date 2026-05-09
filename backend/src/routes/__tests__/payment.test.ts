@@ -42,6 +42,58 @@ vi.mock('../../middleware/auth.middleware', () => ({
     },
 }));
 
+// ─── Mock role-guard middleware ──────────────────────────────────────────────
+vi.mock('../../middleware/role-guard.middleware', () => ({
+    requireRole: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        next();
+    },
+}));
+
+// ─── Mock idempotency middlewares ───────────────────────────────────────────
+vi.mock('../../middleware/require-idempotency-key.middleware', () => ({
+    requireIdempotencyKey: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        next();
+    },
+}));
+
+vi.mock('../../middleware/idempotency.middleware', () => ({
+    idempotencyMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+        next();
+    },
+}));
+
+// ─── Mock payment service ───────────────────────────────────────────────────
+const { mockPaymentService } = vi.hoisted(() => ({
+    mockPaymentService: {
+        initiate: vi.fn(),
+        verifySignature: vi.fn(),
+        handleWebhook: vi.fn(),
+        getStatus: vi.fn(),
+        getDonorPayments: vi.fn(),
+    },
+}));
+vi.mock('../../services/payment.service', () => ({
+    paymentService: mockPaymentService,
+    PaymentGateway: {},
+}));
+
+// ─── Mock utilities ─────────────────────────────────────────────────────────
+vi.mock('../../utils/safe-error', () => ({
+    safeRouteError: (res: express.Response, error: unknown, _context: string) => {
+        const msg = error instanceof Error ? error.message : 'Internal server error';
+        res.status(500).json({ success: false, error: msg });
+    },
+}));
+
+vi.mock('../../utils/logger', () => ({
+    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
+
+// ─── Mock auth-guard utility ────────────────────────────────────────────────
+vi.mock('../../utils/auth-guard', () => ({
+    getAuthUser: (req: express.Request) => req.authUser,
+}));
+
 // ─── Import routes AFTER mocks ──────────────────────────────────────────────
 import paymentRoutes from '../../routes/payment.routes';
 
@@ -223,7 +275,7 @@ describe('Payment Routes (HTTP Integration)', () => {
     describe('GET /status/:ref — IDOR Protection (MED-AUD-003)', () => {
         it('should return 404 for non-existent payment reference', async () => {
             // Mock: getStatus returns null (payment not found)
-            mockQuery.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+            mockPaymentService.getStatus.mockResolvedValueOnce(null);
 
             const res = await request(app)
                 .get('/status/NM-PAY-NONEXISTENT')
@@ -234,17 +286,14 @@ describe('Payment Routes (HTTP Integration)', () => {
 
         it('should return payment data to the payment owner', async () => {
             // Mock: getStatus returns payment owned by the authenticated user
-            mockQuery.mockResolvedValueOnce({
-                rows: [{
-                    reference: 'NM-PAY-OWNED',
-                    donor_id: 'donor-uuid-001', // Same as mockAuthUser.user_id
-                    status: 'completed',
-                    amount: 50000,
-                    currency: 'USD',
-                    gateway: 'visa',
-                    created_at: '2026-03-09T00:00:00Z',
-                }],
-                rowCount: 1,
+            mockPaymentService.getStatus.mockResolvedValueOnce({
+                reference: 'NM-PAY-OWNED',
+                donor_id: 'donor-uuid-001', // Same as mockAuthUser.user_id
+                status: 'completed',
+                amount: 50000,
+                currency: 'USD',
+                gateway: 'visa',
+                created_at: '2026-03-09T00:00:00Z',
             });
 
             const res = await request(app)
@@ -261,17 +310,14 @@ describe('Payment Routes (HTTP Integration)', () => {
             mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
 
             // Mock: getStatus returns payment owned by DIFFERENT user
-            mockQuery.mockResolvedValueOnce({
-                rows: [{
-                    reference: 'NM-PAY-NOTMINE',
-                    donor_id: 'donor-uuid-001', // Different from eng-uuid-001
-                    status: 'completed',
-                    amount: 50000,
-                    currency: 'USD',
-                    gateway: 'visa',
-                    created_at: '2026-03-09T00:00:00Z',
-                }],
-                rowCount: 1,
+            mockPaymentService.getStatus.mockResolvedValueOnce({
+                reference: 'NM-PAY-NOTMINE',
+                donor_id: 'donor-uuid-001', // Different from eng-uuid-001
+                status: 'completed',
+                amount: 50000,
+                currency: 'USD',
+                gateway: 'visa',
+                created_at: '2026-03-09T00:00:00Z',
             });
 
             const res = await request(app)
@@ -287,17 +333,14 @@ describe('Payment Routes (HTTP Integration)', () => {
             mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
 
             // Mock: payment owned by someone else
-            mockQuery.mockResolvedValueOnce({
-                rows: [{
-                    reference: 'NM-PAY-OTHERS',
-                    donor_id: 'donor-uuid-001',
-                    status: 'completed',
-                    amount: 99900,
-                    currency: 'USD',
-                    gateway: 'fatora',
-                    created_at: '2026-03-09T00:00:00Z',
-                }],
-                rowCount: 1,
+            mockPaymentService.getStatus.mockResolvedValueOnce({
+                reference: 'NM-PAY-OTHERS',
+                donor_id: 'donor-uuid-001',
+                status: 'completed',
+                amount: 99900,
+                currency: 'USD',
+                gateway: 'fatora',
+                created_at: '2026-03-09T00:00:00Z',
             });
 
             const res = await request(app)
@@ -311,17 +354,14 @@ describe('Payment Routes (HTTP Integration)', () => {
         it('should allow auditor to view any payment', async () => {
             mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
 
-            mockQuery.mockResolvedValueOnce({
-                rows: [{
-                    reference: 'NM-PAY-ANY',
-                    donor_id: 'donor-uuid-001',
-                    status: 'pending',
-                    amount: 10000,
-                    currency: 'USD',
-                    gateway: 'visa',
-                    created_at: '2026-03-09T00:00:00Z',
-                }],
-                rowCount: 1,
+            mockPaymentService.getStatus.mockResolvedValueOnce({
+                reference: 'NM-PAY-ANY',
+                donor_id: 'donor-uuid-001',
+                status: 'pending',
+                amount: 10000,
+                currency: 'USD',
+                gateway: 'visa',
+                created_at: '2026-03-09T00:00:00Z',
             });
 
             const res = await request(app)

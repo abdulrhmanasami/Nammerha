@@ -131,7 +131,8 @@ describe('Privacy Service', () => {
             for (const role of roles) {
                 const settings = getDefaultSettingsForRole(role);
                 expect(settings).not.toBeNull();
-                expect(Object.keys(settings!).length).toBeGreaterThan(0);
+                if (!settings) { throw new Error('Expected non-null settings'); }
+                expect(Object.keys(settings).length).toBeGreaterThan(0);
             }
         });
 

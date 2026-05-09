@@ -238,12 +238,12 @@ export const projectFieldResolvers = {
     Project: {
         /** Resolve the homeowner user for a project */
         homeowner: async (parent: { homeownerId: string }) => {
-            if (!parent.homeownerId) return null;
+            if (!parent.homeownerId) {return null;}
             const result = await dbQuery(
                 'SELECT user_id, email, full_name, role, avatar_url, kyc_verification_status, is_active FROM users WHERE user_id = $1',
                 [parent.homeownerId],
             );
-            if (result.rows.length === 0) return null;
+            if (result.rows.length === 0) {return null;}
             const row = result.rows[0] as Record<string, unknown>;
             return {
                 userId: row['user_id'],

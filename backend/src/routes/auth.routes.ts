@@ -69,7 +69,7 @@ const verifyEmailLimiter = rateLimit({
 
 const sensitiveActionLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // Limit each IP to 5 sensitive requests (resend/forgot-password)
+    max: 15, // Limit each IP to 15 sensitive requests (resend/forgot-password/change-password)
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد 15 دقيقة.' } as ApiResponse

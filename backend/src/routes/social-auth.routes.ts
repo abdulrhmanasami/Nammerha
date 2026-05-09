@@ -127,7 +127,7 @@ async function verifyAppleToken(idToken: string): Promise<VerifiedSocialUser> {
 
     // Fetch signing key from Apple JWKS
     const signingKey = await new Promise<string>((resolve, reject) => {
-        appleJwks.getSigningKey(decoded.header.kid!, (err, key) => {
+        appleJwks.getSigningKey(decoded.header.kid, (err, key) => {
             if (err || !key) {
                 reject(err ?? new Error('Apple signing key not found'));
                 return;

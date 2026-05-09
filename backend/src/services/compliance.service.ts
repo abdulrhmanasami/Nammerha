@@ -335,7 +335,7 @@ export async function getPendingScreenings(
 
     // If no rows match, total is 0. Otherwise, extract from any row's window output.
     // Non-null assertion is safe here: rows.length > 0 guarantees rows[0] exists.
-    const total = rows.length > 0 ? parseInt(rows[0]!.total_count, 10) : 0;
+    const total = rows.length > 0 && rows[0] ? parseInt(rows[0].total_count, 10) : 0;
 
     // Strip the total_count field from each row before returning
     // (it's a query artifact, not part of the ScreeningResult interface).

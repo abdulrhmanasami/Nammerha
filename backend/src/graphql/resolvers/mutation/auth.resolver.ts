@@ -31,7 +31,7 @@ export const authQueryResolvers = {
              FROM users WHERE user_id = $1`,
             [authUser.user_id],
         );
-        if (result.rows.length === 0) throw new Error('User not found');
+        if (result.rows.length === 0) {throw new Error('User not found');}
         const user = mapUser(result.rows[0] as Record<string, unknown>);
         return { ...user, roles: authUser.roles.map(r => r.toUpperCase()) };
     },
@@ -57,7 +57,7 @@ export const authMutationResolvers = {
         );
 
         const userRow = result.rows[0] as Record<string, unknown>;
-        if (!userRow) throw new Error('Registration failed');
+        if (!userRow) {throw new Error('Registration failed');}
 
         const userId = String(userRow['user_id']);
         const roleStr = String(userRow['role']);
@@ -98,12 +98,12 @@ export const authMutationResolvers = {
         );
 
         const userRow = result.rows[0] as Record<string, unknown> | undefined;
-        if (!userRow) throw new Error('Invalid email or password');
+        if (!userRow) {throw new Error('Invalid email or password');}
 
         const { default: bcrypt } = await import('bcrypt');
         const valid = await bcrypt.compare(args.password, String(userRow['password_hash']));
-        if (!valid) throw new Error('Invalid email or password');
-        if (!userRow['is_active']) throw new Error('Account is deactivated');
+        if (!valid) {throw new Error('Invalid email or password');}
+        if (!userRow['is_active']) {throw new Error('Account is deactivated');}
 
         const userId = String(userRow['user_id']);
         const roleStr = String(userRow['role']);

@@ -7,7 +7,7 @@ export const reviewFieldResolvers = {
             _args: unknown,
             context: GQLContext,
         ) => {
-            if (!parent.reviewerId) return null;
+            if (!parent.reviewerId) {return null;}
             return context.loaders.userLoader.load(parent.reviewerId);
         },
     },
@@ -20,7 +20,7 @@ export const spatialProofFieldResolvers = {
             _args: unknown,
             context: GQLContext,
         ) => {
-            if (!parent.engineerId) return null;
+            if (!parent.engineerId) {return null;}
             return context.loaders.userLoader.load(parent.engineerId);
         },
     },

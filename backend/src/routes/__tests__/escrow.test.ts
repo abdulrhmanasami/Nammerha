@@ -30,6 +30,48 @@ vi.mock('../../services/notification.service', () => ({
     createNotification: vi.fn().mockResolvedValue(undefined),
 }));
 
+// ─── Mock Redis Lock Manager (used by escrow service) ───────────────────────
+vi.mock('../../config/redis.client', () => ({
+    redisLockManager: {
+        acquireLock: vi.fn().mockResolvedValue('mock-lock-token-uuid'),
+        releaseLock: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
+// ─── Mock Escrow Fee Service ────────────────────────────────────────────────
+vi.mock('../../services/escrow-fee.service', () => ({
+    calculateEscrowFee: vi.fn().mockReturnValue(0),
+    getActiveFeeConfig: vi.fn().mockResolvedValue(null),
+    recordEscrowFeeInTransaction: vi.fn().mockResolvedValue(undefined),
+}));
+
+// ─── Mock KYC service ───────────────────────────────────────────────────────
+vi.mock('../../services/kyc.service', () => ({
+    default: {},
+}));
+
+// ─── Mock logger ────────────────────────────────────────────────────────────
+vi.mock('../../utils/logger', () => ({
+    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
+
+// ─── Mock safe-error ────────────────────────────────────────────────────────
+vi.mock('../../utils/safe-error', () => ({
+    safeRouteError: (res: express.Response, error: unknown, _context: string) => {
+        const msg = error instanceof Error ? error.message : 'Internal server error';
+        if (msg.includes('not found')) {
+            res.status(404).json({ success: false, error: msg });
+        } else {
+            res.status(500).json({ success: false, error: msg });
+        }
+    },
+}));
+
+// ─── Mock auth-guard utility ────────────────────────────────────────────────
+vi.mock('../../utils/auth-guard', () => ({
+    getAuthUser: (req: express.Request) => req.authUser,
+}));
+
 // ─── Mock auth middleware ───────────────────────────────────────────────────
 let mockAuthUser: AuthUser | null = null;
 
@@ -193,6 +235,8 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         it('should release escrow successfully', async () => {
             const mockClient = {
                 query: vi.fn()
+                    // 0. SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 })
                     // 1. proof lookup (FOR UPDATE)
                     .mockResolvedValueOnce({
                         rows: [{
@@ -237,6 +281,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
         it('should return 404 when proof not found', async () => {
             const mockClient = {
                 query: vi.fn()
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
                     // proof lookup returns empty
                     .mockResolvedValueOnce({ rows: [], rowCount: 0 }),
             };
@@ -255,6 +300,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
             const mockClient = {
                 query: vi.fn()
+                    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
                     .mockResolvedValueOnce({
                         rows: [{
                             proof_id: 'proof-001',

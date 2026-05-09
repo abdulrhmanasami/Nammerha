@@ -89,11 +89,11 @@ const PGLOCK_PREFIX = 'pglock:';
  * Returns null if the token is not a pglock token.
  */
 function parsePglockToken(token: string): { lockId1: number; lockId2: number } | null {
-    if (!token.startsWith(PGLOCK_PREFIX)) return null;
+    if (!token.startsWith(PGLOCK_PREFIX)) {return null;}
     const parts = token.slice(PGLOCK_PREFIX.length).split(':');
     const lockId1 = parseInt(parts[0] ?? '', 10);
     const lockId2 = parseInt(parts[1] ?? '', 10);
-    if (Number.isNaN(lockId1) || Number.isNaN(lockId2)) return null;
+    if (Number.isNaN(lockId1) || Number.isNaN(lockId2)) {return null;}
     return { lockId1, lockId2 };
 }
 
@@ -124,7 +124,7 @@ class RedisLockManager {
             connectTimeout: 3000,
             // Retry strategy: attempt 3 times with exponential backoff, then stop.
             retryStrategy: (times: number) => {
-                if (times > 3) return null; // Stop retrying, trigger circuit breaker
+                if (times > 3) {return null;} // Stop retrying, trigger circuit breaker
                 return Math.min(times * 200, 1000);
             },
         });

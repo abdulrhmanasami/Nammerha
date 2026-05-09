@@ -385,7 +385,7 @@ export async function cleanupStalePushTokens(): Promise<number> {
  */
 function parseExpiryToSeconds(expiry: string): number {
     const match = expiry.match(/^(\d+)([smhd])$/);
-    if (!match || !match[1] || !match[2]) return 900; // Default 15m
+    if (!match || !match[1] || !match[2]) {return 900;} // Default 15m
     const value = parseInt(match[1], 10);
     const unit = match[2];
     const multipliers: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };

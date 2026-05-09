@@ -21,7 +21,7 @@ export async function initPgNotifyListener(): Promise<void> {
         await client.query(`LISTEN ${CHANNELS.PROJECT_UPDATE}`);
 
         client.on('notification', (msg) => {
-            if (!msg.payload) return;
+            if (!msg.payload) {return;}
             try {
                 const payload = JSON.parse(msg.payload);
                 publishEvent(msg.channel, payload);
@@ -38,20 +38,21 @@ export async function initPgNotifyListener(): Promise<void> {
 export const subscriptionResolvers = {
     Subscription: {
         notificationReceived: {
-            subscribe: async function* (
+            subscribe: async function (
                 _: unknown,
                 __: unknown,
                 context: { user?: { user_id: string } }
             ) {
-                if (!context.user) throw new Error('Authentication required');
+                if (!context.user) {throw new Error('Authentication required');}
+                const userId = context.user.user_id;
                 const iterator = {
                     [Symbol.asyncIterator]() {
                         return this;
                     },
                     next() {
                         return new Promise((resolve) => {
-                            const handler = (payload: any) => {
-                                if (payload.user_id === context.user!.user_id) {
+                            const handler = (payload: Record<string, unknown>) => {
+                                if (payload.user_id === userId) {
                                     pubsub.off(CHANNELS.NOTIFICATION, handler);
                                     resolve({ value: { notificationReceived: payload }, done: false });
                                 }
@@ -64,19 +65,19 @@ export const subscriptionResolvers = {
             },
         },
         projectUpdated: {
-            subscribe: async function* (
+            subscribe: async function (
                 _: unknown,
                 args: { projectId: string },
                 context: { user?: { user_id: string } }
             ) {
-                if (!context.user) throw new Error('Authentication required');
+                if (!context.user) {throw new Error('Authentication required');}
                 const iterator = {
                     [Symbol.asyncIterator]() {
                         return this;
                     },
                     next() {
                         return new Promise((resolve) => {
-                            const handler = (payload: any) => {
+                            const handler = (payload: Record<string, unknown>) => {
                                 if (payload.project_id === args.projectId) {
                                     pubsub.off(CHANNELS.PROJECT_UPDATE, handler);
                                     resolve({ value: { projectUpdated: payload }, done: false });

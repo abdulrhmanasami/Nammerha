@@ -36,11 +36,16 @@ export const globalLimiter = rateLimit({
     message: rateLimitMessage(''),
 });
 
-// ─── Auth Limiter (Brute-force protection) ──────────────────────────────────
-/** 10 login/register attempts per 15 minutes per IP */
+// ─── Auth Limiter (DDoS protection — NOT brute-force) ───────────────────────
+// Brute-force is handled separately by SEC-002 (per IP+email lockout after 5
+// failed attempts). This limiter is purely DDoS prevention.
+// CRITICAL FIX: Was 10/15min which blocked testers after ~10 requests because
+// even passive calls like /api/auth/me (on every page load) counted against it.
+// 60/15min allows normal human usage while still preventing automated abuse.
+/** 60 auth requests per 15 minutes per IP */
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 60,
     standardHeaders: true,
     legacyHeaders: false,
     message: rateLimitMessage('authentication'),

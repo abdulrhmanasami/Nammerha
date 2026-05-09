@@ -42,7 +42,7 @@ let _authClient: GoogleAuth | null = null;
  *   3. Application Default Credentials (GCE auto-discovery)
  */
 function getAuthClient(): GoogleAuth {
-    if (_authClient) return _authClient;
+    if (_authClient) {return _authClient;}
 
     const inlineJson = process.env['FCM_SERVICE_ACCOUNT_JSON'];
 

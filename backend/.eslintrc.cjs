@@ -21,7 +21,7 @@ module.exports = {
     rules: {
         // ─── Type Safety (FinTech mandate) ───────────────────────────────────────
         '@typescript-eslint/no-explicit-any': 'warn',
-        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
         '@typescript-eslint/explicit-function-return-type': 'off',
 
         // PLAT-FIX-03a: Upgraded to 'error'. All 106 instances have been
@@ -69,5 +69,5 @@ module.exports = {
         // is idiomatic — the outer function delegates to the inner async.
         'require-await': 'off',
     },
-    ignorePatterns: ['dist/', 'node_modules/', '*.js', '!.eslintrc.cjs'],
+    ignorePatterns: ['dist/', 'node_modules/', '*.js', '!.eslintrc.cjs', 'vitest.config.ts'],
 };

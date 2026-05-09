@@ -96,7 +96,7 @@ export function mapSpatialProof(row: Record<string, unknown>) {
         projectId: row['project_id'],
         engineerId: row['engineer_id'],
         gpsCoordinates: row['gps_coordinates'],
-        gpsAccuracyMeters: row['gps_accuracy_meters'] != null ? Number(row['gps_accuracy_meters']) : null,
+        gpsAccuracyMeters: row['gps_accuracy_meters'] !== null && row['gps_accuracy_meters'] !== undefined ? Number(row['gps_accuracy_meters']) : null,
         capturedAt: row['captured_at'],
         imageUrl: row['image_url'],
         imageHash: row['image_hash'],

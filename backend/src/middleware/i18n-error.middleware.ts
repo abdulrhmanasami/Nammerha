@@ -139,7 +139,7 @@ const PATTERN_TRANSLATIONS: Array<[RegExp, string | ((match: RegExpMatchArray) =
 function translateError(message: string): string {
     // 1. Try exact match (case-insensitive)
     const exact = EXACT_TRANSLATIONS[message.toLowerCase()];
-    if (exact) return exact;
+    if (exact) {return exact;}
 
     // 2. Try pattern match
     for (const [pattern, translation] of PATTERN_TRANSLATIONS) {

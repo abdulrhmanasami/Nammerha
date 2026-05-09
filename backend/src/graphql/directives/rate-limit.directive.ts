@@ -12,15 +12,15 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of rateLimitStore) {
-        if (entry.resetAt <= now) rateLimitStore.delete(key);
+        if (entry.resetAt <= now) {rateLimitStore.delete(key);}
     }
 }, 5 * 60 * 1000).unref();
 
 function parseWindow(window: string): number {
     const match = window.match(/^(\d+)(s|m|h)$/);
-    if (!match) throw new Error(`Invalid format: "${window}"`);
-    const value = parseInt(match[1]!, 10);
-    const unit = match[2]!;
+    if (!match || !match[1] || !match[2]) {throw new Error(`Invalid format: "${window}"`);}
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
     switch (unit) {
         case 's': return value * 1000;
         case 'm': return value * 60 * 1000;
@@ -33,7 +33,7 @@ export function rateLimitDirectiveTransformer(schema: GraphQLSchema): GraphQLSch
     return mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
             const rateLimitDirective = getDirective(schema, fieldConfig, 'rateLimit')?.[0];
-            if (!rateLimitDirective) return fieldConfig;
+            if (!rateLimitDirective) {return fieldConfig;}
 
             const max = rateLimitDirective['max'] as number;
             const windowStr = rateLimitDirective['window'] as string;
