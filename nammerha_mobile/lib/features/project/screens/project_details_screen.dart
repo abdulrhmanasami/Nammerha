@@ -429,41 +429,47 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UNIFIED CITIZEN: All action buttons visible to all users.
+  // No role-based hiding — any citizen can bid, donate, or view transparency.
+  // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildRoleActions(BuildContext context, SemanticColors colors, String userRole) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (userRole == 'CONTRACTOR' || userRole == 'ENGINEER')
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => BOQDetailsScreen(projectId: widget.projectId),
-              ));
-            },
-            icon: const Icon(Icons.gavel_rounded),
-            label: const Text('تقديم عطاء وتسعير (BOQ)'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colors.primaryBrand,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-          )
-        else
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => DonationCheckoutScreen(projectId: widget.projectId),
-              ));
-            },
-            icon: const Icon(Icons.favorite_rounded),
-            label: const Text('تبرع الآن للمشروع'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colors.success,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
+        // Bid / BOQ action — available to ALL users
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_) => BOQDetailsScreen(projectId: widget.projectId),
+            ));
+          },
+          icon: const Icon(Icons.gavel_rounded),
+          label: const Text('تقديم عطاء وتسعير (BOQ)'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.primaryBrand,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
           ),
+        ),
         const SizedBox(height: 12),
+        // Donate action — available to ALL users
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_) => DonationCheckoutScreen(projectId: widget.projectId),
+            ));
+          },
+          icon: const Icon(Icons.favorite_rounded),
+          label: const Text('تبرع الآن للمشروع'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.success,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Transparency Dashboard — available to ALL users
         OutlinedButton.icon(
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(

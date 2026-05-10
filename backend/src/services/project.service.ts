@@ -96,9 +96,12 @@ export async function assignEngineer(
         }>(
             `SELECT u.user_id, u.full_name,
               ST_Distance(u.gps_last_known, p.gps_location) AS distance_meters
-       FROM users u, projects p
+       FROM users u
+       JOIN user_roles ur ON ur.user_id = u.user_id
+       JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'engineer',
+            projects p
        WHERE p.project_id = $1
-         AND u.role = 'engineer'
+         AND ur.status = 'active'
          AND u.is_active = TRUE
          AND u.kyc_verification_status = 'verified'
          AND u.guild_membership_id IS NOT NULL
@@ -163,17 +166,19 @@ export async function addBOQItem(
         }
 
         // 2. Validate preferred supplier (per strategic study §7.2)
-        // Supplier must be KYC-verified, active, and have role='supplier'
+        // UNIFIED CITIZEN: Check user_roles table instead of users.role column
         const supplierResult = await client.query<{
             user_id: string;
             full_name: string;
             kyc_verification_status: string;
         }>(
-            `SELECT user_id, full_name, kyc_verification_status
-             FROM users
-             WHERE user_id = $1
-               AND role = 'supplier'
-               AND is_active = TRUE`,
+            `SELECT u.user_id, u.full_name, u.kyc_verification_status
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.user_id
+             JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'supplier'
+             WHERE u.user_id = $1
+               AND ur.status = 'active'
+               AND u.is_active = TRUE`,
             [dto.preferred_supplier_id]
         );
         const supplier = supplierResult.rows[0];

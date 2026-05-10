@@ -1,4 +1,4 @@
-import { requireRole, type GQLContext } from '../../context/auth.context';
+import { requireAuth, type GQLContext } from '../../context/auth.context';
 import * as supplierService from '../../../services/supplier.service';
 import * as engineerService from '../../../services/engineer.service';
 import * as contractorService from '../../../services/contractor.service';
@@ -7,7 +7,8 @@ import { mapSupplierCatalogItem, mapPurchaseOrder } from '../_shared/row-mappers
 
 export const dashboardQueryResolvers = {
     supplierStats: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'supplier');
+        // UNIFIED CITIZEN: Any authenticated user can view supplier stats.
+        const user = requireAuth(context);
         const stats = await supplierService.getMyStats(user.user_id);
         return {
             pendingOrders: stats.pending_orders,
@@ -20,19 +21,20 @@ export const dashboardQueryResolvers = {
     },
 
     supplierCatalog: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'supplier');
+        const user = requireAuth(context);
         const result = await supplierService.getMyCatalog(user.user_id);
         return result.items.map(item => mapSupplierCatalogItem(item as unknown as Record<string, unknown>));
     },
 
     supplierOrders: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'supplier');
+        const user = requireAuth(context);
         const result = await supplierService.getMyOrders(user.user_id);
         return result.items.map(o => mapPurchaseOrder(o as unknown as Record<string, unknown>));
     },
 
     engineerStats: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'engineer');
+        // UNIFIED CITIZEN: Any authenticated user can view engineer stats.
+        const user = requireAuth(context);
         const stats = await engineerService.getMyStats(user.user_id);
         return {
             assignedProjects: stats.assigned_projects,
@@ -45,7 +47,7 @@ export const dashboardQueryResolvers = {
     },
 
     engineerProjects: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'engineer');
+        const user = requireAuth(context);
         const projects = await engineerService.getMyProjects(user.user_id);
         return projects.map(p => {
             const raw = p as unknown as Record<string, unknown>;
@@ -75,7 +77,8 @@ export const dashboardQueryResolvers = {
     },
 
     contractorStats: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'contractor');
+        // UNIFIED CITIZEN: Any authenticated user can view contractor stats.
+        const user = requireAuth(context);
         const stats = await contractorService.getMyStats(user.user_id);
         return {
             activeProjects: stats.active_projects,
@@ -88,7 +91,8 @@ export const dashboardQueryResolvers = {
     },
 
     tradespersonStats: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'tradesperson');
+        // UNIFIED CITIZEN: Any authenticated user can view tradesperson stats.
+        const user = requireAuth(context);
         const stats = await tradespersonService.getMyStats(user.user_id);
         return {
             activeJobs: stats.active_jobs,

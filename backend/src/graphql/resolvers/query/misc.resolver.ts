@@ -1,4 +1,4 @@
-import { requireAuth, requireRole, type GQLContext } from '../../context/auth.context';
+import { requireAuth, type GQLContext } from '../../context/auth.context';
 import { query as dbQuery } from '../../../config/database';
 import * as notificationService from '../../../services/notification.service';
 import * as crowdfundingService from '../../../services/crowdfunding.service';
@@ -29,7 +29,8 @@ export const miscQueryResolvers = {
     },
 
     donorEscrowHistory: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'donor');
+        // UNIFIED CITIZEN: Any authenticated user can view escrow history.
+        const user = requireAuth(context);
         const donations = await crowdfundingService.getDonorDonations(user.user_id);
         return donations.map(d => mapEscrowEntry(d as unknown as Record<string, unknown>));
     },
@@ -41,7 +42,8 @@ export const miscQueryResolvers = {
         args: { limit?: number; offset?: number },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'donor');
+        // UNIFIED CITIZEN: Any authenticated user can view donations.
+        const user = requireAuth(context);
         const limit = Math.min(50, Math.max(1, args.limit ?? 20));
         const offset = Math.max(0, args.offset ?? 0);
         const donations = await crowdfundingService.getDonorDonations(user.user_id, limit, offset);
@@ -50,7 +52,8 @@ export const miscQueryResolvers = {
 
 
     donorImpactMessages: async (_: unknown, __: unknown, context: GQLContext) => {
-        const user = requireRole(context, 'donor');
+        // UNIFIED CITIZEN: Any authenticated user can view impact messages.
+        const user = requireAuth(context);
         const messages = await impactService.getDonorMessages(user.user_id);
         return messages.map(m => mapImpactMessage(m as unknown as Record<string, unknown>));
     },

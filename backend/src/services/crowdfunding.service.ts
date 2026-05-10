@@ -436,12 +436,14 @@ async function autoGeneratePO(
             full_name: string;
             commercial_register_number: string | null;
         }>(
-            `SELECT user_id, full_name, commercial_register_number
-             FROM users
-             WHERE user_id = $1
-               AND role = 'supplier'
-               AND is_active = TRUE
-               AND kyc_verification_status = 'verified'`,
+            `SELECT u.user_id, u.full_name, u.commercial_register_number
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.user_id
+             JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'supplier'
+             WHERE u.user_id = $1
+               AND ur.status = 'active'
+               AND u.is_active = TRUE
+               AND u.kyc_verification_status = 'verified'`,
             [boqItem.preferred_supplier_id]
         );
         const supplier = supplierResult.rows[0];
@@ -460,11 +462,13 @@ async function autoGeneratePO(
             full_name: string;
             commercial_register_number: string | null;
         }>(
-            `SELECT user_id, full_name, commercial_register_number
-             FROM users
-             WHERE role = 'supplier'
-               AND is_active = TRUE
-               AND kyc_verification_status = 'verified'
+            `SELECT u.user_id, u.full_name, u.commercial_register_number
+             FROM users u
+             JOIN user_roles ur ON ur.user_id = u.user_id
+             JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'supplier'
+             WHERE ur.status = 'active'
+               AND u.is_active = TRUE
+               AND u.kyc_verification_status = 'verified'
              ORDER BY RANDOM()
              LIMIT 1`
         );
@@ -614,12 +618,14 @@ export async function getVerifiedSuppliers(
         full_name: string;
         commercial_register_number: string | null;
     }>(
-        `SELECT user_id, full_name, commercial_register_number
-         FROM users
-         WHERE role = 'supplier'
-           AND is_active = TRUE
-           AND kyc_verification_status = 'verified'
-         ORDER BY full_name ASC
+        `SELECT u.user_id, u.full_name, u.commercial_register_number
+         FROM users u
+         JOIN user_roles ur ON ur.user_id = u.user_id
+         JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'supplier'
+         WHERE ur.status = 'active'
+           AND u.is_active = TRUE
+           AND u.kyc_verification_status = 'verified'
+         ORDER BY u.full_name ASC
          LIMIT $1 OFFSET $2`,
         [safeLim, safeOff]
     );

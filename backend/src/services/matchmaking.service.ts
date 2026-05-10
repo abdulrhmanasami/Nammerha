@@ -189,7 +189,7 @@ export async function recalculateScore(engineerId: string): Promise<number> {
                 bid_win_rate,
                 engineering_license_number,
                 guild_membership_id
-            FROM users WHERE user_id = $1 AND role = 'engineer' FOR UPDATE`,
+            FROM users WHERE user_id = $1 FOR UPDATE`,
             [engineerId]
         );
 
@@ -225,9 +225,15 @@ export async function recalculateScore(engineerId: string): Promise<number> {
  */
 export async function searchEngineers(dto: SearchEngineersDTO): Promise<EngineerScore[]> {
     const conditions: string[] = [
-        `u.role = 'engineer'`,
+        // UNIFIED CITIZEN: All users have engineer role — filter by is_active + kyc instead
         `u.is_active = TRUE`,
         `u.kyc_verification_status = 'verified'`,
+        // Verify user has engineer role in user_roles table
+        `EXISTS (
+            SELECT 1 FROM user_roles ur
+            JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'engineer'
+            WHERE ur.user_id = u.user_id AND ur.status = 'active'
+        )`,
         // GAP-1 FIX: CSBP/OFAC compliance gate — exclude sanctioned engineers.
         // Engineers with auto_blocked=true OR confirmed SDN match must NEVER
         // appear in matchmaking results. Required by FATF Rec 8 and OFAC GL-25.
@@ -399,7 +405,11 @@ export async function matchProjectToEngineers(
         FROM users u
         CROSS JOIN projects p
         WHERE p.project_id = $1
-          AND u.role = 'engineer'
+          AND EXISTS (
+              SELECT 1 FROM user_roles ur
+              JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'engineer'
+              WHERE ur.user_id = u.user_id AND ur.status = 'active'
+          )
           AND u.is_active = TRUE
           AND u.kyc_verification_status = 'verified'
           AND u.gps_last_known IS NOT NULL
@@ -550,15 +560,21 @@ export async function submitBid(
 
         // Get current engineer score
         const scoreRes = await client.query(
-            `SELECT dynamic_score, role FROM users WHERE user_id = $1 AND role IN ('engineer', 'contractor')`,
+            `SELECT dynamic_score FROM users WHERE user_id = $1`,
             [engineerId]
         );
 
         if (scoreRes.rows.length === 0) {
-            throw new Error('Only engineers or contractors can submit bids');
+            throw new Error('User not found or inactive');
         }
 
-        const userRole = scoreRes.rows[0].role;
+        // UNIFIED CITIZEN: All users can bid — determine bid column from context
+        // If user has active bids as contractor, use contractor_id; otherwise engineer_id
+        const existingAsContractor = await client.query(
+            `SELECT 1 FROM contractor_bids WHERE contractor_id = $1 LIMIT 1`,
+            [engineerId]
+        );
+        const userRole = existingAsContractor.rows.length > 0 ? 'contractor' : 'engineer';
 
         // MED-009: Prevent duplicate bids on the same project (checked within transaction)
         const existingBid = await client.query(
@@ -752,7 +768,7 @@ export async function getEngineerScoreBreakdown(engineerId: string): Promise<{
         `SELECT user_id, full_name, dynamic_score, completed_projects_count,
                 avg_response_hours, bid_win_rate,
                 engineering_license_number, guild_membership_id
-         FROM users WHERE user_id = $1 AND role = 'engineer'`,
+         FROM users WHERE user_id = $1`,
         [engineerId]
     );
 

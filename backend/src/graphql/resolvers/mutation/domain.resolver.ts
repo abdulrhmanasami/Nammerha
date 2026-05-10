@@ -22,7 +22,8 @@ export const projectMutationResolvers = {
         } },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'homeowner');
+        // UNIFIED CITIZEN: Any authenticated user can create a project.
+        const user = requireAuth(context);
         const { input } = args;
 
         const result = await dbQuery(
@@ -79,7 +80,8 @@ export const projectMutationResolvers = {
         } },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'engineer');
+        // UNIFIED CITIZEN: Any authenticated user can add BOQ items (ownership verified below).
+        const user = requireAuth(context);
         const { projectId, input } = args;
 
         const projectCheck = await dbQuery(
@@ -147,7 +149,8 @@ export const donationMutationResolvers = {
         } },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'donor');
+        // UNIFIED CITIZEN: Any authenticated user can create a donation.
+        const user = requireAuth(context);
         const { input } = args;
 
         // H-1 FIX: Fail-fast on unsupported payment methods.
@@ -257,7 +260,8 @@ export const spatialProofMutationResolvers = {
         } },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'engineer');
+        // UNIFIED CITIZEN: Any authenticated user can submit spatial proofs.
+        const user = requireAuth(context);
         const { input } = args;
 
         const proof = await executionService.submitSpatialProof(
@@ -402,7 +406,8 @@ export const supplierMutationResolvers = {
         args: { poId: string },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'supplier');
+        // UNIFIED CITIZEN: Any authenticated user can acknowledge POs.
+        const user = requireAuth(context);
         const po = await supplierService.acknowledgeOrder(user.user_id, args.poId);
         return mapPurchaseOrder(po as unknown as Record<string, unknown>);
     },
@@ -412,7 +417,8 @@ export const supplierMutationResolvers = {
         args: { poId: string; status: string },
         context: GQLContext,
     ) => {
-        const user = requireRole(context, 'supplier');
+        // UNIFIED CITIZEN: Any authenticated user can update PO status.
+        const user = requireAuth(context);
         const validStatuses = ['shipped', 'delivered'] as const;
         const status = args.status.toLowerCase();
         if (!validStatuses.includes(status as 'shipped' | 'delivered')) {

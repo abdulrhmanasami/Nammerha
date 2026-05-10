@@ -73,8 +73,9 @@ export function hasRole(...roles: UserRole[]): boolean {
 }
 
 /**
- * Switch the user's active role context.
- * Updates localStorage immediately; backend sync is done via API.
+ * @deprecated UNIFIED CITIZEN: Role switching is no longer used.
+ * All users have access to all features. This function is retained
+ * for backward compatibility but should not be called in new code.
  */
 export function switchActiveRole(role: UserRole): void {
     const user = getCurrentUser();

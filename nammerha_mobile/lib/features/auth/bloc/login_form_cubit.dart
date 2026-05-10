@@ -8,9 +8,9 @@ import 'package:equatable/equatable.dart';
 //   - isLoginMode (toggle between login and register)
 //   - obscurePassword (password visibility toggle)
 //   - obscureConfirmPassword (confirm password visibility toggle) [C4 FIX]
-//   - selectedRole (registration role selection)
 //   - termsAccepted (GDPR consent checkbox) [C5 FIX]
 //
+// UNIFIED CITIZEN: selectedRole removed — no role selection during registration.
 // C4 FIX: Added confirm password visibility toggle for registration parity.
 // C5 FIX: Added termsAccepted state for GDPR Art. 7 compliance.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -19,14 +19,12 @@ class LoginFormState extends Equatable {
   final bool isLoginMode;
   final bool obscurePassword;
   final bool obscureConfirmPassword;
-  final String selectedRole;
   final bool termsAccepted;
 
   const LoginFormState({
     this.isLoginMode = true,
     this.obscurePassword = true,
     this.obscureConfirmPassword = true,
-    this.selectedRole = 'donor',
     this.termsAccepted = false,
   });
 
@@ -34,14 +32,12 @@ class LoginFormState extends Equatable {
     bool? isLoginMode,
     bool? obscurePassword,
     bool? obscureConfirmPassword,
-    String? selectedRole,
     bool? termsAccepted,
   }) {
     return LoginFormState(
       isLoginMode: isLoginMode ?? this.isLoginMode,
       obscurePassword: obscurePassword ?? this.obscurePassword,
       obscureConfirmPassword: obscureConfirmPassword ?? this.obscureConfirmPassword,
-      selectedRole: selectedRole ?? this.selectedRole,
       termsAccepted: termsAccepted ?? this.termsAccepted,
     );
   }
@@ -51,7 +47,6 @@ class LoginFormState extends Equatable {
         isLoginMode,
         obscurePassword,
         obscureConfirmPassword,
-        selectedRole,
         termsAccepted,
       ];
 }
@@ -76,8 +71,6 @@ class LoginFormCubit extends Cubit<LoginFormState> {
   /// C4 FIX: Toggle confirm password visibility (registration only).
   void toggleConfirmPasswordVisibility() =>
       emit(state.copyWith(obscureConfirmPassword: !state.obscureConfirmPassword));
-
-  void selectRole(String role) => emit(state.copyWith(selectedRole: role));
 
   /// C5 FIX: Toggle terms & privacy acceptance (GDPR Art. 7).
   void toggleTerms() => emit(state.copyWith(termsAccepted: !state.termsAccepted));
