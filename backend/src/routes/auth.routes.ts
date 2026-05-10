@@ -1099,20 +1099,17 @@ router.get(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         try {
-            const userId = getAuthUser(req).user_id;
+            // UNIFIED CITIZEN: authMiddleware already fetches all roles into req.authUser.roles.
+            const authUser = getAuthUser(req);
             const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>>(
                 'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
-                [userId]
+                [authUser.user_id]
             );
             const user = result.rows[0];
             if (!user) {
                 res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
                 return;
             }
-
-            // UNIFIED CITIZEN: authMiddleware already fetches all roles into req.authUser.roles.
-            // No need for a separate roles query — use the middleware's result directly.
-            const authUser = getAuthUser(req);
 
             res.json({
                 success: true,

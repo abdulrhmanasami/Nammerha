@@ -6,9 +6,7 @@ import './styles/main.css';
 import './styles/offline.css';
 import './styles/tour.css';
 import { initErrorReporter, reportWarning } from './error-reporter';
-import { getCurrentUser } from './auth';
 import { renderCartBadge } from './components/cart';
-// P2-PERF-ROLE FIX: Role-switcher is now lazy-imported below, only when needed
 import { marketplace, openData } from './api';
 import { escapeHtml } from './utils/xss';
 import { formatCents } from './utils/format';

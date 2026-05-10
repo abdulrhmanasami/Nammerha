@@ -21,7 +21,6 @@ class MockAuthBloc extends AuthBloc {
         fullName: 'Test Contractor',
         role: 'contractor',
         roles: ['contractor'],
-        activeRole: 'CONTRACTOR',
         isActive: true,
         isEmailVerified: true,
       ),

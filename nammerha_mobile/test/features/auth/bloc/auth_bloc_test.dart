@@ -21,7 +21,6 @@ const _testUser = NammerhaUser(
   fullName: 'أحمد محمد',
   role: 'donor',
   roles: ['homeowner', 'engineer', 'contractor', 'supplier', 'tradesperson', 'donor'],
-  activeRole: 'homeowner',
   isActive: true,
   isEmailVerified: true,
 );
@@ -32,7 +31,6 @@ const _unverifiedUser = NammerhaUser(
   fullName: 'سارة خالد',
   role: 'donor',
   roles: ['donor'],
-  activeRole: 'donor',
   isActive: true,
   isEmailVerified: false,
 );
