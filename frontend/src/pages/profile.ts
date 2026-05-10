@@ -656,7 +656,7 @@ function init(): void {
     initPhotoPreview(); // GAP-X02 FIX: Wire photo preview engine
     initPasswordChangeEngine(); // GAP-N02 FIX: Wire password change system
 
-    // Handle ?tab=roles URL param (from role-switcher "Add a new role")
+    // Handle ?tab=roles URL param (opens role activation modal directly)
     const params = new URLSearchParams(window.location.search);
     if (params.get('tab') === 'roles') {
         const modal = document.getElementById('role-activation-modal');

@@ -1,6 +1,6 @@
 // ============================================================================
 // Nammerha Frontend — Auth Module
-// Session management and role-based UI switching
+// Session management and user context
 // ============================================================================
 import { reportError } from './error-reporter';
 
@@ -83,13 +83,17 @@ const IS_DEV: boolean = import.meta.env.DEV === true;
 
 // DEV_USERS are only populated in development builds.
 // In production, Vite's dead-code elimination strips this entire block.
+// UNIFIED CITIZEN: All dev users have ALL citizen roles — mirrors production behavior.
+const ALL_CITIZEN_ROLES: UserRole[] = ['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson'];
+const ALL_ADMIN_ROLES: UserRole[] = [...ALL_CITIZEN_ROLES, 'admin', 'auditor'];
+
 const DEV_USERS: Record<string, AuthUser> = IS_DEV
     ? {
         homeowner: {
             user_id: 'dev-homeowner-001',
             full_name: 'Dev Homeowner 001',
             role: 'homeowner',
-            roles: ['homeowner'],
+            roles: ALL_CITIZEN_ROLES,
             activeRole: 'homeowner',
             email: 'ahmad@example.com',
             kyc_verified: true,
@@ -98,7 +102,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-engineer-001',
             full_name: 'Dev Engineer 001',
             role: 'engineer',
-            roles: ['engineer'],
+            roles: ALL_CITIZEN_ROLES,
             activeRole: 'engineer',
             email: 'khalid@example.com',
             kyc_verified: true,
@@ -107,7 +111,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-donor-001',
             full_name: 'Sarah Johnson',
             role: 'donor',
-            roles: ['donor'],
+            roles: ALL_CITIZEN_ROLES,
             activeRole: 'donor',
             email: 'sarah@example.com',
             kyc_verified: true,
@@ -116,7 +120,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-supplier-001',
             full_name: 'Dev Supplier 001',
             role: 'supplier',
-            roles: ['supplier'],
+            roles: ALL_CITIZEN_ROLES,
             activeRole: 'supplier',
             email: 'supplier@example.com',
             kyc_verified: true,
@@ -125,7 +129,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-contractor-001',
             full_name: 'Dev Contractor 001',
             role: 'contractor',
-            roles: ['contractor'],
+            roles: ALL_CITIZEN_ROLES,
             activeRole: 'contractor',
             email: 'contractor@example.com',
             kyc_verified: true,
@@ -134,7 +138,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-tradesperson-001',
             full_name: 'Dev Tradesperson 001',
             role: 'tradesperson',
-            roles: ['tradesperson'],
+            roles: ALL_CITIZEN_ROLES,
             activeRole: 'tradesperson',
             email: 'tradesperson@example.com',
             kyc_verified: true,
@@ -143,7 +147,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-admin-001',
             full_name: 'Dev Admin 001',
             role: 'admin',
-            roles: ['admin'],
+            roles: ALL_ADMIN_ROLES,
             activeRole: 'admin',
             email: 'admin@nammerha.org',
             kyc_verified: true,
@@ -152,7 +156,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             user_id: 'dev-auditor-001',
             full_name: 'Dev Auditor 001',
             role: 'auditor',
-            roles: ['auditor'],
+            roles: ALL_ADMIN_ROLES,
             activeRole: 'auditor',
             email: 'auditor@nammerha.org',
             kyc_verified: true,
