@@ -67,8 +67,8 @@ export const auth = {
 };
 
 // ─── SEC-001 FIX: Role Management (centralized) ────────────────────────────
-// Replaces raw fetch() calls in profile.ts and role-switcher.ts that were
-// missing CSRF token, AbortController timeout, and centralized error reporting.
+// UNIFIED CITIZEN: roles.switch() removed — backend returns 410 Gone.
+// Only getMyRoles, getAvailable, and activate remain functional.
 export const roles = {
     /** GET /api/roles/my-roles — Current user's active roles */
     getMyRoles: () =>
@@ -81,16 +81,6 @@ export const roles = {
     /** POST /api/roles/activate — Activate a new role */
     activate: (role: string) =>
         request('/roles/activate', {
-            method: 'POST',
-            body: JSON.stringify({ role }),
-        }),
-
-    /**
-     * @deprecated UNIFIED CITIZEN: Role switching no longer needed.
-     * Backend returns 410 Gone. Retained for backward compatibility.
-     */
-    switch: (role: string) =>
-        request('/roles/switch', {
             method: 'POST',
             body: JSON.stringify({ role }),
         }),

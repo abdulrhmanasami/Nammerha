@@ -5,9 +5,9 @@ import { escapeHtml } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { auth, roles as rolesApi } from '../api';
 import { requireAuth } from '../utils/auth-guard';
-// DUP-001 FIX: Import ROLE_META and helpers from role-switcher (single source of truth)
-// instead of maintaining a duplicate copy.
-import { ROLE_META, getRoleLabel, getRoleColor } from '../components/role-switcher';
+// UNIFIED CITIZEN: Pure data imports from role-meta.ts (extracted from role-switcher.ts).
+// Previous: Imported from role-switcher.ts which brought in 16KB of dead UI component code.
+import { ROLE_META, getRoleLabel, getRoleColor } from '../utils/role-meta';
 import { t, isRTL } from '../utils/i18n';
 // FRC-NEW-06: Loading state feedback for save buttons
 import { setLoadingState } from '../utils/loading-state';
@@ -32,7 +32,7 @@ initPageHeader();
 // MULTI-ROLE-005: Role management, progressive profiling, profile completion
 // MED-001 FIX: All innerHTML uses escapeHtml() for any dynamic content
 // SEC-001 FIX: All raw fetch() migrated to centralized api.ts (CSRF + timeout)
-// DUP-001 FIX: ROLE_META, getRoleLabel, isRTL imported from role-switcher.ts
+// UNIFIED CITIZEN: ROLE_META, getRoleLabel imported from utils/role-meta.ts
 // I18N-003 FIX: All user-facing strings wrapped with i18n t()
 // LOGOUT-001 FIX: Logout calls /api/auth/logout to invalidate server token
 // FIX-004: i18n interface now from shared utils/i18n.ts

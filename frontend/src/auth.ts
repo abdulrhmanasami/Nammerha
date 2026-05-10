@@ -72,20 +72,8 @@ export function hasRole(...roles: UserRole[]): boolean {
     return user.roles.some(r => roles.includes(r));
 }
 
-/**
- * @deprecated UNIFIED CITIZEN: Role switching is no longer used.
- * All users have access to all features. This function is retained
- * for backward compatibility but should not be called in new code.
- */
-export function switchActiveRole(role: UserRole): void {
-    const user = getCurrentUser();
-    if (!user || !user.roles.includes(role)) { return; }
-    user.activeRole = role;
-    user.role = role; // backward compat
-    setCurrentUser(user);
-    // Dispatch custom event so all components can react
-    window.dispatchEvent(new CustomEvent('role:switched', { detail: { role } }));
-}
+// UNIFIED CITIZEN: switchActiveRole() removed (2026-05-10).
+// All users have all roles — switching is no longer a platform concept.
 
 // ─── Development Helpers ────────────────────────────────────────────────────
 // P2-007 FIX: Use import.meta.env.DEV (Vite resolves at build time) instead of
