@@ -68,6 +68,13 @@ services:
     image: redis:7-alpine
     container_name: nammerha-redis
     restart: unless-stopped
+    # INF-01-FIX: REDIS_PASSWORD must be in BOTH command (for redis-server) AND
+    # environment (for healthcheck). Docker Compose interpolates ${VAR} in `command:`
+    # at parse-time, but does NOT inject host .env vars into the container's shell.
+    # Without the explicit `environment:` entry, the healthcheck's $REDIS_PASSWORD
+    # resolves to empty string → WRONGPASS → 850+ consecutive failures.
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
     command: >
       redis-server
       --appendonly yes
