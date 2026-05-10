@@ -60,7 +60,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final authState = context.read<AuthBloc>().state;
-    final userRole = authState is AuthAuthenticated ? authState.user.activeRole.toUpperCase() : 'DONOR';
+    final userRole = authState is AuthAuthenticated ? authState.user.role.toUpperCase() : 'DONOR';
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,

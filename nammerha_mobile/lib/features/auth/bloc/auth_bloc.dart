@@ -104,7 +104,7 @@ class AuthAuthenticated extends AuthState {
   final NammerhaUser user;
   const AuthAuthenticated(this.user);
   @override
-  List<Object?> get props => [user.userId, user.activeRole];
+  List<Object?> get props => [user.userId, user.role];
 }
 
 class AuthUnauthenticated extends AuthState {}

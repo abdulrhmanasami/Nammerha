@@ -35,7 +35,7 @@ class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, required this.user, this.onLogout});
 
   /// Convenience getter for legacy role string
-  String get role => user.activeRole.toUpperCase();
+  String get role => user.role.toUpperCase();
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();

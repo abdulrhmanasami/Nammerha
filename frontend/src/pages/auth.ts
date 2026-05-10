@@ -872,7 +872,6 @@ async function handleLoginRedirect(
         full_name: string;
         role: string;
         roles?: string[];
-        activeRole?: string;
         email: string;
         is_active: boolean;
     };
@@ -884,7 +883,6 @@ async function handleLoginRedirect(
         full_name: userData.full_name,
         role: userRole,
         roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
-        activeRole: (userData.activeRole ?? userData.role) as import('../auth').UserRole,
         email: userData.email,
         kyc_verified: userData.is_active,
     });

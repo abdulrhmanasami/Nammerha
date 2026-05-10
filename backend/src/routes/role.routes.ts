@@ -88,7 +88,6 @@ router.get('/my-roles', async (req: Request, res: Response) => {
             success: true,
             data: {
                 roles: result.rows,
-                activeRole: req.authUser.activeRole,
             },
         });
     } catch (error) {

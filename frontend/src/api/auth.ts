@@ -72,7 +72,7 @@ export const auth = {
 export const roles = {
     /** GET /api/roles/my-roles — Current user's active roles */
     getMyRoles: () =>
-        request<{ roles: { role_name: string; status: string; is_primary: boolean }[]; activeRole?: string }>('/roles/my-roles'),
+        request<{ roles: { role_name: string; status: string; is_primary: boolean }[] }>('/roles/my-roles'),
 
     /** GET /api/roles/available — Roles the user can still activate */
     getAvailable: () =>

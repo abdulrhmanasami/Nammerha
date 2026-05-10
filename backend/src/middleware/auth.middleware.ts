@@ -234,17 +234,12 @@ export async function authMiddleware(
         );
 
         const allRoles = rolesResult.rows.map(r => r.role_name);
-        const primaryRoleRow = rolesResult.rows.find(r => r.is_primary);
-
-        // Determine active role: primary from user_roles, else fallback to legacy users.role
-        const activeRole: UserRole = primaryRoleRow?.role_name ?? user.role;
 
         // Attach to request — multi-role aware
         const authUser: AuthUser = {
             user_id: user.user_id,
-            role: user.role,                    // legacy primary_role (backward compat)
+            role: user.role,                    // primary registration role
             roles: allRoles.length > 0 ? allRoles : [user.role],  // all active roles
-            activeRole: activeRole,             // currently selected context
             is_active: user.is_active,
         };
 

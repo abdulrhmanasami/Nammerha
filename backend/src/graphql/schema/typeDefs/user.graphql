@@ -19,7 +19,6 @@
         userId: ID!
         role: UserRole!
         roles: [UserRole!]!
-        activeRole: UserRole!
         isActive: Boolean!
     }
 

@@ -504,8 +504,7 @@ router.post(
             }
 
             // Fetch all active roles for multi-role JWT
-            // BUG-5 FIX: Also fetch is_primary to determine correct activeRole.
-            // Previous code used users.role which may be stale after cross-session switches.
+            // UNIFIED CITIZEN: All users have all roles. primaryRole used for JWT generation.
             const userRolesResult = await query<{ role_name: string; is_primary: boolean }>(
                 `SELECT r.role_name, ur.is_primary FROM user_roles ur
                  JOIN roles r ON r.role_id = ur.role_id
@@ -514,7 +513,7 @@ router.post(
                 [user.user_id]
             );
             const allRoles = userRolesResult.rows.map(r => r.role_name);
-            // BUG-5 FIX: Use the primary role from user_roles, fallback to users.role
+            // UNIFIED CITIZEN: Use primary role for JWT sub-claim
             const primaryRole = userRolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
 
             // Generate JWT with all roles — use primaryRole as the active context
@@ -554,10 +553,8 @@ router.post(
                         email: user.email,
                         full_name: user.full_name,
                         role: primaryRole,
-                        // HIGH-002 FIX: Include all roles so frontend role-switcher
-                        // can display all user roles immediately after login
+                        // UNIFIED CITIZEN: All roles included for client-side feature gating
                         roles: allRoles.length > 0 ? allRoles : [user.role],
-                        activeRole: primaryRole,
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                     },
@@ -1096,7 +1093,7 @@ router.post(
 // ─── GET /api/auth/me ───────────────────────────────────────────────────────
 // V1-AUDIT FIX: Allows the frontend to check authentication status without
 // storing JWT in localStorage. The httpOnly cookie is sent automatically.
-// FIX-002: Returns roles[] and activeRole — mirrors login response contract.
+// UNIFIED CITIZEN: Returns roles[] — all active roles for the user.
 router.get(
     '/me',
     authMiddleware,
@@ -1113,28 +1110,16 @@ router.get(
                 return;
             }
 
-            // H1 FIX: Fetch all active roles AND determine primary role.
-            // Previous: activeRole was always `user.role` from the users table,
-            // which becomes stale after role switches. Now mirrors the login
-            // endpoint's primaryRole logic (L516-525) for consistency.
-            const rolesResult = await query<{ role_name: string; is_primary: boolean }>(
-                `SELECT r.role_name, ur.is_primary FROM user_roles ur
-                 JOIN roles r ON r.role_id = ur.role_id
-                 WHERE ur.user_id = $1 AND ur.status = 'active'
-                 ORDER BY ur.is_primary DESC, r.sort_order`,
-                [userId]
-            );
-            const allRoles = rolesResult.rows.map(r => r.role_name);
-            // H1 FIX: Use the primary role from user_roles, fallback to users.role
-            const primaryRole = rolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
+            // UNIFIED CITIZEN: authMiddleware already fetches all roles into req.authUser.roles.
+            // No need for a separate roles query — use the middleware's result directly.
+            const authUser = getAuthUser(req);
 
             res.json({
                 success: true,
                 data: {
                     user: {
                         ...user,
-                        roles: allRoles.length > 0 ? allRoles : [user.role],
-                        activeRole: primaryRole,
+                        roles: authUser.roles,
                     },
                 },
             } as ApiResponse);

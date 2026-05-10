@@ -58,10 +58,6 @@ function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
     // Bonus for multi-role users
     if (user.roles && user.roles.length >= 2) { completed++; }
 
-    // Active context (weight: 1 step)
-    steps += 1;
-    if (user.activeRole) { completed++; }
-
     return Math.round((completed / steps) * 100);
 }
 
@@ -93,7 +89,7 @@ async function loadUserInfo(): Promise<void> {
     if (cached) {
         if (nameEl) { nameEl.textContent = cached.full_name ?? t('profile_user', 'User'); }
         if (emailEl) { emailEl.textContent = cached.email ?? '—'; }
-        if (roleEl) { roleEl.textContent = getRoleLabel(cached.activeRole ?? cached.role); }
+        if (roleEl) { roleEl.textContent = getRoleLabel(cached.role); }
         updateProfileCompletion(cached);
         // P2-UX-002 FIX: Render personalized initials in avatar
         renderAvatarInitials(cached.full_name);
@@ -174,7 +170,7 @@ async function loadUserRoles(): Promise<void> {
     rolesListEl.innerHTML = roles.map(role => {
         const meta = ROLE_META[role];
         if (!meta) { return ''; }
-        const isActive = role === (user.activeRole ?? user.role);
+        const isActive = role === user.role;
         const label = escapeHtml(getRoleLabel(role));
         const color = getRoleColor(role);
         const verLabel = escapeHtml(meta.verificationLabel);

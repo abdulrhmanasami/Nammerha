@@ -386,11 +386,11 @@ router.post(
             );
 
             const allRoles = userRolesResult.rows.map(r => r.role_name);
-            const activeRole = userRolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
+            const primaryRole = userRolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
             const rolesForToken = allRoles.length > 0 ? allRoles : [user.role];
 
             // Generate JWT
-            const token = generateToken(user.user_id, activeRole, rolesForToken);
+            const token = generateToken(user.user_id, primaryRole, rolesForToken);
 
             // Detect mobile client (same pattern as auth.routes.ts)
             const clientPlatform = (req.headers['x-platform'] as string | undefined)?.toLowerCase();
@@ -416,7 +416,6 @@ router.post(
                         full_name: user.full_name,
                         role: user.role,
                         roles: rolesForToken,
-                        activeRole,
                         is_active: user.is_active,
                         is_email_verified: user.is_email_verified,
                         avatar_url: user.avatar_url,

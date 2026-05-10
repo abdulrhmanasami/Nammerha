@@ -123,7 +123,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         vi.clearAllMocks();
         app = createApp();
         // Default: authenticated donor
-        mockAuthUser = { user_id: 'donor-uuid-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
+        mockAuthUser = { user_id: 'donor-uuid-001', role: 'donor', roles: ['donor'], is_active: true };
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -307,7 +307,7 @@ describe('Payment Routes (HTTP Integration)', () => {
 
         it('should return 403 when non-owner queries someone else\'s payment', async () => {
             // Authenticate as engineer (not donor and not admin)
-            mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', roles: ['engineer'], activeRole: 'engineer', is_active: true };
+            mockAuthUser = { user_id: 'eng-uuid-001', role: 'engineer', roles: ['engineer'], is_active: true };
 
             // Mock: getStatus returns payment owned by DIFFERENT user
             mockPaymentService.getStatus.mockResolvedValueOnce({
@@ -330,7 +330,7 @@ describe('Payment Routes (HTTP Integration)', () => {
 
         it('should allow admin to view any payment', async () => {
             // Authenticate as admin
-            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], is_active: true };
 
             // Mock: payment owned by someone else
             mockPaymentService.getStatus.mockResolvedValueOnce({
@@ -352,7 +352,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         });
 
         it('should allow auditor to view any payment', async () => {
-            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
+            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], is_active: true };
 
             mockPaymentService.getStatus.mockResolvedValueOnce({
                 reference: 'NM-PAY-ANY',

@@ -242,7 +242,6 @@ export async function rotateRefreshToken(
         user_id: user.user_id,
         role: user.role,
         roles: allRoles.length > 0 ? allRoles : [user.role],
-        activeRole: user.role,
         is_active: user.is_active,
     };
 

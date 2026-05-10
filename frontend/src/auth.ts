@@ -9,9 +9,8 @@ export type UserRole = 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contra
 export interface AuthUser {
     user_id: string;
     full_name: string;
-    role: UserRole;           // primary role (backward compat)
+    role: UserRole;           // primary registration role
     roles: UserRole[];        // all active roles
-    activeRole: UserRole;     // currently selected role context
     email?: string;
     kyc_verified: boolean;
 }
@@ -32,9 +31,6 @@ export function getCurrentUser(): AuthUser | null {
             // Backward compat: older localStorage entries may lack roles[]
             if (!parsed.roles) {
                 parsed.roles = [parsed.role];
-            }
-            if (!parsed.activeRole) {
-                parsed.activeRole = parsed.role;
             }
             currentUser = parsed;
             return currentUser;
@@ -94,7 +90,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Homeowner 001',
             role: 'homeowner',
             roles: ALL_CITIZEN_ROLES,
-            activeRole: 'homeowner',
             email: 'ahmad@example.com',
             kyc_verified: true,
         },
@@ -103,7 +98,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Engineer 001',
             role: 'engineer',
             roles: ALL_CITIZEN_ROLES,
-            activeRole: 'engineer',
             email: 'khalid@example.com',
             kyc_verified: true,
         },
@@ -112,7 +106,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Sarah Johnson',
             role: 'donor',
             roles: ALL_CITIZEN_ROLES,
-            activeRole: 'donor',
             email: 'sarah@example.com',
             kyc_verified: true,
         },
@@ -121,7 +114,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Supplier 001',
             role: 'supplier',
             roles: ALL_CITIZEN_ROLES,
-            activeRole: 'supplier',
             email: 'supplier@example.com',
             kyc_verified: true,
         },
@@ -130,7 +122,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Contractor 001',
             role: 'contractor',
             roles: ALL_CITIZEN_ROLES,
-            activeRole: 'contractor',
             email: 'contractor@example.com',
             kyc_verified: true,
         },
@@ -139,7 +130,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Tradesperson 001',
             role: 'tradesperson',
             roles: ALL_CITIZEN_ROLES,
-            activeRole: 'tradesperson',
             email: 'tradesperson@example.com',
             kyc_verified: true,
         },
@@ -148,7 +138,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Admin 001',
             role: 'admin',
             roles: ALL_ADMIN_ROLES,
-            activeRole: 'admin',
             email: 'admin@nammerha.org',
             kyc_verified: true,
         },
@@ -157,7 +146,6 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             full_name: 'Dev Auditor 001',
             role: 'auditor',
             roles: ALL_ADMIN_ROLES,
-            activeRole: 'auditor',
             email: 'auditor@nammerha.org',
             kyc_verified: true,
         },

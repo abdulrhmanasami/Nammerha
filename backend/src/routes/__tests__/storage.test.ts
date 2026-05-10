@@ -214,7 +214,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         mockSend.mockReset();
         mockSend.mockResolvedValue({});
         app = createApp();
-        mockAuthUser = { user_id: 'user-uuid-001', role: 'donor', roles: ['donor'], activeRole: 'donor', is_active: true };
+        mockAuthUser = { user_id: 'user-uuid-001', role: 'donor', roles: ['donor'], is_active: true };
     });
 
     // ─── Authentication ────────────────────────────────────────────────
@@ -300,7 +300,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         });
 
         it('should return 200 when storage is healthy (admin role)', async () => {
-            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], is_active: true };
 
             const res = await request(app)
                 .get('/api/storage/health')
@@ -310,7 +310,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         });
 
         it('should return 200 for auditor role (auditor access)', async () => {
-            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], activeRole: 'auditor', is_active: true };
+            mockAuthUser = { user_id: 'auditor-uuid-001', role: 'auditor', roles: ['auditor'], is_active: true };
 
             const res = await request(app)
                 .get('/api/storage/health')
@@ -320,7 +320,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         });
 
         it('should return 503 when storage is unreachable (admin role)', async () => {
-            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], activeRole: 'admin', is_active: true };
+            mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], is_active: true };
             mockSend.mockRejectedValue(new Error('Connection refused'));
 
             const res = await request(app)

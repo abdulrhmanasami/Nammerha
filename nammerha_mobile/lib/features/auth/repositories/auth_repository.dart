@@ -7,7 +7,6 @@ class NammerhaUser {
   final String fullName;
   final String role;
   final List<String> roles;
-  final String activeRole;
   final bool isActive;
   final bool isEmailVerified;
 
@@ -17,7 +16,6 @@ class NammerhaUser {
     required this.fullName,
     required this.role,
     required this.roles,
-    required this.activeRole,
     required this.isActive,
     required this.isEmailVerified,
   });
@@ -29,7 +27,6 @@ class NammerhaUser {
       fullName: json['full_name'] as String,
       role: json['role'] as String,
       roles: (json['roles'] as List<dynamic>?)?.cast<String>() ?? [json['role'] as String],
-      activeRole: json['activeRole'] as String? ?? json['role'] as String,
       isActive: json['is_active'] as bool? ?? false,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
     );

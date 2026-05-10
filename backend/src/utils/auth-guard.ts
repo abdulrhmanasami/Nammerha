@@ -12,7 +12,7 @@ import { Request } from 'express';
 
 // F6-1 FIX: Import canonical AuthUser from types/index.ts instead of
 // maintaining a stale local copy. The previous local interface was missing
-// `roles` and `activeRole` fields, had a phantom `email` field that didn't
+// `roles` field, had a phantom `email` field that didn't
 // exist on req.authUser, and used loose `string` instead of `UserRole`.
 import type { AuthUser } from '../types';
 
@@ -26,7 +26,7 @@ export type { AuthUser };
  * Usage:
  * ```ts
  * const user = getAuthUser(req);
- * // user.user_id, user.role, user.roles, user.activeRole are now safely typed
+ * // user.user_id, user.role, user.roles are now safely typed
  * ```
  *
  * @throws {Error} If authUser is not present (should never happen after authMiddleware)
