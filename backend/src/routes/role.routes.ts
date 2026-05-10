@@ -1,10 +1,11 @@
 // ============================================================================
 // Nammerha Backend — Role Management Routes
-// Handles multi-role operations: listing, switching, activating roles.
+// Handles multi-role operations: listing and activating roles.
+// NOTE: /switch endpoint deprecated under Unified Citizen model (2026-05-10).
 // ============================================================================
 import { Router, Request, Response } from 'express';
-import { query, transaction } from '../config/database';
-import { authMiddleware, generateToken } from '../middleware/auth.middleware';
+import { query } from '../config/database';
+import { authMiddleware } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
 import type { UserRole } from '../types';
 
@@ -96,107 +97,18 @@ router.get('/my-roles', async (req: Request, res: Response) => {
     }
 });
 
-// ─── POST /api/roles/switch — Switch active role context ─────────────────────
-// HIGH-001 FIX: All 3 updates run inside a single DB transaction.
-// HIGH-003 FIX: Reissues JWT cookie with updated primary role after switch.
+// ─── POST /api/roles/switch — DEPRECATED (Unified Citizen) ───────────────────
+// UNIFIED CITIZEN: Role switching is deprecated. All users have all roles.
+// Returns 410 Gone to inform clients that this endpoint is no longer functional.
 
-router.post('/switch', async (req: Request, res: Response) => {
-    try {
-        if (!req.authUser) {
-            res.status(401).json({ success: false, error: 'Authentication required' });
-            return;
-        }
-
-        const { role } = req.body as { role?: string };
-        if (!role) {
-            res.status(400).json({ success: false, error: 'Role is required' });
-            return;
-        }
-
-        // Verify user has this role and it's active
-        const hasRole = await query<{ role_name: UserRole }>(
-            `SELECT r.role_name
-             FROM user_roles ur
-             JOIN roles r ON r.role_id = ur.role_id
-             WHERE ur.user_id = $1 AND r.role_name = $2 AND ur.status = 'active'`,
-            [req.authUser.user_id, role]
-        );
-
-        if (hasRole.rows.length === 0) {
-            res.status(403).json({
-                success: false,
-                error: 'You do not have this role activated',
-            });
-            return;
-        }
-
-        // HIGH-001 FIX: Atomic transaction — all 3 updates succeed or all fail
-        const userId = req.authUser.user_id;
-        await transaction(async (client) => {
-            // 1. Update primary role in users table (backward compat)
-            await client.query(
-                'UPDATE users SET role = $1, updated_at = NOW() WHERE user_id = $2',
-                [role, userId]
-            );
-            // 2. Clear all is_primary flags
-            await client.query(
-                'UPDATE user_roles SET is_primary = FALSE WHERE user_id = $1',
-                [userId]
-            );
-            // 3. Set new primary
-            await client.query(
-                `UPDATE user_roles SET is_primary = TRUE
-                 WHERE user_id = $1 AND role_id = (SELECT role_id FROM roles WHERE role_name = $2)`,
-                [userId, role]
-            );
-        });
-
-        // BUG-3 FIX: Fresh DB query for roles — previous code used stale JWT roles
-        // which missed any roles activated after the last login.
-        const freshRolesResult = await query<{ role_name: string }>(
-            `SELECT r.role_name FROM user_roles ur
-             JOIN roles r ON r.role_id = ur.role_id
-             WHERE ur.user_id = $1 AND ur.status = 'active'`,
-            [userId]
-        );
-        const allRoles = freshRolesResult.rows.map(r => r.role_name);
-
-        // HIGH-003 FIX: Reissue JWT with updated primary role + fresh roles
-        const token = generateToken(userId, role, allRoles.length > 0 ? allRoles : [role]);
-
-        // BUG-2 FIX (MOB-AUTH-001): Detect mobile clients and include token in JSON.
-        // Mobile apps use Bearer tokens, not cookies. Without this, after a role switch
-        // the mobile app continues sending the OLD JWT with the OLD role — breaking
-        // all subsequent API calls that check the role.
-        const clientPlatform = req.headers['x-platform'] as string | undefined;
-        const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
-
-        if (!isMobileClient) {
-            res.cookie('nammerha_jwt', token, {
-                httpOnly: true,
-                secure: process.env['NODE_ENV'] === 'production',
-                sameSite: 'strict',
-                maxAge: 24 * 60 * 60 * 1000,
-                path: '/',
-            });
-        }
-
-        logger.info('Role switched', { userId, newRole: role, isMobile: isMobileClient });
-
-        res.json({
-            success: true,
-            message: 'Role switched successfully',
-            data: {
-                activeRole: role,
-                roles: allRoles.length > 0 ? allRoles : [role],
-                // MOB-AUTH-001: Token only for mobile clients
-                ...(isMobileClient ? { token } : {}),
-            },
-        });
-    } catch (error) {
-        logger.error('Failed to switch role', { error: error instanceof Error ? error.message : String(error) });
-        res.status(500).json({ success: false, error: 'Failed to switch role' });
-    }
+router.post('/switch', async (_req: Request, res: Response) => {
+    logger.info('DEPRECATED: /switch endpoint called — Unified Citizen model active');
+    res.status(410).json({
+        success: false,
+        error: 'Role switching is no longer needed. All users have access to all platform features.',
+        deprecated: true,
+        deprecatedSince: '2026-05-10',
+    });
 });
 
 // ─── POST /api/roles/activate — Request activation of a new role ─────────────

@@ -2,13 +2,11 @@
 import { request } from './_client';
 
 export const auth = {
+    // UNIFIED CITIZEN: No role field — backend auto-assigns all roles.
     register: (data: {
         email: string;
         password: string;
         full_name: string;
-        role?: 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contractor' | 'tradesperson';
-        /** GAP-01: User's self-declared intent from registration cards */
-        intent?: string;
     }) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
     login: (data: { email: string; password: string; remember?: boolean }) =>
@@ -87,7 +85,10 @@ export const roles = {
             body: JSON.stringify({ role }),
         }),
 
-    /** POST /api/roles/switch — Switch active role context */
+    /**
+     * @deprecated UNIFIED CITIZEN: Role switching no longer needed.
+     * Backend returns 410 Gone. Retained for backward compatibility.
+     */
     switch: (role: string) =>
         request('/roles/switch', {
             method: 'POST',

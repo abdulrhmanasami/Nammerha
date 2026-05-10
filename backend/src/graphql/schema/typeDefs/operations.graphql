@@ -67,7 +67,8 @@
             email: String!
             password: String!
             fullName: String!
-            role: UserRole!
+            """UNIFIED CITIZEN: Role is optional — defaults to homeowner. All roles auto-granted."""
+            role: UserRole
             phone: String
         ): AuthPayload!
 

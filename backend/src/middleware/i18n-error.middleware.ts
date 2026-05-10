@@ -54,6 +54,7 @@ const EXACT_TRANSLATIONS: Record<string, string> = {
     'failed to activate role': 'فشل تفعيل الدور',
     'failed to fetch roles': 'فشل جلب الأدوار',
     'failed to switch role': 'فشل تبديل الدور',
+    'role switching is no longer needed. all users have access to all platform features.': 'لم يعد تبديل الأدوار ضرورياً. جميع المستخدمين لديهم صلاحية الوصول إلى جميع ميزات المنصة.',
 
     // Mobile Guard
     'missing x-app-version header. please update your app.': 'هيدر إصدار التطبيق مفقود. يرجى تحديث التطبيق.',
