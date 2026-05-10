@@ -7,7 +7,6 @@ import { getAuthUser } from '../utils/auth-guard';
 import { Router, Request, Response } from 'express';
 import { paymentService, PaymentGateway } from '../services/payment.service';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import { requireIdempotencyKey } from '../middleware/require-idempotency-key.middleware';
 import { idempotencyMiddleware } from '../middleware/idempotency.middleware';
 import { query } from '../config/database';
@@ -30,7 +29,7 @@ router.post(
     '/initiate',
     authMiddleware,
     requireActive,
-    requireRole('donor'),
+    // UNIFIED CITIZEN: open to all authenticated users
     requireIdempotencyKey,
     idempotencyMiddleware,
     async (req: Request, res: Response): Promise<void> => {
@@ -240,7 +239,7 @@ router.get(
     '/history',
     authMiddleware,
     requireActive,
-    requireRole('donor'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response): Promise<void> => {
         try {
             const payments = await paymentService.getDonorPayments(getAuthUser(req).user_id);

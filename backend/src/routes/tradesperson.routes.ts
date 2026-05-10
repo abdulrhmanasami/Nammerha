@@ -6,7 +6,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import { requireAttributes } from '../middleware/abac.middleware';
 import * as tradespersonService from '../services/tradesperson.service';
 import { safeRouteError } from '../utils/safe-error';
@@ -14,10 +13,10 @@ import type { ApiResponse, AvailabilityStatus } from '../types';
 
 const router = Router();
 
-// All tradesperson routes require authentication + active account + tradesperson role
+// UNIFIED CITIZEN: All authenticated users can access tradesperson features.
+// Role-gating removed — any citizen can access trade services.
 router.use(authMiddleware);
 router.use(requireActive);
-router.use(requireRole('tradesperson'));
 
 // ─── GET /api/tradesperson/profile — My Trade Profile ───────────────────────
 router.get('/profile', async (req: Request, res: Response) => {

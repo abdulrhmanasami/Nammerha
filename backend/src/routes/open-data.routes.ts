@@ -4,7 +4,6 @@
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import * as openData from '../services/open-data.service';
 import { exportProjectsPDF, exportProjectsExcel } from '../services/report-export.service';
 import { safeRouteError } from '../utils/safe-error';
@@ -104,7 +103,7 @@ router.get(
     '/projects/:id/report/pdf',
     authMiddleware,
     requireActive,
-    requireRole('admin', 'auditor', 'engineer', 'homeowner'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             await exportProjectsPDF(res, String(req.params.id));
@@ -121,7 +120,7 @@ router.get(
     '/projects/:id/report/xlsx',
     authMiddleware,
     requireActive,
-    requireRole('admin', 'auditor', 'engineer', 'homeowner'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             await exportProjectsExcel(res, String(req.params.id));

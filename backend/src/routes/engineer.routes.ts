@@ -6,7 +6,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import { safeRouteError } from '../utils/safe-error';
 import * as engineerService from '../services/engineer.service';
 import * as executionService from '../services/execution.service';
@@ -17,10 +16,10 @@ import { ZodError } from 'zod';
 
 const router = Router();
 
-// All engineer routes require authentication + active account + engineer role
+// UNIFIED CITIZEN: All authenticated users can access engineer features.
+// Role-gating removed — any citizen can manage projects, captures, spatial proofs.
 router.use(authMiddleware);
 router.use(requireActive);
-router.use(requireRole('engineer'));
 
 // ─── GET /api/engineer/projects — My Assigned Projects ──────────────────────
 router.get('/projects', async (req: Request, res: Response) => {

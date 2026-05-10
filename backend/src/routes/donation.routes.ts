@@ -4,7 +4,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import { requireIdempotencyKey } from '../middleware/require-idempotency-key.middleware';
 import * as crowdfundingService from '../services/crowdfunding.service';
 import type { CreateDonationDTO, ApiResponse } from '../types';
@@ -41,7 +40,8 @@ router.use((_req: Request, res: Response, next) => {
 // RED TEAM FIX: Uses pg_advisory_xact_lock for atomic DB-level serialization.
 // Two concurrent requests with the same key are serialized at the DB level —
 // the second one waits for the first to commit, then finds the existing record.
-router.post('/', requireRole('donor'), requireIdempotencyKey, async (req: Request, res: Response) => {
+router.post('/', // DONATIONS_DISABLED: quarantined
+    requireIdempotencyKey, async (req: Request, res: Response) => {
     try {
         const dto = req.body as CreateDonationDTO;
 
@@ -194,7 +194,7 @@ router.post('/', requireRole('donor'), requireIdempotencyKey, async (req: Reques
 });
 
 // ─── GET /api/donations/my/summary — Donor Escrow Summary ──────────────────
-router.get('/my/summary', requireRole('donor'), async (req: Request, res: Response) => {
+router.get('/my/summary', async (req: Request, res: Response) => {
     try {
         const summary = await crowdfundingService.getDonorEscrowSummary(getAuthUser(req).user_id);
         res.json({ success: true, data: summary } as ApiResponse);
@@ -204,7 +204,7 @@ router.get('/my/summary', requireRole('donor'), async (req: Request, res: Respon
 });
 
 // ─── GET /api/donations/my/history — Donor Donation History ─────────────────
-router.get('/my/history', requireRole('donor'), async (req: Request, res: Response) => {
+router.get('/my/history', async (req: Request, res: Response) => {
     try {
         const donations = await crowdfundingService.getDonorDonations(getAuthUser(req).user_id);
         res.json({ success: true, data: donations } as ApiResponse);

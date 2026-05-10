@@ -4,7 +4,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import * as executionService from '../services/execution.service';
 import { parseSpatialProof, formatZodErrors } from '../validation/spatial-proof.schema';
 import type { ApiResponse } from '../types';
@@ -20,7 +19,8 @@ router.use(requireActive);
 // F-006 FIX: Zod validation replaces ad-hoc type assertion.
 // Validates: UUID format, coordinate ranges [-90/90, -180/180], NaN/Infinity
 // rejection, string length bounds, and produces structured error messages.
-router.post('/', requireRole('engineer'), async (req: Request, res: Response) => {
+router.post('/', // UNIFIED CITIZEN
+    async (req: Request, res: Response) => {
     try {
         // F-006 FIX: Runtime validation — NOT a type assertion.
         // parseSpatialProof() throws ZodError with field-level details on failure.

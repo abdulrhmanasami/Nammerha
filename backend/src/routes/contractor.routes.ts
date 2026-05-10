@@ -6,7 +6,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import { requireAttributes } from '../middleware/abac.middleware';
 import * as contractorService from '../services/contractor.service';
 import * as matchmakingService from '../services/matchmaking.service';
@@ -15,10 +14,10 @@ import type { ApiResponse } from '../types';
 
 const router = Router();
 
-// All contractor routes require authentication + active account + contractor role
+// UNIFIED CITIZEN: All authenticated users can access contractor features.
+// Role-gating removed — any citizen can bid on projects and manage work.
 router.use(authMiddleware);
 router.use(requireActive);
-router.use(requireRole('contractor'));
 
 // ─── GET /api/contractor/projects — My Assigned Projects ────────────────────
 router.get('/projects', async (req: Request, res: Response) => {

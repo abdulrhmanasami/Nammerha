@@ -54,7 +54,7 @@ router.get('/search', async (req: Request, res: Response) => {
 // Thumbtack pattern: auto-match top 3 engineers for a project
 router.get(
     '/project/:id/matches',
-    requireRole('homeowner', 'admin'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const matches = await matchmaking.matchProjectToEngineers(String(req.params.id));
@@ -75,7 +75,7 @@ router.get(
 // BuildZoom pattern: engineer submits competitive bid
 router.post(
     '/project/:id/bid',
-    requireRole('engineer', 'contractor'),
+    // UNIFIED CITIZEN: open to all authenticated users
     // ABAC: Determine policy based on user's active role
     (req: Request, res: Response, next: NextFunction): void => {
         const userRoles = req.authUser?.roles ?? [req.authUser?.role ?? ''];
@@ -156,7 +156,7 @@ router.post(
 // ─── GET /api/matchmaking/project/:id/bids — List Bids for Project ──────────
 router.get(
     '/project/:id/bids',
-    requireRole('homeowner', 'admin'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const projectId = String(req.params.id);
@@ -190,7 +190,7 @@ router.get(
 // ─── POST /api/matchmaking/bids/:bidId/accept — Accept a Bid ────────────────
 router.post(
     '/bids/:bidId/accept',
-    requireRole('homeowner', 'admin'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             // DT-IDOR-002 FIX: Pass role so service can verify ownership

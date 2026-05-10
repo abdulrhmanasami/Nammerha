@@ -267,8 +267,8 @@ function initDashboard(): void {
     // IMP-015: Init interactive notification UI globally
     initNotificationPanel();
 
-    // P2-UX-001 FIX: Hide role-restricted Quick Actions for non-matching users
-    filterQuickActionsByRole();
+    // UNIFIED CITIZEN: All Quick Actions visible to all users.
+    showAllQuickActions();
 
     // G-001 FIX: Wire search input to navigate to project discovery page.
     // Previous: search input was a complete dead end — no handler, no feedback.
@@ -277,10 +277,7 @@ function initDashboard(): void {
     // PLT-OPT-001: Lazy-load map module only when map container exists
     initMapIfNeeded();
 
-    // P2-PERF-ROLE FIX: Lazy-load role-switcher only for authenticated users with mount point
-    if (document.getElementById('role-switcher-mount') && getCurrentUser()) {
-        import('./components/role-switcher').catch(() => { /* Non-critical — silent degrade */ });
-    }
+    // UNIFIED CITIZEN: Role-switcher removed — all users see unified dashboard.
 
     // F-001 FIX: Progressive disclosure — sections reveal as they scroll into view
     initScrollReveal();
@@ -344,38 +341,13 @@ if (document.readyState === 'loading') {
     initDashboard();
 }
 
-// ─── P2-UX-001: Role-Aware Quick Actions ─────────────────────────────────────
-// Quick Action cards with `data-roles` are hidden when the authenticated user
-// doesn't hold any of the specified roles. Unauthenticated users see all cards.
-// P1-ROLE-271 FIX: Uses CSS class toggle (.role-granted) instead of inline
-// style.display. CSS [data-roles] { display: none !important } is the canonical
-// hide. .role-granted overrides it with display: flex !important.
-// Previous: inline style.display = 'none' fought CSS !important — desync.
-function filterQuickActionsByRole(): void {
-    const user = getCurrentUser();
-    // If not authenticated, show everything — user hasn't identified their role
-    if (!user) { return; }
-
+// UNIFIED CITIZEN: All Quick Actions are visible to every user.
+// data-roles attribute is kept for future feature-flagging but no longer hides cards.
+function showAllQuickActions(): void {
     const roleCards = document.querySelectorAll<HTMLElement>('[data-roles]');
     roleCards.forEach(card => {
-        const allowedRoles = (card.dataset.roles ?? '').split(',').map(r => r.trim());
-        const userHasRole = user.roles.some(r => allowedRoles.includes(r));
-        if (userHasRole) {
-            card.classList.add('role-granted');
-        }
-        // Non-matching roles stay hidden via CSS [data-roles] { display: none !important }
+        card.classList.add('role-granted');
     });
-
-    // P2-UX-001 FIX: Rebalance grid — if odd number visible, last item spans full width
-    const grid = document.getElementById('quick-actions-grid');
-    if (grid) {
-        const visible = Array.from(grid.children).filter(
-            (el) => (el as HTMLElement).classList.contains('role-granted')
-        );
-        if (visible.length % 2 === 1 && visible.length > 0) {
-            (visible[visible.length - 1] as HTMLElement).classList.add('col-span-2');
-        }
-    }
 }
 
 // ─── PLT-AUD-G003 FIX: Homepage Search Input ────────────────────────────────

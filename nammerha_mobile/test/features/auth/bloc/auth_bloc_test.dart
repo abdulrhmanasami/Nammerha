@@ -9,7 +9,8 @@ import 'package:nammerha_mobile/features/auth/repositories/auth_repository.dart'
 // ═══════════════════════════════════════════════════════════════════════════
 // Auth BLoC Tests — P0 Platinum Certification
 // Covers: login, register, logout, session, forgot password, change password,
-//         reset password, role switch, error handling, unverified email guard
+//         reset password, error handling, unverified email guard
+// UNIFIED CITIZEN: Role switch tests removed — no longer supported.
 // ═══════════════════════════════════════════════════════════════════════════
 
 class MockAuthRepository extends Mock implements AuthRepository {}
@@ -19,8 +20,8 @@ const _testUser = NammerhaUser(
   email: 'test@nammerha.com',
   fullName: 'أحمد محمد',
   role: 'donor',
-  roles: ['donor', 'homeowner'],
-  activeRole: 'donor',
+  roles: ['homeowner', 'engineer', 'contractor', 'supplier', 'tradesperson', 'donor'],
+  activeRole: 'homeowner',
   isActive: true,
   isEmailVerified: true,
 );
@@ -187,7 +188,6 @@ void main() {
               email: any(named: 'email'),
               password: any(named: 'password'),
               fullName: any(named: 'fullName'),
-              role: any(named: 'role'),
             )).thenAnswer((_) async => 'تم إرسال رابط التحقق');
         return buildBloc();
       },
@@ -195,7 +195,6 @@ void main() {
         email: 'new@nammerha.com',
         password: 'SecurePass123!',
         fullName: 'خالد أحمد',
-        role: 'homeowner',
       )),
       expect: () => [
         isA<AuthLoading>(),
@@ -210,7 +209,6 @@ void main() {
               email: any(named: 'email'),
               password: any(named: 'password'),
               fullName: any(named: 'fullName'),
-              role: any(named: 'role'),
             )).thenThrow(const ApiException('Email already registered'));
         return buildBloc();
       },
@@ -337,38 +335,5 @@ void main() {
     );
   });
 
-  group('AuthBloc — Role Switch', () {
-    blocTest<AuthBloc, AuthState>(
-      'emits [Loading, Authenticated] with new role on successful switch',
-      build: () {
-        when(() => mockRepo.switchRole(any()))
-            .thenAnswer((_) async {});
-        when(() => mockRepo.getCurrentUser())
-            .thenAnswer((_) async => _testUser);
-        return buildBloc();
-      },
-      act: (bloc) => bloc.add(const AuthRoleSwitched('homeowner')),
-      expect: () => [
-        isA<AuthLoading>(),
-        isA<AuthAuthenticated>(),
-      ],
-    );
-
-    blocTest<AuthBloc, AuthState>(
-      'emits [Loading, Error, Authenticated] on role switch failure (recovers current user)',
-      build: () {
-        when(() => mockRepo.switchRole(any()))
-            .thenThrow(const ApiException('Role not available'));
-        when(() => mockRepo.getCurrentUser())
-            .thenAnswer((_) async => _testUser);
-        return buildBloc();
-      },
-      act: (bloc) => bloc.add(const AuthRoleSwitched('admin')),
-      expect: () => [
-        isA<AuthLoading>(),
-        isA<AuthError>(),
-        isA<AuthAuthenticated>(),
-      ],
-    );
-  });
+  // UNIFIED CITIZEN: Role switch tests removed — no longer supported.
 }

@@ -6,7 +6,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import * as donorService from '../services/donor.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
@@ -15,7 +14,14 @@ const router = Router();
 
 router.use(authMiddleware);
 router.use(requireActive);
-router.use(requireRole('donor'));
+// DONATIONS_DISABLED: Donor features are temporarily quarantined.
+// All endpoints return 503 until donation infrastructure is ready.
+router.use((_req: Request, res: Response) => {
+    res.status(503).json({
+        success: false,
+        error: 'ميزات التبرعات معطّلة مؤقتاً — سيتم تفعيلها قريباً',
+    } as ApiResponse);
+});
 
 // ─── GET /api/donor/stats — Dashboard KPIs ─────────────────────────────────
 router.get('/stats', async (req: Request, res: Response) => {

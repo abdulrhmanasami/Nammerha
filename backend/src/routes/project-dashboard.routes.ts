@@ -60,7 +60,7 @@ router.get(
 // ─── POST /api/dashboard/:projectId/logs — Submit Daily Log ─────────────────
 router.post(
     '/:projectId/logs',
-    requireRole('engineer'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as dashboard.CreateDailyLogDTO;
@@ -94,7 +94,7 @@ router.post(
 // ─── POST /api/dashboard/:projectId/approvals — Request Approval ────────────
 router.post(
     '/:projectId/approvals',
-    requireRole('engineer'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as dashboard.CreateApprovalDTO;

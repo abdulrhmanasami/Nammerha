@@ -6,7 +6,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import { requireAttributes } from '../middleware/abac.middleware';
 import * as supplierService from '../services/supplier.service';
 import { safeRouteError } from '../utils/safe-error';
@@ -14,10 +13,10 @@ import type { AddCatalogItemDTO, UpdateCatalogItemDTO, ApiResponse } from '../ty
 
 const router = Router();
 
-// All supplier routes require authentication + active account + supplier role
+// UNIFIED CITIZEN: All authenticated users can access supplier features.
+// Role-gating removed — any citizen can manage catalogs and orders.
 router.use(authMiddleware);
 router.use(requireActive);
-router.use(requireRole('supplier'));
 
 // ─── POST /api/supplier/catalog — Add Material to Catalog ───────────────────
 router.post('/catalog', requireAttributes('supplier:manage_catalog'), async (req: Request, res: Response) => {

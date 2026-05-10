@@ -144,14 +144,14 @@ router.put('/admin/config/:tierId', authMiddleware, requireRole('admin'), async 
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SUPPLIER ROUTES (require 'supplier' role)
+// UNIFIED CITIZEN ROUTES (any authenticated user)
 // ═════════════════════════════════════════════════════════════════════════════
 
 /**
  * GET /api/revenue/supplier/commissions
  * Get my commission history (supplier view).
  */
-router.get('/supplier/commissions', authMiddleware, requireRole('supplier'), async (req, res) => {
+router.get('/supplier/commissions', authMiddleware, async (req, res) => {
     try {
         const supplierId = req.authUser?.user_id;
         if (!supplierId) {
@@ -181,7 +181,7 @@ const DONATIONS_ENABLED = process.env['DONATIONS_ENABLED'] === 'true';
  * POST /api/revenue/donor/tip
  * Record a voluntary platform tip from a donor.
  */
-router.post('/donor/tip', authMiddleware, requireRole('donor'), async (req, res) => {
+router.post('/donor/tip', authMiddleware, async (req, res) => {
     if (!DONATIONS_ENABLED) {
         res.status(503).json({ success: false, error: 'Donations are temporarily disabled.' });
         return;
@@ -237,7 +237,7 @@ router.post('/donor/tip', authMiddleware, requireRole('donor'), async (req, res)
  * GET /api/revenue/donor/tips
  * Get my tip history (donor view).
  */
-router.get('/donor/tips', authMiddleware, requireRole('donor'), async (req, res) => {
+router.get('/donor/tips', authMiddleware, async (req, res) => {
     if (!DONATIONS_ENABLED) {
         res.status(503).json({ success: false, error: 'Donations are temporarily disabled.' });
         return;

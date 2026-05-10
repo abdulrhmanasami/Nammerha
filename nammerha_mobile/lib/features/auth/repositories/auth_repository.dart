@@ -45,12 +45,11 @@ class AuthRepository {
       : _api = api ?? NammerhaApiClient.instance;
 
   /// POST /api/auth/register
-  /// Requires email verification before login
+  /// UNIFIED CITIZEN: No role selection — backend auto-grants all roles.
   Future<String> register({
     required String email,
     required String password,
     required String fullName,
-    String role = 'donor',
     String? phone,
   }) async {
     final response = await _api.request<Map<String, dynamic>>(
@@ -60,7 +59,6 @@ class AuthRepository {
         'email': email.toLowerCase().trim(),
         'password': password,
         'full_name': fullName.trim(),
-        'role': role,
         if (phone != null) 'phone': phone,
       },
     );
@@ -220,40 +218,8 @@ class AuthRepository {
     return response.message ?? 'تم تغيير كلمة المرور بنجاح';
   }
 
-  /// POST /api/roles/switch — Switch active role context
-  /// BUG-2 FIX: Now parses response and stores the new JWT token.
-  /// Without this, the mobile app would continue using the OLD token
-  /// with the OLD role, breaking all role-dependent API calls.
-  Future<void> switchRole(String role) async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/roles/switch',
-      method: 'POST',
-      body: {'role': role},
-      fromData: (data) => data as Map<String, dynamic>,
-    );
-
-    if (!response.success) {
-      throw ApiException(response.error ?? 'فشل تبديل الدور');
-    }
-
-    // Store the new JWT if returned (MOB-AUTH-001)
-    final token = response.data?['token'] as String?;
-    if (token != null) {
-      await _api.setToken(token);
-    }
-  }
-
-  /// GET /api/roles/my-roles — Get user's active roles
-  Future<List<Map<String, dynamic>>> getMyRoles() async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/roles/my-roles',
-      fromData: (data) => data as Map<String, dynamic>,
-    );
-    if (response.success && response.data != null) {
-      return (response.data!['roles'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
-    }
-    return [];
-  }
+  // UNIFIED CITIZEN: switchRole() and getMyRoles() removed.
+  // All users have all roles active — no switching needed.
 
   /// Check if user is currently authenticated
   bool get isAuthenticated => _api.isAuthenticated;

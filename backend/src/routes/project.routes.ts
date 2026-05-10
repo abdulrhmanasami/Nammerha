@@ -4,7 +4,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import * as projectService from '../services/project.service';
 import { query } from '../config/database';
 import type { CreateProjectDTO, AddBOQItemDTO, ApiResponse } from '../types';
@@ -34,7 +33,8 @@ router.use(authMiddleware);
 router.use(requireActive);
 
 // ─── POST /api/projects — Create Damage Report (Homeowner) ─────────────────
-router.post('/', requireRole('homeowner'), async (req: Request, res: Response) => {
+// UNIFIED CITIZEN: Any authenticated user can create a damage report / project.
+router.post('/', async (req: Request, res: Response) => {
     try {
         const dto = req.body as CreateProjectDTO;
 
@@ -56,12 +56,14 @@ router.post('/', requireRole('homeowner'), async (req: Request, res: Response) =
 });
 
 // ─── POST /api/projects/:id/assign-engineer — Auto-Assign (System) ─────────
-router.post('/:id/assign-engineer', requireRole('admin', 'homeowner'), async (req: Request, res: Response) => {
+// UNIFIED CITIZEN: Project owner or admin can assign engineer.
+router.post('/:id/assign-engineer', async (req: Request, res: Response) => {
     try {
         const projectId = String(req.params['id']);
 
         // DT-IDOR-001 FIX: Verify homeowner owns this project (admin bypasses)
-        if (getAuthUser(req).role === 'homeowner') {
+        // UNIFIED CITIZEN: Non-admin users must own the project
+        if (getAuthUser(req).role !== 'admin') {
             const ownerCheck = await query<{ homeowner_id: string }>(
                 'SELECT homeowner_id FROM projects WHERE project_id = $1',
                 [projectId]
@@ -81,7 +83,8 @@ router.post('/:id/assign-engineer', requireRole('admin', 'homeowner'), async (re
 });
 
 // ─── POST /api/projects/:id/boq — Add BOQ Item (Engineer) ──────────────────
-router.post('/:id/boq', requireRole('engineer'), async (req: Request, res: Response) => {
+// UNIFIED CITIZEN: Any authenticated user can add BOQ items.
+router.post('/:id/boq', async (req: Request, res: Response) => {
     try {
         const dto = req.body as AddBOQItemDTO;
 
@@ -107,7 +110,8 @@ router.post('/:id/boq', requireRole('engineer'), async (req: Request, res: Respo
 });
 
 // ─── PATCH /api/projects/:id/publish — Publish to Marketplace (Engineer) ───
-router.patch('/:id/publish', requireRole('engineer'), async (req: Request, res: Response) => {
+// UNIFIED CITIZEN: Any authenticated user can publish a project.
+router.patch('/:id/publish', async (req: Request, res: Response) => {
     try {
         const project = await projectService.publishProject(
             String(req.params['id']),
@@ -123,8 +127,8 @@ router.patch('/:id/publish', requireRole('engineer'), async (req: Request, res: 
 // ─── GET /api/projects/my/list ──────────────────────────────────────────────
 // IMPORTANT: Must be defined BEFORE /:id to prevent Express matching "my" as :id
 router.get(
+    // UNIFIED CITIZEN: Any authenticated user can list their projects.
     '/my/list',
-    requireRole('homeowner'),
     async (req: Request, res: Response) => {
         try {
             const projects = await projectService.getHomeownerProjects(getAuthUser(req).user_id);

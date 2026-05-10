@@ -6,7 +6,6 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 import { Router, Request, Response } from 'express';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
-import { requireRole } from '../middleware/role-guard.middleware';
 import * as homeownerService from '../services/homeowner.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
@@ -16,7 +15,7 @@ const router = Router();
 // All homeowner routes require authentication + active account + homeowner role
 router.use(authMiddleware);
 router.use(requireActive);
-router.use(requireRole('homeowner'));
+// UNIFIED CITIZEN: open to all authenticated users
 
 // ─── GET /api/homeowner/projects — My Projects with full context ────────────
 router.get('/projects', async (req: Request, res: Response) => {

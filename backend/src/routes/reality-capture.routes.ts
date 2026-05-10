@@ -18,7 +18,7 @@ router.use(requireActive);
 // ─── POST /api/reality-capture/:projectId/captures — Submit Capture ─────────
 router.post(
     '/:projectId/captures',
-    requireRole('engineer'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as capture.SubmitCaptureDTO;
@@ -52,7 +52,7 @@ router.post(
 // ─── GET /api/reality-capture/:projectId/captures — Browse Captures ─────────
 router.get(
     '/:projectId/captures',
-    requireRole('homeowner', 'donor', 'engineer', 'admin', 'auditor'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const phase = req.query.phase as capture.ConstructionPhase | undefined;
@@ -80,7 +80,7 @@ router.get(
 // Returns pre-concrete captures as legal evidence for hidden works verification
 router.get(
     '/:projectId/hidden-works',
-    requireRole('admin', 'auditor', 'engineer'),
+    // UNIFIED CITIZEN: admin + auditor only for verification
     async (req: Request, res: Response) => {
         try {
             const works = await capture.getHiddenWorks(String(req.params.projectId));
@@ -123,7 +123,7 @@ router.post(
 // ─── POST /api/reality-capture/captures/:captureId/annotate — Add Note ──────
 router.post(
     '/captures/:captureId/annotate',
-    requireRole('admin', 'auditor', 'engineer'),
+    // UNIFIED CITIZEN: admin + auditor only for verification
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as capture.AddAnnotationDTO;
@@ -157,7 +157,7 @@ router.post(
 // ─── GET /api/reality-capture/captures/:captureId/annotations — List Notes ──
 router.get(
     '/captures/:captureId/annotations',
-    requireRole('homeowner', 'donor', 'engineer', 'admin', 'auditor'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const annotations = await capture.getCaptureAnnotations(
@@ -179,7 +179,7 @@ router.get(
 // ─── POST /api/reality-capture/:projectId/floor-plans — Upload Floor Plan ───
 router.post(
     '/:projectId/floor-plans',
-    requireRole('engineer'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const dto = req.body as capture.UploadFloorPlanDTO;
@@ -213,7 +213,7 @@ router.post(
 // ─── GET /api/reality-capture/:projectId/floor-plans — List Floor Plans ─────
 router.get(
     '/:projectId/floor-plans',
-    requireRole('homeowner', 'donor', 'engineer', 'admin', 'auditor'),
+    // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
             const plans = await capture.getFloorPlans(String(req.params.projectId));

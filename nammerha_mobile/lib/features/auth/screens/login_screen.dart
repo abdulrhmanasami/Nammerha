@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _submit(bool isLoginMode, String selectedRole, bool termsAccepted) {
+  void _submit(bool isLoginMode, bool termsAccepted) {
     if (_isSubmitting) return; // UX-001: Block rapid multi-tap
     if (!_formKey.currentState!.validate()) return;
 
@@ -105,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _nameController.text.trim(),
-        role: selectedRole,
       ));
     }
   }
@@ -286,16 +285,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ],
 
-                          // Role Selector (register only)
+                          // UNIFIED CITIZEN: Role selector removed.
+                          // All users get all roles automatically.
+                          // Terms & Privacy only shown during registration.
                           if (!formState.isLoginMode) ...[
-                            const SizedBox(height: 20),
-                            Text(
-                              context.tr('auth_select_role'),
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildRoleSelector(formState.selectedRole),
-
                             // C5 FIX: Terms & Privacy acceptance (GDPR Art. 7).
                             // Mirrors web's Step 3 consent checkbox.
                             // Without this, registration on mobile lacks legally
@@ -345,7 +338,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 isLoading: state is AuthLoading,
                                 onPressed: () => _submit(
                                   formState.isLoginMode,
-                                  formState.selectedRole,
                                   formState.termsAccepted,
                                 ),
                               );
@@ -446,60 +438,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildRoleSelector(String selectedRole) {
-    final roles = [
-      {'key': 'donor', 'label': context.tr('role_donor'), 'icon': Icons.volunteer_activism_rounded},
-      {'key': 'homeowner', 'label': context.tr('role_homeowner'), 'icon': Icons.home_rounded},
-      {'key': 'engineer', 'label': context.tr('role_engineer'), 'icon': Icons.engineering_rounded},
-      {'key': 'supplier', 'label': context.tr('role_supplier'), 'icon': Icons.inventory_2_rounded},
-      {'key': 'contractor', 'label': context.tr('role_contractor'), 'icon': Icons.construction_rounded},
-      {'key': 'tradesperson', 'label': context.tr('role_tradesperson'), 'icon': Icons.handyman_rounded},
-    ];
-
-    final colors = context.colors;
-
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: roles.map((role) {
-        final isSelected = selectedRole == role['key'];
-        return GestureDetector(
-          onTap: () => context.read<LoginFormCubit>().selectRole(role['key'] as String),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected ? colors.primaryBrandLight : colors.surfaceElevated,
-              border: Border.all(
-                color: isSelected ? colors.primaryBrand : colors.strokeSubtle,
-                width: isSelected ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  role['icon'] as IconData,
-                  size: 18,
-                  color: isSelected ? colors.primaryBrand : colors.textSecondary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  role['label'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? colors.primaryBrand : colors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
+  // UNIFIED CITIZEN: _buildRoleSelector removed — roles are auto-granted.
 
   void _showForgotPasswordDialog() {
     final emailController = TextEditingController(text: _emailController.text);

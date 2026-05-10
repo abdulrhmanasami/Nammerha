@@ -26,31 +26,22 @@ class AuthLoginRequested extends AuthEvent {
 }
 
 /// Register new account
+/// UNIFIED CITIZEN: role param removed — backend auto-grants all roles.
 class AuthRegisterRequested extends AuthEvent {
   final String email;
   final String password;
   final String fullName;
-  final String role;
   const AuthRegisterRequested({
     required this.email,
     required this.password,
     required this.fullName,
-    this.role = 'donor',
   });
   @override
-  List<Object?> get props => [email, password, fullName, role];
+  List<Object?> get props => [email, password, fullName];
 }
 
 /// Logout
 class AuthLogoutRequested extends AuthEvent {}
-
-/// Switch active role
-class AuthRoleSwitched extends AuthEvent {
-  final String role;
-  const AuthRoleSwitched(this.role);
-  @override
-  List<Object?> get props => [role];
-}
 
 /// Forgot password
 class AuthForgotPassword extends AuthEvent {
@@ -183,7 +174,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginRequested>(_onLogin);
     on<AuthRegisterRequested>(_onRegister);
     on<AuthLogoutRequested>(_onLogout);
-    on<AuthRoleSwitched>(_onRoleSwitch);
     on<AuthForgotPassword>(_onForgotPassword);
     on<AuthChangePasswordRequested>(_onChangePassword);
     on<AuthResetPassword>(_onResetPassword);
@@ -324,7 +314,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
         fullName: event.fullName,
-        role: event.role,
       );
       emit(AuthRegistrationSuccess(message));
     } on ApiException catch (e) {
@@ -339,34 +328,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthUnauthenticated());
   }
 
-  Future<void> _onRoleSwitch(AuthRoleSwitched event, Emitter<AuthState> emit) async {
-    // BUG-4 FIX: Show loading state so user sees feedback during switch
-    emit(AuthLoading());
-    try {
-      await _authRepository.switchRole(event.role);
-      // Refresh user data after role switch (with new JWT from BUG-2 fix)
-      final user = await _authRepository.getCurrentUser();
-      if (user != null) {
-        emit(AuthAuthenticated(user));
-      } else {
-        emit(const AuthError('فشل تحديث بيانات المستخدم بعد تبديل الدور'));
-      }
-    } on ApiException catch (e) {
-      // BUG-4 FIX: Surface the error instead of swallowing it silently
-      emit(AuthError(_localizeError(e.message)));
-      // Attempt to re-emit current auth state so user stays logged in
-      final user = await _authRepository.getCurrentUser();
-      if (user != null) {
-        emit(AuthAuthenticated(user));
-      }
-    } catch (e) {
-      emit(AuthError('فشل تبديل الدور: ${e.toString()}'));
-      final user = await _authRepository.getCurrentUser();
-      if (user != null) {
-        emit(AuthAuthenticated(user));
-      }
-    }
-  }
+
 
   Future<void> _onForgotPassword(AuthForgotPassword event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
