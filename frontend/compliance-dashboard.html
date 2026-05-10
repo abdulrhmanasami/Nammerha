@@ -57,7 +57,6 @@
     <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
       <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
       <span class="font-bold text-sm" data-i18n="auditor_portal">Auditor Portal</span>
-      <div id="role-switcher-mount" class="ms-auto"></div>
     </div>
     <!-- P0-AUD-002 FIX: Complete WAI-ARIA tablist rewrite.
          Previous: <a href="#"> links with no ARIA semantics — violated WAI-ARIA §3.26.
@@ -147,10 +146,7 @@
         <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
       </div>
       <div class="flex items-center gap-4">
-        <!-- P3-AUD-001 FIX: role-switcher-mount-header was missing.
-             All other portals include it for the role-switcher component to mount into.
              Standard: Design System Component Consistency. -->
-        <div id="role-switcher-mount-header"></div>
         <!-- PLAT-P1-004 FIX: Was ONLY portal missing data-scroll-target + title.
              All other 6 portals have both attributes on notification bell.
              Standard: Nielsen #4 (Consistency), WCAG 4.1.2 (Name, Role, Value). -->

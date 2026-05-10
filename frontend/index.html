@@ -169,8 +169,6 @@
         <i class="ph ph-bell text-slate-700 text-xl dark:text-slate-300" aria-hidden="true"></i>
         <span class="cart-badge nm-hidden" id="nav-notif-badge"></span>
       </button>
-      <!-- Multi-Role Architecture: Role Switcher Mount Point -->
-      <div id="role-switcher-mount"></div>
       <a href="profile.html"
         class="w-11 h-11 rounded-full border-2 border-trust-blue/20 overflow-hidden shrink-0 bg-trust-blue/10 flex items-center justify-center"
         aria-label="Profile" data-i18n-aria="aria_profile"
@@ -205,9 +203,6 @@
              The theme toggle persists in the bottom nav FAB (nav.js injection).
              Removing it frees ~44px, ensuring ≥8px spacing between remaining controls.
              Standard: Fitts's Law, Apple HIG (Touch Target Spacing). -->
-        <!-- CONF-004 FIX: Role-switcher mount for mobile. Was only on desktop nav (sm:flex).
-             Standard: Apple HIG — "Controls must be accessible at every breakpoint." -->
-        <div id="role-switcher-mount-mobile" class="md:hidden"></div>
         <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
           <!-- PLAT-UX-005 FIX: Removed hardcoded '0' — JS populates count when unhiding.
