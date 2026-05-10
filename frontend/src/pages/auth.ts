@@ -30,20 +30,20 @@ const state: AuthState = {
     isSubmitting: false,
 };
 
-// ─── DRY-001: Single Source of Truth Constants ────────────────────────────────
-// C1 FIX: ROLE_DASHBOARD was duplicated in email login (L663) and social login
-// (L916) handlers — adding/changing a role required editing two identical maps.
-// Now a single module-level constant governs all post-login redirects.
-const ROLE_DASHBOARD: Readonly<Record<string, string>> = {
-    homeowner: '/homeowner-portal.html',
-    donor: '/homeowner-portal.html', // DONATIONS_DISABLED: Donor redirects to homeowner portal
-    contractor: '/contractor-portal.html',
-    supplier: '/supplier-dashboard.html',
-    tradesperson: '/tradesperson-portal.html',
-    engineer: '/engineer-camera.html',
-    admin: '/admin-dashboard.html',
-    auditor: '/compliance-dashboard.html',
-};
+// ─── UNIFIED CITIZEN: Post-Login Redirect ─────────────────────────────────────
+// Previous: ROLE_DASHBOARD map routed users to different portals based on their
+// "primary role" (homeowner→homeowner-portal, engineer→engineer-camera, etc.).
+// Under Unified Citizen, all users have all roles — a role-based redirect is
+// misleading because it implies they "belong" to one portal.
+//
+// All users now land on the homepage (/), which has:
+// - Quick Actions grid (role-aware, shows relevant shortcuts)
+// - Featured Projects carousel
+// - Interactive reconstruction map
+// - Full bottom nav to all portals
+//
+// The ?redirect= query param from auth-guard still works for deep links.
+const POST_LOGIN_REDIRECT = '/';
 
 // H2 FIX: Mirror backend SEC-003 — bcrypt truncates at 72 bytes but still
 // processes the full input. Without this check, a 1MB password from the
@@ -673,9 +673,8 @@ formLogin?.addEventListener('submit', async (e) => {
     try {
         const response = await auth.login({ email, password, remember: (document.getElementById('remember-me') as HTMLInputElement)?.checked ?? false });
         if (response.success && response.data) {
-            // C2 FIX: Use shared handleLoginRedirect — single source of truth
-            // for user context setting, role-based routing, redirect params,
-            // and onboarding detection. Previously duplicated across email + social login.
+            // UNIFIED CITIZEN: Uses shared handleLoginRedirect — single source of truth
+            // for user context setting, redirect params, and onboarding detection.
             await handleLoginRedirect(
                 response.data.user as Record<string, unknown>,
                 t('auth_welcome_back', 'Welcome back! Redirecting...'),
@@ -892,19 +891,16 @@ async function handleLoginRedirect(
 
     showBanner('success', successMessage);
 
-    // C1 FIX: Uses module-level ROLE_DASHBOARD constant — single source of truth.
-    const activeRole = userData.activeRole ?? userData.role;
-    const target = ROLE_DASHBOARD[activeRole] ?? '/';
-
-    // BLOCKER-2 FIX: Respect ?redirect= query param from auth guard.
+    // UNIFIED CITIZEN: All users go to homepage. ?redirect= param from auth-guard
+    // takes priority for deep-link scenarios (e.g. /project-details?id=X).
     const redirectParam = new URLSearchParams(window.location.search).get('redirect');
     let finalTarget = redirectParam
         ? decodeURIComponent(redirectParam)
-        : target;
+        : POST_LOGIN_REDIRECT;
 
     // Security: Only allow relative paths (prevent open redirect vulnerability)
     if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
-        finalTarget = target;
+        finalTarget = POST_LOGIN_REDIRECT;
     }
 
     // GAP-002 FIX: Detect first login after registration → append onboarding param.

@@ -29,7 +29,6 @@ interface RoleMeta {
     labelFallback: string; // Translation engine fallback
     colorToken: string;    // CSS custom property name (e.g. '--trust-blue')
     colorFallback: string; // Hex fallback matching tailwind.config.js
-    dashboardUrl: string;
     verificationLabel: string;
 }
 
@@ -40,7 +39,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Homeowner',
         colorToken: '--trust-blue',
         colorFallback: '#1A73E8',
-        dashboardUrl: '/homeowner-portal.html',
         verificationLabel: 'Property Proof',
     },
     engineer: {
@@ -49,7 +47,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Engineer',
         colorToken: '--smoky-jade',
         colorFallback: '#109173',
-        dashboardUrl: '/engineer-boq.html',
         verificationLabel: 'License Verified',
     },
     supplier: {
@@ -58,7 +55,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Supplier',
         colorToken: '--warning-yellow',
         colorFallback: '#FCC934',
-        dashboardUrl: '/supplier-dashboard.html',
         verificationLabel: 'Business KYB',
     },
     contractor: {
@@ -67,7 +63,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Contractor',
         colorToken: '--trust-blue',
         colorFallback: '#1A73E8',
-        dashboardUrl: '/contractor-dashboard.html',
         verificationLabel: 'Licensed',
     },
     tradesperson: {
@@ -76,7 +71,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Tradesperson',
         colorToken: '--smoky-jade',
         colorFallback: '#109173',
-        dashboardUrl: '/tradesperson-portal.html',
         verificationLabel: 'Certified',
     },
     admin: {
@@ -85,7 +79,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Admin',
         colorToken: '--red-500',
         colorFallback: '#ef4444',
-        dashboardUrl: '/admin-dashboard.html',
         verificationLabel: 'System Admin',
     },
     auditor: {
@@ -94,7 +87,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Auditor',
         colorToken: '--violet-500',
         colorFallback: '#8b5cf6',
-        dashboardUrl: '/compliance-dashboard.html',
         verificationLabel: 'Auditor',
     },
     donor: {
@@ -103,7 +95,6 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelFallback: 'Donor',
         colorToken: '--warm-earth',
         colorFallback: '#D59F80',
-        dashboardUrl: '/donor-portal.html',
         verificationLabel: 'Email Verified',
     },
 };
@@ -133,12 +124,5 @@ function getRoleColor(role: string): string {
     return cssVar(meta.colorToken, meta.colorFallback);
 }
 
-/**
- * Get dashboard URL for a role.
- */
-function getDashboardUrl(role: string): string {
-    return ROLE_META[role]?.dashboardUrl ?? '/';
-}
-
-export { ROLE_META, getRoleLabel, getRoleIcon, getRoleColor, getDashboardUrl };
+export { ROLE_META, getRoleLabel, getRoleIcon, getRoleColor };
 export type { RoleMeta };
