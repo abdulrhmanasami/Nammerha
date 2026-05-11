@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -235,7 +236,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       return NammerhaShimmerLoader(colors: colors);
     }
     if (data.requests.isEmpty) {
-      return _emptyState(colors, Icons.search_rounded, context.tr('tp_no_requests'), context.tr('tp_requests_hint'));
+      return _emptyState(colors, PhosphorIconsRegular.magnifyingGlass, context.tr('tp_no_requests'), context.tr('tp_requests_hint'));
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(1)); },
@@ -270,9 +271,9 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                 Wrap(
                   spacing: 12,
                   children: [
-                    _infoChip(Icons.person_rounded, r.homeownerName, colors),
-                    if (r.addressText != null) _infoChip(Icons.location_on_rounded, r.addressText!, colors),
-                    if (r.budgetMax != null) _infoChip(Icons.monetization_on_rounded, _formatCurrency(r.budgetMax!), colors),
+                    _infoChip(PhosphorIconsRegular.user, r.homeownerName, colors),
+                    if (r.addressText != null) _infoChip(PhosphorIconsRegular.mapPin, r.addressText!, colors),
+                    if (r.budgetMax != null) _infoChip(PhosphorIconsRegular.coin, _formatCurrency(r.budgetMax!), colors),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -282,7 +283,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                     onPressed: () {
                       context.read<TradespersonBloc>().add(AcceptRequestEvent(r.requestId));
                     },
-                    icon: const Icon(Icons.check_rounded, size: 18),
+                    icon: Icon(PhosphorIconsRegular.check, size: 18),
                     label: Text(context.tr('tp_accept_task')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.secondaryAccent,
@@ -333,7 +334,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       return NammerhaShimmerLoader(colors: colors);
     }
     if (data.assignments.isEmpty) {
-      return _emptyState(colors, Icons.assignment_rounded, context.tr('tp_no_assignments'), '');
+      return _emptyState(colors, PhosphorIconsRegular.clipboardText, context.tr('tp_no_assignments'), '');
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(2)); },
@@ -362,7 +363,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                   ],
                 ),
                 const SizedBox(height: 6),
-                _infoChip(Icons.business_rounded, a.contractorName, colors),
+                _infoChip(PhosphorIconsRegular.buildings, a.contractorName, colors),
                 if (a.scopeDescription.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -432,7 +433,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       return NammerhaShimmerLoader(colors: colors);
     }
     if (data.earnings.isEmpty) {
-      return _emptyState(colors, Icons.monetization_on_rounded, context.tr('tp_no_earnings'), '');
+      return _emptyState(colors, PhosphorIconsRegular.coin, context.tr('tp_no_earnings'), '');
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(3)); },

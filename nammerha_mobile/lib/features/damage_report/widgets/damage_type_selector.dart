@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -37,37 +38,37 @@ class DamageTypeSelector extends StatelessWidget {
     DamageCategory(
       key: 'structural',
       label: 'إنشائي',
-      icon: Icons.foundation_rounded,
+      icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.error,
     ),
     DamageCategory(
       key: 'electrical',
       label: 'كهربائي',
-      icon: Icons.electrical_services_rounded,
+      icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.warning,
     ),
     DamageCategory(
       key: 'plumbing',
       label: 'سباكة',
-      icon: Icons.plumbing_rounded,
+      icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.info,
     ),
     DamageCategory(
       key: 'finishing',
       label: 'تشطيبات',
-      icon: Icons.format_paint_rounded,
+      icon: PhosphorIconsRegular.paintRoller,
       colorGetter: (c) => c.secondaryAccent,
     ),
     DamageCategory(
       key: 'roofing',
       label: 'أسقف',
-      icon: Icons.roofing_rounded,
+      icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.primaryBrand,
     ),
     DamageCategory(
       key: 'other',
       label: 'أخرى',
-      icon: Icons.build_rounded,
+      icon: PhosphorIconsRegular.wrench,
       colorGetter: (c) => c.textSecondary,
     ),
   ];

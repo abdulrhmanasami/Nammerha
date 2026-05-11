@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -170,7 +171,7 @@ class EscrowCheckoutView extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.lock_rounded, color: colors.primaryBrand, size: 20),
+                            Icon(PhosphorIconsRegular.lockKey, color: colors.primaryBrand, size: 20),
                             const SizedBox(width: 8),
                             Text('إجمالي الضمان', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
                           ],
@@ -187,7 +188,7 @@ class EscrowCheckoutView extends StatelessWidget {
                   // Gateway Selector
                   Text('اختر بوابة الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                   const SizedBox(height: 12),
-                  _buildGatewaySelector(context, 'Fatora (محلي/دولي)', 'fatora', Icons.account_balance_rounded),
+                  _buildGatewaySelector(context, 'Fatora (محلي/دولي)', 'fatora', PhosphorIconsRegular.bank),
                   const SizedBox(height: 24),
 
                   // Error
@@ -197,7 +198,7 @@ class EscrowCheckoutView extends StatelessWidget {
                       decoration: BoxDecoration(color: colors.errorLight, borderRadius: BorderRadius.circular(10)),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline, color: colors.error, size: 18),
+                          Icon(PhosphorIconsRegular.warningCircle, color: colors.error, size: 18),
                           const SizedBox(width: 8),
                           Expanded(child: Text(errorMessage, style: TextStyle(color: colors.error, fontSize: 13))),
                         ],
@@ -209,7 +210,7 @@ class EscrowCheckoutView extends StatelessWidget {
                   // Trust badge
                   Row(
                     children: [
-                      Icon(Icons.shield_rounded, color: colors.success, size: 16),
+                      Icon(PhosphorIconsRegular.shield, color: colors.success, size: 16),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
@@ -224,7 +225,7 @@ class EscrowCheckoutView extends StatelessWidget {
                   // Checkout Button
                   GradientButton(
                     label: 'تأمين الأموال في الضمان',
-                    icon: Icons.lock_rounded,
+                    icon: PhosphorIconsRegular.lockKey,
                     isLoading: isLoading,
                     onPressed: () => _handleCheckout(context),
                   ),
@@ -255,7 +256,7 @@ class EscrowCheckoutView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: isSelected ? colors.primaryBrand : colors.textSecondary),
+                Icon(isSelected ? PhosphorIconsRegular.radioButton : PhosphorIconsRegular.circle, color: isSelected ? colors.primaryBrand : colors.textSecondary),
                 const SizedBox(width: 12),
                 Icon(icon, color: isSelected ? colors.primaryBrand : colors.textSecondary, size: 20),
                 const SizedBox(width: 8),

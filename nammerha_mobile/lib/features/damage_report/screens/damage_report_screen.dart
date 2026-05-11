@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,7 +86,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           builder: (context, state) {
             return state.formData.currentStep > 0
                 ? IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: Icon(PhosphorIconsRegular.arrowLeft),
                     onPressed: () => context.read<DamageReportBloc>().add(PrevStepEvent()),
                   )
                 : const BackButton();
@@ -204,7 +205,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
               child: Row(
                 children: [
                   Icon(
-                    data.gpsPosition != null ? Icons.gps_fixed_rounded : Icons.gps_not_fixed_rounded,
+                    data.gpsPosition != null ? PhosphorIconsRegular.crosshair : PhosphorIconsRegular.warningCircle,
                     color: data.gpsPosition != null ? colors.success : colors.primaryBrand,
                   ),
                   const SizedBox(width: 12),
@@ -410,13 +411,13 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         child: data.currentStep == 3
             ? GradientButton(
                 label: loadingMessage ?? context.tr('dr_submit_btn'),
-                icon: Icons.send_rounded,
+                icon: PhosphorIconsRegular.paperPlaneRight,
                 isLoading: isLoading,
                 onPressed: data.canProceed && !isLoading ? () => context.read<DamageReportBloc>().add(SubmitReportEvent()) : null,
               )
             : GradientButton(
                 label: context.tr('next'),
-                icon: Icons.arrow_forward_rounded,
+                icon: PhosphorIconsRegular.arrowRight,
                 onPressed: data.canProceed ? () => context.read<DamageReportBloc>().add(NextStepEvent()) : null,
               ),
       ),

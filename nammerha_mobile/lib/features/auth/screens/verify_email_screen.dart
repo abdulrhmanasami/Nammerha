@@ -1,3 +1,5 @@
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,10 +87,7 @@ class _VerifyEmailView extends StatelessWidget {
       return SizedBox(
         width: 80,
         height: 80,
-        child: CircularProgressIndicator(
-          color: colors.primaryBrand,
-          strokeWidth: 3,
-        ),
+        child: NammerhaShimmerLoader(colors: colors),
       ).animate().fadeIn();
     }
 
@@ -97,15 +96,15 @@ class _VerifyEmailView extends StatelessWidget {
     Color bgColor;
 
     if (state is VerifyEmailSuccess) {
-      icon = Icons.verified_rounded;
+      icon = PhosphorIconsRegular.sealCheck;
       iconColor = colors.success;
       bgColor = colors.success.withAlpha(15);
     } else if (state is VerifyEmailExpired) {
-      icon = Icons.timer_off_rounded;
+      icon = PhosphorIconsRegular.warningCircle;
       iconColor = colors.warning;
       bgColor = colors.warning.withAlpha(15);
     } else {
-      icon = Icons.error_outline_rounded;
+      icon = PhosphorIconsRegular.warningCircle;
       iconColor = colors.error;
       bgColor = colors.error.withAlpha(15);
     }
@@ -184,7 +183,7 @@ class _VerifyEmailView extends StatelessWidget {
 
     return GradientButton(
       label: 'العودة لتسجيل الدخول',
-      icon: Icons.login_rounded,
+      icon: PhosphorIconsRegular.signIn,
       onPressed: () {
         Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
       },

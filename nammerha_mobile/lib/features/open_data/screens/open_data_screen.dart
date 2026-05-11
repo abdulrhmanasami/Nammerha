@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -83,7 +84,7 @@ class OpenDataScreen extends StatelessWidget {
       ),
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.verified_rounded, color: Colors.white, size: 28),
+          Icon(PhosphorIconsRegular.sealCheck, color: Colors.white, size: 28),
           const SizedBox(width: 10),
           const Text('OCDS 1.1', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
         ]),
@@ -96,7 +97,7 @@ class OpenDataScreen extends StatelessWidget {
         const SizedBox(height: 14),
         OutlinedButton.icon(
           onPressed: () => launchUrl(Uri.parse('https://standard.open-contracting.org/'), mode: LaunchMode.externalApplication),
-          icon: const Icon(Icons.open_in_new_rounded, size: 16, color: Colors.white),
+          icon: Icon(PhosphorIconsRegular.warningCircle, size: 16, color: Colors.white),
           label: const Text('اعرف المزيد', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
         ),
@@ -106,12 +107,12 @@ class OpenDataScreen extends StatelessWidget {
 
   Widget _buildStatsGrid(BuildContext context, SemanticColors colors, Map<String, dynamic> stats, int total) {
     final items = [
-      _StatItem('المشاريع المنشورة', '${stats['total_projects'] ?? total}', Icons.article_rounded, colors.primaryBrand),
-      _StatItem('إجمالي التمويل', '${_formatCurrency((stats['total_funding'] ?? 0) as num)} ل.س', Icons.account_balance_rounded, colors.secondaryAccent),
-      _StatItem(context.tr('str_9ddc2404'), '${stats['total_donors'] ?? 0}', Icons.people_rounded, colors.info),
-      _StatItem(context.tr('admin_contractors'), '${stats['total_contractors'] ?? 0}', Icons.engineering_rounded, colors.success),
-      _StatItem('المشاريع المكتملة', '${stats['completed_projects'] ?? 0}', Icons.check_circle_rounded, colors.success),
-      _StatItem('المناطق المغطاة', '${stats['total_regions'] ?? 0}', Icons.map_rounded, colors.warning),
+      _StatItem('المشاريع المنشورة', '${stats['total_projects'] ?? total}', PhosphorIconsRegular.article, colors.primaryBrand),
+      _StatItem('إجمالي التمويل', '${_formatCurrency((stats['total_funding'] ?? 0) as num)} ل.س', PhosphorIconsRegular.bank, colors.secondaryAccent),
+      _StatItem(context.tr('str_9ddc2404'), '${stats['total_donors'] ?? 0}', PhosphorIconsRegular.warningCircle, colors.info),
+      _StatItem(context.tr('admin_contractors'), '${stats['total_contractors'] ?? 0}', PhosphorIconsRegular.hardHat, colors.success),
+      _StatItem('المشاريع المكتملة', '${stats['completed_projects'] ?? 0}', PhosphorIconsRegular.checkCircle, colors.success),
+      _StatItem('المناطق المغطاة', '${stats['total_regions'] ?? 0}', PhosphorIconsRegular.mapTrifold, colors.warning),
     ];
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -157,7 +158,7 @@ class OpenDataScreen extends StatelessWidget {
         Center(child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(children: [
-            Icon(Icons.source_rounded, size: 48, color: colors.textSubtle),
+            Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textSubtle),
             const SizedBox(height: 12),
             Text('لا توجد مشاريع منشورة بعد', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
           ]),
@@ -202,19 +203,19 @@ class OpenDataScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Row(children: [
           if (region.isNotEmpty) ...[
-            Icon(Icons.location_on_rounded, size: 13, color: colors.textSubtle),
+            Icon(PhosphorIconsRegular.mapPin, size: 13, color: colors.textSubtle),
             const SizedBox(width: 3),
             Text(region, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
             const SizedBox(width: 12),
           ],
-          Icon(Icons.account_balance_wallet_rounded, size: 13, color: colors.textSubtle),
+          Icon(PhosphorIconsRegular.wallet, size: 13, color: colors.textSubtle),
           const SizedBox(width: 3),
           Text('${_formatCurrency(funding)} ل.س', style: TextStyle(fontSize: 12, color: colors.textSecondary, fontWeight: FontWeight.w600)),
         ]),
         if (ocdsId.isNotEmpty) ...[
           const SizedBox(height: 6),
           Row(children: [
-            Icon(Icons.fingerprint_rounded, size: 13, color: colors.secondaryAccent),
+            Icon(PhosphorIconsRegular.fingerprint, size: 13, color: colors.secondaryAccent),
             const SizedBox(width: 4),
             Text(ocdsId, style: TextStyle(fontSize: 10, color: colors.secondaryAccent, fontFamily: 'monospace')),
           ]),

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -69,13 +70,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
                     const SizedBox(height: 16),
                     Text(state.message, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => context.read<NotificationsBloc>().add(LoadNotificationsRequested()),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
@@ -97,7 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off_rounded, size: 64, color: colors.textSecondary),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
                   const SizedBox(height: 16),
                   Text('لا توجد إشعارات', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
                 ],
@@ -127,26 +128,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 switch (type.toString().toLowerCase()) {
                   case 'donation':
                   case 'escrow':
-                    icon = Icons.volunteer_activism_rounded;
+                    icon = PhosphorIconsRegular.heart;
                     iconColor = colors.success;
                     break;
                   case 'proof':
                   case 'spatial_proof':
-                    icon = Icons.camera_alt_rounded;
+                    icon = PhosphorIconsRegular.camera;
                     iconColor = colors.primaryBrand;
                     break;
                   case 'bid':
                   case 'matchmaking':
-                    icon = Icons.gavel_rounded;
+                    icon = PhosphorIconsRegular.gavel;
                     iconColor = colors.warning;
                     break;
                   case 'order':
                   case 'delivery':
-                    icon = Icons.local_shipping_rounded;
+                    icon = PhosphorIconsRegular.truck;
                     iconColor = colors.info;
                     break;
                   default:
-                    icon = Icons.notifications_rounded;
+                    icon = PhosphorIconsRegular.bell;
                     iconColor = colors.primaryBrand;
                 }
 

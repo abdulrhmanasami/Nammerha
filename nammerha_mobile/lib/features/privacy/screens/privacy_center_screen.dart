@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -69,7 +70,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceLg),
               
               _ActionCard(
-                icon: Icons.file_download_outlined,
+                icon: PhosphorIconsRegular.warningCircle,
                 title: 'تصدير البيانات (GDPR)',
                 description: 'احصل على نسخة كاملة من جميع بياناتك المسجلة لدينا بصيغة JSON قابلة للقراءة.',
                 buttonText: 'طلب تصدير',
@@ -86,7 +87,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceMd),
 
               _ActionCard(
-                icon: Icons.back_hand_outlined,
+                icon: PhosphorIconsRegular.warningCircle,
                 title: 'سحب الموافقة',
                 description: 'إيقاف معالجة بياناتك لأغراض التحليل وتحسين الخدمات. لن يؤثر ذلك على خدمات الضمان الأساسية (Escrow).',
                 buttonText: 'سحب الموافقة',
@@ -105,7 +106,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceMd),
 
               _ActionCard(
-                icon: Icons.delete_forever_rounded,
+                icon: PhosphorIconsRegular.warningCircle,
                 title: 'حذف الحساب نهائياً',
                 description: 'سيتم مسح جميع بياناتك الشخصية من خوادمنا بشكل لا رجعة فيه. ستبقى السجلات المالية مجهولة الهوية لأغراض التدقيق القانوني.',
                 buttonText: 'حذف الحساب',
@@ -128,7 +129,7 @@ class _PrivacyCenterView extends StatelessWidget {
                   onPressed: () {
                     // Navigate to Cryptographic Consent Audit Logs (optional future expansion)
                   },
-                   icon: const Icon(Icons.lock_outline_rounded, size: 16),
+                   icon: Icon(PhosphorIconsRegular.lockKey, size: 16),
                   label: const Text('سجل الموافقة المشفر (HMAC)'),
                   style: TextButton.styleFrom(foregroundColor: colors.primaryBrand),
                 ),

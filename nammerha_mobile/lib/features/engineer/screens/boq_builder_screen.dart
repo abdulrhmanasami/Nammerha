@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -89,7 +90,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItemModal(context),
         backgroundColor: colors.primaryBrand,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        child: Icon(PhosphorIconsRegular.plus, color: Colors.white),
       ),
       body: BlocConsumer<BoqBloc, BoqState>(
         listener: (context, state) {
@@ -134,12 +135,12 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
     final totalCents = item.unitPrice * item.quantity;
     final IconData icon;
     switch (item.category.toLowerCase()) {
-      case 'cement': icon = Icons.inventory_2_rounded; break;
-      case 'steel': icon = Icons.straighten_rounded; break;
-      case 'doors': icon = Icons.door_front_door_rounded; break;
-      case 'wiring': icon = Icons.bolt_rounded; break;
-      case 'plumbing': icon = Icons.water_drop_rounded; break;
-      default: icon = Icons.view_in_ar_rounded;
+      case 'cement': icon = PhosphorIconsRegular.package; break;
+      case 'steel': icon = PhosphorIconsRegular.ruler; break;
+      case 'doors': icon = PhosphorIconsRegular.door; break;
+      case 'wiring': icon = PhosphorIconsRegular.lightning; break;
+      case 'plumbing': icon = PhosphorIconsRegular.drop; break;
+      default: icon = PhosphorIconsRegular.cube;
     }
 
     return Dismissible(
@@ -152,7 +153,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
           color: colors.error.withAlpha(15),
           borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
         ),
-        child: Icon(Icons.delete_rounded, color: colors.error),
+        child: Icon(PhosphorIconsRegular.trash, color: colors.error),
       ),
       onDismissed: (_) {
          context.read<BoqBloc>().add(RemoveBoqItemEvent(index));
@@ -186,7 +187,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                   const SizedBox(height: 2),
                   if (item.oraclePrice != null)
                     Row(children: [
-                      Icon(Icons.show_chart_rounded, size: 12, color: colors.primaryBrand),
+                      Icon(PhosphorIconsRegular.chartLineUp, size: 12, color: colors.primaryBrand),
                       const SizedBox(width: 3),
                       Text('${context.tr('eng_oracle')}: ${_formatCurrency(item.oraclePrice!)}/${item.unit}', style: TextStyle(fontSize: 11, color: colors.primaryBrand)),
                     ]),
@@ -209,14 +210,14 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                         ),
                         child: Row(
                           children: [
-                            _qtyBtn(Icons.remove_rounded, () {
+                            _qtyBtn(PhosphorIconsRegular.minus, () {
                               context.read<BoqBloc>().add(UpdateBoqQuantityEvent(index, item.quantity - 1));
                             }, colors),
                             SizedBox(
                               width: 32,
                               child: Text('${item.quantity}', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                             ),
-                            _qtyBtn(Icons.add_rounded, () {
+                            _qtyBtn(PhosphorIconsRegular.plus, () {
                                context.read<BoqBloc>().add(UpdateBoqQuantityEvent(index, item.quantity + 1));
                             }, colors, isPrimary: true),
                           ],
@@ -279,7 +280,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
             const SizedBox(width: 12),
             GradientButton(
               label: isPublishing ? context.tr('eng_publishing') : context.tr('eng_publish_btn'),
-              icon: isPublishing ? Icons.hourglass_top_rounded : Icons.publish_rounded,
+              icon: isPublishing ? PhosphorIconsRegular.hourglassHigh : PhosphorIconsRegular.uploadSimple,
               onPressed: (isPublishing || widget.projectId == null) ? null : () {
                 context.read<BoqBloc>().add(PublishBoqEvent(widget.projectId!));
               },
@@ -295,7 +296,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.list_alt_rounded, size: 64, color: colors.textSubtle),
+          Icon(PhosphorIconsRegular.listDashes, size: 64, color: colors.textSubtle),
           const SizedBox(height: 16),
           Text(context.tr('eng_no_materials'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 6),
@@ -357,7 +358,7 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
           const SizedBox(height: 16),
           GradientButton(
             label: context.tr('eng_add_to_list'),
-            icon: Icons.add_rounded,
+            icon: PhosphorIconsRegular.plus,
             onPressed: () {
               HapticFeedback.mediumImpact();
               final name = nameC.text.trim();

@@ -1,5 +1,7 @@
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/semantic_colors.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Gradient Button — Nammerha Premium CTA Component
@@ -63,6 +65,7 @@ class _GradientButtonState extends State<GradientButton>
   Widget build(BuildContext context) {
     // Brand-governed default: Trust Blue → Smoky Jade
     final gradientColors = widget.colors ?? NammerhaGradients.ctaPrimary.colors;
+    final colors = Theme.of(context).extension<SemanticColors>()!;
 
     return GestureDetector(
       onTapDown: (_) {
@@ -105,13 +108,7 @@ class _GradientButtonState extends State<GradientButton>
               ),
               child: Center(
                 child: widget.isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
+                    ? SizedBox(width: 24, height: 24, child: NammerhaShimmerLoader(colors: colors),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,

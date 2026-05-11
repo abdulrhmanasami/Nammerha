@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,7 +64,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
         title: Text(context.tr('browse_projects')),
         actions: [
           IconButton(
-            icon: Icon(Icons.filter_list_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.faders, color: colors.primaryBrand),
             onPressed: () => _showFilterBottomSheet(context, colors),
           ),
           ListenableBuilder(
@@ -74,7 +75,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.shopping_cart_outlined, color: colors.primaryBrand),
+                    icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                     },
@@ -107,7 +108,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const ProjectMapScreen()));
         },
         backgroundColor: colors.primaryBrand,
-        icon: const Icon(Icons.map_rounded, color: Colors.white),
+        icon: Icon(PhosphorIconsRegular.mapTrifold, color: Colors.white),
         label: Text(context.tr('map_of_projects'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Column(
@@ -122,10 +123,10 @@ class _MarketplaceViewState extends State<MarketplaceView> {
               },
               decoration: InputDecoration(
                 hintText: context.tr('search_projects_hint'),
-                prefixIcon: Icon(Icons.search_rounded, color: colors.textSecondary),
+                prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: colors.textSecondary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.clear_rounded, color: colors.textSecondary),
+                        icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary),
                         onPressed: () {
                           _searchController.clear();
                           context.read<MarketplaceBloc>().add(const FilterProjectsEvent(searchQuery: ''));
@@ -164,13 +165,13 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
                     const SizedBox(height: 16),
                     Text(state.message, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => context.read<MarketplaceBloc>().add(const LoadProjectsEvent()),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
@@ -185,7 +186,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.construction_rounded, size: 64, color: colors.textSecondary),
+                  Icon(PhosphorIconsRegular.wrench, size: 64, color: colors.textSecondary),
                   const SizedBox(height: 16),
                   Text('لا توجد مشاريع حالياً', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
                 ],
@@ -252,7 +253,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
             ),
             child: Stack(
               children: [
-                Center(child: Icon(Icons.home_work_rounded, size: 48, color: colors.primaryBrand.withAlpha(60))),
+                Center(child: Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.primaryBrand.withAlpha(60))),
                 PositionedDirectional(
                   top: 10, end: 10,
                   child: Container(
@@ -293,7 +294,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.location_on_rounded, size: 14, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.mapPin, size: 14, color: colors.textSecondary),
                     const SizedBox(width: 4),
                     Text(project.addressText, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                   ],
@@ -337,7 +338,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                         ),
                       ));
                     },
-                    icon: const Icon(Icons.volunteer_activism_rounded, size: 18),
+                    icon: Icon(PhosphorIconsRegular.heart, size: 18),
                     label: const Text('ادعم هذا المشروع'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,

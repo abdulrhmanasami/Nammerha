@@ -391,7 +391,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                                     padding: const EdgeInsets.all(20),
                                     child: Icon(PhosphorIconsRegular.spinnerGap, color: Colors.white, size: 36).animate(onPlay: (c) => c.repeat()).rotate(duration: 1.seconds),
                                   )
-                                : const Icon(PhosphorIconsRegular.camera, color: Colors.white, size: 36),
+                                : Icon(PhosphorIconsRegular.camera, color: Colors.white, size: 36),
                           ),
                         ),
                       ],

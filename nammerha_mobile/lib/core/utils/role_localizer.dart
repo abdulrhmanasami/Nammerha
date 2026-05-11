@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 // ══════════════════════════════════════════════════════════════════════
 // Nammerha — Role Localizer Utility
 // Maps English role codes to Arabic display names and metadata.
@@ -25,49 +26,49 @@ const Map<String, RoleMeta> roleMeta = {
   'donor': RoleMeta(
     nameAr: 'متبرع',
     nameEn: 'Donor',
-    icon: Icons.volunteer_activism_rounded,
+    icon: PhosphorIconsRegular.heart,
     color: Color(0xFF1558D6), // Trust Blue
   ),
   'homeowner': RoleMeta(
     nameAr: 'صاحب منزل',
     nameEn: 'Homeowner',
-    icon: Icons.home_rounded,
+    icon: PhosphorIconsRegular.house,
     color: Color(0xFF0A6E55), // Smoky Jade
   ),
   'engineer': RoleMeta(
     nameAr: 'مهندس',
     nameEn: 'Engineer',
-    icon: Icons.engineering_rounded,
+    icon: PhosphorIconsRegular.hardHat,
     color: Color(0xFF0D47A1), // Deep Trust Blue
   ),
   'contractor': RoleMeta(
     nameAr: 'مقاول',
     nameEn: 'Contractor',
-    icon: Icons.construction_rounded,
+    icon: PhosphorIconsRegular.wrench,
     color: Color(0xFFD59F80), // Earth Tone
   ),
   'supplier': RoleMeta(
     nameAr: 'مورّد',
     nameEn: 'Supplier',
-    icon: Icons.local_shipping_rounded,
+    icon: PhosphorIconsRegular.truck,
     color: Color(0xFF085A46), // Deep Jade
   ),
   'tradesperson': RoleMeta(
     nameAr: 'صاحب مهنة',
     nameEn: 'Tradesperson',
-    icon: Icons.plumbing_rounded,
+    icon: PhosphorIconsRegular.warningCircle,
     color: Color(0xFFFCC934), // Warning Yellow
   ),
   'admin': RoleMeta(
     nameAr: 'مدير',
     nameEn: 'Admin',
-    icon: Icons.admin_panel_settings_rounded,
+    icon: PhosphorIconsRegular.warningCircle,
     color: Color(0xFF242424), // Tech Dark
   ),
   'auditor': RoleMeta(
     nameAr: 'مدقق',
     nameEn: 'Auditor',
-    icon: Icons.verified_user_rounded,
+    icon: PhosphorIconsRegular.shieldCheck,
     color: Color(0xFF242424), // Tech Dark
   ),
 };

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -178,7 +179,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
           Text(context.tr('dn_funded_projects'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 12),
           if (data.fundedProjects.isEmpty)
-            _emptyState(colors, Icons.volunteer_activism_rounded, context.tr('dn_no_funded'), context.tr('dn_browse_start'))
+            _emptyState(colors, PhosphorIconsRegular.heart, context.tr('dn_no_funded'), context.tr('dn_browse_start'))
           else
             ...data.fundedProjects.take(3).toList().asMap().entries.map((e) => _fundedProjectCard(e.value, colors, e.key)),
         ],
@@ -274,7 +275,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
     if (data.marketplace.isEmpty) {
-      return _emptyState(colors, Icons.store_rounded, context.tr('dn_no_marketplace'), '');
+      return _emptyState(colors, PhosphorIconsRegular.storefront, context.tr('dn_no_marketplace'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -302,9 +303,9 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                 Text(p.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                 const SizedBox(height: 6),
                 Wrap(spacing: 10, children: [
-                  _infoChip(Icons.label_rounded, p.damageType, colors),
-                  if (p.region != null) _infoChip(Icons.location_on_rounded, p.region!, colors),
-                  _infoChip(Icons.inventory_2_rounded, '${p.itemsCount} ${context.tr('dn_items_label')}', colors),
+                  _infoChip(PhosphorIconsRegular.tag, p.damageType, colors),
+                  if (p.region != null) _infoChip(PhosphorIconsRegular.mapPin, p.region!, colors),
+                  _infoChip(PhosphorIconsRegular.package, '${p.itemsCount} ${context.tr('dn_items_label')}', colors),
                 ]),
                 const SizedBox(height: 10),
                 Row(
@@ -343,7 +344,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                       )
                     else
                       Row(children: [
-                        Icon(Icons.check_circle_rounded, size: 16, color: colors.success),
+                        Icon(PhosphorIconsRegular.checkCircle, size: 16, color: colors.success),
                         const SizedBox(width: 4),
                         Text(context.tr('dn_fully_funded'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.success)),
                       ]),
@@ -364,7 +365,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
     if (data.donations.isEmpty) {
-      return _emptyState(colors, Icons.volunteer_activism_rounded, context.tr('dn_no_donations'), '');
+      return _emptyState(colors, PhosphorIconsRegular.heart, context.tr('dn_no_donations'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -394,7 +395,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                   ],
                 ),
                 const SizedBox(height: 6),
-                _infoChip(Icons.business_rounded, d.projectTitle, colors),
+                _infoChip(PhosphorIconsRegular.buildings, d.projectTitle, colors),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -433,7 +434,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return NammerhaShimmerLoader(colors: colors, itemCount: 4);
     }
     if (data.impact.isEmpty) {
-      return _emptyState(colors, Icons.insights_rounded, context.tr('dn_no_impact'), '');
+      return _emptyState(colors, PhosphorIconsRegular.chartBar, context.tr('dn_no_impact'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -464,7 +465,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
-                    isCompleted ? Icons.check_circle_rounded : Icons.business_rounded,
+                    isCompleted ? PhosphorIconsRegular.checkCircle : PhosphorIconsRegular.buildings,
                     color: isCompleted ? colors.success : colors.secondaryAccent,
                     size: 24,
                   ),
@@ -504,7 +505,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
       return NammerhaShimmerLoader(colors: colors, itemCount: 3, isList: false);
     }
     if (data.proofs.isEmpty) {
-      return _emptyState(colors, Icons.camera_alt_rounded, context.tr('dn_no_proofs'), context.tr('dn_proofs_hint'));
+      return _emptyState(colors, PhosphorIconsRegular.camera, context.tr('dn_no_proofs'), context.tr('dn_proofs_hint'));
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -542,8 +543,8 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                         width: double.infinity,
                         color: colors.backgroundSecondary,
                         child: hasPhoto
-                            ? Image.network(proof.photoUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Center(child: Icon(Icons.broken_image_rounded, color: colors.textSubtle)))
-                            : Center(child: Icon(Icons.image_rounded, size: 32, color: colors.textSubtle)),
+                            ? Image.network(proof.photoUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Center(child: Icon(PhosphorIconsRegular.imageBroken, color: colors.textSubtle)))
+                            : Center(child: Icon(PhosphorIconsRegular.image, size: 32, color: colors.textSubtle)),
                       ),
                       if (hasGps)
                         PositionedDirectional(
@@ -558,7 +559,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.gps_fixed_rounded, size: 10, color: Colors.white),
+                                Icon(PhosphorIconsRegular.crosshair, size: 10, color: Colors.white),
                                 const SizedBox(width: 3),
                                 Text(
                                   '${proof.gpsLat!.toStringAsFixed(3)}, ${proof.gpsLng?.toStringAsFixed(3) ?? ''}',
@@ -581,7 +582,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
                       Text(proof.materialName ?? '', style: TextStyle(fontSize: 10, color: colors.textSubtle), maxLines: 1, overflow: TextOverflow.ellipsis),
                       if (proof.verifiedBy != null)
                         Row(children: [
-                          Icon(Icons.verified_rounded, size: 12, color: colors.success),
+                          Icon(PhosphorIconsRegular.sealCheck, size: 12, color: colors.success),
                           const SizedBox(width: 3),
                           Expanded(child: Text(proof.verifiedBy!, style: TextStyle(fontSize: 10, color: colors.success), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         ]),

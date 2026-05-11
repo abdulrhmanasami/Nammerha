@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/semantic_colors.dart';
 
@@ -159,7 +160,7 @@ class _AdminKpiCardState extends State<AdminKpiCard>
     final trend = widget.trendPercent!;
     final isPositive = trend >= 0;
     final color = isPositive ? colors.success : colors.error;
-    final icon = isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded;
+    final icon = isPositive ? PhosphorIconsRegular.trendUp : PhosphorIconsRegular.trendDown;
 
     return Container(
       padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 4),

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -41,7 +42,7 @@ class _DashboardView extends StatelessWidget {
         iconTheme: IconThemeData(color: colors.textHeading),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: colors.primaryBrand),
             onPressed: () => context.read<AdminDashboardBloc>().add(RefreshDashboard()),
           ),
         ],
@@ -69,13 +70,13 @@ class _DashboardView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline_rounded, size: 48, color: colors.error),
+          Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
           const SizedBox(height: 12),
           Text(message, style: TextStyle(color: colors.textSecondary, fontSize: 14)),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => context.read<AdminDashboardBloc>().add(LoadDashboard()),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(PhosphorIconsRegular.arrowsClockwise),
             label: Text(context.tr('ct_retry')),
             style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
           ),
@@ -108,26 +109,26 @@ class _DashboardView extends StatelessWidget {
               AdminKpiCard(
                 title: context.tr('ad_total_funding'),
                 value: overview.totalFundedAmount,
-                icon: Icons.attach_money_rounded,
+                icon: PhosphorIconsRegular.currencyDollar,
                 accentColor: colors.primaryBrand,
                 isCurrency: true,
               ),
               AdminKpiCard(
                 title: context.tr('ad_active_projects'),
                 value: overview.totalProjects,
-                icon: Icons.business_rounded,
+                icon: PhosphorIconsRegular.buildings,
                 accentColor: colors.secondaryAccent,
               ),
               AdminKpiCard(
                 title: context.tr('admin_engineers'),
                 value: overview.activeEngineers,
-                icon: Icons.engineering_rounded,
+                icon: PhosphorIconsRegular.hardHat,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
                 title: context.tr('ad_verified_proofs'),
                 value: overview.verifiedProofs,
-                icon: Icons.verified_rounded,
+                icon: PhosphorIconsRegular.sealCheck,
                 accentColor: colors.success,
               ),
             ],
@@ -145,11 +146,11 @@ class _DashboardView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), Icons.people_rounded),
+                _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), PhosphorIconsRegular.warningCircle),
                 _divider(colors),
-                _buildMiniStat(colors, context.tr('admin_donations'), overview.totalDonations.toString(), Icons.volunteer_activism_rounded),
+                _buildMiniStat(colors, context.tr('admin_donations'), overview.totalDonations.toString(), PhosphorIconsRegular.heart),
                 _divider(colors),
-                _buildMiniStat(colors, context.tr('admin_contractors'), overview.activeContractors.toString(), Icons.construction_rounded),
+                _buildMiniStat(colors, context.tr('admin_contractors'), overview.activeContractors.toString(), PhosphorIconsRegular.wrench),
               ],
             ),
           ),
@@ -262,7 +263,7 @@ class _DashboardView extends StatelessWidget {
               color: colors.primaryBrandLight,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.receipt_long_rounded, color: colors.primaryBrand, size: 16),
+            child: Icon(PhosphorIconsRegular.receipt, color: colors.primaryBrand, size: 16),
           ),
           const SizedBox(width: 12),
           Expanded(

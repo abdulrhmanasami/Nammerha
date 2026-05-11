@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,19 +41,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // P0-004 FIX: Hardcoded Arabic → i18n keys from kTranslations.
   final List<_OnboardingSlideData> _slides = [
     _OnboardingSlideData(
-      icon: Icons.home_work_rounded,
+      icon: PhosphorIconsRegular.warningCircle,
       titleKey: 'onboarding_title_1',
       subtitleKey: 'onboarding_desc_1',
       gradient: NammerhaGradients.brandPrimary.colors,
     ),
     _OnboardingSlideData(
-      icon: Icons.verified_user_rounded,
+      icon: PhosphorIconsRegular.shieldCheck,
       titleKey: 'onboarding_title_2',
       subtitleKey: 'onboarding_desc_2',
       gradient: NammerhaGradients.ctaPrimary.colors,
     ),
     _OnboardingSlideData(
-      icon: Icons.volunteer_activism_rounded,
+      icon: PhosphorIconsRegular.heart,
       titleKey: 'onboarding_title_3',
       subtitleKey: 'onboarding_desc_3',
       gradient: NammerhaGradients.ctaWarmth.colors,
@@ -205,7 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.swipe_rounded, size: 16, color: colors.textSubtle),
+                        Icon(PhosphorIconsRegular.warningCircle, size: 16, color: colors.textSubtle),
                         const SizedBox(width: 8),
                         Text(
                           context.tr('swipe_to_continue'),
@@ -223,7 +224,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   GradientButton(
                     label: currentPage == _slides.length - 1 ? context.tr('onboarding_start') : context.tr('next'),
                     icon: currentPage == _slides.length - 1
-                        ? Icons.arrow_forward_rounded
+                        ? PhosphorIconsRegular.arrowRight
                         : null,
                     onPressed: () {
                       if (currentPage == _slides.length - 1) {

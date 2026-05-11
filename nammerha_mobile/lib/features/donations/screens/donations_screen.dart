@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,7 +43,7 @@ class _DonationsView extends StatelessWidget {
         title: const Text('تبرعاتي'),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: colors.textSecondary),
+            icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: colors.textSecondary),
             onPressed: () => context
                 .read<DonationsBloc>()
                 .add(const DonationsRefreshRequested()),
@@ -87,7 +88,7 @@ class _DonationsView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off_rounded,
+            Icon(PhosphorIconsRegular.cloudSlash,
                 size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
             Text(message,
@@ -98,7 +99,7 @@ class _DonationsView extends StatelessWidget {
               onPressed: () => context
                   .read<DonationsBloc>()
                   .add(const DonationsLoadRequested()),
-              icon: const Icon(Icons.refresh_rounded),
+              icon: Icon(PhosphorIconsRegular.arrowsClockwise),
               label: const Text('إعادة المحاولة'),
               style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primaryBrand),
@@ -133,7 +134,7 @@ class _DonationsView extends StatelessWidget {
                   context,
                   'مُؤمّن في الضمان',
                   formatCurrency(summary.totalLocked),
-                  Icons.lock_clock_rounded,
+                  PhosphorIconsRegular.warningCircle,
                   colors.success,
                   colors.successLight,
                 ),
@@ -142,7 +143,7 @@ class _DonationsView extends StatelessWidget {
                   context,
                   'تم الإفراج',
                   formatCurrency(summary.totalReleased),
-                  Icons.check_circle_rounded,
+                  PhosphorIconsRegular.checkCircle,
                   colors.primaryBrand,
                   colors.primaryBrandLight,
                 ),
@@ -166,7 +167,7 @@ class _DonationsView extends StatelessWidget {
                   padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
-                      Icon(Icons.volunteer_activism_rounded,
+                      Icon(PhosphorIconsRegular.heart,
                           size: 48, color: colors.textSecondary),
                       const SizedBox(height: 12),
                       Text('لا توجد تبرعات بعد',
@@ -192,7 +193,7 @@ class _DonationsView extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.shield_rounded,
+                  Icon(PhosphorIconsRegular.shield,
                       color: colors.primaryBrand, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
@@ -222,19 +223,19 @@ class _DonationsView extends StatelessWidget {
     if (d.isReleased) {
       statusColor = colors.primaryBrand;
       statusLabel = 'تم الإفراج';
-      statusIcon = Icons.check_circle_rounded;
+      statusIcon = PhosphorIconsRegular.checkCircle;
     } else if (d.isLocked) {
       statusColor = colors.success;
       statusLabel = 'مُؤمّن';
-      statusIcon = Icons.lock_rounded;
+      statusIcon = PhosphorIconsRegular.lockKey;
     } else if (d.isRefunded) {
       statusColor = colors.textSecondary;
       statusLabel = 'مُسترد';
-      statusIcon = Icons.undo_rounded;
+      statusIcon = PhosphorIconsRegular.warningCircle;
     } else {
       statusColor = colors.warning;
       statusLabel = 'قيد المعالجة';
-      statusIcon = Icons.hourglass_top_rounded;
+      statusIcon = PhosphorIconsRegular.hourglassHigh;
     }
 
     return Container(

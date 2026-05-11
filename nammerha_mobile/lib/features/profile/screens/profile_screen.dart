@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => context.read<ProfileBloc>().add(LoadProfileRequested()),
-                      icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
+                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.primaryBrand,
@@ -881,7 +881,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                       disabledBackgroundColor: colors.primaryBrand.withAlpha(100),
                     ),
                     child: isSubmitting
-                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        ? SizedBox(width: 22, height: 22, child: NammerhaShimmerLoader(colors: colors))
                         : const Text('تغيير كلمة المرور', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -184,12 +185,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             decoration: InputDecoration(
               labelText: 'كلمة المرور الجديدة',
               labelStyle: TextStyle(color: colors.textSecondary),
-              prefixIcon: Icon(Icons.lock_rounded, color: colors.textSecondary),
+              prefixIcon: Icon(PhosphorIconsRegular.lockKey, color: colors.textSecondary),
               suffixIcon: IconButton(
                 icon: Icon(
                   formState.obscurePassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
+                      ? PhosphorIconsRegular.eyeSlash
+                      : PhosphorIconsRegular.eye,
                   color: colors.textSecondary,
                 ),
                 onPressed: () => context
@@ -268,12 +269,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               labelText: 'تأكيد كلمة المرور',
               labelStyle: TextStyle(color: colors.textSecondary),
               prefixIcon:
-                  Icon(Icons.lock_outline_rounded, color: colors.textSecondary),
+                  Icon(PhosphorIconsRegular.lockKey, color: colors.textSecondary),
               suffixIcon: IconButton(
                 icon: Icon(
                   formState.obscureConfirm
-                      ? Icons.visibility_off
-                      : Icons.visibility,
+                      ? PhosphorIconsRegular.eyeSlash
+                      : PhosphorIconsRegular.eye,
                   color: colors.textSecondary,
                 ),
                 onPressed: () => context
@@ -312,7 +313,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           // Submit
           GradientButton(
             label: 'تعيين كلمة المرور الجديدة',
-            icon: Icons.lock_reset_rounded,
+            icon: PhosphorIconsRegular.warningCircle,
             isLoading: formState.isSubmitting,
             onPressed: () => _submit(context),
           ),
@@ -335,7 +336,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             color: colors.success.withAlpha(20),
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.check_circle_rounded, size: 48, color: colors.success),
+          child: Icon(PhosphorIconsRegular.checkCircle, size: 48, color: colors.success),
         ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
         const SizedBox(height: 24),
         Text(

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -34,15 +35,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   IconData _iconForType(String type) {
     switch (type.toLowerCase()) {
-      case 'bid_accepted': return Icons.check_circle_rounded;
-      case 'bid_received': return Icons.gavel_rounded;
-      case 'payment_received': return Icons.payments_rounded;
-      case 'escrow_released': return Icons.lock_open_rounded;
-      case 'project_update': return Icons.business_rounded;
-      case 'proof_verified': return Icons.verified_rounded;
-      case 'assignment': return Icons.assignment_rounded;
-      case 'request': return Icons.handshake_rounded;
-      default: return Icons.notifications_rounded;
+      case 'bid_accepted': return PhosphorIconsRegular.checkCircle;
+      case 'bid_received': return PhosphorIconsRegular.gavel;
+      case 'payment_received': return PhosphorIconsRegular.warningCircle;
+      case 'escrow_released': return PhosphorIconsRegular.lockKeyOpen;
+      case 'project_update': return PhosphorIconsRegular.buildings;
+      case 'proof_verified': return PhosphorIconsRegular.sealCheck;
+      case 'assignment': return PhosphorIconsRegular.clipboardText;
+      case 'request': return PhosphorIconsRegular.warningCircle;
+      default: return PhosphorIconsRegular.bell;
     }
   }
 
@@ -100,13 +101,13 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
                     const SizedBox(height: 16),
                     Text(state.message, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => context.read<NotificationsBloc>().add(LoadNotificationsRequested()),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
@@ -221,7 +222,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_rounded, size: 64, color: colors.textSubtle),
+          Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSubtle),
           const SizedBox(height: 16),
           Text('لا توجد إشعارات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 6),

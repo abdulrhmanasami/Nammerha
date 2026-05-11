@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -129,7 +130,7 @@ class _TransparencyDashboardContentState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_off_rounded,
+              Icon(PhosphorIconsRegular.cloudSlash,
                   size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
               Text(
@@ -140,7 +141,7 @@ class _TransparencyDashboardContentState
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadData,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                 label: const Text('إعادة المحاولة'),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand),
@@ -164,7 +165,7 @@ class _TransparencyDashboardContentState
               title: 'الشفافية المطلقة',
               description:
                   'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم التبرع بها حتى لحظة صرفها.',
-              icon: Icons.public,
+              icon: PhosphorIconsRegular.warningCircle,
               color: colors.primaryBrand,
               colors: colors,
             ).animate().fadeIn(duration: 400.ms),
@@ -279,7 +280,7 @@ class _TransparencyDashboardContentState
         children: [
           Row(
             children: [
-              const Icon(Icons.verified_rounded,
+              Icon(PhosphorIconsRegular.sealCheck,
                   color: Colors.white, size: 24),
               const SizedBox(width: 8),
               const Text(
@@ -352,7 +353,7 @@ class _TransparencyDashboardContentState
           padding: const EdgeInsets.all(32),
           child: Column(
             children: [
-              Icon(Icons.receipt_long_rounded,
+              Icon(PhosphorIconsRegular.receipt,
                   size: 48, color: colors.textSubtle),
               const SizedBox(height: 12),
               Text(

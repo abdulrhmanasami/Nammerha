@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -79,7 +80,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
             icon: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(color: colors.primaryBrand, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+              child: Icon(PhosphorIconsRegular.plus, color: Colors.white, size: 20),
             ),
             onPressed: () => _showCreateProjectSheet(context),
           ),
@@ -103,13 +104,13 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+              Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
               Text(state.error!, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadProjects,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                 label: const Text('إعادة المحاولة'),
                 style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
               ),
@@ -124,13 +125,13 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.home_work_rounded, size: 64, color: colors.textSecondary),
+            Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
             Text('لم تقم بإنشاء أي مشروع بعد', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () => _showCreateProjectSheet(context),
-              icon: const Icon(Icons.add_rounded),
+              icon: Icon(PhosphorIconsRegular.plus),
               label: const Text('إنشاء مشروع جديد'),
               style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white),
             ),
@@ -290,17 +291,17 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
             const SizedBox(height: 16),
             Text('إنشاء مشروع جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(height: 20),
-            _sheetField(colors, titleCtrl, 'عنوان المشروع', Icons.title_rounded),
+            _sheetField(colors, titleCtrl, 'عنوان المشروع', PhosphorIconsRegular.warningCircle),
             const SizedBox(height: 12),
-            _sheetField(colors, descCtrl, 'وصف المشروع', Icons.description_rounded, maxLines: 3),
+            _sheetField(colors, descCtrl, 'وصف المشروع', PhosphorIconsRegular.fileText, maxLines: 3),
             const SizedBox(height: 12),
-            _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), Icons.location_on_rounded),
+            _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), PhosphorIconsRegular.mapPin),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: selectedDamage,
               decoration: InputDecoration(
                 labelText: 'نوع الضرر',
-                prefixIcon: Icon(Icons.warning_rounded, color: colors.textSecondary),
+                prefixIcon: Icon(PhosphorIconsRegular.warning, color: colors.textSecondary),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                 filled: true,
                 fillColor: colors.backgroundSecondary,
@@ -422,7 +423,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                   }
                 }
               },
-              icon: const Icon(Icons.add_rounded),
+              icon: Icon(PhosphorIconsRegular.plus),
               label: const Text('إنشاء المشروع'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,

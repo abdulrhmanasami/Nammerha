@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -268,7 +269,7 @@ class _MapAppBar extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.arrow_back_rounded, color: colors.textPrimary),
+            icon: Icon(PhosphorIconsRegular.arrowLeft, color: colors.textPrimary),
           ),
           const SizedBox(width: 4),
           Expanded(
@@ -287,7 +288,7 @@ class _MapAppBar extends StatelessWidget {
               onPressed: state is MapLoading
                   ? null
                   : () => context.read<MapBloc>().add(const LoadMapProjects()),
-              icon: Icon(Icons.refresh_rounded, color: colors.primaryBrand),
+              icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: colors.primaryBrand),
             ),
           ),
         ],
@@ -393,7 +394,7 @@ class _StatsPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.location_on_rounded, size: 14, color: colors.primaryBrand),
+          Icon(PhosphorIconsRegular.mapPin, size: 14, color: colors.primaryBrand),
           const SizedBox(width: 6),
           Text(
             '${state.filteredProjects.length} مشروع',
@@ -477,7 +478,7 @@ class _ProjectMarker extends StatelessWidget {
           ],
         ),
         child: Icon(
-          Icons.home_work_rounded,
+          PhosphorIconsRegular.warningCircle,
           color: Colors.white,
           size: isSelected ? 26 : 20,
         ),
@@ -547,7 +548,7 @@ class _ProjectDetailPanel extends StatelessWidget {
                     const SizedBox(width: 8),
                     IconButton(
                       onPressed: onClose,
-                      icon: Icon(Icons.close_rounded,
+                      icon: Icon(PhosphorIconsRegular.x,
                           color: colors.textSecondary, size: 20),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -562,20 +563,20 @@ class _ProjectDetailPanel extends StatelessWidget {
                   runSpacing: 6,
                   children: [
                     _Badge(
-                      icon: Icons.location_on_rounded,
+                      icon: PhosphorIconsRegular.mapPin,
                       label: project.region,
                       color: colors.primaryBrand,
                       colors: colors,
                     ),
                     if (project.damageType.isNotEmpty)
                       _Badge(
-                        icon: Icons.warning_amber_rounded,
+                        icon: PhosphorIconsRegular.warningCircle,
                         label: project.damageType,
                         color: colors.warmEarth,
                         colors: colors,
                       ),
                     _Badge(
-                      icon: Icons.circle,
+                      icon: PhosphorIconsRegular.circle,
                       label: _statusLabel(project.status),
                       color: _statusColor(project.status, colors),
                       colors: colors,
@@ -593,7 +594,7 @@ class _ProjectDetailPanel extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.my_location_rounded,
+                      Icon(PhosphorIconsRegular.crosshair,
                           size: 14, color: colors.secondaryAccent),
                       const SizedBox(width: 8),
                       Text(
@@ -655,7 +656,7 @@ class _ProjectDetailPanel extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: onNavigate,
-                    icon: const Icon(Icons.arrow_forward_rounded,
+                    icon: Icon(PhosphorIconsRegular.arrowRight,
                         color: Colors.white, size: 18),
                     label: const Text(
                       'عرض تفاصيل المشروع',
@@ -770,7 +771,7 @@ class _ErrorOverlay extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.wifi_off_rounded, size: 56, color: colors.error),
+              Icon(PhosphorIconsRegular.wifiSlash, size: 56, color: colors.error),
               const SizedBox(height: 16),
               Text(
                 message,
@@ -783,7 +784,7 @@ class _ErrorOverlay extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: Colors.white),
                 label: const Text('إعادة المحاولة',
                     style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(

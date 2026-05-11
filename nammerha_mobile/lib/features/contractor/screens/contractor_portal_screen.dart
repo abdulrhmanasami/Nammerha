@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -116,7 +117,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: colors.error),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('ct_load_error'),
                       style: TextStyle(color: colors.textPrimary)),
@@ -173,7 +174,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                   color: colors.textPrimary)),
           const SizedBox(height: 12),
           if (dashboard.projects.isEmpty)
-            _emptyState(colors, Icons.assignment_rounded,
+            _emptyState(colors, PhosphorIconsRegular.clipboardText,
                 context.tr('ct_no_assigned'), context.tr('ct_browse_bid'))
           else
             ...dashboard.projects.asMap().entries.map(
@@ -249,7 +250,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.location_on_rounded, size: 14, color: colors.textSubtle),
+              Icon(PhosphorIconsRegular.mapPin, size: 14, color: colors.textSubtle),
               const SizedBox(width: 4),
               Text(p.region,
                   style: TextStyle(fontSize: 12, color: colors.textSecondary)),
@@ -353,7 +354,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
   Widget _buildMarketplace(List<ContractorProjectModel> marketplace, SemanticColors colors) {
     if (marketplace.isEmpty) {
       return _emptyState(
-          colors, Icons.search_rounded, context.tr('ct_no_marketplace'), context.tr('ct_new_projects_hint'));
+          colors, PhosphorIconsRegular.magnifyingGlass, context.tr('ct_no_marketplace'), context.tr('ct_new_projects_hint'));
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -406,12 +407,12 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                 borderRadius: BorderRadius.circular(10)),
             child: Row(
               children: [
-                Icon(Icons.location_on_rounded, size: 14, color: colors.textSubtle),
+                Icon(PhosphorIconsRegular.mapPin, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
                 Text(p.region,
                     style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                 const SizedBox(width: 12),
-                Icon(Icons.build_rounded, size: 14, color: colors.textSubtle),
+                Icon(PhosphorIconsRegular.wrench, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
                 // G8 FIX: Was raw `Text(p.damageType)` — now i18n-translated.
                 Text(_translateDamageType(p.damageType),
@@ -432,7 +433,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
               ),
               GradientButton(
                 label: context.tr('ct_submit_bid'),
-                icon: Icons.gavel_rounded,
+                icon: PhosphorIconsRegular.gavel,
                 onPressed: () => _openBidModal(p.projectId),
                 height: 36,
                 borderRadius: 10,
@@ -466,7 +467,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
 
   Widget _buildBids(List<ContractorBidModel> bids, SemanticColors colors) {
     if (bids.isEmpty) {
-      return _emptyState(colors, Icons.flag_rounded, context.tr('ct_no_bids'), '');
+      return _emptyState(colors, PhosphorIconsRegular.flag, context.tr('ct_no_bids'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -547,7 +548,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
 
   Widget _buildPayments(List<ContractorPaymentModel> payments, SemanticColors colors) {
     if (payments.isEmpty) {
-      return _emptyState(colors, Icons.wallet_rounded, context.tr('ct_no_payments'), '');
+      return _emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ct_no_payments'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -575,7 +576,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                   decoration: BoxDecoration(
                       color: colors.success.withAlpha(15),
                       borderRadius: BorderRadius.circular(12)),
-                  child: Icon(Icons.payments_rounded,
+                  child: Icon(PhosphorIconsRegular.warningCircle,
                       color: colors.success, size: 22),
                 ),
                 const SizedBox(width: 12),
@@ -753,7 +754,7 @@ class _BidSubmitFormState extends State<_BidSubmitForm> {
           const SizedBox(height: 16),
           GradientButton(
             label: context.tr('ct_send_bid'),
-            icon: Icons.send_rounded,
+            icon: PhosphorIconsRegular.paperPlaneRight,
             onPressed: () {
               final cost = int.tryParse(_costController.text) ?? 0;
               final days = int.tryParse(_daysController.text) ?? 0;

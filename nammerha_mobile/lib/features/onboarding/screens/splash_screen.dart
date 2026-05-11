@@ -1,3 +1,5 @@
+import 'package:nammerha_mobile/core/theme/semantic_colors.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -30,6 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -119,12 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 SizedBox(
                   width: 36,
                   height: 36,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withAlpha(180),
-                    ),
-                    strokeWidth: 2.5,
-                  ),
+                  child: NammerhaShimmerLoader(colors: colors),
                 )
                     .animate(delay: 1200.ms)
                     .fadeIn(duration: 500.ms),

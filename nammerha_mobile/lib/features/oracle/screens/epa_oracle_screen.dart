@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -162,7 +163,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
 
   Widget _buildPriceTicker(SemanticColors colors, OracleState state) {
     if (state.isLoading && state.prices.isEmpty) return NammerhaShimmerLoader(colors: colors);
-    if (state.prices.isEmpty) return _emptyState(colors, Icons.show_chart_rounded, 'لا تتوفر بيانات أسعار', 'سيتم تحديث الأسعار تلقائياً');
+    if (state.prices.isEmpty) return _emptyState(colors, PhosphorIconsRegular.chartLineUp, 'لا تتوفر بيانات أسعار', 'سيتم تحديث الأسعار تلقائياً');
     return RefreshIndicator(
       onRefresh: () async => _loadTabData(0),
       color: colors.primaryBrand,
@@ -179,7 +180,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.trending_up_rounded, color: Colors.white, size: 20),
+                Icon(PhosphorIconsRegular.trendUp, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Text('مؤشر أسعار المواد', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white.withAlpha(230))),
                 const SizedBox(width: 4),
@@ -211,7 +212,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                      isPositive ? PhosphorIconsRegular.trendUp : PhosphorIconsRegular.trendDown,
                       color: isPositive ? colors.success : colors.error, size: 22,
                     ),
                   ),
@@ -260,7 +261,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
           ),
           child: Row(
             children: [
-              Icon(Icons.info_rounded, size: 20, color: colors.info),
+              Icon(PhosphorIconsRegular.info, size: 20, color: colors.info),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -305,7 +306,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: state.isLoading ? null : _calculateAdjustment,
-            icon: Icon(state.isLoading ? Icons.hourglass_top_rounded : Icons.calculate_rounded, size: 18),
+            icon: Icon(state.isLoading ? PhosphorIconsRegular.hourglassHigh : PhosphorIconsRegular.warningCircle, size: 18),
             label: Text(state.isLoading ? 'جارِ الحساب...' : 'احسب التعديل'),
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryBrand,
@@ -374,9 +375,9 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
   // ─── Tab 3: History ───────────────────────────────────────────────────
 
   Widget _buildHistory(SemanticColors colors, OracleState state) {
-    if (widget.projectId == null) return _emptyState(colors, Icons.history_rounded, 'اختر مشروعاً لعرض السجل', '');
+    if (widget.projectId == null) return _emptyState(colors, PhosphorIconsRegular.clockCounterClockwise, 'اختر مشروعاً لعرض السجل', '');
     if (state.isLoading && state.history.isEmpty) return NammerhaShimmerLoader(colors: colors);
-    if (state.history.isEmpty) return _emptyState(colors, Icons.history_rounded, 'لا توجد تعديلات سابقة', '');
+    if (state.history.isEmpty) return _emptyState(colors, PhosphorIconsRegular.clockCounterClockwise, 'لا توجد تعديلات سابقة', '');
     return RefreshIndicator(
       onRefresh: () async => _loadTabData(2),
       color: colors.primaryBrand,
@@ -395,7 +396,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
             ),
             child: Row(
               children: [
-                Icon(Icons.timeline_rounded, color: colors.primaryBrand),
+                Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

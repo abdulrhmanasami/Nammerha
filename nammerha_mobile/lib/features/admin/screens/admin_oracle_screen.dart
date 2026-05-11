@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -37,7 +38,7 @@ class _OracleView extends StatelessWidget {
         iconTheme: IconThemeData(color: colors.textHeading),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: colors.primaryBrand),
             onPressed: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
           ),
         ],
@@ -52,13 +53,13 @@ class _OracleView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline_rounded, size: 48, color: colors.error),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
                   const SizedBox(height: 12),
                   Text(state.message, style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
-                    icon: const Icon(Icons.refresh_rounded),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                     label: const Text('إعادة المحاولة'),
                     style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
                   ),
@@ -83,7 +84,7 @@ class _OracleView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.price_change_rounded, size: 48, color: colors.textMuted),
+            Icon(PhosphorIconsRegular.tag, size: 48, color: colors.textMuted),
             const SizedBox(height: 8),
             Text('لا توجد أسعار متاحة', style: TextStyle(color: colors.textMuted)),
           ],
@@ -119,7 +120,7 @@ class _OracleView extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.price_change_rounded, color: Colors.white, size: 22),
+                  child: Icon(PhosphorIconsRegular.tag, color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -165,7 +166,7 @@ class _OracleView extends StatelessWidget {
   Widget _buildPriceCard(SemanticColors colors, OraclePriceEntry price) {
     final isPositive = price.changePercent >= 0;
     final changeColor = isPositive ? colors.error : colors.success;
-    final changeIcon = isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded;
+    final changeIcon = isPositive ? PhosphorIconsRegular.trendUp : PhosphorIconsRegular.trendDown;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -183,7 +184,7 @@ class _OracleView extends StatelessWidget {
               color: colors.warmEarth.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.inventory_2_rounded, color: colors.warmEarth, size: 20),
+            child: Icon(PhosphorIconsRegular.package, color: colors.warmEarth, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(

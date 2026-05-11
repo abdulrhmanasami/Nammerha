@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -96,7 +97,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.wifi_off_rounded, size: 16, color: Colors.white),
+                      Icon(PhosphorIconsRegular.wifiSlash, size: 16, color: Colors.white),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(

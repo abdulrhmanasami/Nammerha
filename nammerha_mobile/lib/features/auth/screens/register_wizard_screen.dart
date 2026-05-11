@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -99,7 +100,7 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: colors.textPrimary),
+              icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textPrimary),
               onPressed: () {
                 if (_currentPage > 0) {
                   _pageController.previousPage(
@@ -174,7 +175,7 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'الاسم الكامل',
-                prefixIcon: const Icon(Icons.person_outline_rounded),
+                prefixIcon: Icon(PhosphorIconsRegular.user),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               validator: (v) => v == null || v.isEmpty ? 'الاسم مطلوب' : null,
@@ -209,7 +210,7 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'البريد الإلكتروني',
-                prefixIcon: const Icon(Icons.email_outlined),
+                prefixIcon: Icon(PhosphorIconsRegular.warningCircle),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               validator: (v) {
@@ -248,9 +249,9 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
               obscureText: _obscurePassword,
               decoration: InputDecoration(
                 labelText: 'كلمة المرور',
-                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                prefixIcon: Icon(PhosphorIconsRegular.lockKey),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+                  icon: Icon(_obscurePassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye),
                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -264,9 +265,9 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
               obscureText: _obscureConfirm,
               decoration: InputDecoration(
                 labelText: 'تأكيد كلمة المرور',
-                prefixIcon: const Icon(Icons.lock_rounded),
+                prefixIcon: Icon(PhosphorIconsRegular.lockKey),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+                  icon: Icon(_obscureConfirm ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye),
                   onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

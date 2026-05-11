@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 // ============================================================================
 // Nammerha — PDF Viewer Screen (Platinum Standard)
 // ============================================================================
@@ -167,7 +168,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           // Share button
           if (_state == _PdfState.ready)
             IconButton(
-              icon: Icon(Icons.share_rounded, color: colors.primaryBrand),
+              icon: Icon(PhosphorIconsRegular.shareNetwork, color: colors.primaryBrand),
               onPressed: _sharePdf,
               tooltip: context.tr('str_81a50c9d'),
             ),
@@ -206,7 +207,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                Icons.picture_as_pdf_rounded,
+                PhosphorIconsRegular.filePdf,
                 size: 40,
                 color: colors.primaryBrand,
               ),
@@ -306,7 +307,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                Icons.error_outline_rounded,
+                PhosphorIconsRegular.warningCircle,
                 size: 40,
                 color: colors.error,
               ),
@@ -331,7 +332,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: _downloadPdf,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: Icon(PhosphorIconsRegular.arrowsClockwise),
               label: const Text('إعادة المحاولة'),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
@@ -351,7 +352,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
               },
-              icon: Icon(Icons.open_in_browser_rounded, color: colors.textSecondary, size: 18),
+              icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary, size: 18),
               label: Text(
                 'فتح في المتصفح',
                 style: TextStyle(color: colors.textSecondary, fontSize: 13),

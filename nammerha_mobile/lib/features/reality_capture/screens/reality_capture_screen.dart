@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -95,15 +96,15 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
           unselectedLabelColor: colors.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
           tabs: const [
-            Tab(text: 'الالتقاطات', icon: Icon(Icons.view_in_ar_rounded, size: 20)),
-            Tab(text: 'أعمال مخفية', icon: Icon(Icons.visibility_rounded, size: 20)),
+            Tab(text: 'الالتقاطات', icon: Icon(PhosphorIconsRegular.cube, size: 20)),
+            Tab(text: 'أعمال مخفية', icon: Icon(PhosphorIconsRegular.eye, size: 20)),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCaptureSheet(context),
         backgroundColor: colors.primaryBrand,
-        icon: const Icon(Icons.camera_rounded, color: Colors.white),
+        icon: Icon(PhosphorIconsRegular.camera, color: Colors.white),
         label: const Text('التقاط جديد', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<RealityCaptureBloc, RealityCaptureState>(
@@ -156,7 +157,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
     final captures = state is CapturesLoaded ? state.captures : <Map<String, dynamic>>[];
 
     if (captures.isEmpty) {
-      return _emptyState(colors, Icons.view_in_ar_rounded, 'لا توجد التقاطات بعد', 'اضغط على "التقاط جديد" لبدء التوثيق');
+      return _emptyState(colors, PhosphorIconsRegular.cube, 'لا توجد التقاطات بعد', 'اضغط على "التقاط جديد" لبدء التوثيق');
     }
 
     return RefreshIndicator(
@@ -210,7 +211,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
 
     final works = state.works;
     if (works.isEmpty) {
-      return _emptyState(colors, Icons.visibility_off_rounded, 'لا توجد أعمال مخفية', 'التقاطات ما قبل الصب ستظهر هنا');
+      return _emptyState(colors, PhosphorIconsRegular.eyeSlash, 'لا توجد أعمال مخفية', 'التقاطات ما قبل الصب ستظهر هنا');
     }
 
     return ListView(
@@ -224,7 +225,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
             border: Border.all(color: colors.warning.withAlpha(40)),
           ),
           child: Row(children: [
-            Icon(Icons.warning_amber_rounded, color: colors.warning, size: 20),
+            Icon(PhosphorIconsRegular.warningCircle, color: colors.warning, size: 20),
             const SizedBox(width: 10),
             Expanded(child: Text(
               'الأعمال المخفية: تصوير ما قبل الصب الخرساني كدليل قانوني على جودة السباكة والكهرباء',
@@ -279,14 +280,14 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                 errorWidget: (context, url, error) => Container(
                   height: 180,
                   color: colors.backgroundSecondary,
-                  child: Icon(Icons.broken_image_rounded, size: 40, color: colors.textSubtle),
+                  child: Icon(PhosphorIconsRegular.imageBroken, size: 40, color: colors.textSubtle),
                 ),
               )
             else
               Container(
                 height: 180,
                 color: colors.backgroundSecondary,
-                child: Icon(is360 ? Icons.view_in_ar_rounded : Icons.image_rounded, size: 40, color: colors.textSubtle),
+                child: Icon(is360 ? PhosphorIconsRegular.cube : PhosphorIconsRegular.image, size: 40, color: colors.textSubtle),
               ),
             // 360 badge
             if (is360)
@@ -299,7 +300,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.threesixty_rounded, size: 14, color: Colors.white),
+                    Icon(PhosphorIconsRegular.warningCircle, size: 14, color: Colors.white),
                     SizedBox(width: 4),
                     Text('360°', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
                   ]),
@@ -316,7 +317,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.verified_rounded, size: 14, color: Colors.white),
+                    Icon(PhosphorIconsRegular.sealCheck, size: 14, color: Colors.white),
                     SizedBox(width: 4),
                     Text('مُوثّق', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
                   ]),
@@ -339,7 +340,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                 child: Text(phaseLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.gps_fixed_rounded, size: 12, color: colors.textSubtle),
+              Icon(PhosphorIconsRegular.crosshair, size: 12, color: colors.textSubtle),
               const SizedBox(width: 3),
               Text(
                 '${(c['gps_lat'] as num?)?.toStringAsFixed(4) ?? '—'}, ${(c['gps_lng'] as num?)?.toStringAsFixed(4) ?? '—'}',
@@ -395,9 +396,9 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
               Text('نوع الالتقاط', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
               const SizedBox(height: 8),
               Row(children: [
-                _typeChip(ctx, setModalState, selectedType, CaptureType.photo360, Icons.threesixty_rounded, colors, (v) => selectedType = v),
+                _typeChip(ctx, setModalState, selectedType, CaptureType.photo360, PhosphorIconsRegular.warningCircle, colors, (v) => selectedType = v),
                 const SizedBox(width: 8),
-                _typeChip(ctx, setModalState, selectedType, CaptureType.photoStandard, Icons.camera_alt_rounded, colors, (v) => selectedType = v),
+                _typeChip(ctx, setModalState, selectedType, CaptureType.photoStandard, PhosphorIconsRegular.camera, colors, (v) => selectedType = v),
               ]),
               const SizedBox(height: 16),
 
@@ -428,7 +429,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
 
               ElevatedButton.icon(
                 onPressed: () => _captureAndSubmit(ctx, selectedPhase, selectedType, titleCtrl.text, descCtrl.text),
-                icon: const Icon(Icons.camera_rounded, color: Colors.white),
+                icon: Icon(PhosphorIconsRegular.camera, color: Colors.white),
                 label: Text(
                   selectedType == CaptureType.photo360 ? 'فتح الكاميرا (بانوراما 360°)' : 'فتح الكاميرا',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),

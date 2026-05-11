@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -117,7 +118,7 @@ class _KycView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.inbox_rounded, size: 48, color: colors.textMuted),
+                      Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textMuted),
                       const SizedBox(height: 8),
                       Text('لا توجد طلبات', style: TextStyle(color: colors.textMuted)),
                     ],
@@ -244,13 +245,13 @@ class _KycView extends StatelessWidget {
               spacing: 12,
               runSpacing: 4,
               children: [
-                _kycDetail(colors, Icons.badge_rounded, 'الدور: ${entry.role}'),
+                _kycDetail(colors, PhosphorIconsRegular.warningCircle, 'الدور: ${entry.role}'),
                 if (entry.commercialRegisterNumber != null)
-                  _kycDetail(colors, Icons.store_rounded, 'سجل: ${entry.commercialRegisterNumber}'),
+                  _kycDetail(colors, PhosphorIconsRegular.storefront, 'سجل: ${entry.commercialRegisterNumber}'),
                 if (entry.engineeringLicenseNumber != null)
-                  _kycDetail(colors, Icons.engineering_rounded, 'ترخيص: ${entry.engineeringLicenseNumber}'),
+                  _kycDetail(colors, PhosphorIconsRegular.hardHat, 'ترخيص: ${entry.engineeringLicenseNumber}'),
                 if (entry.guildMembershipId != null)
-                  _kycDetail(colors, Icons.groups_rounded, 'نقابة: ${entry.guildMembershipId}'),
+                  _kycDetail(colors, PhosphorIconsRegular.warningCircle, 'نقابة: ${entry.guildMembershipId}'),
               ],
             ),
           ),
@@ -268,7 +269,7 @@ class _KycView extends StatelessWidget {
                           UpdateKycDecision(userId: entry.userId, decision: 'verified'),
                         );
                       },
-                      icon: const Icon(Icons.check_rounded, size: 18),
+                      icon: Icon(PhosphorIconsRegular.check, size: 18),
                       label: const Text('قبول'),
                       style: FilledButton.styleFrom(
                         backgroundColor: colors.success,
@@ -281,7 +282,7 @@ class _KycView extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(context, entry),
-                      icon: Icon(Icons.close_rounded, size: 18, color: colors.error),
+                      icon: Icon(PhosphorIconsRegular.x, size: 18, color: colors.error),
                       label: Text(context.tr('admin_reject'), style: TextStyle(color: colors.error)),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: colors.error),

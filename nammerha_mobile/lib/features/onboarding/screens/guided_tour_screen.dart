@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,31 +76,31 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
 
   final List<_TourStep> _steps = [
     _TourStep(
-      icon: Icons.dashboard_rounded,
+      icon: PhosphorIconsRegular.squaresFour,
       title: 'لوحة التحكم',
       body: 'تابع كل مشاريعك، تبرعاتك، وإحصائياتك\nمن مكان واحد مع تحديثات لحظية',
       gradient: NammerhaGradients.brandPrimary.colors,
     ),
     _TourStep(
-      icon: Icons.storefront_rounded,
+      icon: PhosphorIconsRegular.warningCircle,
       title: 'السوق',
       body: 'تصفّح المشاريع المتاحة وساهم بالتمويل\nاو تقدّم بعروضك كمقاول',
       gradient: NammerhaGradients.ctaPrimary.colors,
     ),
     _TourStep(
-      icon: Icons.camera_alt_rounded,
+      icon: PhosphorIconsRegular.camera,
       title: 'الإثبات المكاني',
       body: 'التقط صوراً محمية بالـ GPS و SHA-256\nلإثبات التقدم الحقيقي في الميدان',
       gradient: [const Color(0xFF0A6E55), const Color(0xFF085A46)],
     ),
     _TourStep(
-      icon: Icons.shield_rounded,
+      icon: PhosphorIconsRegular.shield,
       title: 'أمان ضمان الإسكرو',
       body: 'الأموال محمية في حساب ضمان آمن\nوتُفرج فقط عند التحقق من الإنجاز',
       gradient: [const Color(0xFFD59F80), const Color(0xFFFCC934)],
     ),
     _TourStep(
-      icon: Icons.person_rounded,
+      icon: PhosphorIconsRegular.user,
       title: 'ملفك الشخصي',
       body: 'أدِر حسابك، بدّل أدوارك (مانح/مقاول/مهندس)\nوتابع تقييمات ثقتك',
       gradient: [const Color(0xFF1558D6), const Color(0xFF0A6E55)],

@@ -149,7 +149,7 @@ class NmSemanticCard extends StatelessWidget {
 /// ```dart
 /// NmSemanticLiveRegion(
 ///   label: 'جاري تحميل المشاريع...',
-///   child: CircularProgressIndicator(),
+///   child: NammerhaShimmerLoader(colors: colors),
 /// )
 /// ```
 class NmSemanticLiveRegion extends StatelessWidget {

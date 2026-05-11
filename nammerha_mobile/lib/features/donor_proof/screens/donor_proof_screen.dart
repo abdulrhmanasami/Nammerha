@@ -103,7 +103,7 @@ class _DonorProofScreenContent extends StatelessWidget {
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => context.read<DonorProofBloc>().add(LoadDonorProofs()),
-            icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
+            icon: Icon(PhosphorIconsRegular.arrowsClockwise),
             label: const Text('إعادة المحاولة'),
           ),
         ],

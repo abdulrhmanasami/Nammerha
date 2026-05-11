@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -49,13 +50,13 @@ class _FintechView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline_rounded, size: 48, color: colors.error),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
                   const SizedBox(height: 12),
                   Text(state.message, style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<AdminFintechBloc>().add(LoadFintechData()),
-                    icon: const Icon(Icons.refresh_rounded),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                     label: const Text('إعادة المحاولة'),
                     style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
                   ),
@@ -96,27 +97,27 @@ class _FintechView extends StatelessWidget {
               AdminKpiCard(
                 title: 'إيرادات الرسوم',
                 value: fees.totalFeeRevenue,
-                icon: Icons.account_balance_rounded,
+                icon: PhosphorIconsRegular.bank,
                 accentColor: colors.primaryBrand,
                 isCurrency: true,
               ),
               AdminKpiCard(
                 title: 'رسوم الشهر',
                 value: fees.mtdFeeRevenue,
-                icon: Icons.calendar_month_rounded,
+                icon: PhosphorIconsRegular.warningCircle,
                 accentColor: colors.secondaryAccent,
                 isCurrency: true,
               ),
               AdminKpiCard(
                 title: 'عدد الرسوم',
                 value: fees.totalFeesCount,
-                icon: Icons.tag_rounded,
+                icon: PhosphorIconsRegular.warningCircle,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
                 title: 'متوسط الرسم',
                 value: fees.averageFeeCents,
-                icon: Icons.analytics_rounded,
+                icon: PhosphorIconsRegular.chartLine,
                 accentColor: colors.info,
                 isCurrency: true,
               ),
@@ -126,7 +127,7 @@ class _FintechView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Fee Configurations
-          _sectionHeader(colors, 'إعدادات الرسوم', Icons.tune_rounded),
+          _sectionHeader(colors, 'إعدادات الرسوم', PhosphorIconsRegular.sliders),
           const SizedBox(height: 8),
           if (state.feeConfigs.isEmpty)
             _emptyCard(colors, 'لا توجد إعدادات')
@@ -139,7 +140,7 @@ class _FintechView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Enterprise Organizations
-          _sectionHeader(colors, context.tr('admin_organizations'), Icons.business_center_rounded),
+          _sectionHeader(colors, context.tr('admin_organizations'), PhosphorIconsRegular.warningCircle),
           const SizedBox(height: 8),
           if (state.organizations.isEmpty)
             _emptyCard(colors, 'لا توجد مؤسسات')

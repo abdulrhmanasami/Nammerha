@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -185,7 +186,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                               Row(
                                 children: [
                                   Icon(
-                                    isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                                    isSelected ? PhosphorIconsRegular.radioButton : PhosphorIconsRegular.circle,
                                     color: isSelected ? colors.primaryBrand : colors.textSecondary,
                                   ),
                                   const SizedBox(width: 12),
@@ -245,7 +246,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.check_circle_rounded, color: colors.success, size: 18),
+                                  Icon(PhosphorIconsRegular.checkCircle, color: colors.success, size: 18),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
@@ -266,7 +267,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                 const SizedBox(height: 32),
                 GradientButton(
                   label: selectedTierIndex == 0 ? context.tr('sp_sub_free_btn') : context.tr('sp_sub_upgrade_btn'),
-                  icon: selectedTierIndex == 0 ? Icons.arrow_forward_rounded : Icons.workspace_premium_rounded,
+                  icon: selectedTierIndex == 0 ? PhosphorIconsRegular.arrowRight : PhosphorIconsRegular.warningCircle,
                   isLoading: state.isSubscribing,
                   onPressed: () => _processSubscription(tiers),
                 ).animate(delay: 600.ms).fadeIn(),

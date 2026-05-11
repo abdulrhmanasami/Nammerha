@@ -1,3 +1,4 @@
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -181,13 +182,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                       ),
                       onPressed: isSubmitting ? null : _submitBid,
                       child: isSubmitting
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
+                          ? SizedBox(width: 24, height: 24, child: NammerhaShimmerLoader(colors: colors),
                             )
                           : Text(
                               'تأكيد وتقديم العطاء',

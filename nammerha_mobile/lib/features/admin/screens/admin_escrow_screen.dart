@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -78,7 +79,7 @@ class _EscrowView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle_rounded, size: 56, color: colors.success),
+            Icon(PhosphorIconsRegular.checkCircle, size: 56, color: colors.success),
             const SizedBox(height: 12),
             Text(
               'لا توجد إثباتات معلّقة',
@@ -131,7 +132,7 @@ class _EscrowView extends StatelessWidget {
                     color: colors.secondaryAccentLight,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.receipt_long_rounded, color: colors.secondaryAccent, size: 20),
+                  child: Icon(PhosphorIconsRegular.receipt, color: colors.secondaryAccent, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -182,12 +183,12 @@ class _EscrowView extends StatelessWidget {
               runSpacing: 6,
               children: [
                 if (c.projectTitle != null)
-                  _detailChip(colors, Icons.business_rounded, c.projectTitle!),
+                  _detailChip(colors, PhosphorIconsRegular.buildings, c.projectTitle!),
                 if (c.latitude != null && c.longitude != null)
-                  _detailChip(colors, Icons.location_on_rounded,
+                  _detailChip(colors, PhosphorIconsRegular.mapPin,
                       '${c.latitude!.toStringAsFixed(4)}, ${c.longitude!.toStringAsFixed(4)}'),
                 if (c.submittedAt != null)
-                  _detailChip(colors, Icons.schedule_rounded, _formatDate(c.submittedAt!)),
+                  _detailChip(colors, PhosphorIconsRegular.clock, _formatDate(c.submittedAt!)),
               ],
             ),
           ),
@@ -202,7 +203,7 @@ class _EscrowView extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () => _confirmRelease(context, c),
-                    icon: const Icon(Icons.check_circle_rounded, size: 18),
+                    icon: Icon(PhosphorIconsRegular.checkCircle, size: 18),
                     label: const Text('تحرير الضمان'),
                     style: FilledButton.styleFrom(
                       backgroundColor: colors.success,
@@ -215,7 +216,7 @@ class _EscrowView extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _showFlagDialog(context, c),
-                    icon: Icon(Icons.flag_rounded, size: 18, color: colors.error),
+                    icon: Icon(PhosphorIconsRegular.flag, size: 18, color: colors.error),
                     label: Text('تعليم تناقض', style: TextStyle(color: colors.error)),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: colors.error),

@@ -191,7 +191,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: () => context.read<SupplierBloc>().add(LoadDashboardEvent()),
-                    icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
                     label: Text(context.tr('sp_retry')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
@@ -477,7 +477,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => _showAddCatalogModal(context),
-              icon: const Icon(PhosphorIconsRegular.floppyDisk, size: 18),
+              icon: Icon(PhosphorIconsRegular.floppyDisk, size: 18),
               label: Text(context.tr('sp_add_material')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
@@ -813,7 +813,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () => context.read<SupplierBloc>().add(LoadAnalyticsEvent()),
-                    icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
                     label: Text(context.tr('sp_retry')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,

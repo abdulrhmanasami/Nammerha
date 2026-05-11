@@ -1,3 +1,5 @@
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -115,7 +117,7 @@ class _DonationCheckoutContentState extends State<_DonationCheckoutContent> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.security, color: colors.primaryBrand),
+                        Icon(PhosphorIconsRegular.shieldCheck, color: colors.primaryBrand),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -150,7 +152,7 @@ class _DonationCheckoutContentState extends State<_DonationCheckoutContent> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: Icon(Icons.attach_money, size: 32, color: colors.secondaryAccent),
+                      prefixIcon: Icon(PhosphorIconsRegular.currencyDollar, size: 32, color: colors.secondaryAccent),
                     ),
                     validator: (val) {
                       if (val == null || val.isEmpty) return context.tr('str_bbd73382');
@@ -186,10 +188,7 @@ class _DonationCheckoutContentState extends State<_DonationCheckoutContent> {
                       ),
                       onPressed: formState.isSubmitting ? null : _processDonation,
                       child: formState.isSubmitting
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          ? SizedBox(width: 24, height: 24, child: NammerhaShimmerLoader(colors: colors),
                             )
                           : Text(
                               'متابعة الدفع عبر بوابة فاتورة',

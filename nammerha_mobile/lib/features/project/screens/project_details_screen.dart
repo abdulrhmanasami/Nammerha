@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -77,7 +78,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.shopping_cart_outlined, color: colors.primaryBrand),
+                    icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                     },
@@ -125,13 +126,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
                     const SizedBox(height: 16),
                     Text(state.message, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId)),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
@@ -161,7 +162,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     // BOQ Section
                     Row(
                       children: [
-                        Icon(Icons.list_alt_rounded, color: colors.primaryBrand, size: 22),
+                        Icon(PhosphorIconsRegular.listDashes, color: colors.primaryBrand, size: 22),
                         const SizedBox(width: 8),
                         Text(
                           'جدول الكميات (BOQ)',
@@ -241,7 +242,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               if (address.toString().isNotEmpty)
                 Row(
                   children: [
-                    Icon(Icons.location_on_rounded, size: 14, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.mapPin, size: 14, color: colors.textSecondary),
                     const SizedBox(width: 4),
                     Text(address.toString(), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                   ],
@@ -356,7 +357,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 ),
                 Row(
                   children: [
-                    _qtyButton(colors, Icons.remove, () {
+                    _qtyButton(colors, PhosphorIconsRegular.minus, () {
                       if (selectedQty > 0) {
                         context.read<ProjectDetailsBloc>().add(UpdateBOQQuantityRequested(itemId: itemId, quantity: selectedQty - 1));
                       }
@@ -365,7 +366,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Text('$selectedQty', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                     ),
-                    _qtyButton(colors, Icons.add, () {
+                    _qtyButton(colors, PhosphorIconsRegular.plus, () {
                       if (selectedQty < remainingQty) {
                         context.read<ProjectDetailsBloc>().add(UpdateBOQQuantityRequested(itemId: itemId, quantity: selectedQty + 1));
                       }
@@ -461,7 +462,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   ),
                 );
               },
-              icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
+              icon: Icon(PhosphorIconsRegular.warningCircle, size: 18),
               label: Text(context.tr('add_to_cart')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
@@ -491,7 +492,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               builder: (_) => BOQDetailsScreen(projectId: widget.projectId),
             ));
           },
-          icon: const Icon(Icons.gavel_rounded),
+          icon: Icon(PhosphorIconsRegular.gavel),
           label: const Text('تقديم عطاء وتسعير (BOQ)'),
           style: ElevatedButton.styleFrom(
             backgroundColor: colors.primaryBrand,
@@ -507,7 +508,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               builder: (_) => DonationCheckoutScreen(projectId: widget.projectId),
             ));
           },
-          icon: const Icon(Icons.favorite_rounded),
+          icon: Icon(PhosphorIconsRegular.heart),
           label: const Text('تبرع الآن للمشروع'),
           style: ElevatedButton.styleFrom(
             backgroundColor: colors.success,
@@ -523,7 +524,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               builder: (_) => TransparencyDashboardScreen(projectId: widget.projectId),
             ));
           },
-          icon: Icon(Icons.public_rounded, color: colors.primaryBrand),
+          icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
           label: Text('سجل الشفافية (OCDS)', style: TextStyle(color: colors.primaryBrand)),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),

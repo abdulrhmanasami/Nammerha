@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -73,7 +74,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         actions: [
           IconButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DamageReportScreen())),
-            icon: Icon(Icons.add_circle_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.plusCircle, color: colors.primaryBrand),
             tooltip: context.tr('ho_damage_report'),
           ),
         ],
@@ -133,15 +134,15 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         padding: const EdgeInsets.all(16),
         children: [
           Row(children: [
-            _kpiCard(context.tr('ho_kpi_active'), '${data.stats.activeProjects}', colors.primaryBrand, Icons.business_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_active'), '${data.stats.activeProjects}', colors.primaryBrand, PhosphorIconsRegular.buildings, colors),
             const SizedBox(width: 8),
-            _kpiCard(context.tr('ho_kpi_bids'), '${data.stats.totalBidsReceived}', colors.info, Icons.gavel_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_bids'), '${data.stats.totalBidsReceived}', colors.info, PhosphorIconsRegular.gavel, colors),
           ]).animate().fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
-            _kpiCard(context.tr('ho_kpi_approvals'), '${data.stats.pendingApprovals}', colors.warning, Icons.pending_actions_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_approvals'), '${data.stats.pendingApprovals}', colors.warning, PhosphorIconsRegular.warningCircle, colors),
             const SizedBox(width: 8),
-            _kpiCard(context.tr('ho_kpi_invested'), _formatCurrency(data.stats.totalInvested), colors.secondaryAccent, Icons.account_balance_rounded, colors),
+            _kpiCard(context.tr('ho_kpi_invested'), _formatCurrency(data.stats.totalInvested), colors.secondaryAccent, PhosphorIconsRegular.bank, colors),
           ]).animate(delay: 100.ms).fadeIn(),
           const SizedBox(height: 20),
 
@@ -151,7 +152,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
             (e) => _activeProjectCard(e.value, colors, e.key),
           ),
           if (data.projects.where((p) => !['completed', 'cancelled'].contains(p.status)).isEmpty)
-            _emptyState(colors, Icons.house_rounded, context.tr('ho_no_active'), context.tr('ho_report_to_start')),
+            _emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ho_no_active'), context.tr('ho_report_to_start')),
         ],
       ),
     );
@@ -210,11 +211,11 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: colors.backgroundSecondary, borderRadius: BorderRadius.circular(8)),
             child: Row(children: [
-              _infoChip(Icons.label_rounded, p.damageType, colors),
+              _infoChip(PhosphorIconsRegular.tag, p.damageType, colors),
               const SizedBox(width: 12),
-              if (p.engineerName != null) _infoChip(Icons.engineering_rounded, p.engineerName!, colors),
+              if (p.engineerName != null) _infoChip(PhosphorIconsRegular.hardHat, p.engineerName!, colors),
               const SizedBox(width: 12),
-              if (p.contractorName != null) _infoChip(Icons.construction_rounded, p.contractorName!, colors),
+              if (p.contractorName != null) _infoChip(PhosphorIconsRegular.wrench, p.contractorName!, colors),
             ]),
           ),
           const SizedBox(height: 8),
@@ -233,7 +234,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
 
   Widget _buildProjects(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.projects.isEmpty) return NammerhaShimmerLoader(colors: colors);
-    if (data.projects.isEmpty) return _emptyState(colors, Icons.house_siding_rounded, context.tr('ho_no_projects'), '');
+    if (data.projects.isEmpty) return _emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ho_no_projects'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(1)); },
       color: colors.primaryBrand,
@@ -253,7 +254,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(2)); },
       color: colors.primaryBrand,
       child: data.serviceRequests.isEmpty
-          ? ListView(children: [_emptyState(colors, Icons.handyman_rounded, context.tr('ho_no_requests'), context.tr('ho_create_request_hint'))])
+          ? ListView(children: [_emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ho_no_requests'), context.tr('ho_create_request_hint'))])
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: data.serviceRequests.length,
@@ -351,7 +352,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
 
   Widget _buildApprovals(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.approvals.isEmpty) return NammerhaShimmerLoader(colors: colors);
-    if (data.approvals.isEmpty) return _emptyState(colors, Icons.check_circle_rounded, context.tr('ho_no_approvals'), '');
+    if (data.approvals.isEmpty) return _emptyState(colors, PhosphorIconsRegular.checkCircle, context.tr('ho_no_approvals'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(3)); },
       color: colors.primaryBrand,
@@ -381,8 +382,8 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                   Text(a.description!, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                 const SizedBox(height: 6),
                 Wrap(spacing: 10, children: [
-                  _infoChip(Icons.business_rounded, a.projectTitle, colors),
-                  _infoChip(Icons.engineering_rounded, a.engineerName, colors),
+                  _infoChip(PhosphorIconsRegular.buildings, a.projectTitle, colors),
+                  _infoChip(PhosphorIconsRegular.hardHat, a.engineerName, colors),
                 ]),
                 if (isPending) ...[
                   const SizedBox(height: 12),
@@ -467,7 +468,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
               ),
               child: Row(
                 children: [
-                  Icon(Icons.verified_user_rounded, size: 22, color: colors.primaryBrand),
+                  Icon(PhosphorIconsRegular.shieldCheck, size: 22, color: colors.primaryBrand),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(

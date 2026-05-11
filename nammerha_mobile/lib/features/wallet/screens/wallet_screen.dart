@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,13 +89,13 @@ class _WalletView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+          Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
           const SizedBox(height: 16),
           Text(errorMsg, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => context.read<WalletBloc>().add(LoadWalletEvent()),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(PhosphorIconsRegular.arrowsClockwise),
             label: const Text('إعادة المحاولة'),
           ),
         ],
@@ -210,23 +211,23 @@ class _WalletView extends StatelessWidget {
       case 'locked':
       case 'pending':
         statusColor = colors.warning;
-        statusIcon = Icons.lock_rounded;
+        statusIcon = PhosphorIconsRegular.lockKey;
         statusLabel = 'محتجز';
         break;
       case 'released':
       case 'completed':
         statusColor = colors.success;
-        statusIcon = Icons.check_circle_rounded;
+        statusIcon = PhosphorIconsRegular.checkCircle;
         statusLabel = 'مُحرَّر';
         break;
       case 'refunded':
         statusColor = colors.info;
-        statusIcon = Icons.replay_rounded;
+        statusIcon = PhosphorIconsRegular.arrowCounterClockwise;
         statusLabel = 'مُستردّ';
         break;
       default:
         statusColor = colors.textSecondary;
-        statusIcon = Icons.circle;
+        statusIcon = PhosphorIconsRegular.circle;
         statusLabel = tx.status;
     }
 
@@ -309,7 +310,7 @@ class _WalletView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Column(
         children: [
-          Icon(Icons.receipt_long_rounded, size: 48, color: colors.textSubtle),
+          Icon(PhosphorIconsRegular.receipt, size: 48, color: colors.textSubtle),
           const SizedBox(height: 12),
           Text(
             'لم تقم بأي تبرع بعد',

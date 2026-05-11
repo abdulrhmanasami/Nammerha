@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,7 +68,7 @@ class _ComplianceDashboardView extends StatelessWidget {
         title: Text(context.tr('co_dashboard_title')),
         actions: [
           IconButton(
-            icon: Icon(Icons.shield_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.shield, color: colors.primaryBrand),
             onPressed: () => context.read<ComplianceBloc>().add(RunSdnCheckEvent()),
             tooltip: context.tr('co_sdn_check'),
           ),
@@ -96,7 +97,7 @@ class _ComplianceDashboardView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: colors.error),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('co_load_error'),
                       style: TextStyle(color: colors.textPrimary, fontSize: 16)),
@@ -207,7 +208,7 @@ class _ComplianceDashboardView extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.verified_rounded, size: 20, color: colors.primaryBrand),
+              Icon(PhosphorIconsRegular.sealCheck, size: 20, color: colors.primaryBrand),
               const SizedBox(width: 8),
               Text(context.tr('co_ocds_metrics'),
                   style: TextStyle(
@@ -368,7 +369,7 @@ class _ComplianceDashboardView extends StatelessWidget {
           // Material + amount
           Row(
             children: [
-              Icon(Icons.inventory_2_rounded, size: 14, color: colors.textSubtle),
+              Icon(PhosphorIconsRegular.package, size: 14, color: colors.textSubtle),
               const SizedBox(width: 4),
               Expanded(
                   child: Text(review.materialName,
@@ -391,7 +392,7 @@ class _ComplianceDashboardView extends StatelessWidget {
             child: Row(
               children: [
                 if (review.gpsAccuracy != null) ...[
-                  Icon(Icons.gps_fixed_rounded, size: 14, color: colors.textSubtle),
+                  Icon(PhosphorIconsRegular.crosshair, size: 14, color: colors.textSubtle),
                   const SizedBox(width: 4),
                   Text('±${review.gpsAccuracy!.toStringAsFixed(0)}م',
                       style: TextStyle(
@@ -402,7 +403,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                               : colors.error)),
                   const SizedBox(width: 12),
                 ],
-                Icon(Icons.calendar_today_rounded, size: 14, color: colors.textSubtle),
+                Icon(PhosphorIconsRegular.calendar, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
                 Text(_formatDate(review.submittedAt),
                     style: TextStyle(fontSize: 11, color: colors.textSecondary)),
@@ -427,7 +428,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                     onPressed: () {
                       context.read<ComplianceBloc>().add(ApproveEscrowReview(review.reference));
                     },
-                    icon: const Icon(Icons.check_circle_rounded, size: 16),
+                    icon: Icon(PhosphorIconsRegular.checkCircle, size: 16),
                     label: Text(context.tr('co_approve')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.success,
@@ -443,7 +444,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                     onPressed: () {
                       context.read<ComplianceBloc>().add(FlagEscrowReview(review.reference));
                     },
-                    icon: const Icon(Icons.flag_rounded, size: 16),
+                    icon: Icon(PhosphorIconsRegular.flag, size: 16),
                     label: Text(context.tr('co_flag')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colors.error,
@@ -468,7 +469,7 @@ class _ComplianceDashboardView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.verified_rounded, size: 56, color: colors.success.withAlpha(100)),
+            Icon(PhosphorIconsRegular.sealCheck, size: 56, color: colors.success.withAlpha(100)),
             const SizedBox(height: 16),
             Text(context.tr('co_no_pending'),
                 style: TextStyle(

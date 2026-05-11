@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -43,7 +44,7 @@ class CartFab extends StatelessWidget {
                 // Cart icon
                 const Center(
                   child: Icon(
-                    Icons.shopping_cart_rounded,
+                    PhosphorIconsRegular.shoppingCart,
                     color: Colors.white,
                     size: 28,
                   ),

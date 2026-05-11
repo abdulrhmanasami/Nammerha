@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -135,7 +136,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_off_rounded,
+              Icon(PhosphorIconsRegular.cloudSlash,
                   size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
               Text(
@@ -146,7 +147,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _fetchBOQ,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                 label: const Text('إعادة المحاولة'),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand),
@@ -161,7 +162,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.receipt_long_rounded,
+            Icon(PhosphorIconsRegular.receipt,
                 size: 48, color: colors.textSubtle),
             const SizedBox(height: 12),
             Text(
@@ -220,7 +221,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.trending_up,
+                      Icon(PhosphorIconsRegular.trendUp,
                           color: colors.warningText, size: 16),
                       const SizedBox(width: 4),
                       Text(

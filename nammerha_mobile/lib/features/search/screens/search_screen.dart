@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -43,7 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
             hintText: 'ابحث عن مشروع أو مقاول...',
             hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
             border: InputBorder.none,
-            prefixIcon: Icon(Icons.search, color: colors.primaryBrand),
+            prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: colors.primaryBrand),
           ),
           style: textTheme.bodyMedium?.copyWith(
             color: colors.textPrimary,
@@ -52,7 +53,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.filter_list, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.faders, color: colors.primaryBrand),
             onPressed: () => _showFilterBottomSheet(context),
           ),
         ],
@@ -64,7 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_rounded, size: 80, color: colors.textSubtle),
+                  Icon(PhosphorIconsRegular.magnifyingGlass, size: 80, color: colors.textSubtle),
                   const SizedBox(height: 16),
                   Text(
                     'ابدأ البحث عن المشاريع',
@@ -192,7 +193,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text('المشاريع ذات الأولوية (وفاق)', style: textTheme.bodyMedium),
-                trailing: Icon(Icons.verified, color: colors.primaryBrand),
+                trailing: Icon(PhosphorIconsRegular.sealCheck, color: colors.primaryBrand),
                 onTap: () {
                   Navigator.pop(ctx);
                   context.read<SearchBloc>().add(

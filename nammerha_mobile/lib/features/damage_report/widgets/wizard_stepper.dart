@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -113,7 +114,7 @@ class _StepDot extends StatelessWidget {
           ),
           child: Center(
             child: isCompleted
-                ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                ? Icon(PhosphorIconsRegular.check, color: Colors.white, size: 18)
                 : Text(
                     '$stepNumber',
                     style: TextStyle(

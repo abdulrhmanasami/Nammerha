@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -79,18 +80,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<BottomNavigationBarItem> _getNavItems() {
     if (_isAdmin) {
       return [
-        BottomNavigationBarItem(icon: const Icon(Icons.dashboard_rounded), label: context.tr('nav_home')),
-        BottomNavigationBarItem(icon: const Icon(Icons.shield_rounded), label: context.tr('nav_admin')),
-        BottomNavigationBarItem(icon: const Icon(Icons.person_rounded), label: context.tr('nav_profile')),
+        BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.squaresFour), label: context.tr('nav_home')),
+        BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.shield), label: context.tr('nav_admin')),
+        BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.user), label: context.tr('nav_profile')),
       ];
     }
     // Unified navigation for ALL non-admin users
     return [
-      BottomNavigationBarItem(icon: const Icon(Icons.dashboard_rounded), label: context.tr('nav_home')),
-      BottomNavigationBarItem(icon: const Icon(Icons.explore_rounded), label: context.tr('nav_discover')),
-      BottomNavigationBarItem(icon: const Icon(Icons.account_balance_wallet_rounded), label: context.tr('nav_wallet')),
-      BottomNavigationBarItem(icon: const Icon(Icons.public_rounded), label: context.tr('nav_impact')),
-      BottomNavigationBarItem(icon: const Icon(Icons.person_rounded), label: context.tr('nav_profile')),
+      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.squaresFour), label: context.tr('nav_home')),
+      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.compass), label: context.tr('nav_discover')),
+      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.wallet), label: context.tr('nav_wallet')),
+      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.warningCircle), label: context.tr('nav_impact')),
+      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.user), label: context.tr('nav_profile')),
     ];
   }
 
@@ -239,7 +240,7 @@ class _DashboardHomeView extends StatelessWidget {
                               alignment: Alignment.center,
                               children: [
                                 IconButton(
-                                  icon: Icon(Icons.shopping_cart_outlined, color: colors.textSecondary),
+                                  icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary),
                                   onPressed: () {
                                     Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                                   },
@@ -265,7 +266,7 @@ class _DashboardHomeView extends StatelessWidget {
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.notifications_outlined, color: colors.textSecondary),
+                          icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -294,7 +295,7 @@ class _DashboardHomeView extends StatelessWidget {
                           padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
-                              Icon(Icons.warning_amber_rounded, color: colors.error, size: 32),
+                              Icon(PhosphorIconsRegular.warningCircle, color: colors.error, size: 32),
                               const SizedBox(height: 8),
                               Text(state.message, style: TextStyle(color: colors.error)),
                             ],
@@ -383,10 +384,10 @@ class _DashboardHomeView extends StatelessWidget {
     // UNIFIED: Show combined stats for all users
     // Admin/Auditor keep their specific stats via _isAdmin check above
     final List<_StatItem> items = [
-      _StatItem(context.tr('my_projects'), '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', Icons.home_work_rounded, colors.primaryBrand),
-      _StatItem('عروض نشطة', '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}', Icons.gavel_rounded, colors.warning),
-      _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}', Icons.verified_rounded, colors.success),
-      _StatItem(context.tr('wallet'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), Icons.account_balance_wallet_rounded, colors.goldFunding),
+      _StatItem(context.tr('my_projects'), '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', PhosphorIconsRegular.warningCircle, colors.primaryBrand),
+      _StatItem('عروض نشطة', '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}', PhosphorIconsRegular.gavel, colors.warning),
+      _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}', PhosphorIconsRegular.sealCheck, colors.success),
+      _StatItem(context.tr('wallet'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), PhosphorIconsRegular.wallet, colors.goldFunding),
     ];
 
     return GridView.builder(
@@ -463,16 +464,16 @@ class _DashboardHomeView extends StatelessWidget {
 
     if (role == 'ADMIN' || role == 'AUDITOR') {
       actions = [
-        _QuickAction('لوحة القيادة', Icons.dashboard_rounded, colors.primaryBrand, const AdminDashboardScreen()),
-        _QuickAction(context.tr('escrow_label'), Icons.account_balance_wallet_rounded, colors.secondaryAccent, const AdminEscrowScreen()),
-        _QuickAction('التحقق KYC', Icons.verified_user_rounded, colors.warmEarth, const AdminKycScreen()),
+        _QuickAction('لوحة القيادة', PhosphorIconsRegular.squaresFour, colors.primaryBrand, const AdminDashboardScreen()),
+        _QuickAction(context.tr('escrow_label'), PhosphorIconsRegular.wallet, colors.secondaryAccent, const AdminEscrowScreen()),
+        _QuickAction('التحقق KYC', PhosphorIconsRegular.shieldCheck, colors.warmEarth, const AdminKycScreen()),
       ];
     } else {
       // UNIFIED: All tools available to everyone
       actions = [
-        _QuickAction('كاميرا مكانية', Icons.camera_alt_rounded, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
-        _QuickAction('تقرير ضرر', Icons.report_rounded, colors.warning, const DamageReportScreen()),
-        _QuickAction(context.tr('wallet'), Icons.account_balance_wallet_rounded, colors.success, const WalletScreen()),
+        _QuickAction('كاميرا مكانية', PhosphorIconsRegular.camera, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
+        _QuickAction('تقرير ضرر', PhosphorIconsRegular.warningCircle, colors.warning, const DamageReportScreen()),
+        _QuickAction(context.tr('wallet'), PhosphorIconsRegular.wallet, colors.success, const WalletScreen()),
       ];
     }
 
@@ -553,7 +554,7 @@ class _DashboardHomeView extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(Icons.inbox_rounded, size: 48, color: colors.textSecondary.withAlpha(80)),
+            Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textSecondary.withAlpha(80)),
             const SizedBox(height: 12),
             Text('لا توجد نشاطات حديثة', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary)),
             const SizedBox(height: 4),
@@ -637,21 +638,21 @@ class _DashboardHomeView extends StatelessWidget {
   _ActivityMeta _activityMeta(String type, SemanticColors colors) {
     switch (type) {
       case 'escrow_locked': case 'donation_received': case 'escrow_released': case 'payment_completed':
-        return _ActivityMeta(Icons.lock_rounded, colors.success);
+        return _ActivityMeta(PhosphorIconsRegular.lockKey, colors.success);
       case 'proof_submitted': case 'proof_verified':
-        return _ActivityMeta(Icons.verified_rounded, colors.primaryBrand);
+        return _ActivityMeta(PhosphorIconsRegular.sealCheck, colors.primaryBrand);
       case 'bid_received': case 'bid_accepted':
-        return _ActivityMeta(Icons.gavel_rounded, colors.goldFunding);
+        return _ActivityMeta(PhosphorIconsRegular.gavel, colors.goldFunding);
       case 'project_published': case 'project_funded':
-        return _ActivityMeta(Icons.home_work_rounded, colors.info);
+        return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.info);
       case 'kyc_verified':
-        return _ActivityMeta(Icons.badge_rounded, colors.success);
+        return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.success);
       case 'kyc_rejected':
-        return _ActivityMeta(Icons.badge_rounded, colors.error);
+        return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.error);
       case 'order_status':
-        return _ActivityMeta(Icons.local_shipping_rounded, colors.info);
+        return _ActivityMeta(PhosphorIconsRegular.truck, colors.info);
       default:
-        return _ActivityMeta(Icons.notifications_rounded, colors.textSecondary);
+        return _ActivityMeta(PhosphorIconsRegular.bell, colors.textSecondary);
     }
   }
 

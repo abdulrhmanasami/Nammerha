@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -49,13 +50,13 @@ class _RevenueView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline_rounded, size: 48, color: colors.error),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
                   const SizedBox(height: 12),
                   Text(state.message, style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.read<AdminRevenueBloc>().add(LoadRevenueDashboard()),
-                    icon: const Icon(Icons.refresh_rounded),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                     label: const Text('إعادة المحاولة'),
                     style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
                   ),
@@ -96,27 +97,27 @@ class _RevenueView extends StatelessWidget {
               AdminKpiCard(
                 title: 'إيرادات العمولات',
                 value: summary.totalCommissionRevenue,
-                icon: Icons.account_balance_rounded,
+                icon: PhosphorIconsRegular.bank,
                 accentColor: colors.primaryBrand,
                 isCurrency: true,
               ),
               AdminKpiCard(
                 title: 'إيرادات الإكراميات',
                 value: summary.totalTipRevenue,
-                icon: Icons.volunteer_activism_rounded,
+                icon: PhosphorIconsRegular.heart,
                 accentColor: colors.secondaryAccent,
                 isCurrency: true,
               ),
               AdminKpiCard(
                 title: 'عدد المعاملات',
                 value: summary.transactionCount,
-                icon: Icons.swap_horiz_rounded,
+                icon: PhosphorIconsRegular.warningCircle,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
                 title: 'عمولات الشهر',
                 value: summary.mtdCommissions,
-                icon: Icons.calendar_month_rounded,
+                icon: PhosphorIconsRegular.warningCircle,
                 accentColor: colors.info,
                 isCurrency: true,
               ),
@@ -129,7 +130,7 @@ class _RevenueView extends StatelessWidget {
           _buildSection(
             colors,
             'مستويات العمولة',
-            Icons.layers_rounded,
+            PhosphorIconsRegular.stack,
             state.tiers.isEmpty
                 ? _emptyState(colors, 'لا توجد مستويات')
                 : Column(
@@ -143,7 +144,7 @@ class _RevenueView extends StatelessWidget {
           _buildSection(
             colors,
             'العمولات الأخيرة',
-            Icons.receipt_rounded,
+            PhosphorIconsRegular.receipt,
             state.commissions.isEmpty
                 ? _emptyState(colors, 'لا توجد عمولات')
                 : Column(
@@ -157,7 +158,7 @@ class _RevenueView extends StatelessWidget {
           _buildSection(
             colors,
             'الإكراميات الأخيرة',
-            Icons.favorite_rounded,
+            PhosphorIconsRegular.heart,
             state.tips.isEmpty
                 ? _emptyState(colors, 'لا توجد إكراميات')
                 : Column(
@@ -256,7 +257,7 @@ class _RevenueView extends StatelessWidget {
               color: colors.secondaryAccentLight,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.receipt_long_rounded, size: 16, color: colors.secondaryAccent),
+            child: Icon(PhosphorIconsRegular.receipt, size: 16, color: colors.secondaryAccent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -295,7 +296,7 @@ class _RevenueView extends StatelessWidget {
               color: colors.warningLight,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.favorite_rounded, size: 16, color: colors.goldFunding),
+            child: Icon(PhosphorIconsRegular.heart, size: 16, color: colors.goldFunding),
           ),
           const SizedBox(width: 12),
           Expanded(

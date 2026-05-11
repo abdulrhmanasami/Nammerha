@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -98,7 +99,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
           children: [
             Expanded(
               child: _actionButton(
-                icon: Icons.camera_alt_rounded,
+                icon: PhosphorIconsRegular.camera,
                 label: 'الكاميرا',
                 onTap: _pickFromCamera,
                 colors: colors,
@@ -107,7 +108,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
             const SizedBox(width: 12),
             Expanded(
               child: _actionButton(
-                icon: Icons.photo_library_rounded,
+                icon: PhosphorIconsRegular.images,
                 label: 'المعرض',
                 onTap: _pickFromGallery,
                 colors: colors,
@@ -157,7 +158,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add_photo_alternate_rounded, size: 36, color: colors.textSubtle),
+                Icon(PhosphorIconsRegular.cameraPlus, size: 36, color: colors.textSubtle),
                 const SizedBox(height: 8),
                 Text(
                   'أضف صور الأضرار',
@@ -228,7 +229,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => Container(
                       color: colors.backgroundSecondary,
-                      child: Icon(Icons.image_rounded, color: colors.textSubtle),
+                      child: Icon(PhosphorIconsRegular.image, color: colors.textSubtle),
                     ),
                   );
                 }
@@ -249,7 +250,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
                   color: colors.error,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                child: Icon(PhosphorIconsRegular.x, color: Colors.white, size: 14),
               ),
             ),
           ),

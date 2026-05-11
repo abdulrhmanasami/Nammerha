@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -355,7 +356,7 @@ class PricingScreen extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
-                          Icon(Icons.check_circle,
+                          Icon(PhosphorIconsRegular.checkCircle,
                               size: 18, color: const Color(0xFF0A6E55)),
                           const SizedBox(width: 8),
                           Expanded(

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -65,7 +66,7 @@ class _CartScreenState extends State<CartScreen> {
             builder: (context, _) {
               if (CartStore.instance.isEmpty) return const SizedBox.shrink();
               return IconButton(
-                icon: Icon(Icons.delete_sweep_rounded, color: colors.error),
+                icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.error),
                 onPressed: _confirmClear,
                 tooltip: context.tr('empty_cart'),
               );
@@ -94,7 +95,7 @@ class _CartScreenState extends State<CartScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.shopping_cart_outlined,
+              PhosphorIconsRegular.warningCircle,
               size: 80,
               color: colors.textSubtle,
             ),
@@ -119,7 +120,7 @@ class _CartScreenState extends State<CartScreen> {
             const SizedBox(height: 32),
             GradientButton(
               label: context.tr('browse_projects'),
-              icon: Icons.explore_rounded,
+              icon: PhosphorIconsRegular.compass,
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -162,7 +163,7 @@ class _CartScreenState extends State<CartScreen> {
           color: colors.error,
           borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
         ),
-        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+        child: Icon(PhosphorIconsRegular.trash, color: Colors.white, size: 28),
       ),
       onDismissed: (_) {
         CartStore.instance.removeItem(item.id);
@@ -252,7 +253,7 @@ class _CartScreenState extends State<CartScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _quantityButton(
-                    icon: Icons.remove_rounded,
+                    icon: PhosphorIconsRegular.minus,
                     onTap: () {
                       CartStore.instance.updateQuantity(
                         item.id,
@@ -273,7 +274,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ),
                   _quantityButton(
-                    icon: Icons.add_rounded,
+                    icon: PhosphorIconsRegular.plus,
                     onTap: () {
                       CartStore.instance.updateQuantity(
                         item.id,
@@ -336,7 +337,7 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(height: 12),
                 _buildSummaryRow(context.tr('str_88fc73eb'), formatCurrency(grand), colors, isBold: true, valueColor: colors.primaryBrand),
                 const SizedBox(height: 16),
-                GradientButton(label: 'متابعة الدفع', icon: Icons.lock_rounded, onPressed: () => _proceedToCheckout(tipState)),
+                GradientButton(label: 'متابعة الدفع', icon: PhosphorIconsRegular.lockKey, onPressed: () => _proceedToCheckout(tipState)),
               ],
             ),
           ),
@@ -449,24 +450,24 @@ class _CartScreenState extends State<CartScreen> {
     switch (category.toLowerCase()) {
       case 'cement':
       case 'إسمنت':
-        return Icons.foundation_rounded;
+        return PhosphorIconsRegular.warningCircle;
       case 'steel':
       case 'حديد':
-        return Icons.hardware_rounded;
+        return PhosphorIconsRegular.warningCircle;
       case 'electrical':
       case 'كهرباء':
-        return Icons.electrical_services_rounded;
+        return PhosphorIconsRegular.warningCircle;
       case 'plumbing':
       case 'سباكة':
-        return Icons.plumbing_rounded;
+        return PhosphorIconsRegular.warningCircle;
       case 'paint':
       case 'دهان':
-        return Icons.format_paint_rounded;
+        return PhosphorIconsRegular.paintRoller;
       case 'wood':
       case 'خشب':
-        return Icons.carpenter_rounded;
+        return PhosphorIconsRegular.warningCircle;
       default:
-        return Icons.inventory_2_rounded;
+        return PhosphorIconsRegular.package;
     }
   }
 

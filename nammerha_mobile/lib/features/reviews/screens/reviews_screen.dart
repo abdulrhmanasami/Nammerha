@@ -54,7 +54,7 @@ class _ReviewsView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showSubmitSheet(context),
         backgroundColor: colors.primaryBrand,
-        icon: const Icon(PhosphorIconsRegular.star, color: Colors.white),
+        icon: Icon(PhosphorIconsRegular.star, color: Colors.white),
         label: const Text('أضف تقييم', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<ReviewBloc, ReviewState>(

@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -187,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             _buildTextField(
                               controller: _nameController,
                               label: context.tr('auth_full_name'),
-                              icon: Icons.person_rounded,
+                              icon: PhosphorIconsRegular.user,
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) return context.tr('auth_name_required');
                                 if (v.trim().length < 3) return context.tr('auth_name_min_length');
@@ -201,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           _buildTextField(
                             controller: _emailController,
                             label: context.tr('auth_email_label'),
-                            icon: Icons.email_rounded,
+                            icon: PhosphorIconsRegular.envelope,
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return context.tr('auth_email_required');
@@ -217,11 +218,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           _buildTextField(
                             controller: _passwordController,
                             label: context.tr('auth_password_label'),
-                            icon: Icons.lock_rounded,
+                            icon: PhosphorIconsRegular.lockKey,
                             obscureText: formState.obscurePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                formState.obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                formState.obscurePassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
                                 color: colors.textSecondary,
                               ),
                               onPressed: () => context.read<LoginFormCubit>().togglePasswordVisibility(),
@@ -255,11 +256,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             _buildTextField(
                               controller: _confirmPasswordController,
                               label: context.tr('auth_confirm_password'),
-                              icon: Icons.lock_outline_rounded,
+                              icon: PhosphorIconsRegular.lockKey,
                               obscureText: formState.obscureConfirmPassword,
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  formState.obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                  formState.obscureConfirmPassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
                                   color: colors.textSecondary,
                                 ),
                                 onPressed: () => context.read<LoginFormCubit>().toggleConfirmPasswordVisibility(),
@@ -337,7 +338,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 label: formState.isLoginMode
                                     ? context.tr('auth_sign_in_btn')
                                     : context.tr('auth_create_account_btn'),
-                                icon: formState.isLoginMode ? Icons.login_rounded : Icons.person_add_rounded,
+                                icon: formState.isLoginMode ? PhosphorIconsRegular.signIn : PhosphorIconsRegular.warningCircle,
                                 isLoading: state is AuthLoading,
                                 onPressed: () => _submit(
                                   formState.isLoginMode,
@@ -465,7 +466,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               textDirection: TextDirection.ltr,
               decoration: InputDecoration(
                 hintText: 'example@email.com',
-                prefixIcon: Icon(Icons.email_rounded, color: colors.textSecondary),
+                prefixIcon: Icon(PhosphorIconsRegular.envelope, color: colors.textSecondary),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -509,7 +510,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     ScaffoldMessenger.of(context).showMaterialBanner(
       MaterialBanner(
         backgroundColor: colors.warningLight,
-        leading: Icon(Icons.mark_email_unread_rounded, color: colors.warning, size: 28),
+        leading: Icon(PhosphorIconsRegular.warningCircle, color: colors.warning, size: 28),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -626,7 +627,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         Expanded(
           child: _buildSocialButton(
             label: 'Google',
-            icon: Icons.g_mobiledata_rounded,
+            icon: PhosphorIconsRegular.warningCircle,
             backgroundColor: Colors.white,
             foregroundColor: const Color(0xFF3C4043),
             borderColor: const Color(0xFFDADCE0),
@@ -637,7 +638,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         Expanded(
           child: _buildSocialButton(
             label: 'Apple',
-            icon: Icons.apple_rounded,
+            icon: PhosphorIconsRegular.warningCircle,
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
             borderColor: Colors.black,
@@ -648,7 +649,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         Expanded(
           child: _buildSocialButton(
             label: 'Facebook',
-            icon: Icons.facebook_rounded,
+            icon: PhosphorIconsRegular.warningCircle,
             backgroundColor: const Color(0xFF1877F2),
             foregroundColor: Colors.white,
             borderColor: const Color(0xFF1877F2),

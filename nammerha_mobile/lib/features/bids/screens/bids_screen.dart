@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,11 +68,11 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
         title: const Text('عروضي'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_circle_outline_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.plusCircle, color: colors.primaryBrand),
             onPressed: () => _showAddBidDialog(context, colors),
           ),
           IconButton(
-            icon: Icon(Icons.filter_list_rounded, color: colors.primaryBrand),
+            icon: Icon(PhosphorIconsRegular.faders, color: colors.primaryBrand),
             onPressed: () => _showFilterBottomSheet(context, colors),
           ),
         ],
@@ -94,13 +95,13 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+              Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
               Text(state.error!, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadBids,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
                 label: const Text('إعادة المحاولة'),
                 style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
               ),
@@ -115,7 +116,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.gavel_rounded, size: 64, color: colors.textSecondary),
+            Icon(PhosphorIconsRegular.gavel, size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
             Text('لا توجد عروض بعد', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
           ],
@@ -143,18 +144,18 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
             case 'accepted':
             case 'مقبول':
               statusColor = colors.success;
-              statusIcon = Icons.check_circle_rounded;
+              statusIcon = PhosphorIconsRegular.checkCircle;
               statusLabel = context.tr('str_19837e3e');
               break;
             case 'rejected':
             case 'مرفوض':
               statusColor = colors.error;
-              statusIcon = Icons.cancel_rounded;
+              statusIcon = PhosphorIconsRegular.warningCircle;
               statusLabel = context.tr('admin_filter_rejected');
               break;
             default:
               statusColor = colors.warning;
-              statusIcon = Icons.hourglass_top_rounded;
+              statusIcon = PhosphorIconsRegular.hourglassHigh;
               statusLabel = 'قيد المراجعة';
           }
 

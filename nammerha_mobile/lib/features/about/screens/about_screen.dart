@@ -1,3 +1,4 @@
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -54,14 +55,14 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 28),
 
           // Mission
-          _sectionCard(colors, icon: Icons.flag_rounded, title: context.tr('str_55da8344'), body:
+          _sectionCard(colors, icon: PhosphorIconsRegular.flag, title: context.tr('str_55da8344'), body:
             'نعمّرها هي منصة إعادة إعمار سوريا الرقمية الأولى، مبنية على الشفافية الجذرية ومعيار البيانات المفتوحة للتعاقد (OCDS). '
             'نضمن وصول كل ليرة إلى حيث يجب عبر آلية ضمان إسكرو مع إثبات مكاني بالـ GPS.',
           ),
           const SizedBox(height: 14),
 
           // How it works
-          _sectionCard(colors, icon: Icons.architecture_rounded, title: 'كيف تعمل المنصة', body:
+          _sectionCard(colors, icon: PhosphorIconsRegular.compassTool, title: 'كيف تعمل المنصة', body:
             '١. أصحاب المنازل المتضررة يسجّلون مشاريعهم بتقارير أضرار مصوّرة\n'
             '٢. المانحون يموّلون المشاريع عبر ضمان إسكرو آمن\n'
             '٣. المقاولون والمهندسون ينفذون الأعمال مع إثباتات مكانية حيّة\n'
@@ -70,7 +71,7 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 14),
 
           // Values
-          _sectionCard(colors, icon: Icons.verified_user_rounded, title: context.tr('str_6874f4fa'), body:
+          _sectionCard(colors, icon: PhosphorIconsRegular.shieldCheck, title: context.tr('str_6874f4fa'), body:
             '• الشفافية الجذرية — كل معاملة مرئية ومتتبَّعة\n'
             '• الأمان المالي — إسكرو معتمد، لا تحويلات مباشرة\n'
             '• إثبات الواقع — تحقق GPS + SHA-256 للصور\n'
@@ -79,7 +80,7 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 14),
 
           // Standards
-          _sectionCard(colors, icon: Icons.workspace_premium_rounded, title: 'المعايير الدولية', body:
+          _sectionCard(colors, icon: PhosphorIconsRegular.warningCircle, title: 'المعايير الدولية', body:
             '• OCDS — معيار البيانات المفتوحة للتعاقد\n'
             '• FIDIC 13.8 — تعديل الأسعار الديناميكي\n'
             '• OFAC GL25 / FATF 8 — فحص العقوبات\n'
@@ -88,9 +89,9 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 24),
 
           // Links
-          _linkTile(colors, Icons.privacy_tip_rounded, 'سياسة الخصوصية', 'https://nammerha.com/privacy'),
-          _linkTile(colors, Icons.description_rounded, 'شروط الاستخدام', 'https://nammerha.com/terms'),
-          _linkTile(colors, Icons.source_rounded, 'البيانات المفتوحة (OCDS)', 'https://nammerha.com/open-data'),
+          _linkTile(colors, PhosphorIconsRegular.warningCircle, 'سياسة الخصوصية', 'https://nammerha.com/privacy'),
+          _linkTile(colors, PhosphorIconsRegular.fileText, 'شروط الاستخدام', 'https://nammerha.com/terms'),
+          _linkTile(colors, PhosphorIconsRegular.warningCircle, 'البيانات المفتوحة (OCDS)', 'https://nammerha.com/open-data'),
           const SizedBox(height: 20),
 
           // Copyright
@@ -141,7 +142,7 @@ class _AboutScreenState extends State<AboutScreen> {
               Icon(icon, size: 20, color: colors.primaryBrand),
               const SizedBox(width: 12),
               Expanded(child: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary))),
-              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.textSubtle),
+              Icon(PhosphorIconsRegular.caretRight, size: 14, color: colors.textSubtle),
             ]),
           ),
         ),

@@ -1,3 +1,5 @@
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -96,7 +98,7 @@ class _ContactScreenState extends State<ContactScreen> {
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(children: [
-            const Icon(Icons.headset_mic_rounded, color: Colors.white, size: 40),
+            Icon(PhosphorIconsRegular.warningCircle, color: Colors.white, size: 40),
             const SizedBox(height: 10),
             const Text('نحن هنا لمساعدتك', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 4),
@@ -155,7 +157,7 @@ class _ContactScreenState extends State<ContactScreen> {
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
           child: state.isSubmitting
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              ? SizedBox(width: 20, height: 20, child: NammerhaShimmerLoader(colors: colors))
               : const Text('إرسال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
         ),
       ]),
@@ -167,7 +169,7 @@ class _ContactScreenState extends State<ContactScreen> {
       const SizedBox(height: 60),
       Container(width: 80, height: 80,
         decoration: BoxDecoration(color: colors.success.withAlpha(20), shape: BoxShape.circle),
-        child: Icon(Icons.check_circle_rounded, size: 48, color: colors.success),
+        child: Icon(PhosphorIconsRegular.checkCircle, size: 48, color: colors.success),
       ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
       const SizedBox(height: 24),
       Text('تم إرسال رسالتك بنجاح!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)).animate(delay: 200.ms).fadeIn(),

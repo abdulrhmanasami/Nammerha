@@ -114,9 +114,9 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
                 itemCount: messages.length + (state is ImpactLoading ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= messages.length) {
-                    return const Padding(
-                      padding: EdgeInsets.all(NammerhaTheme.spaceMd),
-                      child: Center(child: CircularProgressIndicator()),
+                    return Padding(
+                      padding: const EdgeInsets.all(NammerhaTheme.spaceMd),
+                      child: Center(child: NammerhaShimmerLoader(colors: colors)),
                     );
                   }
                   return _MessageCard(message: messages[index]);
