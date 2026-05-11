@@ -4,6 +4,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../bloc/admin_kyc_bloc.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin KYC Queue — Verify/reject identity documents.
 class AdminKycScreen extends StatelessWidget {
@@ -57,7 +58,7 @@ class _KycView extends StatelessWidget {
         },
         builder: (context, state) {
           if (state is AdminKycLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminKycLoaded) {
             return _buildLoaded(context, state);

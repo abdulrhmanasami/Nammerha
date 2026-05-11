@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/open_data_bloc.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Open Data Portal — بوابة البيانات المفتوحة
@@ -47,7 +48,7 @@ class OpenDataScreen extends StatelessWidget {
           },
           builder: (context, state) {
             if (state.isLoading && state.projects.isEmpty && state.stats.isEmpty) {
-              return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+              return NammerhaShimmerLoader(colors: colors);
             }
 
             final total = state.stats['total_projects'] as int? ?? state.projects.length;

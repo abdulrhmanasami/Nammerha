@@ -139,7 +139,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
             color: colors.primaryBrand.withAlpha(15),
             shape: BoxShape.circle,
           ),
-          child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 3),
+          child: NammerhaShimmerLoader(colors: colors, isList: false),
         ).animate(onComplete: (c) => c.repeat()).shimmer(duration: 1500.ms),
         const SizedBox(height: 24),
         Text(stage, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
@@ -165,7 +165,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
       },
       color: colors.primaryBrand,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 100),
         children: [
           // Phase filter chips
           SizedBox(
@@ -214,7 +214,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 100),
       children: [
         Container(
           padding: const EdgeInsets.all(14),
@@ -274,7 +274,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                 placeholder: (context, url) => Container(
                   height: 180,
                   color: colors.backgroundSecondary,
-                  child: Center(child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2)),
+                  child: NammerhaShimmerLoader(colors: colors),
                 ),
                 errorWidget: (context, url, error) => Container(
                   height: 180,
@@ -381,10 +381,10 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              BottomSheetGrabber(colors: colors),
+              Center(child: BottomSheetGrabber(colors: colors)),
               const SizedBox(height: 16),
               Text('التقاط 360° جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
               const SizedBox(height: 6),

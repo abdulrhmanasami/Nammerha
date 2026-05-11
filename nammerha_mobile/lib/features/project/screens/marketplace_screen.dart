@@ -114,7 +114,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
         children: [
           // Search Bar
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
@@ -202,7 +202,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
               },
               color: colors.primaryBrand,
               child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 20),
                 itemCount: state.projects.length,
                 itemBuilder: (context, index) {
                   final project = state.projects[index];

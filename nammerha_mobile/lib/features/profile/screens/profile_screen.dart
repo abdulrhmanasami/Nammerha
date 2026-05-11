@@ -18,6 +18,7 @@ import '../bloc/change_password_form_cubit.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Profile Screen — User Identity, Roles, Settings
@@ -133,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.person_off_rounded, size: 64, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
                     const SizedBox(height: 16),
                     Text(
                       state.message,
@@ -143,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => context.read<ProfileBloc>().add(LoadProfileRequested()),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
                       label: const Text('إعادة المحاولة'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.primaryBrand,
@@ -169,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (!isEditing)
                     IconButton(
                       onPressed: () => context.read<ProfileFormCubit>().startEditing(),
-                      icon: Icon(Icons.edit_rounded, color: colors.primaryBrand, size: 22),
+                      icon: Icon(PhosphorIconsRegular.pencilSimple, color: colors.primaryBrand, size: 22),
                     ),
                 ],
               ),
@@ -276,9 +277,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildInfoDisplay(SemanticColors colors, Map<String, dynamic>? user) {
     return Column(
       children: [
-        _infoRow(Icons.person_rounded, 'الاسم الكامل', user?['full_name']?.toString() ?? '—', colors),
-        _infoRow(Icons.email_rounded, 'البريد الإلكتروني', user?['email']?.toString() ?? '—', colors),
-        _infoRow(Icons.verified_user_rounded, 'التحقق KYC', user?['kyc_verified'] == true ? 'مُتحقق ✓' : 'غير مُتحقق', colors),
+        _infoRow(PhosphorIconsRegular.user, 'الاسم الكامل', user?['full_name']?.toString() ?? '—', colors),
+        _infoRow(PhosphorIconsRegular.envelope, 'البريد الإلكتروني', user?['email']?.toString() ?? '—', colors),
+        _infoRow(PhosphorIconsRegular.sealCheck, 'التحقق KYC', user?['kyc_verified'] == true ? 'مُتحقق ✓' : 'غير مُتحقق', colors),
       ],
     );
   }
@@ -449,13 +450,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   _RoleMeta _roleMeta(String role) {
     final colors = context.colors;
     switch (role) {
-      case 'donor': return _RoleMeta(context.tr('role_donor'), Icons.volunteer_activism_rounded, colors.primaryBrand, 'تحقق مالي');
-      case 'homeowner': return _RoleMeta(context.tr('role_homeowner'), Icons.house_rounded, colors.warning, 'تحقق هوية');
-      case 'engineer': return _RoleMeta(context.tr('role_engineer'), Icons.engineering_rounded, colors.info, 'رقم نقابة');
-      case 'contractor': return _RoleMeta(context.tr('role_contractor'), Icons.construction_rounded, colors.secondaryAccent, 'سجل تجاري');
-      case 'tradesperson': return _RoleMeta(context.tr('role_tradesperson'), Icons.handyman_rounded, colors.success, 'خبرة مهنية');
-      case 'supplier': return _RoleMeta(context.tr('role_supplier'), Icons.inventory_rounded, colors.warning, 'وثائق توريد');
-      default: return _RoleMeta(role, Icons.person_rounded, colors.textSecondary, '—');
+      case 'donor': return _RoleMeta(context.tr('role_donor'), PhosphorIconsRegular.handHeart, colors.primaryBrand, 'تحقق مالي');
+      case 'homeowner': return _RoleMeta(context.tr('role_homeowner'), PhosphorIconsRegular.house, colors.warning, 'تحقق هوية');
+      case 'engineer': return _RoleMeta(context.tr('role_engineer'), PhosphorIconsRegular.hardHat, colors.info, 'رقم نقابة');
+      case 'contractor': return _RoleMeta(context.tr('role_contractor'), PhosphorIconsRegular.wrench, colors.secondaryAccent, 'سجل تجاري');
+      case 'tradesperson': return _RoleMeta(context.tr('role_tradesperson'), PhosphorIconsRegular.hammer, colors.success, 'خبرة مهنية');
+      case 'supplier': return _RoleMeta(context.tr('role_supplier'), PhosphorIconsRegular.package, colors.warning, 'وثائق توريد');
+      default: return _RoleMeta(role, PhosphorIconsRegular.user, colors.textSecondary, '—');
     }
   }
 
@@ -490,22 +491,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Text(context.tr('settings'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const SizedBox(height: 10),
 
-        _settingRow(Icons.notifications_rounded, context.tr('notifications_title'), colors, trailing: Switch.adaptive(
+        _settingRow(PhosphorIconsRegular.bell, context.tr('notifications_title'), colors, trailing: Switch.adaptive(
           value: _notificationsEnabled,
           onChanged: _toggleNotifications,
           activeTrackColor: colors.primaryBrand,
         )),
 
-        _settingRow(Icons.language_rounded, context.tr('language'), colors,
+        _settingRow(PhosphorIconsRegular.globe, context.tr('language'), colors,
           value: context.watch<LocaleCubit>().currentLocaleName,
           onTap: () => _showLanguagePicker(colors),
         ),
-        _settingRow(Icons.dark_mode_rounded, 'الوضع الداكن', colors, trailing: Switch.adaptive(
+        _settingRow(PhosphorIconsRegular.moon, 'الوضع الداكن', colors, trailing: Switch.adaptive(
           value: context.watch<ThemeCubit>().isDark,
           onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
           activeTrackColor: colors.primaryBrand,
         )),
-        _settingRow(Icons.lock_rounded, 'تغيير كلمة المرور', colors, onTap: () => _showChangePasswordSheet(colors)),
+        _settingRow(PhosphorIconsRegular.lock, 'تغيير كلمة المرور', colors, onTap: () => _showChangePasswordSheet(colors)),
       ],
     );
   }
@@ -527,8 +528,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(width: 12),
             Expanded(child: Text(label, style: TextStyle(fontSize: 14, color: colors.textPrimary))),
             if (value != null) Text(value, style: TextStyle(fontSize: 13, color: colors.textSubtle)),
-            ?trailing,
-            if (value == null && trailing == null) Icon(Icons.chevron_right_rounded, color: colors.textSubtle, size: 20),
+            trailing ?? const SizedBox(),
+            if (value == null && trailing == null) Icon(PhosphorIconsRegular.caretRight, color: colors.textSubtle, size: 16),
           ],
         ),
       ),
@@ -556,7 +557,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.language_rounded, color: colors.primaryBrand, size: 22),
+                Icon(PhosphorIconsRegular.globe, color: colors.primaryBrand, size: 22),
                 const SizedBox(width: 10),
                 Text('اختر اللغة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
               ],
@@ -592,7 +593,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const Spacer(),
                       if (isActive)
-                        Icon(Icons.check_circle_rounded, color: colors.primaryBrand, size: 22),
+                        Icon(PhosphorIconsRegular.checkCircle, color: colors.primaryBrand, size: 22),
                     ],
                   ),
                 ),
@@ -643,7 +644,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.logout_rounded, color: colors.error, size: 20),
+            Icon(PhosphorIconsRegular.signOut, color: colors.error, size: 20),
             const SizedBox(width: 8),
             Text('تسجيل الخروج', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.error)),
           ],
@@ -774,7 +775,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                       color: colors.primaryBrand.withAlpha(12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.lock_rounded, color: colors.primaryBrand, size: 20),
+                    child: Icon(PhosphorIconsRegular.lock, color: colors.primaryBrand, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -802,7 +803,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline_rounded, color: colors.error, size: 18),
+                      Icon(PhosphorIconsRegular.warningCircle, color: colors.error, size: 18),
                       const SizedBox(width: 8),
                       Expanded(child: Text(displayError, style: TextStyle(fontSize: 13, color: colors.error, fontWeight: FontWeight.w600))),
                     ],
@@ -815,7 +816,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               _buildPasswordField(
                 controller: _currentCtrl,
                 label: 'كلمة المرور الحالية',
-                icon: Icons.lock_open_rounded,
+                icon: PhosphorIconsRegular.lockOpen,
                 obscure: formState.obscureCurrent,
                 onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleCurrentVisibility(),
                 colors: colors,
@@ -826,7 +827,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               _buildPasswordField(
                 controller: _newCtrl,
                 label: 'كلمة المرور الجديدة',
-                icon: Icons.lock_rounded,
+                icon: PhosphorIconsRegular.lock,
                 obscure: formState.obscureNew,
                 onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleNewVisibility(),
                 colors: colors,
@@ -859,7 +860,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               _buildPasswordField(
                 controller: _confirmCtrl,
                 label: 'تأكيد كلمة المرور',
-                icon: Icons.lock_rounded,
+                icon: PhosphorIconsRegular.lock,
                 obscure: formState.obscureConfirm,
                 onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleConfirmVisibility(),
                 colors: colors,
@@ -890,7 +891,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shield_rounded, size: 14, color: colors.textSubtle),
+                  Icon(PhosphorIconsRegular.shield, size: 14, color: colors.textSubtle),
                   const SizedBox(width: 4),
                   Text('سيتم تسجيل الخروج من الأجهزة الأخرى', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                 ],
@@ -926,7 +927,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
         labelStyle: TextStyle(fontSize: 13, color: colors.textSubtle),
         prefixIcon: Icon(icon, size: 20, color: colors.textSecondary),
         suffixIcon: IconButton(
-          icon: Icon(obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 20, color: colors.textSubtle),
+          icon: Icon(obscure ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye, size: 20, color: colors.textSubtle),
           onPressed: onToggle,
         ),
         filled: true,

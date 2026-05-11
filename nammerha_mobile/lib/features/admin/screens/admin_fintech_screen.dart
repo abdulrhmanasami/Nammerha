@@ -6,6 +6,7 @@ import '../bloc/admin_fintech_bloc.dart';
 import '../widgets/admin_kpi_card.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin FinTech Dashboard — Escrow fees, fee configs, enterprise orgs.
 class AdminFintechScreen extends StatelessWidget {
@@ -41,7 +42,7 @@ class _FintechView extends StatelessWidget {
       body: BlocBuilder<AdminFintechBloc, AdminFintechState>(
         builder: (context, state) {
           if (state is AdminFintechLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminFintechError) {
             return Center(

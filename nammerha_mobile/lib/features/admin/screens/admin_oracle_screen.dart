@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../bloc/admin_oracle_bloc.dart';
 import '../models/admin_models.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin Pricing Oracle — FIDIC material prices (EPA engine).
 class AdminOracleScreen extends StatelessWidget {
@@ -44,7 +45,7 @@ class _OracleView extends StatelessWidget {
       body: BlocBuilder<AdminOracleBloc, AdminOracleState>(
         builder: (context, state) {
           if (state is AdminOracleLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminOracleError) {
             return Center(

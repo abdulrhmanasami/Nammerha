@@ -7,6 +7,8 @@ import '../bloc/escrow_event.dart';
 import '../bloc/escrow_state.dart';
 import '../data/escrow_repository.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class EscrowSummaryScreen extends StatelessWidget {
   const EscrowSummaryScreen({super.key});
@@ -34,7 +36,7 @@ class EscrowSummaryScreen extends StatelessWidget {
           actions: [
             Builder(
               builder: (ctx) => IconButton(
-                icon: Icon(Icons.refresh_rounded, color: colors.textSecondary),
+                icon: Icon(PhosphorIcons.arrowsClockwise(), color: colors.textSecondary),
                 onPressed: () {
                 HapticFeedback.mediumImpact();
                   ctx.read<EscrowBloc>().add(FetchEscrowSummaryEvent());
@@ -46,7 +48,7 @@ class EscrowSummaryScreen extends StatelessWidget {
         body: BlocBuilder<EscrowBloc, EscrowState>(
           builder: (context, state) {
             if (state is EscrowLoading || state is EscrowInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return NammerhaShimmerLoader(colors: colors);
             } else if (state is EscrowError) {
               return Center(
                 child: Padding(
@@ -78,7 +80,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                         context,
                         'مُؤمّن في الضمان',
                         formatCurrency(totalLocked),
-                        Icons.lock_clock_rounded,
+                        PhosphorIcons.lockKey(),
                         colors.success,
                         colors.successLight,
                       ),
@@ -90,7 +92,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                               context,
                               'تم الإفراج',
                               formatCurrency(totalReleased),
-                              Icons.check_circle_rounded,
+                              PhosphorIcons.checkCircle(),
                               colors.primaryBrand,
                               colors.primaryBrandLight,
                               isSmall: true,
@@ -102,7 +104,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                               context,
                               context.tr('str_223dd076'),
                               formatCurrency(totalRefunded),
-                              Icons.settings_backup_restore_rounded,
+                              PhosphorIcons.arrowCounterClockwise(),
                               colors.textSecondary,
                               colors.backgroundSecondary,
                               isSmall: true,
@@ -120,7 +122,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.shield_rounded, color: colors.primaryBrand, size: 22),
+                            Icon(PhosphorIcons.shieldCheck(), color: colors.primaryBrand, size: 22),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(

@@ -8,6 +8,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/region_heatmap_cubit.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Region Heatmap Screen — Advanced map visualization
@@ -113,7 +114,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
           final maxCount = hState.maxCount;
 
           if (hState.isLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           return RefreshIndicator(

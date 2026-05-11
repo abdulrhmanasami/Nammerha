@@ -8,6 +8,7 @@ import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/review_bloc.dart';
 import '../../../core/i18n/t.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Reviews Screen — displays reviews + aggregates for any entity.
 /// GAP-H1 FIX: Previously web-only.
@@ -53,7 +54,7 @@ class _ReviewsView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showSubmitSheet(context),
         backgroundColor: colors.primaryBrand,
-        icon: const Icon(Icons.rate_review_rounded, color: Colors.white),
+        icon: const Icon(PhosphorIconsRegular.star, color: Colors.white),
         label: const Text('أضف تقييم', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<ReviewBloc, ReviewState>(
@@ -104,7 +105,7 @@ class _ReviewsView extends StatelessWidget {
                   children: [
                     Text(avgRating.toStringAsFixed(1), style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white)),
                     Row(children: List.generate(5, (i) => Icon(
-                      i < avgRating.round() ? Icons.star_rounded : Icons.star_outline_rounded,
+                      i < avgRating.round() ? PhosphorIconsRegular.star : PhosphorIconsRegular.star,
                       color: Colors.white, size: 18,
                     ))),
                     const SizedBox(height: 4),
@@ -130,7 +131,7 @@ class _ReviewsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Column(
                 children: [
-                  Icon(Icons.reviews_rounded, size: 48, color: colors.textSubtle),
+                  Icon(PhosphorIconsRegular.star, size: 48, color: colors.textSubtle),
                   const SizedBox(height: 12),
                   Text('لا توجد تقييمات بعد', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary)),
                 ],
@@ -172,10 +173,10 @@ class _ReviewsView extends StatelessWidget {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
                   Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-                  if (isVerified) ...[const SizedBox(width: 6), Icon(Icons.verified_rounded, size: 14, color: colors.success)],
+                  if (isVerified) ...[const SizedBox(width: 6), Icon(PhosphorIconsRegular.sealCheck, size: 14, color: colors.success)],
                 ]),
                 Row(children: List.generate(5, (i) => Icon(
-                  i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                  i < rating ? PhosphorIconsRegular.star : PhosphorIconsRegular.star,
                   color: colors.goldFunding, size: 14,
                 ))),
               ])),
@@ -193,7 +194,7 @@ class _ReviewsView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(children: [
-                    Icon(Icons.thumb_up_alt_outlined, size: 14, color: colors.textSubtle),
+                    Icon(PhosphorIconsRegular.thumbsUp, size: 14, color: colors.textSubtle),
                     const SizedBox(width: 4),
                     Text('مفيد ($helpfulCount)', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                   ]),
@@ -206,7 +207,7 @@ class _ReviewsView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(children: [
-                    Icon(Icons.flag_outlined, size: 14, color: colors.textSubtle),
+                    Icon(PhosphorIconsRegular.flag, size: 14, color: colors.textSubtle),
                     const SizedBox(width: 4),
                     Text(context.tr('str_d40b505f'), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                   ]),
@@ -232,7 +233,7 @@ class _ReviewsView extends StatelessWidget {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Center(child: BottomSheetGrabber(colors: colors)),
@@ -244,7 +245,7 @@ class _ReviewsView extends StatelessWidget {
                 onTap: () => setModalState(() => selectedRating = i + 1),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(i < selectedRating ? Icons.star_rounded : Icons.star_outline_rounded, size: 36, color: colors.goldFunding),
+                  child: Icon(i < selectedRating ? PhosphorIconsRegular.star : PhosphorIconsRegular.star, size: 36, color: colors.goldFunding),
                 ),
               ))),
               const SizedBox(height: 16),

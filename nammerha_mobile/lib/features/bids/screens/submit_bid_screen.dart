@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../data/bids_repository.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/bloc/submit_form_cubit.dart';
@@ -134,7 +135,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: Icon(Icons.attach_money, color: colors.primaryBrand),
+                      prefixIcon: Icon(PhosphorIcons.currencyDollar(), color: colors.primaryBrand),
                     ),
                     validator: (val) {
                       if (val == null || val.isEmpty) return 'المبلغ مطلوب';

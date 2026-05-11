@@ -5,6 +5,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -53,7 +54,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: colors.primaryBrand),
+                  NammerhaShimmerLoader(colors: colors, isList: false),
                   const SizedBox(height: 16),
                   Text('جارٍ تحميل الإشعارات...', style: TextStyle(color: colors.textSecondary)),
                 ],

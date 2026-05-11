@@ -8,6 +8,8 @@ import '../bloc/donor_proof_bloc.dart';
 import '../../pdf/screens/pdf_viewer_screen.dart';
 import '../../../core/i18n/t.dart';
 import '../../donor/models/donor_models.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Proof Screen — Proof of Delivery with GPS Verification
@@ -63,7 +65,7 @@ class _DonorProofScreenContent extends StatelessWidget {
         },
         builder: (context, state) {
           if (state.isLoading && state.proofs.isEmpty) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           if (state.error != null && state.proofs.isEmpty) {
@@ -95,13 +97,13 @@ class _DonorProofScreenContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_off_rounded, size: 64, color: colors.textSecondary),
+          Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
           const SizedBox(height: 16),
           Text(error, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => context.read<DonorProofBloc>().add(LoadDonorProofs()),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
             label: const Text('إعادة المحاولة'),
           ),
         ],
@@ -114,7 +116,7 @@ class _DonorProofScreenContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.verified_user_outlined, size: 64, color: colors.textSubtle),
+          Icon(PhosphorIconsRegular.sealCheck, size: 64, color: colors.textSubtle),
           const SizedBox(height: 16),
           Text(
             'لا توجد إثباتات تسليم بعد',
@@ -151,15 +153,15 @@ class _DonorProofScreenContent extends StatelessWidget {
     if (isVerified) {
       statusColor = colors.success;
       statusLabel = 'تم التسليم والتحرير';
-      statusIcon = Icons.verified_rounded;
+      statusIcon = PhosphorIconsRegular.sealCheck;
     } else if (hasGpsProof || hasImageProof) {
       statusColor = colors.warning;
       statusLabel = 'بانتظار التحقق';
-      statusIcon = Icons.hourglass_top_rounded;
+      statusIcon = PhosphorIconsRegular.hourglassMedium;
     } else {
       statusColor = colors.textSecondary;
       statusLabel = 'بانتظار التسليم';
-      statusIcon = Icons.circle;
+      statusIcon = PhosphorIconsRegular.circle;
     }
 
     return Container(
@@ -237,7 +239,7 @@ class _DonorProofScreenContent extends StatelessWidget {
                   imageUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => Center(
-                    child: Icon(Icons.broken_image_rounded, color: colors.textSubtle, size: 40),
+                    child: Icon(PhosphorIconsRegular.imageBroken, color: colors.textSubtle, size: 40),
                   ),
                 ),
               ),
@@ -258,7 +260,7 @@ class _DonorProofScreenContent extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.gps_fixed_rounded, size: 16, color: colors.success),
+                      Icon(PhosphorIconsRegular.crosshair, size: 16, color: colors.success),
                       const SizedBox(width: 6),
                       Text(
                         'إثبات مكاني GPS',
@@ -285,7 +287,7 @@ class _DonorProofScreenContent extends StatelessWidget {
           // No proof yet
           if (!hasGpsProof && !hasImageProof)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -295,7 +297,7 @@ class _DonorProofScreenContent extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline_rounded, size: 18, color: colors.warning),
+                    Icon(PhosphorIconsRegular.info, size: 18, color: colors.warning),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -316,8 +318,8 @@ class _DonorProofScreenContent extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: isDownloading ? null : () => _openReceipt(context, proof, colors),
                   icon: isDownloading
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Icon(Icons.picture_as_pdf_rounded, size: 18, color: colors.primaryBrand),
+                      ? SizedBox(width: 18, height: 18, child: Icon(PhosphorIconsRegular.spinnerGap, color: colors.primaryBrand).animate(onPlay: (c) => c.repeat()).rotate(duration: 1.seconds))
+                      : Icon(PhosphorIconsRegular.filePdf, size: 18, color: colors.primaryBrand),
                   label: Text('تحميل الإيصال PDF', style: TextStyle(color: colors.primaryBrand, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: colors.primaryBrand.withAlpha(40)),

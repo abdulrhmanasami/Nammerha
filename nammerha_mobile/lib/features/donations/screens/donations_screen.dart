@@ -8,6 +8,7 @@ import '../bloc/donations_bloc.dart';
 import '../bloc/donations_event.dart';
 import '../bloc/donations_state.dart';
 import '../models/donation_model.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donations Screen — تبرعاتي
@@ -69,7 +70,7 @@ class _DonationsView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: colors.primaryBrand),
+          NammerhaShimmerLoader(colors: colors, isList: false),
           const SizedBox(height: 16),
           Text('جارٍ تحميل التبرعات...',
               style: TextStyle(color: colors.textSecondary)),

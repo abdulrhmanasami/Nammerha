@@ -9,6 +9,8 @@ import '../bloc/engineer_portal_event.dart';
 import '../bloc/engineer_portal_state.dart';
 import '../data/engineer_repository.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Engineer Portal — Multi-tab Dashboard (Platinum Standard)
@@ -88,7 +90,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
       body: BlocBuilder<EngineerPortalBloc, EngineerPortalState>(
         builder: (context, state) {
           if (state is EngineerPortalLoading || state is EngineerPortalInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           if (state is EngineerPortalError) {
@@ -96,7 +98,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: colors.error),
+                  Icon(PhosphorIcons.warningCircle(), size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('eng_load_error'),
                       style: TextStyle(color: colors.textPrimary)),
@@ -171,7 +173,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
         const SizedBox(height: 12),
         if (dashboard.projects.isEmpty)
           _buildEmptyState(
-              icon: Icons.construction_rounded,
+              icon: PhosphorIcons.wrench(),
               title: context.tr('eng_no_projects'),
               subtitle: context.tr('eng_no_projects_desc'),
               colors: colors)
@@ -195,28 +197,28 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
       crossAxisSpacing: 12,
       children: [
         _kpiCard(
-          icon: Icons.construction_rounded,
+          icon: PhosphorIcons.wrench(),
           iconColor: const Color(0xFF1558D6),
           label: context.tr('eng_assigned_projects'),
           value: stats.assignedProjects.toString(),
           colors: colors,
         ),
         _kpiCard(
-          icon: Icons.hourglass_top_rounded,
+          icon: PhosphorIcons.hourglassHigh(),
           iconColor: const Color(0xFFFCC934),
           label: context.tr('eng_proofs_pending'),
           value: stats.proofsPending.toString(),
           colors: colors,
         ),
         _kpiCard(
-          icon: Icons.verified_rounded,
+          icon: PhosphorIcons.sealCheck(),
           iconColor: const Color(0xFF0A6E55),
           label: context.tr('eng_proofs_verified'),
           value: stats.proofsVerified.toString(),
           colors: colors,
         ),
         _kpiCard(
-          icon: Icons.attach_money_rounded,
+          icon: PhosphorIcons.currencyDollar(),
           iconColor: const Color(0xFF0A6E55),
           label: context.tr('eng_escrow_released'),
           value: '\$${(stats.escrowReleased / 100).toStringAsFixed(0)}',
@@ -326,13 +328,13 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.location_on_outlined,
+              Icon(PhosphorIcons.mapPin(),
                   size: 14, color: colors.textSubtle),
               const SizedBox(width: 4),
               Text(project.region.isNotEmpty ? project.region : 'N/A',
                   style: TextStyle(fontSize: 12, color: colors.textSecondary)),
               const SizedBox(width: 16),
-              Icon(Icons.checklist_rounded, size: 14, color: colors.textSubtle),
+              Icon(PhosphorIcons.checkSquareOffset(), size: 14, color: colors.textSubtle),
               const SizedBox(width: 4),
               Text('${project.boqCount} BOQ',
                   style: TextStyle(fontSize: 12, color: colors.textSecondary)),
@@ -371,7 +373,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
   Widget _buildBidsTab(List<EngineerBidModel> bids, SemanticColors colors) {
     if (bids.isEmpty) {
       return _buildEmptyState(
-          icon: Icons.gavel_rounded,
+          icon: PhosphorIcons.gavel(),
           title: context.tr('eng_no_bids'),
           subtitle: context.tr('eng_no_bids_desc'),
           colors: colors);
@@ -485,7 +487,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
       List<EngineerCaptureModel> captures, SemanticColors colors) {
     if (captures.isEmpty) {
       return _buildEmptyState(
-          icon: Icons.camera_alt_rounded,
+          icon: PhosphorIcons.camera(),
           title: context.tr('eng_no_captures'),
           subtitle: context.tr('eng_no_captures_desc'),
           colors: colors);
@@ -517,9 +519,9 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
                       ? Image.network(capture.fileUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, _, _) => Icon(
-                              Icons.broken_image_rounded,
+                              PhosphorIcons.imageBroken(),
                               color: colors.textSubtle))
-                      : Icon(Icons.image_not_supported_rounded,
+                      : Icon(PhosphorIcons.imageBroken(),
                           color: colors.textSubtle),
                 ),
               ),
@@ -554,8 +556,8 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (capture.isVerified)
-                                const Icon(Icons.verified_rounded,
-                                    size: 12, color: Color(0xFF0A6E55)),
+                                Icon(PhosphorIcons.sealCheck(),
+                                    size: 12, color: const Color(0xFF0A6E55)),
                               if (capture.isVerified)
                                 const SizedBox(width: 2),
                               Text(
@@ -622,8 +624,8 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
                   shape: BoxShape.circle,
                   color: const Color(0xFF1558D6).withValues(alpha: 0.1),
                 ),
-                child: const Icon(Icons.engineering_rounded,
-                    size: 40, color: Color(0xFF1558D6)),
+                child: Icon(PhosphorIcons.wrench(),
+                    size: 40, color: const Color(0xFF1558D6)),
               ),
               const SizedBox(height: 16),
               Text(context.tr('eng_portal'),

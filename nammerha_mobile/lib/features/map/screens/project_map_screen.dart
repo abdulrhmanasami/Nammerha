@@ -13,6 +13,7 @@ import '../bloc/map_state.dart';
 import '../models/map_project_model.dart';
 import '../../../core/i18n/t.dart';
 import '../../project/screens/project_details_screen.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ProjectMapScreen — Production Geospatial Intelligence View
@@ -111,7 +112,7 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(color: colors.primaryBrand),
+                          NammerhaShimmerLoader(colors: colors, isList: false),
                           const SizedBox(height: 12),
                           Text(
                             'جارِ تحميل خريطة المشاريع...',

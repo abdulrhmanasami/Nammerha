@@ -64,7 +64,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   height: 4,
-                  margin: EdgeInsets.only(right: index < 3 ? 4 : 0),
+                  margin: EdgeInsetsDirectional.only(end: index < 3 ? 4 : 0),
                   decoration: BoxDecoration(
                     color: isActive ? color : colors.strokeSubtle,
                     borderRadius: BorderRadius.circular(2),

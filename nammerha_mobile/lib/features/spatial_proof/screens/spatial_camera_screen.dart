@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:math' as math;
 import 'dart:isolate';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../models/gps_signature.dart';
@@ -13,6 +14,8 @@ import '../bloc/spatial_proof_event.dart';
 import '../bloc/spatial_proof_state.dart';
 import '../bloc/camera_hardware_cubit.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SpatialCameraScreen extends StatelessWidget {
   final String projectId;
@@ -217,7 +220,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: colors.primaryBrand),
+                  NammerhaShimmerLoader(colors: colors, isList: false),
                   const SizedBox(height: 16),
                   Text('جارِ تأمين الاتصال بالأجهزة...', style: TextStyle(color: colors.textSecondary)),
                 ],
@@ -236,7 +239,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.warning_amber_rounded, size: 64, color: colors.error),
+                    Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
                     const SizedBox(height: 16),
                     Text(hwState.errorMessage, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: 16)),
                     const SizedBox(height: 24),
@@ -341,7 +344,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.map_rounded, color: colors.primaryBrand, size: 32),
+                      Icon(PhosphorIconsRegular.warning, color: colors.warning, size: 20),
                       const SizedBox(height: 4),
                       Text(context.tr('str_0976264c'), style: TextStyle(fontSize: 10, color: colors.textSecondary)),
                     ],
@@ -384,11 +387,11 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                               color: isCapturing ? Colors.grey : colors.primaryBrand.withAlpha(200),
                             ),
                             child: isCapturing
-                                ? const Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                ? Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Icon(PhosphorIconsRegular.spinnerGap, color: Colors.white, size: 36).animate(onPlay: (c) => c.repeat()).rotate(duration: 1.seconds),
                                   )
-                                : const Icon(Icons.camera_rounded, color: Colors.white, size: 36),
+                                : const Icon(PhosphorIconsRegular.camera, color: Colors.white, size: 36),
                           ),
                         ),
                       ],

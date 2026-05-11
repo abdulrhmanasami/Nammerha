@@ -13,6 +13,7 @@ import '../bloc/project_details_bloc.dart';
 import '../bloc/project_details_event.dart';
 import '../bloc/project_details_state.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Project Details Screen
@@ -109,7 +110,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: colors.primaryBrand),
+                  NammerhaShimmerLoader(colors: colors, isList: false),
                   const SizedBox(height: 16),
                   Text('جارٍ التحميل...', style: TextStyle(color: colors.textSecondary)),
                 ],
@@ -406,7 +407,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   Widget _buildCheckoutBar(SemanticColors colors, int count, int total, List<Map<String, dynamic>> boqItems, Map<String, int> selectedQuantities) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 20),
       decoration: BoxDecoration(
         color: colors.surfaceElevated,
         border: Border(top: BorderSide(color: colors.strokeSubtle)),

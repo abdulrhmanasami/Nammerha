@@ -6,6 +6,7 @@ import '../bloc/admin_revenue_bloc.dart';
 import '../widgets/admin_kpi_card.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin Revenue Dashboard — Commissions, tips, and revenue KPIs.
 class AdminRevenueScreen extends StatelessWidget {
@@ -41,7 +42,7 @@ class _RevenueView extends StatelessWidget {
       body: BlocBuilder<AdminRevenueBloc, AdminRevenueState>(
         builder: (context, state) {
           if (state is AdminRevenueLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminRevenueError) {
             return Center(

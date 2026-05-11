@@ -10,6 +10,7 @@ import '../bloc/compliance_event.dart';
 import '../bloc/compliance_state.dart';
 import '../data/compliance_repository.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Compliance Dashboard — OCDS Audit & Escrow Review (Platinum Standard)
@@ -87,9 +88,7 @@ class _ComplianceDashboardView extends StatelessWidget {
         buildWhen: (previous, current) => current is! ComplianceActionSuccess,
         builder: (context, state) {
           if (state is ComplianceLoading || state is ComplianceInitial) {
-            return Center(
-              child: CircularProgressIndicator(color: colors.primaryBrand),
-            );
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           if (state is ComplianceError && state.message.contains(context.tr('str_a838e35c'))) {

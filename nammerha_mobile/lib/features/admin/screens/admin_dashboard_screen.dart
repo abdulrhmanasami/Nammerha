@@ -6,6 +6,7 @@ import '../widgets/admin_kpi_card.dart';
 import '../widgets/admin_stat_chart.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin Dashboard — Platform Command Center
 /// KPIs + bar charts + projects table + audit trail.
@@ -48,7 +49,7 @@ class _DashboardView extends StatelessWidget {
       body: BlocBuilder<AdminDashboardBloc, AdminDashboardState>(
         builder: (context, state) {
           if (state is AdminDashboardLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminDashboardError) {
             return _buildError(context, state.message);

@@ -8,6 +8,7 @@ import '../../bids/data/bids_repository.dart';
 import '../../bids/screens/submit_bid_screen.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/boq_details_cubit.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BOQ Details Screen — جداول الكميات والتسعير
@@ -125,8 +126,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
 
   Widget _buildBody(SemanticColors colors, BOQDetailsState bState) {
     if (bState.isLoading) {
-      return Center(
-          child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     if (bState.error != null) {
       return Center(

@@ -280,13 +280,13 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
     final colors = context.colors;
     
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            BottomSheetGrabber(colors: colors),
+            Center(child: BottomSheetGrabber(colors: colors)),
             const SizedBox(height: 16),
             Text('إنشاء مشروع جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(height: 20),
@@ -333,7 +333,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(color: colors.primaryBrand),
+                          NammerhaShimmerLoader(colors: colors, isList: false),
                           const SizedBox(height: 14),
                           Text('جارٍ تحديد الموقع...', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
                         ],

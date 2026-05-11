@@ -704,7 +704,7 @@ class _BidSubmitFormState extends State<_BidSubmitForm> {
     final colors = context.colors;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsetsDirectional.fromSTEB(
           20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,

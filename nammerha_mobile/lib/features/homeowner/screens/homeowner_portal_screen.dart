@@ -12,6 +12,7 @@ import '../bloc/homeowner_event.dart';
 import '../bloc/homeowner_state.dart';
 import '../../../core/i18n/t.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class HomeownerPortalScreen extends StatelessWidget {
   const HomeownerPortalScreen({super.key});
@@ -123,7 +124,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
 
   Widget _buildDashboard(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.stats.activeProjects == 0 && data.projects.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(0)); },
@@ -231,7 +232,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
   // ─── Tab 2: All Projects ──────────────────────────────────────────────
 
   Widget _buildProjects(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.projects.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (isLoading && data.projects.isEmpty) return NammerhaShimmerLoader(colors: colors);
     if (data.projects.isEmpty) return _emptyState(colors, Icons.house_siding_rounded, context.tr('ho_no_projects'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(1)); },
@@ -247,7 +248,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
   // ─── Tab 3: Service Requests ──────────────────────────────────────────
 
   Widget _buildServiceRequests(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.serviceRequests.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (isLoading && data.serviceRequests.isEmpty) return NammerhaShimmerLoader(colors: colors);
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(2)); },
       color: colors.primaryBrand,
@@ -349,7 +350,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
   // ─── Tab 4: Approvals ─────────────────────────────────────────────────
 
   Widget _buildApprovals(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.approvals.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (isLoading && data.approvals.isEmpty) return NammerhaShimmerLoader(colors: colors);
     if (data.approvals.isEmpty) return _emptyState(colors, Icons.check_circle_rounded, context.tr('ho_no_approvals'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(3)); },
@@ -436,7 +437,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
   // ─── Tab 5: Escrow ────────────────────────────────────────────────────
 
   Widget _buildEscrow(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
-    if (isLoading && data.escrow.totalDeposited == 0 && data.escrow.heldInEscrow == 0) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (isLoading && data.escrow.totalDeposited == 0 && data.escrow.heldInEscrow == 0) return NammerhaShimmerLoader(colors: colors);
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(4)); },
       color: colors.primaryBrand,

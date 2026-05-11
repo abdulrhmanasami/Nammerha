@@ -8,12 +8,15 @@ import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../models/supplier_models.dart';
+import '../bloc/supplier_state.dart';
 import '../bloc/supplier_bloc.dart';
 import '../bloc/supplier_event.dart';
-import '../bloc/supplier_state.dart';
 import '../data/supplier_repository.dart';
+import '../bloc/supplier_portal_ui_cubit.dart';
 import 'supplier_subscription_screen.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Supplier Portal — 3-Tab Dashboard (Orders + Catalog + Analytics)
@@ -25,8 +28,11 @@ class SupplierPortalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SupplierBloc(repository: SupplierRepository())..add(LoadDashboardEvent()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => SupplierBloc(repository: SupplierRepository())..add(LoadDashboardEvent())),
+        BlocProvider(create: (context) => SupplierPortalUiCubit()),
+      ],
       child: const _SupplierPortalView(),
     );
   }
@@ -42,10 +48,7 @@ class _SupplierPortalView extends StatefulWidget {
 class _SupplierPortalViewState extends State<_SupplierPortalView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  String _orderFilter = 'all';
-  String _catalogSearch = '';
   final _searchController = TextEditingController();
-  bool _isProcessingOrder = false;
 
   @override
   void initState() {
@@ -88,6 +91,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final uiState = context.watch<SupplierPortalUiCubit>().state;
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
@@ -102,7 +106,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplierSubscriptionScreen()));
                   },
-                  icon: Icon(Icons.workspace_premium_rounded, color: colors.goldFunding),
+                  icon: Icon(PhosphorIconsRegular.certificate, color: colors.goldFunding),
                   tooltip: context.tr('sp_taas_subscriptions'),
                 ),
               ];
@@ -110,7 +114,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                 actions.add(
                   IconButton(
                     onPressed: () => _showAddCatalogModal(context),
-                    icon: Icon(Icons.add_circle_rounded, color: colors.primaryBrand),
+                    icon: Icon(PhosphorIconsRegular.plusCircle, color: colors.primaryBrand),
                   ),
                 );
               }
@@ -155,12 +159,12 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
       body: BlocConsumer<SupplierBloc, SupplierState>(
         listener: (context, state) {
           if (state is SupplierActionSuccess) {
-            setState(() => _isProcessingOrder = false);
+            context.read<SupplierPortalUiCubit>().setProcessing(false);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(context.tr(state.message)), backgroundColor: colors.success),
             );
           } else if (state is SupplierError) {
-            setState(() => _isProcessingOrder = false);
+            context.read<SupplierPortalUiCubit>().setProcessing(false);
             // Format: "i18n_key|technical_detail" — show translated key, log detail
             final parts = state.message.split('|');
             final userMsg = context.tr(parts[0]);
@@ -173,9 +177,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
         buildWhen: (previous, current) => current is! SupplierActionSuccess,
         builder: (context, state) {
           if (state is SupplierLoading || state is SupplierInitial) {
-            return Center(
-              child: CircularProgressIndicator(color: colors.primaryBrand),
-            );
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           if (state is SupplierError) {
@@ -183,13 +185,13 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: colors.error),
+                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('sp_load_error'), style: TextStyle(color: colors.textPrimary)),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: () => context.read<SupplierBloc>().add(LoadDashboardEvent()),
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
                     label: Text(context.tr('sp_retry')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
@@ -214,8 +216,8 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildOrders(dashboard.orders, colors),
-                      _buildCatalog(dashboard.catalog, colors),
+                      _buildOrders(dashboard.orders, colors, uiState),
+                      _buildCatalog(dashboard.catalog, colors, uiState),
                       _buildAnalytics(colors),
                     ],
                   ),
@@ -264,11 +266,11 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
 
   // ─── Tab 1: Purchase Orders ───────────────────────────────────────────
 
-  Widget _buildOrders(List<SupplierOrderModel> orders, SemanticColors colors) {
+  Widget _buildOrders(List<SupplierOrderModel> orders, SemanticColors colors, SupplierPortalUiState uiState) {
     // H3 FIX: Apply local status filter
-    final filtered = _orderFilter == 'all'
+    final filtered = uiState.orderFilter == 'all'
         ? orders
-        : orders.where((o) => _matchesFilter(o.status, _orderFilter)).toList();
+        : orders.where((o) => _matchesFilter(o.status, uiState.orderFilter)).toList();
 
     return Column(
       children: [
@@ -279,13 +281,13 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _filterChip('all', context.tr('sp_filter_all'), colors),
+                _filterChip('all', context.tr('sp_filter_all'), colors, uiState),
                 const SizedBox(width: 8),
-                _filterChip('pending', context.tr('sp_filter_pending'), colors),
+                _filterChip('pending', context.tr('sp_filter_pending'), colors, uiState),
                 const SizedBox(width: 8),
-                _filterChip('shipped', context.tr('sp_filter_shipped'), colors),
+                _filterChip('shipped', context.tr('sp_filter_shipped'), colors, uiState),
                 const SizedBox(width: 8),
-                _filterChip('delivered', context.tr('sp_filter_delivered'), colors),
+                _filterChip('delivered', context.tr('sp_filter_delivered'), colors, uiState),
               ],
             ),
           ),
@@ -293,7 +295,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
         // ── List ──
         Expanded(
           child: filtered.isEmpty
-              ? _emptyState(colors, Icons.inventory_2_rounded, context.tr('sp_no_orders'), context.tr('sp_orders_hint'))
+              ? _emptyState(colors, PhosphorIconsRegular.package, context.tr('sp_no_orders'), context.tr('sp_orders_hint'))
               : RefreshIndicator(
                   onRefresh: () async {
                     context.read<SupplierBloc>().add(LoadDashboardEvent());
@@ -329,7 +331,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
 
                 // Project
                 Row(children: [
-                  Icon(Icons.business_rounded, size: 14, color: colors.textSubtle),
+                  Icon(PhosphorIconsRegular.buildings, size: 14, color: colors.textSubtle),
                   const SizedBox(width: 4),
                   Expanded(child: Text(o.projectTitle, style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ]),
@@ -360,10 +362,10 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isProcessingOrder
+                      onPressed: uiState.isProcessingOrder
                           ? null
                           : () {
-                              setState(() => _isProcessingOrder = true);
+                              context.read<SupplierPortalUiCubit>().setProcessing(true);
                               context.read<SupplierBloc>().add(UpdateOrderStatusEvent(poId: o.id, newStatus: _nextStatus(o.status)));
                             },
                       icon: Icon(_actionIcon(o.status), size: 16),
@@ -397,10 +399,10 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
     }
   }
 
-  Widget _filterChip(String value, String label, SemanticColors colors) {
-    final isSelected = _orderFilter == value;
+  Widget _filterChip(String value, String label, SemanticColors colors, SupplierPortalUiState uiState) {
+    final isSelected = uiState.orderFilter == value;
     return GestureDetector(
-      onTap: () => setState(() => _orderFilter = value),
+      onTap: () => context.read<SupplierPortalUiCubit>().setOrderFilter(value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -443,10 +445,10 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
 
   IconData _actionIcon(String status) {
     switch (status) {
-      case 'generated': case 'sent_to_supplier': return Icons.check_circle_rounded;
-      case 'acknowledged': return Icons.local_shipping_rounded;
-      case 'shipped': return Icons.inventory_rounded;
-      default: return Icons.check_rounded;
+      case 'generated': case 'sent_to_supplier': return PhosphorIconsRegular.checkCircle;
+      case 'acknowledged': return PhosphorIconsRegular.truck;
+      case 'shipped': return PhosphorIconsRegular.package;
+      default: return PhosphorIconsRegular.check;
     }
   }
 
@@ -461,13 +463,13 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
 
   // ─── Tab 2: Catalog ───────────────────────────────────────────────────
 
-  Widget _buildCatalog(List<SupplierItemModel> catalog, SemanticColors colors) {
+  Widget _buildCatalog(List<SupplierItemModel> catalog, SemanticColors colors, SupplierPortalUiState uiState) {
     if (catalog.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.storefront_rounded, size: 56, color: colors.textSubtle),
+            Icon(PhosphorIconsRegular.storefront, size: 56, color: colors.textSubtle),
             const SizedBox(height: 16),
             Text(context.tr('sp_catalog_empty'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(height: 6),
@@ -475,7 +477,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => _showAddCatalogModal(context),
-              icon: const Icon(Icons.add_rounded, size: 18),
+              icon: const Icon(PhosphorIconsRegular.floppyDisk, size: 18),
               label: Text(context.tr('sp_add_material')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
@@ -488,7 +490,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
       );
     }
     // W4 FIX: Apply local search filter
-    final searchLower = _catalogSearch.toLowerCase();
+    final searchLower = uiState.catalogSearch.toLowerCase();
     final filtered = searchLower.isEmpty
         ? catalog
         : catalog.where((item) =>
@@ -499,19 +501,19 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
       children: [
         // ── Search Bar ──
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),
           child: TextField(
             controller: _searchController,
-            onChanged: (value) => setState(() => _catalogSearch = value),
+            onChanged: (value) => context.read<SupplierPortalUiCubit>().setCatalogSearch(value),
             decoration: InputDecoration(
               hintText: context.tr('sp_search_catalog'),
-              prefixIcon: Icon(Icons.search_rounded, color: colors.textSubtle, size: 20),
-              suffixIcon: _catalogSearch.isNotEmpty
+              prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: colors.textSubtle, size: 20),
+              suffixIcon: uiState.catalogSearch.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.clear_rounded, color: colors.textSubtle, size: 18),
+                      icon: Icon(PhosphorIconsRegular.x, color: colors.textSubtle, size: 18),
                       onPressed: () {
                         _searchController.clear();
-                        setState(() => _catalogSearch = '');
+                        context.read<SupplierPortalUiCubit>().setCatalogSearch('');
                       },
                     )
                   : null,
@@ -537,7 +539,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
         // ── Grid ──
         Expanded(
           child: filtered.isEmpty
-              ? _emptyState(colors, Icons.search_off_rounded, context.tr('sp_no_results'), context.tr('sp_no_results_hint'))
+              ? _emptyState(colors, PhosphorIconsRegular.magnifyingGlassMinus, context.tr('sp_no_results'), context.tr('sp_no_results_hint'))
               : RefreshIndicator(
                   onRefresh: () async {
                     context.read<SupplierBloc>().add(LoadDashboardEvent());
@@ -613,7 +615,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         if (isActive) ...
-                          [Icon(Icons.edit_rounded, size: 14, color: colors.primaryBrand), const SizedBox(width: 4)],
+                          [Icon(PhosphorIconsRegular.pencilSimple, size: 14, color: colors.primaryBrand), const SizedBox(width: 4)],
                         if (!isActive)
                           Text(context.tr('sp_deactivated'), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: colors.error)),
                       ],
@@ -648,12 +650,12 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
               const SizedBox(height: 16),
               if (item.isActive) ...[
                 ListTile(
-                  leading: Icon(Icons.edit_rounded, color: colors.primaryBrand),
+                  leading: Icon(PhosphorIconsRegular.pencilSimple, color: colors.primaryBrand),
                   title: Text(context.tr('sp_edit_item'), style: TextStyle(color: colors.textPrimary)),
                   onTap: () { Navigator.pop(context); _showEditSheet(context, colors, item); },
                 ),
                 ListTile(
-                  leading: Icon(Icons.delete_outline_rounded, color: colors.error),
+                  leading: Icon(PhosphorIconsRegular.trash, color: colors.error),
                   title: Text(context.tr('sp_deactivate_item'), style: TextStyle(color: colors.error)),
                   onTap: () {
                     Navigator.pop(context);
@@ -662,7 +664,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                 ),
               ] else
                 ListTile(
-                  leading: Icon(Icons.refresh_rounded, color: colors.success),
+                  leading: Icon(PhosphorIconsRegular.arrowsClockwise, color: colors.success),
                   title: Text(context.tr('sp_reactivate_item'), style: TextStyle(color: colors.success)),
                   onTap: () {
                     Navigator.pop(context);
@@ -695,7 +697,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
         if (state is SupplierAnalyticsLoaded) {
           final data = state.analytics;
           if (data.isEmpty) {
-            return _emptyState(colors, Icons.bar_chart_rounded, context.tr('sp_no_analytics'), context.tr('sp_no_analytics_hint'));
+            return _emptyState(colors, PhosphorIconsRegular.chartBar, context.tr('sp_no_analytics'), context.tr('sp_no_analytics_hint'));
           }
 
           final maxRevenue = data.map((d) => d.revenue).reduce((a, b) => a > b ? a : b);
@@ -711,15 +713,15 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                 Row(
                   children: [
                     Expanded(child: _analyticsSummaryCard(
-                      context.tr('sp_total_revenue'), formatCurrency(totalRevenue), Icons.payments_rounded, colors.secondaryAccent, colors,
+                      context.tr('sp_total_revenue'), formatCurrency(totalRevenue), PhosphorIconsRegular.money, colors.secondaryAccent, colors,
                     )),
                     const SizedBox(width: 12),
                     Expanded(child: _analyticsSummaryCard(
-                      context.tr('sp_total_orders_period'), '$totalOrders', Icons.receipt_long_rounded, colors.primaryBrand, colors,
+                      context.tr('sp_total_orders_period'), '$totalOrders', PhosphorIconsRegular.receipt, colors.primaryBrand, colors,
                     )),
                     const SizedBox(width: 12),
                     Expanded(child: _analyticsSummaryCard(
-                      context.tr('sp_avg_order'), totalOrders > 0 ? formatCurrency(totalRevenue ~/ totalOrders) : '0', Icons.trending_up_rounded, colors.success, colors,
+                      context.tr('sp_avg_order'), totalOrders > 0 ? formatCurrency(totalRevenue ~/ totalOrders) : '0', PhosphorIconsRegular.trendUp, colors.success, colors,
                     )),
                   ],
                 ),
@@ -805,13 +807,13 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bar_chart_rounded, size: 56, color: colors.textSubtle),
+                  Icon(PhosphorIconsRegular.chartBar, size: 56, color: colors.textSubtle),
                   const SizedBox(height: 16),
                   Text(context.tr('sp_msg_analytics_failed'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () => context.read<SupplierBloc>().add(LoadAnalyticsEvent()),
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    icon: const Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
                     label: Text(context.tr('sp_retry')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
@@ -830,7 +832,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: colors.primaryBrand),
+              NammerhaShimmerLoader(colors: colors, isList: false),
               const SizedBox(height: 12),
               Text(context.tr('sp_loading_analytics'), style: TextStyle(color: colors.textSubtle, fontSize: 13)),
             ],
@@ -953,7 +955,7 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
     final colors = widget.blocContext.colors;
     
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -987,7 +989,7 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _submit,
-                icon: Icon(isEditMode ? Icons.save_rounded : Icons.add_rounded, size: 18),
+                icon: Icon(isEditMode ? PhosphorIconsRegular.floppyDisk : PhosphorIconsRegular.plus, size: 18),
                 label: Text(isEditMode ? context.tr('sp_save_btn') : context.tr('sp_add_btn')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primaryBrand,

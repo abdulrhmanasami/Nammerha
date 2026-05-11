@@ -9,6 +9,8 @@ import '../bloc/impact_event.dart';
 import '../bloc/impact_state.dart';
 import '../data/impact_repository.dart';
 import '../models/impact_message_model.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ImpactInboxScreen extends StatelessWidget {
   const ImpactInboxScreen({super.key});
@@ -72,7 +74,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
             builder: (context, state) {
               if (state is ImpactLoaded && state.unreadCount > 0) {
                 return IconButton(
-                  icon: const Icon(Icons.done_all_rounded),
+                  icon: Icon(PhosphorIcons.checks()),
                   tooltip: 'تحديد الكل كمقروء',
                   onPressed: () {
                     context.read<ImpactBloc>().add(MarkAllMessagesAsRead());
@@ -87,7 +89,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
       body: BlocBuilder<ImpactBloc, ImpactState>(
         builder: (context, state) {
           if (state is ImpactInitial || (state is ImpactLoading && state.isFirstFetch)) {
-            return const Center(child: CircularProgressIndicator());
+            return NammerhaShimmerLoader(colors: colors);
           } else if (state is ImpactError) {
             return _buildErrorState(context, state.message, colors);
           } else if (state is ImpactLoaded || state is ImpactLoading) {
@@ -134,7 +136,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.mark_email_read_outlined,
+            PhosphorIcons.envelopeOpen(),
             size: 64,
             color: colors.textMuted,
           ),
@@ -155,7 +157,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.warning_amber_rounded, color: colors.error, size: 48),
+          Icon(PhosphorIcons.warningCircle(), color: colors.error, size: 48),
           const SizedBox(height: NammerhaTheme.spaceMd),
           Text('فشل تحميل رسائل الأثر', style: Theme.of(context).textTheme.titleMedium),
           TextButton(
@@ -212,7 +214,7 @@ class _MessageCard extends StatelessWidget {
                     height: 160,
                     color: colors.backgroundPrimary,
                     child: Center(
-                      child: Icon(Icons.broken_image_outlined, color: colors.textMuted),
+                      child: Icon(PhosphorIcons.imageBroken(), color: colors.textMuted),
                     ),
                   ),
                 ),
@@ -299,13 +301,13 @@ class _MessageCard extends StatelessWidget {
   IconData _getIconForType() {
     switch (message.type) {
       case 'milestone':
-        return Icons.flag_rounded;
+        return PhosphorIcons.flag();
       case 'completion':
-        return Icons.check_circle_rounded;
+        return PhosphorIcons.checkCircle();
       case 'thank_you':
-        return Icons.favorite_rounded;
+        return PhosphorIcons.heart();
       default:
-        return Icons.info_rounded;
+        return PhosphorIcons.info();
     }
   }
 

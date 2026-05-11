@@ -10,6 +10,7 @@ import '../../../core/utils/error_localizer.dart';
 import '../../../core/services/api_services.dart' show formatCurrency;
 import '../../../core/i18n/t.dart';
 import '../bloc/transparency_dashboard_cubit.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Transparency Dashboard — لوحة الشفافية والبيانات المفتوحة (OCDS)
@@ -118,9 +119,7 @@ class _TransparencyDashboardContentState
 
   Widget _buildBody(SemanticColors colors, TransparencyDashboardState tState) {
     if (tState.isLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: colors.primaryBrand),
-      );
+      return NammerhaShimmerLoader(colors: colors);
     }
 
     if (tState.error != null) {

@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/oracle_bloc.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// EPA Pricing Oracle — FIDIC 13.8 Price Adjustment Engine
@@ -160,7 +161,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
   // ─── Tab 1: Live Price Ticker ─────────────────────────────────────────
 
   Widget _buildPriceTicker(SemanticColors colors, OracleState state) {
-    if (state.isLoading && state.prices.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (state.isLoading && state.prices.isEmpty) return NammerhaShimmerLoader(colors: colors);
     if (state.prices.isEmpty) return _emptyState(colors, Icons.show_chart_rounded, 'لا تتوفر بيانات أسعار', 'سيتم تحديث الأسعار تلقائياً');
     return RefreshIndicator(
       onRefresh: () async => _loadTabData(0),
@@ -374,7 +375,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
 
   Widget _buildHistory(SemanticColors colors, OracleState state) {
     if (widget.projectId == null) return _emptyState(colors, Icons.history_rounded, 'اختر مشروعاً لعرض السجل', '');
-    if (state.isLoading && state.history.isEmpty) return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+    if (state.isLoading && state.history.isEmpty) return NammerhaShimmerLoader(colors: colors);
     if (state.history.isEmpty) return _emptyState(colors, Icons.history_rounded, 'لا توجد تعديلات سابقة', '');
     return RefreshIndicator(
       onRefresh: () async => _loadTabData(2),

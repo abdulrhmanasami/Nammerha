@@ -28,6 +28,7 @@ import 'package:shimmer/shimmer.dart';
 // UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
 import '../../../core/i18n/t.dart';
 import '../../../core/bloc/page_index_cubit.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -284,7 +285,7 @@ class _DashboardHomeView extends StatelessWidget {
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.all(20),
-                          child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2),
+                          child: NammerhaShimmerLoader(colors: colors, isList: false),
                         ),
                       )
                     else if (state is DashboardHomeError)
@@ -538,9 +539,7 @@ class _DashboardHomeView extends StatelessWidget {
     if (isLoadingActivity) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2),
-        ),
+        child: NammerhaShimmerLoader(colors: colors),
       );
     }
 

@@ -15,6 +15,7 @@ import '../bloc/boq_bloc.dart';
 import '../bloc/boq_event.dart';
 import '../bloc/boq_state.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class BoqBuilderScreen extends StatelessWidget {
   final String? projectId;
@@ -105,7 +106,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
         },
         builder: (context, state) {
           if (state is BoqLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           final items = state.items;
@@ -116,7 +117,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
                 child: items.isEmpty
                     ? _emptyState(colors)
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 120),
                         itemCount: items.length,
                         itemBuilder: (_, i) => _buildItemCard(context, items[i], i, colors),
                       ),
@@ -332,7 +333,7 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
   Widget build(BuildContext context) {
     final colors = widget.blocContext.colors;
     return Padding(
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsetsDirectional.fromSTEB(
         20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: Column(

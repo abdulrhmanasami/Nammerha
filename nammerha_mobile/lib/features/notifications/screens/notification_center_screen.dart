@@ -8,6 +8,7 @@ import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Notification Center — Full notification history + mark read
@@ -84,7 +85,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       body: BlocBuilder<NotificationsBloc, NotificationsState>(
         builder: (context, state) {
           if (state is NotificationsInitial || (state is NotificationsLoading && state.oldNotifications == null)) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
 
           List<Map<String, dynamic>> notifications = [];

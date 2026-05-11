@@ -5,6 +5,8 @@ import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
 import '../data/project_repository.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProjectListScreen extends StatelessWidget {
   const ProjectListScreen({super.key});
@@ -23,7 +25,7 @@ class ProjectListScreen extends StatelessWidget {
         body: BlocBuilder<ProjectBloc, ProjectState>(
           builder: (context, state) {
             if (state is ProjectLoading || state is ProjectInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return NammerhaShimmerLoader(colors: colors);
             } else if (state is ProjectError) {
               return Center(
                 child: Padding(
@@ -118,7 +120,7 @@ class ProjectListScreen extends StatelessWidget {
                               ),
                               Row(
                                 children: [
-                                  Icon(Icons.pending_actions_rounded, size: 14, color: colors.warning),
+                                  Icon(PhosphorIcons.hourglassHigh(), size: 14, color: colors.warning),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${project.pendingProofs} إثبات معلّق',

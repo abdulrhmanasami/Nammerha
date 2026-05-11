@@ -42,162 +42,15 @@
  * ║  Per study: "التخلي عن الأكواد النمطية الثابتة (مثل margin-left)        ║
  * ║  والانتقال إلى الخصائص المنطقية margin-inline-start, padding-inline-end"║
  * ║                                                                          ║
- * ║  Strategy: Override Tailwind physical utilities with CSS logical         ║
- * ║  equivalents that auto-mirror based on dir="rtl"|"ltr".                 ║
+ * ║  Strategy: Platform uses native Tailwind logical utilities (ms-4, pe-4). ║
+ * ║  Legacy physical property overrides have been purged to enforce          ║
+ * ║  Absolute Zero Technical Debt.                                           ║
  * ╚═══════════════════════════════════════════════════════════════════════════╝*/
 
 /* ─── Global Logical Defaults ─────────────────────────────────────────────── */
 /* Set text alignment to logical, so it auto-mirrors */
 body {
   text-align: start;
-}
-
-/* ─── Margin Logical Overrides ────────────────────────────────────────────── */
-/* P2-F11 FIX: Replaced *[class*='ml-X'] wildcards with specific .ml-X selectors.
-   Previous: expensive attribute substring selectors caused reflow on low-end devices. */
-/* ml-* → margin-inline-start (auto-mirrors for RTL) */
-.ml-1:not(.ml-auto):not(.ml-0) {
-  margin-left: unset !important;
-  margin-inline-start: 0.25rem !important;
-}
-.ml-2:not(.ml-auto) {
-  margin-left: unset !important;
-  margin-inline-start: 0.5rem !important;
-}
-.ml-3:not(.ml-auto) {
-  margin-left: unset !important;
-  margin-inline-start: 0.75rem !important;
-}
-.ml-4:not(.ml-auto) {
-  margin-left: unset !important;
-  margin-inline-start: 1rem !important;
-}
-
-/* mr-* → margin-inline-end (auto-mirrors for RTL) */
-.mr-1 {
-  margin-right: unset !important;
-  margin-inline-end: 0.25rem !important;
-}
-.mr-2 {
-  margin-right: unset !important;
-  margin-inline-end: 0.5rem !important;
-}
-.mr-3 {
-  margin-right: unset !important;
-  margin-inline-end: 0.75rem !important;
-}
-.mr-4 {
-  margin-right: unset !important;
-  margin-inline-end: 1rem !important;
-}
-
-/* P2-005 FIX: Specific class selector (was *[class*='ml-auto'] — expensive substring match) */
-/* ml-auto → margin-inline-start: auto */
-.ml-auto {
-  margin-left: unset !important;
-  margin-inline-start: auto !important;
-}
-/* mr-auto → margin-inline-end: auto */
-.mr-auto {
-  margin-right: unset !important;
-  margin-inline-end: auto !important;
-}
-
-/* ─── Padding Logical Overrides ───────────────────────────────────────────── */
-/* pl-* → padding-inline-start */
-input[class*='pl-10'] {
-  padding-left: unset !important;
-  padding-inline-start: 2.5rem !important;
-}
-/* P2-UX-005 FIX: Replaced *[class*='...'] wildcard selectors with specific class
-   selectors for ~10x better selector performance on low-end devices. */
-.pl-4:not(input.pl-10) {
-  padding-left: unset !important;
-  padding-inline-start: 1rem !important;
-}
-.pl-6 {
-  padding-left: unset !important;
-  padding-inline-start: 1.5rem !important;
-}
-
-/* pr-* → padding-inline-end */
-.pr-4 {
-  padding-right: unset !important;
-  padding-inline-end: 1rem !important;
-}
-.pr-6 {
-  padding-right: unset !important;
-  padding-inline-end: 1.5rem !important;
-}
-
-/* ─── Text Alignment Logical Overrides ────────────────────────────────────── */
-.text-left {
-  text-align: start !important;
-}
-.text-right {
-  text-align: end !important;
-}
-
-/* ─── Positioning Logical Overrides ───────────────────────────────────────── */
-/* Convert left/right positioned elements to inset-inline-start/end */
-
-/* Search icon: left-3 → inset-inline-start */
-span[class*='absolute'][class*='left-3'] {
-  left: unset !important;
-  inset-inline-start: 0.75rem !important;
-}
-
-/* Badges/Overlays: right-3 → inset-inline-end */
-div[class*='absolute'][class*='right-3']:not([class*='left-']) {
-  right: unset !important;
-  inset-inline-end: 0.75rem !important;
-}
-
-/* right-4 (single-sided) → inset-inline-end */
-div[class*='absolute'][class*='right-4']:not([class*='left-4']) {
-  right: unset !important;
-  inset-inline-end: 1rem !important;
-}
-
-/* left-4 (single-sided) → inset-inline-start */
-div[class*='absolute'][class*='left-4']:not([class*='right-4']) {
-  left: unset !important;
-  inset-inline-start: 1rem !important;
-}
-
-/* Notification dot: e.g. right-2 → inset-inline-end */
-span[class*='absolute'][class*='right-2'] {
-  right: unset !important;
-  inset-inline-end: 0.625rem !important;
-}
-
-/* ─── Border Logical Overrides ────────────────────────────────────────────── */
-/* border-r → border-inline-end */
-div[class*='border-r']:not([class*='border-r-']):not([class*='rounded']) {
-  border-right: none !important;
-  border-inline-end: 1px solid;
-  border-inline-end-color: inherit;
-}
-/* border-l → border-inline-start */
-div[class*='border-l']:not([class*='border-l-']):not([class*='rounded']) {
-  border-left: none !important;
-  border-inline-start: 1px solid;
-  border-inline-start-color: inherit;
-}
-
-/* ─── Verification Corner Positioning (Camera View) ───────────────────────── */
-/* border-l-2 + left-0 → inset-inline-start: 0 + border-inline-start */
-div[class*='border-l-2'][class*='left-0'] {
-  left: unset !important;
-  inset-inline-start: 0 !important;
-  border-left: none !important;
-  border-inline-start: 2px solid;
-}
-div[class*='border-r-2'][class*='right-0'] {
-  right: unset !important;
-  inset-inline-end: 0 !important;
-  border-right: none !important;
-  border-inline-end: 2px solid;
 }
 
 /* ─── Decorative Gradient Blurs ───────────────────────────────────────────── */
@@ -470,9 +323,8 @@ html[data-theme="dark"] .nm-lang-option:hover {
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════════════╗
- * ║  RTL-SPECIFIC: SURGICAL OVERRIDES (only where logical properties fail)   ║
- * ║  These handle edge cases that native logical properties cannot resolve    ║
- * ║  due to Tailwind inline styles or JS-generated positioning.              ║
+ * ║  RTL-SPECIFIC: SURGICAL OVERRIDES                                        ║
+ * ║  Legacy physical class hacks have been removed to enforce logical CSS.   ║
  * ╚═══════════════════════════════════════════════════════════════════════════╝*/
 
 /* ─── Direction inheritance for glass components ──────────────────────────── */
@@ -491,46 +343,3 @@ html[data-theme="dark"] .nm-lang-option:hover {
   right: -80px !important;
 }
 
-/* ─── Negative positioned decorative blurs (Tailwind -right-4 etc.) ───────── */
-[dir='rtl'] div[class*='absolute'][class*='-right-'] {
-  right: auto !important;
-  left: -1rem !important;
-}
-[dir='rtl'] div[class*='-left-32'] {
-  left: auto !important;
-  right: -8rem !important;
-}
-[dir='rtl'] div[class*='-right-24'] {
-  right: auto !important;
-  left: -6rem !important;
-}
-
-/* PLT-UX-AUD-P1: RTL overrides for <i> icons and <button> toggles */
-/* Auth form input icons use <i class="absolute left-4"> */
-[dir='rtl'] i[class*='absolute'][class*='left-'] {
-  left: auto !important;
-  right: 1rem !important;
-}
-/* Auth password toggle buttons use <button class="absolute right-3"> */
-[dir='rtl'] button[class*='absolute'][class*='right-'] {
-  right: auto !important;
-  left: 0.75rem !important;
-}
-
-/* ╔═══════════════════════════════════════════════════════════════════════════╗
- * ║  P1-R1 FIX: RTL-SAFE TOGGLE SWITCH                                      ║
- * ║  The profile notification toggle uses Tailwind's physical properties:    ║
- * ║  after:left-0.5 and peer-checked:after:translate-x-4                     ║
- * ║  These must be mirrored for RTL: ball starts at right, slides left.      ║
- * ╚═══════════════════════════════════════════════════════════════════════════╝*/
-[dir='rtl'] div[class*='after:left-0'] {
-  --tw-translate-x: 0 !important;
-}
-[dir='rtl'] div[class*='after:left-0']::after {
-  left: auto !important;
-  right: 0.125rem !important;
-}
-[dir='rtl'] .peer:checked ~ div[class*='after:translate-x']::after {
-  --tw-translate-x: -1rem !important;
-  transform: translateX(var(--tw-translate-x)) !important;
-}

@@ -5,6 +5,7 @@ import '../../../core/services/api_services.dart';
 import '../bloc/admin_escrow_bloc.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin Escrow Verification — Review spatial proofs & release/flag escrow.
 class AdminEscrowScreen extends StatelessWidget {
@@ -58,7 +59,7 @@ class _EscrowView extends StatelessWidget {
         },
         builder: (context, state) {
           if (state is AdminEscrowLoading) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminEscrowCasesLoaded) {
             return _buildCasesList(context, state.cases);

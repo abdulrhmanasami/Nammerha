@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
@@ -124,7 +125,7 @@ class _ProjectDashboardView extends StatelessWidget {
           return FloatingActionButton.extended(
             onPressed: () => _showSubmitLogDialog(context),
             backgroundColor: colors.primaryBrand,
-            icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
+            icon: Icon(PhosphorIcons.notePencil(), color: Colors.white),
             label: const Text('سجل يومي', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
           );
         },
@@ -192,7 +193,7 @@ class _ProjectDashboardView extends StatelessWidget {
               child: _KPICard(
                 label: 'تقدم البناء',
                 value: '${progress.toStringAsFixed(0)}%',
-                icon: Icons.trending_up_rounded,
+                icon: PhosphorIcons.trendUp(),
                 color: colors.success,
                 progress: progress / 100,
               ),
@@ -202,7 +203,7 @@ class _ProjectDashboardView extends StatelessWidget {
               child: _KPICard(
                 label: 'نسبة التمويل',
                 value: '${fundingPercent.toStringAsFixed(0)}%',
-                icon: Icons.account_balance_wallet_rounded,
+                icon: PhosphorIcons.wallet(),
                 color: colors.primaryBrand,
                 progress: fundingPercent / 100,
               ),
@@ -216,7 +217,7 @@ class _ProjectDashboardView extends StatelessWidget {
               child: _KPICard(
                 label: 'المراحل المنجزة',
                 value: '$milestonesDone / $milestonesTotal',
-                icon: Icons.flag_rounded,
+                icon: PhosphorIcons.flag(),
                 color: colors.goldFunding,
               ),
             ),
@@ -225,7 +226,7 @@ class _ProjectDashboardView extends StatelessWidget {
               child: _KPICard(
                 label: 'فريق العمل',
                 value: '$teamSize',
-                icon: Icons.groups_rounded,
+                icon: PhosphorIcons.users(),
                 color: colors.info,
               ),
             ),
@@ -246,7 +247,7 @@ class _ProjectDashboardView extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.description_rounded, size: 48, color: colors.textSecondary.withAlpha(80)),
+          Icon(PhosphorIcons.fileText(), size: 48, color: colors.textSecondary.withAlpha(80)),
           const SizedBox(height: 12),
           Text(
             'لا توجد سجلات يومية بعد',
@@ -301,7 +302,7 @@ class _ProjectDashboardView extends StatelessWidget {
                   color: colors.primaryBrand.withAlpha(15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.article_rounded, size: 18, color: colors.primaryBrand),
+                child: Icon(PhosphorIcons.article(), size: 18, color: colors.primaryBrand),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -319,10 +320,10 @@ class _ProjectDashboardView extends StatelessWidget {
               ),
               // Metadata chips
               if (workersOnSite != null)
-                _MetaChip(icon: Icons.person_rounded, label: '$workersOnSite', colors: colors),
+                _MetaChip(icon: PhosphorIcons.user(), label: '$workersOnSite', colors: colors),
               if (weatherConditions != null) ...[
                 const SizedBox(width: 6),
-                _MetaChip(icon: Icons.cloud_rounded, label: weatherConditions, colors: colors),
+                _MetaChip(icon: PhosphorIcons.cloud(), label: weatherConditions, colors: colors),
               ],
             ],
           ),
@@ -345,7 +346,7 @@ class _ProjectDashboardView extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.check_circle_outline_rounded, size: 16, color: colors.success),
+                  Icon(PhosphorIcons.checkCircle(), size: 16, color: colors.success),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -377,7 +378,7 @@ class _ProjectDashboardView extends StatelessWidget {
                       width: 64,
                       height: 64,
                       color: colors.backgroundSecondary,
-                      child: Icon(Icons.broken_image_rounded, color: colors.textSubtle, size: 24),
+                      child: Icon(PhosphorIcons.imageBroken(), color: colors.textSubtle, size: 24),
                     ),
                   ),
                 ),
@@ -406,7 +407,7 @@ class _ProjectDashboardView extends StatelessWidget {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => Padding(
-          padding: EdgeInsets.fromLTRB(
+          padding: EdgeInsetsDirectional.fromSTEB(
             20,
             20,
             20,
@@ -480,12 +481,12 @@ class _ProjectDashboardView extends StatelessWidget {
                     const Spacer(),
                     IconButton(
                       onPressed: () => setModalState(() => workersOnSite = (workersOnSite - 1).clamp(0, 999)),
-                      icon: Icon(Icons.remove_circle_outline, color: colors.textSecondary),
+                      icon: Icon(PhosphorIcons.minusCircle(), color: colors.textSecondary),
                     ),
                     Text('$workersOnSite', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                     IconButton(
                       onPressed: () => setModalState(() => workersOnSite++),
-                      icon: Icon(Icons.add_circle_outline, color: colors.primaryBrand),
+                      icon: Icon(PhosphorIcons.plusCircle(), color: colors.primaryBrand),
                     ),
                   ],
                 ),
@@ -530,7 +531,7 @@ class _ProjectDashboardView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline_rounded, size: 64, color: colors.error),
+            Icon(PhosphorIcons.warningCircle(), size: 64, color: colors.error),
             const SizedBox(height: 16),
             Text(message, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: 15)),
             const SizedBox(height: 20),

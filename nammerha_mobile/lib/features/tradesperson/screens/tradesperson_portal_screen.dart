@@ -11,6 +11,7 @@ import '../bloc/tradesperson_bloc.dart';
 import '../bloc/tradesperson_event.dart';
 import '../bloc/tradesperson_state.dart';
 import '../../../core/i18n/t.dart';
+import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class TradespersonPortalScreen extends StatelessWidget {
   const TradespersonPortalScreen({super.key});
@@ -127,7 +128,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
 
   Widget _buildDashboard(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.stats == TradespersonStatsModel.empty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     return RefreshIndicator(
       onRefresh: () async { context.read<TradespersonBloc>().add(const LoadTradespersonTabEvent(0)); },
@@ -231,7 +232,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
 
   Widget _buildRequests(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.requests.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     if (data.requests.isEmpty) {
       return _emptyState(colors, Icons.search_rounded, context.tr('tp_no_requests'), context.tr('tp_requests_hint'));
@@ -329,7 +330,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
 
   Widget _buildAssignments(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.assignments.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     if (data.assignments.isEmpty) {
       return _emptyState(colors, Icons.assignment_rounded, context.tr('tp_no_assignments'), '');
@@ -428,7 +429,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
 
   Widget _buildEarnings(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.earnings.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     if (data.earnings.isEmpty) {
       return _emptyState(colors, Icons.monetization_on_rounded, context.tr('tp_no_earnings'), '');
@@ -485,7 +486,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
 
   Widget _buildProfile(TradespersonDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.profile == TradespersonProfileModel.empty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors);
     }
     final p = data.profile;
     return RefreshIndicator(
