@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../models/contractor_models.dart';
 import '../bloc/contractor_bloc.dart';
 import '../bloc/contractor_event.dart';
@@ -104,9 +106,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
         buildWhen: (previous, current) => current is! ContractorActionSuccess,
         builder: (context, state) {
           if (state is ContractorLoading || state is ContractorInitial) {
-            return Center(
-              child: CircularProgressIndicator(color: colors.primaryBrand),
-            );
+            return NammerhaShimmerLoader(colors: colors, itemCount: 4);
           }
 
           // G10 FIX: Was `state.message.contains(context.tr('str_a838e35c'))` — magic string!
@@ -710,6 +710,8 @@ class _BidSubmitFormState extends State<_BidSubmitForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(child: BottomSheetGrabber(colors: colors)),
+          const SizedBox(height: 16),
           Text(context.tr('ct_bid_title'),
               style: TextStyle(
                   fontSize: 20,

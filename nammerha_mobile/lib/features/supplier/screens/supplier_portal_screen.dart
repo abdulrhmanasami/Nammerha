@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
+
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -640,6 +643,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              BottomSheetGrabber(colors: colors),
               Text(item.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: colors.textPrimary)),
               const SizedBox(height: 16),
               if (item.isActive) ...[
@@ -955,6 +959,7 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            BottomSheetGrabber(colors: colors),
             Text(
               isEditMode ? context.tr('sp_edit_catalog_title') : context.tr('sp_add_catalog_title'),
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.textPrimary),
@@ -975,7 +980,7 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
             Row(children: [
               Expanded(child: _field(minOrderC, context.tr('sp_min_order_label'), colors, isNum: true)),
               const SizedBox(width: 8),
-              Expanded(child: _field(leadTimeC, context.tr('sp_lead_time'), colors, isNum: true)),
+              Expanded(child: _field(leadTimeC, context.tr('sp_lead_time'), colors, isNum: true, action: TextInputAction.done)),
             ]),
             const SizedBox(height: 16),
             SizedBox(
@@ -999,6 +1004,7 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
   }
 
   void _submit() {
+    HapticFeedback.mediumImpact();
     final name = nameC.text.trim();
     final category = categoryC.text.trim();
     final unit = unitC.text.trim();
@@ -1042,9 +1048,11 @@ class _AddCatalogFormState extends State<_AddCatalogForm> {
   }
 
   // F2 FIX: Added isDecimal parameter so price field shows decimal keyboard.
-  Widget _field(TextEditingController c, String label, SemanticColors colors, {bool isNum = false, bool isDecimal = false, int maxLines = 1}) {
+  // W6 FIX: Added textInputAction
+  Widget _field(TextEditingController c, String label, SemanticColors colors, {bool isNum = false, bool isDecimal = false, int maxLines = 1, TextInputAction? action}) {
     return TextField(
       controller: c,
+      textInputAction: action ?? (maxLines > 1 ? TextInputAction.newline : TextInputAction.next),
       keyboardType: isDecimal
           ? const TextInputType.numberWithOptions(decimal: true)
           : (isNum ? TextInputType.number : TextInputType.text),

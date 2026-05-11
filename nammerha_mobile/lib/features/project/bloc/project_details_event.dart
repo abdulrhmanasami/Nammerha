@@ -24,3 +24,7 @@ class UpdateBOQQuantityRequested extends ProjectDetailsEvent {
   @override
   List<Object?> get props => [itemId, quantity];
 }
+
+class ClearBOQSelectionsRequested extends ProjectDetailsEvent {
+  const ClearBOQSelectionsRequested();
+}

@@ -9,6 +9,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/services/reality_capture_api.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/reality_capture_bloc.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -149,7 +151,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
 
   Widget _capturesTab(BuildContext ctx, RealityCaptureState state, SemanticColors colors) {
     if (state is RealityCaptureLoading) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
     final captures = state is CapturesLoaded ? state.captures : <Map<String, dynamic>>[];
 
@@ -203,7 +205,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
           ctx.read<RealityCaptureBloc>().add(LoadHiddenWorks(widget.projectId));
         }
       });
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
 
     final works = state.works;
@@ -382,7 +384,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
           padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)))),
+              BottomSheetGrabber(colors: colors),
               const SizedBox(height: 16),
               Text('التقاط 360° جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
               const SizedBox(height: 6),

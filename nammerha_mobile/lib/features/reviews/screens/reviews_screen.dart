@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/review_api.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/review_bloc.dart';
 import '../../../core/i18n/t.dart';
 
@@ -65,7 +67,7 @@ class _ReviewsView extends StatelessWidget {
         },
         builder: (ctx, state) {
           if (state is ReviewLoading || state is ReviewSubmitting) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors, itemCount: 3);
           }
           if (state is ReviewLoaded) return _buildLoaded(ctx, state);
           return const SizedBox.shrink();
@@ -233,7 +235,7 @@ class _ReviewsView extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)))),
+              Center(child: BottomSheetGrabber(colors: colors)),
               const SizedBox(height: 16),
               Text('إضافة تقييم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
               const SizedBox(height: 20),

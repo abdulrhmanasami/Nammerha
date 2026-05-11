@@ -37,22 +37,34 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
       final currentState = state as MarketplaceLoaded;
       List<ProjectModel> filtered = List<ProjectModel>.from(currentState.allProjects);
 
-      if (event.filter != null && event.filter != 'all') {
-        filtered = filtered.where((p) => p.status.toLowerCase() == event.filter!.toLowerCase()).toList();
+      final search = event.searchQuery ?? currentState.activeSearchQuery;
+      if (search != null && search.isNotEmpty) {
+        final query = search.toLowerCase();
+        filtered = filtered.where((p) =>
+            p.title.toLowerCase().contains(query) ||
+            p.damageType.toLowerCase().contains(query)).toList();
       }
 
-      if (event.sort == 'highest_funding') {
+      final filter = event.filter ?? currentState.activeFilter;
+      if (filter != null && filter != 'all') {
+        filtered = filtered.where((p) => p.status.toLowerCase() == filter.toLowerCase()).toList();
+      }
+
+      final sort = event.sort ?? currentState.activeSort;
+      if (sort == 'highest_funding') {
         filtered.sort((a, b) => b.fundedPercentage.compareTo(a.fundedPercentage));
-      } else if (event.sort == 'lowest_funding') {
+      } else if (sort == 'lowest_funding') {
         filtered.sort((a, b) => a.fundedPercentage.compareTo(b.fundedPercentage));
       }
 
       emit(currentState.copyWith(
         projects: filtered,
-        activeFilter: event.filter == 'all' ? null : event.filter,
-        activeSort: event.sort,
+        activeFilter: event.filter == 'all' ? null : filter,
+        activeSort: sort,
+        activeSearchQuery: search,
         clearFilter: event.filter == 'all',
-        clearSort: event.sort == null,
+        clearSort: event.sort == null && currentState.activeSort != null && event.filter == null && event.searchQuery == null,
+        clearSearch: event.searchQuery?.isEmpty == true,
       ));
     }
   }

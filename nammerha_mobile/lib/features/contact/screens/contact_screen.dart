@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
@@ -33,6 +34,7 @@ class _ContactScreenState extends State<ContactScreen> {
   }
 
   void _submit(BuildContext context) {
+    HapticFeedback.mediumImpact();
     if (!_formKey.currentState!.validate()) return;
     
     // Add the category to the subject or message since the API currently takes subject/message
@@ -122,11 +124,11 @@ class _ContactScreenState extends State<ContactScreen> {
           },
         ),
         const SizedBox(height: 14),
-        TextFormField(controller: _nameCtrl, style: TextStyle(color: colors.textPrimary),
+        TextFormField(controller: _nameCtrl, style: TextStyle(color: colors.textPrimary), textInputAction: TextInputAction.next,
           decoration: _inputDecor(colors, 'الاسم الكامل *'),
           validator: (v) => v == null || v.trim().isEmpty ? context.tr('str_bbd73382') : null),
         const SizedBox(height: 14),
-        TextFormField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress,
+        TextFormField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next,
           textDirection: TextDirection.ltr, style: TextStyle(color: colors.textPrimary),
           decoration: _inputDecor(colors, 'البريد الإلكتروني *'),
           validator: (v) {
@@ -135,11 +137,11 @@ class _ContactScreenState extends State<ContactScreen> {
             return null;
           }),
         const SizedBox(height: 14),
-        TextFormField(controller: _subjectCtrl, style: TextStyle(color: colors.textPrimary),
+        TextFormField(controller: _subjectCtrl, style: TextStyle(color: colors.textPrimary), textInputAction: TextInputAction.next,
           decoration: _inputDecor(colors, 'الموضوع *'),
           validator: (v) => v == null || v.trim().isEmpty ? context.tr('str_bbd73382') : null),
         const SizedBox(height: 14),
-        TextFormField(controller: _messageCtrl, maxLines: 5, style: TextStyle(color: colors.textPrimary),
+        TextFormField(controller: _messageCtrl, maxLines: 5, style: TextStyle(color: colors.textPrimary), textInputAction: TextInputAction.done,
           decoration: _inputDecor(colors, 'الرسالة *'),
           validator: (v) {
             if (v == null || v.trim().isEmpty) return context.tr('str_bbd73382');

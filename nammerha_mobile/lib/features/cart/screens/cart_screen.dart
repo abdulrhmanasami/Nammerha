@@ -58,7 +58,7 @@ class _CartScreenState extends State<CartScreen> {
       child: Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('سلة التبرعات'),
+        title: Text(context.tr('donation_cart')),
         actions: [
           ListenableBuilder(
             listenable: CartStore.instance,
@@ -67,7 +67,7 @@ class _CartScreenState extends State<CartScreen> {
               return IconButton(
                 icon: Icon(Icons.delete_sweep_rounded, color: colors.error),
                 onPressed: _confirmClear,
-                tooltip: 'إفراغ السلة',
+                tooltip: context.tr('empty_cart'),
               );
             },
           ),
@@ -100,7 +100,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'سلتك فارغة',
+              context.tr('your_cart_is_empty'),
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -109,7 +109,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'تصفح المشاريع وأضف مواد البناء لدعم إعادة الإعمار',
+              context.tr('cart_empty_subtitle'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
@@ -118,7 +118,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
             const SizedBox(height: 32),
             GradientButton(
-              label: 'تصفح المشاريع',
+              label: context.tr('browse_projects'),
               icon: Icons.explore_rounded,
               onPressed: () => Navigator.of(context).pop(),
             ),

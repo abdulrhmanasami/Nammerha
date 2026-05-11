@@ -3,10 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart'; // formatCurrency
-import '../../escrow/screens/escrow_checkout_screen.dart';
 import '../../boq/screens/boq_details_screen.dart';
 import '../../donations/screens/donation_checkout_screen.dart';
 import '../../open_data/screens/transparency_dashboard_screen.dart';
+import '../../cart/state/cart_store.dart';
+import '../../cart/screens/cart_screen.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/project_details_bloc.dart';
 import '../bloc/project_details_event.dart';
@@ -66,6 +67,39 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(widget.projectTitle ?? 'تفاصيل المشروع'),
+        actions: [
+          ListenableBuilder(
+            listenable: CartStore.instance,
+            builder: (context, _) {
+              final count = CartStore.instance.items.length;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart_outlined, color: colors.primaryBrand),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                    },
+                  ),
+                  if (count > 0)
+                    PositionedDirectional(
+                      top: 8,
+                      end: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(color: colors.error, shape: BoxShape.circle),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: BlocConsumer<ProjectDetailsBloc, ProjectDetailsState>(
         listener: (context, state) {},
@@ -393,29 +427,41 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                final basketItems = <Map<String, dynamic>>[];
                 for (final entry in selectedQuantities.entries) {
                   if (entry.value <= 0) continue;
                   final item = boqItems.firstWhere((b) => (b['item_id'] ?? b['itemId'] ?? '') == entry.key, orElse: () => <String, dynamic>{});
                   if (item.isNotEmpty) {
                     final unitPrice = (item['unit_price'] ?? item['unitPrice'] ?? 0) as num;
-                    basketItems.add({
-                      'item_id': entry.key,
-                      'name': item['material_name'] ?? item['materialName'] ?? '',
-                      'quantity': entry.value,
-                      'amount': (unitPrice * entry.value).toInt(),
-                    });
+                    CartStore.instance.addItem(
+                      id: entry.key,
+                      projectId: widget.projectId,
+                      name: item['material_name'] ?? item['materialName'] ?? '',
+                      unitPrice: unitPrice.toInt(),
+                      quantity: entry.value,
+                      category: 'BOQ',
+                      iconName: 'package',
+                    );
                   }
                 }
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => EscrowCheckoutScreen(
-                    basketItems: basketItems,
-                    totalAmount: total.toDouble(),
+                
+                context.read<ProjectDetailsBloc>().add(const ClearBOQSelectionsRequested());
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.tr('added_to_cart'), style: const TextStyle(fontFamily: 'Inter')),
+                    backgroundColor: colors.success,
+                    action: SnackBarAction(
+                      label: context.tr('view_cart'),
+                      textColor: Colors.white,
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                      },
+                    ),
                   ),
-                ));
+                );
               },
-              icon: const Icon(Icons.lock_rounded, size: 18),
-              label: const Text('تأمين في الضمان'),
+              icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
+              label: Text(context.tr('add_to_cart')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
                 foregroundColor: Colors.white,

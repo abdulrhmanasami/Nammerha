@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
 import '../models/wallet_model.dart';
 import '../bloc/wallet_bloc.dart';
 import '../bloc/wallet_event.dart';
@@ -44,7 +45,7 @@ class _WalletView extends StatelessWidget {
       body: BlocBuilder<WalletBloc, WalletState>(
         builder: (context, state) {
           if (state is WalletLoading || state is WalletInitial) {
-            return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+            return NammerhaShimmerLoader(colors: colors, itemCount: 4);
           }
 
           if (state is WalletError) {

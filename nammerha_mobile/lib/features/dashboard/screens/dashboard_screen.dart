@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -8,23 +9,22 @@ import '../../../core/services/api_services.dart';
 // (were used by the now-removed role-switcher bottom sheet)
 import '../../auth/repositories/auth_repository.dart';
 import '../bloc/dashboard_home_bloc.dart';
-
-// UNIFIED: SearchScreen not used in unified tabs (accessible from Quick Actions)
-// DONATIONS_DISABLED: DonationsScreen import removed
-import '../../bids/screens/bids_screen.dart';
-import '../../supplier/screens/supplier_portal_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../profile/bloc/profile_bloc.dart';
 import '../../notifications/screens/notifications_screen.dart';
-import '../../homeowner/screens/homeowner_projects_screen.dart';
 import '../../spatial_proof/screens/spatial_camera_screen.dart';
-// UNIFIED: EscrowSummaryScreen, DonorProofScreen, ProjectMapScreen moved to direct nav
 import '../../wallet/screens/wallet_screen.dart';
+import '../../open_data/screens/open_data_screen.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
 import '../../admin/screens/admin_hub_screen.dart';
 import '../../admin/screens/admin_dashboard_screen.dart';
 import '../../admin/screens/admin_escrow_screen.dart';
 import '../../admin/screens/admin_kyc_screen.dart';
+import '../../project/screens/marketplace_screen.dart';
+import '../../cart/state/cart_store.dart';
+import '../../cart/screens/cart_screen.dart';
+import '../../../core/widgets/connectivity_banner.dart';
+import 'package:shimmer/shimmer.dart';
 // UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
 import '../../../core/i18n/t.dart';
 import '../../../core/bloc/page_index_cubit.dart';
@@ -65,9 +65,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Unified layout for ALL non-admin users
     return [
       _DashboardHome(role: 'UNIFIED', userName: widget.user.fullName),
-      const HomeownerProjectsScreen(),   // عقاراتي / المشاريع
-      const BidsScreen(),                // العروض (هندسة + مقاولات)
-      const SupplierPortalScreen(),      // التوريد
+      const MarketplaceScreen(),
+      const WalletScreen(),
+      const OpenDataScreen(),
       BlocProvider(
         create: (_) => ProfileBloc(),
         child: const ProfileScreen(),
@@ -77,19 +77,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<BottomNavigationBarItem> _getNavItems() {
     if (_isAdmin) {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-        BottomNavigationBarItem(icon: Icon(Icons.shield_rounded), label: 'الإدارة'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+      return [
+        BottomNavigationBarItem(icon: const Icon(Icons.dashboard_rounded), label: context.tr('nav_home')),
+        BottomNavigationBarItem(icon: const Icon(Icons.shield_rounded), label: context.tr('nav_admin')),
+        BottomNavigationBarItem(icon: const Icon(Icons.person_rounded), label: context.tr('nav_profile')),
       ];
     }
     // Unified navigation for ALL non-admin users
-    return const [
-      BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'الرئيسية'),
-      BottomNavigationBarItem(icon: Icon(Icons.home_work_rounded), label: 'المشاريع'),
-      BottomNavigationBarItem(icon: Icon(Icons.gavel_rounded), label: 'العروض'),
-      BottomNavigationBarItem(icon: Icon(Icons.local_shipping_rounded), label: 'التوريد'),
-      BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'حسابي'),
+    return [
+      BottomNavigationBarItem(icon: const Icon(Icons.dashboard_rounded), label: context.tr('nav_home')),
+      BottomNavigationBarItem(icon: const Icon(Icons.explore_rounded), label: context.tr('nav_discover')),
+      BottomNavigationBarItem(icon: const Icon(Icons.account_balance_wallet_rounded), label: context.tr('nav_wallet')),
+      BottomNavigationBarItem(icon: const Icon(Icons.public_rounded), label: context.tr('nav_impact')),
+      BottomNavigationBarItem(icon: const Icon(Icons.person_rounded), label: context.tr('nav_profile')),
     ];
   }
 
@@ -116,7 +116,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: BottomNavigationBar(
                 currentIndex: safeIndex,
-                onTap: (i) => context.read<PageIndexCubit>().setPage(i),
+                onTap: (i) {
+                  HapticFeedback.lightImpact();
+                  context.read<PageIndexCubit>().setPage(i);
+                },
                 items: navItems,
               ),
             ),
@@ -165,7 +168,8 @@ class _DashboardHomeView extends StatelessWidget {
             final recentActivity = state is DashboardHomeLoaded ? state.recentActivity : <Map<String, dynamic>>[];
             final isLoadingActivity = isLoading;
 
-            return RefreshIndicator(
+            return ConnectivityBanner(
+              child: RefreshIndicator(
               onRefresh: () async {
                 context.read<DashboardHomeBloc>().add(LoadDashboardHome(role));
               },
@@ -205,7 +209,7 @@ class _DashboardHomeView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'أهلاً، $userName',
+                                _timeAwareGreeting(context, userName),
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
@@ -215,7 +219,7 @@ class _DashboardHomeView extends StatelessWidget {
                               const SizedBox(height: 2),
                               // UNIFIED: Simple welcome subtitle — no role switching
                               Text(
-                                'مرحباً بك في نعمّرها',
+                                context.tr('dashboard_subtitle_default'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -224,6 +228,40 @@ class _DashboardHomeView extends StatelessWidget {
                               ),
                             ],
                           ),
+                        ),
+                        // Cart Badge Icon
+                        ListenableBuilder(
+                          listenable: CartStore.instance,
+                          builder: (context, _) {
+                            final count = CartStore.instance.items.length;
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.shopping_cart_outlined, color: colors.textSecondary),
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                                  },
+                                ),
+                                if (count > 0)
+                                  PositionedDirectional(
+                                    top: 8,
+                                    end: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: colors.error,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        '$count',
+                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                         IconButton(
                           icon: Icon(Icons.notifications_outlined, color: colors.textSecondary),
@@ -242,22 +280,33 @@ class _DashboardHomeView extends StatelessWidget {
                     const SizedBox(height: 28),
 
                     // Stats Cards
-                    isLoading
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: CircularProgressIndicator(
-                                color: colors.primaryBrand,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                          )
-                        : _buildStatsSection(context, stats, role),
+                    if (isLoading)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: CircularProgressIndicator(color: colors.primaryBrand, strokeWidth: 2),
+                        ),
+                      )
+                    else if (state is DashboardHomeError)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Icon(Icons.warning_amber_rounded, color: colors.error, size: 32),
+                              const SizedBox(height: 8),
+                              Text(state.message, style: TextStyle(color: colors.error)),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      _buildStatsSection(context, stats, role),
                     const SizedBox(height: 28),
 
                     // Quick Actions
                     Text(
-                      'إجراءات سريعة',
+                      context.tr('quick_actions'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -265,12 +314,31 @@ class _DashboardHomeView extends StatelessWidget {
                       ),
                     ).animate(delay: 600.ms).fadeIn(),
                     const SizedBox(height: 14),
-                    _buildQuickActions(context, role),
+                    if (isLoading)
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        children: List.generate(4, (index) => Shimmer.fromColors(
+                          baseColor: colors.surfaceElevated,
+                          highlightColor: colors.strokeSubtle,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        )),
+                      )
+                    else
+                      _buildQuickActions(context, role),
                     const SizedBox(height: 28),
 
                     // Recent Activity
                     Text(
-                      'آخر النشاطات',
+                      context.tr('recent_activity'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -287,11 +355,25 @@ class _DashboardHomeView extends StatelessWidget {
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          );
+        },
         ),
       ),
     );
+  }
+
+  String _timeAwareGreeting(BuildContext context, String userName) {
+    final hour = DateTime.now().hour;
+    String greeting;
+    if (hour < 12) {
+      greeting = context.tr('greeting_morning');
+    } else if (hour < 18) {
+      greeting = context.tr('greeting_afternoon');
+    } else {
+      greeting = context.tr('greeting_evening');
+    }
+    return '$greeting، $userName';
   }
 
   Widget _buildStatsSection(BuildContext context, Map<String, dynamic> stats, String role) {
@@ -408,6 +490,7 @@ class _DashboardHomeView extends StatelessWidget {
               button: true,
               child: GestureDetector(
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   Navigator.push(context, MaterialPageRoute(builder: (_) => action.screen));
                 },
                 child: Container(

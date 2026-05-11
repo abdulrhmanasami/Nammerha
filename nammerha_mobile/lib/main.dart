@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 
 import 'core/network/api_client.dart';
@@ -364,10 +365,17 @@ class _AppFlowControllerState extends State<_AppFlowController> {
       case _AppScreen.splash:
         return SplashScreen(
           key: const ValueKey('splash'),
-          onComplete: () {
+          onComplete: () async {
             // Check if user has existing session
             context.read<AuthBloc>().add(AuthCheckSession());
-            _navigateTo(_AppScreen.onboarding);
+            // P0-006 FIX: Onboarding persistence — skip if already seen.
+            final prefs = await SharedPreferences.getInstance();
+            final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+            if (hasSeenOnboarding) {
+              _navigateTo(_AppScreen.login);
+            } else {
+              _navigateTo(_AppScreen.onboarding);
+            }
           },
         );
       case _AppScreen.onboarding:
@@ -382,7 +390,12 @@ class _AppFlowControllerState extends State<_AppFlowController> {
             }
             return OnboardingScreen(
               key: const ValueKey('onboarding'),
-              onComplete: () => _navigateTo(_AppScreen.login),
+              onComplete: () async {
+                // P0-006 FIX: Mark onboarding as seen.
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('hasSeenOnboarding', true);
+                _navigateTo(_AppScreen.login);
+              },
             );
           },
         );

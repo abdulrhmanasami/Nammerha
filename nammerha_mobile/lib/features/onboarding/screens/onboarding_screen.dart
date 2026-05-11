@@ -7,6 +7,21 @@ import '../../../core/widgets/gradient_button.dart';
 import '../../../core/bloc/page_index_cubit.dart';
 import '../../../core/i18n/t.dart';
 
+/// Onboarding data holder — keys reference kTranslations entries.
+class _OnboardingSlideData {
+  final IconData icon;
+  final String titleKey;
+  final String subtitleKey;
+  final List<Color> gradient;
+
+  const _OnboardingSlideData({
+    required this.icon,
+    required this.titleKey,
+    required this.subtitleKey,
+    required this.gradient,
+  });
+}
+
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
   const OnboardingScreen({super.key, required this.onComplete});
@@ -22,23 +37,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   /// Slide 1: Brand Primary (Cobalt→Pine) — "We rebuild together"
   /// Slide 2: CTA Primary (Trust Blue→Jade) — "Absolute transparency"
   /// Slide 3: CTA Warmth (Warm Earth→Gold) — "Your impact is clear"
-  final List<_OnboardingSlide> _slides = [
-    _OnboardingSlide(
+  // P0-004 FIX: Hardcoded Arabic → i18n keys from kTranslations.
+  final List<_OnboardingSlideData> _slides = [
+    _OnboardingSlideData(
       icon: Icons.home_work_rounded,
-      title: 'نعمّرها سوا',
-      subtitle: 'منصة شفافة لإعادة إعمار سوريا\nكل ليرة مُتبرع بها مُتتبّعة بدقة',
+      titleKey: 'onboarding_title_1',
+      subtitleKey: 'onboarding_desc_1',
       gradient: NammerhaGradients.brandPrimary.colors,
     ),
-    _OnboardingSlide(
+    _OnboardingSlideData(
       icon: Icons.verified_user_rounded,
-      title: 'شفافية مطلقة',
-      subtitle: 'إثبات مكاني بالـ GPS لكل عملية توصيل\nدفاتر حسابات مشفرة لا تقبل التلاعب',
+      titleKey: 'onboarding_title_2',
+      subtitleKey: 'onboarding_desc_2',
       gradient: NammerhaGradients.ctaPrimary.colors,
     ),
-    _OnboardingSlide(
+    _OnboardingSlideData(
       icon: Icons.volunteer_activism_rounded,
-      title: 'أثرك واضح',
-      subtitle: 'تابع مشاريعك من التبرع إلى البناء\nواستلم إثبات مصوّر بالتسليم',
+      titleKey: 'onboarding_title_3',
+      subtitleKey: 'onboarding_desc_3',
       gradient: NammerhaGradients.ctaWarmth.colors,
     ),
   ];
@@ -126,7 +142,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         // Title
                         Text(
-                          slide.title,
+                          context.tr(slide.titleKey),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 32,
@@ -142,7 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         // Subtitle
                         Text(
-                          slide.subtitle,
+                          context.tr(slide.subtitleKey),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -182,11 +198,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       );
                     }),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
+                  // Swipe Hint
+                  if (currentPage < _slides.length - 1)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.swipe_rounded, size: 16, color: colors.textSubtle),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.tr('swipe_to_continue'),
+                          style: TextStyle(fontSize: 12, color: colors.textSubtle),
+                        ),
+                      ],
+                    ).animate(onPlay: (controller) => controller.repeat()).shimmer(
+                      duration: 2500.ms,
+                      color: colors.primaryBrand.withAlpha(50),
+                    ),
+                  
+                  const SizedBox(height: 16),
 
                   // CTA Button
                   GradientButton(
-                    label: currentPage == _slides.length - 1 ? 'ابدأ الآن' : context.tr('next'),
+                    label: currentPage == _slides.length - 1 ? context.tr('onboarding_start') : context.tr('next'),
                     icon: currentPage == _slides.length - 1
                         ? Icons.arrow_forward_rounded
                         : null,
@@ -214,16 +249,5 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-class _OnboardingSlide {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final List<Color> gradient;
+// _OnboardingSlide removed — replaced by _OnboardingSlideData (i18n-keyed) at top of file.
 
-  const _OnboardingSlide({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.gradient,
-  });
-}

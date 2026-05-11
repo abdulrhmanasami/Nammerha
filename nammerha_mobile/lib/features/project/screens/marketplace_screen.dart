@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
+import '../../../core/i18n/t.dart';
+import '../../cart/state/cart_store.dart';
+import '../../cart/screens/cart_screen.dart';
+import '../../map/screens/project_map_screen.dart';
 import '../bloc/marketplace_bloc.dart';
 import '../bloc/marketplace_event.dart';
 import '../bloc/marketplace_state.dart';
@@ -21,8 +27,21 @@ class MarketplaceScreen extends StatelessWidget {
   }
 }
 
-class MarketplaceView extends StatelessWidget {
+class MarketplaceView extends StatefulWidget {
   const MarketplaceView({super.key});
+
+  @override
+  State<MarketplaceView> createState() => _MarketplaceViewState();
+}
+
+class _MarketplaceViewState extends State<MarketplaceView> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   // Fallback formatter instead of importing the internal wallet formatter logic directly
   String formatCurrency(num amount) {
@@ -41,27 +60,101 @@ class MarketplaceView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('مشاريع إعادة الإعمار'),
+        title: Text(context.tr('browse_projects')),
         actions: [
           IconButton(
             icon: Icon(Icons.filter_list_rounded, color: colors.primaryBrand),
             onPressed: () => _showFilterBottomSheet(context, colors),
           ),
+          ListenableBuilder(
+            listenable: CartStore.instance,
+            builder: (context, _) {
+              final count = CartStore.instance.items.length;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart_outlined, color: colors.primaryBrand),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                    },
+                  ),
+                  if (count > 0)
+                    PositionedDirectional(
+                      top: 8,
+                      end: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: colors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: BlocBuilder<MarketplaceBloc, MarketplaceState>(
-        builder: (context, state) {
-          if (state is MarketplaceLoading || state is MarketplaceInitial) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: colors.primaryBrand),
-                  const SizedBox(height: 16),
-                  Text('جارٍ تحميل المشاريع...', style: TextStyle(color: colors.textSecondary)),
-                ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const ProjectMapScreen()));
+        },
+        backgroundColor: colors.primaryBrand,
+        icon: const Icon(Icons.map_rounded, color: Colors.white),
+        label: Text(context.tr('map_of_projects'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                context.read<MarketplaceBloc>().add(FilterProjectsEvent(searchQuery: value));
+              },
+              decoration: InputDecoration(
+                hintText: context.tr('search_projects_hint'),
+                prefixIcon: Icon(Icons.search_rounded, color: colors.textSecondary),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.clear_rounded, color: colors.textSecondary),
+                        onPressed: () {
+                          _searchController.clear();
+                          context.read<MarketplaceBloc>().add(const FilterProjectsEvent(searchQuery: ''));
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: colors.surfaceElevated,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: colors.strokeSubtle),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: colors.strokeSubtle),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: colors.primaryBrand),
+                ),
               ),
-            );
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: BlocBuilder<MarketplaceBloc, MarketplaceState>(
+              builder: (context, state) {
+          if (state is MarketplaceLoading || state is MarketplaceInitial) {
+            return NammerhaShimmerLoader(colors: colors, itemCount: 3);
           }
 
           if (state is MarketplaceError) {
@@ -122,6 +215,9 @@ class MarketplaceView extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
+    ),
+  ],
+),
     );
   }
 
@@ -278,6 +374,7 @@ class MarketplaceView extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              BottomSheetGrabber(colors: colors),
               Text('فرز وتصفية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
               const SizedBox(height: 20),
               Text('حالة المشروع', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),

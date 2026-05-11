@@ -6,6 +6,8 @@ import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/bids_fetch_cubit.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -82,16 +84,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
 
   Widget _buildBody(SemanticColors colors, BidsFetchState state) {
     if (state.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: colors.primaryBrand),
-            const SizedBox(height: 16),
-            Text('جارٍ تحميل العروض...', style: TextStyle(color: colors.textSecondary)),
-          ],
-        ),
-      );
+      return NammerhaShimmerLoader(colors: colors, itemCount: 4);
     }
 
     if (state.error != null) {
@@ -263,6 +256,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    BottomSheetGrabber(colors: colors),
                     Text('فرز وتصفية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
                     const SizedBox(height: 20),
                     Text('حالة العرض', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),

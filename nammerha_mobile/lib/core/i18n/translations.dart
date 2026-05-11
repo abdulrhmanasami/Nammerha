@@ -547,10 +547,23 @@ const Map<String, Map<String, String>> kTranslations = {
   'escrow_label': {'ar': 'الضمان', 'en': 'Escrow'},
   'kyc_check': {'ar': 'التحقق KYC', 'en': 'KYC Check'},
   'no_recent_activity': {'ar': 'لا يوجد نشاط حديث', 'en': 'No recent activity'},
+  'dashboard_activity_hint': {'ar': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', 'en': 'Recent activity will appear here once you start working on projects'},
+
+  // ═══ PROJECT DISCOVERY & CART ═══
+  'map_of_projects': {'ar': 'خريطة المشاريع', 'en': 'Projects Map'},
+  'search_projects_hint': {'ar': 'البحث عن مشاريع...', 'en': 'Search projects...'},
+  'donation_cart': {'ar': 'سلة التبرعات', 'en': 'Donation Cart'},
+  'empty_cart': {'ar': 'إفراغ السلة', 'en': 'Empty Cart'},
+  'your_cart_is_empty': {'ar': 'سلتك فارغة', 'en': 'Your cart is empty'},
+  'cart_empty_subtitle': {'ar': 'تصفح المشاريع وأضف مواد البناء لدعم إعادة الإعمار', 'en': 'Browse projects and add construction materials to support reconstruction'},
+  'added_to_cart': {'ar': 'تمت إضافة المواد إلى السلة', 'en': 'Materials added to cart'},
+  'view_cart': {'ar': 'عرض السلة', 'en': 'View Cart'},
+  'add_to_cart': {'ar': 'إضافة للسلة', 'en': 'Add to Cart'},
 
   // ═══ ONBOARDING ═══
   'onboarding_skip': {'ar': 'تخطي', 'en': 'Skip'},
   'onboarding_start': {'ar': 'ابدأ الآن', 'en': 'Get Started'},
+  'swipe_to_continue': {'ar': 'اسحب للمتابعة', 'en': 'Swipe to continue'},
   'onboarding_title_1': {'ar': 'نعمِّرها', 'en': 'Nammerha'},
   'onboarding_desc_1': {'ar': 'منصة إعادة إعمار شفافة ومجتمعية', 'en': 'Transparent community reconstruction platform'},
   'onboarding_title_2': {'ar': 'شفافية كاملة', 'en': 'Full Transparency'},
@@ -597,6 +610,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'admin_filter_all': {'ar': 'الكل', 'en': 'All'},
   'admin_filter_pending': {'ar': 'معلّق', 'en': 'Pending'},
   'admin_filter_verified': {'ar': 'محقق', 'en': 'Verified'},
+
+
   'admin_filter_rejected': {'ar': 'مرفوض', 'en': 'Rejected'},
   'admin_approve': {'ar': 'قبول', 'en': 'Approve'},
   'admin_reject': {'ar': 'رفض', 'en': 'Reject'},

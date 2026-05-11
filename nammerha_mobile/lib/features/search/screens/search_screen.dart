@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../project/data/models/project_model.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
@@ -75,9 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             );
           } else if (state is SearchLoading) {
-            return Center(
-              child: CircularProgressIndicator(color: colors.primaryBrand),
-            );
+            return NammerhaShimmerLoader(colors: colors, itemCount: 4);
           } else if (state is SearchLoaded) {
             if (state.projects.isEmpty) {
               return Center(
@@ -179,6 +179,8 @@ class _SearchScreenState extends State<SearchScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(child: BottomSheetGrabber(colors: colors)),
+              const SizedBox(height: 16),
               Text(
                 'تصفية النتائج',
                 style: textTheme.titleLarge?.copyWith(

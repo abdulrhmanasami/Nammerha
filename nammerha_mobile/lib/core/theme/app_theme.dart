@@ -331,9 +331,11 @@ class NammerhaTheme {
         titleTextStyle: TextStyle(fontFamily: _fontArabic, fontSize: 18, fontWeight: FontWeight.w700, color: colors.textHeading),
       ),
 
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Color(0xFF1E222E),
-        shape: RoundedRectangleBorder(
+      // P1-006 FIX: Use semantic color instead of hardcoded hex.
+      // Light theme uses colors.surfaceElevated — dark must match the pattern.
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colors.surfaceElevated,
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/bids_repository.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -47,6 +48,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
   }
 
   Future<void> _submitBid() async {
+    HapticFeedback.mediumImpact();
     if (!_formKey.currentState!.validate()) return;
 
     final cubit = context.read<SubmitFormCubit>();
@@ -120,6 +122,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _amountController,
+                    textInputAction: TextInputAction.next,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     style: textTheme.bodyLarge,
                     decoration: InputDecoration(
@@ -152,6 +155,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _notesController,
+                    textInputAction: TextInputAction.done,
                     maxLines: 4,
                     style: textTheme.bodyLarge,
                     decoration: InputDecoration(

@@ -16,6 +16,8 @@ import '../bloc/profile_state.dart';
 import '../bloc/profile_form_cubit.dart';
 import '../bloc/change_password_form_cubit.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Profile Screen — User Identity, Roles, Settings
@@ -108,7 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       builder: (context, state) {
         if (state is ProfileInitial || (state is ProfileLoading && state.user == null)) {
-          return Scaffold(backgroundColor: colors.backgroundPrimary, body: Center(child: CircularProgressIndicator(color: colors.primaryBrand)));
+          return Scaffold(backgroundColor: colors.backgroundPrimary, body: NammerhaShimmerLoader(colors: colors, itemCount: 4));
         }
 
         Map<String, dynamic>? user;
@@ -550,10 +552,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Drag handle
-            Container(
-              width: 36, height: 4,
-              decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
-            ),
+            BottomSheetGrabber(colors: colors),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -763,10 +762,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Drag handle
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2)),
-              ),
+              BottomSheetGrabber(colors: colors),
               const SizedBox(height: 16),
 
               // Title

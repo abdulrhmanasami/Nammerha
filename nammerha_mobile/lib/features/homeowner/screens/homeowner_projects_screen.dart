@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
@@ -91,16 +93,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
 
   Widget _buildBody(SemanticColors colors, HomeownerProjectsState state) {
     if (state.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: colors.primaryBrand),
-            const SizedBox(height: 16),
-            Text('جارٍ تحميل مشاريعك...', style: TextStyle(color: colors.textSecondary)),
-          ],
-        ),
-      );
+      return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
 
     if (state.error != null) {
@@ -293,9 +286,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: colors.strokeSubtle, borderRadius: BorderRadius.circular(2))),
-            ),
+            BottomSheetGrabber(colors: colors),
             const SizedBox(height: 16),
             Text('إنشاء مشروع جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(height: 20),

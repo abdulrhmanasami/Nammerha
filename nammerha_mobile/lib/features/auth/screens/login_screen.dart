@@ -5,8 +5,10 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/network/api_client.dart'; // ApiException
 import '../../../core/services/social_auth_service.dart';
+import 'register_wizard_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
+import '../widgets/password_strength_indicator.dart';
 import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -34,12 +36,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   late AnimationController _animController;
   late Animation<double> _fadeIn;
 
-  // UX-001 FIX: Debounce guard to prevent multi-tap spam.
-  // GradientButton's isLoading blocks taps during AuthLoading state, but
-  // there's a microsecond gap between the tap and the BLoC emitting AuthLoading.
-  // This flag closes that window with a 500ms lock.
-  bool _isSubmitting = false;
-
   @override
   void initState() {
     super.initState();
@@ -59,7 +55,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   void _submit(bool isLoginMode, bool termsAccepted) {
-    if (_isSubmitting) return; // UX-001: Block rapid multi-tap
     if (!_formKey.currentState!.validate()) return;
 
     // C4 FIX: Validate confirm password match in registration mode.
@@ -85,13 +80,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         return;
       }
     }
-
-    _isSubmitting = true;
-    // Release lock after 500ms — BLoC will have emitted AuthLoading by then,
-    // and GradientButton's isLoading guard takes over.
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _isSubmitting = false;
-    });
 
     final authBloc = context.read<AuthBloc>();
 
@@ -148,8 +136,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               opacity: _fadeIn,
               child: BlocBuilder<LoginFormCubit, LoginFormState>(
                 builder: (context, formState) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<AuthBloc>().add(AuthCheckSession());
+                      await Future.delayed(const Duration(milliseconds: 500));
+                    },
+                    color: colors.primaryBrand,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -250,7 +245,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           // Without this, users could register with a typo in their
                           // password and be permanently locked out.
                           if (!formState.isLoginMode) ...[
-                            const SizedBox(height: 16),
+                            ListenableBuilder(
+                              listenable: _passwordController,
+                              builder: (context, _) => PasswordStrengthIndicator(
+                                password: _passwordController.text,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
                             _buildTextField(
                               controller: _confirmPasswordController,
                               label: context.tr('auth_confirm_password'),
@@ -273,8 +274,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                           // Forgot Password
                           if (formState.isLoginMode) ...[
-                            Align(
-                              alignment: Alignment.centerLeft,
+                            // P1-003 FIX: Physical Alignment.centerLeft → Logical AlignmentDirectional.centerStart
+                          // Physical alignment breaks RTL — Forgot Password link renders on wrong side.
+                          Align(
+                              alignment: AlignmentDirectional.centerStart,
                               child: TextButton(
                                 onPressed: () => _showForgotPasswordDialog(),
                                 child: Text(
@@ -357,21 +360,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                formState.isLoginMode
-                                    ? context.tr('auth_no_account')
-                                    : context.tr('auth_have_account'),
+                                context.tr('auth_no_account'),
                                 style: TextStyle(color: colors.textSecondary),
                               ),
                               TextButton(
                                 onPressed: () {
-                                  context.read<LoginFormCubit>().toggleMode();
-                                  _formKey.currentState?.reset();
-                                  _confirmPasswordController.clear(); // C4: Clear on mode toggle
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterWizardScreen()));
                                 },
                                 child: Text(
-                                  formState.isLoginMode
-                                      ? context.tr('auth_create_account_link')
-                                      : context.tr('auth_sign_in_link'),
+                                  context.tr('auth_create_account_link'),
                                   style: TextStyle(
                                     color: colors.primaryBrand,
                                     fontWeight: FontWeight.w700,
@@ -383,6 +380,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const SizedBox(height: 40),
                         ],
                       ),
+                    ),
                     ),
                   );
                 },
@@ -440,6 +438,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   // UNIFIED CITIZEN: _buildRoleSelector removed — roles are auto-granted.
 
+  // P1-004 FIX: Forgot password dialog TextEditingController memory leak.
+  // Previous: controller created inside _showForgotPasswordDialog was NEVER disposed.
+  // Now: controller is disposed when the dialog closes via .then() callback.
   void _showForgotPasswordDialog() {
     final emailController = TextEditingController(text: _emailController.text);
     final colors = context.colors;
@@ -496,7 +497,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
         ],
       ),
-    );
+    ).then((_) => emailController.dispose()); // P1-004: Dispose on dialog close
   }
 
   /// Shows a persistent MaterialBanner for email verification errors.
@@ -702,12 +703,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   /// OAuth-001: Real SDK integration for Google and Apple.
   /// Facebook: Coming soon (requires Meta App review).
   Future<void> _handleSocialLogin(String provider) async {
-    if (_isSubmitting) return;
-    _isSubmitting = true;
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _isSubmitting = false;
-    });
-
     try {
       final result = await SocialAuthService.instance.signIn(provider);
 

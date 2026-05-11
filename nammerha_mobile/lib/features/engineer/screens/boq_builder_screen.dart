@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
+
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -231,7 +234,10 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
 
   Widget _qtyBtn(IconData icon, VoidCallback onTap, SemanticColors colors, {bool isPrimary = false}) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
       child: Container(
         width: 32, height: 32,
         decoration: BoxDecoration(
@@ -333,6 +339,7 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          BottomSheetGrabber(colors: colors),
           Text(context.tr('eng_add_material'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.textPrimary)),
           const SizedBox(height: 16),
           _field(nameC, context.tr('eng_material_name'), colors),
@@ -345,12 +352,13 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
             ],
           ),
           const SizedBox(height: 10),
-          _field(priceC, context.tr('eng_unit_price'), colors, isNumber: true),
+          _field(priceC, context.tr('eng_unit_price'), colors, isNumber: true, action: TextInputAction.done),
           const SizedBox(height: 16),
           GradientButton(
             label: context.tr('eng_add_to_list'),
             icon: Icons.add_rounded,
             onPressed: () {
+              HapticFeedback.mediumImpact();
               final name = nameC.text.trim();
               final price = int.tryParse(priceC.text) ?? 0;
               if (name.isEmpty || price <= 0) return;
@@ -372,9 +380,10 @@ class _AddBoqItemFormState extends State<_AddBoqItemForm> {
     );
   }
 
-  Widget _field(TextEditingController controller, String label, SemanticColors colors, {bool isNumber = false}) {
+  Widget _field(TextEditingController controller, String label, SemanticColors colors, {bool isNumber = false, TextInputAction? action}) {
     return TextField(
       controller: controller,
+      textInputAction: action ?? TextInputAction.next,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,

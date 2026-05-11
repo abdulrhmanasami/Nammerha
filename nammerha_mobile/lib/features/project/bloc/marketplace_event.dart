@@ -19,9 +19,10 @@ class LoadProjectsEvent extends MarketplaceEvent {
 class FilterProjectsEvent extends MarketplaceEvent {
   final String? filter;
   final String? sort; // 'highest_funding', 'lowest_funding', null
+  final String? searchQuery;
 
-  const FilterProjectsEvent({this.filter, this.sort});
+  const FilterProjectsEvent({this.filter, this.sort, this.searchQuery});
 
   @override
-  List<Object?> get props => [filter, sort];
+  List<Object?> get props => [filter, sort, searchQuery];
 }

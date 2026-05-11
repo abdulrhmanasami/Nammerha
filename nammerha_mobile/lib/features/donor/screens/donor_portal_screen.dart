@@ -10,6 +10,7 @@ import '../bloc/donor_state.dart';
 import '../models/donor_models.dart';
 import '../../../core/i18n/t.dart';
 import '../../project/screens/project_details_screen.dart';
+import '../../../core/widgets/shimmer_loader.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Donor Portal — Full 5-Tab Dashboard
@@ -122,7 +123,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
 
   Widget _buildDashboard(SemanticColors colors, DonorDashboardModel data, bool isLoading) {
     if (isLoading && data.stats == const DonorStatsModel()) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 1, isList: false);
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -270,7 +271,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
 
   Widget _buildMarketplace(SemanticColors colors, DonorDashboardModel data, bool isLoading) {
     if (isLoading && data.marketplace.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
     if (data.marketplace.isEmpty) {
       return _emptyState(colors, Icons.store_rounded, context.tr('dn_no_marketplace'), '');
@@ -360,7 +361,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
 
   Widget _buildDonations(SemanticColors colors, DonorDashboardModel data, bool isLoading) {
     if (isLoading && data.donations.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 3);
     }
     if (data.donations.isEmpty) {
       return _emptyState(colors, Icons.volunteer_activism_rounded, context.tr('dn_no_donations'), '');
@@ -429,7 +430,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
 
   Widget _buildImpact(SemanticColors colors, DonorDashboardModel data, bool isLoading) {
     if (isLoading && data.impact.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 4);
     }
     if (data.impact.isEmpty) {
       return _emptyState(colors, Icons.insights_rounded, context.tr('dn_no_impact'), '');
@@ -500,7 +501,7 @@ class _DonorPortalScreenState extends State<DonorPortalScreen>
 
   Widget _buildProofs(SemanticColors colors, DonorDashboardModel data, bool isLoading) {
     if (isLoading && data.proofs.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colors.primaryBrand));
+      return NammerhaShimmerLoader(colors: colors, itemCount: 3, isList: false);
     }
     if (data.proofs.isEmpty) {
       return _emptyState(colors, Icons.camera_alt_rounded, context.tr('dn_no_proofs'), context.tr('dn_proofs_hint'));

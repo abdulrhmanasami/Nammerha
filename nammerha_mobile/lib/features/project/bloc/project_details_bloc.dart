@@ -11,6 +11,7 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
         super(ProjectDetailsInitial()) {
     on<LoadProjectDetailsRequested>(_onLoadProjectDetails);
     on<UpdateBOQQuantityRequested>(_onUpdateBOQQuantity);
+    on<ClearBOQSelectionsRequested>(_onClearBOQSelections);
   }
 
   Future<void> _onLoadProjectDetails(
@@ -58,6 +59,14 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
       }
       
       emit(currentState.copyWith(selectedQuantities: newQuantities));
+    }
+  }
+
+  void _onClearBOQSelections(
+      ClearBOQSelectionsRequested event, Emitter<ProjectDetailsState> emit) {
+    if (state is ProjectDetailsLoaded) {
+      final currentState = state as ProjectDetailsLoaded;
+      emit(currentState.copyWith(selectedQuantities: const {}));
     }
   }
 }

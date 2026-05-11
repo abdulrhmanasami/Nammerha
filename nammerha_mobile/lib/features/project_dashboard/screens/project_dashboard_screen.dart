@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/project_dashboard_bloc.dart';
 import '../bloc/project_dashboard_event_state.dart';
 import '../../../core/i18n/t.dart';
@@ -102,23 +104,7 @@ class _ProjectDashboardView extends StatelessWidget {
         },
         builder: (context, state) {
           if (state is ProjectDashboardLoading || state is DailyLogSubmitting || state is ApprovalSubmitting) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: colors.primaryBrand),
-                  const SizedBox(height: 12),
-                  Text(
-                    state is DailyLogSubmitting
-                        ? 'جارِ إرسال السجل...'
-                        : state is ApprovalSubmitting
-                            ? 'جارِ إرسال الطلب...'
-                            : 'جارِ التحميل...',
-                    style: TextStyle(color: colors.textSecondary),
-                  ),
-                ],
-              ),
-            );
+            return NammerhaShimmerLoader(colors: colors, itemCount: 4);
           }
 
           if (state is ProjectDashboardLoaded) {
@@ -432,16 +418,7 @@ class _ProjectDashboardView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colors.strokeSubtle,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
+                BottomSheetGrabber(colors: colors),
                 const SizedBox(height: 16),
                 Text(
                   'إضافة سجل يومي',
