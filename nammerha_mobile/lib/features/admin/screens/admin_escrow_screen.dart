@@ -32,7 +32,7 @@ class _EscrowView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'الضمان المالي',
+          context.tr('admin_escrow'),
           style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
         ),
         backgroundColor: colors.surfaceElevated,
@@ -82,11 +82,11 @@ class _EscrowView extends StatelessWidget {
             Icon(PhosphorIconsRegular.checkCircle, size: 56, color: colors.success),
             const SizedBox(height: 12),
             Text(
-              'لا توجد إثباتات معلّقة',
+              context.tr('admin_no_pending'),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textHeading),
             ),
             Text(
-              'جميع الإثباتات تمت مراجعتها',
+              context.tr('admin_all_reviewed'),
               style: TextStyle(fontSize: 13, color: colors.textMuted),
             ),
           ],
@@ -204,7 +204,7 @@ class _EscrowView extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: () => _confirmRelease(context, c),
                     icon: Icon(PhosphorIconsRegular.checkCircle, size: 18),
-                    label: const Text('تحرير الضمان'),
+                    label: Text(context.tr('admin_release_escrow')),
                     style: FilledButton.styleFrom(
                       backgroundColor: colors.success,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -217,7 +217,7 @@ class _EscrowView extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => _showFlagDialog(context, c),
                     icon: Icon(PhosphorIconsRegular.flag, size: 18, color: colors.error),
-                    label: Text('تعليم تناقض', style: TextStyle(color: colors.error)),
+                    label: Text(context.tr('admin_flag_discrepancy'), style: TextStyle(color: colors.error)),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: colors.error),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -250,7 +250,7 @@ class _EscrowView extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('تأكيد تحرير الضمان', style: TextStyle(color: colors.textHeading, fontWeight: FontWeight.w700)),
+        title: Text(context.tr('admin_release_confirm'), style: TextStyle(color: colors.textHeading, fontWeight: FontWeight.w700)),
         content: Text(
           'هل تريد تحرير الضمان المالي لـ ${c.poNumber.isNotEmpty ? c.poNumber : c.proofId.substring(0, 8)}؟',
           style: TextStyle(color: colors.textBody),
@@ -268,7 +268,7 @@ class _EscrowView extends StatelessWidget {
               );
             },
             style: FilledButton.styleFrom(backgroundColor: colors.success),
-            child: const Text('تحرير'),
+            child: Text(context.tr('admin_release_escrow')),
           ),
         ],
       ),
@@ -282,12 +282,12 @@ class _EscrowView extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('تعليم تناقض', style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
+        title: Text(context.tr('admin_flag_discrepancy'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'أدخل سبب رفض الإثبات:',
+              context.tr('admin_flag_reason'),
               style: TextStyle(color: colors.textBody, fontSize: 13),
             ),
             const SizedBox(height: 12),
@@ -295,7 +295,7 @@ class _EscrowView extends StatelessWidget {
               controller: controller,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'السبب...',
+                hintText: context.tr('str_d7fe8228'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -320,7 +320,7 @@ class _EscrowView extends StatelessWidget {
               );
             },
             style: FilledButton.styleFrom(backgroundColor: colors.error),
-            child: const Text('رفض'),
+            child: Text(context.tr('admin_reject')),
           ),
         ],
       ),

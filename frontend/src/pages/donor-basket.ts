@@ -4,8 +4,11 @@
  * Reads CartStore and renders materials dynamically.
  * Supports quantity adjustment, item removal, total calculation,
  * and optional platform tip selection per profitability study §1.
+ *
+ * FORENSIC-C1.3: GATED — Donation system suspended indefinitely (2026-05-12).
  */
 import '../styles/main.css';
+import { DONATIONS_ENABLED } from '../utils/feature-flags';
 import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { CartStore, type CartItem } from '../components/cart';
@@ -28,6 +31,26 @@ initSearch();
 let selectedTipPercentage = 0;
 let customTipAmount: number | null = null;
 let isCustomTip = false;
+
+// ─── FORENSIC-C1.3 FIX: Suspension Gate ─────────────────────────────────────
+// When donations are suspended, show a clear notice instead of the checkout.
+function showBasketSuspensionNotice(): void {
+    const mainContent = document.getElementById('main-content') ?? document.querySelector('main');
+    if (!mainContent) { return; }
+
+    mainContent.innerHTML = `
+        <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
+            <div class="size-20 rounded-full bg-warning-yellow/10 flex items-center justify-center">
+                <i class="ph ph-shopping-cart text-warning-yellow nm-icon-40" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-lg font-bold" data-i18n="basket_suspended_title">${escapeHtml(t('basket_suspended_title', 'Checkout Unavailable'))}</h2>
+            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="basket_suspended_msg">${escapeHtml(t('basket_suspended_msg', 'The donation checkout is being upgraded. Your cart items are saved and will be available when the system is back online.'))}</p>
+            <a href="/" class="btn-primary nm-btn-inline mt-2">
+                <i class="ph ph-house" aria-hidden="true"></i>
+                <span data-i18n="back_to_home">${escapeHtml(t('back_to_home', 'Back to Home'))}</span>
+            </a>
+        </div>`;
+}
 
 function initDonorBasket(): void {
     const container = document.getElementById('cart-items-container');
@@ -449,10 +472,13 @@ function initDonorBasket(): void {
 }
 
 // BLOCKER-A FIX: Guard all protected content behind auth check.
-// Previous: No auth guard — checkoutSheet accepted input from unauthenticated users,
-// resulting in confusing 401 errors on submit. Every other portal has this guard.
+// FORENSIC-C1.3 FIX: Block checkout when donations are suspended.
 function guardedInit(): void {
     if (!requireAuth()) { return; }
+    if (!DONATIONS_ENABLED) {
+        showBasketSuspensionNotice();
+        return;
+    }
     initDonorBasket();
     initKeyboardHandler();
 }

@@ -170,6 +170,11 @@ function showStep(index: number): void {
     const isFirst = index === 0;
     const isLast = index === steps.length - 1;
 
+    // FRIC-2026-F11 FIX: Announce step change to screen readers via aria-live region.
+    announceTourStep(index, steps.length, title);
+    // Update aria-label with current step context for screen readers.
+    tooltip.setAttribute('aria-label', `${t('tour_dialog_label', 'Product Tour')} — ${title}`);
+
     tooltip.dir = rtl ? 'rtl' : 'ltr';
     tooltip.innerHTML = `
         <div class="nmr-tour-header">
@@ -223,9 +228,16 @@ function showStep(index: number): void {
 
 function positionSpotlight(spotlight: HTMLElement, target: HTMLElement): void {
     const rect = target.getBoundingClientRect();
+    // FRIC-2026-F04 FIX: Compute inset-inline-start-aware position.
+    // In RTL, inset-inline-start maps to physical `right`. CSS now uses
+    // `inset-inline-start: var(--spot-left)` instead of `left:`.
+    const rtl = isRTL();
+    const vw = window.innerWidth;
+    const spotPhysicalLeft = rect.left - SPOTLIGHT_PADDING;
+    const spotInlineStart = rtl ? (vw - rect.right - SPOTLIGHT_PADDING) : spotPhysicalLeft;
     // TICKET-03 FIX: CSS custom properties replace inline style.top/left/width/height — P1-SST-001.
     spotlight.style.setProperty('--spot-top', `${rect.top - SPOTLIGHT_PADDING + window.scrollY}px`);
-    spotlight.style.setProperty('--spot-left', `${rect.left - SPOTLIGHT_PADDING}px`);
+    spotlight.style.setProperty('--spot-left', `${spotInlineStart}px`);
     spotlight.style.setProperty('--spot-w', `${rect.width + SPOTLIGHT_PADDING * 2}px`);
     spotlight.style.setProperty('--spot-h', `${rect.height + SPOTLIGHT_PADDING * 2}px`);
     // DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.
@@ -241,6 +253,7 @@ function positionTooltip(
     const tooltipRect = tooltip.getBoundingClientRect();
     const viewportH = window.innerHeight;
     const viewportW = window.innerWidth;
+    const rtl = isRTL();
 
     // Reset transform
     // TICKET-03 FIX: CSS custom properties replace inline style.top/left/transform — P1-SST-001.
@@ -252,22 +265,33 @@ function positionTooltip(
 
     const MARGIN = 16;
 
+    // FRIC-2026-F04 FIX: Helper to convert physical left-edge px to logical
+    // inset-inline-start px. In RTL, measures from viewport right edge.
+    const toInlineStart = (physicalLeft: number): number => {
+        return rtl ? (viewportW - physicalLeft - tooltipRect.width) : physicalLeft;
+    };
+
+    // Clamp tooltip within viewport (physical left, then convert)
+    const clampedPhysicalLeft = (centerX: number): number => {
+        return Math.max(MARGIN, Math.min(centerX - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN));
+    };
+
     switch (position) {
         case 'bottom':
             tooltip.style.setProperty('--tip-top', `${rect.bottom + MARGIN + window.scrollY}px`);
-            tooltip.style.setProperty('--tip-left', `${Math.max(MARGIN, Math.min(rect.left + rect.width / 2 - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN))}px`);
+            tooltip.style.setProperty('--tip-left', `${toInlineStart(clampedPhysicalLeft(rect.left + rect.width / 2))}px`);
             break;
         case 'top':
             tooltip.style.setProperty('--tip-top', `${rect.top - tooltipRect.height - MARGIN + window.scrollY}px`);
-            tooltip.style.setProperty('--tip-left', `${Math.max(MARGIN, Math.min(rect.left + rect.width / 2 - tooltipRect.width / 2, viewportW - tooltipRect.width - MARGIN))}px`);
+            tooltip.style.setProperty('--tip-left', `${toInlineStart(clampedPhysicalLeft(rect.left + rect.width / 2))}px`);
             break;
         case 'left':
             tooltip.style.setProperty('--tip-top', `${rect.top + rect.height / 2 - tooltipRect.height / 2 + window.scrollY}px`);
-            tooltip.style.setProperty('--tip-left', `${rect.left - tooltipRect.width - MARGIN}px`);
+            tooltip.style.setProperty('--tip-left', `${toInlineStart(rect.left - tooltipRect.width - MARGIN)}px`);
             break;
         case 'right':
             tooltip.style.setProperty('--tip-top', `${rect.top + rect.height / 2 - tooltipRect.height / 2 + window.scrollY}px`);
-            tooltip.style.setProperty('--tip-left', `${rect.right + MARGIN}px`);
+            tooltip.style.setProperty('--tip-left', `${toInlineStart(rect.right + MARGIN)}px`);
             break;
     }
 }
@@ -296,9 +320,32 @@ function createTooltip(): HTMLElement {
     const el = document.createElement('div');
     el.id = TOOLTIP_ID;
     el.className = 'nmr-tour-tooltip';
+    // FRIC-2026-F11 FIX: WAI-ARIA dialog role + modal trap.
+    // Existing: role="dialog" + aria-modal="true".
+    // Added: aria-label for screen reader context.
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', t('tour_dialog_label', 'Product Tour'));
     return el;
+}
+
+// FRIC-2026-F11 FIX: Visually-hidden live region for screen reader announcements.
+// Injected once into DOM; textContent updated on each step change.
+let liveRegion: HTMLElement | null = null;
+function ensureLiveRegion(): HTMLElement {
+    if (liveRegion && document.body.contains(liveRegion)) return liveRegion;
+    const el = document.createElement('div');
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('aria-atomic', 'true');
+    el.className = 'sr-only'; // Tailwind visually hidden class
+    document.body.appendChild(el);
+    liveRegion = el;
+    return el;
+}
+function announceTourStep(stepIndex: number, totalSteps: number, title: string): void {
+    const region = ensureLiveRegion();
+    region.textContent = `${t('tour_step', 'Step')} ${stepIndex + 1} ${t('tour_of', 'of')} ${totalSteps}: ${title}`;
 }
 
 // ─── Keyboard ───────────────────────────────────────────────────────────────
@@ -312,12 +359,31 @@ function handleKeyboard(e: KeyboardEvent): void {
         case 'Escape':
             completeTour();
             break;
+        // FRIC-2026-F11 FIX: RTL-aware arrow key navigation.
+        // In RTL, ArrowRight = previous (inline-start direction),
+        // ArrowLeft = next (inline-end direction).
         case 'ArrowRight':
-            showStep(activeTour.currentStep + 1);
+            showStep(activeTour.currentStep + (isRTL() ? -1 : 1));
             break;
         case 'ArrowLeft':
-            showStep(activeTour.currentStep - 1);
+            showStep(activeTour.currentStep + (isRTL() ? 1 : -1));
             break;
+        // FRIC-2026-F11 FIX: Focus trap — Tab cycles within tooltip buttons.
+        case 'Tab': {
+            e.preventDefault();
+            const focusable = activeTour.tooltip.querySelectorAll<HTMLElement>(
+                'button, [href], [tabindex]:not([tabindex="-1"])'
+            );
+            if (focusable.length === 0) break;
+            const arr = Array.from(focusable);
+            const activeEl = document.activeElement as HTMLElement | null;
+            const currentIdx = activeEl ? arr.indexOf(activeEl) : -1;
+            const nextIdx = e.shiftKey
+                ? (currentIdx <= 0 ? arr.length - 1 : currentIdx - 1)
+                : (currentIdx >= arr.length - 1 ? 0 : currentIdx + 1);
+            arr[nextIdx]?.focus();
+            break;
+        }
     }
 }
 
@@ -342,6 +408,12 @@ function cleanupTour(): void {
     activeTour.overlay.remove();
     activeTour.tooltip.remove();
     activeTour = null;
+
+    // FRIC-2026-F11 FIX: Remove aria-live region on tour cleanup.
+    if (liveRegion && liveRegion.parentNode) {
+        liveRegion.remove();
+        liveRegion = null;
+    }
 }
 
 // ─── Persistence ────────────────────────────────────────────────────────────

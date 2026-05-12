@@ -101,6 +101,36 @@ export async function request<T>(
                 continue;
             }
 
+            // ─── FORENSIC-C5.1 FIX: JWT Session Expiry Interceptor ──────────
+            // Professional SPA pattern: detect httpOnly JWT expiry by observing
+            // 401 responses. When the frontend thinks the user is logged in
+            // (localStorage session exists) but the JWT cookie has expired,
+            // clear the stale session and redirect to login.
+            //
+            // Without this: user sees repeated cryptic API errors on every page
+            // because localStorage says "logged in" but every request fails.
+            if (res.status === 401) {
+                const { isAuthenticated, clearAuth } = await import('../auth');
+                if (isAuthenticated()) {
+                    clearAuth();
+                    // Show session expired notification (dynamic import to avoid circular deps)
+                    try {
+                        const { showToast } = await import('../utils/toast');
+                        showToast(
+                            t('session_expired', 'Your session has expired. Please sign in again.'),
+                            'warning',
+                        );
+                    } catch { /* Toast module may not be available — non-critical */ }
+                    // Redirect to login with return URL after brief delay (let toast show)
+                    const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
+                    setTimeout(() => {
+                        window.location.href = `/auth.html?redirect=${returnPath}`;
+                    }, 1500);
+                    // Return a typed error response instead of throwing
+                    return { success: false, error: 'Session expired' } as ApiResponse<T>;
+                }
+            }
+
             const body = await res.json() as ApiResponse<T>;
 
             if (!res.ok) {

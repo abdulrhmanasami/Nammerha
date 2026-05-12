@@ -27,8 +27,9 @@ import 'features/search/data/search_repository.dart';
 import 'features/search/bloc/search_bloc.dart';
 // P0-002 REMEDIATION: Deep link target screens
 import 'features/escrow/screens/escrow_summary_screen.dart';
-import 'features/donations/screens/donations_screen.dart';
-import 'features/donor_proof/screens/donor_proof_screen.dart';
+// SUSPENDED: Donation system suspended indefinitely (May 2026 strategic decision)
+// import 'features/donations/screens/donations_screen.dart';
+// import 'features/donor_proof/screens/donor_proof_screen.dart';
 import 'features/project/screens/project_details_screen.dart';
 import 'features/admin/screens/admin_kyc_screen.dart';
 import 'features/admin/screens/admin_escrow_screen.dart';
@@ -81,6 +82,62 @@ void main() async {
 
   // Initialize push notification service (registers background handler, creates channel)
   await PushNotificationService.instance.init();
+
+  // FRIC-2026-F09 FIX: Branded error boundary — replaces Flutter's red error screen.
+  // CrashlyticsService captures the real error. This gives users a clean recovery UI
+  // instead of a wall of red text. Uses brand colors + Phosphor icons.
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFFF4F6F8), // --cloud-white
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withAlpha(15), // --error-red
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    size: 40,
+                    color: Color(0xFFEF4444),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'حدث خطأ غير متوقع',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A), // --text-heading
+                    fontFamily: 'IBM Plex Sans Arabic',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'نعتذر عن هذا الخلل. يرجى إعادة تشغيل التطبيق.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF64748B), // --text-secondary
+                    fontFamily: 'IBM Plex Sans Arabic',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
 
   runApp(const NammerhaMobileApp());
 }
@@ -282,7 +339,8 @@ class _AppFlowControllerState extends State<_AppFlowController> {
 
       case 'proof_verified':
       case 'proof_submitted':
-        targetScreen = const DonorProofScreen();
+        // SUSPENDED: DonorProofScreen suspended. Redirect to Wallet.
+        targetScreen = const WalletScreen();
         break;
 
       case 'bid_accepted':
@@ -307,7 +365,8 @@ class _AppFlowControllerState extends State<_AppFlowController> {
 
       case 'donation_received':
       case 'donation_refunded':
-        targetScreen = const DonationsScreen();
+        // SUSPENDED: Donation system suspended indefinitely. Redirect to Wallet.
+        targetScreen = const WalletScreen();
         break;
 
       case 'impact_update':

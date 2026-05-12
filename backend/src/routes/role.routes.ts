@@ -18,7 +18,8 @@ router.use(authMiddleware);
 // NEVER construct table names from user input via string interpolation.
 // This static map is the ONLY source of truth for profile table names.
 const PROFILE_TABLE_MAP: Record<string, string> = {
-    donor: 'donor_profiles',
+    // FORENSIC-C2.5: 'donor' removed — donation system suspended indefinitely (2026-05-12).
+    // donor_profiles table preserved in DB for backward compat, but no new activations.
     contractor: 'contractor_profiles',
     engineer: 'engineer_profiles',
     supplier: 'supplier_profiles',

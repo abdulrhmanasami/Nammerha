@@ -44,7 +44,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-
   // ═══════════════════════════════════════════════════════════════════════════
   // UNIFIED DASHBOARD: All users see the same navigation.
   // Admin/Auditor get admin-specific pages. Everyone else gets unified tabs.
@@ -70,28 +69,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const MarketplaceScreen(),
       const WalletScreen(),
       const OpenDataScreen(),
-      BlocProvider(
-        create: (_) => ProfileBloc(),
-        child: const ProfileScreen(),
-      ),
+      BlocProvider(create: (_) => ProfileBloc(), child: const ProfileScreen()),
     ];
   }
 
   List<BottomNavigationBarItem> _getNavItems() {
     if (_isAdmin) {
       return [
-        BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.squaresFour), label: context.tr('nav_home')),
-        BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.shield), label: context.tr('nav_admin')),
-        BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.user), label: context.tr('nav_profile')),
+        BottomNavigationBarItem(
+          icon: Icon(PhosphorIconsRegular.squaresFour),
+          label: context.tr('nav_home'),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(PhosphorIconsRegular.shield),
+          label: context.tr('nav_admin'),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(PhosphorIconsRegular.user),
+          label: context.tr('nav_profile'),
+        ),
       ];
     }
     // Unified navigation for ALL non-admin users
     return [
-      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.squaresFour), label: context.tr('nav_home')),
-      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.compass), label: context.tr('nav_discover')),
-      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.wallet), label: context.tr('nav_wallet')),
-      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.warningCircle), label: context.tr('nav_impact')),
-      BottomNavigationBarItem(icon: Icon(PhosphorIconsRegular.user), label: context.tr('nav_profile')),
+      BottomNavigationBarItem(
+        icon: Icon(PhosphorIconsRegular.squaresFour),
+        label: context.tr('nav_home'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(PhosphorIconsRegular.compass),
+        label: context.tr('nav_discover'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(PhosphorIconsRegular.wallet),
+        label: context.tr('nav_wallet'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(PhosphorIconsRegular.warningCircle),
+        label: context.tr('nav_impact'),
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(PhosphorIconsRegular.user),
+        label: context.tr('nav_profile'),
+      ),
     ];
   }
 
@@ -106,10 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, currentIndex) {
           final safeIndex = currentIndex >= pages.length ? 0 : currentIndex;
           return Scaffold(
-            body: IndexedStack(
-              index: safeIndex,
-              children: pages,
-            ),
+            body: IndexedStack(index: safeIndex, children: pages),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
                 border: Border(
@@ -165,201 +182,244 @@ class _DashboardHomeView extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<DashboardHomeBloc, DashboardHomeState>(
           builder: (context, state) {
-            final isLoading = state is DashboardHomeLoading || state is DashboardHomeInitial;
-            final stats = state is DashboardHomeLoaded ? state.stats : <String, dynamic>{};
-            final recentActivity = state is DashboardHomeLoaded ? state.recentActivity : <Map<String, dynamic>>[];
+            final isLoading =
+                state is DashboardHomeLoading || state is DashboardHomeInitial;
+            final stats = state is DashboardHomeLoaded
+                ? state.stats
+                : <String, dynamic>{};
+            final recentActivity = state is DashboardHomeLoaded
+                ? state.recentActivity
+                : <Map<String, dynamic>>[];
             final isLoadingActivity = isLoading;
 
             return ConnectivityBanner(
               child: RefreshIndicator(
-              onRefresh: () async {
-                context.read<DashboardHomeBloc>().add(LoadDashboardHome(role));
-              },
-              color: colors.primaryBrand,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Row(
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [colors.primaryBrand, colors.secondaryAccent],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(
-                            child: Text(
-                              userName.isNotEmpty ? userName[0] : 'U',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                onRefresh: () async {
+                  context.read<DashboardHomeBloc>().add(
+                    LoadDashboardHome(role),
+                  );
+                },
+                color: colors.primaryBrand,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
                             children: [
-                              Text(
-                                _timeAwareGreeting(context, userName),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: colors.textPrimary,
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      colors.primaryBrand,
+                                      colors.secondaryAccent,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              // UNIFIED: Simple welcome subtitle — no role switching
-                              Text(
-                                context.tr('dashboard_subtitle_default'),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Cart Badge Icon
-                        ListenableBuilder(
-                          listenable: CartStore.instance,
-                          builder: (context, _) {
-                            final count = CartStore.instance.items.length;
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                IconButton(
-                                  icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary),
-                                  onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
-                                  },
-                                ),
-                                if (count > 0)
-                                  PositionedDirectional(
-                                    top: 8,
-                                    end: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: colors.error,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '$count',
-                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-                                      ),
+                                child: Center(
+                                  child: Text(
+                                    userName.isNotEmpty ? userName[0] : 'U',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                              ],
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                            );
-                          },
-                        ),
-                      ],
-                    )
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: -0.1, end: 0),
-                    const SizedBox(height: 28),
-
-                    // Stats Cards
-                    if (isLoading)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: NammerhaShimmerLoader(colors: colors, isList: false),
-                        ),
-                      )
-                    else if (state is DashboardHomeError)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              Icon(PhosphorIconsRegular.warningCircle, color: colors.error, size: 32),
-                              const SizedBox(height: 8),
-                              Text(state.message, style: TextStyle(color: colors.error)),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _timeAwareGreeting(context, userName),
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: colors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    // UNIFIED: Simple welcome subtitle — no role switching
+                                    Text(
+                                      context.tr('dashboard_subtitle_default'),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: colors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Cart Badge Icon
+                              ListenableBuilder(
+                                listenable: CartStore.instance,
+                                builder: (context, _) {
+                                  final count = CartStore.instance.items.length;
+                                  return Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          PhosphorIconsRegular.warningCircle,
+                                          color: colors.textSecondary,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const CartScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      if (count > 0)
+                                        PositionedDirectional(
+                                          top: 8,
+                                          end: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: colors.error,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Text(
+                                              '$count',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  PhosphorIconsRegular.warningCircle,
+                                  color: colors.textSecondary,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const NotificationsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
-                          ),
-                        ),
-                      )
-                    else
-                      _buildStatsSection(context, stats, role),
-                    const SizedBox(height: 28),
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: -0.1, end: 0),
+                      const SizedBox(height: 28),
 
-                    // Quick Actions
-                    Text(
-                      context.tr('quick_actions'),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: colors.textPrimary,
-                      ),
-                    ).animate(delay: 600.ms).fadeIn(),
-                    const SizedBox(height: 14),
-                    if (isLoading)
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        children: List.generate(4, (index) => Shimmer.fromColors(
-                          baseColor: colors.surfaceElevated,
-                          highlightColor: colors.strokeSubtle,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                      // Stats Cards
+                      if (isLoading)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: NammerhaShimmerLoader(
+                              colors: colors,
+                              isList: false,
                             ),
                           ),
-                        )),
-                      )
-                    else
-                      _buildQuickActions(context, role),
-                    const SizedBox(height: 28),
+                        )
+                      else if (state is DashboardHomeError)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  PhosphorIconsRegular.warningCircle,
+                                  color: colors.error,
+                                  size: 32,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  state.message,
+                                  style: TextStyle(color: colors.error),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        _buildStatsSection(context, stats, role),
+                      const SizedBox(height: 28),
 
-                    // Recent Activity
-                    Text(
-                      context.tr('recent_activity'),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: colors.textPrimary,
+                      // Workspaces (Bento Grid)
+                      Text(
+                        'مساحات العمل', // Fallback context.tr('workspaces') if available, but hardcoding for safety
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                      ).animate(delay: 600.ms).fadeIn(),
+                      const SizedBox(height: 14),
+                      if (isLoading)
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 1.2,
+                          children: List.generate(
+                            4,
+                            (index) => Shimmer.fromColors(
+                              baseColor: colors.surfaceElevated,
+                              highlightColor: colors.strokeSubtle,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        _buildWorkspacesBento(context, role),
+                      const SizedBox(height: 28),
+
+                      // Recent Activity
+                      Text(
+                        context.tr('recent_activity'),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                      ).animate(delay: 800.ms).fadeIn(),
+                      const SizedBox(height: 14),
+                      _buildRecentActivity(
+                        context,
+                        role,
+                        recentActivity,
+                        isLoadingActivity,
                       ),
-                    ).animate(delay: 800.ms).fadeIn(),
-                    const SizedBox(height: 14),
-                    _buildRecentActivity(
-                      context,
-                      role,
-                      recentActivity,
-                      isLoadingActivity,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
         ),
       ),
     );
@@ -378,16 +438,46 @@ class _DashboardHomeView extends StatelessWidget {
     return '$greeting، $userName';
   }
 
-  Widget _buildStatsSection(BuildContext context, Map<String, dynamic> stats, String role) {
+  Widget _buildStatsSection(
+    BuildContext context,
+    Map<String, dynamic> stats,
+    String role,
+  ) {
     final colors = context.colors;
 
     // UNIFIED: Show combined stats for all users
     // Admin/Auditor keep their specific stats via _isAdmin check above
     final List<_StatItem> items = [
-      _StatItem(context.tr('my_projects'), '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}', PhosphorIconsRegular.warningCircle, colors.primaryBrand),
-      _StatItem('عروض نشطة', '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}', PhosphorIconsRegular.gavel, colors.warning),
-      _StatItem('إثباتات مُوثّقة', '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}', PhosphorIconsRegular.sealCheck, colors.success),
-      _StatItem(context.tr('wallet'), formatCurrency(stats['totalRevenue'] ?? stats['total_revenue'] ?? stats['escrow_total'] ?? stats['escrowTotal'] ?? 0), PhosphorIconsRegular.wallet, colors.goldFunding),
+      _StatItem(
+        context.tr('my_projects'),
+        '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}',
+        PhosphorIconsRegular.warningCircle,
+        colors.primaryBrand,
+      ),
+      _StatItem(
+        'عروض نشطة',
+        '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}',
+        PhosphorIconsRegular.gavel,
+        colors.warning,
+      ),
+      _StatItem(
+        'إثباتات مُوثّقة',
+        '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}',
+        PhosphorIconsRegular.sealCheck,
+        colors.success,
+      ),
+      _StatItem(
+        context.tr('wallet'),
+        formatCurrency(
+          stats['totalRevenue'] ??
+              stats['total_revenue'] ??
+              stats['escrow_total'] ??
+              stats['escrowTotal'] ??
+              0,
+        ),
+        PhosphorIconsRegular.wallet,
+        colors.goldFunding,
+      ),
     ];
 
     return GridView.builder(
@@ -403,54 +493,54 @@ class _DashboardHomeView extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         return Semantics(
-          // GAP-M4: Each stat card announces its label and value to TalkBack/VoiceOver
-          label: '${item.label}: ${item.value}',
-          child: GlassCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ExcludeSemantics(
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: item.color.withAlpha(20),
-                      borderRadius: BorderRadius.circular(10),
+              // GAP-M4: Each stat card announces its label and value to TalkBack/VoiceOver
+              label: '${item.label}: ${item.value}',
+              child: GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ExcludeSemantics(
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: item.color.withAlpha(20),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(item.icon, size: 20, color: item.color),
+                      ),
                     ),
-                    child: Icon(item.icon, size: 20, color: item.color),
-                  ),
-                ),
-                ExcludeSemantics(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.value,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: colors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    ExcludeSemantics(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.value,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: colors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        )
+              ),
+            )
             .animate(delay: (300 + index * 100).ms)
             .fadeIn()
             .scale(begin: const Offset(0.9, 0.9), duration: 400.ms);
@@ -458,74 +548,279 @@ class _DashboardHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, String role) {
+  Widget _buildWorkspacesBento(BuildContext context, String role) {
     final colors = context.colors;
-    List<_QuickAction> actions;
 
     if (role == 'ADMIN' || role == 'AUDITOR') {
-      actions = [
-        _QuickAction('لوحة القيادة', PhosphorIconsRegular.squaresFour, colors.primaryBrand, const AdminDashboardScreen()),
-        _QuickAction(context.tr('escrow_label'), PhosphorIconsRegular.wallet, colors.secondaryAccent, const AdminEscrowScreen()),
-        _QuickAction('التحقق KYC', PhosphorIconsRegular.shieldCheck, colors.warmEarth, const AdminKycScreen()),
+      final adminActions = [
+        _WorkspaceItem(
+          'لوحة القيادة',
+          PhosphorIconsRegular.squaresFour,
+          colors.primaryBrand,
+          const AdminDashboardScreen(),
+        ),
+        _WorkspaceItem(
+          context.tr('escrow_label'),
+          PhosphorIconsRegular.wallet,
+          colors.secondaryAccent,
+          const AdminEscrowScreen(),
+        ),
+        _WorkspaceItem(
+          'التحقق KYC',
+          PhosphorIconsRegular.shieldCheck,
+          colors.warmEarth,
+          const AdminKycScreen(),
+        ),
       ];
-    } else {
-      // UNIFIED: All tools available to everyone
-      actions = [
-        _QuickAction('كاميرا مكانية', PhosphorIconsRegular.camera, colors.primaryBrand, const SpatialCameraScreen(projectId: '', itemId: '')),
-        _QuickAction('تقرير ضرر', PhosphorIconsRegular.warningCircle, colors.warning, const DamageReportScreen()),
-        _QuickAction(context.tr('wallet'), PhosphorIconsRegular.wallet, colors.success, const WalletScreen()),
-      ];
+      return Row(
+        children: List.generate(adminActions.length, (index) {
+          final action = adminActions[index];
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(
+                start: index == 0 ? 0 : 6,
+                end: index == adminActions.length - 1 ? 0 : 6,
+              ),
+              child: _buildBentoCard(context, action, index),
+            ),
+          );
+        }),
+      );
     }
 
-    return Row(
-      children: List.generate(actions.length, (index) {
-        final action = actions[index];
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(
-              start: index == 0 ? 0 : 6,
-              end: index == actions.length - 1 ? 0 : 6,
-            ),
-            child: Semantics(
-              // GAP-M4: Quick action buttons announce their label to screen readers
-              label: action.label,
-              button: true,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => action.screen));
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  decoration: BoxDecoration(
-                    color: action.color.withAlpha(12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: action.color.withAlpha(30)),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(action.icon, color: action.color, size: 28),
-                      const SizedBox(height: 8),
-                      Text(
-                        action.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+    // UNIFIED BENTO GRID (Role-less Contextual Workspaces)
+    final projectsWorkspace = [
+      _WorkspaceItem(
+        'إنشاء مشروع',
+        PhosphorIconsRegular.plusCircle,
+        colors.primaryBrand,
+        const MarketplaceScreen(),
+      ), // Using Marketplace as placeholder
+      _WorkspaceItem(
+        'مشاريعي',
+        PhosphorIconsRegular.buildings,
+        colors.primaryBrand,
+        const MarketplaceScreen(),
+      ),
+    ];
+
+    final tendersWorkspace = [
+      _WorkspaceItem(
+        'تصفح العطاءات',
+        PhosphorIconsRegular.magnifyingGlass,
+        colors.goldFunding,
+        const MarketplaceScreen(),
+      ),
+      _WorkspaceItem(
+        'عروضي',
+        PhosphorIconsRegular.gavel,
+        colors.goldFunding,
+        const MarketplaceScreen(),
+      ),
+    ];
+
+    final fieldWorkspace = [
+      _WorkspaceItem(
+        'كاميرا مكانية',
+        PhosphorIconsRegular.camera,
+        colors.success,
+        const SpatialCameraScreen(projectId: '', itemId: ''),
+      ),
+      _WorkspaceItem(
+        'تقرير ضرر',
+        PhosphorIconsRegular.warningCircle,
+        colors.warning,
+        const DamageReportScreen(),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Top Row: Projects & Tenders
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildBentoSection(
+                context,
+                'مشاريع وملكيات',
+                projectsWorkspace,
+                colors.primaryBrand,
+                700,
               ),
             ),
-          )
-              .animate(delay: (700 + index * 100).ms)
-              .fadeIn()
-              .slideY(begin: 0.2, end: 0),
-        );
-      }),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildBentoSection(
+                context,
+                'مناقصات وتوريد',
+                tendersWorkspace,
+                colors.goldFunding,
+                800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Bottom Row: Field Tools (Full Width)
+        _buildBentoSection(
+          context,
+          'مهام ميدانية وهندسية',
+          fieldWorkspace,
+          colors.success,
+          900,
+          isHorizontal: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBentoSection(
+    BuildContext context,
+    String title,
+    List<_WorkspaceItem> items,
+    Color themeColor,
+    int animDelay, {
+    bool isHorizontal = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: themeColor.withAlpha(12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: themeColor.withAlpha(30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: themeColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (isHorizontal)
+            Row(
+              children: List.generate(items.length, (index) {
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      start: index == 0 ? 0 : 6,
+                      end: index == items.length - 1 ? 0 : 6,
+                    ),
+                    child: _buildBentoCard(
+                      context,
+                      items[index],
+                      0,
+                      isCompact: true,
+                    ),
+                  ),
+                );
+              }),
+            )
+          else
+            Column(
+              children: List.generate(items.length, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == items.length - 1 ? 0 : 8,
+                  ),
+                  child: _buildBentoCard(
+                    context,
+                    items[index],
+                    0,
+                    isFullWidth: true,
+                  ),
+                );
+              }),
+            ),
+        ],
+      ),
+    ).animate(delay: animDelay.ms).fadeIn().slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildBentoCard(
+    BuildContext context,
+    _WorkspaceItem action,
+    int index, {
+    bool isCompact = false,
+    bool isFullWidth = false,
+  }) {
+    final colors = context.colors;
+    return Semantics(
+      label: action.label,
+      button: true,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => action.screen),
+          );
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: isCompact ? 12 : 16,
+            horizontal: 12,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: colors.strokeSubtle),
+            boxShadow: [
+              BoxShadow(
+                color: colors.strokeSubtle.withAlpha(20),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: isFullWidth
+              ? Row(
+                  children: [
+                    Icon(action.icon, color: action.color, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        action.label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    Icon(
+                      action.icon,
+                      color: action.color,
+                      size: isCompact ? 24 : 28,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      action.label,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 
@@ -554,11 +849,29 @@ class _DashboardHomeView extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textSecondary.withAlpha(80)),
+            Icon(
+              PhosphorIconsRegular.warningCircle,
+              size: 48,
+              color: colors.textSecondary.withAlpha(80),
+            ),
             const SizedBox(height: 12),
-            Text('لا توجد نشاطات حديثة', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+            Text(
+              'لا توجد نشاطات حديثة',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: colors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text('ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', style: TextStyle(fontSize: 12, color: colors.textSecondary.withAlpha(150)), textAlign: TextAlign.center),
+            Text(
+              'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع',
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.textSecondary.withAlpha(150),
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ).animate(delay: 900.ms).fadeIn();
@@ -569,7 +882,8 @@ class _DashboardHomeView extends StatelessWidget {
         final item = recentActivity[index];
         final type = item['type'] as String? ?? 'info';
         final title = item['title'] as String? ?? '';
-        final body = item['body'] as String? ?? item['message'] as String? ?? '';
+        final body =
+            item['body'] as String? ?? item['message'] as String? ?? '';
         final createdAt = item['created_at'] as String?;
         final isRead = item['is_read'] as bool? ?? false;
 
@@ -590,63 +904,123 @@ class _DashboardHomeView extends StatelessWidget {
         }
 
         return Container(
-          margin: EdgeInsets.only(bottom: index < recentActivity.length - 1 ? 10 : 0),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: isRead ? colors.surfaceElevated : actMeta.color.withAlpha(8),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isRead ? colors.strokeSubtle : actMeta.color.withAlpha(30)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(color: actMeta.color.withAlpha(20), borderRadius: BorderRadius.circular(10)),
-                child: Icon(actMeta.icon, size: 20, color: actMeta.color),
+              margin: EdgeInsets.only(
+                bottom: index < recentActivity.length - 1 ? 10 : 0,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: TextStyle(fontSize: 13, fontWeight: isRead ? FontWeight.w500 : FontWeight.w700, color: colors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    if (body.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(body, style: TextStyle(fontSize: 12, color: colors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    ],
-                    if (timeAgo.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(timeAgo, style: TextStyle(fontSize: 10, color: colors.textSubtle, fontWeight: FontWeight.w500)),
-                    ],
-                  ],
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isRead
+                    ? colors.surfaceElevated
+                    : actMeta.color.withAlpha(8),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isRead
+                      ? colors.strokeSubtle
+                      : actMeta.color.withAlpha(30),
                 ),
               ),
-              if (!isRead)
-                Container(
-                  width: 8, height: 8,
-                  margin: const EdgeInsetsDirectional.only(start: 8, top: 4),
-                  decoration: BoxDecoration(color: actMeta.color, shape: BoxShape.circle),
-                ),
-            ],
-          ),
-        ).animate(delay: (900 + index * 80).ms).fadeIn().slideX(begin: 0.05, end: 0);
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: actMeta.color.withAlpha(20),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(actMeta.icon, size: 20, color: actMeta.color),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isRead
+                                ? FontWeight.w500
+                                : FontWeight.w700,
+                            color: colors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (body.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            body,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colors.textSecondary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        if (timeAgo.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            timeAgo,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colors.textSubtle,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (!isRead)
+                    Container(
+                      width: 8,
+                      height: 8,
+                      margin: const EdgeInsetsDirectional.only(
+                        start: 8,
+                        top: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: actMeta.color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                ],
+              ),
+            )
+            .animate(delay: (900 + index * 80).ms)
+            .fadeIn()
+            .slideX(begin: 0.05, end: 0);
       }),
     );
   }
 
   _ActivityMeta _activityMeta(String type, SemanticColors colors) {
     switch (type) {
-      case 'escrow_locked': case 'donation_received': case 'escrow_released': case 'payment_completed':
+      case 'escrow_locked':
+      // SUSPENDED: donation_received removed (May 2026 strategic decision)
+      case 'escrow_released':
+      case 'payment_completed':
         return _ActivityMeta(PhosphorIconsRegular.lockKey, colors.success);
-      case 'proof_submitted': case 'proof_verified':
-        return _ActivityMeta(PhosphorIconsRegular.sealCheck, colors.primaryBrand);
-      case 'bid_received': case 'bid_accepted':
+      case 'proof_submitted':
+      case 'proof_verified':
+        return _ActivityMeta(
+          PhosphorIconsRegular.sealCheck,
+          colors.primaryBrand,
+        );
+      case 'bid_received':
+      case 'bid_accepted':
         return _ActivityMeta(PhosphorIconsRegular.gavel, colors.goldFunding);
-      case 'project_published': case 'project_funded':
+      case 'project_published':
+      case 'project_funded':
         return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.info);
       case 'kyc_verified':
-        return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.success);
+        return _ActivityMeta(
+          PhosphorIconsRegular.warningCircle,
+          colors.success,
+        );
       case 'kyc_rejected':
         return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.error);
       case 'order_status':
@@ -655,7 +1029,6 @@ class _DashboardHomeView extends StatelessWidget {
         return _ActivityMeta(PhosphorIconsRegular.bell, colors.textSecondary);
     }
   }
-
 
   // UNIFIED: _showRoleSwitcher, _showAddRoleSheet, and _activateRole
   // have been removed. Role switching is no longer a user-facing concept.
@@ -670,12 +1043,12 @@ class _StatItem {
   const _StatItem(this.label, this.value, this.icon, this.color);
 }
 
-class _QuickAction {
+class _WorkspaceItem {
   final String label;
   final IconData icon;
   final Color color;
   final Widget screen;
-  const _QuickAction(this.label, this.icon, this.color, this.screen);
+  const _WorkspaceItem(this.label, this.icon, this.color, this.screen);
 }
 
 class _ActivityMeta {

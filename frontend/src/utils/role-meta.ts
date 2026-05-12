@@ -38,7 +38,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelKey: 'role_homeowner',
         labelFallback: 'Homeowner',
         colorToken: '--trust-blue',
-        colorFallback: '#1A73E8',
+        colorFallback: '#1558D6',
         verificationLabel: 'Property Proof',
     },
     engineer: {
@@ -46,7 +46,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelKey: 'role_engineer',
         labelFallback: 'Engineer',
         colorToken: '--smoky-jade',
-        colorFallback: '#109173',
+        colorFallback: '#0A6E55',  // FORENSIC-C6.1 FIX: Was #109173. GEMINI.md specifies #0A6E55.
         verificationLabel: 'License Verified',
     },
     supplier: {
@@ -62,7 +62,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelKey: 'role_contractor',
         labelFallback: 'Contractor',
         colorToken: '--trust-blue',
-        colorFallback: '#1A73E8',
+        colorFallback: '#1558D6',
         verificationLabel: 'Licensed',
     },
     tradesperson: {
@@ -70,14 +70,14 @@ const ROLE_META: Record<string, RoleMeta> = {
         labelKey: 'role_tradesperson',
         labelFallback: 'Tradesperson',
         colorToken: '--smoky-jade',
-        colorFallback: '#109173',
+        colorFallback: '#0A6E55',  // FORENSIC-C6.1 FIX: Was #109173. GEMINI.md specifies #0A6E55.
         verificationLabel: 'Certified',
     },
     admin: {
         icon: 'ph-shield-check',
         labelKey: 'role_admin',
         labelFallback: 'Admin',
-        colorToken: '--red-500',
+        colorToken: '--red-500',           // Intentional: Admin uses alert color, not brand color
         colorFallback: '#ef4444',
         verificationLabel: 'System Admin',
     },
@@ -85,10 +85,13 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-detective',
         labelKey: 'role_auditor',
         labelFallback: 'Auditor',
-        colorToken: '--violet-500',
+        colorToken: '--violet-500',         // Intentional: Auditor uses distinct color, not brand color
         colorFallback: '#8b5cf6',
         verificationLabel: 'Auditor',
     },
+    // FORENSIC-C1.11: Donor role entry preserved for backward compatibility
+    // (existing localStorage sessions may reference this role).
+    // Donation system SUSPENDED INDEFINITELY (2026-05-12).
     donor: {
         icon: 'ph-hand-heart',
         labelKey: 'role_donor',

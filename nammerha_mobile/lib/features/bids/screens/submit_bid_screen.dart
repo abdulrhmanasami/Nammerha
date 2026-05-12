@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../data/bids_repository.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/bloc/submit_form_cubit.dart';
+import '../../../core/i18n/t.dart'; // PLAT-100: i18n import
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// SubmitBidScreen — Platinum Standard (Absolute Zero setState)
@@ -66,9 +67,9 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تقديم العطاء بنجاح. سيتم إرساله للقيد الذكي.'),
-            backgroundColor: Color(0xFF0A6E55),
+          SnackBar(
+            content: Text(context.tr('str_245e3f1e')),
+            backgroundColor: const Color(0xFF0A6E55),
           ),
         );
         Navigator.pop(context);
@@ -100,7 +101,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
           backgroundColor: colors.backgroundPrimary,
           appBar: AppBar(
             title: Text(
-              'تقديم عطاء تسعير',
+              context.tr('str_45e92099'),
               style: textTheme.titleMedium?.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -115,7 +116,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'المبلغ الإجمالي المقترح (USD)',
+                    context.tr('str_c30dd161'),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
@@ -130,7 +131,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: colors.surfaceElevated,
-                      hintText: 'أدخل المبلغ هنا...',
+                      hintText: context.tr('str_5673bc83'),
                       hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -139,16 +140,16 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                       prefixIcon: Icon(PhosphorIcons.currencyDollar(), color: colors.primaryBrand),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) return 'المبلغ مطلوب';
+                      if (val == null || val.isEmpty) return context.tr('str_1e2dbbad');
                       final num = double.tryParse(val);
-                      if (num == null) return 'يجب أن يكون رقماً صالحاً';
-                      if (num <= 0) return 'المبلغ يجب أن يكون أكبر من صفر';
+                      if (num == null) return context.tr('str_3dd6c40b');
+                      if (num <= 0) return context.tr('str_944f5777');
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'ملاحظات إضافية وشروط (اختياري)',
+                    context.tr('str_58c1734a'),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
@@ -163,7 +164,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: colors.surfaceElevated,
-                      hintText: 'اكتب الشروط الإضافية أو الملاحظات الهندسية...',
+                      hintText: context.tr('str_443b4e92'),
                       hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -185,7 +186,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                           ? SizedBox(width: 24, height: 24, child: NammerhaShimmerLoader(colors: colors),
                             )
                           : Text(
-                              'تأكيد وتقديم العطاء',
+                              context.tr('str_83bb6499'),
                               style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,

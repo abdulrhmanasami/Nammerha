@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { DONATIONS_ENABLED } from '../utils/feature-flags';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
@@ -26,6 +27,8 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
    PLT-FE-001 FIX: All API calls delegated to centralized api.ts client.
    Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
    wrapper — including 30s AbortController timeout for Syria's network conditions.
+
+   FORENSIC-C1.1: GATED — Donation system suspended indefinitely (2026-05-12).
    ═══════════════════════════════════════════════════════════════════════════ */
 
 type TabName = 'dashboard' | 'marketplace' | 'donations' | 'impact' | 'proofs';
@@ -36,10 +39,38 @@ const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'donations', 'impact', 
 // P1-003 FIX: Hash-based tab routing
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
+// ─── FORENSIC-C1.1 FIX: Suspension Gate ─────────────────────────────────────
+// When donations are suspended, replace the entire portal with a clear notice.
+// Previous: Portal loaded, called suspended APIs, showed cryptic errors.
+// Standard: Nielsen #1 (System Status Visibility) — tell users what's happening.
+function showSuspensionNotice(): void {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) { return; }
+
+    mainContent.innerHTML = `
+        <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
+            <div class="size-20 rounded-full bg-warning-yellow/10 flex items-center justify-center">
+                <i class="ph ph-clock text-warning-yellow nm-icon-40" aria-hidden="true"></i>
+            </div>
+            <h2 class="text-lg font-bold" data-i18n="donor_suspended_title">${esc(t('donor_suspended_title', 'Donations Coming Soon'))}</h2>
+            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="donor_suspended_msg">${esc(t('donor_suspended_msg', 'The donation system is being upgraded. You will be able to fund projects again soon. Thank you for your patience.'))}</p>
+            <a href="/" class="btn-primary nm-btn-inline mt-2">
+                <i class="ph ph-house" aria-hidden="true"></i>
+                <span data-i18n="back_to_home">${esc(t('back_to_home', 'Back to Home'))}</span>
+            </a>
+        </div>`;
+}
+
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+
+    // FORENSIC-C1.1 FIX: Block entire portal when donations are suspended.
+    if (!DONATIONS_ENABLED) {
+        showSuspensionNotice();
+        return;
+    }
 
     setupTabs();
     const initialTab = hashRouter.getInitialTab();

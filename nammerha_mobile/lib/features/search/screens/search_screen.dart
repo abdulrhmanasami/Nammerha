@@ -10,6 +10,7 @@ import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
 import '../bloc/search_state.dart';
 import '../models/marketplace_filter_model.dart';
+import '../../../core/i18n/t.dart'; // FRIC-2026-F14 FIX: i18n import
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -41,7 +42,8 @@ class _SearchScreenState extends State<SearchScreen> {
             context.read<SearchBloc>().add(SearchQueryChanged(val));
           },
           decoration: InputDecoration(
-            hintText: 'ابحث عن مشروع أو مقاول...',
+            // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
+            hintText: context.tr('str_f0f1855c'),
             hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
             border: InputBorder.none,
             prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: colors.primaryBrand),
@@ -68,7 +70,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   Icon(PhosphorIconsRegular.magnifyingGlass, size: 80, color: colors.textSubtle),
                   const SizedBox(height: 16),
                   Text(
-                    'ابدأ البحث عن المشاريع',
+                  // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
+                  context.tr('str_a4b6a448'),
                     style: textTheme.titleMedium?.copyWith(
                       color: colors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -83,7 +86,8 @@ class _SearchScreenState extends State<SearchScreen> {
             if (state.projects.isEmpty) {
               return Center(
                 child: Text(
-                  'لم يتم العثور على نتائج',
+                  // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
+                  context.tr('str_22b9ada9'),
                   style: textTheme.titleMedium?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -183,7 +187,8 @@ class _SearchScreenState extends State<SearchScreen> {
               Center(child: BottomSheetGrabber(colors: colors)),
               const SizedBox(height: 16),
               Text(
-                'تصفية النتائج',
+                // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
+                context.tr('str_29f48a6c'),
                 style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colors.textPrimary,
@@ -192,7 +197,7 @@ class _SearchScreenState extends State<SearchScreen> {
               const SizedBox(height: 20),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('المشاريع ذات الأولوية (وفاق)', style: textTheme.bodyMedium),
+                title: Text(context.tr('str_1c6d11f6'), style: textTheme.bodyMedium),
                 trailing: Icon(PhosphorIconsRegular.sealCheck, color: colors.primaryBrand),
                 onTap: () {
                   Navigator.pop(ctx);

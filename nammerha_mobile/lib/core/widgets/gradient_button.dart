@@ -1,17 +1,19 @@
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // FRIC-2026-F10: HapticFeedback
 import '../theme/app_theme.dart';
 import '../theme/semantic_colors.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Gradient Button — Nammerha Premium CTA Component
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Default gradient: Trust Blue (#1A73E8) → Smoky Jade (#109173)
+/// Default gradient: Trust Blue (#1558D6) → Smoky Jade (#0A6E55)
 /// Matches web platform: .btn-primary + .btn-jade fusion
 /// Shadow: --shadow-cta token from web CSS
 ///
 /// PREVIOUS (WRONG): Default was teal #0D7377→#14919B — NOT a brand color.
 /// NOW: Uses NammerhaGradients.ctaPrimary for brand compliance.
+/// FRIC-2026-F10: HapticFeedback.lightImpact() on every tap for tactile UX.
 /// ═══════════════════════════════════════════════════════════════════════════
 class GradientButton extends StatefulWidget {
   final String label;
@@ -78,6 +80,10 @@ class _GradientButtonState extends State<GradientButton>
         _controller.reverse();
         setState(() => _isPressed = false);
         if (widget.onPressed != null && !widget.isLoading) {
+          // FRIC-2026-F10 FIX: Haptic feedback on primary CTA tap.
+          // GradientButton is the single enforcement point for ALL CTAs (15+ screens).
+          // lightImpact matches Apple HIG "confirmation" haptic tier.
+          HapticFeedback.lightImpact();
           widget.onPressed!();
         }
       },

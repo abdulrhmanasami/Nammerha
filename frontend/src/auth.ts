@@ -9,8 +9,14 @@ export type UserRole = 'homeowner' | 'engineer' | 'donor' | 'supplier' | 'contra
 export interface AuthUser {
     user_id: string;
     full_name: string;
-    role: UserRole;           // primary registration role
-    roles: UserRole[];        // all active roles
+    /**
+     * @deprecated FORENSIC-C2.1: Legacy singular role kept for backward compatibility.
+     * Backend login still sends this field. Do NOT use for display or access control.
+     * Use `roles[]` array instead — it is the sole source of truth.
+     */
+    role: UserRole;
+    /** All active roles — sole source of truth for user capabilities. */
+    roles: UserRole[];
     email?: string;
     kyc_verified: boolean;
 }
@@ -80,7 +86,8 @@ const IS_DEV: boolean = import.meta.env.DEV === true;
 // DEV_USERS are only populated in development builds.
 // In production, Vite's dead-code elimination strips this entire block.
 // UNIFIED CITIZEN: All dev users have ALL citizen roles — mirrors production behavior.
-const ALL_CITIZEN_ROLES: UserRole[] = ['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson'];
+// FORENSIC-C2.4 FIX: 'donor' removed — donation system suspended indefinitely.
+const ALL_CITIZEN_ROLES: UserRole[] = ['homeowner', 'engineer', 'supplier', 'contractor', 'tradesperson'];
 const ALL_ADMIN_ROLES: UserRole[] = [...ALL_CITIZEN_ROLES, 'admin', 'auditor'];
 
 const DEV_USERS: Record<string, AuthUser> = IS_DEV
@@ -101,14 +108,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
             email: 'khalid@example.com',
             kyc_verified: true,
         },
-        donor: {
-            user_id: 'dev-donor-001',
-            full_name: 'Sarah Johnson',
-            role: 'donor',
-            roles: ALL_CITIZEN_ROLES,
-            email: 'sarah@example.com',
-            kyc_verified: true,
-        },
+        // FORENSIC-C2.4: 'donor' dev user removed — donation system suspended indefinitely.
         supplier: {
             user_id: 'dev-supplier-001',
             full_name: 'Dev Supplier 001',

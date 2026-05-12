@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { DONATIONS_ENABLED } from '../utils/feature-flags';
 import { reportError, reportWarning } from '../error-reporter';
 import { donations, payments } from '../api';
 import { escapeHtml } from '../utils/xss';
@@ -57,6 +58,16 @@ async function loadEscrowSummary(): Promise<void> {
     const lockedEl = document.getElementById('locked-count');
     const releasedEl = document.getElementById('released-count');
 
+    // FORENSIC-C1.7 FIX: Donations API returns 503 when DONATIONS_ENABLED=false.
+    // Wallet is a universal page — it must NOT depend on the suspended donation system.
+    // When donations are suspended, show zeroed escrow balance gracefully.
+    if (!DONATIONS_ENABLED) {
+        if (balanceEl) { balanceEl.textContent = formatCents(0); }
+        if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `0 ${t('wallet_locked', 'locked')}`; }
+        if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `0 ${t('wallet_released', 'released')}`; }
+        return;
+    }
+
     try {
         const response = await donations.getMyEscrow();
         if (response.success && response.data) {
@@ -111,18 +122,26 @@ async function loadTransactions(): Promise<void> {
     if (!listEl) { return; }
 
     try {
-        const [donRes, payRes] = await Promise.allSettled([
-            donations.getMyHistory(),
-            payments.getMyPayments(),
-        ]);
+        // FORENSIC-C1.7 FIX: Only fetch donation history when donations are enabled.
+        // Previously this always called donations.getMyHistory() which returns 503
+        // when DONATIONS_ENABLED=false on the backend, breaking the entire wallet page.
+        const fetches: Promise<unknown>[] = [payments.getMyPayments()];
+        if (DONATIONS_ENABLED) {
+            fetches.push(donations.getMyHistory());
+        }
+
+        const [payRes, donRes] = await Promise.allSettled(fetches) as [
+            PromiseSettledResult<Awaited<ReturnType<typeof payments.getMyPayments>>>,
+            PromiseSettledResult<Awaited<ReturnType<typeof donations.getMyHistory>>> | undefined,
+        ];
 
         const transactions: Transaction[] = [];
 
-        if (donRes.status === 'fulfilled' && donRes.value.success && Array.isArray(donRes.value.data)) {
-            transactions.push(...(donRes.value.data as Transaction[]));
+        if (donRes && donRes.status === 'fulfilled' && (donRes.value as { success: boolean; data?: unknown }).success && Array.isArray((donRes.value as { data?: unknown }).data)) {
+            transactions.push(...((donRes.value as { data: Transaction[] }).data));
         }
-        if (payRes.status === 'fulfilled' && payRes.value.success && Array.isArray(payRes.value.data)) {
-            transactions.push(...(payRes.value.data as Transaction[]));
+        if (payRes.status === 'fulfilled' && (payRes.value as { success: boolean; data?: unknown }).success && Array.isArray((payRes.value as { data?: unknown }).data)) {
+            transactions.push(...((payRes.value as { data: Transaction[] }).data));
         }
 
         if (transactions.length === 0) {

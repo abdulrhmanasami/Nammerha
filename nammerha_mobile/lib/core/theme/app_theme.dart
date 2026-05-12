@@ -386,11 +386,12 @@ class NammerhaGradients {
   );
 
   /// CTA Primary — Trust Blue → Smoky Jade. Used for primary action buttons.
-  /// Maps to web: .btn-primary (--trust-blue) + .btn-jade (--smoky-jade)
+  /// Maps to web: .btn-primary (--trust-blue #1558D6) + .btn-jade (--smoky-jade #0A6E55)
+  /// FRIC-2026-F01 FIX: Was 0xFF1A73E8 (legacy) — unified to Platinum Standard.
   static const LinearGradient ctaPrimary = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF1A73E8), Color(0xFF109173)],
+    colors: [Color(0xFF1558D6), Color(0xFF0A6E55)],
   );
 
   /// CTA Secondary — Warning gradient for caution-state buttons.
@@ -407,11 +408,12 @@ class NammerhaGradients {
     colors: [Color(0xFFD59F80), Color(0xFFFCC934)],
   );
 
-  /// Profile/Header gradient — Trust Blue → Smoky Jade
+  /// Profile/Header gradient — Trust Blue → Smoky Jade (Platinum Standard)
+  /// FRIC-2026-F01 FIX: Was 0xFF1A73E8/0xFF109173 — unified to SemanticColors values.
   static const LinearGradient profileHeader = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF1A73E8), Color(0xFF109173)],
+    colors: [Color(0xFF1558D6), Color(0xFF0A6E55)],
   );
 }
 
@@ -421,9 +423,10 @@ class NammerhaGradients {
 class NammerhaShadows {
   NammerhaShadows._();
 
-  /// --shadow-glass: 0 8px 32px 0 rgba(26, 115, 232, 0.05)
+  /// --shadow-glass: 0 8px 32px 0 rgba(21, 88, 214, 0.05)
+  /// FRIC-2026-F16 FIX: Was rgba(26,115,232) — synced to Platinum #1558D6.
   static const BoxShadow glass = BoxShadow(
-    color: Color(0x0D1A73E8), // 5% trust-blue
+    color: Color(0x0D1558D6), // 5% trust-blue (#1558D6)
     blurRadius: 32,
     offset: Offset(0, 8),
   );
@@ -435,9 +438,10 @@ class NammerhaShadows {
     offset: Offset(0, 2),
   );
 
-  /// --shadow-cta: 0 4px 16px rgba(26, 115, 232, 0.25)
+  /// --shadow-cta: 0 4px 16px rgba(21, 88, 214, 0.25)
+  /// FRIC-2026-F16 FIX: Was rgba(26,115,232) — synced to Platinum #1558D6.
   static const BoxShadow cta = BoxShadow(
-    color: Color(0x401A73E8), // 25% trust-blue
+    color: Color(0x401558D6), // 25% trust-blue (#1558D6)
     blurRadius: 16,
     offset: Offset(0, 4),
   );

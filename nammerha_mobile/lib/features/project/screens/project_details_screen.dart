@@ -5,7 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart'; // formatCurrency
 import '../../boq/screens/boq_details_screen.dart';
-import '../../donations/screens/donation_checkout_screen.dart';
+// SUSPENDED: Donation system suspended indefinitely
+// import '../../donations/screens/donation_checkout_screen.dart';
 import '../../open_data/screens/transparency_dashboard_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
@@ -63,7 +64,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final authState = context.read<AuthBloc>().state;
-    final userRole = authState is AuthAuthenticated ? authState.user.role.toUpperCase() : 'DONOR';
+    final userRole = authState is AuthAuthenticated ? authState.user.role.toUpperCase() : 'USER';
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
@@ -479,7 +480,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // UNIFIED CITIZEN: All action buttons visible to all users.
-  // No role-based hiding — any citizen can bid, donate, or view transparency.
+  // No role-based hiding — any citizen can bid or view transparency.
+  // SUSPENDED: Donation button removed (May 2026 strategic decision).
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildRoleActions(BuildContext context, SemanticColors colors, String userRole) {
     return Column(
@@ -501,21 +503,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        // Donate action — available to ALL users
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(
-              builder: (_) => DonationCheckoutScreen(projectId: widget.projectId),
-            ));
-          },
-          icon: Icon(PhosphorIconsRegular.heart),
-          label: const Text('تبرع الآن للمشروع'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colors.success,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-          ),
-        ),
+        // SUSPENDED: Donation button removed (May 2026 strategic decision)
+        // Donate action was here — system suspended indefinitely.
         const SizedBox(height: 12),
         // Transparency Dashboard — available to ALL users
         OutlinedButton.icon(

@@ -327,17 +327,17 @@ class _CartScreenState extends State<CartScreen> {
               children: [
                 _buildTipSelector(colors, tipState),
                 const SizedBox(height: 16),
-                _buildSummaryRow('المجموع الفرعي', formatCurrency(CartStore.instance.total), colors),
+                _buildSummaryRow(context.tr('str_d89e6acb'), formatCurrency(CartStore.instance.total), colors),
                 if (tip > 0) ...[
                   const SizedBox(height: 8),
-                  _buildSummaryRow('إكرامية المنصة', formatCurrency(tip), colors, valueColor: colors.success),
+                  _buildSummaryRow(context.tr('str_db10fb33'), formatCurrency(tip), colors, valueColor: colors.success),
                 ],
                 const SizedBox(height: 12),
                 Container(height: 1, color: colors.strokeSubtle),
                 const SizedBox(height: 12),
                 _buildSummaryRow(context.tr('str_88fc73eb'), formatCurrency(grand), colors, isBold: true, valueColor: colors.primaryBrand),
                 const SizedBox(height: 16),
-                GradientButton(label: 'متابعة الدفع', icon: PhosphorIconsRegular.lockKey, onPressed: () => _proceedToCheckout(tipState)),
+                GradientButton(label: context.tr('str_70cdd2d4'), icon: PhosphorIconsRegular.lockKey, onPressed: () => _proceedToCheckout(tipState)),
               ],
             ),
           ),
@@ -350,7 +350,7 @@ class _CartScreenState extends State<CartScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('إكرامية المنصة (اختياري)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+        Text(context.tr('str_4a61abad'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -401,7 +401,7 @@ class _CartScreenState extends State<CartScreen> {
             keyboardType: TextInputType.number,
             onChanged: (_) => context.read<TipSelectorCubit>().notifyCustomChanged(),
             decoration: InputDecoration(
-              hintText: 'المبلغ بالليرة',
+              hintText: context.tr('str_ca21430f'),
               suffixText: 'ل.س',
               filled: true,
               fillColor: colors.backgroundSecondary,
@@ -482,11 +482,11 @@ class _CartScreenState extends State<CartScreen> {
             borderRadius: BorderRadius.circular(NammerhaTheme.radiusLg),
           ),
           title: Text(
-            'إفراغ السلة',
+            context.tr('empty_cart'),
             style: TextStyle(color: colors.textPrimary),
           ),
           content: Text(
-            'هل تريد حذف جميع العناصر من السلة؟',
+            context.tr('str_8598ae12'),
             style: TextStyle(color: colors.textSecondary),
           ),
           actions: [
@@ -499,7 +499,7 @@ class _CartScreenState extends State<CartScreen> {
                 CartStore.instance.clear();
                 Navigator.pop(ctx);
               },
-              child: Text('حذف الكل', style: TextStyle(color: colors.error)),
+              child: Text(context.tr('str_5fae28ad'), style: TextStyle(color: colors.error)),
             ),
           ],
         );

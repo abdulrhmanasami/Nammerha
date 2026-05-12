@@ -12,6 +12,7 @@
  * URL params supported: ?project=ID or ?id=ID (map marker compat)
  */
 import '../styles/main.css';
+import { CART_CHECKOUT_ENABLED } from '../utils/feature-flags';
 import { CartStore, renderCartBadge, flyToCart } from '../components/cart';
 import { t } from '../utils/i18n';
 import { escapeHtml as esc } from '../utils/xss';
@@ -151,21 +152,33 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
     const pct = totalCost > 0 ? Math.min(100, Math.round((funded / totalCost) * 100)) : 0;
     const isFullyFunded = pct >= 100;
     const meta = getCategoryMeta(item.material_category ?? 'default');
-    const unitPriceDollars = item.unit_price >= 100
-        ? (item.unit_price / 100).toFixed(2) // API returns cents
-        : item.unit_price.toFixed(2);        // Already dollars
+    // FORENSIC-C4.2 FIX: Backend contract is unit_price in CENTS (integer).
+    // Previous heuristic (>= 100 → cents, else dollars) was fragile for cheap
+    // materials. Now we ALWAYS treat unit_price as cents from the API.
+    const unitPriceDollars = (item.unit_price / 100).toFixed(2);
 
     const wrapperClass = isFullyFunded ? 'mb-4 opacity-75' : 'mb-4';
     const cardClass = isFullyFunded
         ? 'glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50 grayscale-[0.3]'
         : 'glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50';
 
-    const buttonHtml = isFullyFunded
-        ? `<button type="button" class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed dark:text-slate-400" disabled>
+    // FORENSIC-C1.8 FIX: Gate "Add to Cart" behind CART_CHECKOUT_ENABLED.
+    // When donations are suspended, show informational button instead of
+    // leading users into a dead-end checkout flow.
+    let buttonHtml: string;
+    if (isFullyFunded) {
+        buttonHtml = `<button type="button" class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed dark:text-slate-400" disabled>
              <i class="ph ph-check-circle text-xl" aria-hidden="true"></i>
              <span data-i18n="funding_complete">${esc(t('funding_complete', 'Funding Complete'))}</span>
-           </button>`
-        : `<button type="button" class="btn-primary nm-btn-compact add-to-cart-btn"
+           </button>`;
+    } else if (!CART_CHECKOUT_ENABLED) {
+        // Donation system suspended — show read-only state
+        buttonHtml = `<button type="button" class="w-full bg-slate-100 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed dark:bg-slate-800 dark:text-slate-400" disabled>
+             <i class="ph ph-clock text-xl" aria-hidden="true"></i>
+             <span data-i18n="funding_coming_soon">${esc(t('funding_coming_soon', 'Funding Coming Soon'))}</span>
+           </button>`;
+    } else {
+        buttonHtml = `<button type="button" class="btn-primary nm-btn-compact add-to-cart-btn"
              data-item-id="${esc(item.item_id)}"
              data-item-name="${esc(item.material_name)}"
              data-item-price="${totalCost}"
@@ -176,6 +189,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
              <i class="ph ph-shopping-cart-simple text-xl" aria-hidden="true"></i>
              <span data-i18n="add_to_cart">${esc(t('add_to_cart', 'Add to Cart'))}</span>
            </button>`;
+    }
 
     const badgeHtml = isFullyFunded
         ? `<span class="bg-slate-200 text-slate-600 text-3xs font-bold px-2 py-0.5 rounded-full dark:text-slate-400" data-i18n="fully_funded">${esc(t('fully_funded', 'Fully Funded'))}</span>`

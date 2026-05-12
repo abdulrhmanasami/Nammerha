@@ -143,9 +143,9 @@ html, body {
   --nav-height: 60px;
 
   /* Brand Colors */
-  --trust-blue: #1a73e8;
-  --trust-blue-hover: #1557b0;
-  --trust-blue-light: rgba(26, 115, 232, 0.1);
+  --trust-blue: #1558D6;
+  --trust-blue-hover: #0D47A1;
+  --trust-blue-light: rgba(21, 88, 214, 0.1);
   --smoky-jade: #109173;
   --smoky-jade-light: rgba(16, 145, 115, 0.1);
   --cloud-white: #f4f6f8;
@@ -221,9 +221,9 @@ html, body {
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-glass: 0 8px 32px 0 rgba(26, 115, 232, 0.05);
+  --shadow-glass: 0 8px 32px 0 rgba(21, 88, 214, 0.05);
   --shadow-elevation: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-cta: 0 4px 16px rgba(26, 115, 232, 0.25);
+  --shadow-cta: 0 4px 16px rgba(21, 88, 214, 0.25);
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.1);
 
   /* INC-X06 FIX: Z-Index tokens merged into single :root (was split across 1300+ lines).
@@ -492,7 +492,7 @@ html[data-theme="dark"] :focus-visible {
   font-weight: 700;
   font-size: 0.875rem;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
-  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.4);
+  box-shadow: 0 4px 16px rgba(21, 88, 214, 0.4);
   text-decoration: none;
   transition: top 0.2s ease;
 }
@@ -603,8 +603,8 @@ html[data-theme="dark"] .animate-pulse::after {
   }
   .glass-card:hover {
     transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 16px 40px rgba(26, 115, 232, 0.15);
-    border-color: rgba(26, 115, 232, 0.3);
+    box-shadow: 0 16px 40px rgba(21, 88, 214, 0.15);
+    border-color: rgba(21, 88, 214, 0.3);
   }
 
   .glass-card-active {
@@ -678,7 +678,7 @@ html[data-theme="dark"] .animate-pulse::after {
     width: 100%;
   }
   .btn-secondary:hover {
-    background-color: rgba(26, 115, 232, 0.15);
+    background-color: rgba(21, 88, 214, 0.15);
     transform: translateY(-1px);
   }
   .btn-secondary:active {
@@ -788,7 +788,7 @@ html[data-theme="dark"] .animate-pulse::after {
 .nm-textarea:focus {
     outline: none;
     border-color: var(--trust-blue);
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+    box-shadow: 0 0 0 3px rgba(21, 88, 214, 0.12);
 }
 .nm-input::placeholder,
 .nm-textarea::placeholder {
@@ -909,7 +909,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     padding: 8px 16px;
     border-radius: var(--radius-full);
     background: var(--trust-blue-light);
-    border: 1px solid rgba(26, 115, 232, 0.2);
+    border: 1px solid rgba(21, 88, 214, 0.2);
     /* P2-AUD3-001 FIX: Was 11px — violates INC-002 (only 10px + 12px permitted).
        Standard: Design System Typography Scale Governance. */
     font-size: 10px;
@@ -1039,7 +1039,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   filter: blur(48px);
 }
 .gradient-orb-primary {
-  background: rgba(26, 115, 232, 0.08);
+  background: rgba(21, 88, 214, 0.08);
 }
 .gradient-orb-jade {
   background: rgba(16, 145, 115, 0.06);
@@ -1107,7 +1107,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     align-items: center;
     justify-content: center;
     line-height: 1;
-    box-shadow: 0 1px 4px rgba(26, 115, 232, 0.4);
+    box-shadow: 0 1px 4px rgba(21, 88, 214, 0.4);
   }
 }
 
@@ -1126,7 +1126,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   transform: translateY(-4px);
   box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(26, 115, 232, 0.08);
+    0 2px 8px rgba(21, 88, 214, 0.08);
 }
 
 /* DT-02 FIX: Removed !important — doubled selector specificity.
@@ -1176,7 +1176,7 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     background: var(--trust-blue);
     color: white;
     border-color: var(--trust-blue);
-    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+    box-shadow: 0 2px 8px rgba(21, 88, 214, 0.3);
     transform: scale(1.02);
   }
   .tip-btn-custom {
@@ -1238,15 +1238,15 @@ html[data-theme="dark"] .nm-textarea::placeholder {
     border-radius: var(--radius-lg);
     cursor: pointer;
     box-shadow:
-      0 0 0 3px rgba(26, 115, 232, 0.2),
-      0 4px 20px rgba(26, 115, 232, 0.35);
+      0 0 0 3px rgba(21, 88, 214, 0.2),
+      0 4px 20px rgba(21, 88, 214, 0.35);
     transition: all 0.15s ease;
     -webkit-tap-highlight-color: transparent;
   }
   .btn-field-capture:active {
     box-shadow:
-      0 0 0 6px rgba(26, 115, 232, 0.3),
-      0 2px 8px rgba(26, 115, 232, 0.2);
+      0 0 0 6px rgba(21, 88, 214, 0.3),
+      0 2px 8px rgba(21, 88, 214, 0.2);
   }
   .btn-field-capture.captured {
     background: var(--smoky-jade);
@@ -1442,7 +1442,7 @@ html[data-theme="dark"] .text-red-400 {
 }
 .nm-table-empty .nm-empty-icon i {
     font-size: 24px;
-    color: var(--trust-blue, #1A73E8);
+    color: var(--trust-blue, #1558D6);
 }
 .nm-table-empty .nm-empty-title {
     font-size: 0.875rem;
@@ -1800,14 +1800,14 @@ html[data-theme="dark"] .nm-toast {
     cursor: pointer;
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--trust-blue, #1a73e8);
+    color: var(--trust-blue, #1558D6);
     padding: 4px 8px;
     border-radius: 6px;
     transition: background 0.15s ease;
     white-space: nowrap;
 }
 .nm-notif-mark-all:hover {
-    background: color-mix(in srgb, var(--trust-blue, #1a73e8) 8%, transparent);
+    background: color-mix(in srgb, var(--trust-blue, #1558D6) 8%, transparent);
 }
 
 .nm-notif-body {
@@ -1850,8 +1850,8 @@ html[data-theme="dark"] .nm-toast {
 
 /* Unread indicator: left border accent */
 .nm-notif-unread {
-    border-inline-start: 3px solid var(--trust-blue, #1a73e8);
-    background: color-mix(in srgb, var(--trust-blue, #1a73e8) 3%, transparent);
+    border-inline-start: 3px solid var(--trust-blue, #1558D6);
+    background: color-mix(in srgb, var(--trust-blue, #1558D6) 3%, transparent);
 }
 .nm-notif-read {
     border-inline-start: 3px solid transparent;
@@ -1938,7 +1938,7 @@ html[data-theme="dark"] .nm-notif-item:hover {
     background: rgba(255,255,255,0.03);
 }
 html[data-theme="dark"] .nm-notif-unread {
-    background: rgba(26, 115, 232, 0.06);
+    background: rgba(21, 88, 214, 0.06);
 }
 html[data-theme="dark"] .nm-notif-item-icon {
     background: rgba(255,255,255,0.06);
@@ -2155,13 +2155,13 @@ html[data-theme="dark"] .nm-notif-body::-webkit-scrollbar-thumb {
 
 /* ── Active step ────────────────────────────────────────── */
 .nm-step-indicator.active .nm-step-num {
-    background: var(--trust-blue, #1a73e8);
+    background: var(--trust-blue, #1558D6);
     color: #ffffff;
-    border-color: var(--trust-blue, #1a73e8);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--trust-blue, #1a73e8) 15%, transparent);
+    border-color: var(--trust-blue, #1558D6);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--trust-blue, #1558D6) 15%, transparent);
 }
 .nm-step-indicator.active .nm-step-label {
-    color: var(--trust-blue, #1a73e8);
+    color: var(--trust-blue, #1558D6);
     font-weight: 600;
 }
 
@@ -2186,8 +2186,8 @@ html[data-theme="dark"] .nm-step-num {
     color: var(--text-muted, #64748b);
 }
 html[data-theme="dark"] .nm-step-indicator.active .nm-step-num {
-    background: var(--trust-blue, #1a73e8);
-    border-color: var(--trust-blue, #1a73e8);
+    background: var(--trust-blue, #1558D6);
+    border-color: var(--trust-blue, #1558D6);
     color: #ffffff;
 }
 html[data-theme="dark"] .nm-step-indicator.completed .nm-step-num {
@@ -2303,19 +2303,19 @@ html[data-theme="dark"] .nm-step-back:hover {
    Fallback uses trust-blue as a safe default. Supporting browsers override via color-mix().
    Standard: Progressive Enhancement, Syrian Mobile Fleet Compatibility. */
 .nm-role-icon-bg {
-    background: rgba(26, 115, 232, 0.08);
+    background: rgba(21, 88, 214, 0.08);
     color: var(--trust-blue);
     background: color-mix(in srgb, var(--role-color) 8%, transparent);
     color: var(--role-color);
 }
 .nm-role-badge-bg {
-    background: rgba(26, 115, 232, 0.12);
+    background: rgba(21, 88, 214, 0.12);
     color: var(--trust-blue);
     background: color-mix(in srgb, var(--role-color) 12%, transparent);
     color: var(--role-color);
 }
 .nm-role-active-border {
-    border-color: rgba(26, 115, 232, 0.19);
+    border-color: rgba(21, 88, 214, 0.19);
     border-color: color-mix(in srgb, var(--role-color) 19%, transparent);
 }
 .nm-role-check { color: var(--role-color); }
@@ -3692,7 +3692,7 @@ html[data-theme="dark"] a.text-warning-yellow {
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-light, rgba(255, 255, 255, 0.3));
     box-shadow: var(--shadow-elevation, 0 2px 8px rgba(0, 0, 0, 0.08));
-    color: var(--trust-blue, #1a73e8);
+    color: var(--trust-blue, #1558D6);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -3883,7 +3883,7 @@ html[data-theme="dark"] .nm-back-to-top {
     font-weight: 400;
 }
 .nm-lang-opt:hover {
-    background: rgba(26, 115, 232, 0.08);
+    background: rgba(21, 88, 214, 0.08);
 }
 .nm-lang-opt.active {
     color: var(--trust-blue);
@@ -3928,12 +3928,16 @@ html[data-theme="dark"] .nm-lang-opt.active {
     /* TOKEN-001 FIX: Replaced magic z-index 9999 with design token.
        Standard: INC-X06 z-index token governance. */
     z-index: var(--z-toast, 9950);
-    left: var(--fly-x, 0px);
+    /* FRIC-2026-F04 FIX: Was physical `left:` — violated RTL logical property standard.
+       JS now computes --fly-x as inset-inline-start-aware (accounts for dir=rtl).
+       Standard: Nammerha RTL Sovereignty — zero physical positioning. */
+    inset-inline-start: var(--fly-x, 0px);
     top: var(--fly-y, 0px);
     font-size: var(--fly-size, 1rem);
     color: var(--trust-blue);
     pointer-events: none;
-    transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    /* FRIC-2026-F04 FIX: transition property updated from `left` to `inset-inline-start`. */
+    transition: inset-inline-start 0.6s cubic-bezier(0.22, 1, 0.36, 1),
                 top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
                 transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
                 opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
@@ -4189,15 +4193,18 @@ html[data-theme="dark"] .nm-pano-wrapper {
    Now: CSS rules consume --tour-* custom properties set by JS.
    Standard: P1-SST-001, CSS Custom Properties for runtime-computed layouts.
    ============================================================================ */
+/* FRIC-2026-F04 FIX: Was physical `left:` — violated RTL logical property standard.
+   JS now computes --spot-left and --tip-left as inset-inline-start-aware.
+   Standard: Nammerha RTL Sovereignty — zero physical positioning. */
 .nmr-tour-spotlight {
     top: var(--spot-top, 0);
-    left: var(--spot-left, 0);
+    inset-inline-start: var(--spot-left, 0);
     width: var(--spot-w, 0);
     height: var(--spot-h, 0);
 }
 .nmr-tour-tooltip--positioned {
     top: var(--tip-top, 50%);
-    left: var(--tip-left, 50%);
+    inset-inline-start: var(--tip-left, 50%);
     transform: var(--tip-transform, translate(-50%, -50%));
 }
 
@@ -4233,8 +4240,8 @@ html[data-theme="dark"] .nm-pano-wrapper {
 }
 
 @keyframes nm-input-flash-focus-kf {
-    0%   { box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.5); border-color: var(--trust-blue); }
-    100% { box-shadow: 0 0 0 0px rgba(26, 115, 232, 0); border-color: var(--border-subtle, #cbd5e1); }
+    0%   { box-shadow: 0 0 0 2px rgba(21, 88, 214, 0.5); border-color: var(--trust-blue); }
+    100% { box-shadow: 0 0 0 0px rgba(21, 88, 214, 0); border-color: var(--border-subtle, #cbd5e1); }
 }
 .nm-input-flash-focus {
     animation: nm-input-flash-focus-kf 3s ease-out forwards;
@@ -4291,7 +4298,7 @@ html[data-theme="dark"] .nm-notif-toast {
     inset-inline: 0;
     height: 3px;
     z-index: var(--z-overlay, 9970);
-    background: linear-gradient(90deg, var(--trust-blue, #1a73e8), var(--smoky-jade, #109173));
+    background: linear-gradient(90deg, var(--trust-blue, #1558D6), var(--smoky-jade, #109173));
     transform: scaleX(0);
     transform-origin: left;
     animation: nm-loading-bar 8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -4321,7 +4328,7 @@ html[data-theme="dark"] .nm-notif-toast {
 }
 @media (prefers-reduced-data: reduce) {
     .nm-page-loading-bar {
-        background: var(--trust-blue, #1a73e8);
+        background: var(--trust-blue, #1558D6);
     }
 }
 
@@ -4337,11 +4344,11 @@ html[data-theme="dark"] .nm-notif-toast {
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 9999px;
-    color: var(--trust-blue, #1a73e8);
+    color: var(--trust-blue, #1558D6);
     transition: background-color 0.15s ease;
 }
 .nm-dashboard-home-link:hover {
-    background: rgba(26, 115, 232, 0.08);
+    background: rgba(21, 88, 214, 0.08);
 }
 @media (min-width: 1024px) {
     .nm-dashboard-home-link {
@@ -4606,8 +4613,10 @@ html[data-theme="dark"] .nm-social-divider::after {
     box-shadow: none;
 }
 
+/* FRIC-2026-F12 FIX: Replaced hardcoded #1558D6 with governed token.
+   Standard: Design System Token Governance — no orphan hex in CSS rules. */
 .nm-social-btn:focus-visible {
-    outline: 2px solid #1558D6;
+    outline: 2px solid var(--trust-blue);
     outline-offset: 2px;
 }
 
@@ -4655,21 +4664,25 @@ html[data-theme="dark"] .nm-social-divider::after {
 }
 
 /* ─── Dark Mode ──────────────────────────────────────────────────────────── */
+/* FRIC-2026-F03 FIX: Replaced undeclared --color-dark-* phantom tokens with
+   governed tokens from :root / html[data-theme="dark"] block.
+   Previous: --color-dark-surface, --color-dark-border, --color-dark-text — NEVER DEFINED.
+   Standard: Design System Token Governance — zero orphan token consumers. */
 html[data-theme="dark"] .nm-social-btn {
-    background: var(--color-dark-surface, #1e1e1e);
-    border-color: var(--color-dark-border, #374151);
-    color: var(--color-dark-text, #e5e7eb);
+    background: var(--bg-secondary, #1a1d27);
+    border-color: var(--border-subtle, #e2e8f0);
+    color: var(--text-primary, #e2e8f0);
 }
 
 html[data-theme="dark"] .nm-social-btn:hover {
-    border-color: var(--color-dark-border-hover, #4b5563);
+    border-color: var(--text-muted, #94a3b8);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 html[data-theme="dark"] .nm-social-btn--google {
-    background: var(--color-dark-surface, #1e1e1e);
-    border-color: var(--color-dark-border, #374151);
-    color: var(--color-dark-text, #e5e7eb);
+    background: var(--bg-secondary, #1a1d27);
+    border-color: var(--border-subtle, #e2e8f0);
+    color: var(--text-primary, #e2e8f0);
 }
 
 html[data-theme="dark"] .nm-social-btn--apple {

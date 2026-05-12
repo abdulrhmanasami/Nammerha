@@ -2,7 +2,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 // ══════════════════════════════════════════════════════════════════════
 // Nammerha — Role Localizer Utility
 // Maps English role codes to Arabic display names and metadata.
-// Single source of truth — used by dashboard, profile, and role switcher.
+// Single source of truth — used by dashboard and profile.
 // ══════════════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
 
@@ -23,12 +23,13 @@ class RoleMeta {
 /// Static metadata for all platform roles.
 /// Colors are from the Nammerha design system (WCAG AAA compliant).
 const Map<String, RoleMeta> roleMeta = {
-  'donor': RoleMeta(
-    nameAr: 'متبرع',
-    nameEn: 'Donor',
-    icon: PhosphorIconsRegular.heart,
-    color: Color(0xFF1558D6), // Trust Blue
-  ),
+  // SUSPENDED: Donor role suspended indefinitely (May 2026 strategic decision)
+  // 'donor': RoleMeta(
+  //   nameAr: 'متبرع',
+  //   nameEn: 'Donor',
+  //   icon: PhosphorIconsRegular.heart,
+  //   color: Color(0xFF1558D6), // Trust Blue
+  // ),
   'homeowner': RoleMeta(
     nameAr: 'صاحب منزل',
     nameEn: 'Homeowner',
@@ -76,12 +77,12 @@ const Map<String, RoleMeta> roleMeta = {
 /// Returns the Arabic display name for a role code.
 /// Falls back to the raw role string if unknown.
 String localizeRole(String? role) {
-  if (role == null || role.isEmpty) return 'متبرع';
+  if (role == null || role.isEmpty) return 'مستخدم';
   return roleMeta[role.toLowerCase()]?.nameAr ?? role;
 }
 
 /// Returns the RoleMeta for a given role code.
 RoleMeta? getRoleMeta(String? role) {
-  if (role == null || role.isEmpty) return roleMeta['donor'];
+  if (role == null || role.isEmpty) return null;
   return roleMeta[role.toLowerCase()];
 }

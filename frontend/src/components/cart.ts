@@ -6,6 +6,8 @@
  */
 
 import { reportWarning } from '../error-reporter';
+// FRIC-2026-F04 FIX: Import isRTL for logical positioning in fly-to-cart animation.
+import { isRTL } from '../utils/i18n';
 
 export interface CartItem {
     id: string;
@@ -152,7 +154,13 @@ export function flyToCart(
     // Now: Start position via CSS custom properties, animation via CSS class.
     // Standard: CSS Single Source of Truth, Custom Property-driven animation.
     flyEl.classList.add('nm-fly-item');
-    flyEl.style.setProperty('--fly-x', `${sourceRect.left}px`);
+    // FRIC-2026-F04 FIX: Compute inset-inline-start-aware position.
+    // In RTL, inset-inline-start maps to physical `right`, so we compute
+    // distance from the inline-start edge (right edge in RTL, left in LTR).
+    const rtl = isRTL();
+    const vw = window.innerWidth;
+    const sourceInlineStart = rtl ? (vw - sourceRect.right) : sourceRect.left;
+    flyEl.style.setProperty('--fly-x', `${sourceInlineStart}px`);
     flyEl.style.setProperty('--fly-y', `${sourceRect.top}px`);
     flyEl.style.setProperty('--fly-size', getComputedStyle(sourceEl).fontSize);
 
@@ -162,7 +170,10 @@ export function flyToCart(
     void flyEl.offsetHeight;
 
     // DEF-UX-005 FIX: Target position via CSS custom properties + class toggle.
-    flyEl.style.setProperty('--fly-x', `${targetRect.left + targetRect.width / 2 - 10}px`);
+    // FRIC-2026-F04 FIX: RTL-aware target center computation.
+    const targetCenterPhysical = targetRect.left + targetRect.width / 2 - 10;
+    const targetInlineStart = rtl ? (vw - targetCenterPhysical - 20) : targetCenterPhysical;
+    flyEl.style.setProperty('--fly-x', `${targetInlineStart}px`);
     flyEl.style.setProperty('--fly-y', `${targetRect.top + targetRect.height / 2 - 10}px`);
     flyEl.classList.add('nm-fly-item--landing');
 

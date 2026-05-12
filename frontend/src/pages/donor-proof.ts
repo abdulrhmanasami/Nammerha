@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import { DONATIONS_ENABLED } from '../utils/feature-flags';
 import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { reportError, reportWarning } from '../error-reporter';
@@ -256,14 +257,24 @@ function initShareButton(): void {
 }
 
 // ─── Verify Button Handler (PLT-G002) ───────────────────────────────────────
+// FORENSIC-C8.1 FIX: Previous code opened etherscan.io/tx/${fullHash}
+// but this is a SHA-256 image hash, NOT a blockchain transaction.
+// Now: copies the full hash to clipboard for independent verification.
 function initVerifyButton(): void {
     if (!verifyBtn) { return; }
-    verifyBtn.addEventListener('click', () => {
+    verifyBtn.addEventListener('click', async () => {
         const hashEl = document.getElementById('proof-tx-hash');
         const fullHash = hashEl?.dataset.fullHash;
         if (fullHash) {
-            // Open blockchain explorer in new tab
-            window.open(`https://etherscan.io/tx/${fullHash}`, '_blank', 'noopener,noreferrer');
+            try {
+                await navigator.clipboard.writeText(fullHash);
+                const originalText = verifyBtn.textContent;
+                verifyBtn.textContent = t('proof_hash_copied', 'Hash Copied!');
+                setTimeout(() => { verifyBtn.textContent = originalText; }, 2000);
+            } catch {
+                // Fallback: show hash in prompt
+                window.prompt(t('proof_hash_label', 'SHA-256 Image Hash:'), fullHash);
+            }
         } else {
             // No hash available yet — visual feedback
             verifyBtn.textContent = t('proof_no_hash', 'Pending…');
@@ -331,9 +342,30 @@ async function loadProof(): Promise<void> {
 function init(): void {
     // W6-002 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+
+    // FORENSIC-C1.2 FIX: Block proof page when donations are suspended.
+    if (!DONATIONS_ENABLED) {
+        const mainContent = document.getElementById('main-content') ?? document.querySelector('main');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
+                    <div class="size-20 rounded-full bg-warning-yellow/10 flex items-center justify-center">
+                        <i class="ph ph-clock text-warning-yellow nm-icon-40" aria-hidden="true"></i>
+                    </div>
+                    <h2 class="text-lg font-bold" data-i18n="donor_suspended_title">${esc(t('donor_suspended_title', 'Donations Coming Soon'))}</h2>
+                    <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="donor_suspended_msg">${esc(t('donor_suspended_msg', 'The donation system is being upgraded. You will be able to fund projects again soon.'))}</p>
+                    <a href="/" class="btn-primary nm-btn-inline mt-2">
+                        <i class="ph ph-house" aria-hidden="true"></i>
+                        <span data-i18n="back_to_home">${esc(t('back_to_home', 'Back to Home'))}</span>
+                    </a>
+                </div>`;
+        }
+        return;
+    }
+
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
     initShareButton(); // PLT-G003: Web Share API
-    initVerifyButton(); // PLT-G002: Blockchain explorer redirect
+    initVerifyButton(); // PLT-G002: SHA-256 hash verification
     loadProof();
 }
 

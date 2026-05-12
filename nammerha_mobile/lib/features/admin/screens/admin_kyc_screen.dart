@@ -31,7 +31,7 @@ class _KycView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'التحقق من الهوية',
+          context.tr('admin_verify_identity'),
           style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
         ),
         backgroundColor: colors.surfaceElevated,
@@ -120,7 +120,7 @@ class _KycView extends StatelessWidget {
                     children: [
                       Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textMuted),
                       const SizedBox(height: 8),
-                      Text('لا توجد طلبات', style: TextStyle(color: colors.textMuted)),
+                      Text(context.tr('admin_no_requests'), style: TextStyle(color: colors.textMuted)),
                     ],
                   ),
                 )
@@ -230,7 +230,7 @@ class _KycView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _statusLabel(entry.kycStatus),
+                    _statusLabel(context, entry.kycStatus),
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
                   ),
                 ),
@@ -245,13 +245,13 @@ class _KycView extends StatelessWidget {
               spacing: 12,
               runSpacing: 4,
               children: [
-                _kycDetail(colors, PhosphorIconsRegular.warningCircle, 'الدور: ${entry.role}'),
+                _kycDetail(colors, PhosphorIconsRegular.warningCircle, '${context.tr('admin_role_label')} ${entry.role}'),
                 if (entry.commercialRegisterNumber != null)
-                  _kycDetail(colors, PhosphorIconsRegular.storefront, 'سجل: ${entry.commercialRegisterNumber}'),
+                  _kycDetail(colors, PhosphorIconsRegular.storefront, '${context.tr('admin_register')} ${entry.commercialRegisterNumber}'),
                 if (entry.engineeringLicenseNumber != null)
-                  _kycDetail(colors, PhosphorIconsRegular.hardHat, 'ترخيص: ${entry.engineeringLicenseNumber}'),
+                  _kycDetail(colors, PhosphorIconsRegular.hardHat, '${context.tr('admin_license')} ${entry.engineeringLicenseNumber}'),
                 if (entry.guildMembershipId != null)
-                  _kycDetail(colors, PhosphorIconsRegular.warningCircle, 'نقابة: ${entry.guildMembershipId}'),
+                  _kycDetail(colors, PhosphorIconsRegular.warningCircle, '${context.tr('admin_guild')} ${entry.guildMembershipId}'),
               ],
             ),
           ),
@@ -270,7 +270,7 @@ class _KycView extends StatelessWidget {
                         );
                       },
                       icon: Icon(PhosphorIconsRegular.check, size: 18),
-                      label: const Text('قبول'),
+                      label: Text(context.tr('admin_approve')),
                       style: FilledButton.styleFrom(
                         backgroundColor: colors.success,
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -319,13 +319,13 @@ class _KycView extends StatelessWidget {
     }
   }
 
-  String _statusLabel(String status) {
+  String _statusLabel(BuildContext context, String status) {
     switch (status) {
-      case 'verified': return 'محقق';
-      case 'rejected': return 'مرفوض';
-      case 'pending': return 'معلّق';
-      case 'submitted': return 'مُقدَّم';
-      case 'suspended': return 'معلّق';
+      case 'verified': return context.tr('admin_filter_verified');
+      case 'rejected': return context.tr('admin_filter_rejected');
+      case 'pending': return context.tr('admin_filter_pending');
+      case 'submitted': return context.tr('admin_submitted');
+      case 'suspended': return context.tr('admin_suspended');
       default: return status;
     }
   }
@@ -337,18 +337,18 @@ class _KycView extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('رفض التحقق', style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
+        title: Text(context.tr('admin_reject'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('رفض التحقق لـ ${entry.fullName}', style: TextStyle(color: colors.textBody, fontSize: 13)),
+            Text('${context.tr('admin_reject')} — ${entry.fullName}', style: TextStyle(color: colors.textBody, fontSize: 13)),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'سبب الرفض (اختياري)...',
+                hintText: context.tr('admin_reject_reason'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -375,7 +375,7 @@ class _KycView extends StatelessWidget {
               );
             },
             style: FilledButton.styleFrom(backgroundColor: colors.error),
-            child: const Text('رفض'),
+            child: Text(context.tr('admin_reject')),
           ),
         ],
       ),

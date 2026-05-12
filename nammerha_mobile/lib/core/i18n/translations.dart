@@ -18,7 +18,7 @@ const Map<String, Map<String, String>> kTranslations = {
   // ═══ NAVIGATION ═══
   'nav_home': {'ar': 'الرئيسية', 'en': 'Home'},
   'nav_projects': {'ar': 'المشاريع', 'en': 'Projects'},
-  'nav_donations': {'ar': 'تبرعاتي', 'en': 'My Donations'},
+  'nav_donations': {'ar': 'التمويل', 'en': 'Funding'},  // SUSPENDED: was 'تبرعاتي' — donation system suspended indefinitely
   'nav_profile': {'ar': 'حسابي', 'en': 'My Account'},
   'nav_admin': {'ar': 'الإدارة', 'en': 'Admin'},
   'nav_bids': {'ar': 'عروضي', 'en': 'My Bids'},
@@ -116,7 +116,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'auth_forgot_password_desc': {'ar': 'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور', 'en': 'Enter your email to receive a password reset link'},
   'auth_reset_link_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور', 'en': 'Password reset link sent'},
   'auth_send_btn': {'ar': 'إرسال', 'en': 'Send'},
-  'auth_select_role': {'ar': 'اختر دورك في المنصة', 'en': 'Choose your role on the platform'},
+  'auth_select_role': {'ar': 'مرحباً بك في نعمّرها', 'en': 'Welcome to Nammerha'},
   'auth_terms_text': {'ar': 'بالتسجيل، أوافق على شروط الاستخدام وسياسة الخصوصية لمنصة نعمّرها', 'en': 'By registering, I agree to the Terms of Service and Privacy Policy of Nammerha'},
   'auth_terms_required': {'ar': 'يجب الموافقة على الشروط وسياسة الخصوصية للمتابعة', 'en': 'You must accept the Terms and Privacy Policy to continue'},
   'auth_sign_in_btn': {'ar': 'تسجيل الدخول', 'en': 'Sign In'},
@@ -186,7 +186,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'dr_damage_desc_hint': {'ar': 'اشرح طبيعة الأضرار بالتفصيل...', 'en': 'Describe the damage in detail...'},
   'dr_submit_btn': {'ar': 'تقديم طلب الإعمار', 'en': 'Submit Reconstruction Request'},
 
-  // ═══ DONOR PORTAL (C1 FIX — i18n Completeness) ═══
+  // ═══ DONOR PORTAL — SUSPENDED INDEFINITELY (May 2026 strategic decision) ═══
+  // All dn_* keys below are preserved for future reactivation but not displayed.
   'dn_portal_title': {'ar': 'بوابة المتبرع', 'en': 'Donor Portal'},
   'dn_tab_dashboard': {'ar': 'لوحة التحكم', 'en': 'Dashboard'},
   'dn_tab_marketplace': {'ar': 'السوق', 'en': 'Marketplace'},
@@ -493,8 +494,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'kyc_label': {'ar': 'التحقق KYC', 'en': 'KYC Verification'},
   'kyc_verified': {'ar': 'مُتحقق ✓', 'en': 'Verified ✓'},
   'kyc_not_verified': {'ar': 'غير مُتحقق', 'en': 'Not Verified'},
-  'active_roles': {'ar': 'الأدوار النشطة', 'en': 'Active Roles'},
-  'no_active_roles': {'ar': 'لا توجد أدوار مفعلة', 'en': 'No active roles'},
+  'active_roles': {'ar': 'إمكانياتك', 'en': 'Your Capabilities'},
+  'no_active_roles': {'ar': 'جميع الأدوات متاحة لك', 'en': 'All tools are available to you'},
   'settings': {'ar': 'الإعدادات', 'en': 'Settings'},
   'notifications': {'ar': 'الإشعارات', 'en': 'Notifications'},
   'language': {'ar': 'اللغة', 'en': 'Language'},
@@ -504,7 +505,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'user_default': {'ar': 'مستخدم', 'en': 'User'},
 
   // ═══ ROLES ═══
-  'role_donor': {'ar': 'متبرع', 'en': 'Donor'},
+  // SUSPENDED: Donor role suspended indefinitely (May 2026)
+  // 'role_donor': {'ar': 'متبرع', 'en': 'Donor'},
   'role_homeowner': {'ar': 'متضرر', 'en': 'Homeowner'},
   'role_engineer': {'ar': 'مهندس', 'en': 'Engineer'},
   'role_contractor': {'ar': 'مقاول', 'en': 'Contractor'},
@@ -552,7 +554,8 @@ const Map<String, Map<String, String>> kTranslations = {
   // ═══ PROJECT DISCOVERY & CART ═══
   'map_of_projects': {'ar': 'خريطة المشاريع', 'en': 'Projects Map'},
   'search_projects_hint': {'ar': 'البحث عن مشاريع...', 'en': 'Search projects...'},
-  'donation_cart': {'ar': 'سلة التبرعات', 'en': 'Donation Cart'},
+  // SUSPENDED: Donation cart suspended indefinitely (May 2026)
+  'donation_cart': {'ar': 'سلة المواد', 'en': 'Materials Cart'},  // was 'سلة التبرعات'
   'empty_cart': {'ar': 'إفراغ السلة', 'en': 'Empty Cart'},
   'your_cart_is_empty': {'ar': 'سلتك فارغة', 'en': 'Your cart is empty'},
   'cart_empty_subtitle': {'ar': 'تصفح المشاريع وأضف مواد البناء لدعم إعادة الإعمار', 'en': 'Browse projects and add construction materials to support reconstruction'},
@@ -567,7 +570,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'onboarding_title_1': {'ar': 'نعمِّرها', 'en': 'Nammerha'},
   'onboarding_desc_1': {'ar': 'منصة إعادة إعمار شفافة ومجتمعية', 'en': 'Transparent community reconstruction platform'},
   'onboarding_title_2': {'ar': 'شفافية كاملة', 'en': 'Full Transparency'},
-  'onboarding_desc_2': {'ar': 'كل تبرع يُتابع حتى يصل لأصحابه', 'en': 'Every donation is tracked until it reaches its owners'},
+  'onboarding_desc_2': {'ar': 'كل مشروع يُتابع حتى يصل لأصحابه', 'en': 'Every project is tracked until completion'},
   'onboarding_title_3': {'ar': 'تحقق مكاني', 'en': 'Spatial Verification'},
   'onboarding_desc_3': {'ar': 'إثبات تقدم العمل بصور GPS مُوثّقة', 'en': 'Work progress verified with GPS-stamped photos'},
 

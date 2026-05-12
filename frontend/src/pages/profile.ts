@@ -89,7 +89,9 @@ async function loadUserInfo(): Promise<void> {
     if (cached) {
         if (nameEl) { nameEl.textContent = cached.full_name ?? t('profile_user', 'User'); }
         if (emailEl) { emailEl.textContent = cached.email ?? '—'; }
-        if (roleEl) { roleEl.textContent = getRoleLabel(cached.role); }
+        // FORENSIC-C2.2 FIX: No more singular role display.
+        // Unified Citizen: all users share the same identity label.
+        if (roleEl) { roleEl.textContent = t('citizen_label', 'Nammerha Citizen'); }
         updateProfileCompletion(cached);
         // P2-UX-002 FIX: Render personalized initials in avatar
         renderAvatarInitials(cached.full_name);
@@ -102,7 +104,8 @@ async function loadUserInfo(): Promise<void> {
             const user = result.data.user;
             if (nameEl) { nameEl.textContent = user.full_name ?? t('profile_user', 'User'); }
             if (emailEl) { emailEl.textContent = user.email ?? '—'; }
-            if (roleEl) { roleEl.textContent = getRoleLabel(user.role ?? 'donor'); }
+            // FORENSIC-C2.2 FIX: Universal citizen label instead of singular role.
+            if (roleEl) { roleEl.textContent = t('citizen_label', 'Nammerha Citizen'); }
         } else if (!cached) {
             if (nameEl) { nameEl.textContent = t('profile_guest', 'Guest'); }
             if (emailEl) { emailEl.textContent = t('profile_sign_in_prompt', 'Sign in to view your profile'); }
@@ -158,6 +161,9 @@ async function loadUserRoles(): Promise<void> {
         // Fall back to cached roles
     }
 
+    // FORENSIC-C1.11 FIX: Filter out suspended 'donor' role from display.
+    roles = roles.filter(r => r !== 'donor');
+
     if (roles.length === 0) {
         rolesListEl.innerHTML = `
             <div class="bg-surface rounded-xl p-4 text-center text-sm text-slate-400 shadow-sm border border-slate-100 dark:text-slate-500 dark:border-dark-border">
@@ -167,23 +173,24 @@ async function loadUserRoles(): Promise<void> {
     }
 
     // MED-001 FIX: All dynamic content uses escapeHtml()
+    // FORENSIC-C2.2 FIX: Removed isActive concept — Unified Citizen model
+    // means no role is "primary". All roles are equal capabilities.
     rolesListEl.innerHTML = roles.map(role => {
         const meta = ROLE_META[role];
         if (!meta) { return ''; }
-        const isActive = role === user.role;
         const label = escapeHtml(getRoleLabel(role));
         const color = getRoleColor(role);
         const verLabel = escapeHtml(meta.verificationLabel);
 
         return `
-            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border ${isActive ? 'border-2 nm-role-active-border' : 'border'} border-slate-100 transition-all dark:border-dark-border" style="--role-color: ${color}">
+            <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 transition-all dark:border-dark-border" style="--role-color: ${color}">
                 <div class="size-10 rounded-lg flex items-center justify-center shrink-0 nm-role-icon-bg">
                     <i class="ph ${escapeHtml(meta.icon)} text-xl" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                         <p class="text-sm font-bold">${label}</p>
-                        ${isActive ? `<span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" data-i18n="active">${escapeHtml(t('profile_active', 'Active'))}</span>` : ''}
+                        <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" data-i18n="active">${escapeHtml(t('profile_active', 'Active'))}</span>
                     </div>
                     <div class="flex items-center gap-1 mt-0.5">
                         <i class="ph ph-shield-check text-emerald-500 text-xs" aria-hidden="true"></i>
@@ -212,7 +219,8 @@ async function loadAvailableRoles(): Promise<void> {
 
         const available = result.data.filter(r =>
             !userRoles.includes(r.role_name as UserRole) &&
-            !['admin', 'auditor'].includes(r.role_name)
+            // FORENSIC-C1.11 FIX: 'donor' excluded — donation system suspended.
+            !['admin', 'auditor', 'donor'].includes(r.role_name)
         );
 
         if (available.length === 0) {
