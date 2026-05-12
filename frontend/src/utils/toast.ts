@@ -5,16 +5,13 @@
 // ============================================================================
 
 import { haptic } from './haptic';
+import { tryTranslate } from './i18n-apply';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastOptions {
     duration?: number;
     dismissable?: boolean;
-}
-
-interface NammerhaI18nAPI {
-    t: (key: string) => string;
 }
 
 const TOAST_ICONS: Record<ToastType, string> = {
@@ -52,15 +49,9 @@ function ensureContainer(): HTMLElement {
     return container;
 }
 
+// P3-006 FIX: Use shared type-safe tryTranslate instead of unsafe double-cast
 function resolveMessage(message: string): string {
-    const i18n = (window as unknown as Record<string, unknown>).NammerhaI18n as NammerhaI18nAPI | undefined;
-    if (i18n?.t) {
-        const translated = i18n.t(message);
-        if (translated && translated !== message) {
-            return translated;
-        }
-    }
-    return message;
+    return tryTranslate(message, message);
 }
 
 function removeToast(el: HTMLElement): void {

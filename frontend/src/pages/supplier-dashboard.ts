@@ -9,6 +9,8 @@ import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// P3-003 FIX: Skeleton timeout guard
+import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-024: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
@@ -82,6 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadOrders();
     setupTabs();
     setupCatalogModal();
+
+    // P3-003 FIX: Guard skeleton loaders with timeout fallback
+    guardSkeleton({
+        container: 'main-content',
+        onRetry: () => { loadKPIs(); loadOrders(); },
+    });
 });
 
 // ─── Live Timestamp ─────────────────────────────────────────────────────────

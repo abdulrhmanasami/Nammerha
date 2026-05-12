@@ -75,6 +75,15 @@ const CATEGORY_ICONS: Record<string, { icon: string; color: string }> = {
     default:     { icon: 'package',     color: 'warm-earth' },
 };
 
+// P3-002 FIX: Concrete class lookup — dynamic Tailwind classes like `from-${meta.color}/10`
+// get tree-shaken by PurgeCSS because the full class string is never seen at build time.
+// This map ensures the fully-qualified class strings exist in the source for scanning.
+const COLOR_CLASSES: Record<string, { gradient: string; text: string }> = {
+    'warm-earth':  { gradient: 'from-warm-earth/10', text: 'text-warm-earth/40' },
+    'trust-blue':  { gradient: 'from-trust-blue/10', text: 'text-trust-blue/40' },
+    'smoky-jade':  { gradient: 'from-smoky-jade/10', text: 'text-smoky-jade/40' },
+};
+
 function getCategoryMeta(category: string): { icon: string; color: string } {
     const key = (category.toLowerCase().split(/[\s/]+/)[0]) ?? 'default';
     const result = CATEGORY_ICONS[key];
@@ -152,6 +161,8 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
     const pct = totalCost > 0 ? Math.min(100, Math.round((funded / totalCost) * 100)) : 0;
     const isFullyFunded = pct >= 100;
     const meta = getCategoryMeta(item.material_category ?? 'default');
+    // P3-002 FIX: Use concrete class lookup instead of dynamic Tailwind interpolation
+    const colorClasses = COLOR_CLASSES[meta.color] ?? COLOR_CLASSES['warm-earth']!;
     // FORENSIC-C4.2 FIX: Backend contract is unit_price in CENTS (integer).
     // Previous heuristic (>= 100 → cents, else dollars) was fragile for cheap
     // materials. Now we ALWAYS treat unit_price as cents from the API.
@@ -200,10 +211,10 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
     return `
     <div class="${wrapperClass}">
       <div class="${cardClass}">
-        <div class="h-24 w-full bg-gradient-to-br from-${meta.color}/10 to-slate-200 flex items-center justify-center">
+        <div class="h-24 w-full bg-gradient-to-br ${colorClasses.gradient} to-slate-200 flex items-center justify-center">
           ${item.image_url
             ? `<img src="${esc(item.image_url)}" class="w-full h-full object-cover" alt="${esc(item.material_name)}" loading="lazy" />`
-            : `<i class="ph ph-${meta.icon} text-${meta.color}/40 nm-icon-48" aria-hidden="true"></i>`}
+            : `<i class="ph ph-${meta.icon} ${colorClasses.text} nm-icon-48" aria-hidden="true"></i>`}
         </div>
         <div class="p-4">
           <div class="flex justify-between items-start mb-2">

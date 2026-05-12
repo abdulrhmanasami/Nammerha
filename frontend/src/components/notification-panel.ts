@@ -339,17 +339,16 @@ function renderNotificationItem(n: Notification): string {
 function positionPanel(bell: HTMLElement): void {
     if (!panel) { return; }
     const rect = bell.getBoundingClientRect();
-    const isRtl = document.documentElement.dir === 'rtl';
 
     // Position below the bell, aligned to the end edge
+    // P1-001 FIX: Physical left/right → CSS Logical Properties (insetInlineEnd)
+    // This automatically handles RTL without manual isRtl branching.
     panel.style.position = 'fixed';
     panel.style.top = `${rect.bottom + 8}px`;
 
-    if (isRtl) {
-        panel.style.left = `${rect.left}px`;
-        panel.style.right = 'auto';
-    } else {
-        panel.style.right = `${window.innerWidth - rect.right}px`;
-        panel.style.left = 'auto';
-    }
+    // Reset both physical + logical to avoid stale values
+    panel.style.left = '';
+    panel.style.right = '';
+    // Align panel to the 'end' edge — near the bell icon
+    panel.style.insetInlineEnd = `${window.innerWidth - rect.right}px`;
 }

@@ -22,6 +22,8 @@ import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// P3-003 FIX: Skeleton timeout guard — prevents infinite loading state
+import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-018: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
 
@@ -80,6 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialTab = hashRouter.getInitialTab();
     switchTab(initialTab);
     hashRouter.onHashChange(switchTab);
+
+    // P3-003 FIX: Guard skeleton loaders with timeout fallback
+    guardSkeleton({
+        container: 'main-content',
+        onRetry: () => switchTab(hashRouter.getInitialTab()),
+    });
 
     // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
     initSwipeTabs({
@@ -387,22 +395,20 @@ async function loadPayments(): Promise<void> {
     }
 }
 
-// ─── Bid Modal (Inline) ─────────────────────────────────────────────────────
+// ─── Bid Modal (Native <dialog>) ────────────────────────────────────────────
+// P3-001 FIX: Migrated from div-based overlay to native HTML <dialog>.
+// Benefits: native focus trapping, ::backdrop, top-layer API, Escape key, a11y.
 function openBidModal(projectId: string): void {
     // Remove existing modal
     document.getElementById('bid-modal')?.remove();
 
-    const modal = document.createElement('div');
-    modal.id = 'bid-modal';
-    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
-    // PLT-A11Y-004: ARIA semantics for div-based modal (WCAG 4.1.2).
-    // Native <dialog> is the canonical pattern (confirm-action.ts), but this
-    // modal uses div-based rendering with JS focus trap for historical reasons.
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', 'bid-modal-title');
-    modal.innerHTML = `
-        <div class="bg-surface rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
+    const dialog = document.createElement('dialog');
+    dialog.id = 'bid-modal';
+    dialog.className = 'nm-dialog p-0 w-[90%] max-w-md rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up';
+    // Native <dialog> provides role="dialog" and aria-modal automatically via showModal()
+    dialog.setAttribute('aria-labelledby', 'bid-modal-title');
+    dialog.innerHTML = `
+        <div class="bg-surface rounded-2xl p-6 w-full space-y-4">
             <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="submit_bid">${esc(t('ct_submit_bid', 'Submit Bid'))}</h3>
             <div>
                 <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'Proposed Cost (USD)'))}</label>
@@ -423,47 +429,25 @@ function openBidModal(projectId: string): void {
             <p id="bid-error" class="text-red-500 text-xs nm-hidden"></p>
         </div>
     `;
-    document.body.appendChild(modal);
+    document.body.appendChild(dialog);
 
-    // P0-A11Y-001 FIX: Focus trap (WCAG 2.4.3) — trap Tab within modal
+    // P3-001: Native dialog.showModal() provides focus trapping, Escape, and ::backdrop.
     const triggerEl = document.activeElement as HTMLElement | null;
-    const focusableSelector = 'input, textarea, button, [tabindex]:not([tabindex="-1"])';
-    function getFocusableEls(): HTMLElement[] {
-        return Array.from(modal.querySelectorAll<HTMLElement>(focusableSelector));
-    }
-    // Auto-focus first input
-    const firstInput = modal.querySelector<HTMLElement>('input, textarea');
-    firstInput?.focus();
-
-    function trapFocus(e: KeyboardEvent): void {
-        if (e.key !== 'Tab') { return; }
-        const focusable = getFocusableEls();
-        if (focusable.length === 0) { return; }
-        const first = focusable[0]!;
-        const last = focusable[focusable.length - 1]!;
-        if (e.shiftKey) {
-            if (document.activeElement === first) { e.preventDefault(); last.focus(); }
-        } else {
-            if (document.activeElement === last) { e.preventDefault(); first.focus(); }
-        }
-    }
-    modal.addEventListener('keydown', trapFocus);
 
     function closeModal(): void {
-        modal.remove();
-        document.removeEventListener('keydown', onEscape);
-        triggerEl?.focus(); // Restore focus to trigger element
+        dialog.close();
+        triggerEl?.focus();
     }
 
-    // P2-AUD-NEW-001: Escape key closes modal
-    const onEscape = (e: KeyboardEvent): void => {
-        if (e.key === 'Escape') { closeModal(); }
-    };
-    document.addEventListener('keydown', onEscape);
+    // Native dialog auto-closes on Escape; we listen for cleanup + focus restore
+    dialog.addEventListener('close', () => {
+        dialog.remove();
+        triggerEl?.focus();
+    });
 
-    // P2-AUD-NEW-002: Backdrop click closes modal
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) { closeModal(); }
+    // Backdrop click closes dialog (click on dialog element itself = backdrop area)
+    dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) { closeModal(); }
     });
 
     document.getElementById('bid-cancel')?.addEventListener('click', () => { closeModal(); });
@@ -496,7 +480,8 @@ function openBidModal(projectId: string): void {
                 throw new Error(res.error ?? 'Bid failed');
             }
 
-            modal.remove();
+            dialog.close();
+            dialog.remove();
             loadStats();
             loadMarketplace();
         } catch (err) {
@@ -508,6 +493,12 @@ function openBidModal(projectId: string): void {
             submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
         }
     });
+
+    // Show dialog — provides native focus trapping + backdrop + escape
+    dialog.showModal();
+    // Auto-focus first input
+    const firstInput = dialog.querySelector<HTMLElement>('input, textarea');
+    firstInput?.focus();
 }
 
 // P4-001 FIX: setText() moved to shared utils/dom.ts

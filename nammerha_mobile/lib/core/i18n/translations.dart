@@ -1248,4 +1248,22 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_fed03640': {'ar': 'إضافة مادة للكتالوج', 'en': 'إضافة مادة للكتالوج'},
   'str_ff7cd917': {'ar': 'لديك حساب بالفعل؟', 'en': 'لديك حساب بالفعل؟'},
   'str_ffa18169': {'ar': 'يجب أن تكون 8 أحرف على الأقل', 'en': 'يجب أن تكون 8 أحرف على الأقل'},
+
+  // ═══ P0-002 REMEDIATION: Dashboard i18n Keys (May 2026) ═══
+  'workspaces': {'ar': 'مساحات العمل', 'en': 'Workspaces'},
+  'active_bids': {'ar': 'عروض نشطة', 'en': 'Active Bids'},
+  'verified_proofs': {'ar': 'إثباتات مُوثّقة', 'en': 'Verified Proofs'},
+  'create_project': {'ar': 'إنشاء مشروع', 'en': 'Create Project'},
+  'browse_tenders': {'ar': 'تصفح العطاءات', 'en': 'Browse Tenders'},
+  'my_bids': {'ar': 'عروضي', 'en': 'My Bids'},
+  'projects_properties': {'ar': 'مشاريع وملكيات', 'en': 'Projects & Properties'},
+  'tenders_supply': {'ar': 'مناقصات وتوريد', 'en': 'Tenders & Supply'},
+  'field_engineering_tasks': {'ar': 'مهام ميدانية وهندسية', 'en': 'Field & Engineering Tasks'},
+  'no_recent_activities': {'ar': 'لا توجد نشاطات حديثة', 'en': 'No recent activities'},
+  'activities_will_appear': {'ar': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', 'en': 'Recent activities will appear here once you start working on projects'},
+  'time_ago_minutes': {'ar': 'منذ \$1 دقيقة', 'en': '\$1 min ago'},
+  'time_ago_hours': {'ar': 'منذ \$1 ساعة', 'en': '\$1h ago'},
+  'time_ago_days': {'ar': 'منذ \$1 يوم', 'en': '\$1d ago'},
+  'select_project_first': {'ar': 'اختر مشروعاً أولاً', 'en': 'Select a project first'},
+  'select_project_for_camera': {'ar': 'اختر المشروع للتصوير المكاني', 'en': 'Select project for spatial capture'},
 };

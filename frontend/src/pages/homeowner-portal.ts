@@ -25,6 +25,8 @@ autoTriggerTour();
 import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
+// P3-003 FIX: Skeleton timeout guard
+import { guardSkeleton } from '../utils/skeleton-guard';
 
 // FIX-005: Banner Pattern Consolidation.
 // Previous: Custom showSrBanner() manually created DOM elements, managed timeouts,
@@ -96,6 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialTab = hashRouter.getInitialTab();
     switchTab(initialTab);
     hashRouter.onHashChange(switchTab);
+
+    // P3-003 FIX: Guard skeleton loaders with timeout fallback
+    guardSkeleton({
+        container: 'main-content',
+        onRetry: () => switchTab(hashRouter.getInitialTab()),
+    });
 
     // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
     initSwipeTabs({

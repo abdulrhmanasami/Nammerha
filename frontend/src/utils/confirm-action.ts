@@ -63,7 +63,7 @@ interface ConfirmActionOptions {
 }
 
 // TICK-033: Import shared type-safe i18n apply utility.
-import { tryApplyI18n } from './i18n-apply';
+import { tryApplyI18n, tryTranslate } from './i18n-apply';
 
 /**
  * Shows a confirmation dialog for destructive/irreversible actions.
@@ -78,7 +78,7 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
         document.getElementById('nm-confirm-programmatic')?.remove();
 
         const variant = opts.variant || 'danger';
-        const cancelLabel = opts.cancelLabel || 'Cancel';
+        const cancelLabel = opts.cancelLabel || tryTranslate('common_cancel', 'Cancel');
         const icon = opts.icon || (variant === 'danger' ? 'warning-circle' : 'info');
 
         // Build i18n attributes

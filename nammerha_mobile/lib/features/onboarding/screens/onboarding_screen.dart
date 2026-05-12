@@ -41,7 +41,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // P0-004 FIX: Hardcoded Arabic → i18n keys from kTranslations.
   final List<_OnboardingSlideData> _slides = [
     _OnboardingSlideData(
-      icon: PhosphorIconsRegular.warningCircle,
+      icon: PhosphorIconsRegular.handshake,
       titleKey: 'onboarding_title_1',
       subtitleKey: 'onboarding_desc_1',
       gradient: NammerhaGradients.brandPrimary.colors,
@@ -206,7 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(PhosphorIconsRegular.warningCircle, size: 16, color: colors.textSubtle),
+                        Icon(PhosphorIconsRegular.arrowsLeftRight, size: 16, color: colors.textSubtle),
                         const SizedBox(width: 8),
                         Text(
                           context.tr('swipe_to_continue'),

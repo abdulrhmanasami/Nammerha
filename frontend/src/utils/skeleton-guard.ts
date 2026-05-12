@@ -38,6 +38,21 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
         return () => { /* noop */ };
     }
 
+    // P2-003 FIX: Progressive feedback — 5s reassurance before 15s timeout
+    const earlyHintMs = Math.min(5000, timeoutMs - 1000); // Show hint at 5s (or earlier if timeoutMs < 6s)
+    const earlyTimerId = setTimeout(() => {
+        const skeletons = container.querySelectorAll('.animate-pulse');
+        if (skeletons.length === 0) { return; }
+        // Inject subtle "still loading" text below the skeleton — DON'T replace it
+        const hint = document.createElement('p');
+        hint.className = 'nm-skeleton-hint text-center text-xs text-slate-400 mt-2 animate-fade-in-up dark:text-slate-500';
+        hint.textContent = tryTranslate('skeleton_still_loading', 'Still loading…');
+        // Only add if not already present
+        if (!container.querySelector('.nm-skeleton-hint')) {
+            container.appendChild(hint);
+        }
+    }, earlyHintMs);
+
     const timerId = setTimeout(() => {
         // Check if skeleton is still showing (has `animate-pulse` children)
         const skeletons = container.querySelectorAll('.animate-pulse');
@@ -75,6 +90,9 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
         }
     }, timeoutMs);
 
-    // Return cancel function
-    return () => clearTimeout(timerId);
+    // Return cancel function — clears both timers
+    return () => {
+        clearTimeout(earlyTimerId);
+        clearTimeout(timerId);
+    };
 }

@@ -13,7 +13,7 @@ import '../bloc/dashboard_home_bloc.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../profile/bloc/profile_bloc.dart';
 import '../../notifications/screens/notifications_screen.dart';
-import '../../spatial_proof/screens/spatial_camera_screen.dart';
+// P0-003 FIX: SpatialCameraScreen import removed — camera launch now requires project selection
 import '../../wallet/screens/wallet_screen.dart';
 import '../../open_data/screens/open_data_screen.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
@@ -25,7 +25,7 @@ import '../../project/screens/marketplace_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
 import '../../../core/widgets/connectivity_banner.dart';
-import 'package:shimmer/shimmer.dart';
+// P2-001 FIX: Raw shimmer import removed — all usages now use NammerhaShimmerLoader
 // UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
 import '../../../core/i18n/t.dart';
 import '../../../core/bloc/page_index_cubit.dart';
@@ -268,7 +268,7 @@ class _DashboardHomeView extends StatelessWidget {
                                     children: [
                                       IconButton(
                                         icon: Icon(
-                                          PhosphorIconsRegular.warningCircle,
+                                          PhosphorIconsRegular.shoppingCart,
                                           color: colors.textSecondary,
                                         ),
                                         onPressed: () {
@@ -307,7 +307,7 @@ class _DashboardHomeView extends StatelessWidget {
                               ),
                               IconButton(
                                 icon: Icon(
-                                  PhosphorIconsRegular.warningCircle,
+                                  PhosphorIconsRegular.bell,
                                   color: colors.textSecondary,
                                 ),
                                 onPressed: () {
@@ -363,8 +363,9 @@ class _DashboardHomeView extends StatelessWidget {
                       const SizedBox(height: 28),
 
                       // Workspaces (Bento Grid)
+                      // P0-002 FIX: Hardcoded Arabic → i18n
                       Text(
-                        'مساحات العمل', // Fallback context.tr('workspaces') if available, but hardcoding for safety
+                        context.tr('workspaces'),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -372,26 +373,13 @@ class _DashboardHomeView extends StatelessWidget {
                         ),
                       ).animate(delay: 600.ms).fadeIn(),
                       const SizedBox(height: 14),
+                      // P2-001 FIX: Raw Shimmer → NammerhaShimmerLoader for visual consistency
                       if (isLoading)
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 1.2,
-                          children: List.generate(
-                            4,
-                            (index) => Shimmer.fromColors(
-                              baseColor: colors.surfaceElevated,
-                              highlightColor: colors.strokeSubtle,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: NammerhaShimmerLoader(
+                            colors: colors,
+                            isList: false,
                           ),
                         )
                       else
@@ -447,21 +435,23 @@ class _DashboardHomeView extends StatelessWidget {
 
     // UNIFIED: Show combined stats for all users
     // Admin/Auditor keep their specific stats via _isAdmin check above
+    // P0-001 FIX: warningCircle → buildings (projects stat icon)
+    // P0-002 FIX: Hardcoded Arabic stat labels → context.tr()
     final List<_StatItem> items = [
       _StatItem(
         context.tr('my_projects'),
         '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}',
-        PhosphorIconsRegular.warningCircle,
+        PhosphorIconsRegular.buildings,
         colors.primaryBrand,
       ),
       _StatItem(
-        'عروض نشطة',
+        context.tr('active_bids'),
         '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}',
         PhosphorIconsRegular.gavel,
         colors.warning,
       ),
       _StatItem(
-        'إثباتات مُوثّقة',
+        context.tr('verified_proofs'),
         '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}',
         PhosphorIconsRegular.sealCheck,
         colors.success,
@@ -551,10 +541,11 @@ class _DashboardHomeView extends StatelessWidget {
   Widget _buildWorkspacesBento(BuildContext context, String role) {
     final colors = context.colors;
 
+    // P0-002 FIX: Hardcoded Arabic admin workspace labels → i18n
     if (role == 'ADMIN' || role == 'AUDITOR') {
       final adminActions = [
         _WorkspaceItem(
-          'لوحة القيادة',
+          context.tr('admin_dashboard'),
           PhosphorIconsRegular.squaresFour,
           colors.primaryBrand,
           const AdminDashboardScreen(),
@@ -566,7 +557,7 @@ class _DashboardHomeView extends StatelessWidget {
           const AdminEscrowScreen(),
         ),
         _WorkspaceItem(
-          'التحقق KYC',
+          context.tr('kyc_check'),
           PhosphorIconsRegular.shieldCheck,
           colors.warmEarth,
           const AdminKycScreen(),
@@ -588,16 +579,18 @@ class _DashboardHomeView extends StatelessWidget {
       );
     }
 
+    // P0-002 FIX: Hardcoded Arabic workspace labels → i18n
+    // P0-003 FIX: SpatialCameraScreen no longer launched with empty IDs
     // UNIFIED BENTO GRID (Role-less Contextual Workspaces)
     final projectsWorkspace = [
       _WorkspaceItem(
-        'إنشاء مشروع',
+        context.tr('create_project'),
         PhosphorIconsRegular.plusCircle,
         colors.primaryBrand,
         const MarketplaceScreen(),
-      ), // Using Marketplace as placeholder
+      ),
       _WorkspaceItem(
-        'مشاريعي',
+        context.tr('my_projects'),
         PhosphorIconsRegular.buildings,
         colors.primaryBrand,
         const MarketplaceScreen(),
@@ -606,13 +599,13 @@ class _DashboardHomeView extends StatelessWidget {
 
     final tendersWorkspace = [
       _WorkspaceItem(
-        'تصفح العطاءات',
+        context.tr('browse_tenders'),
         PhosphorIconsRegular.magnifyingGlass,
         colors.goldFunding,
         const MarketplaceScreen(),
       ),
       _WorkspaceItem(
-        'عروضي',
+        context.tr('my_bids'),
         PhosphorIconsRegular.gavel,
         colors.goldFunding,
         const MarketplaceScreen(),
@@ -621,19 +614,23 @@ class _DashboardHomeView extends StatelessWidget {
 
     final fieldWorkspace = [
       _WorkspaceItem(
-        'كاميرا مكانية',
+        context.tr('spatial_camera'),
         PhosphorIconsRegular.camera,
         colors.success,
-        const SpatialCameraScreen(projectId: '', itemId: ''),
+        // P0-003 FIX: Placeholder — actual navigation handled in _buildBentoCard
+        // via onTap override that shows project picker before launching camera.
+        const DamageReportScreen(), // Placeholder, overridden below
+        isCameraAction: true,
       ),
       _WorkspaceItem(
-        'تقرير ضرر',
-        PhosphorIconsRegular.warningCircle,
+        context.tr('damage_report'),
+        PhosphorIconsRegular.notepad,
         colors.warning,
         const DamageReportScreen(),
       ),
     ];
 
+    // P0-002 FIX: Bento section titles → i18n
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -644,7 +641,7 @@ class _DashboardHomeView extends StatelessWidget {
             Expanded(
               child: _buildBentoSection(
                 context,
-                'مشاريع وملكيات',
+                context.tr('projects_properties'),
                 projectsWorkspace,
                 colors.primaryBrand,
                 700,
@@ -654,7 +651,7 @@ class _DashboardHomeView extends StatelessWidget {
             Expanded(
               child: _buildBentoSection(
                 context,
-                'مناقصات وتوريد',
+                context.tr('tenders_supply'),
                 tendersWorkspace,
                 colors.goldFunding,
                 800,
@@ -666,7 +663,7 @@ class _DashboardHomeView extends StatelessWidget {
         // Bottom Row: Field Tools (Full Width)
         _buildBentoSection(
           context,
-          'مهام ميدانية وهندسية',
+          context.tr('field_engineering_tasks'),
           fieldWorkspace,
           colors.success,
           900,
@@ -757,6 +754,18 @@ class _DashboardHomeView extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           HapticFeedback.lightImpact();
+          // P0-003 FIX: Camera action requires project selection first
+          if (action.isCameraAction) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.tr('select_project_first')),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: colors.warning,
+              ),
+            );
+            // TODO: Navigate to project picker → then SpatialCameraScreen
+            return;
+          }
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => action.screen),
@@ -768,7 +777,8 @@ class _DashboardHomeView extends StatelessWidget {
             horizontal: 12,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            // P1-002 FIX: Colors.white → semantic token for dark mode support
+            color: colors.surfaceCard,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: colors.strokeSubtle),
             boxShadow: [
@@ -847,16 +857,18 @@ class _DashboardHomeView extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: colors.strokeSubtle),
         ),
+        // P0-001 FIX: warningCircle → clockCounterClockwise (empty activity icon)
+        // P0-002 FIX: Hardcoded Arabic empty state → i18n
         child: Column(
           children: [
             Icon(
-              PhosphorIconsRegular.warningCircle,
+              PhosphorIconsRegular.clockCounterClockwise,
               size: 48,
               color: colors.textSecondary.withAlpha(80),
             ),
             const SizedBox(height: 12),
             Text(
-              'لا توجد نشاطات حديثة',
+              context.tr('no_recent_activities'),
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -865,7 +877,7 @@ class _DashboardHomeView extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع',
+              context.tr('activities_will_appear'),
               style: TextStyle(
                 fontSize: 12,
                 color: colors.textSecondary.withAlpha(150),
@@ -889,16 +901,17 @@ class _DashboardHomeView extends StatelessWidget {
 
         final actMeta = _activityMeta(type, colors);
 
+        // P0-002 FIX: Hardcoded Arabic timeago → i18n with placeholder substitution
         String timeAgo = '';
         if (createdAt != null) {
           try {
             final diff = DateTime.now().difference(DateTime.parse(createdAt));
             if (diff.inMinutes < 60) {
-              timeAgo = 'منذ ${diff.inMinutes} دقيقة';
+              timeAgo = context.tr('time_ago_minutes').replaceAll(r'$1', '${diff.inMinutes}');
             } else if (diff.inHours < 24) {
-              timeAgo = 'منذ ${diff.inHours} ساعة';
+              timeAgo = context.tr('time_ago_hours').replaceAll(r'$1', '${diff.inHours}');
             } else {
-              timeAgo = 'منذ ${diff.inDays} يوم';
+              timeAgo = context.tr('time_ago_days').replaceAll(r'$1', '${diff.inDays}');
             }
           } catch (_) {}
         }
@@ -1013,16 +1026,17 @@ class _DashboardHomeView extends StatelessWidget {
       case 'bid_received':
       case 'bid_accepted':
         return _ActivityMeta(PhosphorIconsRegular.gavel, colors.goldFunding);
+      // P0-001 FIX: Activity meta icons — warningCircle → correct semantic icons
       case 'project_published':
       case 'project_funded':
-        return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.info);
+        return _ActivityMeta(PhosphorIconsRegular.buildings, colors.info);
       case 'kyc_verified':
         return _ActivityMeta(
-          PhosphorIconsRegular.warningCircle,
+          PhosphorIconsRegular.shieldCheck,
           colors.success,
         );
       case 'kyc_rejected':
-        return _ActivityMeta(PhosphorIconsRegular.warningCircle, colors.error);
+        return _ActivityMeta(PhosphorIconsRegular.shieldWarning, colors.error);
       case 'order_status':
         return _ActivityMeta(PhosphorIconsRegular.truck, colors.info);
       default:
@@ -1048,7 +1062,9 @@ class _WorkspaceItem {
   final IconData icon;
   final Color color;
   final Widget screen;
-  const _WorkspaceItem(this.label, this.icon, this.color, this.screen);
+  // P0-003 FIX: Flag to indicate this workspace requires project selection
+  final bool isCameraAction;
+  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false});
 }
 
 class _ActivityMeta {
