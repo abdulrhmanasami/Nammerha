@@ -32,9 +32,9 @@ export function renderErrorWithRetry(
 ): void {
     container.innerHTML = `
         <div class="p-8 text-center" role="alert" aria-live="polite">
-            <i class="ph ph-warning-circle text-red-400 text-3xl" aria-hidden="true"></i>
-            <p class="mt-2 text-sm text-red-400" data-i18n="${i18nKey}">${fallbackText}</p>
-            <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe" data-i18n="retry">
+            <i class="ph ph-warning-circle text-red-400 text-3xl dark:text-red-300" aria-hidden="true"></i>
+            <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${i18nKey}">${fallbackText}</p>
+            <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe dark:bg-trust-blue/90 dark:hover:bg-trust-blue" data-i18n="retry">
                 Retry
             </button>
         </div>

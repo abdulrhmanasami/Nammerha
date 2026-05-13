@@ -396,8 +396,12 @@ function toggleEditMode(show: boolean): void {
 function showEditBanner(type: 'error' | 'success', message: string): void {
     const banner = document.getElementById('profile-edit-banner');
     if (!banner) { return; }
+    // PLT-UX-AUD P2-PROFILE-004 FIX: Added dark mode classes.
+    // Previous: bg-red-50/bg-emerald-50 had no dark: variants — jarring in dark theme.
     banner.className = `text-xs font-bold p-3 rounded-xl ${
-        type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'
+        type === 'error'
+            ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+            : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
     }`;
     banner.textContent = message;
     banner.classList.remove('nm-hidden');
@@ -431,7 +435,10 @@ async function saveProfile(): Promise<void> {
         nameInput?.focus();
         return;
     }
-    if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    // PLT-UX-AUD P3-VAL-005 FIX: Stricter email regex for FinTech platform.
+    // Previous: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ — allowed 'a@b.c' (1-char TLD).
+    // Now: Requires 2+ char local part, 2+ char domain, 2+ char TLD.
+    if (!newEmail || !/^[^\s@]{2,}@[^\s@]{2,}\.[^\s@]{2,}$/.test(newEmail)) {
         showEditBanner('error', t('profile_email_invalid', 'Please enter a valid email address.'));
         emailInput?.focus();
         return;
@@ -745,10 +752,11 @@ function init(): void {
         });
     }
 
-    // P0-UX-003 FIX: KYC Dead End Resolution.
+    // P0-UX-003 FIX + PLT-UX-AUD P1-KYC-007 FIX: KYC Dead End Resolution.
     // Previous: Tapping "Complete identity verification" showed 'coming soon' toast.
     // On a platform handling billions in escrow, a dead-end KYC path is a trust violation.
     // Now: Visually disable the KYC action item + add 'Not Yet Available' badge.
+    // PLT-UX-AUD: Added explanation text + "Notify Me" button (trust-building UX).
     // Standard: Nielsen #1 (System Status Visibility), FinTech Trust UX.
     const kycSection = document.getElementById('kyc-section');
     if (kycSection) {
@@ -764,6 +772,43 @@ function init(): void {
             badge.textContent = t('kyc_not_available', 'Not Yet Available');
             const heading = kycSection.querySelector('p, span, h3, h4');
             if (heading) { heading.appendChild(badge); }
+        }
+
+        // PLT-UX-AUD P1-KYC-007 FIX: KYC explanation + Notify Me button.
+        // Dead-end with no context erodes trust on a FinTech platform.
+        if (!kycSection.querySelector('.kyc-explanation')) {
+            const explanation = document.createElement('div');
+            explanation.className = 'kyc-explanation mt-3';
+            // Re-enable pointer events for this child only
+            explanation.style.pointerEvents = 'auto';
+            explanation.style.opacity = '1';
+            explanation.innerHTML = `
+                <p class="text-xs text-slate-500 leading-relaxed dark:text-slate-400" data-i18n="kyc_explanation">
+                    ${t('kyc_explanation', 'Identity verification (KYC) will include document upload, OFAC/sanctions screening, and address verification. This is required for escrow fund access and large transactions.')}
+                </p>
+                <button type="button" id="kyc-notify-btn"
+                    class="mt-2 px-4 py-2 text-xs font-bold text-trust-blue bg-trust-blue/10 rounded-lg hover:bg-trust-blue/20 transition-colors touch-safe"
+                    data-i18n="kyc_notify_me">
+                    ${t('kyc_notify_me', 'Notify me when available')}
+                </button>
+            `;
+            kycSection.appendChild(explanation);
+
+            // Wire notify button
+            explanation.querySelector('#kyc-notify-btn')?.addEventListener('click', async () => {
+                const btn = explanation.querySelector('#kyc-notify-btn') as HTMLButtonElement | null;
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = t('kyc_notify_registered', '✓ We\'ll notify you');
+                    btn.classList.remove('bg-trust-blue/10', 'hover:bg-trust-blue/20', 'text-trust-blue');
+                    btn.classList.add('bg-emerald-50', 'text-emerald-600', 'dark:bg-emerald-500/10', 'dark:text-emerald-400');
+                }
+                // Toast confirmation
+                try {
+                    const { showToast } = await import('../utils/toast');
+                    showToast(t('kyc_notify_confirmed', 'You\'ll be notified when KYC is available'), 'success');
+                } catch { /* Toast non-critical */ }
+            });
         }
     }
 

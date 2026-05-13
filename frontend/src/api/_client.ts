@@ -122,9 +122,12 @@ export async function request<T>(
                         );
                     } catch { /* Toast module may not be available — non-critical */ }
                     // Redirect to login with return URL after brief delay (let toast show)
+                    // PLT-UX-AUD P0-SESSION-003 FIX: Added &reason=session_expired as URL fallback.
+                    // On Syria 2G, the dynamic toast import above may fail silently. The auth page
+                    // reads this parameter to display a persistent banner — independent of any import.
                     const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
                     setTimeout(() => {
-                        window.location.href = `/auth.html?redirect=${returnPath}`;
+                        window.location.href = `/auth.html?redirect=${returnPath}&reason=session_expired`;
                     }, 1500);
                     // Return a typed error response instead of throwing
                     return { success: false, error: 'Session expired' } as ApiResponse<T>;

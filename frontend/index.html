@@ -30,18 +30,21 @@
       <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     </noscript>
     <title>Nammerha — Rebuild Syria Together | منصة إعادة إعمار سوريا</title>
+    <!-- PLT-UX-AUD P3-SEO-002 FIX: "crowdfunding" → "reconstruction management".
+         With donations suspended, calling the platform "crowdfunding" is factually incorrect.
+         Standard: SEO Accuracy, Trust UX. -->
     <meta
       name="description"
-      content="OCDS-compliant reconstruction crowdfunding platform with radical transparency, spatial GPS verification, and escrow-protected donations for Syria rebuilding."
+      content="OCDS-compliant reconstruction management platform with radical transparency, spatial GPS verification, and escrow-protected financial tracking for Syria rebuilding."
     />
-    <meta name="keywords" content="Syria reconstruction, إعادة إعمار سوريا, crowdfunding, OCDS, transparent donations, Nammerha" />
+    <meta name="keywords" content="Syria reconstruction, إعادة إعمار سوريا, reconstruction management, OCDS, transparent escrow, Nammerha" />
     <link rel="canonical" href="https://nammerha.com/" />
 
     <!-- OpenGraph (Facebook, LinkedIn, WhatsApp) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Nammerha" />
     <meta property="og:title" content="Nammerha — Rebuild Syria Together" />
-    <meta property="og:description" content="OCDS-compliant reconstruction crowdfunding platform with radical transparency and spatial verification." />
+    <meta property="og:description" content="OCDS-compliant reconstruction management platform with radical transparency and spatial verification." />
     <meta property="og:url" content="https://nammerha.com/" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="ar_SY" />
@@ -56,7 +59,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Nammerha — Rebuild Syria Together" />
-    <meta name="twitter:description" content="Transparent crowdfunding for Syria reconstruction with GPS-verified delivery proofs." />
+    <meta name="twitter:description" content="Transparent reconstruction management for Syria with GPS-verified spatial proofs and escrow-protected financing." />
     <meta name="twitter:image" content="https://nammerha.com/brand/og-cover.png" />
     <meta name="twitter:image:alt" content="نعمّرها — منصة إعادة إعمار سوريا" />
 
@@ -71,7 +74,7 @@
           "url": "https://nammerha.com",
           "name": "Nammerha",
           "alternateName": ["نعمِّرها", "Nammerha Platform"],
-          "description": "Syria Reconstruction Crowdfunding Platform — OCDS-compliant with radical transparency",
+          "description": "Syria Reconstruction Management Platform — OCDS-compliant with radical transparency",
           "inLanguage": ["en", "ar"],
           "potentialAction": {
             "@type": "SearchAction",
@@ -84,7 +87,7 @@
           "@id": "https://nammerha.com/#organization",
           "name": "Nammerha",
           "url": "https://nammerha.com",
-          "description": "Non-profit technology platform for transparent reconstruction crowdfunding in Syria",
+          "description": "Non-profit technology platform for transparent reconstruction management in Syria",
           "foundingDate": "2025",
           "areaServed": {
             "@type": "Country",
@@ -109,7 +112,7 @@
             "price": "0",
             "priceCurrency": "USD"
           },
-          "description": "Crowdfunding platform for Syria reconstruction with escrow-protected donations, GPS-verified spatial proofs, and OCDS-compliant financial reporting"
+          "description": "Reconstruction management platform for Syria with escrow-protected financing, GPS-verified spatial proofs, and OCDS-compliant financial reporting"
         }
       ]
     }
@@ -156,10 +159,12 @@
           placeholder="Search reconstruction projects..." data-i18n-placeholder="search_placeholder"
         />
       </div>
-      <!-- Cart Badge -->
-      <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-cart-btn" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
-        <i class="ph ph-shopping-cart text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
-        <span class="cart-badge nm-hidden" id="nav-cart-badge">0</span>
+      <!-- PLT-UX-AUD P0-GHOST-001 FIX: Cart icon replaced with Wallet link.
+           Previous: Linked to donor-basket.html — a dead page (donations suspended).
+           Wallet is a universal financial page that works for all users.
+           Standard: Nielsen #1 (System Status), Honest Affordances. -->
+      <a href="wallet.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-wallet-btn" aria-label="Wallet" data-i18n-aria="aria_wallet">
+        <i class="ph ph-wallet text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
       </a>
       <!-- FRIC-2026-D05 FIX: Notification bell — parity with dashboard portals (MED-008).
            Previous: Homepage navbar had no notification bell — users received notifications
@@ -203,12 +208,11 @@
              The theme toggle persists in the bottom nav FAB (nav.js injection).
              Removing it frees ~44px, ensuring ≥8px spacing between remaining controls.
              Standard: Fitts's Law, Apple HIG (Touch Target Spacing). -->
-        <a href="donor-basket.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
-          <i class="ph ph-shopping-cart text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
-          <!-- PLAT-UX-005 FIX: Removed hardcoded '0' — JS populates count when unhiding.
-               Previous: '0' inside span + hidden class → if JS bug removes hidden, shows '0'.
-               Standard: Honest Affordances, Code Hygiene. -->
-          <span class="cart-badge nm-hidden" id="mobile-cart-badge"></span>
+        <!-- PLT-UX-AUD P0-GHOST-001 FIX: Cart icon replaced with Wallet link.
+             Previous: Linked to donor-basket.html — dead page (donations suspended).
+             Standard: Honest Affordances, Nielsen #1 (System Status). -->
+        <a href="wallet.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Wallet" data-i18n-aria="aria_wallet">
+          <i class="ph ph-wallet text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
         </a>
       </div>
     </header>
@@ -509,6 +513,10 @@
             <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="build_boq">Build BOQ</span>
             <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="build_boq_desc">Create a bill of quantities estimate</span>
           </a>
+          <!-- PLT-UX-AUD P2-HOMEPAGE-005 FIX: Removed donation language.
+               Previous: "Fund Materials" / "Browse projects and donate" — misleading with donations suspended.
+               Now: "Browse Projects" / "Explore reconstruction projects" — accurate and universal.
+               Standard: Honest Affordances, Nielsen #2 (Match System & Real World). -->
           <a
             href="projects.html"
             class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow"
@@ -516,10 +524,10 @@
             <div
               class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center"
             >
-              <i class="ph ph-hand-heart text-warm-earth text-2xl" aria-hidden="true"></i>
+              <i class="ph ph-buildings text-warm-earth text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="fund_materials">Fund Materials</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="fund_materials_desc">Browse projects and donate</span>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="browse_projects">Browse Projects</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="browse_projects_desc">Explore reconstruction projects</span>
           </a>
           <a
             href="admin-oracle.html"

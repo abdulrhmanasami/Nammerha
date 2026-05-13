@@ -11,40 +11,46 @@
  *   - Client-side search across known page data
  *   - Keyboard Escape dismissal
  *   - WCAG: role="search", aria-label, focus trap
+ *   - PLT-UX-AUD P1-SEARCH-001 FIX: Arabic-first search (bilingual index)
  *
  * Standard: Apple Spotlight / Material Design Search overlay
  */
 
+import { t, isRTL } from './i18n';
+
 interface SearchResult {
     title: string;
     subtitle: string;
+    // PLT-UX-AUD P1-SEARCH-001 FIX: Arabic search parity for Syria-first audience.
+    title_ar: string;
+    subtitle_ar: string;
     href: string;
     icon: string;
     i18nTitle?: string;
 }
 
-/** Static page index for client-side search (no API needed) */
+/** Static page index for client-side search — bilingual (EN + AR) */
 const PAGE_INDEX: SearchResult[] = [
-    { title: 'Home', subtitle: 'Main platform page', href: 'index.html', icon: 'house', i18nTitle: 'home' },
-    { title: 'Sign In', subtitle: 'Login to your account', href: 'auth.html', icon: 'sign-in', i18nTitle: 'sign_in_btn' },
-    { title: 'Wallet', subtitle: 'Your balance and transactions', href: 'wallet.html', icon: 'wallet', i18nTitle: 'wallet' },
-    { title: 'Profile', subtitle: 'Your account settings', href: 'profile.html', icon: 'user', i18nTitle: 'profile' },
-    { title: 'Construction Basket', subtitle: 'Your donation cart', href: 'donor-basket.html', icon: 'shopping-cart', i18nTitle: 'construction_basket' },
-    { title: 'Report Damage', subtitle: 'Submit damage report', href: 'homeowner-report.html', icon: 'warning', i18nTitle: 'report_damage' },
-    { title: 'BOQ Builder', subtitle: 'Engineer bill of quantities', href: 'engineer-boq.html', icon: 'clipboard-text', i18nTitle: 'engineer_boq_builder' },
-    { title: 'Site Verification', subtitle: 'GPS-stamped field camera', href: 'engineer-camera.html', icon: 'camera', i18nTitle: 'site_verification' },
-    { title: 'Proof of Delivery', subtitle: 'Verified delivery confirmation', href: 'donor-proof.html', icon: 'shield-check', i18nTitle: 'proof_of_delivery' },
-    { title: 'Homeowner Portal', subtitle: 'Manage your property', href: 'homeowner-portal.html', icon: 'house-line', i18nTitle: 'homeowner_portal' },
+    { title: 'Home', title_ar: 'الرئيسية', subtitle: 'Main platform page', subtitle_ar: 'الصفحة الرئيسية للمنصة', href: 'index.html', icon: 'house', i18nTitle: 'home' },
+    { title: 'Sign In', title_ar: 'تسجيل الدخول', subtitle: 'Login to your account', subtitle_ar: 'الدخول إلى حسابك', href: 'auth.html', icon: 'sign-in', i18nTitle: 'sign_in_btn' },
+    { title: 'Wallet', title_ar: 'المحفظة', subtitle: 'Your balance and transactions', subtitle_ar: 'رصيدك ومعاملاتك', href: 'wallet.html', icon: 'wallet', i18nTitle: 'wallet' },
+    { title: 'Profile', title_ar: 'الملف الشخصي', subtitle: 'Your account settings', subtitle_ar: 'إعدادات حسابك', href: 'profile.html', icon: 'user', i18nTitle: 'profile' },
+    // PLT-UX-AUD P0-GHOST-001 FIX: donor-basket removed — donations suspended indefinitely.
+    // PLT-UX-AUD P0-GHOST-001 FIX: donor-proof removed — donations suspended indefinitely.
+    { title: 'Report Damage', title_ar: 'الإبلاغ عن ضرر', subtitle: 'Submit damage report', subtitle_ar: 'تقديم تقرير عن الأضرار', href: 'homeowner-report.html', icon: 'warning', i18nTitle: 'report_damage' },
+    { title: 'BOQ Builder', title_ar: 'جدول الكميات', subtitle: 'Engineer bill of quantities', subtitle_ar: 'جدول كميات المهندس', href: 'engineer-boq.html', icon: 'clipboard-text', i18nTitle: 'engineer_boq_builder' },
+    { title: 'Site Verification', title_ar: 'التحقق الميداني', subtitle: 'GPS-stamped field camera', subtitle_ar: 'كاميرا ميدانية بتحديد GPS', href: 'engineer-camera.html', icon: 'camera', i18nTitle: 'site_verification' },
+    { title: 'Homeowner Portal', title_ar: 'بوابة صاحب المنزل', subtitle: 'Manage your property', subtitle_ar: 'إدارة ممتلكاتك', href: 'homeowner-portal.html', icon: 'house-line', i18nTitle: 'homeowner_portal' },
     // DONATIONS_DISABLED: Donor Portal hidden until donations feature is re-enabled
-    // { title: 'Donor Portal', subtitle: 'Your donations and impact', href: 'donor-portal.html', icon: 'heart', i18nTitle: 'donor_portal' },
-    { title: 'Contractor Dashboard', subtitle: 'Manage projects and bids', href: 'contractor-dashboard.html', icon: 'hard-hat', i18nTitle: 'contractor_dashboard' },
-    { title: 'Contractor Portal', subtitle: 'Contractor workspace', href: 'contractor-portal.html', icon: 'wrench', i18nTitle: 'contractor_portal' },
-    { title: 'Supplier Dashboard', subtitle: 'Catalog and orders', href: 'supplier-dashboard.html', icon: 'storefront', i18nTitle: 'supplier_dashboard' },
-    { title: 'Tradesperson Portal', subtitle: 'Your trade services', href: 'tradesperson-portal.html', icon: 'hammer', i18nTitle: 'tradesperson_portal' },
-    { title: 'Pricing', subtitle: 'Platform pricing plans', href: 'pricing.html', icon: 'tag', i18nTitle: 'pricing' },
-    { title: 'Privacy Policy', subtitle: 'How we protect your data', href: 'privacy.html', icon: 'lock', i18nTitle: 'privacy_policy' },
-    { title: 'Terms of Service', subtitle: 'Platform terms', href: 'terms.html', icon: 'file-text', i18nTitle: 'terms_of_service' },
-    { title: 'Contact Us', subtitle: 'Get in touch', href: 'contact.html', icon: 'envelope', i18nTitle: 'contact_us' },
+    // { title: 'Donor Portal', title_ar: 'بوابة المتبرع', ... }
+    { title: 'Contractor Dashboard', title_ar: 'لوحة المقاول', subtitle: 'Manage projects and bids', subtitle_ar: 'إدارة المشاريع والعطاءات', href: 'contractor-dashboard.html', icon: 'hard-hat', i18nTitle: 'contractor_dashboard' },
+    { title: 'Contractor Portal', title_ar: 'بوابة المقاول', subtitle: 'Contractor workspace', subtitle_ar: 'مساحة عمل المقاول', href: 'contractor-portal.html', icon: 'wrench', i18nTitle: 'contractor_portal' },
+    { title: 'Supplier Dashboard', title_ar: 'لوحة المورّد', subtitle: 'Catalog and orders', subtitle_ar: 'الكتالوج والطلبات', href: 'supplier-dashboard.html', icon: 'storefront', i18nTitle: 'supplier_dashboard' },
+    { title: 'Tradesperson Portal', title_ar: 'بوابة الحِرَفي', subtitle: 'Your trade services', subtitle_ar: 'خدماتك الحرفية', href: 'tradesperson-portal.html', icon: 'hammer', i18nTitle: 'tradesperson_portal' },
+    { title: 'Pricing', title_ar: 'الأسعار', subtitle: 'Platform pricing plans', subtitle_ar: 'خطط تسعير المنصة', href: 'pricing.html', icon: 'tag', i18nTitle: 'pricing' },
+    { title: 'Privacy Policy', title_ar: 'سياسة الخصوصية', subtitle: 'How we protect your data', subtitle_ar: 'كيف نحمي بياناتك', href: 'privacy.html', icon: 'lock', i18nTitle: 'privacy_policy' },
+    { title: 'Terms of Service', title_ar: 'شروط الخدمة', subtitle: 'Platform terms', subtitle_ar: 'شروط المنصة', href: 'terms.html', icon: 'file-text', i18nTitle: 'terms_of_service' },
+    { title: 'Contact Us', title_ar: 'اتصل بنا', subtitle: 'Get in touch', subtitle_ar: 'تواصل معنا', href: 'contact.html', icon: 'envelope', i18nTitle: 'contact_us' },
 ];
 
 let overlayEl: HTMLDivElement | null = null;
@@ -57,22 +63,22 @@ function createOverlay(): HTMLDivElement {
     overlay.id = 'search-overlay';
     overlay.className = 'search-overlay';
     overlay.setAttribute('role', 'search');
-    overlay.setAttribute('aria-label', 'Platform search');
+    overlay.setAttribute('aria-label', t('search_aria_label', 'Platform search'));
     overlay.innerHTML = `
         <div class="search-overlay-content">
             <div class="search-input-wrapper">
                 <i class="ph ph-magnifying-glass text-slate-400 text-xl dark:text-slate-500" aria-hidden="true"></i>
                 <input type="search" id="search-input" class="search-input"
-                       placeholder="Search pages, features..." autocomplete="off"
+                       placeholder="${t('search_pages', 'Search pages, features...')}" autocomplete="off"
                        data-i18n-placeholder="search_pages" />
                 <kbd class="search-kbd">ESC</kbd>
             </div>
             <div id="search-results" class="search-results"></div>
             <div class="search-footer">
                 <span class="text-slate-500 text-xs flex items-center gap-1.5 dark:text-slate-400">
-                    <kbd class="search-kbd-mini">↑↓</kbd> navigate
-                    <kbd class="search-kbd-mini">↵</kbd> select
-                    <kbd class="search-kbd-mini">esc</kbd> close
+                    <kbd class="search-kbd-mini">↑↓</kbd> ${t('search_navigate', 'navigate')}
+                    <kbd class="search-kbd-mini">↵</kbd> ${t('search_select', 'select')}
+                    <kbd class="search-kbd-mini">esc</kbd> ${t('search_close', 'close')}
                 </span>
             </div>
         </div>`;
@@ -88,46 +94,55 @@ function renderResults(query: string): void {
     if (!query.trim()) {
         // Show suggested pages
         resultsEl.innerHTML = `
-            <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">Suggestions</div>
+            <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">${t('search_suggestions', 'Suggestions')}</div>
             ${PAGE_INDEX.slice(0, 6).map(buildResultHTML).join('')}`;
         return;
     }
 
     const q = query.toLowerCase();
+    // PLT-UX-AUD P1-SEARCH-001 FIX: Match against both English AND Arabic fields.
+    // Syrian users (primary audience) type Arabic — previous English-only search was blind.
     const matches = PAGE_INDEX.filter(p =>
         p.title.toLowerCase().includes(q) ||
-        p.subtitle.toLowerCase().includes(q)
+        p.subtitle.toLowerCase().includes(q) ||
+        p.title_ar.includes(q) ||
+        p.subtitle_ar.includes(q)
     );
 
     if (matches.length === 0) {
         resultsEl.innerHTML = `
             <div class="flex flex-col items-center py-8 text-center">
                 <i class="ph ph-magnifying-glass text-slate-300 nm-icon-32" aria-hidden="true"></i>
-                <p class="text-sm text-slate-500 mt-2 font-medium dark:text-slate-400">No results found</p>
-                <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">Try a different search term</p>
+                <p class="text-sm text-slate-500 mt-2 font-medium dark:text-slate-400">${t('search_no_results', 'No results found')}</p>
+                <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">${t('search_try_different', 'Try a different search term')}</p>
             </div>`;
         return;
     }
 
+    // PLT-UX-AUD P3-SEARCH-007 FIX: Use t() with interpolation instead of English pluralization.
+    const countLabel = t('search_results_count', `${matches.length} results`).replace('{n}', String(matches.length));
     resultsEl.innerHTML = `
         <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">
-            ${matches.length} result${matches.length > 1 ? 's' : ''}
+            ${countLabel}
         </div>
         ${matches.map(buildResultHTML).join('')}`;
 }
 
 function buildResultHTML(result: SearchResult): string {
     const i18nAttr = result.i18nTitle ? ` data-i18n="${result.i18nTitle}"` : '';
+    // PLT-UX-AUD P1-SEARCH-001 FIX: Display Arabic titles when RTL is active.
+    const displayTitle = isRTL() ? result.title_ar : result.title;
+    const displaySubtitle = isRTL() ? result.subtitle_ar : result.subtitle;
     return `
         <a href="${result.href}" class="search-result-item">
             <div class="search-result-icon">
                 <i class="ph ph-${result.icon}" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold truncate"${i18nAttr}>${result.title}</p>
-                <p class="text-xs text-slate-500 truncate dark:text-slate-400">${result.subtitle}</p>
+                <p class="text-sm font-semibold truncate"${i18nAttr}>${displayTitle}</p>
+                <p class="text-xs text-slate-500 truncate dark:text-slate-400">${displaySubtitle}</p>
             </div>
-            <i class="ph ph-arrow-right text-slate-400 text-sm dark:text-slate-500" aria-hidden="true"></i>
+            <i class="ph ph-caret-right text-slate-400 text-sm dark:text-slate-500" aria-hidden="true"></i>
         </a>`;
 }
 

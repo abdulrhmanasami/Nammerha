@@ -44,7 +44,10 @@ function ensureContainer(): HTMLElement {
     container = document.createElement('div');
     container.id = 'nm-toast-container';
     container.setAttribute('aria-live', 'polite');
-    container.setAttribute('aria-atomic', 'false');
+    // PLT-UX-AUD P3-A11Y-001 FIX: aria-atomic="true" — each toast is a complete
+    // atomic announcement. Previous "false" caused screen readers to read partial updates.
+    // Standard: WCAG 4.1.3 (Status Messages), WAI-ARIA Authoring Practices.
+    container.setAttribute('aria-atomic', 'true');
     document.body.appendChild(container);
     return container;
 }

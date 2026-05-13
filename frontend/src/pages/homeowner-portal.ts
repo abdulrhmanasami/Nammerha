@@ -5,7 +5,7 @@ import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
-import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
+import { statusColor, statusLabel, tradeColor, urgencyColor } from '../utils/status-colors';
 import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
@@ -282,7 +282,7 @@ async function loadDashboardProjects(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(p.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(statusLabel(p.status))}</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
@@ -328,7 +328,7 @@ async function loadProjects(): Promise<void> {
                         <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
                         <p class="text-3xs text-slate-400 font-mono mt-0.5 dark:text-slate-500">${esc(p.project_id.substring(0, 8))}…</p>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(p.status.replace(/_/g, ' '))}</span>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(statusLabel(p.status))}</span>
                 </div>
                 
                 <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4 flex flex-wrap gap-x-4 gap-y-2 mt-3 dark:text-slate-400 dark:bg-dark-elevated dark:border-dark-border">
@@ -496,7 +496,7 @@ async function loadServiceRequests(): Promise<void> {
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
-                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span>
+                    <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(statusLabel(r.status))}</span>
                 </div>
                 
                 <div class="flex flex-wrap gap-2 mt-3 mb-4">
@@ -579,7 +579,7 @@ async function loadApprovals(): Promise<void> {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium">${esc(a.title)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
+                            <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(statusLabel(a.status))}</span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(a.description ?? t('ho_no_description', 'No description'))}</p>
                         <div class="flex items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">

@@ -1,8 +1,11 @@
 // ============================================================================
-// Nammerha Frontend — Shared Status Color Utilities
+// Nammerha Frontend — Shared Status Color & Label Utilities
 // PLT-FE-003 FIX: Single source of truth for status/trade/urgency badge colors.
+// PLT-UX-AUD P1-STATUS-002 FIX: Added statusLabel() for i18n-aware status text.
 // Previously duplicated across 6+ portal pages — consolidated here.
 // ============================================================================
+
+import { t } from './i18n';
 
 /**
  * Get badge CSS classes for a project/escrow/approval status.
@@ -28,6 +31,34 @@ export function statusColor(s: string): string {
         withdrawn: 'bg-slate-100 text-slate-500',
     };
     return c[s] ?? 'bg-slate-100 text-slate-600';
+}
+
+/**
+ * PLT-UX-AUD P1-STATUS-002 FIX: Get human-readable, i18n-aware label for a status.
+ * Single source of truth — used by homeowner, contractor, tradesperson portals.
+ * Arabic users see translated status names instead of raw English underscored strings.
+ */
+export function statusLabel(s: string): string {
+    const labels: Record<string, string> = {
+        draft: t('status_draft', 'Draft'),
+        open: t('status_open', 'Open'),
+        pending: t('status_pending', 'Pending'),
+        pending_assessment: t('status_pending_assessment', 'Pending Assessment'),
+        assessed: t('status_assessed', 'Assessed'),
+        published: t('status_published', 'Published'),
+        matched: t('status_matched', 'Matched'),
+        in_progress: t('status_in_progress', 'In Progress'),
+        completed: t('status_completed', 'Completed'),
+        cancelled: t('status_cancelled', 'Cancelled'),
+        approved: t('status_approved', 'Approved'),
+        accepted: t('status_accepted', 'Accepted'),
+        rejected: t('status_rejected', 'Rejected'),
+        declined: t('status_declined', 'Declined'),
+        expired: t('status_expired', 'Expired'),
+        withdrawn: t('status_withdrawn', 'Withdrawn'),
+    };
+    // Fallback: humanize the raw string (replace underscores with spaces, capitalize)
+    return labels[s] ?? s.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase());
 }
 
 /**

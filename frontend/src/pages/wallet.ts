@@ -62,9 +62,10 @@ async function loadEscrowSummary(): Promise<void> {
     // Wallet is a universal page — it must NOT depend on the suspended donation system.
     // When donations are suspended, show zeroed escrow balance gracefully.
     if (!DONATIONS_ENABLED) {
-        if (balanceEl) { balanceEl.textContent = formatCents(0); }
-        if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `0 ${t('wallet_locked', 'locked')}`; }
-        if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `0 ${t('wallet_released', 'released')}`; }
+        // PLT-UX-AUD P3-ANIM-004 FIX: Entry animation for escrow summary (visual consistency).
+        if (balanceEl) { balanceEl.textContent = formatCents(0); balanceEl.classList.add('animate-fade-in-up'); }
+        if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `0 ${t('wallet_locked', 'locked')}`; lockedEl.classList.add('animate-fade-in-up'); }
+        if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `0 ${t('wallet_released', 'released')}`; releasedEl.classList.add('animate-fade-in-up'); }
         return;
     }
 
@@ -74,10 +75,11 @@ async function loadEscrowSummary(): Promise<void> {
             // P3-AUD-NEW-003 FIX: Runtime guard — gracefully handle API shape drift
             const summary = response.data as Partial<EscrowSummary>;
             if (typeof summary.total_locked !== 'number') { return; }
-            if (balanceEl) { balanceEl.textContent = formatCents(summary.total_locked); }
+            if (balanceEl) { balanceEl.textContent = formatCents(summary.total_locked); balanceEl.classList.add('animate-fade-in-up'); }
             // PLAT-UX-003 FIX (Part 2): Clear skeleton animation class after hydration.
-            if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `${summary.locked_count ?? 0} ${t('wallet_locked', 'locked')}`; }
-            if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `${summary.released_count ?? 0} ${t('wallet_released', 'released')}`; }
+            // PLT-UX-AUD P3-ANIM-004 FIX: Entry animation for visual consistency.
+            if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `${summary.locked_count ?? 0} ${t('wallet_locked', 'locked')}`; lockedEl.classList.add('animate-fade-in-up'); }
+            if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `${summary.released_count ?? 0} ${t('wallet_released', 'released')}`; releasedEl.classList.add('animate-fade-in-up'); }
         }
     } catch (err) {
         reportWarning('[Wallet] Escrow summary load failed', { component: 'wallet', action: 'load_escrow', error: err instanceof Error ? err.message : String(err) });
@@ -152,7 +154,10 @@ async function loadTransactions(): Promise<void> {
             <div class="text-center py-12 animate-fade-in-up">
               <i class="ph ph-wallet text-slate-300 nm-icon-48" aria-hidden="true"></i>
               <p class="text-slate-500 font-bold mt-4 dark:text-slate-400">${escapeHtml(t('wallet_no_transactions', 'No transactions yet'))}</p>
-              <p class="text-slate-400 text-sm mt-1 dark:text-slate-500">${escapeHtml(t('wallet_history_description', 'Your donation and payment history will appear here'))}</p>
+              <p class="text-slate-400 text-sm mt-1 dark:text-slate-500">${escapeHtml(t(
+                    DONATIONS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
+                    DONATIONS_ENABLED ? 'Your donation and payment history will appear here' : 'Your payment and escrow history will appear here'
+                ))}</p>
             </div>`;
             return;
         }

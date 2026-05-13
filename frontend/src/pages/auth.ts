@@ -1332,6 +1332,22 @@ initSwipeTabs({
 // users need a way to force-refresh without knowing browser controls.
 initPullToRefresh();
 
+// ─── PLT-UX-AUD P0-SESSION-003 FIX: Session Expiry URL Fallback ─────────────
+// When _client.ts detects a 401, it tries to show a toast via dynamic import.
+// On Syria's 2G, that import can fail silently — user arrives here with zero
+// explanation. The &reason=session_expired URL param is the fallback.
+// This is independent of any dynamic import — guaranteed to work.
+// ─────────────────────────────────────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('reason') === 'session_expired') {
+    showBanner('info', t('session_expired', 'Your session has expired. Please sign in again.'));
+    // Clean the URL to prevent showing the banner on refresh
+    urlParams.delete('reason');
+    const cleanSearch = urlParams.toString();
+    const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '');
+    history.replaceState(null, '', cleanUrl);
+}
+
 // ─── FRIC-2026-004 FIX: Autofocus Login Email on Page Load ──────────────────
 // Previous: No field auto-focused — mobile users had to manually tap the email field.
 // Auth is the first screen every user sees; reducing time-to-first-input is critical.

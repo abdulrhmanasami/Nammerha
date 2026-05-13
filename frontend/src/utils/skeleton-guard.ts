@@ -11,7 +11,9 @@ import { tryTranslate } from './i18n-apply';
 interface SkeletonGuardConfig {
     /** Container element or ID containing the skeleton */
     container: HTMLElement | string;
-    /** Timeout in ms before showing "still loading" message. Default: 15000 (15s) */
+    /** Timeout in ms before showing "still loading" message. Default: 35000 (35s)
+     *  PLT-UX-AUD P2-SKEL-002 FIX: Aligned with API client timeout (30s) + 5s buffer.
+     *  Previous 15s default caused premature "Taking longer than usual…" while API was still in-flight. */
     timeoutMs?: number;
     /** Callback to retry the load */
     onRetry?: () => void;
@@ -25,7 +27,7 @@ interface SkeletonGuardConfig {
  */
 export function guardSkeleton(config: SkeletonGuardConfig): () => void {
     const {
-        timeoutMs = 15000,
+        timeoutMs = 35000,
         onRetry,
         messageKey = 'skeleton_timeout',
     } = config;

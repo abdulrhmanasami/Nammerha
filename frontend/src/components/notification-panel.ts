@@ -21,6 +21,8 @@ import { getCurrentUser } from '../auth';
 import { escapeHtml } from '../utils/xss';
 import { t } from '../utils/i18n';
 import { relativeTimeAgo } from '../utils/format';
+// PLT-UX-AUD P3-LOG-006 FIX: Structured telemetry for silent catch blocks.
+import { reportWarning } from '../error-reporter';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -174,8 +176,9 @@ async function updateBadge(): Promise<void> {
                 badge.classList.add('hidden', 'nm-hidden');
             }
         });
-    } catch {
-        // Silent — badge update is non-critical
+    } catch (err) {
+        // PLT-UX-AUD P3-LOG-006 FIX: Badge update non-critical but logged for Syria 2G diagnostics.
+        reportWarning('[NotificationPanel] Badge update failed', { component: 'notification-panel', action: 'update_badge', error: err instanceof Error ? err.message : String(err) });
     }
 }
 
@@ -233,7 +236,10 @@ async function openPanel(bell: HTMLElement): Promise<void> {
             updateBadge();
             // Refresh list
             await loadNotifications();
-        } catch { /* silent */ }
+        } catch (err) {
+            // PLT-UX-AUD P3-LOG-006 FIX: Structured telemetry replaces /* silent */.
+            reportWarning('[NotificationPanel] Mark-all-read failed', { component: 'notification-panel', action: 'mark_all_read', error: err instanceof Error ? err.message : String(err) });
+        }
     });
 
     // Load notifications
@@ -294,7 +300,10 @@ async function loadNotifications(): Promise<void> {
                     item?.classList.add('nm-notif-read');
                     (btn as HTMLElement).remove();
                     updateBadge();
-                } catch { /* silent */ }
+                } catch (err) {
+                    // PLT-UX-AUD P3-LOG-006 FIX: Structured telemetry replaces /* silent */.
+                    reportWarning('[NotificationPanel] Mark-as-read failed', { component: 'notification-panel', action: 'mark_read', notificationId: id, error: err instanceof Error ? err.message : String(err) });
+                }
             });
         });
 
