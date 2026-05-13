@@ -196,7 +196,7 @@ async function loadFundedProjects(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadFundedProjects);
+        renderErrorWithRetry(container, loadFundedProjects, undefined, undefined, err);
     }
 }
 
@@ -243,7 +243,7 @@ async function loadMarketplace(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadMarketplace);
+        renderErrorWithRetry(container, loadMarketplace, undefined, undefined, err);
     }
 }
 
@@ -292,7 +292,7 @@ async function loadDonations(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadDonations);
+        renderErrorWithRetry(tbody, loadDonations, undefined, undefined, err);
     }
 }
 
@@ -333,7 +333,7 @@ async function loadImpact(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadImpact);
+        renderErrorWithRetry(container, loadImpact, undefined, undefined, err);
     }
 }
 
@@ -377,7 +377,7 @@ async function loadProofs(): Promise<void> {
             </div>
         `).join('');
     } catch (err) { reportWarning('[DonorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadProofs);
+        renderErrorWithRetry(container, loadProofs, undefined, undefined, err);
     }
 }
 

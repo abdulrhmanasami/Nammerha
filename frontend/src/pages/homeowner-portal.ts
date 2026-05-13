@@ -31,10 +31,18 @@ import { guardSkeleton } from '../utils/skeleton-guard';
 import { saveDraft, loadDraft, clearDraft, hasDraft } from '../utils/form-draft';
 // P1-UX-003 FIX: Service Worker registration on all portal pages
 import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P0-UXA-004 FIX: Cross-portal navigation via shared context switcher
+import { mountContextSwitcher } from '../components/portal-context';
 // P2-UX-004 FIX: Standardized empty state component
 import { renderEmptyState } from '../utils/empty-state';
 // W5-004 FIX: SWR cache for perceived-instant tab switching
 import { swrFetch } from '../utils/swr-cache';
+// P2-UXA-002 FIX: Live KPI timestamp — auto-updates "Updated just now" with relative time
+import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp';
+// P2-UXA-004 + P3-UXA-003 FIX: Tab scroll position + last active tab preservation
+import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
+// P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
+import { renderProgressive } from '../utils/progressive-render';
 
 // FIX-005: Banner Pattern Consolidation.
 // Previous: Custom showSrBanner() manually created DOM elements, managed timeouts,
@@ -100,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
     bootstrapPortal();
+    mountContextSwitcher();
 
     setupTabs();
     setupServiceRequestForm();
@@ -178,6 +187,11 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P2-UXA-004 FIX: Save scroll position of the outgoing tab
+    const currentHash = hashRouter.getInitialTab();
+    if (currentHash !== tab) { saveScrollPosition(currentHash); }
+    // P3-UXA-003 FIX: Persist last active tab for cross-session memory
+    saveLastTab(tab);
     // P1-003 FIX: Sync tab to URL hash
     hashRouter.setActiveTab(tab);
     // P2-001 FIX: Renamed loop variable from `t` to `tabId` to prevent
@@ -215,14 +229,19 @@ function switchTab(tab: TabName): void {
     if (tab === 'requests') { loadServiceRequests(); }
     if (tab === 'approvals') { loadApprovals(); }
     if (tab === 'payments') { loadEscrow(); }
+
+    // P2-UXA-004 FIX: Restore scroll position for the incoming tab
+    restoreScrollPosition(tab);
 }
 
 // ─── KPIs ───────────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
     try {
         // W5-004 FIX: SWR cache — homeowner-portal was the only portal without it.
+        // P2-UXA-007 FIX: Visual stale indicator while revalidating.
         const res = await swrFetch('ho-stats', () => homeowner.getStats(), {
             maxAge: 120_000, // 2 minutes
+            onStaleData: () => { showStaleIndicator(); },
         });
         if (!res.data) { return; }
         const s = res.data;
@@ -245,12 +264,8 @@ async function loadStats(): Promise<void> {
             notifEl.classList.toggle('nm-hidden', count === 0);
         }
 
-        // W5-004: KPI timestamp for data freshness trust signal
-        const kpiTimestamp = document.getElementById('kpi-last-updated');
-        if (kpiTimestamp) {
-            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
-            kpiTimestamp.dataset.timestamp = new Date().toISOString();
-        }
+        // P2-UXA-002 FIX: Live KPI timestamp — auto-updates with relative time
+        markKPIFetched();
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W10-001 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-active', 'kpi-bids', 'kpi-approvals', 'kpi-escrow'].forEach(id => setText(id, '—'));
@@ -267,16 +282,12 @@ async function loadDashboardProjects(): Promise<void> {
         const allProjects = (res.data ?? []) as unknown as Project[];
         const projects = allProjects.filter((p) => !['completed', 'cancelled'].includes(p.status));
 
-        if (projects.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'house',
-                title: t('ho_no_active_projects', 'No active projects'),
-                subtitle: t('ho_report_to_start', 'Report damage to get started'),
-            });
-            return;
-        }
-
-        container.innerHTML = projects.map((p, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for dashboard active projects
+        renderProgressive({
+            items: projects,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (p, i) => `
             <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
@@ -294,10 +305,15 @@ async function loadDashboardProjects(): Promise<void> {
                     </div>
                     <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${esc(p.project_id)}</span>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'house',
+                title: t('ho_no_active_projects', 'No active projects'),
+                subtitle: t('ho_report_to_start', 'Report damage to get started'),
+            }),
+        });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadDashboardProjects);
+        renderErrorWithRetry(container, loadDashboardProjects, undefined, undefined, err);
     }
 }
 
@@ -310,18 +326,12 @@ async function loadProjects(): Promise<void> {
         const res = await homeowner.getProjects();
         const projects = (res.data ?? []) as unknown as Project[];
 
-        if (projects.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-house-line nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_projects_yet', 'No projects yet'))}</p>
-            </div>`;
-            return;
-        }
-
-        tbody.innerHTML = projects.map((p, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for homeowner projects
+        renderProgressive({
+            items: projects,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <div>
@@ -352,10 +362,17 @@ async function loadProjects(): Promise<void> {
                         <span class="text-trust-blue font-bold text-xs">${esc(String(p.bid_count))}</span>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-house-line nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_projects_yet', 'No projects yet'))}</p>
+            </div>`,
+        });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadProjects);
+        renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
     }
 }
 
@@ -418,15 +435,19 @@ function setupServiceRequestForm(): void {
         const budget = budgetEl?.value;
         const urgency = urgencyEl?.value;
 
-        // CRIT-003 FIX: Validate trade selection — required field for matching.
-        // Previous: Only title was checked. Empty trade = unmatchable request (dead end).
+        // P1-UXA-001 FIX: Holistic form validation — show ALL errors at once.
+        // Previous: Sequential validation (trade → return → title → return).
+        // User fixes one error, submits, gets another. Frustrating 'whack-a-mole' UX.
+        // Standard: Nielsen #5 (Error Prevention), NNGroup form validation best practices.
+        const errors: string[] = [];
         if (!trade) {
-            showSrBanner('error', t('ho_sr_trade_required', 'Please select a trade for your request'));
-            return;
+            errors.push(t('ho_sr_trade_required', 'Please select a trade for your request'));
         }
-
         if (!title) {
-            showSrBanner('error', t('ho_sr_title_required', 'Please enter a title for your request'));
+            errors.push(t('ho_sr_title_required', 'Please enter a title for your request'));
+        }
+        if (errors.length > 0) {
+            showSrBanner('error', errors.join(' • '));
             return;
         }
 
@@ -436,8 +457,8 @@ function setupServiceRequestForm(): void {
 
         try {
             const res = await homeowner.createServiceRequest({
-                trade_needed: trade,
-                title,
+                trade_needed: trade!,
+                title: title!,
                 description: desc || undefined,
                 address_text: address || undefined,
                 urgency: (urgency || 'routine') as 'routine' | 'urgent' | 'emergency',
@@ -480,19 +501,12 @@ async function loadServiceRequests(): Promise<void> {
         const res = await homeowner.getServiceRequests();
         const requests = res.data ?? [];
 
-        if (requests.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-wrench nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_requests_yet', 'No service requests yet'))}</p>
-                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ho_post_first_request', 'Use the form above to post your first request'))}</p>
-            </div>`;
-            return;
-        }
-
-        tbody.innerHTML = requests.map((r, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for service requests
+        renderProgressive({
+            items: requests,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (r, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
@@ -517,8 +531,16 @@ async function loadServiceRequests(): Promise<void> {
                         ` : ''}
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => `
+            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-wrench nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_requests_yet', 'No service requests yet'))}</p>
+                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ho_post_first_request', 'Use the form above to post your first request'))}</p>
+            </div>`,
+        });
 
         // HIGH-001 FIX: Cancel handlers with confirmation dialog.
         // Previous: Direct API call — one tap = irreversible cancellation.
@@ -552,7 +574,7 @@ async function loadServiceRequests(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadServiceRequests);
+        renderErrorWithRetry(tbody, loadServiceRequests, undefined, undefined, err);
     }
 }
 
@@ -565,15 +587,12 @@ async function loadApprovals(): Promise<void> {
         const res = await homeowner.getApprovals();
         const approvals = (res.data ?? []) as unknown as Approval[];
 
-        if (approvals.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'check-square',
-                title: t('ho_no_pending_approvals', 'No pending approvals'),
-            });
-            return;
-        }
-
-        container.innerHTML = approvals.map((a, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for approvals list
+        renderProgressive({
+            items: approvals,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (a, i) => `
             <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
@@ -597,8 +616,12 @@ async function loadApprovals(): Promise<void> {
                         </div>
                     ` : ''}
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'check-square',
+                title: t('ho_no_pending_approvals', 'No pending approvals'),
+            }),
+        });
 
         // HIGH-002 + HIGH-004 FIX: Approve/Reject with confirmation + loading state.
         // Previous: Instant API call — no confirmation, no loading, no debounce.
@@ -616,6 +639,36 @@ async function loadApprovals(): Promise<void> {
                         ? t('ho_approving', 'Approving...')
                         : t('ho_rejecting', 'Rejecting...'));
                     try {
+                        // P0-UXA-003 FIX: Undo window for financial approval actions.
+                        // On approve (escrow release), add a 5s grace period with an "Undo" toast.
+                        // Prevents irreversible financial actions from accidental confirmation taps.
+                        // Reject doesn't need undo — it's reversible (engineer can re-submit).
+                        if (decision === 'approved') {
+                            const { showToast } = await import('../utils/toast');
+                            let cancelled = false;
+
+                            showToast(
+                                t('ho_approval_undo', 'Releasing escrow funds…'),
+                                'info',
+                                {
+                                    duration: 5500,
+                                    action: {
+                                        label: t('ho_undo', 'Undo'),
+                                        onClick: () => { cancelled = true; },
+                                    },
+                                },
+                            );
+
+                            await new Promise(r => setTimeout(r, 5000));
+
+                            if (cancelled) {
+                                restore();
+                                const { showToast: showUndoToast } = await import('../utils/toast');
+                                showUndoToast(t('ho_approval_cancelled', 'Approval cancelled'), 'success');
+                                return;
+                            }
+                        }
+
                         await homeowner.respondToApproval(id, decision);
                         restore('success');
                         loadApprovals();
@@ -655,7 +708,7 @@ async function loadApprovals(): Promise<void> {
             });
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadApprovals);
+        renderErrorWithRetry(container, loadApprovals, undefined, undefined, err);
     }
 }
 
@@ -697,7 +750,7 @@ async function loadEscrow(): Promise<void> {
             ` : ''}
         `;
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadEscrow);
+        renderErrorWithRetry(container, loadEscrow, undefined, undefined, err);
     }
 }
 

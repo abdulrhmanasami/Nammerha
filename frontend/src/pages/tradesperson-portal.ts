@@ -18,6 +18,14 @@ import { renderEmptyState } from '../utils/empty-state';
 import { bootstrapPortal } from '../utils/portal-bootstrap';
 // P1-UX-001 FIX: SWR cache for perceived-instant tab switching
 import { swrFetch } from '../utils/swr-cache';
+// P0-UXA-004 FIX: Cross-portal navigation via shared context switcher
+import { mountContextSwitcher } from '../components/portal-context';
+// P2-UXA-002 FIX: Live KPI timestamp
+import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp';
+// P2-UXA-004 + P3-UXA-003 FIX: Tab state preservation
+import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
+// P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
+import { renderProgressive } from '../utils/progressive-render';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // TICK-016: Import shared setText from utils/dom.ts.
@@ -59,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
     bootstrapPortal();
+    mountContextSwitcher();
 
     setupTabs();
     setupAvailability();
@@ -96,6 +105,10 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P2-UXA-004 FIX: Save scroll position of outgoing tab
+    const currentHash = hashRouter.getInitialTab();
+    if (currentHash !== tab) { saveScrollPosition(currentHash); }
+    saveLastTab(tab);
     // P1-003 FIX: Sync tab to URL hash
     hashRouter.setActiveTab(tab);
     // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
@@ -119,6 +132,9 @@ function switchTab(tab: TabName): void {
     if (tab === 'requests') {loadRequests();}
     if (tab === 'assignments') {loadAssignments();}
     if (tab === 'earnings') {loadEarnings();}
+
+    // P2-UXA-004 FIX: Restore scroll position
+    restoreScrollPosition(tab);
 }
 
 // ─── Availability Toggle ────────────────────────────────────────────────────
@@ -180,7 +196,7 @@ async function loadStats(): Promise<void> {
         // Profile was previously only loaded in the dead loadProfile() tab handler,
         // leaving availability-badge and trade-badge stuck at "—" forever.
         const [statsRes, profileRes] = await Promise.allSettled([
-            swrFetch('tp-stats', () => tradesperson.getStats(), { maxAge: 120_000 }),
+            swrFetch('tp-stats', () => tradesperson.getStats(), { maxAge: 120_000, onStaleData: () => { showStaleIndicator(); } }),
             swrFetch('tp-profile', () => tradesperson.getProfile(), { maxAge: 300_000 }),
         ]);
 
@@ -215,12 +231,8 @@ async function loadStats(): Promise<void> {
             reportWarning('[Tradesperson] Profile load failed', { error: String(profileRes.reason) });
         }
 
-        // W5-005: KPI timestamp for data freshness trust signal
-        const kpiTimestamp = document.getElementById('kpi-last-updated');
-        if (kpiTimestamp) {
-            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
-            kpiTimestamp.dataset.timestamp = new Date().toISOString();
-        }
+        // P2-UXA-002 FIX: Live KPI timestamp
+        markKPIFetched();
     } catch (err) {
         reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
         // W12-001 FIX: Show em-dash on KPI failure — visible error signal.
@@ -262,11 +274,22 @@ async function loadActiveJobs(): Promise<void> {
             return;
         }
 
-        let html = '';
+        // P1-UXA-002 FIX: Progressive rendering for active jobs
+        // Merge requests + assignments into unified typed array for progressive rendering
+        type JobItem = { type: 'request'; data: typeof requests[0] } | { type: 'assignment'; data: typeof assignments[0] };
+        const allJobs: JobItem[] = [
+            ...requests.map(r => ({ type: 'request' as const, data: r })),
+            ...assignments.map(a => ({ type: 'assignment' as const, data: a })),
+        ];
 
-        // P1-FE-001 FIX: Render direct requests (Thumbtack mode)
-        for (const r of requests) {
-            html += `
+        renderProgressive({
+            items: allJobs,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (job) => {
+                if (job.type === 'request') {
+                    const r = job.data;
+                    return `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
@@ -280,11 +303,9 @@ async function loadActiveJobs(): Promise<void> {
                     ${tradeLabel(r.trade_needed)}
                 </div>
             </div>`;
-        }
-
-        // Render contractor assignments (Subcontractor mode)
-        for (const a of assignments) {
-            html += `
+                } else {
+                    const a = job.data;
+                    return `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
@@ -298,11 +319,13 @@ async function loadActiveJobs(): Promise<void> {
                     ${tradeLabel(a.trade_required)}
                 </div>
             </div>`;
-        }
-        tbody.innerHTML = html || `<div class="text-center text-slate-400 text-sm py-8 dark:text-slate-500" data-i18n="tp_no_active_work">No active work</div>`;
+                }
+            },
+            emptyState: () => `<div class="text-center text-slate-400 text-sm py-8 dark:text-slate-500" data-i18n="tp_no_active_work">No active work</div>`,
+        });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Active jobs load failed'), { component: 'tradesperson', action: 'load_active_jobs' });
-        renderErrorWithRetry(tbody, loadActiveJobs, 'failed_to_load');
+        renderErrorWithRetry(tbody, loadActiveJobs, 'failed_to_load', undefined, err);
     }
 }
 
@@ -315,16 +338,12 @@ async function loadRequests(): Promise<void> {
         const res = await tradesperson.getRequests();
         const requests = res.data ?? [];
 
-        if (requests.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'magnifying-glass',
-                title: t('tp_no_requests', 'No requests matching your trade'),
-                subtitle: t('tp_new_requests_auto', 'New requests will appear here automatically'),
-            });
-            return;
-        }
-
-        container.innerHTML = requests.map((r, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for available requests
+        renderProgressive({
+            items: requests,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (r, i) => `
             <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
@@ -345,8 +364,13 @@ async function loadRequests(): Promise<void> {
                         Accept Job
                     </button>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'magnifying-glass',
+                title: t('tp_no_requests', 'No requests matching your trade'),
+                subtitle: t('tp_new_requests_auto', 'New requests will appear here automatically'),
+            }),
+        });
 
         // TICK-017: Event delegation for accept buttons.
         // Previous: querySelectorAll('.accept-req-btn').forEach() attached O(N) listeners.
@@ -386,7 +410,7 @@ async function loadRequests(): Promise<void> {
         }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Requests load failed'), { component: 'tradesperson', action: 'load_requests' });
-        renderErrorWithRetry(container, loadRequests);
+        renderErrorWithRetry(container, loadRequests, undefined, undefined, err);
     }
 }
 
@@ -399,15 +423,12 @@ async function loadAssignments(): Promise<void> {
         const res = await tradesperson.getAssignments();
         const assignments = res.data ?? [];
 
-        if (assignments.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'clipboard-text',
-                title: t('tp_no_assignments', 'No contractor assignments'),
-            });
-            return;
-        }
-
-        tbody.innerHTML = assignments.map((a, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for contractor assignments
+        renderProgressive({
+            items: assignments,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (a, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-1">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
@@ -433,8 +454,12 @@ async function loadAssignments(): Promise<void> {
                     </div>
                     ` : '<span class="text-3xs text-slate-300 font-bold px-2 py-1">—</span>'}
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'clipboard-text',
+                title: t('tp_no_assignments', 'No contractor assignments'),
+            }),
+        });
 
         // TICK-017: Event delegation for respond buttons.
         // Previous: querySelectorAll('.respond-btn').forEach() attached O(N) listeners.
@@ -472,7 +497,7 @@ async function loadAssignments(): Promise<void> {
         }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Assignments load failed'), { component: 'tradesperson', action: 'load_assignments' });
-        renderErrorWithRetry(tbody, loadAssignments);
+        renderErrorWithRetry(tbody, loadAssignments, undefined, undefined, err);
     }
 }
 
@@ -485,15 +510,12 @@ async function loadEarnings(): Promise<void> {
         const res = await tradesperson.getEarnings();
         const earnings = res.data ?? [];
 
-        if (earnings.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'coins',
-                title: t('tp_no_earnings', 'No earnings yet'),
-            });
-            return;
-        }
-
-        tbody.innerHTML = earnings.map((e, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for earnings
+        renderProgressive({
+            items: earnings,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (e, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div>
                     <h3 class="font-bold text-sm text-slate-900 mb-1 dark:text-slate-100">${esc(e.title)}</h3>
@@ -505,11 +527,15 @@ async function loadEarnings(): Promise<void> {
                 <div class="text-end">
                     <p class="font-mono font-black text-smoky-jade text-lg border-b border-transparent dark:text-emerald-400">${formatCents(e.amount)}</p>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'coins',
+                title: t('tp_no_earnings', 'No earnings yet'),
+            }),
+        });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Earnings load failed'), { component: 'tradesperson', action: 'load_earnings' });
-        renderErrorWithRetry(tbody, loadEarnings);
+        renderErrorWithRetry(tbody, loadEarnings, undefined, undefined, err);
     }
 }
 

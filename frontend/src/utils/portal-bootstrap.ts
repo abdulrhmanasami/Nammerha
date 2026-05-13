@@ -74,4 +74,17 @@ export function bootstrapPortal(): void {
         e.preventDefault(); // Signal "I'm handling this" → prevent full-page reload
         document.dispatchEvent(new CustomEvent(DATA_REFRESH_EVENT));
     });
+
+    // P3-UXA-001 FIX: Skip-to-content link for screen reader accessibility.
+    // Injected programmatically so all portal pages get it without HTML changes.
+    // Standard: WCAG 2.4.1 (Bypass Blocks).
+    if (document.getElementById('main-content') && !document.getElementById('nm-skip-link')) {
+        const skip = document.createElement('a');
+        skip.id = 'nm-skip-link';
+        skip.href = '#main-content';
+        skip.className = 'nm-skip-link';
+        skip.textContent = 'Skip to content';
+        skip.setAttribute('data-i18n', 'skip_to_content');
+        document.body.insertBefore(skip, document.body.firstChild);
+    }
 }

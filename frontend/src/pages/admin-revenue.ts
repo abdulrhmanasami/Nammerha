@@ -15,6 +15,7 @@ initPullToRefresh();
 import { revenueAdmin } from '../api';
 import type { CommissionTier, CommissionEntry, TipEntry, RevenueAdminSummary } from '../api';
 import { reportError, reportWarning } from '../error-reporter';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { escapeHtml } from '../utils/xss';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
@@ -186,9 +187,9 @@ async function loadDashboard(): Promise<void> {
         const kpiIds = ['kpi-total-revenue', 'kpi-commissions', 'kpi-commission-count', 'kpi-tips', 'kpi-tip-count', 'kpi-avg-tip', 'kpi-avg-tip-pct'];
         kpiIds.forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = '—'; } });
         const tbody = document.getElementById('tier-table-body');
-        if (tbody) { tbody.innerHTML = `<div class="px-5 py-8 text-center text-sm font-bold text-red-500">${escapeHtml(t('failed_to_load', 'Failed to load'))}</div>`; }
+        if (tbody) { renderErrorWithRetry(tbody, loadDashboard, undefined, undefined, err); }
         const commList = document.getElementById('recent-commissions-list');
-        if (commList) { commList.innerHTML = `<div class="px-5 py-8 text-center text-sm text-red-400">${escapeHtml(t('failed_to_load', 'Failed to load'))}</div>`; }
+        if (commList) { renderErrorWithRetry(commList, loadDashboard, undefined, undefined, err); }
     }
 
     // Update timestamp

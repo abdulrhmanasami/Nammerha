@@ -11,6 +11,7 @@ import { getLocale, formatDate, applyI18n } from '../utils/locale';
 import { t } from '../utils/i18n';
 // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
 import { formatCents } from '../utils/format';
+import { renderProgressive } from '../utils/progressive-render';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
@@ -179,10 +180,15 @@ async function loadProjectTimeline(): Promise<void> {
         document.getElementById('projects-loading-row')?.remove();
         document.getElementById('projects-empty-row')?.remove();
 
-        tbody.innerHTML = projects.map((p) => {
-            const progress = Number(p['progress'] ?? 0);
-            const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
-            return `
+        // P1-UXA-002 FIX: Progressive rendering for contractor project timeline
+        renderProgressive({
+            items: projects,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (p) => {
+                const progress = Number(p['progress'] ?? 0);
+                const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
+                return `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(p['title'] ?? ''))}</h3>
@@ -211,7 +217,8 @@ async function loadProjectTimeline(): Promise<void> {
                     </a>
                 </div>
             </div>`;
-        }).join('');
+            },
+        });
 
         applyI18n();
     } catch (err) {
@@ -224,7 +231,7 @@ async function loadProjectTimeline(): Promise<void> {
         // Previous: innerHTML += appended error row alongside hidden loading/empty rows.
         // renderErrorWithRetry provides consistent error display with retry button.
         // Standard: Design System Component Unity, Nielsen #9 (Error Recovery).
-        renderErrorWithRetry(tbody, loadProjectTimeline);
+        renderErrorWithRetry(tbody, loadProjectTimeline, undefined, undefined, err);
     }
 }
 
@@ -251,13 +258,18 @@ async function loadBids(): Promise<void> {
         document.getElementById('bids-loading-row')?.remove();
         document.getElementById('bids-empty-row')?.remove();
 
-        container.innerHTML = bids.map((b) => {
-            // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
-            const costFormatted = formatCents(Number(b['proposed_cost']) || 0);
-            // PLT-AUD-I004 FIX: Use i18n t() instead of hardcoded lang switch
-            const daysLabel = t('unit_days', 'days');
+        // P1-UXA-002 FIX: Progressive rendering for contractor bids
+        renderProgressive({
+            items: bids,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (b) => {
+                // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
+                const costFormatted = formatCents(Number(b['proposed_cost']) || 0);
+                // PLT-AUD-I004 FIX: Use i18n t() instead of hardcoded lang switch
+                const daysLabel = t('unit_days', 'days');
 
-            return `
+                return `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(b['project_title'] ?? ''))}</h3>
@@ -281,7 +293,8 @@ async function loadBids(): Promise<void> {
                     </div>
                 </div>
             </div>`;
-        }).join('');
+            },
+        });
 
         applyI18n();
     } catch (err) {
@@ -291,7 +304,7 @@ async function loadBids(): Promise<void> {
             error: err instanceof Error ? err.message : String(err),
         });
         // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
-        renderErrorWithRetry(container, loadBids);
+        renderErrorWithRetry(container, loadBids, undefined, undefined, err);
     }
 }
 

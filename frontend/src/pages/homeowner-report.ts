@@ -549,7 +549,7 @@ if (photoUploadZone && photoInput) {
                 const thumb = document.createElement('div');
                 thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative flex items-center justify-center';
                 thumb.innerHTML = `
-          <img src="${esc(dataUrl)}" class="w-full h-full object-cover opacity-50 transition-opacity duration-300" alt="Damage photo" />
+          <img src="${esc(dataUrl)}" class="w-full h-full object-cover opacity-50 transition-opacity duration-300" alt="${esc(t('hr_damage_photo_alt', 'Damage documentation photo'))}" />
           <i class="ph ph-spinner ph-spin absolute text-slate-500 text-xl" aria-hidden="true"></i>
         `;
                 photoThumbnails.appendChild(thumb);
@@ -579,7 +579,7 @@ if (photoUploadZone && photoInput) {
                         const imgEl = thumb.querySelector('img');
                         if (imgEl) { imgEl.classList.remove('opacity-50'); }
                         thumb.innerHTML = `
-                            <img src="${esc(dataUrl)}" class="w-full h-full object-cover" alt="Damage photo" />
+                            <img src="${esc(dataUrl)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'Damage documentation photo'))}" />
                             <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
                                 <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
                             </div>
@@ -603,7 +603,7 @@ if (photoUploadZone && photoInput) {
                     const thumb = document.createElement('div');
                     thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
                     thumb.innerHTML = `
-            <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="Damage photo" />
+            <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'Damage documentation photo'))}" />
             <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
               <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
             </div>

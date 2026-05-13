@@ -7,6 +7,7 @@ import { admin, openData } from '../api';
 import { getLocale, applyI18n } from '../utils/locale';
 import { relativeTimeAgo } from '../utils/format';
 import { renderErrorWithRetry } from '../utils/error-retry';
+import { renderProgressive } from '../utils/progressive-render';
 import { requireAuth } from '../utils/auth-guard';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -161,42 +162,32 @@ async function loadProjects(): Promise<void> {
         const res = await openData.getProjectListings({ limit: 10 });
         const projects = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
 
-        if (projects.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300" data-i18n="admin_no_projects">No projects found</p>
-            </div>`;
-            applyI18n();
-            return;
-        }
-
         const locale = getLocale();
         const currFmt = new Intl.NumberFormat(locale, {
             style: 'currency', currency: 'USD', minimumFractionDigits: 0,
         });
 
-        tbody.innerHTML = projects.map((p) => {
-            const progress = Math.min(100, Math.max(0, Number(p['funding_progress'] ?? p['progress'] ?? 0)));
-            const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
-            const textColor = progress >= 75 ? 'text-smoky-jade' : progress >= 40 ? 'text-trust-blue' : 'text-warning-yellow';
-            /* FRIC-ADM-002 FIX: Status labels were hardcoded English ("Fully Funded", "In Progress", etc.).
-               Now uses data-i18n attributes so the i18n engine can translate them.
-               Standard: i18n Completeness, WCAG 3.1.1. */
-            const statusI18nKey = progress >= 100 ? 'status_fully_funded' : progress > 0 ? 'status_in_progress' : 'status_under_review';
-            const statusLabel = progress >= 100 ? 'Fully Funded' : progress > 0 ? 'In Progress' : 'Under Review';
-            const statusBg = progress >= 100
-                ? 'text-trust-blue bg-trust-blue/10'
-                : progress > 0
-                    ? 'text-smoky-jade bg-smoky-jade/10'
-                    : 'text-warning-yellow bg-warning-yellow/10';
-            const costRaw = Number(p['total_estimated_cost'] ?? p['budget'] ?? 0);
-            const cost = costRaw > 1000 ? currFmt.format(costRaw / 100) : currFmt.format(costRaw);
-            const engineer = p['engineer_name'] ?? p['assigned_engineer'];
+        // P1-UXA-002 FIX: Progressive rendering for admin projects table
+        renderProgressive({
+            items: projects,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (p) => {
+                const progress = Math.min(100, Math.max(0, Number(p['funding_progress'] ?? p['progress'] ?? 0)));
+                const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
+                const textColor = progress >= 75 ? 'text-smoky-jade' : progress >= 40 ? 'text-trust-blue' : 'text-warning-yellow';
+                const statusI18nKey = progress >= 100 ? 'status_fully_funded' : progress > 0 ? 'status_in_progress' : 'status_under_review';
+                const statusLabel = progress >= 100 ? 'Fully Funded' : progress > 0 ? 'In Progress' : 'Under Review';
+                const statusBg = progress >= 100
+                    ? 'text-trust-blue bg-trust-blue/10'
+                    : progress > 0
+                        ? 'text-smoky-jade bg-smoky-jade/10'
+                        : 'text-warning-yellow bg-warning-yellow/10';
+                const costRaw = Number(p['total_estimated_cost'] ?? p['budget'] ?? 0);
+                const cost = costRaw > 1000 ? currFmt.format(costRaw / 100) : currFmt.format(costRaw);
+                const engineer = p['engineer_name'] ?? p['assigned_engineer'];
 
-            return `
+                return `
             <div class="p-4 hover:bg-slate-50/50 cursor-pointer transition-colors group project-card" data-project-id="${esc(String(p['ocds_id'] ?? p['project_id'] ?? ''))}">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex-1">
@@ -223,7 +214,15 @@ async function loadProjects(): Promise<void> {
                     </div>
                 </div>
             </div>`;
-        }).join('');
+            },
+            emptyState: () => `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300" data-i18n="admin_no_projects">No projects found</p>
+            </div>`,
+        });
 
         applyI18n();
 
@@ -237,7 +236,7 @@ async function loadProjects(): Promise<void> {
             component: 'admin-dashboard', action: 'load_projects',
             error: err instanceof Error ? err.message : String(err),
         });
-        renderErrorWithRetry(tbody, loadProjects);
+        renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
     }
 }
 
@@ -268,23 +267,19 @@ async function loadAuditTrail(): Promise<void> {
         const items = (res.data as unknown as { items?: Array<Record<string, string | number | null>> })?.items
             ?? (Array.isArray(res.data) ? res.data as Array<Record<string, string | number | null>> : []);
 
-        if (items.length === 0) {
-            container.innerHTML = `<div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">
-                <i class="ph ph-note-blank text-2xl" aria-hidden="true"></i>
-                <p class="mt-2 text-xs" data-i18n="admin_no_audit">No recent audit entries</p>
-            </div>`;
-            applyI18n();
-            return;
-        }
+        // P1-UXA-002 FIX: Progressive rendering for audit trail
+        renderProgressive({
+            items: items,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (item) => {
+                const actionType = String(item['action'] ?? item['type'] ?? 'verification');
+                const { icon, iconBg, iconColor } = auditIcon(actionType);
+                const description = String(item['description'] ?? item['title'] ?? item['action_description'] ?? 'Verification pending');
+                const detail = String(item['detail'] ?? item['admin'] ?? '');
+                const timestamp = item['created_at'] ?? item['timestamp'];
 
-        container.innerHTML = items.map((item) => {
-            const actionType = String(item['action'] ?? item['type'] ?? 'verification');
-            const { icon, iconBg, iconColor } = auditIcon(actionType);
-            const description = String(item['description'] ?? item['title'] ?? item['action_description'] ?? 'Verification pending');
-            const detail = String(item['detail'] ?? item['admin'] ?? '');
-            const timestamp = item['created_at'] ?? item['timestamp'];
-
-            return `
+                return `
             <div class="px-5 py-3 flex items-center gap-4">
                 <div class="size-8 rounded-full ${iconBg} flex items-center justify-center shrink-0">
                     <i class="ph ${icon} ${iconColor} text-sm" aria-hidden="true"></i>
@@ -295,7 +290,12 @@ async function loadAuditTrail(): Promise<void> {
                 </div>
                 <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${timestamp ? relativeTimeAgo(String(timestamp)) : '—'}</span>
             </div>`;
-        }).join('');
+            },
+            emptyState: () => `<div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">
+                <i class="ph ph-note-blank text-2xl" aria-hidden="true"></i>
+                <p class="mt-2 text-xs" data-i18n="admin_no_audit">No recent audit entries</p>
+            </div>`,
+        });
 
         applyI18n();
     } catch (err) {
@@ -303,7 +303,7 @@ async function loadAuditTrail(): Promise<void> {
             component: 'admin-dashboard', action: 'load_audit',
             error: err instanceof Error ? err.message : String(err),
         });
-        renderErrorWithRetry(container, loadAuditTrail, 'failed_to_load', 'Failed to load audit trail');
+        renderErrorWithRetry(container, loadAuditTrail, 'failed_to_load', 'Failed to load audit trail', err);
     }
 }
 

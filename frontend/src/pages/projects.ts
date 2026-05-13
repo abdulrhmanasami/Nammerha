@@ -197,7 +197,7 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
         <!-- Cover -->
         <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
             ${project.cover_image_url
-                ? `<img src="${esc(project.cover_image_url)}" class="w-full h-full object-cover" alt="" loading="lazy" />`
+                ? `<img src="${esc(project.cover_image_url)}" class="w-full h-full object-cover" alt="${esc(project.title)}" loading="lazy" />`
                 : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48" aria-hidden="true"></i></div>`
             }
             <!-- Damage type badge -->

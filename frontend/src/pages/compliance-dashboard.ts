@@ -2,6 +2,7 @@ import '../styles/main.css';
 import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { reportWarning } from '../error-reporter';
+import { renderErrorWithRetry } from '../utils/error-retry';
 import { escapeHtml as esc } from '../utils/xss';
 import { compliance } from '../api';
 import { t } from '../utils/i18n';
@@ -184,7 +185,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
     } catch (err) { reportWarning('[ComplianceDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-001 FIX: Show user-facing error in escrow review table.
         if (tbody) {
-            tbody.innerHTML = `<div class="px-5 py-8 text-center text-sm font-bold text-red-500">${esc(t('failed_to_load', 'Failed to load'))}</div>`;
+            renderErrorWithRetry(tbody, loadEscrowReviewQueue, undefined, undefined, err);
         }
     }
 }

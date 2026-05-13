@@ -20,6 +20,7 @@ import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
 // W5-001 FIX: Import shared error-retry utility for user-facing error states.
 import { renderErrorWithRetry } from '../utils/error-retry';
+import { renderProgressive } from '../utils/progressive-render';
 // TICK-W4-001 FIX: Auth guard — was the only admin page without it.
 import { requireAuth } from '../utils/auth-guard';
 
@@ -63,18 +64,12 @@ async function loadFeeConfigs(): Promise<void> {
         if (!res.success || !res.data) { return; }
         const configs: FeeConfig[] = Array.isArray(res.data) ? res.data : [];
 
-        if (configs.length === 0) {
-            body.innerHTML = `
-            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-gear nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${escapeHtml(t('fintech_no_configs', 'No fee configurations'))}</p>
-            </div>`;
-            return;
-        }
-
-        body.innerHTML = configs.map(c => `
+        // P1-UXA-002 FIX: Progressive rendering for fee configs
+        renderProgressive({
+            items: configs,
+            containerEl: body,
+            pageSize: 20,
+            renderItem: (c) => `
             <div class="p-4 hover:bg-slate-50/50 transition-colors group">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex-1">
@@ -93,14 +88,21 @@ async function loadFeeConfigs(): Promise<void> {
                         </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-gear nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${escapeHtml(t('fintech_no_configs', 'No fee configurations'))}</p>
+            </div>`,
+        });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[fintech] Fee configs load failed'), {
             component: 'admin-fintech', action: 'load_fee_configs',
         });
         // W5-001 FIX: Show error-retry UI in fee configs table.
-        if (body) { renderErrorWithRetry(body, () => loadFeeConfigs()); }
+        if (body) { renderErrorWithRetry(body, () => loadFeeConfigs(), undefined, undefined, err); }
     }
 }
 
@@ -118,18 +120,12 @@ async function loadOrganizations(): Promise<void> {
             countEl.textContent = String(orgs.filter(o => o.is_active).length);
         }
 
-        if (orgs.length === 0) {
-            body.innerHTML = `
-            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${escapeHtml(t('fintech_no_orgs', 'No organizations yet'))}</p>
-            </div>`;
-            return;
-        }
-
-        body.innerHTML = orgs.map(o => `
+        // P1-UXA-002 FIX: Progressive rendering for organizations
+        renderProgressive({
+            items: orgs,
+            containerEl: body,
+            pageSize: 20,
+            renderItem: (o) => `
             <div class="p-4 hover:bg-slate-50/50 transition-colors group">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex items-center gap-3">
@@ -156,14 +152,21 @@ async function loadOrganizations(): Promise<void> {
                         <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtml(o.contact_email)}</p>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => `
+            <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
+                    <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
+                </div>
+                <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300">${escapeHtml(t('fintech_no_orgs', 'No organizations yet'))}</p>
+            </div>`,
+        });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[fintech] Organizations load failed'), {
             component: 'admin-fintech', action: 'load_organizations',
         });
         // W5-001 FIX: Show error-retry UI in organizations table.
-        if (body) { renderErrorWithRetry(body, () => loadOrganizations()); }
+        if (body) { renderErrorWithRetry(body, () => loadOrganizations(), undefined, undefined, err); }
     }
 }
 

@@ -19,6 +19,14 @@ import { renderEmptyState } from '../utils/empty-state';
 import { bootstrapPortal } from '../utils/portal-bootstrap';
 // P1-UX-001 FIX: SWR cache for perceived-instant tab switching
 import { swrFetch } from '../utils/swr-cache';
+// P0-UXA-004 FIX: Cross-portal navigation via shared context switcher
+import { mountContextSwitcher } from '../components/portal-context';
+// P2-UXA-002 FIX: Live KPI timestamp
+import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp';
+// P2-UXA-004 + P3-UXA-003 FIX: Tab state preservation
+import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
+// P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
+import { renderProgressive } from '../utils/progressive-render';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
 import { formatCents } from '../utils/format';
@@ -85,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
     bootstrapPortal();
+    mountContextSwitcher();
 
     initTimestamp();
     loadKPIs();
@@ -145,6 +154,10 @@ function setupTabs(): void {
 }
 
 function switchSupplierTab(tab: SupplierTab): void {
+    // P2-UXA-004 FIX: Save scroll position of outgoing tab
+    const currentHash = supplierHashRouter.getInitialTab();
+    if (currentHash !== tab) { saveScrollPosition(currentHash); }
+    saveLastTab(tab);
     supplierHashRouter.setActiveTab(tab);
     const tabOrders = document.getElementById('tab-orders');
     const tabCatalog = document.getElementById('tab-catalog');
@@ -175,6 +188,9 @@ function switchSupplierTab(tab: SupplierTab): void {
         if (sectionOrders) { sectionOrders.classList.add('nm-hidden'); }
         loadCatalog();
     }
+
+    // P2-UXA-004 FIX: Restore scroll position
+    restoreScrollPosition(tab);
 }
 
 // ─── Load KPIs ──────────────────────────────────────────────────────────────
@@ -182,6 +198,7 @@ async function loadKPIs(): Promise<void> {
     try {
         const res = await swrFetch('sup-stats', () => supplier.getStats(), {
             maxAge: 120_000, // 2 minutes
+            onStaleData: () => { showStaleIndicator(); },
         });
         if (!res.data) { return; }
         const data = res.data;
@@ -197,12 +214,8 @@ async function loadKPIs(): Promise<void> {
         const notifCount = document.getElementById('notif-count');
         if (notifCount) { notifCount.textContent = String(data.pending_orders ?? 0); }
 
-        // W5-003: KPI timestamp for data freshness trust signal
-        const kpiTimestamp = document.getElementById('kpi-last-updated');
-        if (kpiTimestamp) {
-            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
-            kpiTimestamp.dataset.timestamp = new Date().toISOString();
-        }
+        // P2-UXA-002 FIX: Live KPI timestamp
+        markKPIFetched();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W10-001 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-pending-bids', 'kpi-won-contracts', 'kpi-in-transit', 'kpi-total-revenue'].forEach(id => {
@@ -221,16 +234,12 @@ async function loadOrders(): Promise<void> {
         const res = await supplier.getOrders();
         const items = (res.data ?? []) as unknown as SupplierOrder[];
 
-        if (!items || items.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'package',
-                title: t('supplier_no_orders', 'No purchase orders yet'),
-                subtitle: t('common_no_data_desc', 'Data will appear here once available.'),
-            });
-            return;
-        }
-
-        tbody.innerHTML = items.map((item, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for supplier orders
+        renderProgressive({
+            items: items,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (item, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-mono text-3xs text-slate-500 font-bold dark:text-slate-400">${esc(item.po_number)}</span>
@@ -253,8 +262,13 @@ async function loadOrders(): Promise<void> {
                 <div class="mt-4 flex justify-end gap-2 border-t border-slate-50 pt-3">
                     ${renderActions(item)}
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'package',
+                title: t('supplier_no_orders', 'No purchase orders yet'),
+                subtitle: t('common_no_data_desc', 'Data will appear here once available.'),
+            }),
+        });
 
         // TICK-019: Event delegation for PO action buttons.
         // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
@@ -274,7 +288,7 @@ async function loadOrders(): Promise<void> {
         applyI18n();
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)
-        renderErrorWithRetry(tbody, loadOrders);
+        renderErrorWithRetry(tbody, loadOrders, undefined, undefined, err);
     }
 }
 
@@ -287,17 +301,12 @@ async function loadCatalog(): Promise<void> {
         const res = await supplier.getCatalog();
         const items = (res.data ?? []) as unknown as CatalogItem[];
 
-        if (!items || items.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'storefront',
-                title: t('supplier_catalog_empty', 'Your catalog is empty'),
-                subtitle: t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'),
-                fullSpan: true,
-            });
-            return;
-        }
-
-        container.innerHTML = items.map((item, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for supplier catalog
+        renderProgressive({
+            items: items,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (item, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
@@ -315,8 +324,14 @@ async function loadCatalog(): Promise<void> {
                 <button type="button" class="mt-3 text-3xs font-bold text-red-500 hover:underline" data-deactivate="${item.catalog_id}">
                     <i class="ph ph-trash" aria-hidden="true"></i> ${esc(t('supplier_remove', 'Remove'))}
                 </button>` : ''}
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'storefront',
+                title: t('supplier_catalog_empty', 'Your catalog is empty'),
+                subtitle: t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'),
+                fullSpan: true,
+            }),
+        });
 
         // TICK-020: Event delegation for deactivate buttons.
         // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
@@ -333,7 +348,7 @@ async function loadCatalog(): Promise<void> {
         }
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // GAP-2026-001 FIX: Show inline error with retry button (was silent — left spinner running)
-        renderErrorWithRetry(container, loadCatalog);
+        renderErrorWithRetry(container, loadCatalog, undefined, undefined, err);
     }
 }
 

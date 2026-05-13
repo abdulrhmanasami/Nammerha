@@ -85,6 +85,100 @@
 }
 
 /* ============================================================================
+   P3-UXA-001 FIX: Skip-to-Content Link (WCAG 2.4.1)
+   Hidden offscreen until focused via Tab. Allows keyboard/screen-reader users
+   to bypass the entire sidebar and jump to main content.
+   ============================================================================ */
+.nm-skip-link {
+    position: fixed;
+    inset-block-start: -100%;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    padding: 8px 24px;
+    background: var(--trust-blue, #1558D6);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0 0 8px 8px;
+    text-decoration: none;
+    transition: inset-block-start 0.2s ease;
+    outline: none;
+}
+.nm-skip-link:focus {
+    inset-block-start: 0;
+}
+
+/* ============================================================================
+   P2-UXA-007 FIX: SWR Stale Data Indicator Dot
+   Small pulsing amber dot appended to KPI timestamp when serving cached data
+   while revalidating in the background. Automatically removed by JS when
+   fresh data arrives.
+   ============================================================================ */
+.nm-stale-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #F59E0B;
+    margin-inline-start: 6px;
+    vertical-align: middle;
+    animation: nmStalePulse 1.2s ease-in-out infinite;
+}
+@keyframes nmStalePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* ============================================================================
+   P1-UXA-002 FIX: Load-More Pagination Button
+   Progressive loading — prevents 1000+ record page freezes on 2G networks.
+   Touch-safe 48px min-height per Material guidelines.
+   ============================================================================ */
+.nm-load-more-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+}
+.nm-load-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-inline: 1.5rem;
+    padding-block: 0.75rem;
+    min-height: 48px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #1558D6;
+    background: rgba(21, 88, 214, 0.06);
+    border: 1px solid rgba(21, 88, 214, 0.15);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.nm-load-more-btn:hover:not(:disabled) {
+    background: rgba(21, 88, 214, 0.12);
+    border-color: rgba(21, 88, 214, 0.3);
+}
+.nm-load-more-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+.nm-load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+html[data-theme="dark"] .nm-load-more-btn {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.08);
+    border-color: rgba(96, 165, 250, 0.15);
+}
+html[data-theme="dark"] .nm-load-more-btn:hover:not(:disabled) {
+    background: rgba(96, 165, 250, 0.15);
+}
+
+/* ============================================================================
    SST-NOSCRIPT FIX: Noscript Fallback — CSS Single Source of Truth
    Previous: 32 HTML files had identical inline styles on <noscript> content:
      style="padding:2rem;text-align:center;font-family:system-ui;direction:rtl;"
@@ -1742,6 +1836,25 @@ html[data-theme="dark"] .text-red-400 {
     transition: opacity 0.2s;
 }
 .nm-toast-close:hover { opacity: 1; }
+
+/* P0-UXA-003: Toast action button (e.g., "Undo" for financial grace period) */
+.nm-toast-action {
+    background: none;
+    border: 1px solid var(--trust-blue, #1558D6);
+    cursor: pointer;
+    color: var(--trust-blue, #1558D6);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+}
+.nm-toast-action:hover {
+    background: var(--trust-blue, #1558D6);
+    color: white;
+}
 
 /* Dark mode */
 html[data-theme="dark"] .nm-toast {
@@ -3467,6 +3580,367 @@ html[data-theme="dark"] [id^="section-dashboard"] > .grid.grid-cols-2.md\:grid-c
 .dashboard-sidebar [role="tab"] span[id$="-count"]:empty,
 .dashboard-sidebar [role="tab"] span[id$="-count"][data-count="0"] {
     display: none;
+}
+
+/* ============================================================================
+   P0-UXA-004: Portal Context Switcher
+   Cross-portal navigation component injected into every portal sidebar.
+   Enables users in the Universal Access paradigm to switch between portals
+   without returning to the homepage.
+   All CSS uses logical properties (RTL-safe). Dark mode via html[data-theme].
+   ============================================================================ */
+.nm-ctx-switcher {
+    padding: 12px 16px;
+    border-block-end: 1px solid var(--slate-200, #e2e8f0);
+}
+html[data-theme="dark"] .nm-ctx-switcher {
+    border-color: var(--dark-border, #2d2d2d);
+}
+
+.nm-ctx-header {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--slate-400, #94a3b8);
+    margin-block-end: 8px;
+}
+html[data-theme="dark"] .nm-ctx-header {
+    color: var(--slate-500, #64748b);
+}
+
+.nm-ctx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nm-ctx-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--slate-600, #475569);
+    transition: background-color 0.15s ease;
+}
+.nm-ctx-link:hover {
+    background-color: var(--slate-50, #f8fafc);
+}
+html[data-theme="dark"] .nm-ctx-link {
+    color: var(--slate-400, #94a3b8);
+}
+html[data-theme="dark"] .nm-ctx-link:hover {
+    background-color: var(--dark-elevated, #1e1e1e);
+}
+
+.nm-ctx-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    font-size: 0.875rem;
+}
+
+.nm-ctx-label {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.nm-ctx-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--slate-700, #334155);
+}
+html[data-theme="dark"] .nm-ctx-name {
+    color: var(--slate-300, #cbd5e1);
+}
+
+.nm-ctx-desc {
+    font-size: 0.625rem;
+    color: var(--slate-400, #94a3b8);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+html[data-theme="dark"] .nm-ctx-desc {
+    color: var(--slate-500, #64748b);
+}
+
+/* ── View Transitions API keyframes (Progressive Enhancement) ──────────── */
+/* These only fire when the browser supports startViewTransition(). */
+::view-transition-old(root) {
+    animation: nm-vt-fade-out 0.2s ease-out forwards;
+}
+::view-transition-new(root) {
+    animation: nm-vt-fade-in 0.2s ease-in forwards;
+}
+
+@keyframes nm-vt-fade-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.98); }
+}
+@keyframes nm-vt-fade-in {
+    from { opacity: 0; transform: scale(1.02); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Respect reduced motion for View Transitions */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================================================
+   P0-UXA-004 Phase 2: Hub FAB (Floating Action Button)
+   Floating button at bottom-start corner for quick portal switching.
+   Only visible on portal pages (injected by portal-context.ts).
+   ============================================================================ */
+.nm-hub-fab {
+    position: fixed;
+    inset-block-end: 24px;
+    inset-inline-start: 24px;
+    z-index: 900;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: var(--trust-blue, #1558D6);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(21, 88, 214, 0.35),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Entrance animation */
+    animation: nm-hub-fab-enter 0.4s ease-out 0.5s both;
+}
+.nm-hub-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(21, 88, 214, 0.45),
+                0 3px 8px rgba(0, 0, 0, 0.12);
+}
+.nm-hub-fab:active {
+    transform: scale(0.95);
+}
+
+@keyframes nm-hub-fab-enter {
+    from { opacity: 0; transform: scale(0.5) translateY(16px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Hide FAB when keyboard is open (content would be obscured) */
+html.keyboard-visible .nm-hub-fab { display: none; }
+
+html[data-theme="dark"] .nm-hub-fab {
+    background: var(--trust-blue, #1558D6);
+    box-shadow: 0 4px 16px rgba(21, 88, 214, 0.25),
+                0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   P0-UXA-004 Phase 2: Hub Bottom Sheet (Portal Picker)
+   Native <dialog> styled as a bottom sheet with slide-up animation.
+   Contains a Bento grid of portal cards for workspace switching.
+   ============================================================================ */
+.nm-hub-sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 20px 20px 0 0;
+    max-height: 80vh;
+    max-width: 100%;
+    width: 100%;
+    background: var(--cloud-white, #F4F6F8);
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    /* Initial state: below viewport */
+    transform: translateY(100%);
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.nm-hub-sheet--open {
+    transform: translateY(0);
+}
+/* Backdrop */
+.nm-hub-sheet::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+html[data-theme="dark"] .nm-hub-sheet {
+    background: var(--tech-dark, #242424);
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Grab Handle */
+.nm-hub-grabber {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--slate-300, #cbd5e1);
+    margin: 12px auto 4px;
+}
+html[data-theme="dark"] .nm-hub-grabber {
+    background: var(--slate-600, #475569);
+}
+
+/* Sheet Header */
+.nm-hub-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 8px;
+}
+.nm-hub-title {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--slate-900, #0f172a);
+    margin: 0;
+}
+html[data-theme="dark"] .nm-hub-title {
+    color: var(--slate-100, #f1f5f9);
+}
+.nm-hub-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--slate-100, #f1f5f9);
+    color: var(--slate-500, #64748b);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.15s ease;
+}
+.nm-hub-close:hover {
+    background: var(--slate-200, #e2e8f0);
+}
+html[data-theme="dark"] .nm-hub-close {
+    background: var(--dark-elevated, #1e1e1e);
+    color: var(--slate-400, #94a3b8);
+}
+
+/* Portal Grid — Bento Layout */
+.nm-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 12px 20px 28px;
+    /* Safe area for phones with home indicator */
+    padding-block-end: calc(28px + env(safe-area-inset-bottom, 0px));
+    transition: transform 0.15s ease;
+}
+
+/* Portal Card */
+.nm-hub-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid var(--slate-200, #e2e8f0);
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+a.nm-hub-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+a.nm-hub-card:active {
+    transform: scale(0.97);
+}
+html[data-theme="dark"] .nm-hub-card {
+    background: var(--dark-elevated, #1e1e1e);
+    border-color: var(--dark-border, #2d2d2d);
+}
+
+/* Current portal indicator */
+.nm-hub-card--current {
+    border-color: var(--hub-accent);
+    border-width: 2px;
+    cursor: default;
+}
+
+/* Card Icon */
+.nm-hub-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 1.25rem;
+}
+
+/* Card Text */
+.nm-hub-card-name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--slate-800, #1e293b);
+    line-height: 1.2;
+}
+html[data-theme="dark"] .nm-hub-card-name {
+    color: var(--slate-200, #e2e8f0);
+}
+
+.nm-hub-card-desc {
+    font-size: 0.625rem;
+    color: var(--slate-400, #94a3b8);
+    line-height: 1.3;
+}
+html[data-theme="dark"] .nm-hub-card-desc {
+    color: var(--slate-500, #64748b);
+}
+
+/* "Current" Badge */
+.nm-hub-badge {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--hub-accent);
+    color: #fff;
+}
+
+/* 5th card spans full width (supplier sits alone in bottom row) */
+.nm-hub-card:nth-child(5) {
+    grid-column: 1 / -1;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .nm-hub-fab {
+        animation: none;
+    }
+    .nm-hub-sheet {
+        transition-duration: 0.01ms;
+    }
 }
 
 /* ============================================================================

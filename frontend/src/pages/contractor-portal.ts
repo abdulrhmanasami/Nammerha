@@ -30,8 +30,16 @@ import { haptic } from '../utils/haptic';
 import { renderEmptyState } from '../utils/empty-state';
 // P1-UX-003 FIX: Service Worker registration on all portal pages
 import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P0-UXA-004 FIX: Cross-portal navigation via shared context switcher
+import { mountContextSwitcher } from '../components/portal-context';
 // P1-UX-001 FIX: SWR cache for perceived-instant tab switching
 import { swrFetch } from '../utils/swr-cache';
+// P2-UXA-002 FIX: Live KPI timestamp
+import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp';
+// P2-UXA-004 + P3-UXA-003 FIX: Tab state preservation
+import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
+// P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
+import { renderProgressive } from '../utils/progressive-render';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -84,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
     bootstrapPortal();
+    mountContextSwitcher();
 
     setupTabs();
     const initialTab = hashRouter.getInitialTab();
@@ -127,6 +136,11 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+    // P2-UXA-004 FIX: Save scroll position of the outgoing tab
+    const currentHash = hashRouter.getInitialTab();
+    if (currentHash !== tab) { saveScrollPosition(currentHash); }
+    // P3-UXA-003 FIX: Persist last active tab
+    saveLastTab(tab);
     // P1-003 FIX: Sync tab to URL hash
     hashRouter.setActiveTab(tab);
     // Update sidebar
@@ -159,6 +173,9 @@ function switchTab(tab: TabName): void {
     if (tab === 'marketplace') { loadMarketplace(); }
     if (tab === 'bids') { loadBids(); }
     if (tab === 'payments') { loadPayments(); }
+
+    // P2-UXA-004 FIX: Restore scroll position for the incoming tab
+    restoreScrollPosition(tab);
 }
 
 // ─── KPI Cards ──────────────────────────────────────────────────────────────
@@ -166,6 +183,7 @@ async function loadStats(): Promise<void> {
     try {
         const res = await swrFetch('ct-stats', () => contractor.getStats(), {
             maxAge: 120_000, // 2 minutes — KPIs don't change that fast
+            onStaleData: () => { showStaleIndicator(); },
         });
         if (!res.data) { return; }
         const s = res.data;
@@ -179,12 +197,8 @@ async function loadStats(): Promise<void> {
         // P3-UX-001 FIX: "Last updated" temporal context on KPI dashboard.
         // Previous: "3 Active Projects" — since when? No temporal trust signal.
         // Standard: Nielsen #1 (System Status), FinTech Data Freshness.
-        const kpiTimestamp = document.getElementById('kpi-last-updated');
-        if (kpiTimestamp) {
-            const now = new Date();
-            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
-            kpiTimestamp.dataset.timestamp = now.toISOString();
-        }
+        // P2-UXA-002 FIX: Live KPI timestamp
+        markKPIFetched();
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-active', 'kpi-pending', 'kpi-won', 'kpi-escrow'].forEach(id => setText(id, '—'));
@@ -200,17 +214,13 @@ async function loadProjects(): Promise<void> {
         const res = await swrFetch('ct-projects', () => contractor.getProjects());
         const projects = (res.data ?? []) as unknown as Project[];
 
-        if (projects.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'clipboard-text',
-                title: t('ct_no_assigned_projects', 'No assigned projects yet'),
-                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
-            });
-            return;
-        }
-
+        // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with large project lists.
         // P2-UX-003 FIX: Stagger animation — cards cascade in sequentially (50ms delay).
-        tbody.innerHTML = projects.map((p, i) => `
+        renderProgressive({
+            items: projects,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
@@ -233,10 +243,15 @@ async function loadProjects(): Promise<void> {
                         <span class="text-xs font-bold text-slate-600 w-8 text-end dark:text-slate-400">${esc(String(p.progress))}%</span>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'clipboard-text',
+                title: t('ct_no_assigned_projects', 'No assigned projects yet'),
+                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
+            }),
+        });
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadProjects);
+        renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
     }
 }
 
@@ -249,16 +264,12 @@ async function loadMarketplace(): Promise<void> {
         const res = await contractor.getMarketplace();
         const projects = (res.data ?? []) as unknown as MarketProject[];
 
-        if (projects.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'magnifying-glass',
-                title: t('ct_no_projects_available', 'No projects available'),
-                subtitle: t('ct_new_projects_appear', 'New projects will appear here when published'),
-            });
-            return;
-        }
-
-        tbody.innerHTML = projects.map((p, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for marketplace list
+        renderProgressive({
+            items: projects,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pe-12 dark:text-slate-100">${esc(p.title)}</h3>
@@ -295,8 +306,13 @@ async function loadMarketplace(): Promise<void> {
                         <span data-i18n="submit_bid">Submit Bid</span>
                     </button>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'magnifying-glass',
+                title: t('ct_no_projects_available', 'No projects available'),
+                subtitle: t('ct_new_projects_appear', 'New projects will appear here when published'),
+            }),
+        });
 
         // TICK-006: Event delegation for bid buttons.
         // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
@@ -313,7 +329,7 @@ async function loadMarketplace(): Promise<void> {
             });
         }
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadMarketplace);
+        renderErrorWithRetry(tbody, loadMarketplace, undefined, undefined, err);
     }
 }
 
@@ -326,16 +342,12 @@ async function loadBids(): Promise<void> {
         const res = await contractor.getBids();
         const bids = res.data ?? [];
 
-        if (bids.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'flag-banner',
-                title: t('ct_no_bids_yet', 'No bids submitted yet'),
-                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
-            });
-            return;
-        }
-
-        tbody.innerHTML = bids.map((b, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for bids list
+        renderProgressive({
+            items: bids,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (b, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
@@ -356,10 +368,15 @@ async function loadBids(): Promise<void> {
                         <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(b.submitted_at)}</p>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'flag-banner',
+                title: t('ct_no_bids_yet', 'No bids submitted yet'),
+                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
+            }),
+        });
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadBids);
+        renderErrorWithRetry(tbody, loadBids, undefined, undefined, err);
     }
 }
 
@@ -372,15 +389,12 @@ async function loadPayments(): Promise<void> {
         const res = await contractor.getPayments();
         const payments = (res.data ?? []) as unknown as Payment[];
 
-        if (payments.length === 0) {
-            tbody.innerHTML = renderEmptyState({
-                icon: 'wallet',
-                title: t('ct_no_payments_yet', 'No payments yet'),
-            });
-            return;
-        }
-
-        tbody.innerHTML = payments.map((p, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for payments list
+        renderProgressive({
+            items: payments,
+            containerEl: tbody,
+            pageSize: 20,
+            renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.project_title)}</h3>
@@ -397,10 +411,14 @@ async function loadPayments(): Promise<void> {
                         <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(p.created_at)}</p>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'wallet',
+                title: t('ct_no_payments_yet', 'No payments yet'),
+            }),
+        });
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadPayments);
+        renderErrorWithRetry(tbody, loadPayments, undefined, undefined, err);
     }
 }
 

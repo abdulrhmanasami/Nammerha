@@ -10,6 +10,8 @@ import { admin } from '../api';
 import { requireAuth } from '../utils/auth-guard';
 // TICK-036: Import shared locale-aware time formatter instead of local hardcoded-English version.
 import { relativeTimeAgo } from '../utils/format';
+import { renderProgressive } from '../utils/progressive-render';
+import { renderErrorWithRetry } from '../utils/error-retry';
 
 /* ─── KYC Verification Portal — API-Driven Controller ─── */
 
@@ -74,33 +76,25 @@ async function loadKycQueue(): Promise<void> {
         const res = await admin.getKycQueue();
         applicants = (res.data ?? []) as KycEntry[];
 
-        if (applicants.length === 0) {
-            container.innerHTML = `
-                <div class="p-8 flex flex-col items-center justify-center text-center">
-                    <div class="size-12 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-3">
-                        <i class="ph ph-check-circle text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
-                    </div>
-                    <p class="text-sm font-bold text-slate-600 dark:text-slate-400">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
-                    <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
-                </div>
-            `;
-            return;
-        }
+        // P1-UXA-002 FIX: Progressive rendering for KYC queue
+        renderProgressive({
+            items: applicants,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (entry, index) => {
+                const isEngineer = entry.role === 'engineer';
+                const iconClass = isEngineer ? 'ph-hard-hat' : 'ph-storefront';
+                const bgClass = isEngineer ? 'bg-trust-blue/10' : 'bg-warm-earth/10';
+                const textClass = isEngineer ? 'text-trust-blue' : 'text-warm-earth';
+                const roleLabel = isEngineer
+                    ? t('kyc_role_engineer', 'Engineer')
+                    : t('kyc_role_supplier', 'Supplier');
+                const timeAgo = relativeTimeAgo(entry.updated_at);
+                const statusLabel = entry.kyc_verification_status === 'submitted'
+                    ? t('kyc_status_submitted', 'Submitted')
+                    : t('kyc_status_pending', 'Pending');
 
-        container.innerHTML = applicants.map((entry, index) => {
-            const isEngineer = entry.role === 'engineer';
-            const iconClass = isEngineer ? 'ph-hard-hat' : 'ph-storefront';
-            const bgClass = isEngineer ? 'bg-trust-blue/10' : 'bg-warm-earth/10';
-            const textClass = isEngineer ? 'text-trust-blue' : 'text-warm-earth';
-            const roleLabel = isEngineer
-                ? t('kyc_role_engineer', 'Engineer')
-                : t('kyc_role_supplier', 'Supplier');
-            const timeAgo = relativeTimeAgo(entry.updated_at);
-            const statusLabel = entry.kyc_verification_status === 'submitted'
-                ? t('kyc_status_submitted', 'Submitted')
-                : t('kyc_status_pending', 'Pending');
-
-            return `
+                return `
                 <div class="kyc-row px-4 py-3 flex items-center gap-4 hover:bg-slate-50 cursor-pointer transition-colors"
                      data-index="${index}" data-user-id="${esc(entry.user_id)}"
                      role="option" tabindex="0" aria-selected="false">
@@ -118,19 +112,22 @@ async function loadKycQueue(): Promise<void> {
                     </div>
                 </div>
             `;
-        }).join('');
+            },
+            emptyState: () => `
+                <div class="p-8 flex flex-col items-center justify-center text-center">
+                    <div class="size-12 rounded-full bg-smoky-jade/10 flex items-center justify-center mb-3">
+                        <i class="ph ph-check-circle text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
+                    </div>
+                    <p class="text-sm font-bold text-slate-600 dark:text-slate-400">${esc(t('kyc_queue_empty', 'All caught up!'))}</p>
+                    <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">${esc(t('kyc_no_pending', 'No applications pending review.'))}</p>
+                </div>
+            `,
+        });
 
         // TICK-035: Event delegation replaces O(N) per-row listeners.
         initRowSelection(container);
-    } catch {
-        container.innerHTML = `
-            <div class="p-6 text-center">
-                <p class="text-sm text-slate-400 dark:text-slate-500">${esc(t('kyc_load_error', 'Unable to load KYC queue'))}</p>
-                <button type="button" id="kyc-retry-btn" class="mt-2 text-xs text-trust-blue font-bold hover:underline">${esc(t('common_retry', 'Retry'))}</button>
-            </div>
-        `;
-        const retryBtn = document.getElementById('kyc-retry-btn');
-        retryBtn?.addEventListener('click', () => loadKycQueue());
+    } catch (err) {
+        renderErrorWithRetry(container, loadKycQueue, 'kyc_load_error', 'Unable to load KYC queue', err);
     }
 }
 

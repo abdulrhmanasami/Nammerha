@@ -9,6 +9,8 @@ import { t } from '../utils/i18n';
 import { initOfflineIndicator } from '../utils/offline-indicator';
 import { guardSkeleton } from '../utils/skeleton-guard';
 import { requireAuth } from '../utils/auth-guard';
+import { renderProgressive } from '../utils/progressive-render';
+import { renderErrorWithRetry } from '../utils/error-retry';
 // GAP-002 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 // UX-004 FIX: Haptic feedback for native-app tactile response
@@ -146,11 +148,16 @@ async function loadTransactions(): Promise<void> {
             transactions.push(...((payRes.value as { data: Transaction[] }).data));
         }
 
-        if (transactions.length === 0) {
-            // PLT-AUD-W04 FIX: Added animate-fade-in-up for smooth skeleton → empty state transition.
-            //    Previous: instant swap — jarring on mobile. Balance card animates but this didn't.
-            //    Standard: Material Design 3 (Staggered Entry), Visual Consistency.
-            listEl.innerHTML = `
+        // Sort by date descending
+        transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        // P1-UXA-002 FIX: Progressive rendering for wallet transactions
+        renderProgressive({
+            items: transactions,
+            containerEl: listEl,
+            pageSize: 20,
+            renderItem: (tx) => renderTransaction(tx),
+            emptyState: () => `
             <div class="text-center py-12 animate-fade-in-up">
               <i class="ph ph-wallet text-slate-300 nm-icon-48" aria-hidden="true"></i>
               <p class="text-slate-500 font-bold mt-4 dark:text-slate-400">${escapeHtml(t('wallet_no_transactions', 'No transactions yet'))}</p>
@@ -158,20 +165,11 @@ async function loadTransactions(): Promise<void> {
                     DONATIONS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
                     DONATIONS_ENABLED ? 'Your donation and payment history will appear here' : 'Your payment and escrow history will appear here'
                 ))}</p>
-            </div>`;
-            return;
-        }
-
-        // Sort by date descending
-        transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        listEl.innerHTML = transactions.map(renderTransaction).join('');
+            </div>`,
+        });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
-        listEl.innerHTML = `
-        <div class="text-center py-8">
-          <p class="text-slate-500 text-sm dark:text-slate-400">${escapeHtml(t('wallet_load_failed', 'Unable to load transactions. Please sign in.'))}</p>
-          <a href="auth.html" class="btn-primary w-auto px-6 mt-4 inline-flex">${escapeHtml(t('wallet_sign_in', 'Sign In'))}</a>
-        </div>`;
+        renderErrorWithRetry(listEl, loadTransactions, 'wallet_load_failed', 'Unable to load transactions.', err);
     }
 }
 

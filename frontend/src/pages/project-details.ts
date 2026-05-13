@@ -286,14 +286,31 @@ function renderBOQ(items: BOQItem[], projectId: string): void {
 }
 
 // ─── Error State ────────────────────────────────────────────────────────────
-function showError(): void {
+// P2-UXA-006 FIX: Differentiate "project not found" (404) from generic errors.
+function showError(type: 'not-found' | 'generic' = 'generic'): void {
     const heroSkeleton = document.getElementById('hero-skeleton');
     const boqSkeleton = document.getElementById('boq-skeleton');
     const boqError = document.getElementById('boq-error');
 
     if (heroSkeleton) { heroSkeleton.classList.add('nm-hidden'); }
     if (boqSkeleton) { boqSkeleton.classList.add('nm-hidden'); }
-    if (boqError) { boqError.classList.remove('nm-hidden'); }
+
+    if (type === 'not-found' && boqError) {
+        boqError.innerHTML = `
+            <div class="p-8 text-center" role="alert" aria-live="polite">
+                <i class="ph ph-magnifying-glass text-slate-300 text-4xl dark:text-slate-600" aria-hidden="true"></i>
+                <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-300" data-i18n="error_project_not_found">${t('error_project_not_found', 'Project Not Found')}</p>
+                <p class="mt-1 text-sm text-slate-400 dark:text-slate-500" data-i18n="error_project_not_found_desc">${t('error_project_not_found_desc', 'This project may have been removed or the link is invalid.')}</p>
+                <a href="projects.html" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors">
+                    <i class="ph ph-arrow-left" aria-hidden="true"></i>
+                    <span data-i18n="error_browse_projects">${t('error_browse_projects', 'Browse Projects')}</span>
+                </a>
+            </div>
+        `;
+        boqError.classList.remove('nm-hidden');
+    } else if (boqError) {
+        boqError.classList.remove('nm-hidden');
+    }
 }
 
 // ─── Cart Interactivity (unchanged from original) ───────────────────────────
@@ -332,12 +349,17 @@ function initCartButtons(): void {
 
             const iconEl = btn.querySelector<HTMLElement>('i.ph');
             if (iconEl && cartBtn) {
-                flyToCart(iconEl, cartBtn, () => renderCartBadge(cartBadge));
+                // P3-UXA-002 FIX: Sequence markAsAdded AFTER flyToCart animation completes.
+                // Previous: markAsAdded ran immediately while animation was in-flight,
+                // causing "Added" text to appear before the icon reached the cart.
+                flyToCart(iconEl, cartBtn, () => {
+                    renderCartBadge(cartBadge);
+                    markAsAdded(btn);
+                });
             } else {
                 renderCartBadge(cartBadge);
+                markAsAdded(btn);
             }
-
-            markAsAdded(btn);
         });
     }
 
@@ -369,7 +391,8 @@ async function loadProjectData(): Promise<void> {
     const projectId = getProjectIdFromURL();
 
     if (!projectId) {
-        showError();
+        // P2-UXA-006: No project ID in URL → specific "not found" state
+        showError('not-found');
         return;
     }
 
@@ -386,8 +409,11 @@ async function loadProjectData(): Promise<void> {
             renderHero(project);
             renderProgress(project);
         } else {
-            // If project metadata fails, show error
-            showError();
+            // P2-UXA-006: Detect 404 vs generic failure
+            const is404 = projectRes.status === 'fulfilled' &&
+                'status' in projectRes.value &&
+                (projectRes.value as { status?: number }).status === 404;
+            showError(is404 ? 'not-found' : 'generic');
             return;
         }
 

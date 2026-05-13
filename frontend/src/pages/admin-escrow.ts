@@ -104,7 +104,7 @@ async function loadEscrowCases(): Promise<void> {
         updateNav();
     } catch (err) {
         if (panel) {
-            renderErrorWithRetry(panel, loadEscrowCases, 'esc_load_error', 'Failed to load escrow cases');
+            renderErrorWithRetry(panel, loadEscrowCases, 'esc_load_error', 'Failed to load escrow cases', err);
         }
         const errorObj = err instanceof Error ? err : new Error('[AdminEscrow] Load failed');
         // Silently log — renderErrorWithRetry provides visual UX

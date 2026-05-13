@@ -67,16 +67,19 @@ void main() async {
   // Wire OfflineQueue callbacks — notifies users when queued requests replay.
   // PLATINUM v2: These callbacks were defined but never wired. Users had zero
   // visibility into whether their offline mutations succeeded or silently failed.
+  // P1-UXA-004 FIX: Bilingual OfflineQueue snackbar messages.
+  // Previous: Hardcoded Arabic strings — unintelligible to English-locale users.
+  // Now: Arabic primary + English fallback (matches error widget pattern).
   OfflineQueue.instance.onRequestReplayed = (request) {
     _showSyncSnackBar(
-      message: '✅ تم إرسال طلب مؤجل بنجاح: ${request.endpoint}',
+      message: 'تم إرسال طلب مؤجل بنجاح / Queued request sent: ${request.endpoint}',
       isError: false,
     );
   };
 
   OfflineQueue.instance.onRequestFailed = (request, error) {
     _showSyncSnackBar(
-      message: '❌ فشل طلب مؤجل نهائياً: ${request.endpoint}',
+      message: 'فشل طلب مؤجل نهائياً / Queued request failed: ${request.endpoint}',
       isError: true,
     );
   };
@@ -87,14 +90,20 @@ void main() async {
   // FRIC-2026-F09 FIX: Branded error boundary — replaces Flutter's red error screen.
   // CrashlyticsService captures the real error. This gives users a clean recovery UI
   // instead of a wall of red text. Uses brand colors + Phosphor icons.
-  // P1-UX-007 FIX: Replaced Icons.warning_amber_rounded with PhosphorIcons
-  // (last remaining Material Icon violation). Extracted hardcoded Arabic to
-  // support bilingual error display. Uses Directionality wrapper for RTL.
+  // P1-UXA-005 FIX: Uses platform locale to determine text direction.
+  // Previous: Hardcoded TextDirection.rtl — English-locale users saw reversed layout.
   ErrorWidget.builder = (FlutterErrorDetails details) {
+    // P1-UXA-005: Determine text direction from platform locale, not hardcoded.
+    final platformLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    final isRtl = platformLocale.languageCode == 'ar' ||
+        platformLocale.languageCode == 'he' ||
+        platformLocale.languageCode == 'fa';
+    final textDir = isRtl ? TextDirection.rtl : TextDirection.ltr;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: textDir,
         child: Scaffold(
           backgroundColor: const Color(0xFFF4F6F8), // --cloud-white
           body: Center(
@@ -333,6 +342,16 @@ class _AppFlowControllerState extends State<_AppFlowController> {
   void _handleDeepLink(Map<String, dynamic> data) {
     final ctx = navigatorKey.currentContext;
     if (ctx == null) return;
+
+    // P1-UXA-006 FIX: Auth guard for deep link navigation.
+    // Previous: Navigated directly without checking auth state.
+    // A push notification tap after session expiry would crash or show empty screen.
+    // Now: Verify user is authenticated before navigating to any protected screen.
+    final authState = ctx.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      debugPrint('[Nammerha Push] Deep link blocked — user not authenticated.');
+      return;
+    }
 
     final type = (data['type'] ?? '').toString();
     final projectId = (data['project_id'] ?? data['projectId'] ?? '').toString();

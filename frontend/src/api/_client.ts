@@ -11,6 +11,15 @@
 import { reportError } from '../error-reporter';
 import { t } from '../utils/i18n';
 
+// ─── P0-UXA-002 FIX: Session Expiry Mutex ───────────────────────────────────
+// When JWT expires, multiple concurrent API calls all receive 401.
+// Without this mutex, EACH call independently triggers:
+//   clearAuth() + showToast('expired') + window.location.href redirect
+// Result: 3-5 stacking toasts, multiple redirect race.
+// This flag ensures only the FIRST 401 response handles the session cleanup.
+// Standard: Single Responsibility, Race Condition Prevention.
+let sessionExpiring = false;
+
 export const API_BASE = '/api';
 
 // ─── P1-NEW-002 FIX: CSRF Token Management ─────────────────────────────────
@@ -49,18 +58,29 @@ export interface ApiResponse<T = unknown> {
     message?: string;
 }
 
+interface RequestOptions extends RequestInit {
+    /**
+     * P2-UXA-005 FIX: Skip the 300ms anti-flicker delay for this request.
+     * Set to true for requests that don't trigger skeleton loaders
+     * (e.g., KPI refreshes, background syncs, toast-only responses).
+     * Default: false (delay IS applied — safe default for skeleton-bearing pages).
+     */
+    skipAntiFlicker?: boolean;
+}
+
 export async function request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
+    const { skipAntiFlicker, ...fetchOptions } = options;
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...(options.headers as Record<string, string> ?? {}),
+        ...(fetchOptions.headers as Record<string, string> ?? {}),
     };
     // V1-AUDIT FIX: JWT is now in an httpOnly cookie — no localStorage access.
     // The browser sends the cookie automatically with credentials: 'same-origin'.
     // CSRF protection is required for all state-changing (non-GET) requests.
-    const method = options.method ?? 'GET';
+    const method = fetchOptions.method ?? 'GET';
     if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
         const csrfToken = await ensureCsrfToken();
         headers['X-CSRF-Token'] = csrfToken;
@@ -78,6 +98,12 @@ export async function request<T>(
 
     const isIdempotent = !!headers['Idempotency-Key'] || method === 'GET';
     const maxRetries = isIdempotent ? 2 : 0;
+
+    // P0-UXA-002 FIX: If session is already expiring, short-circuit immediately.
+    // Don't fire another clearAuth/redirect/toast — the first 401 handler owns it.
+    if (sessionExpiring) {
+        return { success: false, error: 'Session expired' } as ApiResponse<T>;
+    }
     
     let lastErr: unknown;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -87,7 +113,7 @@ export async function request<T>(
 
         try {
             const res = await fetch(`${API_BASE}${endpoint}`, {
-                ...options,
+                ...fetchOptions,
                 headers,
                 signal: controller.signal,
                 credentials: 'same-origin', // V1-AUDIT: Send httpOnly cookie
@@ -110,8 +136,17 @@ export async function request<T>(
             // Without this: user sees repeated cryptic API errors on every page
             // because localStorage says "logged in" but every request fails.
             if (res.status === 401) {
+                // P0-UXA-002 FIX: Mutex — only the first 401 handles cleanup.
+                // Subsequent concurrent 401s short-circuit silently.
+                if (sessionExpiring) {
+                    return { success: false, error: 'Session expired' } as ApiResponse<T>;
+                }
+
                 const { isAuthenticated, clearAuth } = await import('../auth');
                 if (isAuthenticated()) {
+                    // P0-UXA-002: Acquire mutex BEFORE any async work
+                    sessionExpiring = true;
+
                     clearAuth();
                     // Show session expired notification (dynamic import to avoid circular deps)
                     try {
@@ -141,9 +176,15 @@ export async function request<T>(
             }
 
             // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)
-            const elapsed = Date.now() - startTime;
-            if (elapsed < 300) {
-                await new Promise(r => setTimeout(r, 300 - elapsed));
+            // P2-UXA-005 FIX: Now opt-out via skipAntiFlicker option.
+            // Previous: Applied to ALL requests — fast KPI refreshes, background syncs,
+            // and cached responses were artificially delayed by 300ms.
+            // Now: Only skeleton-bearing page loads pay this cost.
+            if (!skipAntiFlicker) {
+                const elapsed = Date.now() - startTime;
+                if (elapsed < 300) {
+                    await new Promise(r => setTimeout(r, 300 - elapsed));
+                }
             }
 
             return body;
@@ -162,7 +203,7 @@ export async function request<T>(
                 ? new Error(`API Timeout: ${endpoint}`)
                 : err instanceof Error ? err : new Error('Network error');
 
-            reportError(reportedError, { endpoint, method: options?.method ?? 'GET' });
+            reportError(reportedError, { endpoint, method: fetchOptions?.method ?? 'GET' });
 
             if (err instanceof DOMException && err.name === 'AbortError') {
                 throw new Error(t('error_timeout', 'Request timed out — please check your network connection and try again.'));

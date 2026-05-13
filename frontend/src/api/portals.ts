@@ -83,11 +83,11 @@ interface HomeownerApproval { approval_id: string; project_title: string; title:
 interface HomeownerEscrowSummary { total_escrowed: number; total_released: number; pending_release: number; }
 
 export const homeowner = {
-    getProjects: () => request<HomeownerProject[]>('/homeowner/projects'),
+    getProjects: (params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<HomeownerProject[]>(`/homeowner/projects${q ? `?${q}` : ''}`); },
     getStats: () => request<HomeownerStats>('/homeowner/stats'),
     getProjectBids: (projectId: string) => request(`/homeowner/projects/${projectId}/bids`),
     createServiceRequest: (data: { trade_needed: string; title: string; description?: string; address_text?: string; urgency?: 'routine' | 'urgent' | 'emergency'; budget_min?: number; budget_max?: number }) => request<HomeownerServiceRequest>('/homeowner/service-requests', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
-    getServiceRequests: () => request<HomeownerServiceRequest[]>('/homeowner/service-requests'),
+    getServiceRequests: (params?: { limit?: number; offset?: number }) => { const qs = new URLSearchParams(); if (params?.limit) { qs.set('limit', String(params.limit)); } if (params?.offset) { qs.set('offset', String(params.offset)); } const q = qs.toString(); return request<HomeownerServiceRequest[]>(`/homeowner/service-requests${q ? `?${q}` : ''}`); },
     cancelServiceRequest: (requestId: string) => request(`/homeowner/service-requests/${requestId}/cancel`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } }),
     getApprovals: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<HomeownerApproval[]>(`/homeowner/approvals${qs}`); },
     getEscrow: () => request<HomeownerEscrowSummary>('/homeowner/escrow'),

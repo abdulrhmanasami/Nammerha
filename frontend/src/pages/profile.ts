@@ -261,7 +261,7 @@ async function loadAvailableRoles(): Promise<void> {
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error(String(err)), { context: 'load_available_roles' });
-        renderErrorWithRetry(gridEl, loadAvailableRoles, 'failed_to_load', 'Failed to load roles');
+        renderErrorWithRetry(gridEl, loadAvailableRoles, 'failed_to_load', 'Failed to load roles', err);
     }
 }
 

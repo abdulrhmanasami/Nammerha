@@ -12,6 +12,11 @@ type ToastType = 'success' | 'error' | 'info' | 'warning';
 interface ToastOptions {
     duration?: number;
     dismissable?: boolean;
+    /** P0-UXA-003: Optional action button (e.g., "Undo") for reversible operations. */
+    action?: {
+        label: string;
+        onClick: () => void;
+    };
 }
 
 const TOAST_ICONS: Record<ToastType, string> = {
@@ -110,6 +115,24 @@ export function showToast(
         btn.innerHTML = '<i class="ph ph-x" aria-hidden="true"></i>';
         btn.addEventListener('click', () => removeToast(el));
         el.appendChild(btn);
+    }
+
+    // P0-UXA-003: Action button support for undo/reversible operations
+    if (options.action) {
+        const actionBtn = document.createElement('button');
+        actionBtn.className = 'nm-toast-action';
+        actionBtn.textContent = options.action.label;
+        actionBtn.addEventListener('click', () => {
+            options.action!.onClick();
+            removeToast(el);
+        });
+        // Insert before close button if present
+        const closeBtn = el.querySelector('.nm-toast-close');
+        if (closeBtn) {
+            el.insertBefore(actionBtn, closeBtn);
+        } else {
+            el.appendChild(actionBtn);
+        }
     }
 
     parent.appendChild(el);

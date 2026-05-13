@@ -29,6 +29,14 @@ import { renderEmptyState } from '../utils/empty-state';
 import { bootstrapPortal } from '../utils/portal-bootstrap';
 // P1-UX-001 FIX: SWR cache for perceived-instant tab switching
 import { swrFetch } from '../utils/swr-cache';
+// P0-UXA-004 FIX: Cross-portal navigation via shared context switcher
+import { mountContextSwitcher } from '../components/portal-context';
+// P2-UXA-002 FIX: Live KPI timestamp
+import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp';
+// P2-UXA-004 + P3-UXA-003 FIX: Tab state preservation
+import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
+// P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
+import { renderProgressive } from '../utils/progressive-render';
 // NOTE: Sidebar is loaded via <script src="/sidebar.js"> in engineer-portal.html
 
 initPullToRefresh();
@@ -119,6 +127,10 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: EngineerTab): void {
+    // P2-UXA-004 FIX: Save scroll position of outgoing tab
+    const currentHash = engineerHashRouter.getInitialTab();
+    if (currentHash !== tab) { saveScrollPosition(currentHash); }
+    saveLastTab(tab);
     engineerHashRouter.setActiveTab(tab);
     const tabIds = { projects: 'tab-projects', bids: 'tab-bids', captures: 'tab-captures' };
     const sectionIds = { projects: 'section-projects', bids: 'section-bids', captures: 'section-captures' };
@@ -142,6 +154,9 @@ function switchTab(tab: EngineerTab): void {
     // Lazy-load tab data
     if (tab === 'bids') { loadBids(); }
     if (tab === 'captures') { loadCaptures(); }
+
+    // P2-UXA-004 FIX: Restore scroll position for the incoming tab
+    restoreScrollPosition(tab);
 }
 
 
@@ -150,6 +165,7 @@ async function loadKPIs(): Promise<void> {
     try {
         const res = await swrFetch('eng-stats', () => engineer.getStats(), {
             maxAge: 120_000, // 2 minutes
+            onStaleData: () => { showStaleIndicator(); },
         });
         if (!res.data) { return; }
         const data = res.data as unknown as EngineerStats;
@@ -165,12 +181,8 @@ async function loadKPIs(): Promise<void> {
             bidCount.classList.remove('nm-hidden');
         }
 
-        // W5-005: KPI timestamp for data freshness trust signal
-        const kpiTimestamp = document.getElementById('kpi-last-updated');
-        if (kpiTimestamp) {
-            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
-            kpiTimestamp.dataset.timestamp = new Date().toISOString();
-        }
+        // P2-UXA-002 FIX: Live KPI timestamp
+        markKPIFetched();
     } catch (err) {
         reportWarning('[EngineerPortal] KPI load failed', { error: err instanceof Error ? err.message : String(err) });
         ['kpi-assigned-projects', 'kpi-proofs-pending', 'kpi-proofs-verified', 'kpi-escrow-released'].forEach(id => {
@@ -189,16 +201,12 @@ async function loadProjects(): Promise<void> {
         const res = await swrFetch('eng-projects', () => engineer.getProjects());
         const items = (res.data ?? []) as unknown as EngineerProject[];
 
-        if (!items || items.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'buildings',
-                title: t('eng_no_projects', 'No assigned projects yet'),
-                subtitle: t('eng_no_projects_desc', 'Projects will appear here once assigned by the platform.'),
-            });
-            return;
-        }
-
-        container.innerHTML = items.map((p, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for engineer projects
+        renderProgressive({
+            items: items,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-3">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
@@ -222,13 +230,18 @@ async function loadProjects(): Promise<void> {
                         <i class="ph ph-camera" aria-hidden="true"></i> ${esc(t('eng_capture', 'Capture'))}
                     </a>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'buildings',
+                title: t('eng_no_projects', 'No assigned projects yet'),
+                subtitle: t('eng_no_projects_desc', 'Projects will appear here once assigned by the platform.'),
+            }),
+        });
 
         applyI18n();
     } catch (err) {
         reportWarning('[EngineerPortal] Projects load failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadProjects);
+        renderErrorWithRetry(container, loadProjects, undefined, undefined, err);
     }
 }
 
@@ -241,15 +254,12 @@ async function loadBids(): Promise<void> {
         const res = await engineer.getBids();
         const items = (res.data ?? []) as unknown as EngineerBid[];
 
-        if (!items || items.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'flag-banner',
-                title: t('eng_no_bids', 'No bids submitted yet'),
-            });
-            return;
-        }
-
-        container.innerHTML = items.map((b, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for bids list
+        renderProgressive({
+            items: items,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (b, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
@@ -269,13 +279,17 @@ async function loadBids(): Promise<void> {
                         <p class="text-xs text-slate-500 dark:text-slate-400">${relativeTimeAgo(b.submitted_at)}</p>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'flag-banner',
+                title: t('eng_no_bids', 'No bids submitted yet'),
+            }),
+        });
 
         applyI18n();
     } catch (err) {
         reportWarning('[EngineerPortal] Bids load failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadBids);
+        renderErrorWithRetry(container, loadBids, undefined, undefined, err);
     }
 }
 
@@ -288,16 +302,12 @@ async function loadCaptures(): Promise<void> {
         const res = await engineer.getCaptures(20);
         const items = (res.data ?? []) as unknown as EngineerCapture[];
 
-        if (!items || items.length === 0) {
-            container.innerHTML = renderEmptyState({
-                icon: 'camera',
-                title: t('eng_no_captures', 'No captures yet'),
-                subtitle: t('eng_no_captures_desc', 'Start capturing field evidence using the Field Camera.'),
-            });
-            return;
-        }
-
-        container.innerHTML = items.map((c, i) => `
+        // P1-UXA-002 FIX: Progressive rendering for captures list
+        renderProgressive({
+            items: items,
+            containerEl: container,
+            pageSize: 20,
+            renderItem: (c, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="size-14 rounded-lg bg-slate-100 overflow-hidden shrink-0 dark:bg-dark-elevated">
                     <img src="${esc(c.file_url)}" alt="${esc(c.title ?? 'Capture')}" class="size-14 object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'size-14 flex items-center justify-center\\'><i class=\\'ph ph-image-broken text-slate-400 text-xl\\'></i></div>'" />
@@ -313,13 +323,18 @@ async function loadCaptures(): Promise<void> {
                     <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400">${esc(c.project_title)}</p>
                     <p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${relativeTimeAgo(c.captured_at)}</p>
                 </div>
-            </div>
-        `).join('');
+            </div>`,
+            emptyState: () => renderEmptyState({
+                icon: 'camera',
+                title: t('eng_no_captures', 'No captures yet'),
+                subtitle: t('eng_no_captures_desc', 'Start capturing field evidence using the Field Camera.'),
+            }),
+        });
 
         applyI18n();
     } catch (err) {
         reportWarning('[EngineerPortal] Captures load failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(container, loadCaptures);
+        renderErrorWithRetry(container, loadCaptures, undefined, undefined, err);
     }
 }
 
@@ -394,6 +409,7 @@ function setKPI(name: string, value: number, prefix = ''): void {
 document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
     bootstrapPortal();
+    mountContextSwitcher();
     initLiveTimestamp();
     setupTabs();
 
