@@ -19,6 +19,8 @@ export interface AuthUser {
     roles: UserRole[];
     email?: string;
     kyc_verified: boolean;
+    /** P2-UX-007: Profile photo URL — contributes to completion percentage. */
+    photo_url?: string;
 }
 
 const STORAGE_KEY = 'nammerha_auth';

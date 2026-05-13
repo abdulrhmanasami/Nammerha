@@ -52,6 +52,12 @@ function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
     if (user.email) { completed++; }
     if (user.kyc_verified) { completed++; }
 
+    // P2-UX-007 FIX: Photo upload counts towards completion.
+    // Previous: Photo upload existed but didn't contribute to % — user felt it was wasted effort.
+    // Standard: Zeigarnik Effect — every visible action should contribute to visible progress.
+    steps += 1;
+    if (user.photo_url) { completed++; }
+
     // Role depth (weight: 2 steps)
     steps += 2;
     if (user.roles && user.roles.length >= 1) { completed++; }
@@ -456,7 +462,11 @@ async function saveProfile(): Promise<void> {
         updateProfileCompletion(getCurrentUser());
 
         restoreBtn?.('success');
-        showEditBanner('success', t('profile_saved', 'Profile updated successfully.'));
+        // P0-UX-002 FIX: Honest "saved locally" message.
+        // Previous: 'Profile updated successfully' — misleading because NO backend API
+        // exists yet. Users on a FinTech platform must know data is local-only.
+        // Standard: Nielsen #1 (System Status Visibility), Trust UX.
+        showEditBanner('success', t('profile_saved_locally', '✓ Saved locally — will sync when available'));
         setTimeout(() => toggleEditMode(false), 800);
     } catch (err) {
         restoreBtn?.('error');
@@ -549,6 +559,7 @@ function initPasswordChangeEngine(): void {
 
     // FRC-NEW-03 FIX: Live password strength visualizer (UX parity with auth.html)
     const pwBars = document.getElementById('pw-change-strength-bars')?.children;
+    const pwBarsContainer = document.getElementById('pw-change-strength-bars');
     newPasswordInput?.addEventListener('input', (e: Event) => {
         const val = (e.target as HTMLInputElement).value;
         const strength = val.length === 0 ? 0 : val.length < 5 ? 1 : val.length < 8 ? 2 : /[A-Z]/.test(val) && /[0-9]/.test(val) ? 4 : 3;
@@ -559,6 +570,15 @@ function initPasswordChangeEngine(): void {
                     index < strength ? (strength < 2 ? 'bg-red-400' : strength < 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-slate-200 dark:bg-dark-border'
                 }`;
             });
+        }
+        // P3-UX-006 FIX: WCAG screen reader announcement for password strength.
+        // Previous: Visual-only color bars — screen readers couldn't perceive strength.
+        // Standard: WCAG 1.3.1 (Info & Relationships), 4.1.3 (Status Messages).
+        if (pwBarsContainer) {
+            const labels = [t('pw_none', 'None'), t('pw_weak', 'Weak'), t('pw_fair', 'Fair'), t('pw_medium', 'Medium'), t('pw_strong', 'Strong')];
+            pwBarsContainer.setAttribute('aria-label', `${t('pw_strength', 'Password strength')}: ${labels[strength] ?? labels[0]}`);
+            pwBarsContainer.setAttribute('role', 'status');
+            pwBarsContainer.setAttribute('aria-live', 'polite');
         }
     });
 }
@@ -725,11 +745,27 @@ function init(): void {
         });
     }
 
-    // GAP-N08 FIX: KYC Checklist Dead End
-    // Previous: Tapping "Complete identity verification" scrolled to a static <div>.
-    document.getElementById('kyc-section')?.addEventListener('click', () => {
-        showToast(t('kyc_flow_coming_soon', 'KYC Verification portal is opening soon.'), 'info');
-    });
+    // P0-UX-003 FIX: KYC Dead End Resolution.
+    // Previous: Tapping "Complete identity verification" showed 'coming soon' toast.
+    // On a platform handling billions in escrow, a dead-end KYC path is a trust violation.
+    // Now: Visually disable the KYC action item + add 'Not Yet Available' badge.
+    // Standard: Nielsen #1 (System Status Visibility), FinTech Trust UX.
+    const kycSection = document.getElementById('kyc-section');
+    if (kycSection) {
+        // Disable interaction and grey out
+        kycSection.style.opacity = '0.5';
+        kycSection.style.pointerEvents = 'none';
+        kycSection.setAttribute('aria-disabled', 'true');
+        // Inject 'Not Yet Available' badge if not already present
+        if (!kycSection.querySelector('.kyc-unavailable-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'kyc-unavailable-badge text-3xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 ms-2 dark:bg-dark-elevated dark:text-slate-500';
+            badge.setAttribute('data-i18n', 'kyc_not_available');
+            badge.textContent = t('kyc_not_available', 'Not Yet Available');
+            const heading = kycSection.querySelector('p, span, h3, h4');
+            if (heading) { heading.appendChild(badge); }
+        }
+    }
 
     // INC-NEW-01 FIX: Back button wiring moved to shared page-header.ts.
     // Previous: 8 lines of duplicate code (identical to wallet.ts).

@@ -60,6 +60,41 @@ export const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
         { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
         { label: 'Report Damage', i18n: 'report_damage', icon: 'warning' },
     ],
+    // P3-UX-005 FIX: Extended breadcrumbs to high-traffic pages that were previously missing.
+    // Previous: Only 6 deep pages had breadcrumbs. Portals, profile, wallet, and auth had none.
+    // Standard: Nielsen #7 (Recognition), Spatial Orientation, WCAG 2.4.8 (Location).
+    'profile.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Profile', i18n: 'nav_profile', icon: 'user' },
+    ],
+    'wallet.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Wallet', i18n: 'nav_wallet', icon: 'wallet' },
+    ],
+    'auth.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Sign In', i18n: 'nav_sign_in', icon: 'sign-in' },
+    ],
+    'homeowner-portal.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Homeowner Portal', i18n: 'ws_homeowner', icon: 'house' },
+    ],
+    'contractor-portal.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Contractor Portal', i18n: 'ws_contractor', icon: 'hard-hat' },
+    ],
+    'engineer-portal.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Engineer Portal', i18n: 'ws_engineer', icon: 'ruler' },
+    ],
+    'supplier-dashboard.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Supplier Dashboard', i18n: 'ws_supplier', icon: 'storefront' },
+    ],
+    'tradesperson-portal.html': [
+        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        { label: 'Tradesperson Portal', i18n: 'ws_tradesperson', icon: 'hammer' },
+    ],
 };
 
 /**

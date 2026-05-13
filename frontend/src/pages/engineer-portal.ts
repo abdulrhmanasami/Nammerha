@@ -23,6 +23,12 @@ import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 import { requireAuth } from '../utils/auth-guard';
 import { haptic } from '../utils/haptic';
+// P1-UX-002 FIX: Standardized empty state component
+import { renderEmptyState } from '../utils/empty-state';
+// P1-UX-003 FIX: Service Worker registration on all portal pages
+import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P1-UX-001 FIX: SWR cache for perceived-instant tab switching
+import { swrFetch } from '../utils/swr-cache';
 // NOTE: Sidebar is loaded via <script src="/sidebar.js"> in engineer-portal.html
 
 initPullToRefresh();
@@ -142,7 +148,9 @@ function switchTab(tab: EngineerTab): void {
 // ─── Load KPIs ──────────────────────────────────────────────────────────────
 async function loadKPIs(): Promise<void> {
     try {
-        const res = await engineer.getStats();
+        const res = await swrFetch('eng-stats', () => engineer.getStats(), {
+            maxAge: 120_000, // 2 minutes
+        });
         if (!res.data) { return; }
         const data = res.data as unknown as EngineerStats;
 
@@ -151,11 +159,17 @@ async function loadKPIs(): Promise<void> {
         setKPI('proofs-verified', data.proofs_verified ?? 0);
         setKPI('escrow-released', data.escrow_released ?? 0, '$');
 
-        // Badge counts
         const bidCount = document.getElementById('notif-count');
         if (bidCount && data.active_bids > 0) {
             bidCount.textContent = String(data.active_bids);
             bidCount.classList.remove('nm-hidden');
+        }
+
+        // W5-005: KPI timestamp for data freshness trust signal
+        const kpiTimestamp = document.getElementById('kpi-last-updated');
+        if (kpiTimestamp) {
+            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
+            kpiTimestamp.dataset.timestamp = new Date().toISOString();
         }
     } catch (err) {
         reportWarning('[EngineerPortal] KPI load failed', { error: err instanceof Error ? err.message : String(err) });
@@ -172,23 +186,20 @@ async function loadProjects(): Promise<void> {
     if (!container) { return; }
 
     try {
-        const res = await engineer.getProjects();
+        const res = await swrFetch('eng-projects', () => engineer.getProjects());
         const items = (res.data ?? []) as unknown as EngineerProject[];
 
         if (!items || items.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                    <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                        <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
-                    </div>
-                    <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300">${esc(t('eng_no_projects', 'No assigned projects yet'))}</p>
-                    <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(t('eng_no_projects_desc', 'Projects will appear here once assigned by the platform.'))}</p>
-                </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'buildings',
+                title: t('eng_no_projects', 'No assigned projects yet'),
+                subtitle: t('eng_no_projects_desc', 'Projects will appear here once assigned by the platform.'),
+            });
             return;
         }
 
-        container.innerHTML = items.map((p) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
+        container.innerHTML = items.map((p, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-3">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${phaseColor(p.phase)}">${esc(phaseLabel(p.phase))}</span>
@@ -231,18 +242,15 @@ async function loadBids(): Promise<void> {
         const items = (res.data ?? []) as unknown as EngineerBid[];
 
         if (!items || items.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                    <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                        <i class="ph ph-flag-banner nm-icon-32" aria-hidden="true"></i>
-                    </div>
-                    <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300">${esc(t('eng_no_bids', 'No bids submitted yet'))}</p>
-                </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'flag-banner',
+                title: t('eng_no_bids', 'No bids submitted yet'),
+            });
             return;
         }
 
-        container.innerHTML = items.map((b) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
+        container.innerHTML = items.map((b, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${bidStatusColor(b.status)}">${esc(bidStatusLabel(b.status))}</span>
@@ -281,19 +289,16 @@ async function loadCaptures(): Promise<void> {
         const items = (res.data ?? []) as unknown as EngineerCapture[];
 
         if (!items || items.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                    <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                        <i class="ph ph-camera nm-icon-32" aria-hidden="true"></i>
-                    </div>
-                    <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300">${esc(t('eng_no_captures', 'No captures yet'))}</p>
-                    <p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(t('eng_no_captures_desc', 'Start capturing field evidence using the Field Camera.'))}</p>
-                </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'camera',
+                title: t('eng_no_captures', 'No captures yet'),
+                subtitle: t('eng_no_captures_desc', 'Start capturing field evidence using the Field Camera.'),
+            });
             return;
         }
 
-        container.innerHTML = items.map((c) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border">
+        container.innerHTML = items.map((c, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="size-14 rounded-lg bg-slate-100 overflow-hidden shrink-0 dark:bg-dark-elevated">
                     <img src="${esc(c.file_url)}" alt="${esc(c.title ?? 'Capture')}" class="size-14 object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'size-14 flex items-center justify-center\\'><i class=\\'ph ph-image-broken text-slate-400 text-xl\\'></i></div>'" />
                 </div>
@@ -388,6 +393,7 @@ function setKPI(name: string, value: number, prefix = ''): void {
 // ─── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
+    bootstrapPortal();
     initLiveTimestamp();
     setupTabs();
 

@@ -422,6 +422,59 @@
         </a>
       </section>
 
+      <!-- P1-UX-005 FIX: Workspace Discovery — authenticated users see their portal shortcuts.
+           Previous: Users had no easy way to find their portals from the homepage.
+           The only path was the bottom navigation — but new users didn't know
+           which portal they needed. This section provides contextual guidance.
+           Hidden by default; main.ts reveals it when user is authenticated. -->
+      <section id="workspace-discovery" class="px-4 mt-8 scroll-reveal nm-hidden">
+        <h2 class="text-lg font-bold mb-4" data-i18n="your_workspaces">Your Workspaces</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="workspace-grid">
+          <a href="homeowner-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
+            <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i class="ph ph-house text-trust-blue text-2xl" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_homeowner">My Home</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_homeowner_desc">Projects & service requests</span>
+          </a>
+          <a href="contractor-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
+            <div class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i class="ph ph-hard-hat text-warm-earth text-2xl" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_contractor">Contractor</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_contractor_desc">Bids & project management</span>
+          </a>
+          <a href="engineer-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
+            <div class="size-12 bg-smoky-jade/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i class="ph ph-ruler text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_engineer">Engineer</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_engineer_desc">BOQ & field captures</span>
+          </a>
+          <a href="supplier-dashboard.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
+            <div class="size-12 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i class="ph ph-storefront text-purple-600 text-2xl dark:text-purple-400" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_supplier">Supplier</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_supplier_desc">Material catalog & orders</span>
+          </a>
+          <a href="tradesperson-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
+            <div class="size-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i class="ph ph-hammer text-amber-600 text-2xl dark:text-amber-400" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_tradesperson">Tradesperson</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_tradesperson_desc">Jobs & earnings</span>
+          </a>
+          <a href="profile.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow border border-dashed border-slate-200 dark:border-dark-border group">
+            <div class="size-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform dark:bg-dark-elevated">
+              <i class="ph ph-user-circle-gear text-slate-500 text-2xl dark:text-slate-400" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_profile">Profile</span>
+            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_profile_desc">Settings & preferences</span>
+          </a>
+        </div>
+      </section>
+
       <!-- Role-Based Quick Actions -->
       <section class="px-4 mt-8 scroll-reveal">
         <h2 class="text-lg font-bold mb-4" data-i18n="quick_actions">Quick Actions</h2>

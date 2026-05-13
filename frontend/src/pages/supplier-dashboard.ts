@@ -13,6 +13,12 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-024: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// P1-UX-002 FIX: Standardized empty state component
+import { renderEmptyState } from '../utils/empty-state';
+// P1-UX-003 FIX: Service Worker registration on all portal pages
+import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P1-UX-001 FIX: SWR cache for perceived-instant tab switching
+import { swrFetch } from '../utils/swr-cache';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
 import { formatCents } from '../utils/format';
@@ -78,6 +84,7 @@ const delegationWired = { orders: false, catalog: false } as Record<string, bool
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+    bootstrapPortal();
 
     initTimestamp();
     loadKPIs();
@@ -173,7 +180,9 @@ function switchSupplierTab(tab: SupplierTab): void {
 // ─── Load KPIs ──────────────────────────────────────────────────────────────
 async function loadKPIs(): Promise<void> {
     try {
-        const res = await supplier.getStats();
+        const res = await swrFetch('sup-stats', () => supplier.getStats(), {
+            maxAge: 120_000, // 2 minutes
+        });
         if (!res.data) { return; }
         const data = res.data;
 
@@ -187,6 +196,13 @@ async function loadKPIs(): Promise<void> {
         if (bidCount) { bidCount.textContent = String(data.pending_orders ?? 0); }
         const notifCount = document.getElementById('notif-count');
         if (notifCount) { notifCount.textContent = String(data.pending_orders ?? 0); }
+
+        // W5-003: KPI timestamp for data freshness trust signal
+        const kpiTimestamp = document.getElementById('kpi-last-updated');
+        if (kpiTimestamp) {
+            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
+            kpiTimestamp.dataset.timestamp = new Date().toISOString();
+        }
     } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W10-001 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-pending-bids', 'kpi-won-contracts', 'kpi-in-transit', 'kpi-total-revenue'].forEach(id => {
@@ -206,19 +222,16 @@ async function loadOrders(): Promise<void> {
         const items = (res.data ?? []) as unknown as SupplierOrder[];
 
         if (!items || items.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-package nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300">${esc(t('supplier_no_orders', 'No purchase orders yet'))}</p>
-                <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto dark:text-slate-500">${esc(t('common_no_data_desc', 'Data will appear here once available.'))}</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'package',
+                title: t('supplier_no_orders', 'No purchase orders yet'),
+                subtitle: t('common_no_data_desc', 'Data will appear here once available.'),
+            });
             return;
         }
 
-        tbody.innerHTML = items.map((item) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = items.map((item, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-mono text-3xs text-slate-500 font-bold dark:text-slate-400">${esc(item.po_number)}</span>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${statusColor(item.status)}">${esc(statusLabel(item.status))}</span>
@@ -275,17 +288,17 @@ async function loadCatalog(): Promise<void> {
         const items = (res.data ?? []) as unknown as CatalogItem[];
 
         if (!items || items.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full text-center py-12 text-slate-400 dark:text-slate-500">
-                    <i class="ph ph-storefront nm-icon-32" aria-hidden="true"></i>
-                    <p class="mt-3 text-sm">${esc(t('supplier_catalog_empty', 'Your catalog is empty'))}</p>
-                    <p class="text-xs mt-1">${esc(t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'))}</p>
-                </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'storefront',
+                title: t('supplier_catalog_empty', 'Your catalog is empty'),
+                subtitle: t('supplier_catalog_hint', 'Add your first material to start receiving purchase orders'),
+                fullSpan: true,
+            });
             return;
         }
 
-        container.innerHTML = items.map((item) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border">
+        container.innerHTML = items.map((item, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${item.is_active

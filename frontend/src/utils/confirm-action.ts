@@ -64,6 +64,8 @@ interface ConfirmActionOptions {
 
 // TICK-033: Import shared type-safe i18n apply utility.
 import { tryApplyI18n, tryTranslate } from './i18n-apply';
+// P3-UX-004 FIX: Haptic feedback on confirmation dialog actions.
+import { haptic } from './haptic';
 
 /**
  * Shows a confirmation dialog for destructive/irreversible actions.
@@ -126,8 +128,15 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
             resolve(confirmed);
         }
 
-        dialog.querySelector('#cd-confirm')!.addEventListener('click', () => close(true));
-        dialog.querySelector('#cd-cancel')!.addEventListener('click', () => close(false));
+        dialog.querySelector('#cd-confirm')!.addEventListener('click', () => {
+            // P3-UX-004 FIX: Tactile feedback reinforces gravity of destructive/irreversible actions.
+            haptic.medium();
+            close(true);
+        });
+        dialog.querySelector('#cd-cancel')!.addEventListener('click', () => {
+            haptic.light();
+            close(false);
+        });
 
         // Native <dialog> fires 'cancel' on Escape key — handle it
         dialog.addEventListener('cancel', (e) => {

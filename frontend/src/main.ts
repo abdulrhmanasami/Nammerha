@@ -19,6 +19,10 @@ import { applyI18n } from './utils/locale';
 import { initSearch } from './utils/search-overlay';
 import { initNotificationPanel } from './components/notification-panel';
 import { initPrefetchEngine } from './utils/prefetch-engine';
+// P1-UX-005 FIX: Workspace discovery — show portal shortcuts for authenticated users
+import { isAuthenticated } from './auth';
+// P3-UX-002 FIX: Desktop keyboard shortcuts (G+D, G+P, /, ? etc.)
+import { initKeyboardShortcuts } from './utils/keyboard-shortcuts';
 
 import { signalHydrated } from './utils/hydration';
 // GAP-O2 PLATINUM FIX: Real User Monitoring — captures Core Web Vitals
@@ -268,6 +272,11 @@ function initDashboard(): void {
     // UNIFIED CITIZEN: All Quick Actions visible to all users.
     showAllQuickActions();
 
+    // P1-UX-005 FIX: Workspace discovery — show portal shortcuts for authenticated users.
+    // Previous: Authenticated users had no guidance on where their portals were from homepage.
+    // Now: "Your Workspaces" grid reveals with portal links, guest CTA card hides.
+    initWorkspaceDiscovery();
+
     // G-001 FIX: Wire search input to navigate to project discovery page.
     // Previous: search input was a complete dead end — no handler, no feedback.
     initSearchInput();
@@ -282,6 +291,9 @@ function initDashboard(): void {
 
     // FRC-005 FIX: Platform-wide search (Cmd/Ctrl+K)
     initSearch();
+    
+    // P3-UX-002 FIX: Desktop keyboard shortcuts for power users
+    initKeyboardShortcuts();
     
     // PLATINUM UX FIX: Dynamic Glass Nav Blur
     initGlassNavScroll();
@@ -346,6 +358,25 @@ function showAllQuickActions(): void {
     roleCards.forEach(card => {
         card.classList.add('role-granted');
     });
+}
+
+// ─── P1-UX-005 FIX: Workspace Discovery ─────────────────────────────────────
+// Reveal portal shortcuts for authenticated users; hide guest-only CTA.
+function initWorkspaceDiscovery(): void {
+    const wsSection = document.getElementById('workspace-discovery');
+    const guestCard = document.getElementById('guest-cta-card');
+
+    if (isAuthenticated()) {
+        // Show workspace portals
+        if (wsSection) { wsSection.classList.remove('nm-hidden'); }
+        // Hide guest-only CTA card
+        if (guestCard) { guestCard.classList.add('nm-hidden'); }
+    } else {
+        // Guest: ensure workspace section stays hidden
+        if (wsSection) { wsSection.classList.add('nm-hidden'); }
+        // Show guest CTA card
+        if (guestCard) { guestCard.classList.remove('nm-hidden'); }
+    }
 }
 
 // ─── PLT-AUD-G003 FIX: Homepage Search Input ────────────────────────────────

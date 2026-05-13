@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'firebase_options.dart';
 
 import 'core/network/api_client.dart';
@@ -86,52 +87,59 @@ void main() async {
   // FRIC-2026-F09 FIX: Branded error boundary — replaces Flutter's red error screen.
   // CrashlyticsService captures the real error. This gives users a clean recovery UI
   // instead of a wall of red text. Uses brand colors + Phosphor icons.
+  // P1-UX-007 FIX: Replaced Icons.warning_amber_rounded with PhosphorIcons
+  // (last remaining Material Icon violation). Extracted hardcoded Arabic to
+  // support bilingual error display. Uses Directionality wrapper for RTL.
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: const Color(0xFFF4F6F8), // --cloud-white
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444).withAlpha(15), // --error-red
-                    borderRadius: BorderRadius.circular(20),
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF4F6F8), // --cloud-white
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withAlpha(15), // --error-red
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      PhosphorIcons.warningCircle(),
+                      size: 40,
+                      color: const Color(0xFFEF4444),
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.warning_amber_rounded,
-                    size: 40,
-                    color: Color(0xFFEF4444),
+                  const SizedBox(height: 24),
+                  // P1-UX-007: Bilingual error message — Arabic primary, English fallback
+                  const Text(
+                    'حدث خطأ غير متوقع\nAn unexpected error occurred',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A), // --text-heading
+                      fontFamily: 'IBM Plex Sans Arabic',
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'حدث خطأ غير متوقع',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF0F172A), // --text-heading
-                    fontFamily: 'IBM Plex Sans Arabic',
+                  const SizedBox(height: 8),
+                  const Text(
+                    'نعتذر عن هذا الخلل. يرجى إعادة تشغيل التطبيق.\nPlease restart the application.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF64748B), // --text-secondary
+                      fontFamily: 'IBM Plex Sans Arabic',
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'نعتذر عن هذا الخلل. يرجى إعادة تشغيل التطبيق.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF64748B), // --text-secondary
-                    fontFamily: 'IBM Plex Sans Arabic',
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

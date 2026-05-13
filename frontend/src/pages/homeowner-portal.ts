@@ -27,6 +27,14 @@ import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // P3-003 FIX: Skeleton timeout guard
 import { guardSkeleton } from '../utils/skeleton-guard';
+// P0-UX-004 FIX: Auto-save form drafts to prevent data loss on network failure.
+import { saveDraft, loadDraft, clearDraft, hasDraft } from '../utils/form-draft';
+// P1-UX-003 FIX: Service Worker registration on all portal pages
+import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P2-UX-004 FIX: Standardized empty state component
+import { renderEmptyState } from '../utils/empty-state';
+// W5-004 FIX: SWR cache for perceived-instant tab switching
+import { swrFetch } from '../utils/swr-cache';
 
 // FIX-005: Banner Pattern Consolidation.
 // Previous: Custom showSrBanner() manually created DOM elements, managed timeouts,
@@ -91,6 +99,7 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+    bootstrapPortal();
 
     setupTabs();
     setupServiceRequestForm();
@@ -189,7 +198,16 @@ function switchTab(tab: TabName): void {
 
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         const section = document.getElementById(`section-${tabId}`);
-        if (section) { section.classList.toggle('nm-hidden', tabId !== tab); }
+        if (section) {
+            section.classList.toggle('nm-hidden', tabId !== tab);
+            // P1-UX-006 FIX: Move focus to newly visible section.
+            // Previous: Focus stayed on tab button — screen reader users stranded.
+            // Standard: WCAG 2.4.3 (Focus Order).
+            if (tabId === tab) {
+                section.setAttribute('tabindex', '-1');
+                section.focus({ preventScroll: true });
+            }
+        }
     }
 
     if (tab === 'dashboard') { loadStats(); loadDashboardProjects(); }
@@ -202,7 +220,10 @@ function switchTab(tab: TabName): void {
 // ─── KPIs ───────────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
     try {
-        const res = await homeowner.getStats();
+        // W5-004 FIX: SWR cache — homeowner-portal was the only portal without it.
+        const res = await swrFetch('ho-stats', () => homeowner.getStats(), {
+            maxAge: 120_000, // 2 minutes
+        });
         if (!res.data) { return; }
         const s = res.data;
 
@@ -223,6 +244,13 @@ async function loadStats(): Promise<void> {
             // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
             notifEl.classList.toggle('nm-hidden', count === 0);
         }
+
+        // W5-004: KPI timestamp for data freshness trust signal
+        const kpiTimestamp = document.getElementById('kpi-last-updated');
+        if (kpiTimestamp) {
+            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
+            kpiTimestamp.dataset.timestamp = new Date().toISOString();
+        }
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W10-001 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-active', 'kpi-bids', 'kpi-approvals', 'kpi-escrow'].forEach(id => setText(id, '—'));
@@ -240,17 +268,16 @@ async function loadDashboardProjects(): Promise<void> {
         const projects = allProjects.filter((p) => !['completed', 'cancelled'].includes(p.status));
 
         if (projects.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
-                <i class="ph ph-house nm-icon-40" aria-hidden="true"></i>
-                <p class="mt-3 text-sm font-medium">${esc(t('ho_no_active_projects', 'No active projects'))}</p>
-                <p class="text-xs mt-1">${esc(t('ho_report_to_start', 'Report damage to get started'))}</p>
-                <a href="/homeowner-report.html" class="inline-block mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors">${esc(t('ho_report_damage', 'Report Damage'))}</a>
-            </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'house',
+                title: t('ho_no_active_projects', 'No active projects'),
+                subtitle: t('ho_report_to_start', 'Report damage to get started'),
+            });
             return;
         }
 
-        container.innerHTML = projects.map((p) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+        container.innerHTML = projects.map((p, i) => `
+            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -294,8 +321,8 @@ async function loadProjects(): Promise<void> {
             return;
         }
 
-        tbody.innerHTML = projects.map((p) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = projects.map((p, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
@@ -336,18 +363,60 @@ async function loadProjects(): Promise<void> {
 // CRIT-003 FIX: Added trade validation — was submittable with trade_needed: "".
 // HIGH-003 FIX: Uses setLoadingState for production-quality spinner feedback.
 // MED-001 FIX: All button resets use bg-trust-blue design token (was bg-blue-600).
+// P0-UX-004 FIX: Auto-save drafts to sessionStorage to prevent data loss.
 // Standard: Nielsen #5 (Error Prevention), Nielsen #1 (System Status Visibility).
+const SR_DRAFT_KEY = 'sr_form';
+
 function setupServiceRequestForm(): void {
     const btn = document.getElementById('submit-sr-btn');
     if (!btn) { return; }
 
+    const tradeEl = document.getElementById('sr-trade') as HTMLSelectElement | null;
+    const titleEl = document.getElementById('sr-title') as HTMLInputElement | null;
+    const descEl = document.getElementById('sr-description') as HTMLTextAreaElement | null;
+    const addressEl = document.getElementById('sr-address') as HTMLInputElement | null;
+    const budgetEl = document.getElementById('sr-budget') as HTMLInputElement | null;
+    const urgencyEl = document.getElementById('sr-urgency') as HTMLSelectElement | null;
+
+    // ── P0-UX-004: Restore draft on page load ───────────────────────────────
+    if (hasDraft(SR_DRAFT_KEY)) {
+        const draft = loadDraft<Record<string, string>>(SR_DRAFT_KEY);
+        if (draft) {
+            if (tradeEl && draft.trade) { tradeEl.value = draft.trade; }
+            if (titleEl && draft.title) { titleEl.value = draft.title; }
+            if (descEl && draft.desc) { descEl.value = draft.desc; }
+            if (addressEl && draft.address) { addressEl.value = draft.address; }
+            if (budgetEl && draft.budget) { budgetEl.value = draft.budget; }
+            if (urgencyEl && draft.urgency) { urgencyEl.value = draft.urgency; }
+            // Show restore notification
+            showSrBanner('success', t('ho_draft_restored', '✓ Previous draft restored'));
+        }
+    }
+
+    // ── P0-UX-004: Auto-save on input events (debounced 500ms) ──────────────
+    function autoSaveDraft(): void {
+        saveDraft(SR_DRAFT_KEY, {
+            trade: tradeEl?.value ?? '',
+            title: titleEl?.value ?? '',
+            desc: descEl?.value ?? '',
+            address: addressEl?.value ?? '',
+            budget: budgetEl?.value ?? '',
+            urgency: urgencyEl?.value ?? '',
+        });
+    }
+
+    [tradeEl, titleEl, descEl, addressEl, budgetEl, urgencyEl].forEach((el) => {
+        el?.addEventListener('input', autoSaveDraft);
+        el?.addEventListener('change', autoSaveDraft);
+    });
+
     btn.addEventListener('click', async () => {
-        const trade = (document.getElementById('sr-trade') as HTMLSelectElement)?.value;
-        const title = (document.getElementById('sr-title') as HTMLInputElement)?.value;
-        const desc = (document.getElementById('sr-description') as HTMLTextAreaElement)?.value;
-        const address = (document.getElementById('sr-address') as HTMLInputElement)?.value;
-        const budget = (document.getElementById('sr-budget') as HTMLInputElement)?.value;
-        const urgency = (document.getElementById('sr-urgency') as HTMLSelectElement)?.value;
+        const trade = tradeEl?.value;
+        const title = titleEl?.value;
+        const desc = descEl?.value;
+        const address = addressEl?.value;
+        const budget = budgetEl?.value;
+        const urgency = urgencyEl?.value;
 
         // CRIT-003 FIX: Validate trade selection — required field for matching.
         // Previous: Only title was checked. Empty trade = unmatchable request (dead end).
@@ -362,8 +431,6 @@ function setupServiceRequestForm(): void {
         }
 
         // HIGH-003 FIX: Use shared loading state utility (spinner + disabled + aria-busy).
-        // Previous: Manual b.textContent = 'Submitting...' — no spinner, no cursor-wait.
-        // Critical for Syria 2G/3G networks where submissions take 5-30 seconds.
         const b = btn as HTMLButtonElement;
         const restore = setLoadingState(b, t('ho_submitting', 'Submitting...'));
 
@@ -373,8 +440,6 @@ function setupServiceRequestForm(): void {
                 title,
                 description: desc || undefined,
                 address_text: address || undefined,
-                // PLT-HO-001 FIX: Aligned with DB request_urgency enum.
-                // Previous: 'low' | 'medium' | 'high' — rejected by PostgreSQL.
                 urgency: (urgency || 'routine') as 'routine' | 'urgent' | 'emergency',
                 budget_max: budget ? parseInt(budget, 10) * 100 : undefined,
             });
@@ -386,17 +451,20 @@ function setupServiceRequestForm(): void {
             // Show success state via utility — auto-restores after 600ms
             restore('success');
 
+            // P0-UX-004: Clear draft on successful submit
+            clearDraft(SR_DRAFT_KEY);
+
             // Reset form fields
-            (document.getElementById('sr-trade') as HTMLSelectElement).selectedIndex = 0;
-            (document.getElementById('sr-title') as HTMLInputElement).value = '';
-            (document.getElementById('sr-description') as HTMLTextAreaElement).value = '';
-            (document.getElementById('sr-address') as HTMLInputElement).value = '';
-            (document.getElementById('sr-budget') as HTMLInputElement).value = '';
+            if (tradeEl) { tradeEl.selectedIndex = 0; }
+            if (titleEl) { titleEl.value = ''; }
+            if (descEl) { descEl.value = ''; }
+            if (addressEl) { addressEl.value = ''; }
+            if (budgetEl) { budgetEl.value = ''; }
 
             loadServiceRequests();
             loadStats();
         } catch (err) {
-            // Show error state via utility — auto-restores after 800ms
+            // Show error state — draft is PRESERVED for retry
             restore('error');
             showSrBanner('error', err instanceof Error ? err.message : t('ho_failed', 'Failed'));
         }
@@ -424,8 +492,8 @@ async function loadServiceRequests(): Promise<void> {
             return;
         }
 
-        tbody.innerHTML = requests.map((r) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = requests.map((r, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(r.status)}</span>
@@ -498,15 +566,15 @@ async function loadApprovals(): Promise<void> {
         const approvals = (res.data ?? []) as unknown as Approval[];
 
         if (approvals.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
-                <i class="ph ph-check-square nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium">${esc(t('ho_no_pending_approvals', 'No pending approvals'))}</p>
-            </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'check-square',
+                title: t('ho_no_pending_approvals', 'No pending approvals'),
+            });
             return;
         }
 
-        container.innerHTML = approvals.map((a) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+        container.innerHTML = approvals.map((a, i) => `
+            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -570,8 +638,19 @@ async function loadApprovals(): Promise<void> {
                         onConfirm: executeApproval,
                     });
                 } else {
-                    // Approve is non-destructive — proceed with loading state
-                    await executeApproval();
+                    // P2-UX-006 FIX: Approve ALSO requires confirmation.
+                    // Previous: Approve was instant and irreversible — no confirmation dialog.
+                    // On a FinTech platform, accidental approval releases escrow funds permanently.
+                    // Standard: Nielsen #5 (Error Prevention), FIDIC 13.8 (Financial Guard).
+                    confirmAction({
+                        title: t('ho_confirm_approve_title', 'Approve Milestone'),
+                        message: t('ho_confirm_approve_msg', 'This will release escrow funds for this milestone. This action cannot be undone.'),
+                        confirmLabel: t('ho_approve', 'Approve'),
+                        icon: 'check-circle',
+                        variant: 'warning',
+                        i18n: { title: 'ho_confirm_approve_title', message: 'ho_confirm_approve_msg', confirm: 'ho_approve', cancel: 'common_cancel' },
+                        onConfirm: executeApproval,
+                    });
                 }
             });
         });

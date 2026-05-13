@@ -12,6 +12,12 @@ import { formatDate } from '../utils/locale';
 import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
 import { haptic } from '../utils/haptic';
+// P1-UX-002 FIX: Standardized empty state component
+import { renderEmptyState } from '../utils/empty-state';
+// P1-UX-003 FIX: Service Worker registration on all portal pages
+import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P1-UX-001 FIX: SWR cache for perceived-instant tab switching
+import { swrFetch } from '../utils/swr-cache';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // TICK-016: Import shared setText from utils/dom.ts.
@@ -52,6 +58,7 @@ const delegationWired = { requests: false, assignments: false } as Record<string
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+    bootstrapPortal();
 
     setupTabs();
     setupAvailability();
@@ -173,8 +180,8 @@ async function loadStats(): Promise<void> {
         // Profile was previously only loaded in the dead loadProfile() tab handler,
         // leaving availability-badge and trade-badge stuck at "—" forever.
         const [statsRes, profileRes] = await Promise.allSettled([
-            tradesperson.getStats(),
-            tradesperson.getProfile(),
+            swrFetch('tp-stats', () => tradesperson.getStats(), { maxAge: 120_000 }),
+            swrFetch('tp-profile', () => tradesperson.getProfile(), { maxAge: 300_000 }),
         ]);
 
         // ── Stats KPIs ──
@@ -206,6 +213,13 @@ async function loadStats(): Promise<void> {
             }
         } else if (profileRes.status === 'rejected') {
             reportWarning('[Tradesperson] Profile load failed', { error: String(profileRes.reason) });
+        }
+
+        // W5-005: KPI timestamp for data freshness trust signal
+        const kpiTimestamp = document.getElementById('kpi-last-updated');
+        if (kpiTimestamp) {
+            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
+            kpiTimestamp.dataset.timestamp = new Date().toISOString();
         }
     } catch (err) {
         reportWarning('[Tradesperson] Stats load failed, showing defaults', { component: 'tradesperson', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
@@ -240,14 +254,11 @@ async function loadActiveJobs(): Promise<void> {
         }
 
         if (requests.length === 0 && assignments.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full mt-4 dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-sun-dim nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300" data-i18n="tp_no_active_work">No active work</p>
-                <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto dark:text-slate-500" data-i18n="tp_check_available">Check Available Jobs for new opportunities</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'sun-dim',
+                title: t('tp_no_active_work', 'No active work'),
+                subtitle: t('tp_check_available', 'Check Available Jobs for new opportunities'),
+            });
             return;
         }
 
@@ -305,16 +316,16 @@ async function loadRequests(): Promise<void> {
         const requests = res.data ?? [];
 
         if (requests.length === 0) {
-            container.innerHTML = `<div class="p-8 text-center text-slate-400 dark:text-slate-500">
-                <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
-                <p class="mt-2 text-sm font-medium" data-i18n="tp_no_requests">No requests matching your trade</p>
-                <p class="text-xs mt-1" data-i18n="tp_new_requests_auto">New requests will appear here automatically</p>
-            </div>`;
+            container.innerHTML = renderEmptyState({
+                icon: 'magnifying-glass',
+                title: t('tp_no_requests', 'No requests matching your trade'),
+                subtitle: t('tp_new_requests_auto', 'New requests will appear here automatically'),
+            });
             return;
         }
 
-        container.innerHTML = requests.map((r) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors">
+        container.innerHTML = requests.map((r, i) => `
+            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -389,18 +400,15 @@ async function loadAssignments(): Promise<void> {
         const assignments = res.data ?? [];
 
         if (assignments.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full mt-4 dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300" data-i18n="tp_no_assignments">No contractor assignments</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'clipboard-text',
+                title: t('tp_no_assignments', 'No contractor assignments'),
+            });
             return;
         }
 
-        tbody.innerHTML = assignments.map((a) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = assignments.map((a, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-1">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
@@ -478,18 +486,15 @@ async function loadEarnings(): Promise<void> {
         const earnings = res.data ?? [];
 
         if (earnings.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full mt-4 dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-coins nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="font-bold text-slate-700 text-sm mt-2 dark:text-slate-300" data-i18n="tp_no_earnings">No earnings yet</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'coins',
+                title: t('tp_no_earnings', 'No earnings yet'),
+            });
             return;
         }
 
-        tbody.innerHTML = earnings.map((e) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = earnings.map((e, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div>
                     <h3 class="font-bold text-sm text-slate-900 mb-1 dark:text-slate-100">${esc(e.title)}</h3>
                     <div class="flex items-center gap-2">

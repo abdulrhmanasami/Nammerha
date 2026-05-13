@@ -216,6 +216,16 @@ function init(): void {
             haptic.medium(); // UX-004: Confirm action feedback
             depositDialog.showModal();
         });
+        // P2-UX-002 FIX: Add "Coming Soon" badge to deposit button so users
+        // know before tapping. Prevents the "click → nothing happened" frustration.
+        const depositBtnLabel = depositBtn.querySelector('span[data-i18n]');
+        if (depositBtnLabel && !depositBtn.querySelector('.nm-coming-soon-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'nm-coming-soon-badge text-3xs opacity-60 ms-1';
+            badge.textContent = t('coming_soon_short', '(Soon)');
+            badge.dataset.i18n = 'coming_soon_short';
+            depositBtnLabel.after(badge);
+        }
         // Wire dialog cancel button
         depositDialog.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
             depositDialog.close();
@@ -254,14 +264,23 @@ function init(): void {
             const banner = document.createElement('div');
             banner.id = 'add-funds-banner';
             banner.className = 'mt-3 rounded-xl p-3 text-xs font-medium flex items-center gap-2 bg-white/20 text-white backdrop-blur-sm animate-fade-in-up';
+            // P2-UX-001 FIX: Replaced auto-dismiss setTimeout with user-controlled dismiss button.
+            // Previous: Banner vanished after 5s — slow readers, cognitive disabilities couldn't finish reading.
+            // Standard: WCAG 2.2.1 (Timing Adjustable), Nielsen #3 (User Control).
             banner.innerHTML = `
                 <i class="ph ph-info shrink-0 text-base" aria-hidden="true"></i>
-                <span>${escapeHtml(t('add_funds_coming_soon', 'Direct deposits are coming soon. For now, fund projects directly from the project page.'))}</span>
+                <span class="flex-1">${escapeHtml(t('add_funds_coming_soon', 'Direct deposits are coming soon. For now, fund projects directly from the project page.'))}</span>
+                <button type="button" class="shrink-0 ms-2 p-1 rounded-full hover:bg-white/20 transition-colors" aria-label="${escapeHtml(t('common_dismiss', 'Dismiss'))}">
+                    <i class="ph ph-x text-sm" aria-hidden="true"></i>
+                </button>
             `;
             parent.appendChild(banner);
 
-            // Auto-dismiss after 5s
-            setTimeout(() => banner.remove(), 5000);
+            // Dismiss on button click
+            banner.querySelector('button')?.addEventListener('click', () => {
+                banner.classList.add('animate-fade-out');
+                banner.addEventListener('animationend', () => banner.remove(), { once: true });
+            });
         });
     }
 }

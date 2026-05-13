@@ -36,6 +36,14 @@ import { initNotificationPanel } from '../components/notification-panel';
 /**
  * Shows the "Please sign in" overlay on the current page.
  * Replaces skeleton loaders with a clear auth-required message.
+ *
+ * P0-UX-005 FIX: Contextual session expiry message.
+ * Previous: Identical "Sign in required" for both expired sessions and
+ * unauthenticated users. Users mid-task thought the app was broken.
+ * Now: Detects stale auth data in localStorage to distinguish:
+ *   - 'expired': Had a session that is no longer valid → "Session expired"
+ *   - 'unauthenticated': Never logged in → "Sign in required"
+ * Standard: Nielsen #1 (System Status Visibility), FinTech Trust UX.
  */
 function showAuthRequired(): void {
     const mainContent = document.getElementById('main-content');
@@ -43,17 +51,37 @@ function showAuthRequired(): void {
         return;
     }
 
+    // P0-UX-005: Detect if this is a session expiry vs first visit
+    let isExpired = false;
+    try {
+        const staleAuth = localStorage.getItem('nammerha_auth');
+        if (staleAuth) {
+            // User HAD a session but it's no longer valid
+            isExpired = true;
+            // Clean up stale data to prevent perpetual "expired" state
+            localStorage.removeItem('nammerha_auth');
+        }
+    } catch { /* Safari private mode */ }
+
+    const icon = isExpired ? 'clock' : 'lock';
+    const titleKey = isExpired ? 'session_expired' : 'auth_required';
+    const titleDefault = isExpired ? 'Session Expired' : 'Sign in required';
+    const msgKey = isExpired ? 'session_expired_msg' : 'auth_required_msg';
+    const msgDefault = isExpired
+        ? 'Your session has expired for security. Please sign in again to continue.'
+        : 'Please sign in to access this page. Your data is safe and waiting for you.';
+
     // Determine current page path for redirect-after-login
     const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
 
     mainContent.innerHTML = `
         <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
-            <div class="size-20 rounded-full bg-trust-blue/10 flex items-center justify-center">
-                <i class="ph ph-lock text-trust-blue nm-icon-40" aria-hidden="true"></i>
+            <div class="size-20 rounded-full ${isExpired ? 'bg-warning-yellow/10' : 'bg-trust-blue/10'} flex items-center justify-center">
+                <i class="ph ph-${icon} ${isExpired ? 'text-warning-yellow' : 'text-trust-blue'} nm-icon-40" aria-hidden="true"></i>
             </div>
-            <h2 class="text-lg font-bold" data-i18n="auth_required">Sign in required</h2>
-            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="auth_required_msg">
-                Please sign in to access this page. Your data is safe and waiting for you.
+            <h2 class="text-lg font-bold" data-i18n="${titleKey}">${titleDefault}</h2>
+            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="${msgKey}">
+                ${msgDefault}
             </p>
             <a href="/auth.html?redirect=${returnPath}" class="btn-primary nm-btn-inline mt-2">
                 <i class="ph ph-sign-in" aria-hidden="true"></i>

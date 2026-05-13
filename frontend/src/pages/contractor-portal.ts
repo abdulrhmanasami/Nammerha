@@ -26,6 +26,12 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-018: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// P1-UX-002 FIX: Standardized empty state component
+import { renderEmptyState } from '../utils/empty-state';
+// P1-UX-003 FIX: Service Worker registration on all portal pages
+import { bootstrapPortal } from '../utils/portal-bootstrap';
+// P1-UX-001 FIX: SWR cache for perceived-instant tab switching
+import { swrFetch } from '../utils/swr-cache';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -77,6 +83,7 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+    bootstrapPortal();
 
     setupTabs();
     const initialTab = hashRouter.getInitialTab();
@@ -157,7 +164,9 @@ function switchTab(tab: TabName): void {
 // ─── KPI Cards ──────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
     try {
-        const res = await contractor.getStats();
+        const res = await swrFetch('ct-stats', () => contractor.getStats(), {
+            maxAge: 120_000, // 2 minutes — KPIs don't change that fast
+        });
         if (!res.data) { return; }
         const s = res.data;
 
@@ -166,6 +175,16 @@ async function loadStats(): Promise<void> {
         setText('kpi-won', String(s.won_bids));
         setText('kpi-escrow', formatCents(s.total_escrow_received));
         setText('pending-bids-count', String(s.pending_bids));
+
+        // P3-UX-001 FIX: "Last updated" temporal context on KPI dashboard.
+        // Previous: "3 Active Projects" — since when? No temporal trust signal.
+        // Standard: Nielsen #1 (System Status), FinTech Data Freshness.
+        const kpiTimestamp = document.getElementById('kpi-last-updated');
+        if (kpiTimestamp) {
+            const now = new Date();
+            kpiTimestamp.textContent = t('kpi_just_updated', 'Updated just now');
+            kpiTimestamp.dataset.timestamp = now.toISOString();
+        }
     } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
         ['kpi-active', 'kpi-pending', 'kpi-won', 'kpi-escrow'].forEach(id => setText(id, '—'));
@@ -178,23 +197,21 @@ async function loadProjects(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await contractor.getProjects();
+        const res = await swrFetch('ct-projects', () => contractor.getProjects());
         const projects = (res.data ?? []) as unknown as Project[];
 
         if (projects.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_assigned_projects', 'No assigned projects yet'))}</p>
-                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ct_browse_marketplace', 'Browse the marketplace and submit bids'))}</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'clipboard-text',
+                title: t('ct_no_assigned_projects', 'No assigned projects yet'),
+                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
+            });
             return;
         }
 
-        tbody.innerHTML = projects.map((p) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+        // P2-UX-003 FIX: Stagger animation — cards cascade in sequentially (50ms delay).
+        tbody.innerHTML = projects.map((p, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(ctPhaseLabel(p.phase))}</span>
@@ -233,19 +250,16 @@ async function loadMarketplace(): Promise<void> {
         const projects = (res.data ?? []) as unknown as MarketProject[];
 
         if (projects.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_projects_available', 'No projects available'))}</p>
-                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ct_new_projects_appear', 'New projects will appear here when published'))}</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'magnifying-glass',
+                title: t('ct_no_projects_available', 'No projects available'),
+                subtitle: t('ct_new_projects_appear', 'New projects will appear here when published'),
+            });
             return;
         }
 
-        tbody.innerHTML = projects.map((p) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = projects.map((p, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pe-12 dark:text-slate-100">${esc(p.title)}</h3>
                     <div class="text-end">
@@ -313,18 +327,16 @@ async function loadBids(): Promise<void> {
         const bids = res.data ?? [];
 
         if (bids.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-flag-banner nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_bids_yet', 'No bids submitted yet'))}</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'flag-banner',
+                title: t('ct_no_bids_yet', 'No bids submitted yet'),
+                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
+            });
             return;
         }
 
-        tbody.innerHTML = bids.map((b) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = bids.map((b, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(ctBidStatusLabel(b.status))}</span>
@@ -361,18 +373,15 @@ async function loadPayments(): Promise<void> {
         const payments = (res.data ?? []) as unknown as Payment[];
 
         if (payments.length === 0) {
-            tbody.innerHTML = `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-wallet nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ct_no_payments_yet', 'No payments yet'))}</p>
-            </div>`;
+            tbody.innerHTML = renderEmptyState({
+                icon: 'wallet',
+                title: t('ct_no_payments_yet', 'No payments yet'),
+            });
             return;
         }
 
-        tbody.innerHTML = payments.map((p) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+        tbody.innerHTML = payments.map((p, i) => `
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.project_title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(p.transaction_type)}">${esc(ctEscrowStatusLabel(p.transaction_type))}</span>
