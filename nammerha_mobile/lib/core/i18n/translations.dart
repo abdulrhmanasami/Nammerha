@@ -127,6 +127,13 @@ const Map<String, Map<String, String>> kTranslations = {
   'auth_sign_in_link': {'ar': 'سجّل دخولك', 'en': 'Sign in'},
   'auth_social_divider': {'ar': 'أو تسجيل الدخول عبر', 'en': 'Or sign in with'},
 
+  // UX-F003-F006 FIX: Auth screen i18n completeness — no hardcoded Arabic.
+  'auth_resend_verify_link': {'ar': 'إعادة إرسال رابط التحقق', 'en': 'Resend verification link'},
+  'auth_resend_verify_failed': {'ar': 'تعذر إعادة إرسال رابط التحقق - حاول مرة أخرى', 'en': 'Failed to resend verification link — please try again'},
+  'auth_social_facebook_coming_soon': {'ar': 'تسجيل الدخول عبر Facebook — قريباً. استخدم Google أو Apple حالياً.', 'en': 'Facebook sign-in — coming soon. Use Google or Apple for now.'},
+  'auth_social_unavailable': {'ar': 'تسجيل الدخول غير متاح حالياً', 'en': 'Sign-in currently unavailable'},
+  'auth_social_login_failed': {'ar': 'فشل تسجيل الدخول', 'en': 'Sign-in failed'},
+
   // ═══ HOMEOWNER PORTAL (C1 FIX — i18n Completeness) ═══
   'ho_portal_title': {'ar': 'بوابة المتضرر', 'en': 'Homeowner Portal'},
   'ho_damage_report': {'ar': 'تقرير أضرار', 'en': 'Damage Report'},
@@ -552,6 +559,10 @@ const Map<String, Map<String, String>> kTranslations = {
   'dashboard_activity_hint': {'ar': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', 'en': 'Recent activity will appear here once you start working on projects'},
 
   // ═══ PROJECT DISCOVERY & CART ═══
+  // UX-F022 FIX: Marketplace filter sheet i18n keys.
+  'filter_sort': {'ar': 'فرز وتصفية', 'en': 'Filter & Sort'},
+  'project_status': {'ar': 'حالة المشروع', 'en': 'Project Status'},
+  'funding_ratio': {'ar': 'نسبة التمويل', 'en': 'Funding Ratio'},
   'map_of_projects': {'ar': 'خريطة المشاريع', 'en': 'Projects Map'},
   'search_projects_hint': {'ar': 'البحث عن مشاريع...', 'en': 'Search projects...'},
   // SUSPENDED: Donation cart suspended indefinitely (May 2026)
@@ -1266,4 +1277,51 @@ const Map<String, Map<String, String>> kTranslations = {
   'time_ago_days': {'ar': 'منذ \$1 يوم', 'en': '\$1d ago'},
   'select_project_first': {'ar': 'اختر مشروعاً أولاً', 'en': 'Select a project first'},
   'select_project_for_camera': {'ar': 'اختر المشروع للتصوير المكاني', 'en': 'Select project for spatial capture'},
+
+  // ═══ UX-F029: Guided Feature Tour Steps (May 2026) ═══
+  'tour_dashboard_title': {'ar': 'لوحة مهامك', 'en': 'Your Task Board'},
+  'tour_dashboard_body': {'ar': 'تابع كل مشاريعك وإحصائياتك\nمن مكان واحد مع تحديثات لحظية', 'en': 'Track all your projects and statistics\nfrom one place with live updates'},
+  'tour_discover_title': {'ar': 'استكشاف المشاريع', 'en': 'Explore Projects'},
+  'tour_discover_body': {'ar': 'تصفّح المشاريع المتاحة وساهم بالعطاءات\nأو تقدّم كمقاول', 'en': 'Browse available projects, submit bids,\nor apply as a contractor'},
+  'tour_camera_title': {'ar': 'الإثبات المكاني', 'en': 'Spatial Proof'},
+  'tour_camera_body': {'ar': 'التقط صوراً محمية بالـ GPS و SHA-256\nلإثبات التقدم الحقيقي في الميدان', 'en': 'Capture GPS-protected & SHA-256 verified\nphotos to prove real field progress'},
+  'tour_escrow_title': {'ar': 'حماية الإسكرو', 'en': 'Escrow Protection'},
+  'tour_escrow_body': {'ar': 'الأموال محمية في حساب ضمان آمن\nوتُفرج فقط عند التحقق من الإنجاز', 'en': 'Funds are protected in a secure escrow\naccount, released only upon verified completion'},
+  'tour_profile_title': {'ar': 'ملفك الشخصي', 'en': 'Your Profile'},
+  'tour_profile_body': {'ar': 'أدِر حسابك وإعداداتك\nوتابع تقييمات ثقتك', 'en': 'Manage your account, settings,\nand track your trust ratings'},
+  'tour_start_exploring': {'ar': 'ابدأ الاستكشاف', 'en': 'Start Exploring'},
+  'tour_skip': {'ar': 'تخطّي', 'en': 'Skip'},
+
+  // ═══ UX-F027: Registration Wizard Parity (May 2026) ═══
+  // Step titles & subtitles
+  'reg_identity_title': {'ar': 'معلومات الهوية', 'en': 'Your Identity'},
+  'reg_identity_subtitle': {'ar': 'الرجاء إدخال اسمك الكامل للبدء', 'en': 'Please enter your full name to get started'},
+  'reg_account_title': {'ar': 'معلومات الحساب', 'en': 'Account Details'},
+  'reg_account_subtitle': {'ar': 'أدخل بريدك الإلكتروني ليكون معرّف الدخول', 'en': 'Enter your email as your login identifier'},
+  'reg_security_title': {'ar': 'الأمان', 'en': 'Security'},
+  'reg_security_subtitle': {'ar': 'قم بتعيين كلمة مرور قوية لحماية حسابك', 'en': 'Set a strong password to protect your account'},
+
+  // Validation messages
+  'reg_name_required': {'ar': 'الاسم مطلوب', 'en': 'Name is required'},
+  'reg_email_required': {'ar': 'البريد الإلكتروني مطلوب', 'en': 'Email is required'},
+  'reg_email_invalid': {'ar': 'بريد إلكتروني غير صالح', 'en': 'Invalid email address'},
+  'reg_pw_required': {'ar': 'كلمة المرور مطلوبة', 'en': 'Password is required'},
+  'reg_pw_min_length': {'ar': 'كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'en': 'Password must be at least 8 characters'},
+  'reg_pw_needs_upper': {'ar': 'يجب أن تحتوي على حرف كبير واحد', 'en': 'Must contain at least 1 uppercase letter'},
+  'reg_pw_needs_lower': {'ar': 'يجب أن تحتوي على حرف صغير واحد', 'en': 'Must contain at least 1 lowercase letter'},
+  'reg_pw_needs_number': {'ar': 'يجب أن تحتوي على رقم واحد', 'en': 'Must contain at least 1 number'},
+  'reg_pw_needs_symbol': {'ar': 'يجب أن تحتوي على رمز خاص واحد', 'en': 'Must contain at least 1 special character'},
+  'reg_pw_hint': {'ar': '8+ أحرف: كبير، صغير، رقم، رمز خاص', 'en': '8+ chars: uppercase, lowercase, number, symbol'},
+  'reg_confirm_required': {'ar': 'تأكيد كلمة المرور مطلوب', 'en': 'Please confirm your password'},
+  'reg_password_mismatch': {'ar': 'كلمات المرور غير متطابقة', 'en': 'Passwords do not match'},
+
+  // Terms consent (GDPR Art.7)
+  'reg_terms_agree': {'ar': 'أوافق على شروط الخدمة وسياسة الخصوصية', 'en': 'I agree to the Terms of Service and Privacy Policy'},
+  'reg_terms_required': {'ar': 'يجب الموافقة على الشروط والأحكام للمتابعة', 'en': 'You must accept the Terms and Privacy Policy to continue'},
+
+  // Review card
+  'reg_review_title': {'ar': 'مراجعة بياناتك', 'en': 'REVIEW YOUR INFO'},
+
+  // Password strength (missing key used by PasswordStrengthIndicator widget)
+  'pw_strength_none': {'ar': '', 'en': ''},
 };

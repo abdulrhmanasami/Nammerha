@@ -47,7 +47,21 @@
         'map_data_error': { ar: 'فشل تحميل بيانات الخريطة', de: 'Kartendaten konnten nicht geladen werden', fr: 'Échec du chargement des données de la carte', tr: 'Harita verileri yüklenemedi' },
         'map_init_error': { ar: 'فشل تهيئة الخريطة', de: 'Karteninitialisierung fehlgeschlagen', fr: 'Échec de l\'initialisation de la carte', tr: 'Harita başlatılamadı' },
         'map_projects_syncing': { ar: 'جاري مزامنة المشاريع...', de: 'Projekte werden synchronisiert...', fr: 'Synchronisation des projets...', tr: 'Projeler senkronize ediliyor...' },
-        'map_region_syria': { ar: 'سوريا', de: 'Syrien', fr: 'Syrie', tr: 'Suriye' }
+        'map_region_syria': { ar: 'سوريا', de: 'Syrien', fr: 'Syrie', tr: 'Suriye' },
+
+        // ═══ UX-F012: Task-Centric Navigation ═══
+        'ws_what_do_you_need': { ar: 'شو بدك تعمل؟', de: 'Was brauchen Sie?', fr: 'Que souhaitez-vous faire ?', tr: 'Ne yapmanız gerekiyor?' },
+        'ws_all_tools_available': { ar: 'كل الأدوات متاحة لكل مستخدم — اختر ما تحتاجه الآن.', de: 'Alle Werkzeuge sind für jeden Benutzer verfügbar — wählen Sie, was Sie jetzt brauchen.', fr: 'Tous les outils sont disponibles pour chaque utilisateur — choisissez ce dont vous avez besoin.', tr: 'Tüm araçlar her kullanıcı için mevcuttur — şu an ihtiyacınız olanı seçin.' },
+        'task_fix_home': { ar: 'صلّح بيتي', de: 'Mein Haus reparieren', fr: 'Réparer ma maison', tr: 'Evimi Onar' },
+        'task_fix_home_desc': { ar: 'أبلغ عن أضرار، تابع الترميم', de: 'Schäden melden, Reparatur verfolgen', fr: 'Signaler des dégâts, suivre les réparations', tr: 'Hasar bildir, onarımı takip et' },
+        'task_find_work': { ar: 'لاقي شغل', de: 'Arbeit finden', fr: 'Trouver du travail', tr: 'İş Bul' },
+        'task_find_work_desc': { ar: 'تقدّم لعطاءات، نفّذ مشاريع', de: 'Angebote abgeben, Projekte ausführen', fr: 'Soumettre des offres, exécuter des projets', tr: 'Tekliflere katıl, projeleri yürüt' },
+        'task_sell_materials': { ar: 'بيع مواد', de: 'Materialien verkaufen', fr: 'Vendre des matériaux', tr: 'Malzeme Sat' },
+        'task_sell_materials_desc': { ar: 'أعرض منتجاتك، تابع الطلبيات', de: 'Produkte anbieten, Aufträge verfolgen', fr: 'Lister vos produits, suivre les commandes', tr: 'Ürünlerini listele, siparişleri takip et' },
+        'ws_continue_to': { ar: 'تابع إلى', de: 'Weiter zu', fr: 'Continuer vers', tr: 'Devam et:' },
+        'ws_go_to_workspace': { ar: 'انتقل للمساحة', de: 'Zum Arbeitsbereich', fr: 'Aller à l\'espace', tr: 'Çalışma alanına git' },
+        'ws_profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
+        'ws_profile_desc': { ar: 'الإعدادات والتفضيلات', de: 'Einstellungen & Präferenzen', fr: 'Paramètres & préférences', tr: 'Ayarlar ve tercihler' }
         });
     }
 })();

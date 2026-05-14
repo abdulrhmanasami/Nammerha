@@ -69,7 +69,24 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: Text(widget.projectTitle ?? 'تفاصيل المشروع'),
+        // UX-F028: Hero shared element — title morphs FROM marketplace card title.
+        // Material(type: transparency) prevents white background flash during flight.
+        title: Hero(
+          tag: 'project_title_${widget.projectId}',
+          child: Material(
+            type: MaterialType.transparency,
+            child: Text(
+              widget.projectTitle ?? 'تفاصيل المشروع',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
         actions: [
           ListenableBuilder(
             listenable: CartStore.instance,
@@ -79,7 +96,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
+                    icon: Icon(PhosphorIconsRegular.shoppingCart, color: colors.primaryBrand),
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                     },
@@ -104,7 +121,40 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: BlocConsumer<ProjectDetailsBloc, ProjectDetailsState>(
+      // UX-F028: Body restructured to Column with Hero gradient strip + Expanded BlocConsumer.
+      // The Hero gradient strip is ALWAYS visible from frame 1 (before data loads),
+      // guaranteeing a smooth Hero flight from the marketplace card header.
+      body: Column(
+        children: [
+          // Hero destination — gradient strip (matches marketplace card header)
+          Hero(
+            tag: 'project_header_${widget.projectId}',
+            child: Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [colors.primaryBrand.withAlpha(40), colors.primaryBrand.withAlpha(15)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      PhosphorIconsRegular.buildings,
+                      size: 48,
+                      color: colors.primaryBrand.withAlpha(60),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Main content — BlocConsumer handles loading/loaded/error states
+          Expanded(
+            child: BlocConsumer<ProjectDetailsBloc, ProjectDetailsState>(
         listener: (context, state) {},
         builder: (context, state) {
           if (state is ProjectDetailsLoading || state is ProjectDetailsInitial) {
@@ -199,6 +249,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
           return const SizedBox.shrink();
         },
+      ),
+          ),
+        ],
       ),
       bottomNavigationBar: BlocBuilder<ProjectDetailsBloc, ProjectDetailsState>(
         builder: (context, state) {
@@ -463,7 +516,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   ),
                 );
               },
-              icon: Icon(PhosphorIconsRegular.warningCircle, size: 18),
+              icon: Icon(PhosphorIconsRegular.shoppingCart, size: 18),
               label: Text(context.tr('add_to_cart')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
@@ -513,7 +566,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               builder: (_) => TransparencyDashboardScreen(projectId: widget.projectId),
             ));
           },
-          icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
+          icon: Icon(PhosphorIconsRegular.eye, color: colors.primaryBrand),
           label: Text('سجل الشفافية (OCDS)', style: TextStyle(color: colors.primaryBrand)),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),

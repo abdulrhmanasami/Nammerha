@@ -128,6 +128,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 backgroundColor: colors.error,
               ),
             );
+          // UX-F026 FIX: Forgot password confirmation — await backend before feedback.
+          // PREVIOUS: Success snackbar shown BEFORE API response (false positive).
+          // NOW: BLoC emits AuthPasswordResetSent after backend confirms.
+          } else if (state is AuthPasswordResetSent) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.tr('auth_reset_link_sent')),
+                backgroundColor: colors.success,
+                duration: const Duration(seconds: 5),
+              ),
+            );
           }
         },
         child: Scaffold(
@@ -338,7 +349,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 label: formState.isLoginMode
                                     ? context.tr('auth_sign_in_btn')
                                     : context.tr('auth_create_account_btn'),
-                                icon: formState.isLoginMode ? PhosphorIconsRegular.signIn : PhosphorIconsRegular.warningCircle,
+                                // UX-F001 FIX: Register button uses userPlus (was warningCircle placeholder).
+                                icon: formState.isLoginMode ? PhosphorIconsRegular.signIn : PhosphorIconsRegular.userPlus,
                                 isLoading: state is AuthLoading,
                                 onPressed: () => _submit(
                                   formState.isLoginMode,
@@ -482,12 +494,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               if (emailController.text.trim().isNotEmpty) {
                 context.read<AuthBloc>().add(AuthForgotPassword(emailController.text.trim()));
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(context.tr('auth_reset_link_sent')),
-                    backgroundColor: colors.success,
-                  ),
-                );
+                // UX-F026 FIX: REMOVED premature success snackbar.
+                // PREVIOUS: Showed 'Link sent ✓' BEFORE backend confirmed.
+                // NOW: BLocListener handles AuthPasswordResetSent (success)
+                // and AuthError (failure) — user sees accurate feedback only.
               }
             },
             style: ElevatedButton.styleFrom(
@@ -539,8 +549,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             onPressed: () {
               ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
             },
+            // UX-F003 FIX: Hardcoded Arabic 'حسناً' → i18n
             child: Text(
-              'حسناً',
+              context.tr('ok'),
               style: TextStyle(color: colors.textSecondary),
             ),
           ),
@@ -571,9 +582,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 }
               } catch (e) {
                 if (context.mounted) {
+                  // UX-F004 FIX: Hardcoded Arabic error → i18n
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('تعذر إعادة إرسال رابط التحقق - حاول مرة أخرى'),
+                      content: Text(context.tr('auth_resend_verify_failed')),
                       backgroundColor: colors.error,
                       duration: const Duration(seconds: 4),
                     ),
@@ -581,8 +593,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 }
               }
             },
+            // UX-F005 FIX: Hardcoded Arabic → i18n
             child: Text(
-              'إعادة إرسال رابط التحقق',
+              context.tr('auth_resend_verify_link'),
               style: TextStyle(
                 color: colors.primaryBrand,
                 fontWeight: FontWeight.w700,
@@ -625,9 +638,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     return Row(
       children: [
         Expanded(
+          // UX-F001 FIX: warningCircle → googleLogo (Phosphor brand icon)
           child: _buildSocialButton(
             label: 'Google',
-            icon: PhosphorIconsRegular.warningCircle,
+            icon: PhosphorIconsRegular.googleLogo,
             backgroundColor: Colors.white,
             foregroundColor: const Color(0xFF3C4043),
             borderColor: const Color(0xFFDADCE0),
@@ -636,9 +650,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ),
         const SizedBox(width: 10),
         Expanded(
+          // UX-F001 FIX: warningCircle → appleLogo (Phosphor brand icon)
           child: _buildSocialButton(
             label: 'Apple',
-            icon: PhosphorIconsRegular.warningCircle,
+            icon: PhosphorIconsRegular.appleLogo,
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
             borderColor: Colors.black,
@@ -647,9 +662,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ),
         const SizedBox(width: 10),
         Expanded(
+          // UX-F001 FIX: warningCircle → facebookLogo (Phosphor brand icon)
           child: _buildSocialButton(
             label: 'Facebook',
-            icon: PhosphorIconsRegular.warningCircle,
+            icon: PhosphorIconsRegular.facebookLogo,
             backgroundColor: const Color(0xFF1877F2),
             foregroundColor: Colors.white,
             borderColor: const Color(0xFF1877F2),
@@ -723,12 +739,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         final providerNames = {'google': 'Google', 'apple': 'Apple', 'facebook': 'Facebook'};
         final displayName = providerNames[provider] ?? provider;
 
+        // UX-F006 FIX: Hardcoded Arabic social auth errors → i18n
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               provider == 'facebook'
-                  ? 'تسجيل الدخول عبر $displayName — قريباً. استخدم Google أو Apple حالياً.'
-                  : 'تسجيل الدخول عبر $displayName غير متاح حالياً: ${e.reason}',
+                  ? context.tr('auth_social_facebook_coming_soon')
+                  : '${context.tr('auth_social_unavailable')} ($displayName): ${e.reason}',
             ),
             backgroundColor: context.colors.primaryBrand,
             duration: const Duration(seconds: 4),
@@ -737,9 +754,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       }
     } catch (e) {
       if (mounted) {
+        // UX-F006 FIX: Hardcoded Arabic login failure → i18n
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل تسجيل الدخول: ${e.toString()}'),
+            content: Text('${context.tr('auth_social_login_failed')}: ${e.toString()}'),
             backgroundColor: context.colors.error,
             duration: const Duration(seconds: 4),
           ),

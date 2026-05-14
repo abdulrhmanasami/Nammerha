@@ -360,17 +360,72 @@ function showAllQuickActions(): void {
     });
 }
 
-// ─── P1-UX-005 FIX: Workspace Discovery ─────────────────────────────────────
-// Reveal portal shortcuts for authenticated users; hide guest-only CTA.
+// ─── UX-F012: Task-Centric Workspace Discovery ──────────────────────────────
+// PREVIOUS: 5 role-centric portal cards — users asked "who am I?" not "what do I need?"
+// NOW: 3 task-centric cards + localStorage workspace memory + "Continue" banner.
+// Returning users see a highlighted "Continue to [X]" banner above the cards.
+// Standard: Airbnb/Fiverr pattern — task facade, portal backend.
+
+/** Workspace metadata for continue banner rendering */
+const WORKSPACE_META: Record<string, { href: string; icon: string; colorClass: string }> = {
+    homeowner:  { href: 'homeowner-portal.html',  icon: 'ph-house',      colorClass: 'text-trust-blue' },
+    contractor: { href: 'contractor-portal.html',  icon: 'ph-briefcase',  colorClass: 'text-warm-earth' },
+    supplier:   { href: 'supplier-dashboard.html', icon: 'ph-storefront', colorClass: 'text-purple-600 dark:text-purple-400' },
+};
+
+const WS_STORAGE_KEY = 'nm_preferred_workspace';
+
 function initWorkspaceDiscovery(): void {
     const wsSection = document.getElementById('workspace-discovery');
     const guestCard = document.getElementById('guest-cta-card');
+    const continueSlot = document.getElementById('ws-continue-slot');
 
     if (isAuthenticated()) {
-        // Show workspace portals
+        // Show workspace section
         if (wsSection) { wsSection.classList.remove('nm-hidden'); }
         // Hide guest-only CTA card
         if (guestCard) { guestCard.classList.add('nm-hidden'); }
+
+        // ── Continue Banner (localStorage workspace memory) ──
+        const preferredId = localStorage.getItem(WS_STORAGE_KEY);
+        if (preferredId && WORKSPACE_META[preferredId] && continueSlot) {
+            const meta = WORKSPACE_META[preferredId];
+            // Find the label from the corresponding card's data attribute
+            const preferredCard = document.querySelector<HTMLElement>(`[data-workspace-id="${preferredId}"]`);
+            const labelKey = preferredCard?.dataset.workspaceLabelKey ?? '';
+            const fallbackLabel = preferredCard?.querySelector<HTMLElement>('[data-i18n]')?.textContent ?? preferredId;
+
+            continueSlot.innerHTML = `
+                <a href="${meta.href}"
+                   class="nm-ws-continue glass-card p-4 rounded-2xl flex items-center gap-3 mb-3 group"
+                   data-workspace-id="${preferredId}">
+                    <div class="size-10 rounded-xl flex items-center justify-center shrink-0 nm-ws-continue-icon">
+                        <i class="ph ${meta.icon} text-xl text-white" aria-hidden="true"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                              data-i18n="ws_continue_to">Continue to</span>
+                        <span class="text-sm font-bold text-slate-800 block dark:text-slate-200"
+                              data-i18n="${labelKey}">${fallbackLabel}</span>
+                    </div>
+                    <i class="ph ph-caret-right text-lg ${meta.colorClass} group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
+                </a>`;
+
+            // Highlight the preferred card in the grid
+            preferredCard?.classList.add('nm-ws-preferred');
+
+            applyI18n();
+        }
+
+        // ── Track workspace clicks → save to localStorage ──
+        document.querySelectorAll<HTMLElement>('[data-workspace-id]').forEach(card => {
+            card.addEventListener('click', () => {
+                const wsId = card.dataset.workspaceId;
+                if (wsId) {
+                    try { localStorage.setItem(WS_STORAGE_KEY, wsId); } catch { /* quota */ }
+                }
+            });
+        });
     } else {
         // Guest: ensure workspace section stays hidden
         if (wsSection) { wsSection.classList.add('nm-hidden'); }

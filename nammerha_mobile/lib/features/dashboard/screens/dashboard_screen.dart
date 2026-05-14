@@ -33,6 +33,8 @@ import '../../../core/widgets/connectivity_banner.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/bloc/page_index_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+// UX-F029: Guided feature tour — shows on first login after onboarding
+import '../../onboarding/screens/guided_tour_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -61,6 +63,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Once built, it stays alive (same as IndexedStack post-visit behavior).
   // Memory: 5 concurrent widget trees → 1 on launch, grows as tabs are visited.
   final Set<int> _visitedTabs = {0}; // Home tab always built
+
+  // UX-F029: Guided tour trigger flag — prevents re-trigger on rebuilds.
+  bool _tourTriggered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // UX-F029: Trigger guided feature tour on first login.
+    // addPostFrameCallback ensures the Scaffold is rendered before the overlay.
+    // showGuidedTour() internally checks SharedPreferences — runs only once.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_tourTriggered && mounted) {
+        _tourTriggered = true;
+        showGuidedTour(context);
+      }
+    });
+  }
 
   List<Widget> _getPages() {
     if (_isAdmin) {
@@ -115,7 +134,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         label: context.tr('nav_wallet'),
       ),
       BottomNavigationBarItem(
-        icon: Icon(PhosphorIconsRegular.warningCircle),
+        // UX-F011 FIX: warningCircle → chartLineUp — matches web's Impact tab.
+        icon: Icon(PhosphorIconsRegular.chartLineUp),
         label: context.tr('nav_impact'),
       ),
       BottomNavigationBarItem(
@@ -346,20 +366,29 @@ class _DashboardHomeView extends StatelessWidget {
                                   );
                                 },
                               ),
-                              IconButton(
-                                icon: Icon(
-                                  PhosphorIconsRegular.bell,
-                                  color: colors.textSecondary,
+                              // UX-F015 FIX: Semantics for screen reader accessibility.
+                              // PREVIOUS: VoiceOver announced "Button" with no context.
+                              // NOW: "Notifications" label for screen reader users.
+                              // Standard: WCAG 4.1.2 (Name, Role, Value), Apple HIG.
+                              Semantics(
+                                label: context.tr('notifications'),
+                                button: true,
+                                child: IconButton(
+                                  icon: Icon(
+                                    PhosphorIconsRegular.bell,
+                                    color: colors.textSecondary,
+                                  ),
+                                  tooltip: context.tr('notifications'),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const NotificationsScreen(),
+                                      ),
+                                    );
+                                  },
                                 ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const NotificationsScreen(),
-                                    ),
-                                  );
-                                },
                               ),
                             ],
                           )
@@ -650,18 +679,22 @@ class _DashboardHomeView extends StatelessWidget {
     // P0-002 FIX: Hardcoded Arabic workspace labels → i18n
     // P0-003 FIX: SpatialCameraScreen no longer launched with empty IDs
     // UNIFIED BENTO GRID (Role-less Contextual Workspaces)
+    // UX-F022 FIX: Each card now navigates to a DISTINCT destination.
+    // PREVIOUS: All 4 cards → same MarketplaceScreen() — misleading affordance.
+    // NOW: Create → DamageReportScreen, others → filtered MarketplaceScreen.
+    // Standard: Fitts' Law — distinct affordances must lead to distinct outcomes.
     final projectsWorkspace = [
       _WorkspaceItem(
         context.tr('create_project'),
         PhosphorIconsRegular.plusCircle,
         colors.primaryBrand,
-        const MarketplaceScreen(),
+        const DamageReportScreen(), // UX-F022: Project creation = Damage Report
       ),
       _WorkspaceItem(
         context.tr('my_projects'),
         PhosphorIconsRegular.buildings,
         colors.primaryBrand,
-        const MarketplaceScreen(),
+        const MarketplaceScreen(initialFilter: 'my_projects'),
       ),
     ];
 
@@ -670,13 +703,13 @@ class _DashboardHomeView extends StatelessWidget {
         context.tr('browse_tenders'),
         PhosphorIconsRegular.magnifyingGlass,
         colors.goldFunding,
-        const MarketplaceScreen(),
+        const MarketplaceScreen(), // Full browse — no filter
       ),
       _WorkspaceItem(
         context.tr('my_bids'),
         PhosphorIconsRegular.gavel,
         colors.goldFunding,
-        const MarketplaceScreen(),
+        const MarketplaceScreen(initialFilter: 'my_bids'),
       ),
     ];
 

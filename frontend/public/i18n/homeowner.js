@@ -86,7 +86,8 @@
         /* GAP-AUD-06 FIX: Photo counter format string */
         'photos_jpg_or_png': { ar: 'JPG أو PNG', de: 'JPG oder PNG', fr: 'JPG ou PNG', tr: 'JPG veya PNG' },
         /* AUD-P2-003 FIX: Progressive disclosure field count badge */
-        'sr_optional_fields_count': { ar: '(4 حقول اختيارية)', de: '(4 optionale Felder)', fr: '(4 champs facultatifs)', tr: '(4 isteğe bağlı alan)' },
+        // UX-F025 FIX: Updated from 4 → 3 after urgency promotion to Step 1.
+        'sr_optional_fields_count': { ar: '(3 حقول اختيارية)', de: '(3 optionale Felder)', fr: '(3 champs facultatifs)', tr: '(3 isteğe bağlı alan)' },
 
         // P0-I18N-001 FIX: Homeowner orphan key remediation (19 keys)
         'badge_active': { ar: 'نشط', de: 'Aktiv', fr: 'Actif', tr: 'Aktif' },

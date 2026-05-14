@@ -426,55 +426,97 @@
         </a>
       </section>
 
-      <!-- P1-UX-005 FIX: Workspace Discovery — authenticated users see their portal shortcuts.
-           Previous: Users had no easy way to find their portals from the homepage.
-           The only path was the bottom navigation — but new users didn't know
-           which portal they needed. This section provides contextual guidance.
-           Hidden by default; main.ts reveals it when user is authenticated. -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+           UX-F012: Task-Centric Navigation (Option C+ Hybrid)
+           PREVIOUS: 5 role-centric cards (Homeowner, Contractor, Engineer, Supplier, Tradesperson).
+           Users asked "who am I?" instead of "what do I need?"
+           NOW: 3 task-centric cards that answer "what do you want to do?"
+           - "Fix My Home" → homeowner-portal (report damage, track repairs)
+           - "Find Work" → contractor-portal (bid, manage projects, field engineering)
+           - "Sell Materials" → supplier-dashboard (list products, fulfill orders)
+           Continue banner injected dynamically by main.ts when localStorage has preference.
+           Standard: Airbnb/Fiverr pattern — task facade, portal backend.
+           ═══════════════════════════════════════════════════════════════════════ -->
       <section id="workspace-discovery" class="px-4 mt-8 scroll-reveal nm-hidden">
-        <h2 class="text-lg font-bold mb-4" data-i18n="your_workspaces">Your Workspaces</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="workspace-grid">
-          <a href="homeowner-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
-            <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i class="ph ph-house text-trust-blue text-2xl" aria-hidden="true"></i>
+        <h2 class="text-lg font-bold mb-2" data-i18n="ws_what_do_you_need">What do you need?</h2>
+        <p class="text-xs text-slate-400 mb-4 dark:text-slate-500" data-i18n="ws_all_tools_available">All tools are available to every user — pick what you need right now.</p>
+
+        <!-- Continue banner slot — injected dynamically by main.ts when preference exists -->
+        <div id="ws-continue-slot"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="workspace-grid">
+          <!-- Task 1: Fix My Home → Homeowner Portal -->
+          <a href="homeowner-portal.html"
+             data-workspace-id="homeowner"
+             data-workspace-label-key="task_fix_home"
+             class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group">
+            <div class="flex items-center gap-3">
+              <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <i class="ph ph-house text-trust-blue text-2xl" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 block" data-i18n="task_fix_home">Fix My Home</span>
+                <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="task_fix_home_desc">Report damage, track repairs</span>
+              </div>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_homeowner">My Home</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_homeowner_desc">Projects & service requests</span>
+            <div class="flex items-center gap-1.5 text-3xs font-bold text-trust-blue opacity-0 group-hover:opacity-100 transition-opacity">
+              <span data-i18n="ws_go_to_workspace">Go to workspace</span>
+              <i class="ph ph-caret-right text-xs" aria-hidden="true"></i>
+            </div>
           </a>
-          <a href="contractor-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
-            <div class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i class="ph ph-hard-hat text-warm-earth text-2xl" aria-hidden="true"></i>
+
+          <!-- Task 2: Find Work → Contractor Portal (covers Contractor + Engineer + Tradesperson) -->
+          <a href="contractor-portal.html"
+             data-workspace-id="contractor"
+             data-workspace-label-key="task_find_work"
+             class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group">
+            <div class="flex items-center gap-3">
+              <div class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <i class="ph ph-briefcase text-warm-earth text-2xl" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 block" data-i18n="task_find_work">Find Work</span>
+                <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="task_find_work_desc">Bid on tenders, manage projects</span>
+              </div>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_contractor">Contractor</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_contractor_desc">Bids & project management</span>
+            <div class="flex items-center gap-1.5 text-3xs font-bold text-warm-earth opacity-0 group-hover:opacity-100 transition-opacity">
+              <span data-i18n="ws_go_to_workspace">Go to workspace</span>
+              <i class="ph ph-caret-right text-xs" aria-hidden="true"></i>
+            </div>
           </a>
-          <a href="engineer-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
-            <div class="size-12 bg-smoky-jade/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i class="ph ph-ruler text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
+
+          <!-- Task 3: Sell Materials → Supplier Dashboard -->
+          <a href="supplier-dashboard.html"
+             data-workspace-id="supplier"
+             data-workspace-label-key="task_sell_materials"
+             class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group">
+            <div class="flex items-center gap-3">
+              <div class="size-12 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <i class="ph ph-storefront text-purple-600 text-2xl dark:text-purple-400" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 block" data-i18n="task_sell_materials">Sell Materials</span>
+                <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="task_sell_materials_desc">List products, fulfill orders</span>
+              </div>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_engineer">Engineer</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_engineer_desc">BOQ & field captures</span>
+            <div class="flex items-center gap-1.5 text-3xs font-bold text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span data-i18n="ws_go_to_workspace">Go to workspace</span>
+              <i class="ph ph-caret-right text-xs" aria-hidden="true"></i>
+            </div>
           </a>
-          <a href="supplier-dashboard.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
-            <div class="size-12 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i class="ph ph-storefront text-purple-600 text-2xl dark:text-purple-400" aria-hidden="true"></i>
+        </div>
+
+        <!-- Profile card — always visible, separate row -->
+        <div class="mt-3">
+          <a href="profile.html" class="glass-card p-4 rounded-xl flex items-center gap-3 hover:shadow-lg transition-shadow border border-dashed border-slate-200 dark:border-dark-border group">
+            <div class="size-10 bg-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform dark:bg-dark-elevated shrink-0">
+              <i class="ph ph-user-circle-gear text-slate-500 text-xl dark:text-slate-400" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_supplier">Supplier</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_supplier_desc">Material catalog & orders</span>
-          </a>
-          <a href="tradesperson-portal.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow group">
-            <div class="size-12 bg-amber-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <i class="ph ph-hammer text-amber-600 text-2xl dark:text-amber-400" aria-hidden="true"></i>
+            <div class="min-w-0">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_profile">Profile</span>
+              <span class="text-3xs text-slate-400 ms-2 dark:text-slate-500" data-i18n="ws_profile_desc">Settings & preferences</span>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_tradesperson">Tradesperson</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_tradesperson_desc">Jobs & earnings</span>
-          </a>
-          <a href="profile.html" class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow border border-dashed border-slate-200 dark:border-dark-border group">
-            <div class="size-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform dark:bg-dark-elevated">
-              <i class="ph ph-user-circle-gear text-slate-500 text-2xl dark:text-slate-400" aria-hidden="true"></i>
-            </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_profile">Profile</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="ws_profile_desc">Settings & preferences</span>
+            <i class="ph ph-caret-right text-slate-300 ms-auto dark:text-slate-600" aria-hidden="true"></i>
           </a>
         </div>
       </section>

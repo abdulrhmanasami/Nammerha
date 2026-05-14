@@ -10,7 +10,10 @@
 import '../styles/main.css';
 import { DONATIONS_ENABLED } from '../utils/feature-flags';
 import { initPullToRefresh } from '../utils/pull-refresh';
-initPullToRefresh();
+// UX-F020 FIX: initPullToRefresh() REMOVED from module top level.
+// PREVIOUS: Called at line 13 before DONATIONS_ENABLED gate — created DOM
+// observers and event listeners for a page that immediately shows "Checkout Unavailable".
+// NOW: Moved inside guardedInit(), only fires when donations are active.
 import { CartStore, type CartItem } from '../components/cart';
 import { escapeHtml } from '../utils/xss';
 import { formatDollars } from '../utils/format';
@@ -25,7 +28,7 @@ import { setLoadingState } from '../utils/loading-state';
 // BLOCKER-A FIX: Auth guard — unauthenticated visitors see "Sign in required" overlay
 // instead of broken checkout with cryptic 401 API errors.
 import { requireAuth } from '../utils/auth-guard';
-initSearch();
+// UX-F020 FIX: initSearch() REMOVED from module top level (same rationale as above).
 
 // FRC-003 FIX: Default tip 0% (was 3%). Humanitarian platform — opt-in tipping only.
 let selectedTipPercentage = 0;
@@ -479,6 +482,9 @@ function guardedInit(): void {
         showBasketSuspensionNotice();
         return;
     }
+    // UX-F020 FIX: Side effects now inside gate — only fire when donations active.
+    initPullToRefresh();
+    initSearch();
     initDonorBasket();
     initKeyboardHandler();
 }

@@ -310,18 +310,25 @@
               </div>
             </div>
 
+            <!-- UX-F025 FIX: Urgency PROMOTED from hidden Step 2 to always-visible Step 1.
+                 REASON: In post-conflict Syria, 'Emergency' plumbing (collapsed building water main)
+                 was being submitted as 'Routine' because users didn't click 'Add Details'.
+                 Urgency is NOT optional — it determines SLA and matchmaking priority.
+                 Standard: Nielsen #5 (Error Prevention), Domain-Specific Safety UX. -->
+            <div>
+              <label for="sr-urgency" class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="ho_lbl_urgency">Urgency</label>
+              <select id="sr-urgency" class="nm-select mt-1">
+                <option value="routine" data-i18n="urgency_routine">Routine</option>
+                <option value="urgent" data-i18n="urgency_urgent">Urgent</option>
+                <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
+              </select>
+              <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="ho_urgency_hint">Routine: 5-7 days · Urgent: 24-48 hrs · Emergency: Same day</p>
+            </div>
+
             <!-- ═══ Step 2: Details (progressive disclosure) ═══ -->
             <div id="sr-details-wrap" class="nm-hidden space-y-4 animate-fade-in-up">
+              <!-- UX-F025 FIX: Urgency REMOVED from Step 2 — now in Step 1 above. -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label for="sr-urgency" class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="ho_lbl_urgency">Urgency</label>
-                  <select id="sr-urgency" class="nm-select mt-1">
-                    <option value="routine" data-i18n="urgency_routine">Routine</option>
-                    <option value="urgent" data-i18n="urgency_urgent">Urgent</option>
-                    <option value="emergency" data-i18n="urgency_emergency">Emergency</option>
-                  </select>
-                  <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="ho_urgency_hint">Routine: 5-7 days · Urgent: 24-48 hrs · Emergency: Same day</p>
-                </div>
                 <div>
                   <label for="sr-address" class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="ho_lbl_location">Location</label>
                   <input id="sr-address" type="text" placeholder="Address or neighborhood" data-i18n-placeholder="ho_sr_address_placeholder" class="nm-input mt-1" enterkeyhint="next" />
@@ -371,7 +378,8 @@
               <button type="button" id="sr-toggle-details" class="w-full text-start text-xs text-trust-blue font-semibold hover:underline flex items-center gap-1 transition-colors py-1">
                 <i class="ph ph-plus-circle" aria-hidden="true"></i>
                 <span data-i18n="ho_add_details">Add Details</span>
-                <span class="text-slate-400 font-normal dark:text-slate-500" data-i18n="sr_optional_fields_count">(4 optional fields)</span>
+                <!-- UX-F025 FIX: Updated from '4 optional fields' to '3' after urgency promotion. -->
+                <span class="text-slate-400 font-normal dark:text-slate-500" data-i18n="sr_optional_fields_count">(3 optional fields)</span>
               </button>
               <button type="button" id="submit-sr-btn" class="w-full py-2.5 bg-trust-blue text-white text-sm font-bold rounded-lg hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
                 <i class="ph ph-megaphone" aria-hidden="true"></i> <span data-i18n="homeowner_submit_request">Submit Request</span>

@@ -16,13 +16,22 @@ import '../data/marketplace_repository.dart';
 import '../models/project_model.dart';
 import 'project_details_screen.dart';
 
+// UX-F022 FIX: Accept optional initialFilter to differentiate Bento Grid card destinations.
 class MarketplaceScreen extends StatelessWidget {
-  const MarketplaceScreen({super.key});
+  final String? initialFilter;
+  const MarketplaceScreen({super.key, this.initialFilter});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MarketplaceBloc(repository: MarketplaceRepository())..add(const LoadProjectsEvent()),
+      create: (context) {
+        final bloc = MarketplaceBloc(repository: MarketplaceRepository())..add(const LoadProjectsEvent());
+        // UX-F022 FIX: Apply initial filter from Bento Grid navigation.
+        if (initialFilter != null) {
+          bloc.add(FilterProjectsEvent(filter: initialFilter));
+        }
+        return bloc;
+      },
       child: const MarketplaceView(),
     );
   }
@@ -75,7 +84,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
+                    icon: Icon(PhosphorIconsRegular.shoppingCart, color: colors.primaryBrand),
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                     },
@@ -126,7 +135,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: colors.textSecondary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary),
+                        icon: Icon(PhosphorIconsRegular.xCircle, color: colors.textSecondary),
                         onPressed: () {
                           _searchController.clear();
                           context.read<MarketplaceBloc>().add(const FilterProjectsEvent(searchQuery: ''));
@@ -172,7 +181,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                     ElevatedButton.icon(
                       onPressed: () => context.read<MarketplaceBloc>().add(const LoadProjectsEvent()),
                       icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: const Text('إعادة المحاولة'),
+                      label: Text(context.tr('retry')),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
                   ],
@@ -188,7 +197,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 children: [
                   Icon(PhosphorIconsRegular.wrench, size: 64, color: colors.textSecondary),
                   const SizedBox(height: 16),
-                  Text('لا توجد مشاريع حالياً', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
+                  Text(context.tr('no_data'), style: TextStyle(color: colors.textSecondary, fontSize: 16)),
                 ],
               ),
             );
@@ -241,43 +250,47 @@ class _MarketplaceViewState extends State<MarketplaceView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header image placeholder with damage type badge
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [colors.primaryBrand.withAlpha(40), colors.primaryBrand.withAlpha(15)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(child: Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.primaryBrand.withAlpha(60))),
-                PositionedDirectional(
-                  top: 10, end: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: colors.surfaceElevated.withAlpha(230),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(project.damageType, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
-                  ),
+          // UX-F028: Hero shared element — gradient header morphs into details page header.
+          // Tag uses project.id to uniquely pair source ↔ destination.
+          Hero(
+            tag: 'project_header_${project.id}',
+            child: Container(
+              height: 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [colors.primaryBrand.withAlpha(40), colors.primaryBrand.withAlpha(15)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                if (project.status == 'ACTIVE')
+              ),
+              child: Stack(
+                children: [
+                  Center(child: Icon(PhosphorIconsRegular.buildings, size: 48, color: colors.primaryBrand.withAlpha(60))),
                   PositionedDirectional(
-                    top: 10, start: 10,
+                    top: 10, end: 10,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: colors.success,
-                        borderRadius: BorderRadius.circular(6),
+                        color: colors.surfaceElevated.withAlpha(230),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text('نشط', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                      child: Text(project.damageType, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
                     ),
                   ),
-              ],
+                  if (project.status == 'ACTIVE')
+                    PositionedDirectional(
+                      top: 10, start: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: colors.success,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(context.tr('active'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
 
@@ -286,10 +299,18 @@ class _MarketplaceViewState extends State<MarketplaceView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  project.title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary),
-                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                // UX-F028: Hero shared element — title morphs into details AppBar title.
+                // Material(type: transparency) prevents background flash during flight.
+                Hero(
+                  tag: 'project_title_${project.id}',
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Text(
+                      project.title,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -339,7 +360,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                       ));
                     },
                     icon: Icon(PhosphorIconsRegular.heart, size: 18),
-                    label: const Text('ادعم هذا المشروع'),
+                    label: Text(context.tr('browse_projects')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
                       foregroundColor: Colors.white,
@@ -376,9 +397,9 @@ class _MarketplaceViewState extends State<MarketplaceView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               BottomSheetGrabber(colors: colors),
-              Text('فرز وتصفية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+              Text(context.tr('filter_sort'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
               const SizedBox(height: 20),
-              Text('حالة المشروع', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+              Text(context.tr('project_status'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -389,7 +410,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                 ],
               ),
               const SizedBox(height: 24),
-              Text('نسبة التمويل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+              Text(context.tr('funding_ratio'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,

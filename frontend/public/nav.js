@@ -75,9 +75,12 @@
         'engineer-boq.html': 'projects',
         'engineer-camera.html': 'projects',
         'homeowner-report.html': 'projects',
-        'donor-basket.html': 'impact',
-        'donor-proof.html': 'impact',
-        'donor-portal.html': 'impact',
+        /* UX-F011/F032 FIX: Donor pages REMOVED from tab map.
+           Donation system suspended indefinitely (May 2026).
+           Impact tab now routes to projects (active reconstruction = real impact). */
+        // 'donor-basket.html': 'impact',   — SUSPENDED
+        // 'donor-proof.html': 'impact',     — SUSPENDED
+        // 'donor-portal.html': 'impact',    — SUSPENDED
         'wallet.html': 'wallet',
         'profile.html': 'profile',
         /* UXA-011 FIX: about.html moved from 'profile' → 'home'.
@@ -115,7 +118,9 @@
         'admin-oracle.html', 'admin-revenue.html', 'admin-fintech.html',
         'compliance-dashboard.html', 'contractor-dashboard.html',
         'supplier-dashboard.html', 'homeowner-portal.html',
-        'donor-portal.html', 'contractor-portal.html',
+        // UX-F008 FIX: 'donor-portal.html' REMOVED — donation system suspended (May 2026).
+        // Page still exists but shows "Coming Soon". No nav suppression needed.
+        'contractor-portal.html',
         'tradesperson-portal.html',
         // Full-screen wizards/capture (CON-AUD-03: own fixed footer CTA)
         'homeowner-report.html', 'engineer-camera.html',
@@ -131,11 +136,11 @@
     var TABS = [
         { id: 'home', label: 'Home', i18n: 'nav_home', icon: 'ph-house', href: '/index.html' },
         { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/projects.html' },
-        /* UXA-010 FIX: Impact tab → donor-proof.html (impact tracking page).
-           Previous: donor-basket.html — a shopping cart, not impact viewing.
-           'Impact' implies reviewing contributions & outcomes, not adding items.
-           Standard: Nielsen #2 (Match System ↔ Real World), IA Best Practice. */
-        { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-bar', href: '/donor-proof.html' },
+        /* UX-F011/F032 FIX: Impact tab → projects.html (active reconstruction).
+           Previous: donor-proof.html — 100% of taps hit 'Coming Soon' dead end.
+           Now: Routes to the actual impact — live construction projects.
+           Standard: Nielsen #2 (Match System ↔ Real World). */
+        { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-line-up', href: '/projects.html' },
         { id: 'wallet', label: 'Wallet', i18n: 'nav_wallet', icon: 'ph-wallet', href: '/wallet.html' },
         { id: 'profile', label: 'Profile', i18n: 'nav_profile', icon: 'ph-user', href: '/profile.html' },
     ];

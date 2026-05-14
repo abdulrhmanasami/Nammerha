@@ -103,7 +103,8 @@ export function renderProgressive<T>(config: ProgressiveConfig<T>): void {
         onRender?.(visibleCount, items.length);
 
         if (visibleCount >= items.length) {
-            // All items shown — remove button
+            // All items shown — remove button and disconnect observer
+            observer?.disconnect();
             wrapper.remove();
         } else {
             updateButtonText(btn, visibleCount, items.length);
@@ -112,6 +113,24 @@ export function renderProgressive<T>(config: ProgressiveConfig<T>): void {
 
     wrapper.appendChild(btn);
     containerEl.parentElement?.insertBefore(wrapper, containerEl.nextSibling);
+
+    // UX-F009 FIX: IntersectionObserver auto-loading.
+    // PREVIOUS: Required explicit "Show More" click for each batch.
+    // NOW: Auto-triggers when button scrolls into viewport — seamless infinite scroll.
+    // Button remains visible as fallback + progress indicator.
+    // Standard: Material Design 3 (Infinite Scroll), Nielsen #7 (Flexibility).
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+        observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting && visibleCount < items.length) {
+                    btn.click();
+                }
+            },
+            { rootMargin: '200px' }, // Pre-fetch 200px before visible
+        );
+        observer.observe(wrapper);
+    }
 
     tryApplyI18n();
     onRender?.(visibleCount, items.length);

@@ -153,7 +153,7 @@ function renderContextSwitcher(currentPortalId: string): string {
                class="nm-ctx-link"
                data-portal-target="${portal.id}"
                aria-label="${t(portal.labelKey, portal.labelFallback)}">
-                <span class="nm-ctx-icon" style="background:${color}15;color:${color}">
+                <span class="nm-ctx-icon" style="--portal-accent:${color}">
                     <i class="ph ${portal.icon}" aria-hidden="true"></i>
                 </span>
                 <span class="nm-ctx-label">

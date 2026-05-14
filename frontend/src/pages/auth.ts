@@ -994,6 +994,35 @@ function setSocialBtnLoading(btn: HTMLButtonElement, loading: boolean): void {
         state.isSubmitting = false;
     }
 }
+// ─── UX-F019 FIX: Lazy SDK Loader ────────────────────────────────────────────
+// PREVIOUS: 3 OAuth SDK <script> tags loaded eagerly on auth.html (~450KB).
+// On Syria 2G (50-100 kbps), this added 7+ seconds to initial page load.
+// NOW: SDKs loaded on-demand when user first clicks a social login button.
+// Each SDK is loaded at most once; subsequent clicks reuse the loaded SDK.
+// Standard: PRPL Pattern, Core Web Vitals 3.0, Sustainable Web (2G-first).
+const _loadedSdks = new Map<string, Promise<void>>();
+
+function loadSdkOnDemand(src: string, id: string): Promise<void> {
+    const existing = _loadedSdks.get(id);
+    if (existing) { return existing; }
+
+    const promise = new Promise<void>((resolve, reject) => {
+        // Check if already in DOM (e.g., loaded by another code path)
+        if (document.getElementById(id)) { resolve(); return; }
+
+        const script = document.createElement('script');
+        script.id = id;
+        script.src = src;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Failed to load SDK: ${id}`));
+        document.head.appendChild(script);
+    });
+
+    _loadedSdks.set(id, promise);
+    return promise;
+}
 
 // ─── Google Sign-In (GSI) ───────────────────────────────────────────────────
 // OAUTH-FIX-001: Replaced unreliable google.accounts.id.prompt() (One Tap)
@@ -1025,6 +1054,9 @@ function initGoogleSignIn(): void {
         btn.addEventListener('click', async () => {
             if (state.isSubmitting) {return;}
             haptic.light();
+
+            // UX-F019 FIX: Lazy-load Google GSI SDK on first click.
+            try { await loadSdkOnDemand('https://accounts.google.com/gsi/client', 'gsi-sdk'); } catch { /* fallback below */ }
 
             // PLATINUM-001: Clean two-strategy flow (dead renderButton hack removed).
             // Strategy 1: GSI SDK loaded → use prompt() for native One Tap UX.
@@ -1195,6 +1227,9 @@ function initAppleSignIn(): void {
             setSocialBtnLoading(btn, true);
 
             try {
+                // UX-F019 FIX: Lazy-load Apple Sign-In SDK on first click.
+                try { await loadSdkOnDemand('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js', 'apple-sdk'); } catch { /* poll below */ }
+
                 // Apple Sign In JS SDK check — poll briefly for async load
                 let AppleID = (window as unknown as Record<string, unknown>).AppleID as {
                     auth: {
