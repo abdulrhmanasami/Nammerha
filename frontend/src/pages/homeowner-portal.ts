@@ -23,6 +23,7 @@ initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
 import { setText } from '../utils/dom';
+import { animateKPI } from '../utils/kpi-animation';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // P3-003 FIX: Skeleton timeout guard
@@ -246,12 +247,13 @@ async function loadStats(): Promise<void> {
         if (!res.data) { return; }
         const s = res.data;
 
-        setText('kpi-active', String(s.active_projects));
+        // F-019 FIX: Animated KPI count-up (parity with engineer portal).
+        animateKPI('kpi-active', s.active_projects);
         // P2-AUD-KPI-001 FIX: Use total_bids_received (was duplicating pending_approvals)
-        setText('kpi-bids', String(s.total_bids_received));
-        setText('kpi-approvals', String(s.pending_approvals));
+        animateKPI('kpi-bids', s.total_bids_received);
+        animateKPI('kpi-approvals', s.pending_approvals);
         // P2-AUD-KPI-001 FIX: Backend field is total_invested, not total_funded
-        setText('kpi-escrow', formatCents(s.total_invested));
+        animateKPI('kpi-escrow', s.total_invested, { prefix: '$', isCents: true });
         setText('approval-count', String(s.pending_approvals));
         // MED-003 FIX: Notification bell count was hardcoded "0" — now synced to pending_approvals.
         // Hides badge when zero to avoid misleading "0" indicator.

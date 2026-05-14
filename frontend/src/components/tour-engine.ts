@@ -143,10 +143,22 @@ function showStep(index: number): void {
         // Scroll into view
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+        // F-015 FIX: RTL-aware tooltip position mapping.
+        // Tour definitions use 'right'/'left' as inline-end/inline-start semantics.
+        // In RTL, 'right' (inline-end) maps to physical 'left', and vice versa.
+        // 'top'/'bottom' are block-direction and don't need flipping.
+        const resolvedPosition = (() => {
+            const pos = step.position;
+            if (!pos || !rtl) return pos;
+            if (pos === 'right') return 'left';
+            if (pos === 'left') return 'right';
+            return pos;
+        })();
+
         // Position spotlight
         setTimeout(() => {
             positionSpotlight(spotlight, target);
-            positionTooltip(tooltip, target, step.position);
+            positionTooltip(tooltip, target, resolvedPosition);
         }, 350);
     } else {
         // Target not found — hide spotlight, show tooltip centered

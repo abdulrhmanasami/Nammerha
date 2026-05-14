@@ -1112,6 +1112,24 @@ html[data-theme="dark"] .nm-textarea::placeholder {
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   F-020 FIX: Skeleton → Content Crossfade Transition
+   Previous: Skeletons toggled to content via nm-hidden (display:none → block).
+   This creates an instant visual jump. Content now fades in with opacity.
+
+   Usage: Add .nm-skeleton-exit to skeleton containers before hiding.
+          Add .nm-content-reveal to content containers when showing.
+   Standard: Material Design 3 (Transition Patterns), Perceived Performance.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.nm-content-reveal {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+/* Skeleton exit: fade out before being hidden */
+.nm-skeleton-exit {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
 /* ─── Scrollbar Hide (Horizontal scrollable sections) ──────────────────────── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

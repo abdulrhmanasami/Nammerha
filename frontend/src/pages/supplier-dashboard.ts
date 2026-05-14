@@ -421,7 +421,9 @@ function setupCatalogModal(): void {
         e.preventDefault();
         const fd = new FormData(form);
         const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-        if (submitBtn) { submitBtn.classList.add('btn-loading'); submitBtn.disabled = true; }
+        // F-011 FIX: Use btn-loading alone (pointer-events:none + spinner).
+        // Previous: also set disabled=true — redundant, inconsistent with auth.ts pattern.
+        if (submitBtn) { submitBtn.classList.add('btn-loading'); }
 
         try {
             const res = await supplier.addCatalogItem({
@@ -447,7 +449,7 @@ function setupCatalogModal(): void {
         } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
             showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
         } finally {
-            if (submitBtn) { submitBtn.classList.remove('btn-loading'); submitBtn.disabled = false; }
+            if (submitBtn) { submitBtn.classList.remove('btn-loading'); }
         }
     });
 }

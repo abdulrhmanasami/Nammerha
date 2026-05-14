@@ -23,6 +23,7 @@ import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 import { requireAuth } from '../utils/auth-guard';
 import { haptic } from '../utils/haptic';
+import { animateKPI } from '../utils/kpi-animation';
 // P1-UX-002 FIX: Standardized empty state component
 import { renderEmptyState } from '../utils/empty-state';
 // P1-UX-003 FIX: Service Worker registration on all portal pages
@@ -110,9 +111,10 @@ type EngineerTab = typeof ENGINEER_TABS[number];
 const engineerHashRouter = createHashRouter(ENGINEER_TABS, 'projects');
 
 function setupTabs(): void {
-    document.getElementById('tab-projects')?.addEventListener('click', () => switchTab('projects'));
-    document.getElementById('tab-bids')?.addEventListener('click', () => switchTab('bids'));
-    document.getElementById('tab-captures')?.addEventListener('click', () => switchTab('captures'));
+    // F-024 FIX: Haptic feedback on tab switch — parity with homeowner portal.
+    document.getElementById('tab-projects')?.addEventListener('click', () => { haptic.light(); switchTab('projects'); });
+    document.getElementById('tab-bids')?.addEventListener('click', () => { haptic.light(); switchTab('bids'); });
+    document.getElementById('tab-captures')?.addEventListener('click', () => { haptic.light(); switchTab('captures'); });
 
     const initial = engineerHashRouter.getInitialTab();
     switchTab(initial);
@@ -143,6 +145,12 @@ function switchTab(tab: EngineerTab): void {
             tabEl?.classList.remove('text-slate-600');
             tabEl?.setAttribute('aria-selected', 'true');
             sectionEl?.classList.remove('nm-hidden');
+            // F-016 FIX: Move focus to newly visible section.
+            // Standard: WCAG 2.4.3 (Focus Order). Parity with homeowner portal.
+            if (sectionEl) {
+                sectionEl.setAttribute('tabindex', '-1');
+                sectionEl.focus({ preventScroll: true });
+            }
         } else {
             tabEl?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
             tabEl?.classList.add('text-slate-600');
@@ -170,10 +178,11 @@ async function loadKPIs(): Promise<void> {
         if (!res.data) { return; }
         const data = res.data as unknown as EngineerStats;
 
-        setKPI('assigned-projects', data.assigned_projects ?? 0);
-        setKPI('proofs-pending', data.proofs_pending ?? 0);
-        setKPI('proofs-verified', data.proofs_verified ?? 0);
-        setKPI('escrow-released', data.escrow_released ?? 0, '$');
+        // F-019 FIX: Use shared animateKPI (was local setKPI).
+        animateKPI('kpi-assigned-projects', data.assigned_projects ?? 0);
+        animateKPI('kpi-proofs-pending', data.proofs_pending ?? 0);
+        animateKPI('kpi-proofs-verified', data.proofs_verified ?? 0);
+        animateKPI('kpi-escrow-released', data.escrow_released ?? 0, { prefix: '$', isCents: true });
 
         const bidCount = document.getElementById('notif-count');
         if (bidCount && data.active_bids > 0) {
@@ -379,30 +388,7 @@ function bidStatusLabel(status: string): string {
 }
 
 // ─── KPI Animation ──────────────────────────────────────────────────────────
-function setKPI(name: string, value: number, prefix = ''): void {
-    const el = document.getElementById(`kpi-${name}`);
-    if (!el) { return; }
-
-    const duration = 1200;
-    const start = performance.now();
-    const locale = getLocale();
-
-    const tick = (now: number): void => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        if (prefix === '$') {
-            const current = Math.round((value / 100) * eased);
-            el.textContent = new Intl.NumberFormat(locale, {
-                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
-            }).format(current);
-        } else {
-            const current = Math.round(value * eased);
-            el.textContent = current.toLocaleString(locale);
-        }
-        if (progress < 1) { requestAnimationFrame(tick); }
-    };
-    requestAnimationFrame(tick);
-}
+// F-019 FIX: Local setKPI() replaced with shared animateKPI() from utils/kpi-animation.ts.
 
 
 // ─── Init ───────────────────────────────────────────────────────────────────

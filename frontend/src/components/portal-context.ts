@@ -230,7 +230,17 @@ function renderHubSheet(currentPortalId: string): string {
     </div>`;
 }
 
-function mountHubFAB(currentPortalId: string): void {
+/**
+ * F-004 FIX: Mount Hub FAB (Floating Action Button) for mobile portal switching.
+ * Exported as a standalone function so non-portal pages (wallet, profile, project-details)
+ * can also offer portal navigation without needing a dashboard sidebar.
+ *
+ * When `currentPortalId` is empty, no card gets the "active" highlight style —
+ * all portals show as equal navigation targets.
+ *
+ * @param currentPortalId - The active portal ID (empty string for non-portal pages)
+ */
+export function mountHubFAB(currentPortalId: string): void {
     // Don't double-mount
     if (document.getElementById('nm-hub-fab')) { return; }
 

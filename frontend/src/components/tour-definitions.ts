@@ -189,12 +189,15 @@ export const TOUR_DEFINITIONS: Record<string, TourDefinition> = {
                 content_ar: 'تصفّح مشاريع إعادة الإعمار المتاحة وقدّم عطاءات تنافسية. نظامنا الشفاف يضمن اختياراً عادلاً.',
             },
             {
-                selector: '#tab-team',
+                // F-006 FIX: Was #tab-team — no 'team' tab exists in contractor portal.
+                // Contractor ALL_TABS: ['dashboard', 'marketplace', 'bids', 'payments'].
+                // Remapped to #tab-marketplace which is where contractor manages projects.
+                selector: '#tab-marketplace',
                 position: 'right',
                 title_en: `${ph('users-three')}Build Your Team`,
                 title_ar: `${ph('users-three')}ابنِ فريقك`,
-                content_en: 'Assign tradespeople to your projects. Track who\'s working where, manage skills, and optimize your workforce.',
-                content_ar: 'عيّن الحرفيين في مشاريعك. تتبّع من يعمل أين، أدِر المهارات، وحسّن فريق عملك.',
+                content_en: 'Browse available projects and assign your tradespeople. Track who\'s working where and optimize your workforce.',
+                content_ar: 'تصفّح المشاريع المتاحة وعيّن حرفييك. تتبّع من يعمل أين وحسّن فريق عملك.',
             },
             {
                 selector: '#tab-payments',
@@ -212,7 +215,9 @@ export const TOUR_DEFINITIONS: Record<string, TourDefinition> = {
         id: 'engineer',
         steps: [
             {
-                selector: '#tab-dashboard',
+                // F-006 FIX: Was #tab-dashboard — engineer portal has no 'dashboard' tab.
+                // Engineer tabs: ['projects', 'bids', 'captures']. Default is 'projects'.
+                selector: '#tab-projects',
                 position: 'right',
                 title_en: `${ph('ruler')}Engineer Dashboard`,
                 title_ar: `${ph('ruler')}لوحة المهندس`,
@@ -220,10 +225,12 @@ export const TOUR_DEFINITIONS: Record<string, TourDefinition> = {
                 content_ar: 'مساحة عملك المهنية. شاهد المشاريع المعيّنة وفرص التقديم ونقاط أدائك المُوثّقة.',
             },
             {
-                selector: '#tab-assigned',
+                // F-006 FIX: Was #tab-assigned — engineer portal has no 'assigned' tab.
+                // The 'captures' tab is where engineers do field GPS verification.
+                selector: '#tab-captures',
                 position: 'right',
-                title_en: `${ph('clipboard-text')}Assigned Assessments`,
-                title_ar: `${ph('clipboard-text')}التقييمات المعيّنة`,
+                title_en: `${ph('clipboard-text')}Field Captures & Assessments`,
+                title_ar: `${ph('clipboard-text')}الالتقاطات الميدانية والتقييمات`,
                 content_en: 'Projects assigned to you for professional assessment. Create FIDIC-compliant BOQs and verify each construction phase with GPS-stamped evidence.',
                 content_ar: 'المشاريع المعيّنة لك للتقييم المهني. أنشئ جداول كميات متوافقة مع FIDIC وتحقق من كل مرحلة بإثبات GPS.',
             },
@@ -282,7 +289,10 @@ export const TOUR_DEFINITIONS: Record<string, TourDefinition> = {
                 content_ar: 'شاهد الوظائف المتاحة، التعيينات الحالية، وأرباحك — كل شيء محدّث لحظياً. اختر ما يناسب مهاراتك.',
             },
             {
-                selector: '#tab-jobs',
+                // F-006 FIX: Was #tab-jobs — tradesperson portal has no 'jobs' tab.
+                // Tradesperson ALL_TABS: ['dashboard', 'requests', 'assignments', 'earnings'].
+                // 'requests' is where tradespeople browse available work.
+                selector: '#tab-requests',
                 position: 'right',
                 title_en: `${ph('map-pin')}Jobs Near You`,
                 title_ar: `${ph('map-pin')}وظائف قريبة منك`,

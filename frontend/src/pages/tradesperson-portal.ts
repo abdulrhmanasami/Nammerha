@@ -33,6 +33,7 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 // donor-portal.ts and contractor-portal.ts already use the shared version.
 // Standard: DRY Principle.
 import { setText } from '../utils/dom';
+import { animateKPI } from '../utils/kpi-animation';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -99,6 +100,8 @@ function setupTabs(): void {
         if (!el) {continue;}
         el.addEventListener('click', (e) => {
             e.preventDefault();
+            // F-024 FIX: Haptic feedback on tab switch — parity with homeowner portal.
+            haptic.light();
             switchTab(tab);
         });
     }
@@ -125,7 +128,15 @@ function switchTab(tab: TabName): void {
 
         const section = document.getElementById(`section-${tabId}`);
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-        if (section) {section.classList.toggle('nm-hidden', tabId !== tab);}
+        if (section) {
+            section.classList.toggle('nm-hidden', tabId !== tab);
+            // F-016 FIX: Move focus to newly visible section.
+            // Standard: WCAG 2.4.3 (Focus Order). Parity with homeowner portal.
+            if (tabId === tab) {
+                section.setAttribute('tabindex', '-1');
+                section.focus({ preventScroll: true });
+            }
+        }
     }
 
     if (tab === 'dashboard') { loadStats(); loadActiveJobs(); }
@@ -203,9 +214,10 @@ async function loadStats(): Promise<void> {
         // ── Stats KPIs ──
         if (statsRes.status === 'fulfilled' && statsRes.value.data) {
             const s = statsRes.value.data;
-            setText('kpi-active', String(s.active_jobs));
-            setText('kpi-completed', String(s.completed_jobs));
-            setText('kpi-earnings', formatCents(s.total_earnings));
+            // F-019 FIX: Animated KPI count-up (parity with engineer portal).
+            animateKPI('kpi-active', s.active_jobs);
+            animateKPI('kpi-completed', s.completed_jobs);
+            animateKPI('kpi-earnings', s.total_earnings, { prefix: '$', isCents: true });
             const ratingEl = document.getElementById('kpi-rating');
             if (ratingEl) { ratingEl.innerHTML = s.average_rating ? `${s.average_rating.toFixed(1)} <i class="ph ph-star nm-star-rating nm-icon-gap-start" aria-hidden="true"></i>` : '—'; }
             setText('pending-count', String(s.pending_requests));

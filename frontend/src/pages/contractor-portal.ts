@@ -20,6 +20,7 @@ initBackToTop();
 autoTriggerTour();
 import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
+import { animateKPI } from '../utils/kpi-animation';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // P3-003 FIX: Skeleton timeout guard — prevents infinite loading state
@@ -130,6 +131,8 @@ function setupTabs(): void {
 
         el.addEventListener('click', (e) => {
             e.preventDefault();
+            // F-024 FIX: Haptic feedback on tab switch — parity with homeowner portal.
+            haptic.light();
             switchTab(tab);
         });
     }
@@ -165,6 +168,13 @@ function switchTab(tab: TabName): void {
         const section = document.getElementById(`section-${tabId}`);
         if (section) {
             section.classList.toggle('nm-hidden', tabId !== tab);
+            // F-016 FIX: Move focus to newly visible section.
+            // Previous: Focus stayed on tab button — screen reader users stranded.
+            // Standard: WCAG 2.4.3 (Focus Order). Parity with homeowner portal.
+            if (tabId === tab) {
+                section.setAttribute('tabindex', '-1');
+                section.focus({ preventScroll: true });
+            }
         }
     }
 
@@ -188,10 +198,12 @@ async function loadStats(): Promise<void> {
         if (!res.data) { return; }
         const s = res.data;
 
-        setText('kpi-active', String(s.active_projects));
-        setText('kpi-pending', String(s.pending_bids));
-        setText('kpi-won', String(s.won_bids));
-        setText('kpi-escrow', formatCents(s.total_escrow_received));
+        // F-019 FIX: Animated KPI count-up (parity with engineer portal).
+        // Previous: Instant setText() — no perceived performance.
+        animateKPI('kpi-active', s.active_projects);
+        animateKPI('kpi-pending', s.pending_bids);
+        animateKPI('kpi-won', s.won_bids);
+        animateKPI('kpi-escrow', s.total_escrow_received, { prefix: '$', isCents: true });
         setText('pending-bids-count', String(s.pending_bids));
 
         // P3-UX-001 FIX: "Last updated" temporal context on KPI dashboard.
@@ -461,9 +473,15 @@ function openBidModal(projectId: string): void {
     // P3-001: Native dialog.showModal() provides focus trapping, Escape, and ::backdrop.
     const triggerEl = document.activeElement as HTMLElement | null;
 
+    // F-021 FIX: Exit animation for bid modal (was instant dialog.close()).
+    // Parity with Hub Sheet which has animate-out before close.
     function closeModal(): void {
-        dialog.close();
-        triggerEl?.focus();
+        dialog.style.opacity = '0';
+        dialog.style.transition = 'opacity 200ms ease-out';
+        setTimeout(() => {
+            dialog.close();
+            triggerEl?.focus();
+        }, 200);
     }
 
     // Native dialog auto-closes on Escape; we listen for cleanup + focus restore

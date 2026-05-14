@@ -11,6 +11,7 @@ import { guardSkeleton } from '../utils/skeleton-guard';
 import { requireAuth } from '../utils/auth-guard';
 import { renderProgressive } from '../utils/progressive-render';
 import { renderErrorWithRetry } from '../utils/error-retry';
+import { renderEmptyState } from '../utils/empty-state';
 // GAP-002 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 // UX-004 FIX: Haptic feedback for native-app tactile response
@@ -20,6 +21,10 @@ import { initBackToTop } from '../components/back-to-top';
 import { initSearch } from '../utils/search-overlay';
 // INC-NEW-01 FIX: Unified page header — eliminates duplicate back-button wiring
 import { initPageHeader } from '../components/page-header';
+// F-004 FIX: Hub FAB on all pages — portal navigation from inner pages
+import { mountHubFAB } from '../components/portal-context';
+// F-010 FIX: Breadcrumb navigation on inner pages
+import { initBreadcrumb } from '../utils/breadcrumb';
 initPullToRefresh();
 initBackToTop();
 initSearch();
@@ -157,15 +162,17 @@ async function loadTransactions(): Promise<void> {
             containerEl: listEl,
             pageSize: 20,
             renderItem: (tx) => renderTransaction(tx),
-            emptyState: () => `
-            <div class="text-center py-12 animate-fade-in-up">
-              <i class="ph ph-wallet text-slate-300 nm-icon-48" aria-hidden="true"></i>
-              <p class="text-slate-500 font-bold mt-4 dark:text-slate-400">${escapeHtml(t('wallet_no_transactions', 'No transactions yet'))}</p>
-              <p class="text-slate-400 text-sm mt-1 dark:text-slate-500">${escapeHtml(t(
+            // F-022 FIX: Use standardized renderEmptyState() instead of inline HTML.
+            // Previous: Custom inline empty state with different styling from portals.
+            // Standard: Visual consistency, Design System Single Source of Truth.
+            emptyState: () => renderEmptyState({
+                icon: 'wallet',
+                title: t('wallet_no_transactions', 'No transactions yet'),
+                subtitle: t(
                     DONATIONS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
-                    DONATIONS_ENABLED ? 'Your donation and payment history will appear here' : 'Your payment and escrow history will appear here'
-                ))}</p>
-            </div>`,
+                    DONATIONS_ENABLED ? 'Your donation and payment history will appear here' : 'Your payment and escrow history will appear here',
+                ),
+            }),
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
@@ -182,6 +189,11 @@ function init(): void {
     if (!requireAuth()) {
         return; // Auth overlay shown, skip data loading
     }
+
+    // F-004 FIX: Hub FAB — portal navigation from inner pages.
+    mountHubFAB('');
+    // F-010 FIX: Breadcrumb — spatial orientation on inner pages.
+    initBreadcrumb();
 
     // P3-UX-004 FIX: Guard skeleton loaders with timeout fallback
     const cancelSkeletonGuard = guardSkeleton({

@@ -20,6 +20,10 @@ import { initBackToTop } from '../components/back-to-top';
 import { initSearch } from '../utils/search-overlay';
 // INC-NEW-01 FIX: Unified page header — eliminates duplicate back-button wiring
 import { initPageHeader } from '../components/page-header';
+// F-004 FIX: Hub FAB on all pages — portal navigation from inner pages
+import { mountHubFAB } from '../components/portal-context';
+// F-010 FIX: Breadcrumb navigation on inner pages
+import { initBreadcrumb } from '../utils/breadcrumb';
 initPullToRefresh();
 initBackToTop();
 initSearch();
@@ -469,11 +473,12 @@ async function saveProfile(): Promise<void> {
         updateProfileCompletion(getCurrentUser());
 
         restoreBtn?.('success');
-        // P0-UX-002 FIX: Honest "saved locally" message.
-        // Previous: 'Profile updated successfully' — misleading because NO backend API
-        // exists yet. Users on a FinTech platform must know data is local-only.
-        // Standard: Nielsen #1 (System Status Visibility), Trust UX.
-        showEditBanner('success', t('profile_saved_locally', '✓ Saved locally — will sync when available'));
+        // F-003 FIX: Honest "saved to this device only" message.
+        // Previous: '✓ Saved locally — will sync when available' — ambiguous phrasing that
+        // implies automatic sync. Users on a FinTech platform must know data is device-local
+        // and won't appear on other devices or survive browser data clearing.
+        // Standard: Nielsen #1 (System Status Visibility), FinTech Trust UX.
+        showEditBanner('success', t('profile_saved_locally', '✓ Saved to this device — won\'t appear on other devices yet'));
         setTimeout(() => toggleEditMode(false), 800);
     } catch (err) {
         restoreBtn?.('error');
@@ -682,6 +687,11 @@ function init(): void {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
 
+    // F-004 FIX: Hub FAB — portal navigation from inner pages.
+    mountHubFAB('');
+    // F-010 FIX: Breadcrumb — spatial orientation on inner pages.
+    initBreadcrumb();
+
     loadUserInfo();
     loadUserRoles();
     initPhotoPreview(); // GAP-X02 FIX: Wire photo preview engine
@@ -752,63 +762,36 @@ function init(): void {
         });
     }
 
-    // P0-UX-003 FIX + PLT-UX-AUD P1-KYC-007 FIX: KYC Dead End Resolution.
-    // Previous: Tapping "Complete identity verification" showed 'coming soon' toast.
-    // On a platform handling billions in escrow, a dead-end KYC path is a trust violation.
-    // Now: Visually disable the KYC action item + add 'Not Yet Available' badge.
-    // PLT-UX-AUD: Added explanation text + "Notify Me" button (trust-building UX).
-    // Standard: Nielsen #1 (System Status Visibility), FinTech Trust UX.
+    // ═══════════════════════════════════════════════════════════════════════
+    // F-001 FIX: KYC Dead-End Elimination.
+    // Previous: Showed the KYC section greyed out (opacity: 0.5, pointerEvents: none)
+    // with a "Not Yet Available" badge and "Notify Me" button. On a platform managing
+    // billions in escrow, a disabled-but-visible KYC path says "We're not ready for
+    // security" — eroding institutional trust.
+    // Now: Section is completely hidden. The completion checklist shows a compact
+    // "Coming soon" note instead of a clickable dead-end.
+    // Standard: FinTech Trust UX, Nielsen #1 (System Status Visibility).
+    // ═══════════════════════════════════════════════════════════════════════
     const kycSection = document.getElementById('kyc-section');
     if (kycSection) {
-        // Disable interaction and grey out
-        kycSection.style.opacity = '0.5';
-        kycSection.style.pointerEvents = 'none';
-        kycSection.setAttribute('aria-disabled', 'true');
-        // Inject 'Not Yet Available' badge if not already present
-        if (!kycSection.querySelector('.kyc-unavailable-badge')) {
-            const badge = document.createElement('span');
-            badge.className = 'kyc-unavailable-badge text-3xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 ms-2 dark:bg-dark-elevated dark:text-slate-500';
-            badge.setAttribute('data-i18n', 'kyc_not_available');
-            badge.textContent = t('kyc_not_available', 'Not Yet Available');
-            const heading = kycSection.querySelector('p, span, h3, h4');
-            if (heading) { heading.appendChild(badge); }
+        kycSection.classList.add('nm-hidden');
+    }
+
+    // F-001: Transform the KYC completion checklist item into a non-clickable
+    // "Coming soon" label instead of a focus-target that scrolls to nothing.
+    const kycChecklistItem = document.querySelector('[data-completion="kyc"]');
+    if (kycChecklistItem) {
+        const icon = kycChecklistItem.querySelector('i');
+        if (icon) {
+            icon.className = 'ph ph-clock text-slate-300 text-xs';
         }
-
-        // PLT-UX-AUD P1-KYC-007 FIX: KYC explanation + Notify Me button.
-        // Dead-end with no context erodes trust on a FinTech platform.
-        if (!kycSection.querySelector('.kyc-explanation')) {
-            const explanation = document.createElement('div');
-            explanation.className = 'kyc-explanation mt-3';
-            // Re-enable pointer events for this child only
-            explanation.style.pointerEvents = 'auto';
-            explanation.style.opacity = '1';
-            explanation.innerHTML = `
-                <p class="text-xs text-slate-500 leading-relaxed dark:text-slate-400" data-i18n="kyc_explanation">
-                    ${t('kyc_explanation', 'Identity verification (KYC) will include document upload, OFAC/sanctions screening, and address verification. This is required for escrow fund access and large transactions.')}
-                </p>
-                <button type="button" id="kyc-notify-btn"
-                    class="mt-2 px-4 py-2 text-xs font-bold text-trust-blue bg-trust-blue/10 rounded-lg hover:bg-trust-blue/20 transition-colors touch-safe"
-                    data-i18n="kyc_notify_me">
-                    ${t('kyc_notify_me', 'Notify me when available')}
-                </button>
-            `;
-            kycSection.appendChild(explanation);
-
-            // Wire notify button
-            explanation.querySelector('#kyc-notify-btn')?.addEventListener('click', async () => {
-                const btn = explanation.querySelector('#kyc-notify-btn') as HTMLButtonElement | null;
-                if (btn) {
-                    btn.disabled = true;
-                    btn.textContent = t('kyc_notify_registered', '✓ We\'ll notify you');
-                    btn.classList.remove('bg-trust-blue/10', 'hover:bg-trust-blue/20', 'text-trust-blue');
-                    btn.classList.add('bg-emerald-50', 'text-emerald-600', 'dark:bg-emerald-500/10', 'dark:text-emerald-400');
-                }
-                // Toast confirmation
-                try {
-                    const { showToast } = await import('../utils/toast');
-                    showToast(t('kyc_notify_confirmed', 'You\'ll be notified when KYC is available'), 'success');
-                } catch { /* Toast non-critical */ }
-            });
+        const btn = kycChecklistItem.querySelector('button');
+        if (btn) {
+            const span = document.createElement('span');
+            span.className = 'text-slate-400 dark:text-slate-500';
+            span.setAttribute('data-i18n', 'kyc_coming_soon');
+            span.textContent = t('kyc_coming_soon', 'Identity verification — coming soon');
+            btn.replaceWith(span);
         }
     }
 

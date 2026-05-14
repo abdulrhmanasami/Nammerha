@@ -20,6 +20,8 @@ import { openData, marketplace } from '../api';
 import { formatCents } from '../utils/format';
 import { applyI18n } from '../utils/locale';
 import { initBreadcrumb } from '../utils/breadcrumb';
+// F-004 FIX: Hub FAB on all pages — portal navigation from inner pages
+import { mountHubFAB } from '../components/portal-context';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -119,12 +121,19 @@ function renderHero(project: ProjectData): void {
         imgContainer.innerHTML = `<img src="${esc(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${esc(project.title)}" loading="eager" />`;
     }
 
-    // Document title
-    document.title = `${project.title} — Nammerha`;
+    // F-014 FIX: Bilingual document title — was hardcoded 'Nammerha' for all locales.
+    // Arabic users now see 'نعمّرها'. Standard: i18n Completeness.
+    document.title = `${project.title} — ${t('app_name', 'Nammerha')}`;
 
-    // Transition: skeleton → content
-    if (skeleton) { skeleton.classList.add('nm-hidden'); }
+    // F-020 FIX: Skeleton → content crossfade transition.
+    // Previous: instant toggle via nm-hidden — harsh visual jump.
+    // Now: skeleton fades out (200ms), then content fades in (300ms).
+    if (skeleton) {
+        skeleton.classList.add('nm-skeleton-exit');
+        setTimeout(() => skeleton.classList.add('nm-hidden'), 200);
+    }
     content.classList.remove('nm-hidden');
+    content.classList.add('nm-content-reveal');
 }
 
 // ─── Progress Rendering ─────────────────────────────────────────────────────
@@ -164,9 +173,41 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
     // P3-002 FIX: Use concrete class lookup instead of dynamic Tailwind interpolation
     const colorClasses = COLOR_CLASSES[meta.color] ?? COLOR_CLASSES['warm-earth']!;
     // FORENSIC-C4.2 FIX: Backend contract is unit_price in CENTS (integer).
-    // Previous heuristic (>= 100 → cents, else dollars) was fragile for cheap
-    // materials. Now we ALWAYS treat unit_price as cents from the API.
     const unitPriceDollars = (item.unit_price / 100).toFixed(2);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // F-002 FIX: OCDS Transparency View when donations are suspended.
+    // Previous: Showed pricing, progress bars, and disabled "Funding Coming
+    // Soon" buttons — creating an elaborate window-shopping dead-end.
+    // Now: Renders as an informational transparency card with material name,
+    // category icon, quantity needed, and a "Verified & Documented" badge.
+    // Standard: Nielsen #3 (User Control), OCDS Transparency, FinTech Trust UX.
+    // ═══════════════════════════════════════════════════════════════════════
+    if (!CART_CHECKOUT_ENABLED && !isFullyFunded) {
+        return `
+    <div class="mb-4">
+      <div class="glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50">
+        <div class="h-20 w-full bg-gradient-to-br ${colorClasses.gradient} to-slate-200 flex items-center justify-center">
+          ${item.image_url
+            ? `<img src="${esc(item.image_url)}" class="w-full h-full object-cover" alt="${esc(item.material_name)}" loading="lazy" />`
+            : `<i class="ph ph-${meta.icon} ${colorClasses.text} nm-icon-48" aria-hidden="true"></i>`}
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="text-base font-bold">${esc(item.material_name)}</h4>
+              <p class="text-xs text-slate-400 font-medium dark:text-slate-500">${esc(item.material_category ?? '')} · ${item.required_quantity} ${esc(item.unit)}</p>
+            </div>
+            <span class="bg-smoky-jade/10 text-smoky-jade text-3xs font-bold px-2 py-0.5 rounded-full dark:text-emerald-400 dark:bg-emerald-500/10 flex items-center gap-1">
+              <i class="ph ph-seal-check text-xs" aria-hidden="true"></i>
+              <span data-i18n="boq_verified">${esc(t('boq_verified', 'Verified'))}</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="boq_documented_desc">${esc(t('boq_documented_desc', 'Engineer-verified material requirement documented under OCDS standard.'))}</p>
+        </div>
+      </div>
+    </div>`;
+    }
 
     const wrapperClass = isFullyFunded ? 'mb-4 opacity-75' : 'mb-4';
     const cardClass = isFullyFunded
@@ -174,19 +215,11 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
         : 'glass-card rounded-xl overflow-hidden flex flex-col shadow-sm border border-slate-200/50';
 
     // FORENSIC-C1.8 FIX: Gate "Add to Cart" behind CART_CHECKOUT_ENABLED.
-    // When donations are suspended, show informational button instead of
-    // leading users into a dead-end checkout flow.
     let buttonHtml: string;
     if (isFullyFunded) {
         buttonHtml = `<button type="button" class="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed dark:text-slate-400" disabled>
              <i class="ph ph-check-circle text-xl" aria-hidden="true"></i>
              <span data-i18n="funding_complete">${esc(t('funding_complete', 'Funding Complete'))}</span>
-           </button>`;
-    } else if (!CART_CHECKOUT_ENABLED) {
-        // Donation system suspended — show read-only state
-        buttonHtml = `<button type="button" class="w-full bg-slate-100 text-slate-500 font-bold py-3 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed dark:bg-slate-800 dark:text-slate-400" disabled>
-             <i class="ph ph-clock text-xl" aria-hidden="true"></i>
-             <span data-i18n="funding_coming_soon">${esc(t('funding_coming_soon', 'Funding Coming Soon'))}</span>
            </button>`;
     } else {
         buttonHtml = `<button type="button" class="btn-primary nm-btn-compact add-to-cart-btn"
@@ -220,7 +253,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="text-lg font-bold">${esc(item.material_name)}</h4>
-              <p class="text-sm text-slate-500 font-medium dark:text-slate-400">${esc(t('unit_label', 'Unit'))}: $${unitPriceDollars} / ${esc(item.unit)}</p>
+              <p class="text-sm text-slate-500 font-medium dark:text-slate-400">${esc(t('unit_label', 'Unit'))}: ${formatCents(item.unit_price)} / ${esc(item.unit)}</p>
             </div>
             ${badgeHtml}
           </div>
@@ -277,9 +310,13 @@ function renderBOQ(items: BOQItem[], projectId: string): void {
 
     container.innerHTML = html;
 
-    // Transition: skeleton → content
-    if (skeleton) { skeleton.classList.add('nm-hidden'); }
+    // F-020 FIX: Skeleton → content crossfade transition (BOQ section).
+    if (skeleton) {
+        skeleton.classList.add('nm-skeleton-exit');
+        setTimeout(() => skeleton.classList.add('nm-hidden'), 200);
+    }
     container.classList.remove('nm-hidden');
+    container.classList.add('nm-content-reveal');
 
     // Re-apply i18n to dynamic content
     applyI18n();
@@ -498,6 +535,7 @@ function initRetryButton(): void {
 // ─── Initialize ─────────────────────────────────────────────────────────────
 function init(): void {
     initBreadcrumb(); // GAP-007: Breadcrumb navigation
+    mountHubFAB(''); // F-004: Hub FAB — portal navigation from inner pages
     initShareButton(); // GAP-005: Web Share API
     initRetryButton(); // CONF-CSP-01: CSP-safe retry handler
     loadProjectData();
