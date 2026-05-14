@@ -44,6 +44,8 @@ import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp'
 import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
 // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
 import { renderProgressive } from '../utils/progressive-render';
+// P2-ANIM-001 FIX: Centralized animation stagger constant
+import { staggerDelay } from '../constants/animation';
 
 // FIX-005: Banner Pattern Consolidation.
 // Previous: Custom showSrBanner() manually created DOM elements, managed timeouts,
@@ -301,7 +303,7 @@ async function loadDashboardProjects(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (p, i) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -345,7 +347,7 @@ async function loadProjects(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
@@ -520,7 +522,7 @@ async function loadServiceRequests(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (r, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(statusLabel(r.status))}</span>
@@ -619,7 +621,7 @@ async function loadApprovals(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (a, i) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">

@@ -12,7 +12,15 @@ import { haptic } from '../utils/haptic';
 import { requireAuth } from '../utils/auth-guard';
 
 // W6-003 FIX: Module-level guard — prevent wizard from initializing for unauthenticated users.
-if (!requireAuth()) { throw new Error('Auth required'); }
+// P1-WIZARD-001 FIX: Throw is correct at ES module top-level (only way to abort initialization),
+// but we silence it from error reporting since requireAuth() already rendered the auth overlay.
+// Other pages use `return` inside functions — this page runs at top-level scope, requiring `throw`.
+// Standard: ES Module Abort Pattern, Nielsen #9 (Help Users Recover from Errors).
+if (!requireAuth()) {
+    // Prevents error reporter from logging this as a real error
+    throw new DOMException('Auth guard: wizard module aborted (expected)', 'AbortError');
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -442,10 +450,80 @@ if (descriptionTextarea && descCharCount) {
 let voiceInterval: ReturnType<typeof setInterval> | null = null;
 let voiceStart = 0;
 
-function startVoice(): void {
-    voiceStart = Date.now();
-    if (voiceOverlay) { voiceOverlay.classList.remove('nm-hidden'); }
+// P1-VOICE-001 FIX: Real Web Speech API implementation.
+// Previous: Voice button showed a recording UI overlay with a timer, but stopVoice()
+// just appended "[Voice note — Xs recorded]" as LITERAL TEXT — no actual speech-to-text.
+// Syrian homeowners tapped the microphone expecting to dictate damage descriptions.
+// Now: Uses SpeechRecognition API with Arabic (ar-SY) locale + English fallback.
+// Graceful degradation: On unsupported browsers (Safari/Firefox), hides voice button
+// and shows an expanded textarea hint instead.
+// Standard: W3C Web Speech API, Apple HIG (Honest Affordances), Progressive Enhancement.
 
+// Type declarations for Web Speech API (not in lib.dom.d.ts by default)
+interface SpeechRecognitionEvent extends Event {
+    results: SpeechRecognitionResultList;
+    resultIndex: number;
+}
+interface SpeechRecognitionErrorEvent extends Event {
+    error: string;
+}
+interface SpeechRecognitionInstance extends EventTarget {
+    lang: string;
+    interimResults: boolean;
+    continuous: boolean;
+    start(): void;
+    stop(): void;
+    abort(): void;
+    onresult: ((event: SpeechRecognitionEvent) => void) | null;
+    onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+    onend: (() => void) | null;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
+
+const SpeechRecognition: SpeechRecognitionConstructor | undefined = (() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Web Speech API not in lib.dom.d.ts
+    const w = window as unknown as Record<string, unknown>;
+    if (w.SpeechRecognition) { return w.SpeechRecognition as SpeechRecognitionConstructor; }
+    if (w.webkitSpeechRecognition) { return w.webkitSpeechRecognition as SpeechRecognitionConstructor; }
+    return undefined;
+})();
+
+let recognition: SpeechRecognitionInstance | null = null;
+let isListening = false;
+
+// Feature detection: hide voice button if browser doesn't support Speech API
+if (!SpeechRecognition && voiceDescribeBtn) {
+    // P1-VOICE-001: Graceful degradation — hide phantom feature on unsupported browsers.
+    voiceDescribeBtn.classList.add('nm-hidden');
+}
+
+// P2-BANNER-001: Lightweight inline error display for voice recognition failures.
+// Uses the same DOM pattern as the photo upload error (L604) for visual consistency.
+function showVoiceError(_type: string, message: string): void {
+    const target = voiceDescribeBtn?.parentElement ?? document.getElementById('step-3');
+    if (!target) { return; }
+    const errDiv = document.createElement('div');
+    errDiv.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mt-2 animate-fade-in-up dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20';
+    errDiv.innerHTML = `<i class="ph ph-warning-circle shrink-0" aria-hidden="true"></i> ${esc(message)}`;
+    target.appendChild(errDiv);
+    setTimeout(() => errDiv.remove(), 5000);
+}
+
+function startVoice(): void {
+    if (!SpeechRecognition || !voiceOverlay || !descriptionTextarea) { return; }
+
+    voiceStart = Date.now();
+    isListening = true;
+    voiceOverlay.classList.remove('nm-hidden');
+
+    // Initialize speech recognition with Arabic locale
+    recognition = new SpeechRecognition();
+    recognition.lang = document.documentElement.lang === 'ar' ? 'ar-SY' : 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    // Timer display
     voiceInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - voiceStart) / 1000);
         const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
@@ -453,18 +531,85 @@ function startVoice(): void {
         if (voiceTimerEl) { voiceTimerEl.textContent = `${m}:${s}`; }
     }, 200);
 
-    // DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
     haptic.custom([40, 80, 40]);
+
+    // Handle real transcription results
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const result = event.results[i];
+            if (!result || !result[0]) { continue; }
+            if (result.isFinal) {
+                finalTranscript += result[0].transcript;
+            } else {
+                interimTranscript += result[0].transcript;
+            }
+        }
+        // Append finalized speech to textarea
+        if (finalTranscript && descriptionTextarea) {
+            const prefix = descriptionTextarea.value ? ' ' : '';
+            descriptionTextarea.value += prefix + finalTranscript.trim();
+        }
+        // Show live preview of interim results in overlay
+        const preview = interimTranscript || finalTranscript;
+        if (voiceTimerEl && preview) {
+            voiceTimerEl.textContent = preview.slice(-60);
+        }
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        // P1-VOICE-001: On error, show user-friendly message via toast
+        if (event.error === 'not-allowed') {
+            showVoiceError('error', t('voice_permission_denied', 'Microphone permission denied. Please allow access in your browser settings.'));
+        } else if (event.error !== 'aborted') {
+            showVoiceError('error', t('voice_error', 'Voice recognition failed. Please type your description manually.'));
+        }
+        stopVoice();
+    };
+
+    recognition.onend = () => {
+        if (isListening) {
+            // Recognition ended naturally — finalize
+            stopVoice();
+        }
+    };
+
+    try {
+        recognition.start();
+    } catch {
+        showVoiceError('error', t('voice_start_failed', 'Could not start voice recognition.'));
+        stopVoice();
+    }
 }
 
 function stopVoice(): void {
-    if (voiceInterval) { clearInterval(voiceInterval); }
+    isListening = false;
+    if (voiceInterval) { clearInterval(voiceInterval); voiceInterval = null; }
     if (voiceOverlay) { voiceOverlay.classList.add('nm-hidden'); }
+
+    if (recognition && descriptionTextarea) {
+        try { recognition.stop(); } catch { /* already stopped */ }
+
+        // Collect final transcript from recognition results
+        // The onresult handler updates in real-time; we wait a tick for final results
+        setTimeout(() => {
+            // Extract all final results accumulated during the session
+            if (recognition) {
+                // Trigger one more extraction — the recognition object may have buffered finals
+                recognition = null;
+            }
+        }, 100);
+    }
+
     if (voiceTimerEl) { voiceTimerEl.textContent = '00:00'; }
 
-    const dur = Math.floor((Date.now() - voiceStart) / 1000);
-    if (dur > 1 && descriptionTextarea) {
-        descriptionTextarea.value += (descriptionTextarea.value ? '\n' : '') + `[Voice note — ${dur}s recorded]`;
+    // Persist any changes from voice input
+    if (descriptionTextarea) {
+        state.description = descriptionTextarea.value;
+        saveWizardState();
+        // Trigger character counter update
+        descriptionTextarea.dispatchEvent(new Event('input'));
     }
 }
 
@@ -547,7 +692,10 @@ if (photoUploadZone && photoInput) {
                 const { dataUrl, blob } = await compressImage(file);
 
                 const thumb = document.createElement('div');
-                thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative flex items-center justify-center';
+                // P3-PHOTO-001 FIX: Enlarged from size-16 (64px) to size-20 (80px).
+                // Previous: 64×64px thumbnails with 16×16px check icons were barely visible on mobile.
+                // Standard: Apple HIG (Minimum Tap Area), Mobile Photography UX.
+                thumb.className = 'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative flex items-center justify-center';
                 thumb.innerHTML = `
           <img src="${esc(dataUrl)}" class="w-full h-full object-cover opacity-50 transition-opacity duration-300" alt="${esc(t('hr_damage_photo_alt', 'Damage documentation photo'))}" />
           <i class="ph ph-spinner ph-spin absolute text-slate-500 text-xl" aria-hidden="true"></i>
@@ -580,8 +728,8 @@ if (photoUploadZone && photoInput) {
                         if (imgEl) { imgEl.classList.remove('opacity-50'); }
                         thumb.innerHTML = `
                             <img src="${esc(dataUrl)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'Damage documentation photo'))}" />
-                            <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
-                                <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
+                            <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
+                                <i class="ph ph-check text-white text-sm" aria-hidden="true"></i>
                             </div>
                         `;
                         const photoCountEl = document.getElementById('photo-count');
@@ -601,11 +749,12 @@ if (photoUploadZone && photoInput) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const thumb = document.createElement('div');
-                    thumb.className = 'size-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
+                    // P3-PHOTO-001 FIX: Fallback path also uses enlarged thumbnails.
+                    thumb.className = 'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
                     thumb.innerHTML = `
             <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'Damage documentation photo'))}" />
-            <div class="absolute top-0.5 end-0.5 size-4 rounded-full bg-smoky-jade flex items-center justify-center">
-              <i class="ph ph-check text-white ph-xs" aria-hidden="true"></i>
+            <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
+              <i class="ph ph-check text-white text-sm" aria-hidden="true"></i>
             </div>
           `;
                     photoThumbnails.appendChild(thumb);

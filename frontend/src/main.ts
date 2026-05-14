@@ -8,6 +8,8 @@ import './styles/tour.css';
 import { initErrorReporter, reportWarning } from './error-reporter';
 import { renderCartBadge } from './components/cart';
 import { marketplace, openData } from './api';
+// P2-STALE-001 FIX: SWR cache for homepage perceived-instant loading.
+import { swrFetch } from './utils/swr-cache';
 import { escapeHtml } from './utils/xss';
 import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
@@ -160,33 +162,54 @@ function buildProjectCard(project: ProjectCard, index: number): string {
 }
 
 // ─── Load Projects from API ─────────────────────────────────────────────────
+// P2-STALE-001 FIX: Core fetcher extracted for SWR wrapping.
+// Previous: loadFeaturedProjects() fetched fresh data on every page visit.
+// On returning users with slow Syrian networks, this meant a blank carousel every load.
+// Now: swrFetch renders cached data instantly while revalidating in background.
+// Standard: SWR (Stale-While-Revalidate, RFC 5861), Perceived Performance.
+async function fetchFeaturedProjectsFromAPI(): Promise<ProjectCard[]> {
+    const response = await marketplace.getProjects({ sort_by: 'funded_percentage', limit: 6 });
+    if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+        return response.data as ProjectCard[];
+    }
+    return [];
+}
+
+function renderFeaturedProjects(projects: ProjectCard[]): void {
+    const carousel = document.getElementById('projects-carousel');
+    if (!carousel) { return; }
+
+    if (projects.length > 0) {
+        carousel.innerHTML = projects
+            .map((p, i) => buildProjectCard(p, i))
+            .join('');
+        applyI18n();
+        try { sessionStorage.setItem('fallback_featured_projects', carousel.innerHTML); } catch { /* ignore */ }
+    } else {
+        const skeleton = document.getElementById('projects-skeleton');
+        const empty = document.getElementById('projects-empty');
+        if (skeleton) { skeleton.remove(); }
+        if (empty) { empty.classList.remove('hidden'); }
+    }
+}
+
 async function loadFeaturedProjects(): Promise<void> {
     const carousel = document.getElementById('projects-carousel');
     if (!carousel) { return; }
 
     try {
-        const response = await marketplace.getProjects({ sort_by: 'funded_percentage', limit: 6 });
-        if (response.success && Array.isArray(response.data) && response.data.length > 0) {
-            carousel.innerHTML = (response.data as ProjectCard[])
-                .map((p, i) => buildProjectCard(p, i))
-                .join('');
-            // P2-I18N-TIMING FIX: Explicitly translate dynamic card content now,
-            // don't rely solely on MutationObserver which may have timing gaps.
-            applyI18n();
-            // Store fallback in case of future network interruption
-            try { sessionStorage.setItem('fallback_featured_projects', carousel.innerHTML); } catch { /* ignore */ }
-        } else {
-            // NMR-AUD-H002 FIX: Show empty state instead of infinite skeleton.
-            // Previous code kept the skeleton visible when API returned empty data.
-            const skeleton = document.getElementById('projects-skeleton');
-            const empty = document.getElementById('projects-empty');
-            if (skeleton) { skeleton.remove(); }
-            if (empty) { empty.classList.remove('hidden'); }
-        }
+        // P2-STALE-001: SWR wrapper — render cached data instantly, revalidate in background.
+        const projects = await swrFetch<ProjectCard[]>(
+            'homepage-featured-projects',
+            fetchFeaturedProjectsFromAPI,
+            {
+                maxAge: 120_000, // 2 minutes — homepage data is semi-static
+                onStaleData: (cached) => renderFeaturedProjects(cached),
+            }
+        );
+        renderFeaturedProjects(projects);
     } catch (err) {
         reportWarning('[Dashboard] Featured projects load failed, keeping static fallback', { component: 'main', action: 'load_featured', error: err instanceof Error ? err.message : String(err) });
-        // UXA-013 FIX: Show user-visible error state instead of infinite skeleton pulse.
-        // PLATINUM UX FIX: Circuit Breaker - Render cached HTML if exists gracefully
         const cachedHtml = sessionStorage.getItem('fallback_featured_projects');
         const skeleton = document.getElementById('projects-skeleton');
         if (skeleton) { skeleton.remove(); }
@@ -208,7 +231,7 @@ async function loadFeaturedProjects(): Promise<void> {
                 </button>
             </div>`;
         document.getElementById('projects-retry-btn')?.addEventListener('click', () => {
-            carousel.innerHTML = ''; // Clear error state
+            carousel.innerHTML = '';
             const newSkeleton = document.createElement('div');
             newSkeleton.id = 'projects-skeleton';
             newSkeleton.className = 'flex gap-4';
@@ -242,7 +265,66 @@ async function loadStats(): Promise<void> {
         }
     } catch (err) {
         reportWarning('[Dashboard] Stats load failed, keeping default values', { component: 'main', action: 'load_stats', error: err instanceof Error ? err.message : String(err) });
+        // P1-STATS-001 FIX: Hide misleading trend context on stats failure.
+        // Previous: "vs last quarter" remained visible next to "—" — implying the dash IS the trend.
+        // Now: Trend badge hidden entirely; value shows "—" (already default).
+        // Standard: Nielsen #1 (System Status Visibility), FinTech UX (Financial Data Integrity).
+        if (trendEl) {
+            const trendBadge = trendEl.closest('.flex.items-center.gap-1');
+            const trendParent = trendEl.closest('.flex.items-center.gap-2.mt-2');
+            if (trendParent) { (trendParent as HTMLElement).classList.add('nm-hidden'); }
+            else if (trendBadge) { (trendBadge as HTMLElement).classList.add('nm-hidden'); }
+        }
     }
+}
+
+// ─── P0-FTU-001 FIX: First-Time Visitor Overlay Controller ──────────────────
+// Shows a value proposition overlay on the map hero for users who have never
+// visited the platform before. Dismissed via CTA or secondary button.
+// Uses localStorage persistence — once dismissed, never shows again.
+// Standard: Nielsen #10 (Help & Documentation), 3-Second Rule, First-Impression UX.
+const FTV_STORAGE_KEY = 'nm_ftv_seen';
+
+function initFirstTimeVisitorOverlay(): void {
+    const overlay = document.getElementById('nm-ftv-overlay');
+    if (!overlay) { return; }
+
+    // Check if user has already seen the overlay
+    try {
+        if (localStorage.getItem(FTV_STORAGE_KEY)) { return; }
+    } catch { return; } // Storage unavailable — skip overlay
+
+    // Capture as non-null for closure safety (TypeScript narrowing doesn't cross closures)
+    const el = overlay;
+
+    // Show overlay with a small delay for map to start rendering underneath
+    setTimeout(() => {
+        el.classList.remove('nm-hidden');
+        el.classList.add('animate-fade-in');
+    }, 800);
+
+    // Dismiss handler — shared by both CTA buttons
+    function dismissOverlay(): void {
+        el.classList.add('opacity-0');
+        el.addEventListener('transitionend', () => {
+            el.classList.add('nm-hidden');
+            el.remove(); // Full cleanup — no memory leak
+        }, { once: true });
+        try { localStorage.setItem(FTV_STORAGE_KEY, '1'); } catch { /* quota */ }
+    }
+
+    // Wire both dismiss triggers
+    document.getElementById('ftv-explore-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        dismissOverlay();
+        // Smooth scroll to quick actions section after overlay fades
+        setTimeout(() => {
+            document.getElementById('quick-actions-section')?.scrollIntoView({
+                behavior: 'smooth', block: 'start'
+            });
+        }, 350);
+    });
+    document.getElementById('ftv-dismiss-btn')?.addEventListener('click', dismissOverlay);
 }
 
 // ─── Initialize ─────────────────────────────────────────────────────────────
@@ -283,6 +365,9 @@ function initDashboard(): void {
 
     // PLT-OPT-001: Lazy-load map module only when map container exists
     initMapIfNeeded();
+
+    // P0-FTU-001 FIX: Show first-time visitor overlay on map hero.
+    initFirstTimeVisitorOverlay();
 
     // UNIFIED CITIZEN: Role-switcher removed — all users see unified dashboard.
 

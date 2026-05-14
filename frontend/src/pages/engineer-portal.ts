@@ -38,6 +38,8 @@ import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp'
 import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
 // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
 import { renderProgressive } from '../utils/progressive-render';
+// P2-ANIM-001 FIX: Centralized animation stagger constant
+import { staggerDelay } from '../constants/animation';
 // NOTE: Sidebar is loaded via <script src="/sidebar.js"> in engineer-portal.html
 
 initPullToRefresh();
@@ -216,7 +218,7 @@ async function loadProjects(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-3">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${phaseColor(p.phase)}">${esc(phaseLabel(p.phase))}</span>
@@ -269,7 +271,7 @@ async function loadBids(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (b, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${bidStatusColor(b.status)}">${esc(bidStatusLabel(b.status))}</span>
@@ -317,7 +319,7 @@ async function loadCaptures(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (c, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="size-14 rounded-lg bg-slate-100 overflow-hidden shrink-0 dark:bg-dark-elevated">
                     <img src="${esc(c.file_url)}" alt="${esc(c.title ?? 'Capture')}" class="size-14 object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'size-14 flex items-center justify-center\\'><i class=\\'ph ph-image-broken text-slate-400 text-xl\\'></i></div>'" />
                 </div>

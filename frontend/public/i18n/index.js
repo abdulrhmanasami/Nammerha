@@ -61,7 +61,18 @@
         'ws_continue_to': { ar: 'تابع إلى', de: 'Weiter zu', fr: 'Continuer vers', tr: 'Devam et:' },
         'ws_go_to_workspace': { ar: 'انتقل للمساحة', de: 'Zum Arbeitsbereich', fr: 'Aller à l\'espace', tr: 'Çalışma alanına git' },
         'ws_profile': { ar: 'الملف الشخصي', de: 'Profil', fr: 'Profil', tr: 'Profil' },
-        'ws_profile_desc': { ar: 'الإعدادات والتفضيلات', de: 'Einstellungen & Präferenzen', fr: 'Paramètres & préférences', tr: 'Ayarlar ve tercihler' }
+        'ws_profile_desc': { ar: 'الإعدادات والتفضيلات', de: 'Einstellungen & Präferenzen', fr: 'Paramètres & préférences', tr: 'Ayarlar ve tercihler' },
+
+        // ═══ P0-FTU-001: First-Time Visitor Value Proposition ═══
+        'ftv_headline': { ar: 'نعمّرها سوا', de: 'Syrien gemeinsam aufbauen', fr: 'Reconstruire la Syrie ensemble', tr: 'Suriye\'yi Birlikte Yeniden İnşa Edelim' },
+        'ftv_subline': { ar: 'نعمّرها تربط أصحاب المنازل والمهندسين والمقاولين عبر إعمار شفاف — مدعوم ببيانات مفتوحة.', de: 'Nammerha verbindet Hauseigentümer, Ingenieure und Unternehmer durch transparenten Wiederaufbau — unterstützt durch offene Daten.', fr: 'Nammerha connecte propriétaires, ingénieurs et entrepreneurs à travers une reconstruction transparente — alimentée par des données ouvertes.', tr: 'Nammerha, ev sahiplerini, mühendisleri ve yüklenicileri şeffaf yeniden yapılanma yoluyla birbirine bağlar — açık verilerle desteklenir.' },
+        'ftv_explore': { ar: 'استكشف المنصة', de: 'Plattform erkunden', fr: 'Explorer la plateforme', tr: 'Platformu Keşfet' },
+        'ftv_dismiss': { ar: 'أعرف نعمّرها من قبل', de: 'Ich kenne Nammerha bereits', fr: 'Je connais déjà Nammerha', tr: 'Nammerha\'yı zaten biliyorum' },
+
+        // ═══ P1-VOICE-001: Voice Recognition Error Messages ═══
+        'voice_permission_denied': { ar: 'تم رفض إذن الميكروفون. يرجى السماح بالوصول من إعدادات المتصفح.', de: 'Mikrofonerlaubnis verweigert. Bitte erlauben Sie den Zugriff in den Browsereinstellungen.', fr: 'Permission du microphone refusée. Veuillez autoriser l\'accès dans les paramètres du navigateur.', tr: 'Mikrofon izni reddedildi. Lütfen tarayıcı ayarlarından erişime izin verin.' },
+        'voice_error': { ar: 'فشل التعرف على الصوت. يرجى كتابة الوصف يدوياً.', de: 'Spracherkennung fehlgeschlagen. Bitte geben Sie die Beschreibung manuell ein.', fr: 'La reconnaissance vocale a échoué. Veuillez saisir la description manuellement.', tr: 'Ses tanıma başarısız. Lütfen açıklamayı manuel olarak yazın.' },
+        'voice_start_failed': { ar: 'تعذر بدء التعرف على الصوت.', de: 'Spracherkennung konnte nicht gestartet werden.', fr: 'Impossible de démarrer la reconnaissance vocale.', tr: 'Ses tanıma başlatılamadı.' }
         });
     }
 })();

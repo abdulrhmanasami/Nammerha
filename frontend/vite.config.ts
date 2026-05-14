@@ -13,7 +13,19 @@ const __dirname = dirname(__filename);
 
 function discoverHtmlEntries(rootDir: string): Record<string, string> {
     const entries: Record<string, string> = {};
-    const htmlFiles = readdirSync(rootDir).filter((f: string) => f.endsWith('.html'));
+
+    // P2-ORPHAN-001 FIX: Donor pages excluded from production build.
+    // Donation system suspended indefinitely (May 2026, per strategic decision).
+    // Files remain in repo for future reactivation — not deleted, just un-shipped.
+    const EXCLUDED_PAGES = new Set([
+        'donor-portal.html',
+        'donor-basket.html',
+        'donor-proof.html',
+    ]);
+
+    const htmlFiles = readdirSync(rootDir).filter((f: string) =>
+        f.endsWith('.html') && !EXCLUDED_PAGES.has(f)
+    );
 
     for (const file of htmlFiles) {
         // Convert "homeowner-portal.html" → "homeownerPortal"

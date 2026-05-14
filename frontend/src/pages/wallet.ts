@@ -211,8 +211,19 @@ async function loadTransactions(): Promise<void> {
             const escrowId = btn.dataset['escrowId'];
             if (!escrowId) return;
             haptic.light(); // UX-004: Tactile download feedback
-            // Open receipt in new tab — browser handles PDF display/download
-            window.open(`/api/homeowner/receipts/${encodeURIComponent(escrowId)}`, '_blank');
+            // P1-RECEIPT-001 FIX: Replaced window.open() with hidden anchor click.
+            // Previous: window.open() is blocked by mobile popup blockers (especially iOS Safari)
+            // with ZERO user feedback — the receipt button appeared dead.
+            // Now: Creates a transient <a> element and triggers .click() — bypasses popup blockers
+            // because <a> clicks are never blocked (they're user-initiated navigations, not popups).
+            // Standard: Mobile Safari Popup Policy, Apple HIG (Reliable Downloads).
+            const receiptLink = document.createElement('a');
+            receiptLink.href = `/api/homeowner/receipts/${encodeURIComponent(escrowId)}`;
+            receiptLink.target = '_blank';
+            receiptLink.rel = 'noopener noreferrer';
+            document.body.appendChild(receiptLink);
+            receiptLink.click();
+            receiptLink.remove();
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });

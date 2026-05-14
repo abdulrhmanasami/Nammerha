@@ -27,6 +27,8 @@ import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp'
 import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
 // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
 import { renderProgressive } from '../utils/progressive-render';
+// P2-ANIM-001 FIX: Centralized animation stagger constant
+import { staggerDelay } from '../constants/animation';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
 import { formatCents } from '../utils/format';
@@ -240,7 +242,7 @@ async function loadOrders(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (item, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-mono text-3xs text-slate-500 font-bold dark:text-slate-400">${esc(item.po_number)}</span>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${statusColor(item.status)}">${esc(statusLabel(item.status))}</span>
@@ -307,7 +309,7 @@ async function loadCatalog(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (item, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${item.is_active

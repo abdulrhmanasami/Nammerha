@@ -58,11 +58,13 @@ function calculateCompletion(user: ReturnType<typeof getCurrentUser>): number {
     if (user.email) { completed++; }
     if (user.kyc_verified) { completed++; }
 
-    // P2-UX-007 FIX: Photo upload counts towards completion.
-    // Previous: Photo upload existed but didn't contribute to % — user felt it was wasted effort.
-    // Standard: Zeigarnik Effect — every visible action should contribute to visible progress.
-    steps += 1;
-    if (user.photo_url) { completed++; }
+    // P1-PHOTO-001 FIX: photo_url REMOVED from completion calculation.
+    // Previous: Photo upload counted towards completion % (P2-UX-007), but photo_url
+    // is CLIENT-SIDE ONLY — it never persists to the backend API.
+    // Users would upload a photo → see 83% → refresh → drop back to 67% → feel regression.
+    // This creates a Sisyphean UX loop that destroys trust in the platform.
+    // photo_url will be re-added to completion once backend S3 photo persistence is implemented.
+    // Standard: Zeigarnik Effect (only count PERSISTENT progress), Trust-First UX.
 
     // Role depth (weight: 2 steps)
     steps += 2;

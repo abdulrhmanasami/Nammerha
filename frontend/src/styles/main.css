@@ -730,6 +730,49 @@ html[data-theme="dark"] .animate-pulse::after {
   }
 }
 
+/* ─── Portal Card System (P2-GLASS-001) ────────────────────────────────────
+   Consolidates the repeated inline pattern:
+     bg-white rounded-xl border border-slate-200 p-5 shadow-sm
+     dark:bg-dark-surface dark:border-dark-border
+   into reusable classes. 20 inline duplicates → 1 CSS class.
+   Design Tokens: Uses the same surface, border, and shadow tokens as glass-card
+   but without backdrop-filter (portal list cards are opaque).
+   ─────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .nm-portal-card {
+    @apply bg-white rounded-xl border border-slate-200 p-5 shadow-sm
+           relative transition-all;
+  }
+  :is(html[data-theme="dark"]) .nm-portal-card {
+    @apply bg-dark-surface border-dark-border;
+  }
+
+  /* Compact variant — for inline/horizontal items like earnings rows */
+  .nm-portal-card-compact {
+    @apply bg-white rounded-xl border border-slate-200 p-4 shadow-sm
+           relative transition-all;
+  }
+  :is(html[data-theme="dark"]) .nm-portal-card-compact {
+    @apply bg-dark-surface border-dark-border;
+  }
+
+  /* List-item variant — borderless, background hover */
+  .nm-portal-card-list {
+    @apply p-5 transition-colors;
+  }
+  .nm-portal-card-list:hover {
+    @apply bg-slate-50/50;
+  }
+  :is(html[data-theme="dark"]) .nm-portal-card-list:hover {
+    @apply bg-dark-elevated/50;
+  }
+
+  /* Hoverable enhancement — subtle lift on hover */
+  .nm-portal-card--hoverable:hover {
+    @apply shadow-md;
+  }
+}
+
 /* ─── Button System ────────────────────────────────────────────────────────── */
 @layer components {
   .btn-primary {
@@ -1590,6 +1633,12 @@ html[data-theme="dark"] .text-red-400 {
 @keyframes skeletonPulse {
     0%, 100% { opacity: 1; }
     50%      { opacity: 0.5; }
+}
+/* P2-SKEL-001 FIX: Reusable pulse animation class for skeleton.ts component factory.
+   Uses the existing skeletonPulse keyframe — all skeleton elements share the same rhythm.
+   Standard: Material Design 3 (Content Placeholders), Animation Consistency. */
+.nm-skeleton-pulse {
+    animation: skeletonPulse 1.5s ease-in-out infinite;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -26,6 +26,8 @@ import { markKPIFetched, showStaleIndicator } from '../utils/live-kpi-timestamp'
 import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils/tab-state';
 // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with 1000+ records
 import { renderProgressive } from '../utils/progressive-render';
+// P2-ANIM-001 FIX: Centralized animation stagger constant
+import { staggerDelay } from '../constants/animation';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // TICK-016: Import shared setText from utils/dom.ts.
@@ -356,7 +358,7 @@ async function loadRequests(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (r, i) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -441,7 +443,7 @@ async function loadAssignments(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (a, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-1">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(a.status)}">${esc(a.status)}</span>
@@ -528,7 +530,7 @@ async function loadEarnings(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (e, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${i * 50}ms">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div>
                     <h3 class="font-bold text-sm text-slate-900 mb-1 dark:text-slate-100">${esc(e.title)}</h3>
                     <div class="flex items-center gap-2">

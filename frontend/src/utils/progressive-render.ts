@@ -19,7 +19,7 @@
  *       items: projects,
  *       containerEl: tbody,
  *       pageSize: 20,
- *       renderItem: (p, i) => `<div style="animation-delay:${i * 50}ms">...</div>`,
+ *       renderItem: (p, i) => `<div style="animation-delay:${staggerDelay(i)}">...</div>`,
  *       emptyState: () => renderEmptyState({ ... }),
  *   });
  *
