@@ -87,6 +87,17 @@ async function loadEscrowSummary(): Promise<void> {
             // PLT-UX-AUD P3-ANIM-004 FIX: Entry animation for visual consistency.
             if (lockedEl) { lockedEl.classList.remove('animate-pulse'); lockedEl.textContent = `${summary.locked_count ?? 0} ${t('wallet_locked', 'locked')}`; lockedEl.classList.add('animate-fade-in-up'); }
             if (releasedEl) { releasedEl.classList.remove('animate-pulse'); releasedEl.textContent = `${summary.released_count ?? 0} ${t('wallet_released', 'released')}`; releasedEl.classList.add('animate-fade-in-up'); }
+            // UX-REM-V006 FIX: Currency context indicator.
+            // PREVIOUS: Balance shown as "$1,500" — Syrian users may assume SYP.
+            // NOW: Small "USD" badge injected next to balance for clarity.
+            // Standard: Nielsen #2 (Match system & real world), ISO 4217.
+            if (balanceEl && !balanceEl.parentElement?.querySelector('.nm-currency-tag')) {
+                const tag = document.createElement('span');
+                tag.className = 'nm-currency-tag text-3xs text-slate-400 dark:text-slate-500 ms-1 font-medium';
+                tag.textContent = 'USD';
+                tag.setAttribute('data-i18n-skip', 'true'); // ISO code — do not translate
+                balanceEl.parentElement?.appendChild(tag);
+            }
         }
     } catch (err) {
         reportWarning('[Wallet] Escrow summary load failed', { component: 'wallet', action: 'load_escrow', error: err instanceof Error ? err.message : String(err) });
@@ -109,6 +120,20 @@ function renderTransaction(tx: Transaction): string {
 
     const config = statusConfig[tx.status] ?? { icon: 'clock', color: 'text-warning-yellow', label: t('wallet_status_pending', 'Pending') };
 
+    // V-003 FIX: Receipt download button — only for finalized transactions.
+    // Pending/refunded entries don't have downloadable receipts.
+    const canDownload = ['locked', 'released', 'completed'].includes(tx.status);
+    const receiptBtn = canDownload
+        ? `<button
+            class="v003-receipt-btn size-8 rounded-lg bg-trust-blue/5 hover:bg-trust-blue/15 flex items-center justify-center transition-colors shrink-0"
+            data-escrow-id="${escapeHtml(tx.transaction_id)}"
+            title="${escapeHtml(t('download_receipt', 'Download Receipt'))}"
+            aria-label="${escapeHtml(t('download_receipt', 'Download Receipt'))}"
+          >
+            <i class="ph ph-file-pdf text-trust-blue text-sm" aria-hidden="true"></i>
+          </button>`
+        : '';
+
     return `
     <div class="bg-surface rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 animate-fade-in-up dark:border-dark-border">
       <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
@@ -122,8 +147,10 @@ function renderTransaction(tx: Transaction): string {
         <p class="text-sm font-bold ${config.color}">${formatCents(tx.amount)}</p>
         <p class="text-3xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">${config.label}</p>
       </div>
+      ${receiptBtn}
     </div>`;
 }
+
 
 // ─── Load Transaction History ───────────────────────────────────────────────
 async function loadTransactions(): Promise<void> {
@@ -173,6 +200,19 @@ async function loadTransactions(): Promise<void> {
                     DONATIONS_ENABLED ? 'Your donation and payment history will appear here' : 'Your payment and escrow history will appear here',
                 ),
             }),
+        });
+
+        // V-003 FIX: Receipt download — event delegation on the transaction list.
+        // Opens PDF receipt in a new tab. Uses homeowner receipt endpoint.
+        listEl.addEventListener('click', (e: Event) => {
+            const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.v003-receipt-btn');
+            if (!btn) return;
+            e.stopPropagation();
+            const escrowId = btn.dataset['escrowId'];
+            if (!escrowId) return;
+            haptic.light(); // UX-004: Tactile download feedback
+            // Open receipt in new tab — browser handles PDF display/download
+            window.open(`/api/homeowner/receipts/${encodeURIComponent(escrowId)}`, '_blank');
         });
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
@@ -231,16 +271,12 @@ function init(): void {
             haptic.medium(); // UX-004: Confirm action feedback
             depositDialog.showModal();
         });
-        // P2-UX-002 FIX: Add "Coming Soon" badge to deposit button so users
-        // know before tapping. Prevents the "click → nothing happened" frustration.
-        const depositBtnLabel = depositBtn.querySelector('span[data-i18n]');
-        if (depositBtnLabel && !depositBtn.querySelector('.nm-coming-soon-badge')) {
-            const badge = document.createElement('span');
-            badge.className = 'nm-coming-soon-badge text-3xs opacity-60 ms-1';
-            badge.textContent = t('coming_soon_short', '(Soon)');
-            badge.dataset.i18n = 'coming_soon_short';
-            depositBtnLabel.after(badge);
-        }
+        // UX-REM-F003 FIX: Deposit button honesty — aria-disabled for screen readers.
+        // The HTML already has a pre-rendered "Soon" badge (wallet.html L147).
+        // PREVIOUS: JS injected a SECOND badge, causing duplicate "(Soon)(Soon)".
+        // NOW: Only set aria-disabled for a11y — the visual badge is in the HTML.
+        // Standard: WCAG 4.1.2 (Name, Role, Value), Honest Affordances.
+        depositBtn.setAttribute('aria-disabled', 'true');
         // Wire dialog cancel button
         depositDialog.querySelector('[data-action="cancel"]')?.addEventListener('click', () => {
             depositDialog.close();

@@ -48,10 +48,32 @@ export const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
         { label: 'Project Details', href: 'project-details.html', i18n: 'project_details', icon: 'buildings' },
         { label: 'Proof of Delivery', i18n: 'proof_of_delivery', icon: 'shield-check' },
     ],
-    'project-details.html': [
-        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
-        { label: 'Project Details', i18n: 'project_details', icon: 'buildings' },
-    ],
+    // UX-REM-I002 FIX: Contextual breadcrumb — shows origin portal.
+    // PREVIOUS: Static 'Home > Project Details'. User loses context of WHERE
+    // they came from (which portal? which tab?).
+    // NOW: Detects document.referrer to inject origin portal in breadcrumb trail.
+    // Standard: Nielsen #7 (Recognition), Spatial Orientation.
+    'project-details.html': (() => {
+        const referrer = typeof document !== 'undefined' ? document.referrer : '';
+        const portalMap: Record<string, { href: string; label: string; i18n: string; icon: string }> = {
+            'homeowner-portal': { href: 'homeowner-portal.html', label: 'Homeowner Portal', i18n: 'ws_homeowner', icon: 'house' },
+            'engineer-portal': { href: 'engineer-portal.html', label: 'Engineer Portal', i18n: 'ws_engineer', icon: 'ruler' },
+            'contractor-portal': { href: 'contractor-portal.html', label: 'Contractor Portal', i18n: 'ws_contractor', icon: 'hard-hat' },
+            'supplier-dashboard': { href: 'supplier-dashboard.html', label: 'Supplier Dashboard', i18n: 'ws_supplier', icon: 'storefront' },
+        };
+        const crumbs: BreadcrumbItem[] = [
+            { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
+        ];
+        // Check if referrer matches a known portal
+        for (const [key, portal] of Object.entries(portalMap)) {
+            if (referrer.includes(key)) {
+                crumbs.push(portal);
+                break;
+            }
+        }
+        crumbs.push({ label: 'Project Details', i18n: 'project_details', icon: 'buildings' });
+        return crumbs;
+    })(),
     'donor-basket.html': [
         { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
         { label: 'Construction Basket', i18n: 'construction_basket', icon: 'shopping-cart' },

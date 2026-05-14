@@ -16,7 +16,7 @@ import { CART_CHECKOUT_ENABLED } from '../utils/feature-flags';
 import { CartStore, renderCartBadge, flyToCart } from '../components/cart';
 import { t } from '../utils/i18n';
 import { escapeHtml as esc } from '../utils/xss';
-import { openData, marketplace } from '../api';
+import { openData, marketplace, dashboard } from '../api';
 import { formatCents } from '../utils/format';
 import { applyI18n } from '../utils/locale';
 import { initBreadcrumb } from '../utils/breadcrumb';
@@ -465,11 +465,164 @@ async function loadProjectData(): Promise<void> {
         // Wire up cart buttons AFTER rendering
         initCartButtons();
 
+        // V-004 FIX: Load activity timeline (non-blocking)
+        renderActivityTimeline(projectId);
+
     } catch {
         /* Intentional: API client already logs via reportWarning.
            Show user-facing error state — no duplicate logging needed. */
         showError();
     }
+}
+
+// ─── V-004 FIX: Project Activity Timeline ───────────────────────────────────
+// Shows chronological audit trail events: escrow movements, proof submissions,
+// milestone completions, etc. Loaded lazily after main data to avoid blocking.
+// Standard: OCDS Transparency, Nielsen #1 (System Status Visibility).
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ACTION_ICONS: Record<string, string> = {
+    escrow_locked: 'ph-lock-simple',
+    escrow_released: 'ph-lock-simple-open',
+    refund_requested: 'ph-arrow-counter-clockwise',
+    refund_processed: 'ph-check-circle',
+    proof_submitted: 'ph-camera',
+    proof_verified: 'ph-shield-check',
+    proof_rejected: 'ph-shield-warning',
+    po_generated: 'ph-file-text',
+    po_approved: 'ph-check-square-offset',
+    milestone_completed: 'ph-flag-banner',
+    approval_requested: 'ph-question',
+    approval_approved: 'ph-thumbs-up',
+    approval_rejected: 'ph-thumbs-down',
+    match_reversed: 'ph-arrows-counter-clockwise',
+    default: 'ph-note',
+};
+
+const ACTION_COLORS: Record<string, string> = {
+    escrow_locked: 'text-trust-blue',
+    escrow_released: 'text-smoky-jade',
+    refund_requested: 'text-yellow-500',
+    refund_processed: 'text-smoky-jade',
+    proof_submitted: 'text-trust-blue',
+    proof_verified: 'text-smoky-jade',
+    proof_rejected: 'text-red-500',
+    default: 'text-slate-400',
+};
+
+async function renderActivityTimeline(projectId: string): Promise<void> {
+    // Find or create activity container after BOQ section
+    const main = document.querySelector('main');
+    if (!main) return;
+
+    // Create timeline section
+    const section = document.createElement('section');
+    section.id = 'v004-activity-section';
+    section.className = 'mt-6 px-4';
+    section.innerHTML = `
+        <div class="bg-white dark:bg-slate-800/50 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700/30">
+            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+                <i class="ph ph-clock-counter-clockwise text-trust-blue text-lg"></i>
+                ${esc(t('project_activity', 'Project Activity'))}
+            </h3>
+            <div id="v004-timeline" class="space-y-0">
+                <div class="nm-skeleton-pulse rounded-lg" style="height:80px"></div>
+            </div>
+            <div id="v004-load-more" class="nm-hidden mt-3 text-center">
+                <button id="v004-load-more-btn" class="text-xs text-trust-blue hover:text-trust-blue/70 font-medium transition-colors">
+                    ${esc(t('load_more', 'Load more'))}
+                </button>
+            </div>
+        </div>
+    `;
+    main.appendChild(section);
+
+    const timeline = document.getElementById('v004-timeline');
+    if (!timeline) return;
+
+    let currentOffset = 0;
+    const pageSize = 15;
+
+    async function loadEvents(append = false): Promise<void> {
+        if (!timeline) return;
+        try {
+            const res = await dashboard.getActivity(projectId, { limit: pageSize, offset: currentOffset });
+            if (!res.success || !res.data) {
+                if (!append) {
+                    timeline.innerHTML = `<p class="text-sm text-slate-400 py-3">${esc(t('activity_error', 'Could not load activity'))}</p>`;
+                }
+                return;
+            }
+
+            const { events, total } = res.data;
+
+            if (events.length === 0 && !append) {
+                timeline.innerHTML = `<p class="text-sm text-slate-400 py-3">${esc(t('no_activity', 'No activity yet'))}</p>`;
+                return;
+            }
+
+            const html = events.map(e => {
+                const iconClass = ACTION_ICONS[e.action] ?? ACTION_ICONS['default']!;
+                const colorClass = ACTION_COLORS[e.action] ?? ACTION_COLORS['default']!;
+                const label = e.action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const relTime = formatRelativeTime(e.timestamp);
+
+                return `<div class="flex gap-3 py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-b-0">
+                    <div class="flex-shrink-0 size-8 rounded-lg bg-cloud-dancer dark:bg-slate-700/50 flex items-center justify-center">
+                        <i class="ph ${esc(iconClass)} ${esc(colorClass)} text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-slate-700 dark:text-slate-200">
+                            <span class="font-medium">${esc(label)}</span>
+                            <span class="text-slate-400 dark:text-slate-500"> — ${esc(e.actor)}</span>
+                        </p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">${esc(relTime)}</p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            if (append) {
+                timeline.insertAdjacentHTML('beforeend', html);
+            } else {
+                timeline.innerHTML = html;
+            }
+
+            currentOffset += events.length;
+
+            // Show/hide load more button
+            const loadMoreEl = document.getElementById('v004-load-more');
+            if (loadMoreEl) {
+                loadMoreEl.classList.toggle('nm-hidden', currentOffset >= total);
+            }
+        } catch {
+            if (!append) {
+                timeline.innerHTML = `<p class="text-sm text-slate-400 py-3">${esc(t('activity_error', 'Could not load activity'))}</p>`;
+            }
+        }
+    }
+
+    // Wire load more button
+    document.getElementById('v004-load-more-btn')?.addEventListener('click', () => {
+        loadEvents(true);
+    });
+
+    await loadEvents();
+}
+
+// ─── V-004 Helper: Relative Time Formatter ──────────────────────────────────
+function formatRelativeTime(isoDate: string): string {
+    const now = Date.now();
+    const then = new Date(isoDate).getTime();
+    const diffMs = now - then;
+    const diffMin = Math.floor(diffMs / 60_000);
+    const diffHr = Math.floor(diffMs / 3_600_000);
+    const diffDay = Math.floor(diffMs / 86_400_000);
+
+    if (diffMin < 1) return t('just_now', 'Just now');
+    if (diffMin < 60) return `${diffMin}${t('min_ago', 'm ago')}`;
+    if (diffHr < 24) return `${diffHr}${t('hr_ago', 'h ago')}`;
+    if (diffDay < 7) return `${diffDay}${t('day_ago', 'd ago')}`;
+    return new Date(isoDate).toLocaleDateString();
 }
 
 // ─── GAP-06 FIX: Transparency Tracker Toggle ────────────────────────────────

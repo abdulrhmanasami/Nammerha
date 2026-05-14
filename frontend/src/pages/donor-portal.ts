@@ -11,25 +11,26 @@ import { donor } from '../api';
 import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
+// UX-REM-I008 FIX: Side-effect imports moved INSIDE DOMContentLoaded,
+// AFTER the DONATIONS_ENABLED gate. Previously these fired at module top-level
+// even when the page would only show "Donations Coming Soon" \u2014 wasting
+// network requests and CPU on Syria's 2G devices.
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
-initPullToRefresh();
-initBackToTop();
-autoTriggerTour();
 import { formatDate } from '../utils/locale';
 import { setText } from '../utils/dom';
 import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Donor Portal — Impact Dashboard, Marketplace, Donations, Impact, Proofs
+/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+   Donor Portal \u2014 Impact Dashboard, Marketplace, Donations, Impact, Proofs
    PLT-FE-001 FIX: All API calls delegated to centralized api.ts client.
    Auth (JWT, dev-mode X-User-Id, CSRF) is handled by the canonical request()
-   wrapper — including 30s AbortController timeout for Syria's network conditions.
+   wrapper \u2014 including 30s AbortController timeout for Syria's network conditions.
 
-   FORENSIC-C1.1: GATED — Donation system suspended indefinitely (2026-05-12).
-   ═══════════════════════════════════════════════════════════════════════════ */
+   FORENSIC-C1.1: GATED \u2014 Donation system suspended indefinitely (2026-05-12).
+   \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 */
 
 type TabName = 'dashboard' | 'marketplace' | 'donations' | 'impact' | 'proofs';
 
@@ -39,10 +40,10 @@ const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'donations', 'impact', 
 // P1-003 FIX: Hash-based tab routing
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
-// ─── FORENSIC-C1.1 FIX: Suspension Gate ─────────────────────────────────────
+// \u2500\u2500\u2500 FORENSIC-C1.1 FIX: Suspension Gate \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // When donations are suspended, replace the entire portal with a clear notice.
 // Previous: Portal loaded, called suspended APIs, showed cryptic errors.
-// Standard: Nielsen #1 (System Status Visibility) — tell users what's happening.
+// Standard: Nielsen #1 (System Status Visibility) \u2014 tell users what's happening.
 function showSuspensionNotice(): void {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) { return; }
@@ -61,7 +62,7 @@ function showSuspensionNotice(): void {
         </div>`;
 }
 
-// ─── Init ───────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Init \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
@@ -71,6 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showSuspensionNotice();
         return;
     }
+
+    // UX-REM-I008 FIX: Side-effects only fire AFTER the gate passes.
+    initPullToRefresh();
+    initBackToTop();
+    autoTriggerTour();
 
     setupTabs();
     const initialTab = hashRouter.getInitialTab();

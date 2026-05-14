@@ -1126,4 +1126,114 @@ router.get(
     }
 );
 
+// ─── V-005 FIX: Active Session Management ──────────────────────────────────
+// Exposes pre-built device-auth.service.ts functions as user-facing endpoints.
+// Users can view their active sessions and revoke access per-device or globally.
+// Standard: NIST SP 800-63B (Session Management), OWASP Session Management.
+// ────────────────────────────────────────────────────────────────────────────
+
+// GET /api/auth/sessions — List all active sessions for the authenticated user
+router.get(
+    '/sessions',
+    authMiddleware,
+    async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { getActiveSessions } = await import('../services/device-auth.service');
+            const authUser = getAuthUser(req);
+            const sessions = await getActiveSessions(authUser.user_id);
+
+            // Enrich with "is_current" flag based on device_id header
+            const currentDeviceId = req.headers['x-device-id'] as string | undefined;
+            const enriched = sessions.map(s => ({
+                ...s,
+                is_current: currentDeviceId ? s.device_id === currentDeviceId : false,
+            }));
+
+            res.json({
+                success: true,
+                data: { sessions: enriched, total: enriched.length },
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.GetSessions');
+        }
+    }
+);
+
+// DELETE /api/auth/sessions/:deviceId — Revoke a specific device session
+router.delete(
+    '/sessions/:deviceId',
+    authMiddleware,
+    async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { revokeDeviceTokens } = await import('../services/device-auth.service');
+            const authUser = getAuthUser(req);
+            const deviceId = String(req.params['deviceId']);
+
+            if (!deviceId) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Device ID is required',
+                } as ApiResponse);
+                return;
+            }
+
+            const revokedCount = await revokeDeviceTokens(authUser.user_id, deviceId);
+
+            // Audit trail
+            await query(
+                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                 VALUES ('session_revoked', 'device_session', $1, $2, $3)`,
+                [deviceId, authUser.user_id, JSON.stringify({ device_id: deviceId, revoked_count: revokedCount })]
+            );
+
+            res.json({
+                success: true,
+                message: revokedCount > 0
+                    ? `Device session revoked (${revokedCount} token(s))`
+                    : 'No active sessions found for this device',
+                data: { revoked_count: revokedCount },
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.RevokeDeviceSession');
+        }
+    }
+);
+
+// DELETE /api/auth/sessions — Nuclear: Revoke ALL sessions (force logout all devices)
+router.delete(
+    '/sessions',
+    authMiddleware,
+    async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { revokeAllUserTokens } = await import('../services/device-auth.service');
+            const authUser = getAuthUser(req);
+
+            const revokedCount = await revokeAllUserTokens(authUser.user_id, 'user_requested');
+
+            // Audit trail
+            await query(
+                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+                 VALUES ('all_sessions_revoked', 'user_sessions', $1, $2, $3)`,
+                [authUser.user_id, authUser.user_id, JSON.stringify({ revoked_count: revokedCount, reason: 'user_requested' })]
+            );
+
+            // Clear the JWT cookie for the current browser session
+            res.clearCookie('nammerha_jwt', {
+                httpOnly: true,
+                secure: process.env['NODE_ENV'] === 'production',
+                sameSite: 'strict',
+                path: '/',
+            });
+
+            res.json({
+                success: true,
+                message: `All sessions revoked (${revokedCount} token(s)). You will need to log in again.`,
+                data: { revoked_count: revokedCount },
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'Auth.RevokeAllSessions');
+        }
+    }
+);
+
 export default router;

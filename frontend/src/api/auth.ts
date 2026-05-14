@@ -64,6 +64,25 @@ export const auth = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+
+    // V-005 FIX: Active Sessions Management
+    // Lists all active sessions (devices) for the authenticated user.
+    getSessions: () =>
+        request<{ sessions: Array<{ device_id: string | null; platform: string | null; created_at: string; expires_at: string; is_current: boolean }>; total: number }>(
+            '/auth/sessions', { skipAntiFlicker: true }
+        ),
+
+    // V-005 FIX: Revoke a specific device session
+    revokeDevice: (deviceId: string) =>
+        request<{ revoked_count: number }>(`/auth/sessions/${encodeURIComponent(deviceId)}`, {
+            method: 'DELETE',
+        }),
+
+    // V-005 FIX: Revoke ALL sessions (nuclear logout)
+    revokeAllSessions: () =>
+        request<{ revoked_count: number }>('/auth/sessions', {
+            method: 'DELETE',
+        }),
 };
 
 // ─── SEC-001 FIX: Role Management (centralized) ────────────────────────────

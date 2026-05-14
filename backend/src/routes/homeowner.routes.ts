@@ -171,4 +171,66 @@ router.get('/escrow', async (req: Request, res: Response) => {
     }
 });
 
+// ─── V-003 FIX: Escrow Transaction Receipt PDF ─────────────────────────────
+// Homeowner can download a bilingual PDF receipt for any escrow transaction
+// belonging to their projects. Reuses the existing receipt.service.ts generator.
+// Rate limited: 5 per user per minute. ETag caching for 304 responses.
+// Standard: OCDS Financial Transparency, ISO 27001 (Data Access Controls).
+// ────────────────────────────────────────────────────────────────────────────
+import { createEndpointRateLimiter } from '../middleware/rate-limiter.middleware';
+import { query as dbQuery } from '../config/database';
+
+const homeownerReceiptLimiter = createEndpointRateLimiter({
+    windowMs: 60_000,
+    maxRequests: 5,
+    context: 'HomeownerReceipt',
+});
+
+router.get('/receipts/:escrowId', homeownerReceiptLimiter, async (req: Request, res: Response) => {
+    try {
+        const userId = getAuthUser(req).user_id;
+        const escrowId = String(req.params['escrowId']);
+
+        // Ownership check: verify escrow transaction belongs to a project owned by this user
+        const ownershipCheck = await dbQuery<{ transaction_id: string }>(
+            `SELECT el.transaction_id
+             FROM escrow_ledger el
+             JOIN projects p ON p.project_id = el.project_id
+             WHERE el.transaction_id = $1
+               AND p.homeowner_id = $2
+             LIMIT 1`,
+            [escrowId, userId]
+        );
+
+        if (!ownershipCheck.rows[0]) {
+            res.status(404).json({
+                success: false,
+                error: 'Transaction not found or does not belong to your projects',
+            } as ApiResponse);
+            return;
+        }
+
+        // Reuse the existing receipt generator — pass homeowner as "donor" for PDF generation.
+        // The PDF content is generic enough (project, amount, date) to work for both parties.
+        const { generateReceipt } = await import('../services/receipt.service');
+        const { buffer, filename, etag } = await generateReceipt(userId, escrowId);
+
+        // ETag: 304 Not Modified if client already has this version
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag === etag) {
+            res.status(304).end();
+            return;
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Length', buffer.length);
+        res.setHeader('ETag', etag);
+        res.setHeader('Cache-Control', 'private, max-age=3600');
+        res.send(buffer);
+    } catch (error) {
+        safeRouteError(res, error, 'Homeowner.GetReceipt');
+    }
+});
+
 export default router;

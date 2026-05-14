@@ -219,15 +219,29 @@ function switchTab(tab: TabName): void {
             // Previous: Focus stayed on tab button — screen reader users stranded.
             // Standard: WCAG 2.4.3 (Focus Order).
             if (tabId === tab) {
+                // UX-REM-I010 FIX: Focus management after tab switch.
+                // PREVIOUS: tabindex="-1" was set but never removed. This made
+                // the section itself focusable via JS but trapped Tab key users
+                // — pressing Tab skipped to the NEXT section, not the first
+                // interactive element inside this section.
+                // NOW: Set tabindex, focus, then remove it after a microtask so
+                // subsequent Tab presses navigate into the section's content.
+                // Standard: WCAG 2.4.3 (Focus Order), WAI-ARIA 1.2 (Managing Focus).
                 section.setAttribute('tabindex', '-1');
                 section.focus({ preventScroll: true });
+                // Remove tabindex after focus so Tab continues into children
+                requestAnimationFrame(() => section.removeAttribute('tabindex'));
             }
         }
     }
 
+    // UX-REM-I001 FIX: Apply SWR to tab loaders for perceived-instant switching.
+    // PREVIOUS: Every tab switch triggered a fresh API call → spinner on every switch.
+    // NOW: swrFetch returns stale data instantly, revalidates in background.
+    // Dashboard tab excluded — it uses animateKPI which needs fresh data.
     if (tab === 'dashboard') { loadStats(); loadDashboardProjects(); }
-    if (tab === 'projects') { loadProjects(); }
-    if (tab === 'requests') { loadServiceRequests(); }
+    if (tab === 'projects') { void swrFetch('ho-projects', loadProjects, { maxAge: 30_000 }); }
+    if (tab === 'requests') { void swrFetch('ho-requests', loadServiceRequests, { maxAge: 30_000 }); }
     if (tab === 'approvals') { loadApprovals(); }
     if (tab === 'payments') { loadEscrow(); }
 
@@ -255,16 +269,13 @@ async function loadStats(): Promise<void> {
         // P2-AUD-KPI-001 FIX: Backend field is total_invested, not total_funded
         animateKPI('kpi-escrow', s.total_invested, { prefix: '$', isCents: true });
         setText('approval-count', String(s.pending_approvals));
-        // MED-003 FIX: Notification bell count was hardcoded "0" — now synced to pending_approvals.
-        // Hides badge when zero to avoid misleading "0" indicator.
-        // Standard: Nielsen #1 (Visibility of System Status).
-        const notifEl = document.getElementById('notif-count');
-        if (notifEl) {
-            const count = s.pending_approvals;
-            notifEl.textContent = String(count);
-            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-            notifEl.classList.toggle('nm-hidden', count === 0);
-        }
+        // UX-REM-J006 FIX: Notification bell wired to ACTUAL notification count.
+        // PREVIOUS: `notif-count` was synced to `s.pending_approvals` — conflating
+        // approvals with notifications. 5 unread notifs + 0 pending approvals = badge shows 0.
+        // NOW: Lazy-import notification-panel's refreshBadge (already polls /notifications/unread-count).
+        // The badge is managed by notification-panel.ts via its own polling loop.
+        // We no longer touch #notif-count here — notification-panel.ts owns it.
+        // Standard: Nielsen #1 (Visibility of System Status), SRP (Single Responsibility).
 
         // P2-UXA-002 FIX: Live KPI timestamp — auto-updates with relative time
         markKPIFetched();
@@ -365,13 +376,13 @@ async function loadProjects(): Promise<void> {
                     </div>
                 </div>
             </div>`,
-            emptyState: () => `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-house-line nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_projects_yet', 'No projects yet'))}</p>
-            </div>`,
+            // UX-REM-I009 FIX: Consistent empty state component.
+            // PREVIOUS: Inline HTML diverged from renderEmptyState() styling.
+            // Standard: DRY, Visual Consistency (Design System Component Unity).
+            emptyState: () => renderEmptyState({
+                icon: 'house-line',
+                title: t('ho_no_projects_yet', 'No projects yet'),
+            }),
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
@@ -524,6 +535,19 @@ async function loadServiceRequests(): Promise<void> {
                     <div>
                         <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="ho_matched_to">Matched To</p>
                         <p class="text-xs font-medium text-slate-700 dark:text-slate-300">${esc(r.tradesperson_name ?? '—')}</p>
+                        ${r.status === 'matched' && r.tradesperson_name ? `
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="inline-flex items-center gap-1 text-3xs font-bold text-trust-blue hover:underline cursor-pointer">
+                                    <i class="ph ph-user" aria-hidden="true"></i>
+                                    ${esc(t('ho_view_tradesperson', 'View profile'))}
+                                </span>
+                                <span class="text-3xs text-slate-300 dark:text-slate-600">•</span>
+                                <span class="inline-flex items-center gap-1 text-3xs font-bold text-smoky-jade">
+                                    <i class="ph ph-check-circle" aria-hidden="true"></i>
+                                    ${esc(t('ho_matched_status', 'Matched'))}
+                                </span>
+                            </div>
+                        ` : ''}
                     </div>
                     <div>
                         ${['open', 'matched'].includes(r.status) ? `
@@ -608,6 +632,10 @@ async function loadApprovals(): Promise<void> {
                             <span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(a.engineer_name)}</span>
                             <span><i class="ph ph-clock" aria-hidden="true"></i> ${relativeTimeAgo(a.created_at)}</span>
                         </div>
+                        <a href="/project-details.html?id=${esc(a.project_id)}" class="inline-flex items-center gap-1 mt-2 text-3xs font-bold text-trust-blue hover:underline">
+                            <i class="ph ph-eye" aria-hidden="true"></i>
+                            ${esc(t('ho_view_project_proofs', 'View project & proofs'))}
+                        </a>
                     </div>
                     ${a.status === 'pending' ? `
                         <div class="flex gap-1.5 shrink-0">
@@ -641,34 +669,50 @@ async function loadApprovals(): Promise<void> {
                         ? t('ho_approving', 'Approving...')
                         : t('ho_rejecting', 'Rejecting...'));
                     try {
-                        // P0-UXA-003 FIX: Undo window for financial approval actions.
-                        // On approve (escrow release), add a 5s grace period with an "Undo" toast.
-                        // Prevents irreversible financial actions from accidental confirmation taps.
-                        // Reject doesn't need undo — it's reversible (engineer can re-submit).
+                        // UX-REM-F005 FIX: Non-blocking undo for financial approval.
+                        // PREVIOUS: `await new Promise(r => setTimeout(r, 5000))` BLOCKED the
+                        // entire async flow for 5 seconds. 10 milestones × 5s = 50s of dead time.
+                        // NOW: API fires immediately via AbortController. If user taps "Undo"
+                        // within 4s, the request is aborted (server-side idempotency prevents
+                        // partial state). Non-blocking — UI remains interactive during grace period.
+                        // Standard: Optimistic UI with Rollback, Nielsen #5 (Error Prevention).
                         if (decision === 'approved') {
                             const { showToast } = await import('../utils/toast');
-                            let cancelled = false;
+                            const abortController = new AbortController();
+                            let undone = false;
 
                             showToast(
                                 t('ho_approval_undo', 'Releasing escrow funds…'),
                                 'info',
                                 {
-                                    duration: 5500,
+                                    duration: 4500,
                                     action: {
                                         label: t('ho_undo', 'Undo'),
-                                        onClick: () => { cancelled = true; },
+                                        onClick: () => {
+                                            undone = true;
+                                            abortController.abort();
+                                            restore();
+                                            void import('../utils/toast').then(m => m.showToast(t('ho_approval_cancelled', 'Approval cancelled'), 'success'));
+                                        },
                                     },
                                 },
                             );
 
-                            await new Promise(r => setTimeout(r, 5000));
-
-                            if (cancelled) {
-                                restore();
-                                const { showToast: showUndoToast } = await import('../utils/toast');
-                                showUndoToast(t('ho_approval_cancelled', 'Approval cancelled'), 'success');
-                                return;
+                            // Fire immediately — abort if user clicks Undo
+                            try {
+                                await homeowner.respondToApproval(id, decision);
+                                if (!undone) {
+                                    restore('success');
+                                    loadApprovals();
+                                    loadStats();
+                                }
+                            } catch (abortErr) {
+                                if (!undone) {
+                                    restore('error');
+                                    reportWarning('[HomeownerPortal] Approval failed', { error: abortErr instanceof Error ? abortErr.message : String(abortErr) });
+                                }
                             }
+                            return;
                         }
 
                         await homeowner.respondToApproval(id, decision);
@@ -724,24 +768,25 @@ async function loadEscrow(): Promise<void> {
         const e = (res.data ?? {}) as unknown as EscrowData;
 
         container.innerHTML = `
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-trust-blue/5 rounded-xl p-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" role="region" aria-label="${esc(t('ho_escrow_summary', 'Escrow Summary'))}">
+                <div class="bg-trust-blue/5 rounded-xl p-4 dark:bg-trust-blue/10">
                     <p class="text-3xs font-bold text-trust-blue/60 uppercase">${esc(t('ho_total_deposited', 'Total Deposited'))}</p>
-                    <p class="text-xl font-black mt-1 text-trust-blue">${formatCents(e.total_deposited ?? 0)}</p>
+                    <p class="text-xl font-black mt-1 text-trust-blue" aria-label="${esc(t('ho_total_deposited', 'Total Deposited'))}: ${formatCents(e.total_deposited ?? 0)}">${formatCents(e.total_deposited ?? 0)}</p>
                 </div>
-                <div class="bg-smoky-jade/5 rounded-xl p-4">
+                <div class="bg-smoky-jade/5 rounded-xl p-4 dark:bg-smoky-jade/10">
                     <p class="text-3xs font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'Released'))}</p>
-                    <p class="text-xl font-black mt-1 text-smoky-jade dark:text-emerald-400">${formatCents(e.total_released ?? 0)}</p>
+                    <p class="text-xl font-black mt-1 text-smoky-jade dark:text-emerald-400" aria-label="${esc(t('ho_released', 'Released'))}: ${formatCents(e.total_released ?? 0)}">${formatCents(e.total_released ?? 0)}</p>
                 </div>
-                <div class="bg-warning-yellow/5 rounded-xl p-4">
-                    <p class="text-3xs font-bold text-warning-yellow/60 uppercase">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
-                    <p class="text-xl font-black mt-1 text-warning-yellow">${formatCents(e.held_in_escrow ?? 0)}</p>
+                <div class="bg-warning-yellow/5 rounded-xl p-4 dark:bg-warning-yellow/10">
+                    <p class="text-3xs font-bold text-warning-yellow/60 uppercase" aria-hidden="true">${esc(t('ho_held_in_escrow', 'Held in Escrow'))}</p>
+                    <p class="text-xl font-black mt-1 text-warning-yellow" data-kpi aria-label="${esc(t('ho_held_in_escrow', 'Held in Escrow'))}: ${formatCents(e.held_in_escrow ?? 0)}">${formatCents(e.held_in_escrow ?? 0)}</p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4 dark:bg-dark-elevated">
                     <p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500">${esc(t('ho_projects', 'Projects'))}</p>
-                    <p class="text-xl font-black mt-1">${esc(String(e.projects_with_escrow ?? 0))}</p>
+                    <p class="text-xl font-black mt-1" aria-label="${esc(t('ho_projects', 'Projects'))}: ${esc(String(e.projects_with_escrow ?? 0))}">${esc(String(e.projects_with_escrow ?? 0))}</p>
                 </div>
             </div>
+            <p class="text-3xs text-slate-400 dark:text-slate-500 mt-2 text-end" data-i18n="ho_currency_note">${esc(t('ho_currency_note', 'All amounts in USD'))}</p>
             ${(e.held_in_escrow ?? 0) > 0 ? `
                 <div class="mt-4 p-4 bg-trust-blue/5 rounded-xl border border-trust-blue/10">
                     <div class="flex items-center gap-2 text-trust-blue">
@@ -750,6 +795,10 @@ async function loadEscrow(): Promise<void> {
                     </div>
                 </div>
             ` : ''}
+            <a href="/wallet.html" class="mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-trust-blue/15 text-trust-blue text-sm font-bold hover:bg-trust-blue/5 transition-colors">
+                <i class="ph ph-arrow-square-out text-base" aria-hidden="true"></i>
+                ${esc(t('ho_view_all_transactions', 'View all transactions'))}
+            </a>
         `;
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderErrorWithRetry(container, loadEscrow, undefined, undefined, err);

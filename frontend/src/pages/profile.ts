@@ -24,6 +24,8 @@ import { initPageHeader } from '../components/page-header';
 import { mountHubFAB } from '../components/portal-context';
 // F-010 FIX: Breadcrumb navigation on inner pages
 import { initBreadcrumb } from '../utils/breadcrumb';
+// UX-REM-J007 FIX: Unified password strength (was using divergent inline algorithm)
+import { updatePasswordStrength } from '../utils/password-strength';
 initPullToRefresh();
 initBackToTop();
 initSearch();
@@ -571,27 +573,15 @@ function initPasswordChangeEngine(): void {
 
     // FRC-NEW-03 FIX: Live password strength visualizer (UX parity with auth.html)
     const pwBars = document.getElementById('pw-change-strength-bars')?.children;
-    const pwBarsContainer = document.getElementById('pw-change-strength-bars');
+    // UX-REM-J007 FIX: Unified password strength algorithm.
+    // PREVIOUS: Inline algorithm (L577) used val.length + regex checks — a DIFFERENT
+    // scoring system than password-strength.ts (which uses +1 per criterion: 8+ chars,
+    // uppercase, digit, special). "Strong" on profile ≠ "Strong" on auth page.
+    // NOW: Uses the shared `updatePasswordStrength()` utility — single source of truth.
+    // Standard: DRY, Consistent Security Feedback across platform.
     newPasswordInput?.addEventListener('input', (e: Event) => {
         const val = (e.target as HTMLInputElement).value;
-        const strength = val.length === 0 ? 0 : val.length < 5 ? 1 : val.length < 8 ? 2 : /[A-Z]/.test(val) && /[0-9]/.test(val) ? 4 : 3;
-        
-        if (pwBars) {
-            Array.from(pwBars).forEach((bar, index) => {
-                bar.className = `h-2 flex-1 rounded-full transition-colors ${
-                    index < strength ? (strength < 2 ? 'bg-red-400' : strength < 4 ? 'bg-amber-400' : 'bg-emerald-500') : 'bg-slate-200 dark:bg-dark-border'
-                }`;
-            });
-        }
-        // P3-UX-006 FIX: WCAG screen reader announcement for password strength.
-        // Previous: Visual-only color bars — screen readers couldn't perceive strength.
-        // Standard: WCAG 1.3.1 (Info & Relationships), 4.1.3 (Status Messages).
-        if (pwBarsContainer) {
-            const labels = [t('pw_none', 'None'), t('pw_weak', 'Weak'), t('pw_fair', 'Fair'), t('pw_medium', 'Medium'), t('pw_strong', 'Strong')];
-            pwBarsContainer.setAttribute('aria-label', `${t('pw_strength', 'Password strength')}: ${labels[strength] ?? labels[0]}`);
-            pwBarsContainer.setAttribute('role', 'status');
-            pwBarsContainer.setAttribute('aria-live', 'polite');
-        }
+        updatePasswordStrength(val, pwBars as HTMLCollection | undefined, null);
     });
 }
 
@@ -657,6 +647,20 @@ function initPhotoPreview(): void {
                     img.className = 'w-full h-full rounded-full object-cover';
                     avatarEl.innerHTML = '';
                     avatarEl.appendChild(img);
+                    // UX-REM-J003 FIX: Preview-only warning badge.
+                    // PREVIOUS: No indication that photo is client-side only.
+                    // User sees photo → leaves → returns → photo gone. Confusion.
+                    // NOW: Shows a subtle 'Preview only' badge so users know.
+                    // Standard: Nielsen #1 (Visibility of System Status).
+                    let badge = avatarEl.querySelector('.nm-preview-badge');
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'nm-preview-badge absolute bottom-0 inset-x-0 text-center text-3xs font-bold py-0.5 bg-amber-500/90 text-white rounded-b-full';
+                        badge.textContent = t('photo_preview_only', 'Preview only');
+                        badge.setAttribute('data-i18n', 'photo_preview_only');
+                        avatarEl.style.position = 'relative';
+                        avatarEl.appendChild(badge);
+                    }
                 }
             }
         };
@@ -763,18 +767,128 @@ function init(): void {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // F-001 FIX: KYC Dead-End Elimination.
-    // Previous: Showed the KYC section greyed out (opacity: 0.5, pointerEvents: none)
-    // with a "Not Yet Available" badge and "Notify Me" button. On a platform managing
-    // billions in escrow, a disabled-but-visible KYC path says "We're not ready for
-    // security" — eroding institutional trust.
-    // Now: Section is completely hidden. The completion checklist shows a compact
-    // "Coming soon" note instead of a clickable dead-end.
-    // Standard: FinTech Trust UX, Nielsen #1 (System Status Visibility).
+    // V-005 FIX: Active Sessions / Security Section
+    // Shows all active login sessions. User can revoke per-device or all.
+    // Standard: NIST SP 800-63B (Session Management), OWASP Session Mgmt.
     // ═══════════════════════════════════════════════════════════════════════
-    const kycSection = document.getElementById('kyc-section');
-    if (kycSection) {
-        kycSection.classList.add('nm-hidden');
+    const esc = escapeHtml;
+
+    async function loadActiveSessions(): Promise<void> {
+        const container = document.getElementById('v005-sessions-list');
+        if (!container) return;
+
+        container.innerHTML = `<div class="flex justify-center py-4"><div class="nm-skeleton-pulse rounded-lg" style="width:100%;height:48px"></div></div>`;
+
+        try {
+            const res = await auth.getSessions();
+            if (!res.success || !res.data) {
+                container.innerHTML = `<p class="text-sm text-slate-400">${esc(t('sessions_error', 'Could not load sessions'))}</p>`;
+                return;
+            }
+
+            const sessions = res.data.sessions;
+            if (sessions.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400">${esc(t('no_sessions', 'No active sessions'))}</p>`;
+                return;
+            }
+
+            const platformIcons: Record<string, string> = {
+                ios: 'ph-apple-logo',
+                android: 'ph-android-logo',
+                web: 'ph-globe',
+            };
+
+            container.innerHTML = sessions.map(s => {
+                const iconClass = platformIcons[s.platform ?? ''] ?? 'ph-device-mobile';
+                const loginDate = new Date(s.created_at).toLocaleDateString(isRTL() ? 'ar-SY' : 'en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                });
+                const currentBadge = s.is_current
+                    ? `<span class="text-xs bg-smoky-jade/10 text-smoky-jade px-2 py-0.5 rounded-full font-semibold">${esc(t('current_session', 'This device'))}</span>`
+                    : '';
+                const revokeBtn = !s.is_current && s.device_id
+                    ? `<button class="v005-revoke-btn text-xs text-red-500 hover:text-red-700 transition-colors font-medium" data-device="${esc(s.device_id)}">${esc(t('sign_out_device', 'Sign out'))}</button>`
+                    : '';
+
+                return `<div class="flex items-center gap-3 py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-b-0">
+                    <div class="flex-shrink-0 size-9 rounded-lg bg-cloud-dancer dark:bg-slate-700/50 flex items-center justify-center">
+                        <i class="ph ${esc(iconClass)} text-lg text-trust-blue"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-slate-700 dark:text-slate-200 capitalize">${esc(s.platform ?? 'Unknown')}</span>
+                            ${currentBadge}
+                        </div>
+                        <p class="text-xs text-slate-400 dark:text-slate-500">${esc(loginDate)}</p>
+                    </div>
+                    ${revokeBtn}
+                </div>`;
+            }).join('');
+
+            // Wire revoke buttons
+            container.querySelectorAll<HTMLButtonElement>('.v005-revoke-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const deviceId = btn.dataset['device'];
+                    if (!deviceId) return;
+                    btn.disabled = true;
+                    btn.textContent = '...';
+                    try {
+                        await auth.revokeDevice(deviceId);
+                        showToast(t('session_revoked', 'Device signed out'), 'success');
+                        await loadActiveSessions(); // Refresh list
+                    } catch {
+                        showToast(t('session_revoke_error', 'Failed to sign out device'), 'error');
+                        btn.disabled = false;
+                        btn.textContent = t('sign_out_device', 'Sign out');
+                    }
+                });
+            });
+        } catch {
+            container.innerHTML = `<p class="text-sm text-slate-400">${esc(t('sessions_error', 'Could not load sessions'))}</p>`;
+        }
+    }
+
+    // Inject the security section into the DOM
+    const kycSectionEl = document.getElementById('kyc-section');
+    const securitySectionHtml = `
+        <section id="v005-security-section" class="bg-white dark:bg-slate-800/50 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700/30">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    <i class="ph ph-shield-check text-trust-blue text-lg"></i>
+                    ${esc(t('security_sessions', 'Active Sessions'))}
+                </h3>
+                <button id="v005-revoke-all-btn" class="text-xs text-red-500 hover:text-red-700 transition-colors font-medium">
+                    ${esc(t('sign_out_all', 'Sign out all devices'))}
+                </button>
+            </div>
+            <div id="v005-sessions-list"></div>
+        </section>
+    `;
+    if (kycSectionEl?.parentElement) {
+        kycSectionEl.insertAdjacentHTML('beforebegin', securitySectionHtml);
+    } else {
+        // Fallback: append to main content area
+        const main = document.querySelector('main') ?? document.body;
+        main.insertAdjacentHTML('beforeend', securitySectionHtml);
+    }
+
+    // Wire "Sign out all devices" button
+    document.getElementById('v005-revoke-all-btn')?.addEventListener('click', async () => {
+        if (!confirm(t('confirm_sign_out_all', 'Sign out of all devices? You will need to log in again.'))) return;
+        try {
+            await auth.revokeAllSessions();
+            showToast(t('all_sessions_revoked', 'All devices signed out. Redirecting to login...'), 'success');
+            setTimeout(() => { window.location.href = '/auth.html'; }, 1500);
+        } catch {
+            showToast(t('session_revoke_error', 'Failed to sign out devices'), 'error');
+        }
+    });
+
+    // Load sessions on page init
+    loadActiveSessions();
+    // F-001 FIX: KYC Dead-End Elimination — hide the section.
+    if (kycSectionEl) {
+        kycSectionEl.classList.add('nm-hidden');
     }
 
     // F-001: Transform the KYC completion checklist item into a non-clickable

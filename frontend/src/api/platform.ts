@@ -7,6 +7,17 @@ export const dashboard = {
     submitLog: (projectId: string, data: { description: string; work_completed?: string; issues_encountered?: string; weather_conditions?: string; workers_on_site?: number; images?: string[] }) => request(`/dashboard/${projectId}/logs`, { method: 'POST', body: JSON.stringify(data) }),
     createApproval: (projectId: string, data: { item_id?: string; title: string; description?: string; material_sample_url?: string; material_options?: unknown[] }) => request(`/dashboard/${projectId}/approvals`, { method: 'POST', body: JSON.stringify(data) }),
     respondToApproval: (approvalId: string, data: { decision: 'approved' | 'rejected'; note?: string }) => request(`/dashboard/approvals/${approvalId}/respond`, { method: 'POST', body: JSON.stringify(data) }),
+    // V-004 FIX: Project activity log (audit trail)
+    getActivity: (projectId: string, params?: { limit?: number; offset?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.limit) { qs.set('limit', String(params.limit)); }
+        if (params?.offset) { qs.set('offset', String(params.offset)); }
+        const query = qs.toString();
+        return request<{ events: Array<{ id: string; action: string; entity_type: string; entity_id: string; actor: string; details: Record<string, unknown> | null; timestamp: string }>; total: number; limit: number; offset: number }>(
+            `/dashboard/${projectId}/activity${query ? `?${query}` : ''}`,
+            { skipAntiFlicker: true }
+        );
+    },
 };
 
 export const realityCapture = {

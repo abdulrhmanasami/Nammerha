@@ -184,4 +184,96 @@ router.get(
     }
 );
 
+// ─── V-004 FIX: Project Activity Log / Audit Trail ─────────────────────────
+// Exposes the existing audit_trail table as a user-facing activity feed.
+// Shows: escrow movements, proof submissions, PO transitions, approvals.
+// Standard: OCDS (Open Contracting Data Standard) — transparency mandate.
+// ────────────────────────────────────────────────────────────────────────────
+import { query as dbQuery } from '../config/database';
+
+router.get(
+    '/:projectId/activity',
+    requireRole('homeowner', 'donor', 'engineer', 'admin'),
+    async (req: Request, res: Response) => {
+        try {
+            const projectId = String(req.params['projectId']);
+            const rawLimit = parseInt(req.query['limit'] as string, 10);
+            const rawOffset = parseInt(req.query['offset'] as string, 10);
+            const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 30;
+            const offset = Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0;
+
+            // Query audit_trail for project-related events.
+            // entity_id can be project_id directly, or an item/proof/PO that belongs to the project.
+            // We use a UNION approach to cover both direct and indirect references.
+            const result = await dbQuery<{
+                audit_id: string;
+                action: string;
+                entity_type: string;
+                entity_id: string;
+                actor_id: string | null;
+                actor_name: string | null;
+                new_values: Record<string, unknown> | null;
+                created_at: Date;
+                total_count: string;
+            }>(`
+                WITH project_events AS (
+                    -- Direct project references
+                    SELECT at.audit_id, at.action, at.entity_type, at.entity_id,
+                           at.actor_id, at.new_values, at.created_at
+                    FROM audit_trail at
+                    WHERE at.entity_id = $1
+                       OR (at.new_values->>'project_id' = $1)
+
+                    UNION
+
+                    -- Events on items belonging to this project
+                    SELECT at.audit_id, at.action, at.entity_type, at.entity_id,
+                           at.actor_id, at.new_values, at.created_at
+                    FROM audit_trail at
+                    JOIN itemized_boq b ON b.item_id = at.entity_id
+                    WHERE b.project_id = $1
+
+                    UNION
+
+                    -- Events on spatial proofs for this project
+                    SELECT at.audit_id, at.action, at.entity_type, at.entity_id,
+                           at.actor_id, at.new_values, at.created_at
+                    FROM audit_trail at
+                    JOIN spatial_proof sp ON sp.proof_id = at.entity_id
+                    WHERE sp.project_id = $1
+                )
+                SELECT pe.audit_id, pe.action, pe.entity_type, pe.entity_id,
+                       pe.actor_id, u.full_name AS actor_name,
+                       pe.new_values, pe.created_at,
+                       COUNT(*) OVER() AS total_count
+                FROM project_events pe
+                LEFT JOIN users u ON u.user_id = pe.actor_id
+                ORDER BY pe.created_at DESC
+                LIMIT $2 OFFSET $3
+            `, [projectId, limit, offset]);
+
+            const total = result.rows.length > 0
+                ? parseInt(result.rows[0]?.total_count ?? '0', 10)
+                : 0;
+
+            const events = result.rows.map(row => ({
+                id: row.audit_id,
+                action: row.action,
+                entity_type: row.entity_type,
+                entity_id: row.entity_id,
+                actor: row.actor_name ?? 'System',
+                details: row.new_values,
+                timestamp: row.created_at,
+            }));
+
+            res.json({
+                success: true,
+                data: { events, total, limit, offset },
+            } as ApiResponse);
+        } catch (error) {
+            safeRouteError(res, error, 'ProjectDashboard.Activity');
+        }
+    }
+);
+
 export default router;

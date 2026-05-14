@@ -6,8 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../../../core/services/api_services.dart';
-// UNIFIED: NammerhaApiClient, role_localizer, AuthBloc imports removed
+import '../../../core/network/api_client.dart';
+// UNIFIED: role_localizer, AuthBloc imports removed
 // (were used by the now-removed role-switcher bottom sheet)
+// NammerhaApiClient re-added for UX-REM-F001 (project picker camera flow)
 import '../../auth/repositories/auth_repository.dart';
 import '../bloc/dashboard_home_bloc.dart';
 import '../../profile/screens/profile_screen.dart';
@@ -17,6 +19,7 @@ import '../../notifications/screens/notifications_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
 import '../../open_data/screens/open_data_screen.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
+import '../../spatial_proof/screens/spatial_camera_screen.dart';
 import '../../admin/screens/admin_hub_screen.dart';
 import '../../admin/screens/admin_dashboard_screen.dart';
 import '../../admin/screens/admin_escrow_screen.dart';
@@ -51,6 +54,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ═══════════════════════════════════════════════════════════════════════════
 
   bool get _isAdmin => widget.role == 'ADMIN' || widget.role == 'AUDITOR';
+
+  // UX-REM-I011 FIX: Lazy tab building — tracks which tabs have been visited.
+  // PREVIOUS: IndexedStack built ALL 5 tabs eagerly on first render.
+  // NOW: Only builds a tab's widget tree on first selection.
+  // Once built, it stays alive (same as IndexedStack post-visit behavior).
+  // Memory: 5 concurrent widget trees → 1 on launch, grows as tabs are visited.
+  final Set<int> _visitedTabs = {0}; // Home tab always built
 
   List<Widget> _getPages() {
     if (_isAdmin) {
@@ -126,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, currentIndex) {
           final safeIndex = currentIndex >= pages.length ? 0 : currentIndex;
           return Scaffold(
-            body: IndexedStack(index: safeIndex, children: pages),
+            body: _buildLazyIndexedStack(safeIndex, pages),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
                 border: Border(
@@ -145,6 +155,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
       ),
+    );
+  }
+
+  // UX-REM-I011 FIX: Lazy IndexedStack — defers widget build until first visit.
+  // Standard: Memory efficiency on resource-constrained Syrian 2G devices.
+  Widget _buildLazyIndexedStack(int currentIndex, List<Widget> pages) {
+    // Mark current tab as visited
+    if (!_visitedTabs.contains(currentIndex)) {
+      // Use addPostFrameCallback to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _visitedTabs.add(currentIndex));
+        }
+      });
+    }
+    return IndexedStack(
+      index: currentIndex,
+      children: List.generate(pages.length, (i) {
+        // Only build pages that have been visited
+        if (_visitedTabs.contains(i)) {
+          return pages[i];
+        }
+        // Unvisited: lightweight placeholder
+        return const SizedBox.shrink();
+      }),
     );
   }
 }
@@ -258,11 +293,18 @@ class _DashboardHomeView extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              // Cart Badge Icon
+                              // UX-REM-J008 FIX: Cart icon gated behind procurement state.
+                              // PREVIOUS: Cart icon always visible. Donations/procurement suspended.
+                              // User taps → navigates to empty CartScreen → dead end.
+                              // NOW: Only show when cart has items (procurement flow is active).
+                              // When procurement is re-enabled, this naturally shows the cart.
+                              // Standard: Nielsen #2 (Match system & real world), Honest Affordances.
                               ListenableBuilder(
                                 listenable: CartStore.instance,
                                 builder: (context, _) {
                                   final count = CartStore.instance.items.length;
+                                  // Only render cart icon when items exist (procurement active)
+                                  if (count == 0) return const SizedBox.shrink();
                                   return Stack(
                                     alignment: Alignment.center,
                                     children: [
@@ -281,26 +323,25 @@ class _DashboardHomeView extends StatelessWidget {
                                           );
                                         },
                                       ),
-                                      if (count > 0)
-                                        PositionedDirectional(
-                                          top: 8,
-                                          end: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: BoxDecoration(
-                                              color: colors.error,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Text(
-                                              '$count',
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
+                                      PositionedDirectional(
+                                        top: 8,
+                                        end: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: colors.error,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Text(
+                                            '$count',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ),
+                                      ),
                                     ],
                                   );
                                 },
@@ -353,6 +394,27 @@ class _DashboardHomeView extends StatelessWidget {
                                 Text(
                                   state.message,
                                   style: TextStyle(color: colors.error),
+                                  textAlign: TextAlign.center,
+                                ),
+                                // UX-REM-J004 FIX: Explicit retry button.
+                                // PREVIOUS: Only pull-to-refresh (undiscoverable gesture).
+                                // Standard: Nielsen #9 (Help users recognize and recover from errors).
+                                const SizedBox(height: 12),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    context.read<DashboardHomeBloc>().add(
+                                      LoadDashboardHome(role),
+                                    );
+                                  },
+                                  icon: Icon(PhosphorIconsRegular.arrowClockwise, size: 18),
+                                  label: Text(context.tr('retry')),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: colors.primaryBrand,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -371,7 +433,7 @@ class _DashboardHomeView extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: colors.textPrimary,
                         ),
-                      ).animate(delay: 600.ms).fadeIn(),
+                      ).animate(delay: 200.ms).fadeIn(),
                       const SizedBox(height: 14),
                       // P2-001 FIX: Raw Shimmer → NammerhaShimmerLoader for visual consistency
                       if (isLoading)
@@ -394,7 +456,7 @@ class _DashboardHomeView extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: colors.textPrimary,
                         ),
-                      ).animate(delay: 800.ms).fadeIn(),
+                      ).animate(delay: 400.ms).fadeIn(),
                       const SizedBox(height: 14),
                       _buildRecentActivity(
                         context,
@@ -423,7 +485,13 @@ class _DashboardHomeView extends StatelessWidget {
     } else {
       greeting = context.tr('greeting_evening');
     }
-    return '$greeting، $userName';
+    // UX-REM-I007 FIX: Locale-aware greeting separator.
+    // PREVIOUS: Hardcoded Arabic comma (،) for ALL locales.
+    // NOW: Uses comma appropriate to the app's locale.
+    // Standard: i18n best practice — punctuation is locale-dependent.
+    final locale = Localizations.localeOf(context);
+    final separator = locale.languageCode == 'ar' ? '،' : ',';
+    return '$greeting$separator $userName';
   }
 
   Widget _buildStatsSection(
@@ -644,7 +712,8 @@ class _DashboardHomeView extends StatelessWidget {
                 context.tr('projects_properties'),
                 projectsWorkspace,
                 colors.primaryBrand,
-                700,
+                // UX-REM-I012 FIX: Reduced from 700ms to 100ms
+                100,
               ),
             ),
             const SizedBox(width: 12),
@@ -654,7 +723,8 @@ class _DashboardHomeView extends StatelessWidget {
                 context.tr('tenders_supply'),
                 tendersWorkspace,
                 colors.goldFunding,
-                800,
+                // UX-REM-I012 FIX: Reduced from 800ms to 200ms
+                200,
               ),
             ),
           ],
@@ -666,7 +736,8 @@ class _DashboardHomeView extends StatelessWidget {
           context.tr('field_engineering_tasks'),
           fieldWorkspace,
           colors.success,
-          900,
+          // UX-REM-I012 FIX: Reduced from 900ms to 300ms
+          300,
           isHorizontal: true,
         ),
       ],
@@ -691,12 +762,19 @@ class _DashboardHomeView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: themeColor,
+          // UX-REM-I005 FIX: Semantic header for screen reader navigation.
+          // PREVIOUS: Plain Text widget — screen readers couldn't distinguish
+          // section headings from body text.
+          // Standard: WCAG 1.3.1 (Info and Relationships).
+          Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: themeColor,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -754,16 +832,13 @@ class _DashboardHomeView extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           HapticFeedback.lightImpact();
-          // P0-003 FIX: Camera action requires project selection first
+          // UX-REM-F001 FIX: Camera action — project picker bottom sheet.
+          // PREVIOUS: Dead SnackBar + TODO comment. User hit a dead end.
+          // NOW: Opens a bottom sheet listing user's projects. On selection,
+          // navigates to SpatialCameraScreen with the selected project context.
+          // Standard: Nielsen #7 (Flexibility and efficiency of use).
           if (action.isCameraAction) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(context.tr('select_project_first')),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: colors.warning,
-              ),
-            );
-            // TODO: Navigate to project picker → then SpatialCameraScreen
+            _showProjectPickerForCamera(context);
             return;
           }
           Navigator.push(
@@ -1047,6 +1122,145 @@ class _DashboardHomeView extends StatelessWidget {
   // UNIFIED: _showRoleSwitcher, _showAddRoleSheet, and _activateRole
   // have been removed. Role switching is no longer a user-facing concept.
   // All users see all features through the unified dashboard tabs.
+
+  // ─── UX-REM-F001: Project Picker for Spatial Camera ─────────────────────
+  // Replaces the dead SnackBar + TODO. Shows a bottom sheet listing the user's
+  // projects. On selection, navigates to SpatialCameraScreen with project context.
+  void _showProjectPickerForCamera(BuildContext context) {
+    final colors = context.colors;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          decoration: BoxDecoration(
+            color: colors.surfaceCard,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Grab handle
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.strokeSubtle,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
+                child: Row(
+                  children: [
+                    Icon(PhosphorIconsRegular.camera, color: colors.success, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        context.tr('select_project_for_camera'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _fetchUserProjects(),
+                  builder: (ctx, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: NammerhaShimmerLoader(colors: colors, isList: true),
+                      );
+                    }
+                    if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
+                      return Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(PhosphorIconsRegular.buildings, color: colors.textSecondary, size: 40),
+                            const SizedBox(height: 12),
+                            Text(
+                              context.tr('no_projects_for_camera'),
+                              style: TextStyle(color: colors.textSecondary, fontSize: 14),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    final projects = snapshot.data!;
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: projects.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1, indent: 20, endIndent: 20),
+                      itemBuilder: (_, index) {
+                        final p = projects[index];
+                        final projectId = p['project_id']?.toString() ?? '';
+                        final title = p['title']?.toString() ?? '';
+                        final status = p['status']?.toString() ?? '';
+                        return ListTile(
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: colors.primaryBrand.withAlpha(20),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(PhosphorIconsRegular.buildings, color: colors.primaryBrand, size: 20),
+                          ),
+                          title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                          subtitle: Text(status.replaceAll('_', ' '), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                          trailing: Icon(PhosphorIconsRegular.caretRight, color: colors.textSecondary, size: 18),
+                          onTap: () {
+                            Navigator.pop(sheetCtx);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SpatialCameraScreen(
+                                  projectId: projectId,
+                                  itemId: '', // General capture — no specific BOQ item
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchUserProjects() async {
+    try {
+      final response = await NammerhaApiClient.instance.request<List<dynamic>>(
+        '/homeowner/projects',
+        fromData: (d) => d as List<dynamic>,
+      );
+      return response.data?.cast<Map<String, dynamic>>() ?? [];
+    } catch (_) {
+      return [];
+    }
+  }
 }
 
 class _StatItem {

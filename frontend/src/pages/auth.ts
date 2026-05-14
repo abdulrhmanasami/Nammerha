@@ -165,6 +165,44 @@ function switchTab(mode: 'login' | 'register'): void {
 
 let currentRegStep = 1;
 
+// UX-REM-J002 FIX: Registration draft persistence.
+// PREVIOUS: User fills Step 1 (name, email) → accidentally closes tab → all input lost.
+// NOW: Saves non-sensitive fields (name, email) to sessionStorage on input.
+// NEVER persists passwords — security constraint.
+// Standard: P0-UX-004 pattern (service request auto-save), Nielsen #5 (Error Prevention).
+const REG_DRAFT_KEY = 'nmh_reg_draft';
+
+function saveRegDraft(): void {
+    try {
+        const name = (document.getElementById('reg-name') as HTMLInputElement)?.value ?? '';
+        const email = (document.getElementById('reg-email') as HTMLInputElement)?.value ?? '';
+        if (name || email) {
+            sessionStorage.setItem(REG_DRAFT_KEY, JSON.stringify({ name, email, step: currentRegStep }));
+        }
+    } catch { /* Safari incognito — degrade gracefully */ }
+}
+
+function restoreRegDraft(): void {
+    try {
+        const raw = sessionStorage.getItem(REG_DRAFT_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw) as { name?: string; email?: string; step?: number };
+        const nameEl = document.getElementById('reg-name') as HTMLInputElement | null;
+        const emailEl = document.getElementById('reg-email') as HTMLInputElement | null;
+        if (nameEl && draft.name) { nameEl.value = draft.name; }
+        if (emailEl && draft.email) { emailEl.value = draft.email; }
+        // Restore to the step the user was on (but never beyond step 2 — passwords aren't saved)
+        if (draft.step && draft.step <= 2 && draft.step > 1) {
+            // Use setTimeout to ensure DOM is ready
+            setTimeout(() => goToRegStep(draft.step!), 100);
+        }
+    } catch { /* ignore corrupt/missing data */ }
+}
+
+function clearRegDraft(): void {
+    try { sessionStorage.removeItem(REG_DRAFT_KEY); } catch { /* ignore */ }
+}
+
 /**
  * Navigate to a specific registration step.
  * Validates current step fields before advancing forward.
@@ -375,6 +413,9 @@ tabLogin?.addEventListener('click', () => {
 tabRegister?.addEventListener('click', () => {
     switchTab('register');
     goToRegStep(1);
+    // UX-REM-J002 FIX: Restore draft values after tab switch.
+    // restoreRegDraft() fills name + email and optionally advances to saved step.
+    restoreRegDraft();
 });
 
 // ─── FRIC-003 FIX: URL Hash State for Registration Wizard ───────────────────
@@ -442,6 +483,8 @@ window.addEventListener('hashchange', () => {
             }
         }
     }
+    // UX-REM-J002 FIX: Restore draft values after hash state restoration.
+    restoreRegDraft();
 })();
 
 // ─── Banner / Feedback ──────────────────────────────────────────────────────
@@ -548,6 +591,11 @@ function updateRegisterButton(): void {
         // Only hide if banner is currently showing an error (not success/info)
         if (bannerInner?.classList.contains('bg-red-50')) {
             hideBanner();
+        }
+        // UX-REM-J002 FIX: Auto-save registration draft on input.
+        // Only saves name + email — passwords are NEVER persisted.
+        if (id === 'reg-name' || id === 'reg-email') {
+            saveRegDraft();
         }
     });
 });
@@ -753,6 +801,8 @@ formRegister?.addEventListener('submit', async (e) => {
         // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
         // The user must verify their email first, then log in.
         if (response.success) {
+            // UX-REM-J002 FIX: Clear registration draft on successful registration.
+            clearRegDraft();
             // GAP-002 FIX: Set onboarding flag for first-login guided tour
             try { localStorage.setItem('nmh_onboarding_pending', '1'); } catch { /* Safari private mode */ }
             // M-AUD-010 FIX: Show transition feedback before switching tabs.
