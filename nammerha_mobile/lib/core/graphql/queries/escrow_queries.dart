@@ -11,7 +11,9 @@ class EscrowQueries {
     }
   ''';
 
-  static const String getDonorDonations = r'''
+  /// Escrow transaction history query.
+  /// NOTE: GraphQL operation name 'GetDonorDonations' is a backend contract.
+  static const String getEscrowTransactions = r'''
     query GetDonorDonations($limit: Int, $offset: Int) {
       donorDonations(limit: $limit, offset: $offset) {
         transactionId

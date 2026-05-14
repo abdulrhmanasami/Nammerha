@@ -333,7 +333,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             FilledButton.icon(
               onPressed: _downloadPdf,
               icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-              label: const Text('إعادة المحاولة'),
+              label: Text(context.tr('retry')),
               style: FilledButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

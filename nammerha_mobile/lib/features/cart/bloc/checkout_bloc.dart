@@ -5,10 +5,10 @@ import '../data/checkout_repository.dart';
 import 'checkout_event.dart';
 import 'checkout_state.dart';
 
-/// Checkout BLoC — GraphQL-First with REST Fallback (H-4 Remediation)
+/// Checkout BLoC — GraphQL-First with REST Fallback
 ///
 /// Architecture:
-///   PRIMARY:  GraphQL `createDonation` mutation → returns `PaymentIntentResult`
+///   PRIMARY:  GraphQL `createEscrowCheckout` → returns `PaymentIntentResult`
 ///             with `checkoutUrl` for Fatora redirect.
 ///   FALLBACK: REST `POST /donations` → fires only on infrastructure errors
 ///             (502/503/504) when the GraphQL endpoint is unreachable.
@@ -39,7 +39,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     try {
       // ──────────────────────────────────────────────────────────────────
       // 1. Build typed checkout items from raw basket maps.
-      //    Web parity: donor-basket.ts → Math.round(unitPrice * qty * 100)
+      //    Web parity: Math.round(unitPrice * qty * 100)
       //    unitPrice is in standard currency (not cents), so we convert.
       // ──────────────────────────────────────────────────────────────────
       final checkoutItems = <CheckoutItem>[];
@@ -69,10 +69,10 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
       }
 
       // ──────────────────────────────────────────────────────────────────
-      // 3. PRIMARY: GraphQL createDonation mutation
+      // 3. PRIMARY: GraphQL escrow checkout mutation
       //    Returns PaymentIntentResult with checkoutUrl for Fatora redirect
       // ──────────────────────────────────────────────────────────────────
-      final result = await _graphqlRepository.createDonation(
+      final result = await _graphqlRepository.createEscrowCheckout(
         items: checkoutItems,
         paymentMethod: event.paymentGateway,
         returnUrl: 'nammerha://payment-callback', // Deep link
@@ -106,7 +106,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     Emitter<CheckoutState> emit,
   ) async {
     try {
-      final donationItems = event.basketItems.map((item) {
+      final escrowItems = event.basketItems.map((item) {
         final unitPrice = (item['unit_price'] as num?)?.toDouble() ?? 0.0;
         final quantity = (item['quantity'] as num?)?.toInt() ?? 1;
         return {
@@ -116,14 +116,14 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
       }).toList();
 
       if (event.tipAmount > 0) {
-        donationItems.add({
+        escrowItems.add({
           'item_id': 'platform-tip',
           'amount': (event.tipAmount * 100).round(),
         });
       }
 
-      final response = await _restRepository.submitDonationCheckout(
-        items: donationItems,
+      final response = await _restRepository.submitEscrowCheckout(
+        items: escrowItems,
         paymentMethod: event.paymentGateway,
       );
 

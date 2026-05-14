@@ -29,18 +29,18 @@ class AdminDashboardLoading extends AdminDashboardState {}
 class AdminDashboardLoaded extends AdminDashboardState {
   final PlatformOverview overview;
   final List<MonthlyDataPoint> projectsByMonth;
-  final List<MonthlyAmountPoint> donationsByMonth;
+  final List<MonthlyAmountPoint> fundingByMonth;
   final List<EscrowCase> recentAudit;
 
   const AdminDashboardLoaded({
     required this.overview,
     required this.projectsByMonth,
-    required this.donationsByMonth,
+    required this.fundingByMonth,
     required this.recentAudit,
   });
 
   @override
-  List<Object?> get props => [overview, projectsByMonth, donationsByMonth, recentAudit];
+  List<Object?> get props => [overview, projectsByMonth, fundingByMonth, recentAudit];
 }
 
 class AdminDashboardError extends AdminDashboardState {
@@ -87,7 +87,7 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
 
     // ── Step 2: Load secondary data concurrently (degrade gracefully) ────────
     List<MonthlyDataPoint> projectsByMonth = [];
-    List<MonthlyAmountPoint> donationsByMonth = [];
+    List<MonthlyAmountPoint> fundingByMonth = [];
     List<EscrowCase> recentAudit = [];
 
     await Future.wait([
@@ -98,10 +98,10 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
         onSuccess: (v) => projectsByMonth = v,
       ),
       _safeLoad<List<MonthlyAmountPoint>>(
-        label: 'getDonationsByMonth',
+        label: 'getFundingByMonth',
         fallback: const [],
-        fetch: () => _api.getDonationsByMonth(),
-        onSuccess: (v) => donationsByMonth = v,
+        fetch: () => _api.getFundingByMonth(),
+        onSuccess: (v) => fundingByMonth = v,
       ),
       _safeLoad<List<EscrowCase>>(
         label: 'getPendingVerifications',
@@ -114,7 +114,7 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
     emit(AdminDashboardLoaded(
       overview: overview,
       projectsByMonth: projectsByMonth,
-      donationsByMonth: donationsByMonth,
+      fundingByMonth: fundingByMonth,
       recentAudit: recentAudit,
     ));
   }

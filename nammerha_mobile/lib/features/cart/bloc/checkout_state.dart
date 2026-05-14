@@ -12,7 +12,7 @@ class CheckoutInitial extends CheckoutState {}
 class CheckoutLoading extends CheckoutState {}
 
 /// H-4 FIX: Extended with PaymentIntent metadata from GraphQL response.
-/// The `checkoutUrl` is now reliably returned from the `createDonation` mutation,
+/// The `checkoutUrl` is now reliably returned from the escrow checkout mutation,
 /// unlike the REST endpoint which returned `{ escrow_entries, total_locked }`.
 class CheckoutSuccess extends CheckoutState {
   /// Fatora/Visa checkout redirect URL (null if REST fallback)

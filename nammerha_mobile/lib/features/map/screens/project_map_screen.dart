@@ -785,7 +785,7 @@ class _ErrorOverlay extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: Icon(PhosphorIconsRegular.arrowsClockwise, color: Colors.white),
-                label: const Text('إعادة المحاولة',
+                label: Text(context.tr('retry'),
                     style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primaryBrand,

@@ -61,7 +61,7 @@ class _ContactScreenState extends State<ContactScreen> {
       child: Scaffold(
         backgroundColor: colors.backgroundPrimary,
         appBar: AppBar(
-          title: Text('تواصل معنا', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          title: Text(context.tr('contact_us'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           backgroundColor: colors.backgroundPrimary, elevation: 0,
           iconTheme: IconThemeData(color: colors.textPrimary),
         ),
@@ -100,7 +100,7 @@ class _ContactScreenState extends State<ContactScreen> {
           child: Column(children: [
             Icon(PhosphorIconsRegular.warningCircle, color: Colors.white, size: 40),
             const SizedBox(height: 10),
-            const Text('نحن هنا لمساعدتك', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
+            Text(context.tr('we_are_here_to_help'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 4),
             Text('سنرد خلال 24 ساعة عمل', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
           ]),
@@ -158,7 +158,7 @@ class _ContactScreenState extends State<ContactScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
           child: state.isSubmitting
               ? SizedBox(width: 20, height: 20, child: NammerhaShimmerLoader(colors: colors))
-              : const Text('إرسال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+              : Text(context.tr('send_btn'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
         ),
       ]),
     );
@@ -180,7 +180,7 @@ class _ContactScreenState extends State<ContactScreen> {
         style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-        child: const Text('العودة', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        child: Text(context.tr('back_btn'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       ).animate(delay: 400.ms).fadeIn(),
     ]);
   }

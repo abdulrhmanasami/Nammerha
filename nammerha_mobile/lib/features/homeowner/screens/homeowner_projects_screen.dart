@@ -63,7 +63,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
     } on ApiException catch (e) {
       cubit.setError(localizeApiError(e.message));
     } catch (e) {
-      cubit.setError('حدث خطأ في تحميل مشاريعك');
+      cubit.setError(context.tr('load_projects_error'));
     }
   }
 
@@ -74,7 +74,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('مشاريعي'),
+        title: Text(context.tr('my_projects')),
         actions: [
           IconButton(
             icon: Container(
@@ -111,7 +111,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
               ElevatedButton.icon(
                 onPressed: _loadProjects,
                 icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: const Text('إعادة المحاولة'),
+                label: Text(context.tr('retry')),
                 style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
               ),
             ],
@@ -127,12 +127,12 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
           children: [
             Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
-            Text('لم تقم بإنشاء أي مشروع بعد', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
+            Text(context.tr('no_projects_yet'), style: TextStyle(color: colors.textSecondary, fontSize: 16)),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () => _showCreateProjectSheet(context),
               icon: Icon(PhosphorIconsRegular.plus),
-              label: const Text('إنشاء مشروع جديد'),
+              label: Text(context.tr('create_new_project')),
               style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white),
             ),
           ],
@@ -162,7 +162,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
               break;
             case 'PENDING':
               statusColor = colors.warning;
-              statusLabel = 'قيد المراجعة';
+              statusLabel = context.tr('pending_review');
               break;
             case 'COMPLETED':
               statusColor = colors.primaryBrand;
@@ -289,18 +289,18 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
           children: [
             Center(child: BottomSheetGrabber(colors: colors)),
             const SizedBox(height: 16),
-            Text('إنشاء مشروع جديد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+            Text(context.tr('create_new_project'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(height: 20),
-            _sheetField(colors, titleCtrl, 'عنوان المشروع', PhosphorIconsRegular.warningCircle),
+            _sheetField(colors, titleCtrl, context.tr('project_title_label'), PhosphorIconsRegular.warningCircle),
             const SizedBox(height: 12),
-            _sheetField(colors, descCtrl, 'وصف المشروع', PhosphorIconsRegular.fileText, maxLines: 3),
+            _sheetField(colors, descCtrl, context.tr('project_desc_label'), PhosphorIconsRegular.fileText, maxLines: 3),
             const SizedBox(height: 12),
             _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), PhosphorIconsRegular.mapPin),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: selectedDamage,
               decoration: InputDecoration(
-                labelText: 'نوع الضرر',
+                labelText: context.tr('damage_type_label'),
                 prefixIcon: Icon(PhosphorIconsRegular.warning, color: colors.textSecondary),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                 filled: true,
@@ -336,7 +336,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                         children: [
                           NammerhaShimmerLoader(colors: colors, isList: false),
                           const SizedBox(height: 14),
-                          Text('جارٍ تحديد الموقع...', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                          Text(context.tr('locating_gps'), style: TextStyle(color: colors.textSecondary, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -358,7 +358,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('يرجى السماح بالوصول للموقع لإنشاء المشروع'),
+                          content: Text(context.tr('location_permission_required')),
                           backgroundColor: colors.error,
                         ),
                       );
@@ -391,7 +391,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('تعذر تحديد الموقع — تأكد من تفعيل GPS'),
+                        content: Text(context.tr('gps_failed')),
                         backgroundColor: colors.warning,
                       ),
                     );
@@ -412,7 +412,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                   await widget.onSuccess();
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: const Text('✅ تم إنشاء المشروع بنجاح'), backgroundColor: colors.success),
+                      SnackBar(content: Text(context.tr('project_created_success')), backgroundColor: colors.success),
                     );
                   }
                 } on ApiException catch (e) {
@@ -424,7 +424,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                 }
               },
               icon: Icon(PhosphorIconsRegular.plus),
-              label: const Text('إنشاء المشروع'),
+              label: Text(context.tr('create_project_btn')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
                 foregroundColor: Colors.white,

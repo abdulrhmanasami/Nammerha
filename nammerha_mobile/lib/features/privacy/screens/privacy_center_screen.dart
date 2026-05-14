@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,7 +34,7 @@ class _PrivacyCenterView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.backgroundSecondary,
       appBar: AppBar(
-        title: const Text('مركز الخصوصية والسيادة'),
+        title: Text(context.tr('privacy_center')),
       ),
       body: BlocListener<PrivacyBloc, PrivacyState>(
         listener: (context, state) {
@@ -130,7 +131,7 @@ class _PrivacyCenterView extends StatelessWidget {
                     // Navigate to Cryptographic Consent Audit Logs (optional future expansion)
                   },
                    icon: Icon(PhosphorIconsRegular.lockKey, size: 16),
-                  label: const Text('سجل الموافقة المشفر (HMAC)'),
+                  label: Text(context.tr('consent_log_hmac')),
                   style: TextButton.styleFrom(foregroundColor: colors.primaryBrand),
                 ),
               ),
@@ -157,7 +158,7 @@ class _PrivacyCenterView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء'),
+            child: Text(context.tr('cancel_btn')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -167,7 +168,7 @@ class _PrivacyCenterView extends StatelessWidget {
               Navigator.pop(ctx);
               onConfirm();
             },
-            child: const Text('تأكيد'),
+            child: Text(context.tr('confirm_btn')),
           ),
         ],
       ),

@@ -53,7 +53,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 const AndroidNotificationChannel _nammerhaChannel = AndroidNotificationChannel(
   'nammerha_high_importance', // channel ID
   'إشعارات نعمّرها', // channel name (Arabic)
-  description: 'إشعارات المنصة — تبرعات، ضمان، تحديثات المشاريع',
+  description: 'إشعارات المنصة — ضمان، مشاريع، تحديثات',
   importance: Importance.high,
   enableVibration: true,
   playSound: true,

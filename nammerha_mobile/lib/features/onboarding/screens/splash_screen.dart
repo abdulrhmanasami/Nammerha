@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Nammerha Splash Screen — Platinum Standard
@@ -105,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                 // Subtitle
                 Text(
-                  'منصة إعادة إعمار سوريا الشفافة',
+                  context.tr('splash_subtitle'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,

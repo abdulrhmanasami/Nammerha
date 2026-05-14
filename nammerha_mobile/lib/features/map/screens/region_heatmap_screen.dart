@@ -104,7 +104,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: Text('خريطة التوزيع الجغرافي', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        title: Text(context.tr('region_heatmap'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         backgroundColor: colors.backgroundPrimary, elevation: 0,
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),

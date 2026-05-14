@@ -39,7 +39,7 @@ class _AboutScreenState extends State<AboutScreen> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: Text('حول نعمّرها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        title: Text(context.tr('about_nammerha'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         backgroundColor: colors.backgroundPrimary, elevation: 0,
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),

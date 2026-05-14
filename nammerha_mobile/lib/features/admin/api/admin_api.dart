@@ -48,8 +48,9 @@ class AdminApi {
         .toList();
   }
 
-  /// GET /api/admin/stats/donations-by-month — Donation amounts per month
-  Future<List<MonthlyAmountPoint>> getDonationsByMonth({int months = 12}) async {
+  /// GET /api/admin/stats/donations-by-month — Funding amounts per month
+  /// NOTE: REST path is a backend contract — DO NOT rename.
+  Future<List<MonthlyAmountPoint>> getFundingByMonth({int months = 12}) async {
     final response = await _api.request<List<dynamic>>(
       '/admin/stats/donations-by-month?months=$months',
       fromData: (d) => d as List<dynamic>,

@@ -21,7 +21,7 @@ import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 ///
 /// Data sources:
 ///   - OpenDataApi.getOCDSRelease(projectId) → OCDS compliance data
-///   - DonationsApi.getMyEscrow() → Escrow ledger entries (if authenticated)
+///   - PaymentsApi → Escrow ledger entries (if authenticated)
 ///   - OpenDataApi.getProjectCard(projectId) → Project metadata
 ///
 /// Standard: Nammerha Domain Law §2 — Radical Transparency / OCDS.
@@ -88,7 +88,7 @@ class _TransparencyDashboardContentState
       }
     } catch (e) {
       if (mounted) {
-        cubit.setError('تعذر تحميل بيانات الشفافية');
+        cubit.setError(context.tr('transparency_load_error'));
       }
     }
   }
@@ -142,7 +142,7 @@ class _TransparencyDashboardContentState
               ElevatedButton.icon(
                 onPressed: _loadData,
                 icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: const Text('إعادة المحاولة'),
+                label: Text(context.tr('retry')),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand),
               ),
@@ -164,7 +164,7 @@ class _TransparencyDashboardContentState
             _buildInfoCard(
               title: 'الشفافية المطلقة',
               description:
-                  'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم التبرع بها حتى لحظة صرفها.',
+                  'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم تمويلها حتى لحظة صرفها.',
               icon: PhosphorIconsRegular.warningCircle,
               color: colors.primaryBrand,
               colors: colors,

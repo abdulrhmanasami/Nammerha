@@ -232,7 +232,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
         if (!hwState.hasPermissions || hwState.errorMessage.isNotEmpty) {
           return Scaffold(
             backgroundColor: colors.backgroundPrimary,
-            appBar: AppBar(title: const Text('الحارس المكاني')),
+            appBar: AppBar(title: Text(context.tr('spatial_guardian'))),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),

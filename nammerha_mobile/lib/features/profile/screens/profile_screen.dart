@@ -127,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         } else if (state is ProfileError) {
           return Scaffold(
             backgroundColor: colors.backgroundPrimary,
-            appBar: AppBar(title: const Text('الملف الشخصي')),
+            appBar: AppBar(title: Text(context.tr('profile_title'))),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -145,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ElevatedButton.icon(
                       onPressed: () => context.read<ProfileBloc>().add(LoadProfileRequested()),
                       icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: const Text('إعادة المحاولة'),
+                      label: Text(context.tr('retry')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.primaryBrand,
                         foregroundColor: Colors.white,
@@ -165,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Scaffold(
               backgroundColor: colors.backgroundPrimary,
               appBar: AppBar(
-                title: const Text('الملف الشخصي'),
+                title: Text(context.tr('profile_title')),
                 actions: [
                   if (!isEditing)
                     IconButton(
@@ -253,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('اكمال الملف', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+              Text(context.tr('profile_completion'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
               Text('$pct%', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: pct >= 80 ? colors.success : colors.warning)),
             ],
           ),
@@ -277,9 +277,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildInfoDisplay(SemanticColors colors, Map<String, dynamic>? user) {
     return Column(
       children: [
-        _infoRow(PhosphorIconsRegular.user, 'الاسم الكامل', user?['full_name']?.toString() ?? '—', colors),
-        _infoRow(PhosphorIconsRegular.envelope, 'البريد الإلكتروني', user?['email']?.toString() ?? '—', colors),
-        _infoRow(PhosphorIconsRegular.sealCheck, 'التحقق KYC', user?['kyc_verified'] == true ? 'مُتحقق ✓' : 'غير مُتحقق', colors),
+        _infoRow(PhosphorIconsRegular.user, context.tr('full_name_label'), user?['full_name']?.toString() ?? '—', colors),
+        _infoRow(PhosphorIconsRegular.envelope, context.tr('email_label'), user?['email']?.toString() ?? '—', colors),
+        _infoRow(PhosphorIconsRegular.sealCheck, context.tr('kyc_label'), user?['kyc_verified'] == true ? context.tr('kyc_verified') : context.tr('kyc_not_verified'), colors),
       ],
     );
   }
@@ -324,12 +324,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('تعديل الملف', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text(context.tr('profile_edit'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 12),
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
-              labelText: 'الاسم الكامل',
+              labelText: context.tr('full_name_label'),
               filled: true,
               fillColor: colors.backgroundSecondary,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -340,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
-              labelText: 'البريد الإلكتروني',
+              labelText: context.tr('email_label'),
               filled: true,
               fillColor: colors.backgroundSecondary,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -367,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context.read<ProfileBloc>().add(SaveProfileRequested(fullName: _nameController.text.trim(), email: _emailController.text.trim()));
                     context.read<ProfileFormCubit>().stopEditing();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: const Text('تم تحديث الملف بنجاح ✓'), backgroundColor: colors.success),
+                      SnackBar(content: Text(context.tr('profile_updated')), backgroundColor: colors.success),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -376,7 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: Text(isSaving ? 'جارِ الحفظ...' : context.tr('save'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text(isSaving ? context.tr('saving') : context.tr('save'), style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -392,13 +392,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('الأدوار النشطة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        Text(context.tr('active_roles'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const SizedBox(height: 10),
         if (roles.isEmpty)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: colors.surfaceElevated, borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd), border: Border.all(color: colors.strokeSubtle)),
-            child: Center(child: Text('لا توجد أدوار مفعلة', style: TextStyle(color: colors.textSubtle))),
+            child: Center(child: Text(context.tr('no_active_roles'), style: TextStyle(color: colors.textSubtle))),
           )
         else
           ...roles.where((r) => r['status'] == 'active').map((r) {
@@ -450,12 +450,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   _RoleMeta _roleMeta(String role) {
     final colors = context.colors;
     switch (role) {
-      case 'donor': return _RoleMeta(context.tr('role_donor'), PhosphorIconsRegular.handHeart, colors.primaryBrand, 'تحقق مالي');
-      case 'homeowner': return _RoleMeta(context.tr('role_homeowner'), PhosphorIconsRegular.house, colors.warning, 'تحقق هوية');
-      case 'engineer': return _RoleMeta(context.tr('role_engineer'), PhosphorIconsRegular.hardHat, colors.info, 'رقم نقابة');
-      case 'contractor': return _RoleMeta(context.tr('role_contractor'), PhosphorIconsRegular.wrench, colors.secondaryAccent, 'سجل تجاري');
-      case 'tradesperson': return _RoleMeta(context.tr('role_tradesperson'), PhosphorIconsRegular.hammer, colors.success, 'خبرة مهنية');
-      case 'supplier': return _RoleMeta(context.tr('role_supplier'), PhosphorIconsRegular.package, colors.warning, 'وثائق توريد');
+      // 'donor' case removed — donor role eradicated (May 2026)
+      case 'homeowner': return _RoleMeta(context.tr('role_homeowner'), PhosphorIconsRegular.house, colors.warning, context.tr('role_verification_identity'));
+      case 'engineer': return _RoleMeta(context.tr('role_engineer'), PhosphorIconsRegular.hardHat, colors.info, context.tr('role_verification_guild'));
+      case 'contractor': return _RoleMeta(context.tr('role_contractor'), PhosphorIconsRegular.wrench, colors.secondaryAccent, context.tr('role_verification_commercial'));
+      case 'tradesperson': return _RoleMeta(context.tr('role_tradesperson'), PhosphorIconsRegular.hammer, colors.success, context.tr('role_verification_experience'));
+      case 'supplier': return _RoleMeta(context.tr('role_supplier'), PhosphorIconsRegular.package, colors.warning, context.tr('role_verification_supply'));
       default: return _RoleMeta(role, PhosphorIconsRegular.user, colors.textSecondary, '—');
     }
   }
@@ -501,12 +501,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           value: context.watch<LocaleCubit>().currentLocaleName,
           onTap: () => _showLanguagePicker(colors),
         ),
-        _settingRow(PhosphorIconsRegular.moon, 'الوضع الداكن', colors, trailing: Switch.adaptive(
+        _settingRow(PhosphorIconsRegular.moon, context.tr('dark_mode'), colors, trailing: Switch.adaptive(
           value: context.watch<ThemeCubit>().isDark,
           onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
           activeTrackColor: colors.primaryBrand,
         )),
-        _settingRow(PhosphorIconsRegular.lock, 'تغيير كلمة المرور', colors, onTap: () => _showChangePasswordSheet(colors)),
+        _settingRow(PhosphorIconsRegular.lock, context.tr('change_password'), colors, onTap: () => _showChangePasswordSheet(colors)),
       ],
     );
   }
@@ -559,7 +559,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Icon(PhosphorIconsRegular.globe, color: colors.primaryBrand, size: 22),
                 const SizedBox(width: 10),
-                Text('اختر اللغة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+                Text(context.tr('language_picker_title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
               ],
             ),
             const SizedBox(height: 16),
@@ -616,8 +616,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (ctx) => AlertDialog(
             backgroundColor: colors.surfaceElevated,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Text('تسجيل الخروج', style: TextStyle(fontWeight: FontWeight.w700, color: colors.textPrimary)),
-            content: Text('هل أنت متأكد من تسجيل الخروج؟', style: TextStyle(color: colors.textSecondary)),
+            title: Text(context.tr('logout'), style: TextStyle(fontWeight: FontWeight.w700, color: colors.textPrimary)),
+            content: Text(context.tr('logout_confirm'), style: TextStyle(color: colors.textSecondary)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
@@ -646,7 +646,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(PhosphorIconsRegular.signOut, color: colors.error, size: 20),
             const SizedBox(width: 8),
-            Text('تسجيل الخروج', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.error)),
+            Text(context.tr('logout'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.error)),
           ],
         ),
       ),
@@ -688,11 +688,11 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
 
   String _strengthLabel(int strength) {
     if (strength == 0) return '';
-    if (strength <= 1) return 'ضعيفة جداً';
+    if (strength <= 1) return context.tr('pw_strength_weak');
     if (strength <= 2) return context.tr('pw_strength_fair');
     if (strength <= 3) return context.tr('pw_strength_good');
     if (strength <= 4) return context.tr('pw_strength_strong');
-    return 'ممتازة ✓';
+    return context.tr('pw_strength_excellent');
   }
 
   String? _validate() {
@@ -700,15 +700,15 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     final newPwd = _newCtrl.text;
     final confirm = _confirmCtrl.text;
 
-    if (current.isEmpty) return 'يرجى إدخال كلمة المرور الحالية';
-    if (newPwd.isEmpty) return 'يرجى إدخال كلمة المرور الجديدة';
-    if (newPwd.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
-    if (!RegExp(r'[A-Z]').hasMatch(newPwd)) return 'يجب أن تحتوي على حرف كبير واحد على الأقل';
-    if (!RegExp(r'[a-z]').hasMatch(newPwd)) return 'يجب أن تحتوي على حرف صغير واحد على الأقل';
-    if (!RegExp(r'[0-9]').hasMatch(newPwd)) return 'يجب أن تحتوي على رقم واحد على الأقل';
-    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(newPwd)) return 'يجب أن تحتوي على رمز خاص واحد على الأقل';
-    if (newPwd != confirm) return 'كلمات المرور غير متطابقة';
-    if (current == newPwd) return 'كلمة المرور الجديدة يجب أن تكون مختلفة';
+    if (current.isEmpty) return context.tr('pw_current_required');
+    if (newPwd.isEmpty) return context.tr('pw_new_required');
+    if (newPwd.length < 8) return context.tr('pw_min_length');
+    if (!RegExp(r'[A-Z]').hasMatch(newPwd)) return context.tr('pw_need_uppercase');
+    if (!RegExp(r'[a-z]').hasMatch(newPwd)) return context.tr('pw_need_lowercase');
+    if (!RegExp(r'[0-9]').hasMatch(newPwd)) return context.tr('pw_need_digit');
+    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(newPwd)) return context.tr('pw_need_special');
+    if (newPwd != confirm) return context.tr('pw_mismatch_error');
+    if (current == newPwd) return context.tr('pw_must_differ');
     return null;
   }
 
@@ -741,7 +741,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('✅ تم تغيير كلمة المرور بنجاح'),
+                content: Text(context.tr('pw_changed_success')),
                 backgroundColor: context.colors.success,
               ),
             );
@@ -782,8 +782,8 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('تغيير كلمة المرور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
-                        Text('ادخل كلمة المرور الحالية والجديدة', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+                        Text(context.tr('change_password'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+                        Text(context.tr('change_password_subtitle'), style: TextStyle(fontSize: 12, color: colors.textSubtle)),
                       ],
                     ),
                   ),
@@ -815,7 +815,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               // Current password field
               _buildPasswordField(
                 controller: _currentCtrl,
-                label: 'كلمة المرور الحالية',
+                label: context.tr('current_password_label'),
                 icon: PhosphorIconsRegular.lockOpen,
                 obscure: formState.obscureCurrent,
                 onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleCurrentVisibility(),
@@ -826,7 +826,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               // New password field
               _buildPasswordField(
                 controller: _newCtrl,
-                label: 'كلمة المرور الجديدة',
+                label: context.tr('new_password_label'),
                 icon: PhosphorIconsRegular.lock,
                 obscure: formState.obscureNew,
                 onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleNewVisibility(),
@@ -859,7 +859,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
               // Confirm password field
               _buildPasswordField(
                 controller: _confirmCtrl,
-                label: 'تأكيد كلمة المرور',
+                label: context.tr('confirm_password_label'),
                 icon: PhosphorIconsRegular.lock,
                 obscure: formState.obscureConfirm,
                 onToggle: () => blocContext.read<ChangePasswordFormCubit>().toggleConfirmVisibility(),
@@ -882,7 +882,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                     ),
                     child: isSubmitting
                         ? SizedBox(width: 22, height: 22, child: NammerhaShimmerLoader(colors: colors))
-                        : const Text('تغيير كلمة المرور', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        : Text(context.tr('change_password'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   ),
                 ),
               const SizedBox(height: 8),
@@ -893,7 +893,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 children: [
                   Icon(PhosphorIconsRegular.shield, size: 14, color: colors.textSubtle),
                   const SizedBox(width: 4),
-                  Text('سيتم تسجيل الخروج من الأجهزة الأخرى', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                  Text(context.tr('security_note_logout'), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                 ],
               ),
             ],

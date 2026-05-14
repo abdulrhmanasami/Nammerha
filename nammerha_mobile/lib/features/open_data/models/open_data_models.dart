@@ -8,14 +8,14 @@ class OpenDataStats {
   final int totalProjects;
   final int publishedProjects;
   final int totalFunded;
-  final int totalDonors;
+  final int totalFunders;
   final double averageFundedPercentage;
 
   OpenDataStats({
     required this.totalProjects,
     required this.publishedProjects,
     required this.totalFunded,
-    required this.totalDonors,
+    required this.totalFunders,
     required this.averageFundedPercentage,
   });
 
@@ -23,7 +23,7 @@ class OpenDataStats {
         totalProjects: json['total_projects'] as int? ?? 0,
         publishedProjects: json['published_projects'] as int? ?? 0,
         totalFunded: json['total_funded'] as int? ?? 0,
-        totalDonors: json['total_donors'] as int? ?? 0,
+        totalFunders: json['total_donors'] as int? ?? 0, // Backend contract key
         averageFundedPercentage:
             (json['average_funded_percentage'] as num?)?.toDouble() ?? 0.0,
       );

@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:typed_data';
 
@@ -85,7 +86,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: Text('التقاط 360°', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        title: Text(context.tr('capture_360'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         backgroundColor: colors.backgroundPrimary,
         elevation: 0,
         iconTheme: IconThemeData(color: colors.textPrimary),
@@ -105,7 +106,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
         onPressed: () => _showCaptureSheet(context),
         backgroundColor: colors.primaryBrand,
         icon: Icon(PhosphorIconsRegular.camera, color: Colors.white),
-        label: const Text('التقاط جديد', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        label: Text(context.tr('new_capture'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<RealityCaptureBloc, RealityCaptureState>(
         listener: (ctx, state) {

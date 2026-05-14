@@ -148,7 +148,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
               ElevatedButton.icon(
                 onPressed: _fetchBOQ,
                 icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: const Text('إعادة المحاولة'),
+                label: Text(context.tr('retry')),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand),
               ),

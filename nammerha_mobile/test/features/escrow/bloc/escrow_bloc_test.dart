@@ -10,7 +10,7 @@ import 'package:nammerha_mobile/features/escrow/data/escrow_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Escrow BLoC Tests — P0 Financial Integrity (Platinum Certification)
-// Covers: escrow summary loading, donor donation history (GraphQL+REST),
+// Covers: escrow summary loading, escrow transaction history (GraphQL+REST),
 //         pagination, error handling, empty data resilience
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -35,7 +35,7 @@ void main() {
     blocTest<EscrowBloc, EscrowState>(
       'emits [Loading, SummaryLoaded] with correct amounts',
       build: () {
-        when(() => mockRepo.fetchDonorEscrowSummary())
+        when(() => mockRepo.fetchEscrowSummary())
             .thenAnswer((_) async => {
                   'total_escrowed': 5000000,
                   'total_released': 2000000,
@@ -49,7 +49,7 @@ void main() {
         isA<EscrowSummaryLoaded>(),
       ],
       verify: (bloc) {
-        verify(() => mockRepo.fetchDonorEscrowSummary()).called(1);
+        verify(() => mockRepo.fetchEscrowSummary()).called(1);
         final loaded = bloc.state as EscrowSummaryLoaded;
         expect(loaded.summary['total_escrowed'], 5000000);
         expect(loaded.summary['pending_release'], 3000000);
@@ -59,7 +59,7 @@ void main() {
     blocTest<EscrowBloc, EscrowState>(
       'emits [Loading, Error] on network failure',
       build: () {
-        when(() => mockRepo.fetchDonorEscrowSummary())
+        when(() => mockRepo.fetchEscrowSummary())
             .thenThrow(const ApiException('فشل في جلب ملخص الضمان'));
         return buildBloc();
       },
@@ -71,11 +71,11 @@ void main() {
     );
   });
 
-  group('EscrowBloc — Donor Donations', () {
+  group('EscrowBloc — Escrow Transactions', () {
     blocTest<EscrowBloc, EscrowState>(
-      'emits [Loading, DonationsLoaded] with donation list',
+      'emits [Loading, TransactionsLoaded] with transaction list',
       build: () {
-        when(() => mockRepo.fetchDonorDonations(
+        when(() => mockRepo.fetchEscrowTransactions(
               limit: any(named: 'limit'),
               offset: any(named: 'offset'),
             )).thenAnswer((_) async => [
@@ -94,48 +94,48 @@ void main() {
             ]);
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const FetchDonorDonationsEvent(limit: 20, offset: 0)),
+      act: (bloc) => bloc.add(const FetchEscrowTransactionsEvent(limit: 20, offset: 0)),
       expect: () => [
         isA<EscrowLoading>(),
-        isA<DonorDonationsLoaded>(),
+        isA<EscrowTransactionsLoaded>(),
       ],
       verify: (bloc) {
-        final loaded = bloc.state as DonorDonationsLoaded;
-        expect(loaded.donations.length, 2);
-        expect(loaded.donations[0]['transaction_id'], 'tx-001');
+        final loaded = bloc.state as EscrowTransactionsLoaded;
+        expect(loaded.transactions.length, 2);
+        expect(loaded.transactions[0]['transaction_id'], 'tx-001');
       },
     );
 
     blocTest<EscrowBloc, EscrowState>(
-      'emits [Loading, DonationsLoaded] with empty list',
+      'emits [Loading, TransactionsLoaded] with empty list',
       build: () {
-        when(() => mockRepo.fetchDonorDonations(
+        when(() => mockRepo.fetchEscrowTransactions(
               limit: any(named: 'limit'),
               offset: any(named: 'offset'),
             )).thenAnswer((_) async => []);
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const FetchDonorDonationsEvent()),
+      act: (bloc) => bloc.add(const FetchEscrowTransactionsEvent()),
       expect: () => [
         isA<EscrowLoading>(),
-        isA<DonorDonationsLoaded>(),
+        isA<EscrowTransactionsLoaded>(),
       ],
       verify: (bloc) {
-        final loaded = bloc.state as DonorDonationsLoaded;
-        expect(loaded.donations, isEmpty);
+        final loaded = bloc.state as EscrowTransactionsLoaded;
+        expect(loaded.transactions, isEmpty);
       },
     );
 
     blocTest<EscrowBloc, EscrowState>(
       'emits [Loading, Error] on GraphQL + REST double failure',
       build: () {
-        when(() => mockRepo.fetchDonorDonations(
+        when(() => mockRepo.fetchEscrowTransactions(
               limit: any(named: 'limit'),
               offset: any(named: 'offset'),
-            )).thenThrow(const ApiException('فشل في جلب سجل التبرعات'));
+            )).thenThrow(const ApiException('فشل في جلب سجل الضمان'));
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const FetchDonorDonationsEvent()),
+      act: (bloc) => bloc.add(const FetchEscrowTransactionsEvent()),
       expect: () => [
         isA<EscrowLoading>(),
         isA<EscrowError>(),
@@ -145,7 +145,7 @@ void main() {
     blocTest<EscrowBloc, EscrowState>(
       'pagination offset is respected',
       build: () {
-        when(() => mockRepo.fetchDonorDonations(
+        when(() => mockRepo.fetchEscrowTransactions(
               limit: 10,
               offset: 20,
             )).thenAnswer((_) async => [
@@ -153,13 +153,13 @@ void main() {
             ]);
         return buildBloc();
       },
-      act: (bloc) => bloc.add(const FetchDonorDonationsEvent(limit: 10, offset: 20)),
+      act: (bloc) => bloc.add(const FetchEscrowTransactionsEvent(limit: 10, offset: 20)),
       expect: () => [
         isA<EscrowLoading>(),
-        isA<DonorDonationsLoaded>(),
+        isA<EscrowTransactionsLoaded>(),
       ],
       verify: (_) {
-        verify(() => mockRepo.fetchDonorDonations(limit: 10, offset: 20)).called(1);
+        verify(() => mockRepo.fetchEscrowTransactions(limit: 10, offset: 20)).called(1);
       },
     );
   });

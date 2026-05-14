@@ -1,6 +1,9 @@
 /// Mutations for Escrow & Payment Integration
 class EscrowMutations {
-  static const String createDonation = r'''
+  /// Escrow checkout mutation — creates payment intent via escrow system.
+  /// NOTE: The GraphQL operation name 'CreateDonation' is a backend contract
+  /// and MUST NOT be renamed without a coordinated backend schema migration.
+  static const String createEscrowCheckout = r'''
     mutation CreateDonation($input: CreateDonationInput!) {
       createDonation(input: $input) {
         intentId

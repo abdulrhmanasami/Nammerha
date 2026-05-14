@@ -57,7 +57,7 @@ class _FintechView extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: () => context.read<AdminFintechBloc>().add(LoadFintechData()),
                     icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                    label: const Text('إعادة المحاولة'),
+                    label: Text(context.tr('retry')),
                     style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
                   ),
                 ],

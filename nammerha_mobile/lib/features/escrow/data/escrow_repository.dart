@@ -3,13 +3,12 @@ import '../../../core/graphql/queries/escrow_queries.dart';
 
 /// Escrow Repository — Hybrid Transport Layer
 ///
-/// P2-1 FIX (C-2 Remediation): Uses the new `graphql()` method for donor
-/// donation history (aggregated query with pagination). Falls back to REST
-/// for endpoints not yet covered by GraphQL resolvers.
+/// Uses GraphQL for escrow transaction history (with REST fallback)
+/// and REST for escrow summary (no GraphQL resolver yet).
 ///
 /// Architecture:
-///   - `fetchDonorDonations()` → GraphQL `donorDonations` query (H-3 resolved)
-///   - `fetchDonorEscrowSummary()` → REST `/donations/my/summary` (no GQL resolver)
+///   - `fetchEscrowTransactions()` → GraphQL `donorDonations` query (backend contract name)
+///   - `fetchEscrowSummary()` → REST `/donations/my/summary` (backend contract path)
 ///
 /// Error Handling:
 ///   - GraphQL errors are extracted into [GraphQLException] with typed error codes
@@ -21,29 +20,30 @@ class EscrowRepository {
   EscrowRepository({NammerhaApiClient? apiClient})
       : _apiClient = apiClient ?? NammerhaApiClient.instance;
 
-  /// Fetch donor's donation/escrow history via GraphQL.
+  /// Fetch escrow transaction history via GraphQL.
   ///
-  /// Uses the `donorDonations` query (H-3 fix added this to the schema).
-  /// Returns a list of donation entries with project context.
+  /// Uses the `donorDonations` query (backend contract name — not renamed).
+  /// Returns a list of escrow transaction entries with project context.
   ///
   /// Fallback: If GraphQL endpoint is unreachable (502/503/504), falls back
   /// to REST `/donations/my/history` to ensure offline-degraded UX.
-  Future<List<Map<String, dynamic>>> fetchDonorDonations({
+  Future<List<Map<String, dynamic>>> fetchEscrowTransactions({
     int limit = 20,
     int offset = 0,
   }) async {
     try {
       // Primary: GraphQL query with pagination
       final data = await _apiClient.graphql(
-        query: EscrowQueries.getDonorDonations,
+        query: EscrowQueries.getEscrowTransactions,
         variables: {'limit': limit, 'offset': offset},
-        operationName: 'GetDonorDonations',
+        operationName: 'GetDonorDonations', // Backend contract — DO NOT rename
       );
 
-      final donations = data['donorDonations'] as List<dynamic>?;
-      if (donations != null) {
+      // Response key 'donorDonations' is a backend contract — DO NOT rename
+      final transactions = data['donorDonations'] as List<dynamic>?;
+      if (transactions != null) {
         return List<Map<String, dynamic>>.from(
-          donations.map((d) => d as Map<String, dynamic>),
+          transactions.map((d) => d as Map<String, dynamic>),
         );
       }
       return [];
@@ -51,16 +51,16 @@ class EscrowRepository {
       // Fallback: If GraphQL endpoint is unreachable (infrastructure error),
       // try the REST endpoint which covers the same data.
       if (e.statusCode == 502 || e.statusCode == 503 || e.statusCode == 504) {
-        return _fetchDonorDonationsRest();
+        return _fetchEscrowTransactionsRest();
       }
       rethrow;
     }
   }
 
-  /// REST fallback for donor donations (used when GraphQL is unavailable).
-  Future<List<Map<String, dynamic>>> _fetchDonorDonationsRest() async {
+  /// REST fallback for escrow transactions (used when GraphQL is unavailable).
+  Future<List<Map<String, dynamic>>> _fetchEscrowTransactionsRest() async {
     final response = await _apiClient.request<List<dynamic>>(
-      '/donations/my/history',
+      '/donations/my/history', // Backend contract path — DO NOT rename
       method: 'GET',
       fromData: (d) => d as List<dynamic>,
     );
@@ -72,17 +72,17 @@ class EscrowRepository {
     }
 
     throw ApiException(
-      response.error ?? 'فشل في جلب سجل التبرعات',
+      response.error ?? 'فشل في جلب سجل الضمان',
     );
   }
 
-  /// Fetch donor's escrow summary via REST.
+  /// Fetch escrow summary via REST.
   ///
   /// No GraphQL resolver exists for this endpoint yet.
-  /// Uses REST `/donations/my/summary` directly.
-  Future<Map<String, dynamic>> fetchDonorEscrowSummary() async {
+  /// Uses REST `/donations/my/summary` directly (backend contract path).
+  Future<Map<String, dynamic>> fetchEscrowSummary() async {
     final response = await _apiClient.request<Map<String, dynamic>>(
-      '/donations/my/summary',
+      '/donations/my/summary', // Backend contract path — DO NOT rename
       method: 'GET',
       fromData: (d) => d as Map<String, dynamic>,
     );

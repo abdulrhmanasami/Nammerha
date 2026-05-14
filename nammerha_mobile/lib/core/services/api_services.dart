@@ -1,6 +1,5 @@
 import '../network/api_client.dart';
 import '../../features/homeowner/models/homeowner_models.dart';
-import '../../features/donor/models/donor_models.dart';
 
 /// Utility to format currency in Syrian Pounds
 String formatCurrency(num amountCents) {
@@ -58,166 +57,13 @@ class MarketplaceApi {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DONOR API — Mirrors api.ts donor module
+// DONATION / DONOR API — SUSPENDED INDEFINITELY (May 2026)
 // ═══════════════════════════════════════════════════════════════════════════
-
-class DonorApi {
-  final NammerhaApiClient _api;
-  DonorApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
-
-  /// GET /api/donor/stats
-  Future<DonorStatsModel> getStats() async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/donor/stats',
-      fromData: (d) => d as Map<String, dynamic>,
-    );
-    return DonorStatsModel.fromJson(response.data ?? {});
-  }
-
-  /// GET /api/donor/donations
-  Future<List<DonorDonationModel>> getDonations({int? limit}) async {
-    final qs = limit != null ? '?limit=$limit' : '';
-    final response = await _api.request<List<dynamic>>(
-      '/donor/donations$qs',
-      fromData: (d) => d as List<dynamic>,
-    );
-    return (response.data ?? [])
-        .cast<Map<String, dynamic>>()
-        .map(DonorDonationModel.fromJson)
-        .toList();
-  }
-
-  /// GET /api/donor/impact
-  Future<List<DonorFundedProjectModel>> getImpact() async {
-    final response = await _api.request<List<dynamic>>(
-      '/donor/impact',
-      fromData: (d) => d as List<dynamic>,
-    );
-    return (response.data ?? [])
-        .cast<Map<String, dynamic>>()
-        .map(DonorFundedProjectModel.fromJson)
-        .toList();
-  }
-
-  /// GET /api/donor/marketplace
-  Future<List<DonorMarketplaceProjectModel>> getMarketplace() async {
-    final response = await _api.request<List<dynamic>>(
-      '/donor/marketplace',
-      fromData: (d) => d as List<dynamic>,
-    );
-    return (response.data ?? [])
-        .cast<Map<String, dynamic>>()
-        .map(DonorMarketplaceProjectModel.fromJson)
-        .toList();
-  }
-
-  /// GET /api/donor/proofs
-  Future<List<DonorProofModel>> getProofs() async {
-    final response = await _api.request<List<dynamic>>(
-      '/donor/proofs',
-      fromData: (d) => d as List<dynamic>,
-    );
-    return (response.data ?? [])
-        .cast<Map<String, dynamic>>()
-        .map(DonorProofModel.fromJson)
-        .toList();
-  }
-
-  /// GET /api/donor/timeline
-  Future<List<Map<String, dynamic>>> getTimeline({int? limit}) async {
-    final qs = limit != null ? '?limit=$limit' : '';
-    final response = await _api.request<List<dynamic>>(
-      '/donor/timeline$qs',
-      fromData: (d) => d as List<dynamic>,
-    );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
-  }
-
-  /// GET /api/donor/projects/:id/funding — Per-project funding breakdown
-  /// GAP-A05 REMEDIATION: Mobile parity with web donor.getProjectFunding()
-  Future<Map<String, dynamic>> getProjectFunding(String projectId) async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/donor/projects/$projectId/funding',
-      fromData: (d) => d as Map<String, dynamic>,
-    );
-    return response.data ?? {};
-  }
-
-  /// POST /api/donor/refunds
-  Future<void> requestRefund({
-    required String escrowId,
-    required String reason,
-  }) async {
-    await _api.request(
-      '/donor/refunds',
-      method: 'POST',
-      body: {'escrow_id': escrowId, 'reason': reason},
-      idempotent: true,
-    );
-  }
-
-  /// GET /api/donor/receipts/:escrowId — returns PDF receipt URL
-  Future<String?> getReceiptUrl(String escrowId) async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/donor/receipts/$escrowId',
-      fromData: (d) => d as Map<String, dynamic>,
-    );
-    return response.data?['url'] as String?;
-  }
-}
-
+// The entire Donation/Donor subsystem is REMOVED per strategic decision.
+// Backend code preserved but all mobile API clients, screens, BLoCs, and
+// models have been surgically excised.
+// See KI: "Nammerha Donation System Suspension" for full context.
 // ═══════════════════════════════════════════════════════════════════════════
-// DONATIONS API — Mirrors api.ts donations module
-// ═══════════════════════════════════════════════════════════════════════════
-
-class DonationsApi {
-  final NammerhaApiClient _api;
-  DonationsApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
-
-  /// POST /api/donations
-  Future<Map<String, dynamic>?> createDonation({
-    required List<Map<String, dynamic>> items,
-    String paymentMethod = 'fatora',
-    String? returnUrl,
-    String? giftRecipientName,
-    String? giftMessage,
-    String? donationIntent,
-  }) async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/donations',
-      method: 'POST',
-      idempotent: true,
-      body: {
-        'items': items,
-        'payment_method': paymentMethod,
-        if (returnUrl != null) 'return_url': returnUrl,
-        if (giftRecipientName != null) 'gift_recipient_name': giftRecipientName,
-        if (giftMessage != null) 'gift_message': giftMessage,
-        if (donationIntent != null) 'donation_intent': donationIntent,
-      },
-      fromData: (d) => d as Map<String, dynamic>,
-    );
-    return response.data;
-  }
-
-  /// GET /api/donations/my/summary
-  Future<Map<String, dynamic>> getMyEscrow() async {
-    final response = await _api.request<Map<String, dynamic>>(
-      '/donations/my/summary',
-      fromData: (d) => d as Map<String, dynamic>,
-    );
-    return response.data ?? {};
-  }
-
-  /// GET /api/donations/my/history
-  Future<List<Map<String, dynamic>>> getMyHistory() async {
-    final response = await _api.request<List<dynamic>>(
-      '/donations/my/history',
-      fromData: (d) => d as List<dynamic>,
-    );
-    return response.data?.cast<Map<String, dynamic>>() ?? [];
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ENGINEER API — Mirrors api.ts engineer module

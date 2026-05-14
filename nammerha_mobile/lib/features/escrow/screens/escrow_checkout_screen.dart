@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,7 +83,7 @@ class EscrowCheckoutView extends StatelessWidget {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('✅ تم توجيهك إلى بوابة الدفع الآمنة'),
+                content: Text(context.tr('payment_redirect')),
                 backgroundColor: colors.success,
               ),
             );
@@ -99,7 +100,7 @@ class EscrowCheckoutView extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: colors.backgroundPrimary,
-          appBar: AppBar(title: const Text('الدفع الآمن')),
+          appBar: AppBar(title: Text(context.tr('secure_payment'))),
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),

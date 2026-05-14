@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/i18n/t.dart';
 import '../models/wallet_model.dart';
 import '../bloc/wallet_bloc.dart';
 import '../bloc/wallet_event.dart';
@@ -42,7 +43,7 @@ class _WalletView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
-      appBar: AppBar(title: const Text('المحفظة')),
+      appBar: AppBar(title: Text(context.tr('wallet'))),
       body: BlocBuilder<WalletBloc, WalletState>(
         builder: (context, state) {
           if (state is WalletLoading || state is WalletInitial) {
@@ -63,16 +64,16 @@ class _WalletView extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _buildBalanceCard(data.totalLocked, colors),
+                  _buildBalanceCard(context, data.totalLocked, colors),
                   const SizedBox(height: 20),
-                  _buildStatsRow(data, colors),
+                  _buildStatsRow(context, data, colors),
                   const SizedBox(height: 24),
-                  _buildTransactionHeader(colors),
+                  _buildTransactionHeader(context, colors),
                   const SizedBox(height: 12),
                   ...data.transactions.asMap().entries.map(
-                    (e) => _buildTransactionItem(e.value, colors, e.key),
+                    (e) => _buildTransactionItem(context, e.value, colors, e.key),
                   ),
-                  if (data.transactions.isEmpty) _buildEmptyTransactions(colors),
+                  if (data.transactions.isEmpty) _buildEmptyTransactions(context, colors),
                 ],
               ),
             );
@@ -96,14 +97,14 @@ class _WalletView extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () => context.read<WalletBloc>().add(LoadWalletEvent()),
             icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-            label: const Text('إعادة المحاولة'),
+            label: Text(context.tr('retry')),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceCard(num totalLocked, SemanticColors colors) {
+  Widget _buildBalanceCard(BuildContext context, num totalLocked, SemanticColors colors) {
     // Replacing raw Colors.white with strict transparency configurations for the gradient
     final textColorLight = const Color(0xFFFFFFFF).withAlpha(180);
     final textColorSolid = const Color(0xFFFFFFFF);
@@ -119,7 +120,7 @@ class _WalletView extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'رصيد الضمان',
+            context.tr('escrow_balance'),
             style: TextStyle(fontSize: 14, color: textColorLight),
           ),
           const SizedBox(height: 8),
@@ -140,7 +141,7 @@ class _WalletView extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              'مُحتجز في حساب الضمان',
+              context.tr('escrow_held'),
               style: TextStyle(fontSize: 12, color: textColorLight),
             ),
           ),
@@ -149,14 +150,14 @@ class _WalletView extends StatelessWidget {
     ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0);
   }
 
-  Widget _buildStatsRow(WalletSummaryModel data, SemanticColors colors) {
+  Widget _buildStatsRow(BuildContext context, WalletSummaryModel data, SemanticColors colors) {
     return Row(
       children: [
-        _statCard('محتجز', '${data.lockedCount}', colors.warning, colors),
+        _statCard(context.tr('escrow_locked_label'), '${data.lockedCount}', colors.warning, colors),
         const SizedBox(width: 10),
-        _statCard('مُحرَّر', '${data.releasedCount}', colors.success, colors),
+        _statCard(context.tr('escrow_released_label'), '${data.releasedCount}', colors.success, colors),
         const SizedBox(width: 10),
-        _statCard('مُستردّ', '${data.refundedCount}', colors.info, colors),
+        _statCard(context.tr('escrow_refunded_label'), '${data.refundedCount}', colors.info, colors),
       ],
     ).animate(delay: 200.ms).fadeIn();
   }
@@ -191,9 +192,9 @@ class _WalletView extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionHeader(SemanticColors colors) {
+  Widget _buildTransactionHeader(BuildContext context, SemanticColors colors) {
     return Text(
-      'سجل المعاملات',
+      context.tr('transaction_log'),
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w700,
@@ -202,7 +203,7 @@ class _WalletView extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(WalletTransactionModel tx, SemanticColors colors, int index) {
+  Widget _buildTransactionItem(BuildContext context, WalletTransactionModel tx, SemanticColors colors, int index) {
     Color statusColor;
     IconData statusIcon;
     String statusLabel;
@@ -212,18 +213,18 @@ class _WalletView extends StatelessWidget {
       case 'pending':
         statusColor = colors.warning;
         statusIcon = PhosphorIconsRegular.lockKey;
-        statusLabel = 'محتجز';
+        statusLabel = context.tr('escrow_locked_label');
         break;
       case 'released':
       case 'completed':
         statusColor = colors.success;
         statusIcon = PhosphorIconsRegular.checkCircle;
-        statusLabel = 'مُحرَّر';
+        statusLabel = context.tr('escrow_released_label');
         break;
       case 'refunded':
         statusColor = colors.info;
         statusIcon = PhosphorIconsRegular.arrowCounterClockwise;
-        statusLabel = 'مُستردّ';
+        statusLabel = context.tr('escrow_refunded_label');
         break;
       default:
         statusColor = colors.textSecondary;
@@ -232,7 +233,7 @@ class _WalletView extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsetsDirectional.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.surfaceElevated,
@@ -283,7 +284,7 @@ class _WalletView extends StatelessWidget {
                 ),
               ),
               Container(
-                margin: const EdgeInsets.only(top: 4),
+                margin: const EdgeInsetsDirectional.only(top: 4),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: statusColor.withAlpha(15),
@@ -305,7 +306,7 @@ class _WalletView extends StatelessWidget {
     ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildEmptyTransactions(SemanticColors colors) {
+  Widget _buildEmptyTransactions(BuildContext context, SemanticColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Column(
@@ -313,7 +314,7 @@ class _WalletView extends StatelessWidget {
           Icon(PhosphorIconsRegular.receipt, size: 48, color: colors.textSubtle),
           const SizedBox(height: 12),
           Text(
-            'لم تقم بأي تبرع بعد',
+            context.tr('wallet_no_transactions'),
             style: TextStyle(fontSize: 15, color: colors.textSecondary),
           ),
         ],

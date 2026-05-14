@@ -1,13 +1,13 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/graphql/mutations/escrow_mutations.dart';
 
-/// Checkout Repository — GraphQL Financial Mutation (C-2, H-4 Remediation)
+/// Checkout Repository — GraphQL Financial Mutation (Escrow Checkout)
 ///
-/// Uses the GraphQL `createDonation` mutation for the checkout flow.
+/// Uses the GraphQL `createEscrowCheckout` mutation constant for the checkout flow.
 /// This provides:
 ///   1. **Typed input validation** — GraphQL schema enforces required fields
 ///   2. **checkoutUrl** in response — Fatora redirect URL for payment
-///   3. **Idempotency** — via Idempotency-Key header (H-2 fix)
+///   3. **Idempotency** — via Idempotency-Key header
 ///
 /// Architecture Decision:
 ///   The REST `POST /donations` endpoint returns `{ escrow_entries, total_locked }`
@@ -24,7 +24,7 @@ class CheckoutGraphQLRepository {
   CheckoutGraphQLRepository({NammerhaApiClient? apiClient})
       : _apiClient = apiClient ?? NammerhaApiClient.instance;
 
-  /// Execute the checkout flow via GraphQL `createDonation` mutation.
+  /// Execute the checkout flow via GraphQL escrow mutation.
   ///
   /// Returns a [PaymentIntentResult] containing the checkout URL for Fatora
   /// redirect and the payment intent metadata.
@@ -32,34 +32,35 @@ class CheckoutGraphQLRepository {
   /// [items] — List of `{ itemId, projectId, amount }` cart entries
   /// [paymentMethod] — 'fatora' or 'visa' (validated by backend enum)
   /// [returnUrl] — Deep link URL for post-payment redirect back to app
-  /// [giftRecipientName] — Optional gift donation recipient
+  /// [giftRecipientName] — Optional gift recipient
   /// [giftMessage] — Optional gift message
-  /// [donationIntent] — Optional intent classification
-  Future<PaymentIntentResult> createDonation({
+  /// [checkoutIntent] — Optional intent classification
+  Future<PaymentIntentResult> createEscrowCheckout({
     required List<CheckoutItem> items,
     String paymentMethod = 'fatora',
     String? returnUrl,
     String? giftRecipientName,
     String? giftMessage,
-    String? donationIntent,
+    String? checkoutIntent,
   }) async {
-    // Build GraphQL input matching CreateDonationInput schema
+    // Build GraphQL input matching CreateDonationInput schema (backend contract)
     final input = <String, dynamic>{
       'items': items.map((item) => item.toJson()).toList(),
       'paymentMethod': paymentMethod.toUpperCase(), // Enum: FATORA | VISA
       if (returnUrl != null) 'returnUrl': returnUrl,
       if (giftRecipientName != null) 'giftRecipientName': giftRecipientName,
       if (giftMessage != null) 'giftMessage': giftMessage,
-      if (donationIntent != null) 'donationIntent': donationIntent,
+      if (checkoutIntent != null) 'donationIntent': checkoutIntent, // Backend contract key
     };
 
     final data = await _apiClient.graphql(
-      query: EscrowMutations.createDonation,
+      query: EscrowMutations.createEscrowCheckout,
       variables: {'input': input},
-      operationName: 'CreateDonation',
-      idempotent: true, // H-2 FIX: Generates Idempotency-Key header
+      operationName: 'CreateDonation', // Backend contract — DO NOT rename
+      idempotent: true, // Generates Idempotency-Key header
     );
 
+    // Response key 'createDonation' is a backend contract — DO NOT rename
     final paymentIntent = data['createDonation'] as Map<String, dynamic>?;
     if (paymentIntent == null) {
       throw const ApiException('فشل في إنشاء طلب الدفع — لم يتم إرجاع بيانات.');
@@ -73,7 +74,7 @@ class CheckoutGraphQLRepository {
 
 /// A single item in the checkout cart.
 ///
-/// E2E FIX: Backend `DonationItemInput` only accepts `{ itemId, amount }`.
+/// Backend `DonationItemInput` only accepts `{ itemId, amount }` (backend contract).
 /// The `projectId` is resolved server-side from the BOQ item's `project_id`
 /// column. We keep `projectId` here for local cart display/navigation only.
 class CheckoutItem {
@@ -96,7 +97,7 @@ class CheckoutItem {
 }
 
 
-/// Payment intent result from the `createDonation` mutation.
+/// Payment intent result from the escrow checkout mutation.
 class PaymentIntentResult {
   final String intentId;
   final String? checkoutUrl;

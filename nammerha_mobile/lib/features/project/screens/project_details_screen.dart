@@ -184,7 +184,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     ElevatedButton.icon(
                       onPressed: () => context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId)),
                       icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: const Text('إعادة المحاولة'),
+                      label: Text(context.tr('retry')),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
                   ],
@@ -548,7 +548,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ));
           },
           icon: Icon(PhosphorIconsRegular.gavel),
-          label: const Text('تقديم عطاء وتسعير (BOQ)'),
+          label: Text(context.tr('submit_bid_boq')),
           style: ElevatedButton.styleFrom(
             backgroundColor: colors.primaryBrand,
             foregroundColor: Colors.white,

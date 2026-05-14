@@ -65,7 +65,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('عروضي'),
+        title: Text(context.tr('my_bids')),
         actions: [
           IconButton(
             icon: Icon(PhosphorIconsRegular.plusCircle, color: colors.primaryBrand),
@@ -102,7 +102,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
               ElevatedButton.icon(
                 onPressed: _loadBids,
                 icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: const Text('إعادة المحاولة'),
+                label: Text(context.tr('retry')),
                 style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
               ),
             ],
@@ -334,7 +334,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
       builder: (_) => AlertDialog(
         backgroundColor: colors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('تقديم عرض جديد', style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w800)),
+        title: Text(context.tr('submit_new_bid'), style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w800)),
         content: Text('يرجى اختيار المشروع من "سوق المشاريع" لتقديم العرض عليه، لا يمكن تقديم عرض عشوائي.', style: TextStyle(color: colors.textSecondary)),
         actions: [
           TextButton(

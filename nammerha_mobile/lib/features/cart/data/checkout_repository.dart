@@ -6,12 +6,12 @@ class CheckoutRepository {
   CheckoutRepository({NammerhaApiClient? apiClient})
       : _apiClient = apiClient ?? NammerhaApiClient.instance;
 
-  Future<Map<String, dynamic>> submitDonationCheckout({
+  Future<Map<String, dynamic>> submitEscrowCheckout({
     required List<Map<String, dynamic>> items,
     required String paymentMethod,
   }) async {
     final response = await _apiClient.request<Map<String, dynamic>>(
-      '/donations',
+      '/donations', // Backend contract path — DO NOT rename
       method: 'POST',
       idempotent: true,
       body: {

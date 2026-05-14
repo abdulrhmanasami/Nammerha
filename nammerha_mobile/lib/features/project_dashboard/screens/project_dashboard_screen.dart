@@ -126,7 +126,7 @@ class _ProjectDashboardView extends StatelessWidget {
             onPressed: () => _showSubmitLogDialog(context),
             backgroundColor: colors.primaryBrand,
             icon: Icon(PhosphorIcons.notePencil(), color: Colors.white),
-            label: const Text('سجل يومي', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            label: Text(context.tr('daily_log'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
           );
         },
       ),
@@ -513,7 +513,7 @@ class _ProjectDashboardView extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('إرسال السجل', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                  child: Text(context.tr('submit_log'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                 ),
               ],
             ),

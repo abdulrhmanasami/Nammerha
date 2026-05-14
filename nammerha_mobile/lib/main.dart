@@ -28,9 +28,6 @@ import 'features/search/data/search_repository.dart';
 import 'features/search/bloc/search_bloc.dart';
 // P0-002 REMEDIATION: Deep link target screens
 import 'features/escrow/screens/escrow_summary_screen.dart';
-// SUSPENDED: Donation system suspended indefinitely (May 2026 strategic decision)
-// import 'features/donations/screens/donations_screen.dart';
-// import 'features/donor_proof/screens/donor_proof_screen.dart';
 import 'features/project/screens/project_details_screen.dart';
 import 'features/admin/screens/admin_kyc_screen.dart';
 import 'features/admin/screens/admin_escrow_screen.dart';
@@ -329,12 +326,11 @@ class _AppFlowControllerState extends State<_AppFlowController> {
   ///
   /// Supported types:
   ///   escrow_released   → EscrowSummaryScreen
-  ///   proof_verified    → DonorProofScreen
+  ///   proof_verified    → WalletScreen (delivery proofs)
   ///   bid_accepted      → ProjectDetailsScreen
   ///   kyc_verified      → AdminKycScreen (admin) or DashboardScreen
   ///   kyc_rejected      → AdminKycScreen (admin) or DashboardScreen
   ///   order_status      → WalletScreen
-  ///   donation_received → DonationsScreen
   ///   project_funded    → ProjectDetailsScreen
   ///   project_update    → ProjectDetailsScreen
   ///   impact_update     → ImpactInboxScreen
@@ -392,7 +388,7 @@ class _AppFlowControllerState extends State<_AppFlowController> {
 
       case 'donation_received':
       case 'donation_refunded':
-        // SUSPENDED: Donation system suspended indefinitely. Redirect to Wallet.
+        // Donation system removed. Redirect to Wallet.
         targetScreen = const WalletScreen();
         break;
 

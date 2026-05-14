@@ -35,7 +35,7 @@ class OpenDataScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: colors.backgroundPrimary,
         appBar: AppBar(
-          title: Text('بوابة البيانات المفتوحة', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          title: Text(context.tr('open_data_portal'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           backgroundColor: colors.backgroundPrimary, elevation: 0,
           iconTheme: IconThemeData(color: colors.textPrimary),
         ),
@@ -60,7 +60,7 @@ class OpenDataScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _buildOCDSBadge(colors),
+                  _buildOCDSBadge(context, colors),
                   const SizedBox(height: 20),
                   _buildStatsGrid(context, colors, state.stats, total),
                   const SizedBox(height: 20),
@@ -74,7 +74,7 @@ class OpenDataScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOCDSBadge(SemanticColors colors) {
+  Widget _buildOCDSBadge(BuildContext context, SemanticColors colors) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -98,7 +98,7 @@ class OpenDataScreen extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () => launchUrl(Uri.parse('https://standard.open-contracting.org/'), mode: LaunchMode.externalApplication),
           icon: Icon(PhosphorIconsRegular.warningCircle, size: 16, color: Colors.white),
-          label: const Text('اعرف المزيد', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+          label: Text(context.tr('learn_more'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
         ),
       ]),

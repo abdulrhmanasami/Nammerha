@@ -33,6 +33,7 @@ import '../../../core/widgets/connectivity_banner.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/bloc/page_index_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 // UX-F029: Guided feature tour — shows on first login after onboarding
 import '../../onboarding/screens/guided_tour_screen.dart';
 
@@ -1177,16 +1178,8 @@ class _DashboardHomeView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Grab handle
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.strokeSubtle,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              // Grab handle — standardized Platinum component
+              BottomSheetGrabber(colors: colors),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
                 child: Row(
@@ -1239,7 +1232,7 @@ class _DashboardHomeView extends StatelessWidget {
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: projects.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1, indent: 20, endIndent: 20),
+                      separatorBuilder: (_, _) => const Divider(height: 1, indent: 20, endIndent: 20),
                       itemBuilder: (_, index) {
                         final p = projects[index];
                         final projectId = p['project_id']?.toString() ?? '';

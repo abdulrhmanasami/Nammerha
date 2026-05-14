@@ -35,13 +35,13 @@ class PricingScreen extends StatelessWidget {
       monthlyPriceCents: 0,
       features: [
         'تصفح المشاريع',
-        'تتبع التبرعات',
+        'تتبع التمويل',
         'خريطة المشاريع التفاعلية',
         'إشعارات أساسية',
       ],
       featuresEn: [
         'Browse Projects',
-        'Track Donations',
+        'Track Funding',
         'Interactive Project Map',
         'Basic Notifications',
       ],

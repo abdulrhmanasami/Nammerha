@@ -311,13 +311,13 @@ class CommissionEntry {
 class TipEntry {
   final String tipId;
   final int amountCents;
-  final String donorName;
+  final String funderName;
   final String createdAt;
 
   const TipEntry({
     required this.tipId,
     required this.amountCents,
-    required this.donorName,
+    required this.funderName,
     required this.createdAt,
   });
 
@@ -325,7 +325,7 @@ class TipEntry {
     return TipEntry(
       tipId: json['tip_id'] as String? ?? '',
       amountCents: _toInt(json['amount_cents'] ?? json['amount']),
-      donorName: json['donor_name'] as String? ?? '',
+      funderName: json['donor_name'] as String? ?? '', // backend key preserved
       createdAt: json['created_at'] as String? ?? '',
     );
   }
@@ -459,7 +459,7 @@ class OraclePriceEntry {
 /// Refund request
 class RefundRequest {
   final String refundId;
-  final String donorName;
+  final String funderName;
   final int amountCents;
   final String reason;
   final String status;
@@ -467,7 +467,7 @@ class RefundRequest {
 
   const RefundRequest({
     required this.refundId,
-    required this.donorName,
+    required this.funderName,
     required this.amountCents,
     required this.reason,
     required this.status,
@@ -477,7 +477,7 @@ class RefundRequest {
   factory RefundRequest.fromJson(Map<String, dynamic> json) {
     return RefundRequest(
       refundId: json['refund_id'] as String? ?? '',
-      donorName: json['donor_name'] as String? ?? '',
+      funderName: json['donor_name'] as String? ?? '', // backend key preserved
       amountCents: _toInt(json['amount_cents'] ?? json['amount']),
       reason: json['reason'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',

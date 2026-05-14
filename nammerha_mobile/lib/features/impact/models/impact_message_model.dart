@@ -1,6 +1,6 @@
 class ImpactMessage {
   final String id;
-  final String donorId;
+  final String funderId;
   final String? projectId;
   final String title;
   final String body;
@@ -11,7 +11,7 @@ class ImpactMessage {
 
   const ImpactMessage({
     required this.id,
-    required this.donorId,
+    required this.funderId,
     this.projectId,
     required this.title,
     required this.body,
@@ -24,7 +24,7 @@ class ImpactMessage {
   factory ImpactMessage.fromJson(Map<String, dynamic> json) {
     return ImpactMessage(
       id: json['id']?.toString() ?? '',
-      donorId: json['donor_id']?.toString() ?? '',
+      funderId: json['donor_id']?.toString() ?? '', // Backend contract key
       projectId: json['project_id']?.toString(),
       title: json['title']?.toString() ?? '',
       body: json['body']?.toString() ?? '',
@@ -40,7 +40,7 @@ class ImpactMessage {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'donor_id': donorId,
+      'donor_id': funderId, // Backend contract key
       'project_id': projectId,
       'title': title,
       'body': body,
@@ -53,7 +53,7 @@ class ImpactMessage {
 
   ImpactMessage copyWith({
     String? id,
-    String? donorId,
+    String? funderId,
     String? projectId,
     String? title,
     String? body,
@@ -64,7 +64,7 @@ class ImpactMessage {
   }) {
     return ImpactMessage(
       id: id ?? this.id,
-      donorId: donorId ?? this.donorId,
+      funderId: funderId ?? this.funderId,
       projectId: projectId ?? this.projectId,
       title: title ?? this.title,
       body: body ?? this.body,

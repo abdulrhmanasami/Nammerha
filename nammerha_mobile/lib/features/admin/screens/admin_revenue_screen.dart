@@ -57,7 +57,7 @@ class _RevenueView extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: () => context.read<AdminRevenueBloc>().add(LoadRevenueDashboard()),
                     icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                    label: const Text('إعادة المحاولة'),
+                    label: Text(context.tr('retry')),
                     style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
                   ),
                 ],
@@ -301,7 +301,7 @@ class _RevenueView extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              tip.donorName.isNotEmpty ? tip.donorName : 'متبرع',
+              tip.funderName.isNotEmpty ? tip.funderName : 'مموّل',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary),
             ),
           ),

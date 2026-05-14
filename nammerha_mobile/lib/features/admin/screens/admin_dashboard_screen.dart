@@ -148,7 +148,7 @@ class _DashboardView extends StatelessWidget {
               children: [
                 _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), PhosphorIconsRegular.warningCircle),
                 _divider(colors),
-                _buildMiniStat(colors, context.tr('admin_donations'), overview.totalDonations.toString(), PhosphorIconsRegular.heart),
+                _buildMiniStat(colors, context.tr('admin_funding'), overview.totalDonations.toString(), PhosphorIconsRegular.heart),
                 _divider(colors),
                 _buildMiniStat(colors, context.tr('admin_contractors'), overview.activeContractors.toString(), PhosphorIconsRegular.wrench),
               ],
@@ -170,8 +170,8 @@ class _DashboardView extends StatelessWidget {
           const SizedBox(height: 16),
 
           AdminStatChart(
-            title: context.tr('ad_donations_by_month'),
-            data: state.donationsByMonth.map((d) => ChartDataPoint(
+            title: context.tr('ad_funding_by_month'),
+            data: state.fundingByMonth.map((d) => ChartDataPoint(
               label: d.month,
               value: (d.totalAmount / 100).toDouble(),
             )).toList(),

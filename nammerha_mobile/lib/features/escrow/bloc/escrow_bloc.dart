@@ -8,7 +8,7 @@ class EscrowBloc extends Bloc<EscrowEvent, EscrowState> {
 
   EscrowBloc({required this.repository}) : super(EscrowInitial()) {
     on<FetchEscrowSummaryEvent>(_onFetchEscrowSummary);
-    on<FetchDonorDonationsEvent>(_onFetchDonorDonations);
+    on<FetchEscrowTransactionsEvent>(_onFetchEscrowTransactions);
   }
 
   Future<void> _onFetchEscrowSummary(
@@ -17,24 +17,24 @@ class EscrowBloc extends Bloc<EscrowEvent, EscrowState> {
   ) async {
     emit(EscrowLoading());
     try {
-      final summary = await repository.fetchDonorEscrowSummary();
+      final summary = await repository.fetchEscrowSummary();
       emit(EscrowSummaryLoaded(summary));
     } catch (e) {
       emit(EscrowError(e.toString()));
     }
   }
 
-  Future<void> _onFetchDonorDonations(
-    FetchDonorDonationsEvent event,
+  Future<void> _onFetchEscrowTransactions(
+    FetchEscrowTransactionsEvent event,
     Emitter<EscrowState> emit,
   ) async {
     emit(EscrowLoading());
     try {
-      final donations = await repository.fetchDonorDonations(
+      final transactions = await repository.fetchEscrowTransactions(
         limit: event.limit,
         offset: event.offset,
       );
-      emit(DonorDonationsLoaded(donations));
+      emit(EscrowTransactionsLoaded(transactions));
     } catch (e) {
       emit(EscrowError(e.toString()));
     }

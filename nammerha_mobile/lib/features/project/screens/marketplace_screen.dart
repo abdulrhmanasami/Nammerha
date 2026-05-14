@@ -360,7 +360,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
                       ));
                     },
                     icon: Icon(PhosphorIconsRegular.heart, size: 18),
-                    label: Text(context.tr('browse_projects')),
+                    label: Text(context.tr('view_details')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
                       foregroundColor: Colors.white,
@@ -404,9 +404,9 @@ class _MarketplaceViewState extends State<MarketplaceView> {
               Wrap(
                 spacing: 10,
                 children: [
-                  _filterChip(context, 'الكل', 'all', colors),
-                  _filterChip(context, 'نشط', 'active', colors),
-                  _filterChip(context, 'مكتمل', 'completed', colors),
+                  _filterChip(context, context.tr('filter_all'), 'all', colors),
+                  _filterChip(context, context.tr('filter_active'), 'active', colors),
+                  _filterChip(context, context.tr('filter_completed'), 'completed', colors),
                 ],
               ),
               const SizedBox(height: 24),
@@ -415,8 +415,8 @@ class _MarketplaceViewState extends State<MarketplaceView> {
               Wrap(
                 spacing: 10,
                 children: [
-                  _sortChip(context, 'الأعلى تمويلاً', 'highest_funding', colors),
-                  _sortChip(context, 'الأقل تمويلاً', 'lowest_funding', colors),
+                  _sortChip(context, context.tr('sort_highest_funding'), 'highest_funding', colors),
+                  _sortChip(context, context.tr('sort_lowest_funding'), 'lowest_funding', colors),
                 ],
               ),
               SizedBox(height: MediaQuery.of(context).padding.bottom + 20),

@@ -20,13 +20,13 @@ class EscrowSummaryLoaded extends EscrowState {
   List<Object> get props => [summary];
 }
 
-class DonorDonationsLoaded extends EscrowState {
-  final List<Map<String, dynamic>> donations;
+class EscrowTransactionsLoaded extends EscrowState {
+  final List<Map<String, dynamic>> transactions;
 
-  const DonorDonationsLoaded(this.donations);
+  const EscrowTransactionsLoaded(this.transactions);
 
   @override
-  List<Object> get props => [donations];
+  List<Object> get props => [transactions];
 }
 
 class EscrowError extends EscrowState {

@@ -132,14 +132,8 @@ class DashboardHomeBloc extends Bloc<DashboardHomeEvent, DashboardHomeState> {
           'total_bids_received': s.totalBidsReceived,
         });
       default:
-        return DonorApi().getStats().then((s) => <String, dynamic>{
-          'totalDonated': s.totalDonated,
-          'projectsSupported': s.projectsSupported,
-          'itemsFunded': s.itemsFunded,
-          'escrowLocked': s.escrowLocked,
-          'escrowReleased': s.escrowReleased,
-          'impactScore': s.impactScore,
-        });
+        // Donor role eradicated (May 2026). Default returns empty stats.
+        return Future.value(<String, dynamic>{});
     }
   }
 
@@ -168,12 +162,8 @@ class DashboardHomeBloc extends Bloc<DashboardHomeEvent, DashboardHomeState> {
           'escrow_total': 0,      'escrowTotal': 0,
         };
       default:
-        return {
-          'totalDonated': 0,   'total_donated': 0,
-          'activeProjects': 0, 'active_projects': 0,
-          'proofsSeen': 0,     'proofs_seen': 0,
-          'impactScore': 0,    'impact_score': 0,
-        };
+        // Donor role eradicated. Empty fallback.
+        return {};
     }
   }
 }

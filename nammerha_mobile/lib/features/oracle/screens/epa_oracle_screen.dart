@@ -123,7 +123,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('أوراكل التسعير — FIDIC 13.8'),
+        title: Text(context.tr('epa_oracle_title')),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: colors.primaryBrand,

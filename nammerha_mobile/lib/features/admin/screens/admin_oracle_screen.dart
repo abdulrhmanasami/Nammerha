@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,7 +61,7 @@ class _OracleView extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
                     icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                    label: const Text('إعادة المحاولة'),
+                    label: Text(context.tr('retry')),
                     style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
                   ),
                 ],

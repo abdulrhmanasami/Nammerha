@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -20,7 +21,7 @@ class ProjectListScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: colors.backgroundPrimary,
         appBar: AppBar(
-          title: const Text('مشاريعي المعيّنة'),
+          title: Text(context.tr('assigned_projects')),
         ),
         body: BlocBuilder<ProjectBloc, ProjectState>(
           builder: (context, state) {

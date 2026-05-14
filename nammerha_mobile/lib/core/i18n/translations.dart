@@ -18,7 +18,7 @@ const Map<String, Map<String, String>> kTranslations = {
   // ═══ NAVIGATION ═══
   'nav_home': {'ar': 'الرئيسية', 'en': 'Home'},
   'nav_projects': {'ar': 'المشاريع', 'en': 'Projects'},
-  'nav_donations': {'ar': 'التمويل', 'en': 'Funding'},  // SUSPENDED: was 'تبرعاتي' — donation system suspended indefinitely
+  // nav_donations: REMOVED — donation system eradicated (May 2026)
   'nav_profile': {'ar': 'حسابي', 'en': 'My Account'},
   'nav_admin': {'ar': 'الإدارة', 'en': 'Admin'},
   'nav_bids': {'ar': 'عروضي', 'en': 'My Bids'},
@@ -193,34 +193,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'dr_damage_desc_hint': {'ar': 'اشرح طبيعة الأضرار بالتفصيل...', 'en': 'Describe the damage in detail...'},
   'dr_submit_btn': {'ar': 'تقديم طلب الإعمار', 'en': 'Submit Reconstruction Request'},
 
-  // ═══ DONOR PORTAL — SUSPENDED INDEFINITELY (May 2026 strategic decision) ═══
-  // All dn_* keys below are preserved for future reactivation but not displayed.
-  'dn_portal_title': {'ar': 'بوابة المتبرع', 'en': 'Donor Portal'},
-  'dn_tab_dashboard': {'ar': 'لوحة التحكم', 'en': 'Dashboard'},
-  'dn_tab_marketplace': {'ar': 'السوق', 'en': 'Marketplace'},
-  'dn_tab_donations': {'ar': 'تبرعاتي', 'en': 'My Donations'},
-  'dn_tab_impact': {'ar': 'الأثر', 'en': 'Impact'},
-  'dn_tab_proofs': {'ar': 'الإثباتات', 'en': 'Proofs'},
-  'dn_total_donated': {'ar': 'إجمالي التبرعات', 'en': 'Total Donated'},
-  'dn_projects_count': {'ar': 'المشاريع', 'en': 'Projects'},
-  'dn_items_funded': {'ar': 'العناصر', 'en': 'Items'},
-  'dn_impact_score': {'ar': 'نقاط الأثر', 'en': 'Impact Score'},
-  'dn_escrow_locked': {'ar': 'محتجز بالضمان', 'en': 'Locked in Escrow'},
-  'dn_escrow_released': {'ar': 'تم التحرير', 'en': 'Released'},
-  'dn_funded_projects': {'ar': 'المشاريع المموّلة', 'en': 'Funded Projects'},
-  'dn_no_funded': {'ar': 'لم تموّل أي مشاريع بعد', 'en': 'No funded projects yet'},
-  'dn_browse_start': {'ar': 'تصفح السوق وابدأ بدعم إعادة الإعمار', 'en': 'Browse projects and start supporting reconstruction'},
-  'dn_my_contribution': {'ar': 'مساهمتي', 'en': 'My contribution'},
-  'dn_items_label': {'ar': 'عناصر', 'en': 'items'},
-  'dn_item_label': {'ar': 'عنصر', 'en': 'item'},
-  'dn_no_marketplace': {'ar': 'لا توجد مشاريع متاحة حالياً', 'en': 'No projects available at the moment'},
-  'dn_fund_this': {'ar': 'موّل هذا', 'en': 'Fund This'},
-  'dn_fully_funded': {'ar': 'مموَّل بالكامل', 'en': 'Fully Funded'},
-  'dn_no_donations': {'ar': 'لم تقم بأي تبرع بعد', 'en': 'No donations yet'},
-  'dn_no_impact': {'ar': 'لا توجد بيانات أثر بعد', 'en': 'No impact data yet'},
-  'dn_my_donation': {'ar': 'تبرعي', 'en': 'My donation'},
-  'dn_no_proofs': {'ar': 'لا توجد إثباتات بعد', 'en': 'No proofs yet'},
-  'dn_proofs_hint': {'ar': 'ستظهر الصور المُوثّقة بـ GPS هنا بعد التحقق الميداني', 'en': 'GPS-verified photos will appear here after on-site verification'},
+  // ═══ DONOR PORTAL — ERADICATED (May 2026) ═══
+  // All dn_* keys removed. Directories deleted.
 
   // ═══ ENGINEER BOQ BUILDER (C1 FIX — i18n Completeness) ═══
   'eng_boq_title': {'ar': 'جدول الكميات (BOQ)', 'en': 'Bill of Quantities (BOQ)'},
@@ -470,7 +444,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'ad_active_projects': {'ar': 'المشاريع النشطة', 'en': 'Active Projects'},
   'ad_verified_proofs': {'ar': 'إثباتات محققة', 'en': 'Verified Proofs'},
   'ad_projects_by_month': {'ar': 'المشاريع حسب الشهر', 'en': 'Projects by Month'},
-  'ad_donations_by_month': {'ar': 'التبرعات حسب الشهر', 'en': 'Donations by Month'},
+  'ad_funding_by_month': {'ar': 'التمويل حسب الشهر', 'en': 'Funding by Month'},
   'ad_audit_trail': {'ar': 'سجل التدقيق', 'en': 'Audit Trail'},
   'ad_no_audit_entries': {'ar': 'لا توجد إدخالات حديثة', 'en': 'No recent entries'},
   'ad_pending_check': {'ar': 'تحقق معلّق', 'en': 'Pending verification'},
@@ -532,7 +506,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'greeting_morning': {'ar': 'صباح الخير', 'en': 'Good Morning'},
   'greeting_afternoon': {'ar': 'مساء الخير', 'en': 'Good Afternoon'},
   'greeting_evening': {'ar': 'مساء الخير', 'en': 'Good Evening'},
-  'dashboard_subtitle_donor': {'ar': 'شكراً لدعمك إعادة الإعمار', 'en': 'Thank you for supporting reconstruction'},
+  // dashboard_subtitle_donor: REMOVED — donation system eradicated (May 2026)
   'dashboard_subtitle_engineer': {'ar': 'مشاريعك بانتظارك', 'en': 'Your projects await'},
   'dashboard_subtitle_supplier': {'ar': 'طلبات جديدة بانتظارك', 'en': 'New orders are waiting'},
   'dashboard_subtitle_homeowner': {'ar': 'تابع تقدم مشروعك', 'en': 'Track your project progress'},
@@ -558,6 +532,44 @@ const Map<String, Map<String, String>> kTranslations = {
   'no_recent_activity': {'ar': 'لا يوجد نشاط حديث', 'en': 'No recent activity'},
   'dashboard_activity_hint': {'ar': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', 'en': 'Recent activity will appear here once you start working on projects'},
 
+  // ═══ WALLET (P0-001 FIX — full i18n) ═══
+  'escrow_balance': {'ar': 'رصيد الضمان', 'en': 'Escrow Balance'},
+  'escrow_held': {'ar': 'مُحتجز في حساب الضمان', 'en': 'Held in Escrow Account'},
+  'escrow_locked_label': {'ar': 'محتجز', 'en': 'Locked'},
+  'escrow_released_label': {'ar': 'مُحرَّر', 'en': 'Released'},
+  'escrow_refunded_label': {'ar': 'مُستردّ', 'en': 'Refunded'},
+  'transaction_log': {'ar': 'سجل المعاملات', 'en': 'Transaction Log'},
+  'wallet_no_transactions': {'ar': 'لا توجد معاملات بعد', 'en': 'No transactions yet'},
+
+  // ═══ MARKETPLACE FILTER CHIPS (P0-006 FIX — hardcoded Arabic) ═══
+  'filter_all': {'ar': 'الكل', 'en': 'All'},
+  'filter_active': {'ar': 'نشط', 'en': 'Active'},
+  'filter_completed': {'ar': 'مكتمل', 'en': 'Completed'},
+  'sort_highest_funding': {'ar': 'الأعلى تمويلاً', 'en': 'Highest Funded'},
+  'sort_lowest_funding': {'ar': 'الأقل تمويلاً', 'en': 'Lowest Funded'},
+  'view_details': {'ar': 'عرض التفاصيل', 'en': 'View Details'},
+
+  // ═══ SPLASH (P0-005 FIX) ═══
+  'splash_subtitle': {'ar': 'منصة إعادة إعمار سوريا الشفافة', 'en': 'Syria\'s Transparent Reconstruction Platform'},
+
+  // ═══ MISC SCREEN TITLES (P0-002 FIX — hardcoded AppBar titles) ═══
+  'escrow_vault': {'ar': 'خزنة الضمان', 'en': 'Escrow Vault'},
+  'secure_payment': {'ar': 'الدفع الآمن', 'en': 'Secure Payment'},
+  'spatial_guardian': {'ar': 'الحارس المكاني', 'en': 'Spatial Guardian'},
+  'my_bids': {'ar': 'عروضي', 'en': 'My Bids'},
+  'delivery_proofs': {'ar': 'إثباتات التسليم', 'en': 'Delivery Proofs'},
+  'capture_360': {'ar': 'التقاط 360°', 'en': '360° Capture'},
+  'region_heatmap': {'ar': 'خريطة التوزيع الجغرافي', 'en': 'Regional Distribution Map'},
+  'assigned_projects': {'ar': 'مشاريعي المعيّنة', 'en': 'My Assigned Projects'},
+  'epa_oracle_title': {'ar': 'أوراكل التسعير — FIDIC 13.8', 'en': 'Pricing Oracle — FIDIC 13.8'},
+  'about_nammerha': {'ar': 'حول نعمّرها', 'en': 'About Nammerha'},
+  'contact_us': {'ar': 'تواصل معنا', 'en': 'Contact Us'},
+  'privacy_center': {'ar': 'مركز الخصوصية والسيادة', 'en': 'Privacy & Sovereignty Center'},
+  'open_data_portal': {'ar': 'بوابة البيانات المفتوحة', 'en': 'Open Data Portal'},
+  'impact_field': {'ar': 'أثرك الميداني', 'en': 'Your Field Impact'},
+  'submit_new_bid': {'ar': 'تقديم عرض جديد', 'en': 'Submit New Bid'},
+  'reviews_title': {'ar': 'التقييمات', 'en': 'Reviews'},
+
   // ═══ PROJECT DISCOVERY & CART ═══
   // UX-F022 FIX: Marketplace filter sheet i18n keys.
   'filter_sort': {'ar': 'فرز وتصفية', 'en': 'Filter & Sort'},
@@ -566,7 +578,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'map_of_projects': {'ar': 'خريطة المشاريع', 'en': 'Projects Map'},
   'search_projects_hint': {'ar': 'البحث عن مشاريع...', 'en': 'Search projects...'},
   // SUSPENDED: Donation cart suspended indefinitely (May 2026)
-  'donation_cart': {'ar': 'سلة المواد', 'en': 'Materials Cart'},  // was 'سلة التبرعات'
+  'materials_cart': {'ar': 'سلة المواد', 'en': 'Materials Cart'},
   'empty_cart': {'ar': 'إفراغ السلة', 'en': 'Empty Cart'},
   'your_cart_is_empty': {'ar': 'سلتك فارغة', 'en': 'Your cart is empty'},
   'cart_empty_subtitle': {'ar': 'تصفح المشاريع وأضف مواد البناء لدعم إعادة الإعمار', 'en': 'Browse projects and add construction materials to support reconstruction'},
@@ -605,10 +617,10 @@ const Map<String, Map<String, String>> kTranslations = {
   'admin_engineers': {'ar': 'المهندسون', 'en': 'Engineers'},
   'admin_verified_proofs': {'ar': 'إثباتات محققة', 'en': 'Verified Proofs'},
   'admin_users': {'ar': 'المستخدمون', 'en': 'Users'},
-  'admin_donations': {'ar': 'التبرعات', 'en': 'Donations'},
+  'admin_funding': {'ar': 'التمويل', 'en': 'Funding'},
   'admin_contractors': {'ar': 'المقاولون', 'en': 'Contractors'},
   'admin_projects_by_month': {'ar': 'المشاريع حسب الشهر', 'en': 'Projects by Month'},
-  'admin_donations_by_month': {'ar': 'التبرعات حسب الشهر', 'en': 'Donations by Month'},
+  // admin_donations_by_month: REMOVED — merged into ad_funding_by_month
   'admin_audit_trail': {'ar': 'سجل التدقيق', 'en': 'Audit Trail'},
   'admin_no_audit': {'ar': 'لا توجد إدخالات حديثة', 'en': 'No recent entries'},
   'admin_pending_verification': {'ar': 'تحقق معلّق', 'en': 'Pending verification'},
@@ -704,12 +716,12 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_0bc9d3b2': {'ar': 'استخدم وضع البانوراما في الكاميرا للتصوير 360°', 'en': 'استخدم وضع البانوراما في الكاميرا للتصوير 360°'},
   'str_0bea49a1': {'ar': 'نقاط الأداء', 'en': 'نقاط الأداء'},
   'str_0c584b7c': {'ar': 'حديد', 'en': 'حديد'},
-  'str_0cde927d': {'ar': 'سجل التبرعات', 'en': 'سجل التبرعات'},
-  'str_0dbb85e3': {'ar': 'منصة شفافة لإعادة إعمار سوريا\nكل ليرة مُتبرع بها مُتتبّعة بدقة', 'en': 'منصة شفافة لإعادة إعمار سوريا\nكل ليرة مُتبرع بها مُتتبّعة بدقة'},
+  // str_0cde927d: REMOVED — donation orphan
+  // str_0dbb85e3: REMOVED — donation orphan
   'str_0e0eb54d': {'ar': 'مموّل بالكامل', 'en': 'مموّل بالكامل'},
   'str_0e3809eb': {'ar': 'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة', 'en': 'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة'},
   'str_0e7c6aed': {'ar': 'تحديد الموقع تلقائياً', 'en': 'تحديد الموقع تلقائياً'},
-  'str_0ea1d954': {'ar': 'جميع التبرعات محمية بنظام الضمان (Escrow) ولن تُصرف إلا بعد الإثبات المكاني.', 'en': 'جميع التبرعات محمية بنظام الضمان (Escrow) ولن تُصرف إلا بعد الإثبات المكاني.'},
+  // str_0ea1d954: REMOVED — donation orphan
   'str_0f1ac91e': {'ar': 'نحن هنا لمساعدتك', 'en': 'نحن هنا لمساعدتك'},
   'str_10259f67': {'ar': 'صيغة البريد غير صحيحة', 'en': 'صيغة البريد غير صحيحة'},
   'str_10954620': {'ar': 'يوم', 'en': 'يوم'},
@@ -744,7 +756,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_2131cf7e': {'ar': 'أضف أول مادة لتبدأ باستلام أوامر الشراء', 'en': 'أضف أول مادة لتبدأ باستلام أوامر الشراء'},
   'str_21762fb2': {'ar': 'عروض', 'en': 'عروض'},
   'str_223dd076': {'ar': 'مُسترد', 'en': 'مُسترد'},
-  'str_226e936e': {'ar': 'التبرع للمشروع', 'en': 'التبرع للمشروع'},
+  // str_226e936e: REMOVED — donation orphan
   'str_22b9ada9': {'ar': 'لم يتم العثور على نتائج', 'en': 'لم يتم العثور على نتائج'},
   'str_22daf172': {'ar': 'نظرة عامة', 'en': 'نظرة عامة'},
   'str_233a60b2': {'ar': 'مُحرَّر', 'en': 'مُحرَّر'},
@@ -756,7 +768,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_24ef81e6': {'ar': 'قيد المعالجة', 'en': 'قيد المعالجة'},
   'str_251a004d': {'ar': 'خط الطول', 'en': 'خط الطول'},
   'str_252fbafe': {'ar': 'جارٍ تحميل مشاريعك...', 'en': 'جارٍ تحميل مشاريعك...'},
-  'str_254579bc': {'ar': 'جارٍ تحميل التبرعات...', 'en': 'جارٍ تحميل التبرعات...'},
+  // str_254579bc: REMOVED — donation orphan
   'str_25842e92': {'ar': 'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور', 'en': 'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور'},
   'str_261471f8': {'ar': 'بناء جديد', 'en': 'بناء جديد'},
   'str_276f5254': {'ar': 'إرسال العرض', 'en': 'إرسال العرض'},
@@ -798,7 +810,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_38be7336': {'ar': 'غير متصل', 'en': 'غير متصل'},
   'str_3a0c4fb4': {'ar': 'تم التوصيل', 'en': 'تم التوصيل'},
   'str_3a3271e2': {'ar': 'حماة', 'en': 'حماة'},
-  'str_3a732fb9': {'ar': 'إيصال التبرع', 'en': 'إيصال التبرع'},
+  // str_3a732fb9: REMOVED — donation orphan
   'str_3b5f3860': {'ar': 'المتبقي', 'en': 'المتبقي'},
   'str_3b6cac45': {'ar': 'دهان', 'en': 'دهان'},
   'str_3bf94cb4': {'ar': 'تقرير أضرار', 'en': 'تقرير أضرار'},
@@ -814,7 +826,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_41ac982d': {'ar': 'حاسبة EPA', 'en': 'حاسبة EPA'},
   'str_42124c8e': {'ar': 'تم التحقق ✓', 'en': 'تم التحقق ✓'},
   'str_42261876': {'ar': 'أبلغ عن أضرار لبدء مشروع جديد', 'en': 'أبلغ عن أضرار لبدء مشروع جديد'},
-  'str_427cbaf5': {'ar': 'تبرع بصفة مجهول (Anonymous)', 'en': 'تبرع بصفة مجهول (Anonymous)'},
+  // str_427cbaf5: REMOVED — donation orphan
   'str_42b5b10e': {'ar': 'سنتواصل معك في أقرب وقت ممكن', 'en': 'سنتواصل معك في أقرب وقت ممكن'},
   'str_42df41a8': {'ar': 'شحن', 'en': 'شحن'},
   'str_431a4bef': {'ar': 'الإثباتات', 'en': 'الإثباتات'},
@@ -842,7 +854,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_4fc2e7cb': {'ar': 'سعر الوحدة (ل.س)', 'en': 'سعر الوحدة (ل.س)'},
   'str_4fe62140': {'ar': 'أضرار سطحية', 'en': 'أضرار سطحية'},
   'str_5057855e': {'ar': 'الحد الأدنى', 'en': 'الحد الأدنى'},
-  'str_50fc47dc': {'ar': 'مبلغ التبرع (USD)', 'en': 'مبلغ التبرع (USD)'},
+  // str_50fc47dc: REMOVED — donation orphan
   'str_5101659e': {'ar': 'الكمية', 'en': 'الكمية'},
   'str_51519a48': {'ar': 'لا توجد إثباتات تسليم بعد', 'en': 'لا توجد إثباتات تسليم بعد'},
   'str_519c7260': {'ar': 'سيتم تحويلك تلقائياً...', 'en': 'سيتم تحويلك تلقائياً...'},
@@ -867,7 +879,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_59e3ee85': {'ar': 'نضمن وصول كل ليرة إلى حيث يجب عبر آلية ضمان إسكرو مع إثبات مكاني بالـ GPS.', 'en': 'نضمن وصول كل ليرة إلى حيث يجب عبر آلية ضمان إسكرو مع إثبات مكاني بالـ GPS.'},
   'str_59e974c1': {'ar': 'جارٍ التحميل...', 'en': 'جارٍ التحميل...'},
   'str_59fdab45': {'ar': 'قيد التنفيذ', 'en': 'قيد التنفيذ'},
-  'str_5a1556d9': {'ar': 'بوابة المتبرع', 'en': 'بوابة المتبرع'},
+  // str_5a1556d9: REMOVED — 'بوابة المتبرع' orphan (donation eradication)
   'str_5a6c5d63': {'ar': 'خط العرض', 'en': 'خط العرض'},
   'str_5aba770e': {'ar': 'السعر الاسترشادي (ل.س)', 'en': 'السعر الاسترشادي (ل.س)'},
   'str_5c48b799': {'ar': 'لم تقدم أي عروض بعد', 'en': 'لم تقدم أي عروض بعد'},
@@ -971,14 +983,14 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_84aa7266': {'ar': 'تقدم البناء', 'en': 'تقدم البناء'},
   'str_85400009': {'ar': 'الأسعار الحية', 'en': 'الأسعار الحية'},
   'str_8598ae12': {'ar': 'هل تريد حذف جميع العناصر من السلة؟', 'en': 'هل تريد حذف جميع العناصر من السلة؟'},
-  'str_86094cd6': {'ar': 'لم تقم بأي تبرع بعد', 'en': 'لم تقم بأي تبرع بعد'},
+  // str_86094cd6: REMOVED — donation orphan
   'str_863392de': {'ar': 'خشب', 'en': 'خشب'},
   'str_86c52347': {'ar': 'سعر الوحدة', 'en': 'سعر الوحدة'},
   'str_86c7e39e': {'ar': 'اشرح طبيعة الأضرار بالتفصيل...', 'en': 'اشرح طبيعة الأضرار بالتفصيل...'},
   'str_871e45a0': {'ar': 'لا تقييمات بعد', 'en': 'لا تقييمات بعد'},
   'str_88112ebe': {'ar': 'يرجى السماح بالوصول للموقع لإنشاء المشروع', 'en': 'يرجى السماح بالوصول للموقع لإنشاء المشروع'},
   'str_88316b8c': {'ar': 'أمان ضمان الإسكرو', 'en': 'أمان ضمان الإسكرو'},
-  'str_88b0098c': {'ar': 'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم التبرع بها حتى لحظة صرفها.', 'en': 'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم التبرع بها حتى لحظة صرفها.'},
+  // str_88b0098c: REMOVED — donation orphan
   'str_88bb3a6b': {'ar': 'تواصل معنا', 'en': 'تواصل معنا'},
   'str_88fc73eb': {'ar': 'الإجمالي', 'en': 'الإجمالي'},
   'str_8936e5f7': {'ar': 'مشاريع معيّنة', 'en': 'مشاريع معيّنة'},
@@ -1026,7 +1038,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_9c734235': {'ar': 'وصف المشروع', 'en': 'وصف المشروع'},
   'str_9cd3a987': {'ar': 'خريطة التوزيع الجغرافي', 'en': 'خريطة التوزيع الجغرافي'},
   'str_9da82734': {'ar': 'وصف الأضرار *', 'en': 'وصف الأضرار *'},
-  'str_9ddc2404': {'ar': 'المانحون', 'en': 'المانحون'},
+  'str_9ddc2404': {'ar': 'المموّلون', 'en': 'Funders'},
   'str_9e09e310': {'ar': 'شارع، بناء، طابق', 'en': 'شارع، بناء، طابق'},
   'str_9e3702b6': {'ar': 'سباكة', 'en': 'سباكة'},
   'str_9e4a7f77': {'ar': 'فتح الكاميرا', 'en': 'فتح الكاميرا'},
@@ -1062,7 +1074,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_a8b360ea': {'ar': 'بوابة المتضرر', 'en': 'بوابة المتضرر'},
   'str_a9156791': {'ar': 'تم حلها', 'en': 'تم حلها'},
   'str_a918712a': {'ar': 'تصفح السوق وقدّم عروضك', 'en': 'تصفح السوق وقدّم عروضك'},
-  'str_a92fd8f0': {'ar': 'تابع كل مشاريعك، تبرعاتك، وإحصائياتك\nمن مكان واحد مع تحديثات لحظية', 'en': 'تابع كل مشاريعك، تبرعاتك، وإحصائياتك\nمن مكان واحد مع تحديثات لحظية'},
+  // str_a92fd8f0: REMOVED — donation orphan
   'str_a93e1142': {'ar': 'عرض 5 منتجات في الكتالوج', 'en': 'عرض 5 منتجات في الكتالوج'},
   'str_a94d6b95': {'ar': 'دعم تقني', 'en': 'دعم تقني'},
   'str_a9a54b61': {'ar': 'لا توجد مشاريع متاحة حالياً', 'en': 'لا توجد مشاريع متاحة حالياً'},
@@ -1075,7 +1087,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_ab95b0d8': {'ar': 'المودع', 'en': 'المودع'},
   'str_abc7c08c': {'ar': 'المشاريع المنشورة', 'en': 'المشاريع المنشورة'},
   'str_acfc16fd': {'ar': '• الشفافية الجذرية — كل معاملة مرئية ومتتبَّعة\n', 'en': '• الشفافية الجذرية — كل معاملة مرئية ومتتبَّعة\n'},
-  'str_adb3754c': {'ar': '💚 متبرع', 'en': '💚 متبرع'},
+  // str_adb3754c: REMOVED — '💚 متبرع' orphan (donation eradication)
   'str_ae3f1cc2': {'ar': 'لا يوجد معرّف للضمان', 'en': 'لا يوجد معرّف للضمان'},
   'str_ae64b464': {'ar': 'معدل الامتثال', 'en': 'معدل الامتثال'},
   'str_aec89c2a': {'ar': 'ستظهر هنا إثباتات التسليم المكانية\nعندما يتم توصيل مواد مشاريعك', 'en': 'ستظهر هنا إثباتات التسليم المكانية\nعندما يتم توصيل مواد مشاريعك'},
@@ -1124,7 +1136,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_c6157a43': {'ar': 'ستظهر المشاريع الجديدة هنا', 'en': 'ستظهر المشاريع الجديدة هنا'},
   'str_c64e66a8': {'ar': 'تفاصيل المشروع', 'en': 'تفاصيل المشروع'},
   'str_c66f9b4b': {'ar': 'لا توجد تقييمات بعد', 'en': 'لا توجد تقييمات بعد'},
-  'str_c6a0d9a9': {'ar': '٢. المانحون يموّلون المشاريع عبر ضمان إسكرو آمن\n', 'en': '٢. المانحون يموّلون المشاريع عبر ضمان إسكرو آمن\n'},
+  // str_c6a0d9a9: REMOVED — donation orphan
   'str_c6b085c4': {'ar': '] ?? _regions.length} محافظة', 'en': '] ?? _regions.length} محافظة'},
   'str_c7fcb02f': {'ar': 'السعر الاسترشادي', 'en': 'السعر الاسترشادي'},
   'str_c870f596': {'ar': 'خزنة الضمان', 'en': 'خزنة الضمان'},
@@ -1141,7 +1153,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_cb4588d3': {'ar': 'الملف', 'en': 'الملف'},
   'str_cc05441c': {'ar': 'جميع ميزات البلاتينية', 'en': 'جميع ميزات البلاتينية'},
   'str_cc13afb9': {'ar': 'الأساسية', 'en': 'الأساسية'},
-  'str_cca67e77': {'ar': 'تابع مشاريعك من التبرع إلى البناء\nواستلم إثبات مصوّر بالتسليم', 'en': 'تابع مشاريعك من التبرع إلى البناء\nواستلم إثبات مصوّر بالتسليم'},
+  // str_cca67e77: REMOVED — donation orphan
   'str_ccac5b98': {'ar': 'الدقة', 'en': 'الدقة'},
   'str_cd09c30d': {'ar': 'غير محدد', 'en': 'غير محدد'},
   'str_cd54bc26': {'ar': 'فريق العمل', 'en': 'فريق العمل'},
@@ -1198,7 +1210,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_e216b4d6': {'ar': 'المناطق المغطاة', 'en': 'المناطق المغطاة'},
   'str_e29cfbf2': {'ar': 'نُعمّرها', 'en': 'نُعمّرها'},
   'str_e2a5e0fd': {'ar': 'تقديم عطاء (Bid)', 'en': 'تقديم عطاء (Bid)'},
-  'str_e3782aae': {'ar': 'سلة التبرعات', 'en': 'سلة التبرعات'},
+  // str_e3782aae: REMOVED — donation orphan
   'str_e3a4dbca': {'ar': 'الأرباح', 'en': 'الأرباح'},
   'str_e43dd217': {'ar': 'سياسة الخصوصية', 'en': 'سياسة الخصوصية'},
   'str_e4e33a8b': {'ar': '• إثبات الواقع — تحقق GPS + SHA-256 للصور\n', 'en': '• إثبات الواقع — تحقق GPS + SHA-256 للصور\n'},
@@ -1219,7 +1231,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_ec4337ed': {'ar': 'السجل', 'en': 'السجل'},
   'str_ec5bea2a': {'ar': 'مُستردّ', 'en': 'مُستردّ'},
   'str_ecb54cb1': {'ar': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', 'en': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع'},
-  'str_ee0a06e8': {'ar': 'لا توجد تبرعات بعد', 'en': 'لا توجد تبرعات بعد'},
+  // str_ee0a06e8: REMOVED — donation orphan
   'str_efda624d': {'ar': 'تعذر تحديد الموقع — تأكد من تفعيل GPS', 'en': 'تعذر تحديد الموقع — تأكد من تفعيل GPS'},
   'str_f013adbb': {'ar': 'محتجز', 'en': 'محتجز'},
   'str_f0f1855c': {'ar': 'ابحث عن مشروع أو مقاول...', 'en': 'ابحث عن مشروع أو مقاول...'},
@@ -1229,12 +1241,12 @@ const Map<String, Map<String, String>> kTranslations = {
   'str_f19d9002': {'ar': 'إثبات مكاني GPS', 'en': 'GPS Spatial Proof'},
   'str_f1e00a42': {'ar': 'لا توجد مشاريع منشورة بعد', 'en': 'لا توجد مشاريع منشورة بعد'},
   'str_f3bcb79a': {'ar': 'طلبات معلقة', 'en': 'طلبات معلقة'},
-  'str_f43bccc9': {'ar': 'إجمالي التبرعات', 'en': 'إجمالي التبرعات'},
+  // str_f43bccc9: REMOVED — donation orphan
   'str_f477f807': {'ar': 'كهرباء', 'en': 'كهرباء'},
   'str_f494c005': {'ar': 'ممول', 'en': 'ممول'},
   'str_f4f9e662': {'ar': 'المدة التقديرية (أيام)', 'en': 'المدة التقديرية (أيام)'},
   'str_f566c724': {'ar': 'تحميل الإيصال PDF', 'en': 'تحميل الإيصال PDF'},
-  'str_f5f42698': {'ar': 'تبرع الآن للمشروع', 'en': 'تبرع الآن للمشروع'},
+  // str_f5f42698: REMOVED — donation orphan
   'str_f695db0b': {'ar': '✅ تم ترقية اشتراكك بنجاح. أنت الآن مورد موثوق!', 'en': '✅ تم ترقية اشتراكك بنجاح. أنت الآن مورد موثوق!'},
   'str_f7415029': {'ar': 'دعم فني عادي', 'en': 'دعم فني عادي'},
   'str_f7911926': {'ar': 'عمال الموقع:', 'en': 'عمال الموقع:'},
@@ -1266,7 +1278,6 @@ const Map<String, Map<String, String>> kTranslations = {
   'verified_proofs': {'ar': 'إثباتات مُوثّقة', 'en': 'Verified Proofs'},
   'create_project': {'ar': 'إنشاء مشروع', 'en': 'Create Project'},
   'browse_tenders': {'ar': 'تصفح العطاءات', 'en': 'Browse Tenders'},
-  'my_bids': {'ar': 'عروضي', 'en': 'My Bids'},
   'projects_properties': {'ar': 'مشاريع وملكيات', 'en': 'Projects & Properties'},
   'tenders_supply': {'ar': 'مناقصات وتوريد', 'en': 'Tenders & Supply'},
   'field_engineering_tasks': {'ar': 'مهام ميدانية وهندسية', 'en': 'Field & Engineering Tasks'},
@@ -1324,4 +1335,37 @@ const Map<String, Map<String, String>> kTranslations = {
 
   // Password strength (missing key used by PasswordStrengthIndicator widget)
   'pw_strength_none': {'ar': '', 'en': ''},
+
+  // ═══ Wave 3: Extended i18n Coverage (May 2026) ═══
+  'no_projects_yet': {'ar': 'لم تقم بإنشاء أي مشروع بعد', 'en': 'You have not created any projects yet'},
+  'create_new_project': {'ar': 'إنشاء مشروع جديد', 'en': 'Create New Project'},
+  'create_project_btn': {'ar': 'إنشاء المشروع', 'en': 'Create Project'},
+  'project_title_label': {'ar': 'عنوان المشروع', 'en': 'Project Title'},
+  'project_desc_label': {'ar': 'وصف المشروع', 'en': 'Project Description'},
+  'damage_type_label': {'ar': 'نوع الضرر', 'en': 'Damage Type'},
+  'locating_gps': {'ar': 'جارٍ تحديد الموقع...', 'en': 'Locating...'},
+  'location_permission_required': {'ar': 'يرجى السماح بالوصول للموقع لإنشاء المشروع', 'en': 'Please allow location access to create the project'},
+  'gps_failed': {'ar': 'تعذر تحديد الموقع — تأكد من تفعيل GPS', 'en': 'Could not determine location — make sure GPS is enabled'},
+  'project_created_success': {'ar': '✅ تم إنشاء المشروع بنجاح', 'en': '✅ Project created successfully'},
+  'pending_review': {'ar': 'قيد المراجعة', 'en': 'Pending Review'},
+  'load_projects_error': {'ar': 'حدث خطأ في تحميل مشاريعك', 'en': 'Error loading your projects'},
+  'submit_bid_boq': {'ar': 'تقديم عطاء وتسعير (BOQ)', 'en': 'Submit Bid & Pricing (BOQ)'},
+  'send_btn': {'ar': 'إرسال', 'en': 'Send'},
+  'back_btn': {'ar': 'العودة', 'en': 'Back'},
+  'we_are_here_to_help': {'ar': 'نحن هنا لمساعدتك', 'en': 'We are here to help'},
+  'learn_more': {'ar': 'اعرف المزيد', 'en': 'Learn More'},
+  'new_capture': {'ar': 'التقاط جديد', 'en': 'New Capture'},
+  'daily_log': {'ar': 'سجل يومي', 'en': 'Daily Log'},
+  'submit_log': {'ar': 'إرسال السجل', 'en': 'Submit Log'},
+  'receipt_unavailable': {'ar': 'الإيصال غير متوفر حالياً', 'en': 'Receipt not available'},
+  'download_receipt_pdf': {'ar': 'تحميل الإيصال PDF', 'en': 'Download Receipt PDF'},
+  'consent_log_hmac': {'ar': 'سجل الموافقة المشفر (HMAC)', 'en': 'Encrypted Consent Log (HMAC)'},
+  'cancel_btn': {'ar': 'إلغاء', 'en': 'Cancel'},
+  'confirm_btn': {'ar': 'تأكيد', 'en': 'Confirm'},
+  'partial_structural': {'ar': 'هيكلي جزئي', 'en': 'Partial Structural'},
+  'total_destruction': {'ar': 'تدمير كامل', 'en': 'Total Destruction'},
+  'surface_damage': {'ar': 'أضرار سطحية', 'en': 'Surface Damage'},
+  'new_construction': {'ar': 'بناء جديد', 'en': 'New Construction'},
+  'payment_redirect': {'ar': '✅ تم توجيهك إلى بوابة الدفع الآمنة', 'en': '✅ Redirected to secure payment gateway'},
+  'transparency_load_error': {'ar': 'تعذر تحميل بيانات الشفافية', 'en': 'Failed to load transparency data'},
 };

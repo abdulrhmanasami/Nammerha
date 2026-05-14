@@ -59,7 +59,7 @@ class _CartScreenState extends State<CartScreen> {
       child: Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: Text(context.tr('donation_cart')),
+        title: Text(context.tr('materials_cart')),
         actions: [
           ListenableBuilder(
             listenable: CartStore.instance,

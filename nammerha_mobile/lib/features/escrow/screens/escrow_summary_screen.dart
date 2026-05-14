@@ -32,7 +32,7 @@ class EscrowSummaryScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: colors.backgroundPrimary,
         appBar: AppBar(
-          title: const Text('خزنة الضمان'),
+          title: Text(context.tr('escrow_vault')),
           actions: [
             Builder(
               builder: (ctx) => IconButton(

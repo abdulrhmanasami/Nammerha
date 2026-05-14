@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,7 +32,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: const Text('الإشعارات'),
+        title: Text(context.tr('notifications_title')),
         actions: [
           BlocBuilder<NotificationsBloc, NotificationsState>(
             builder: (context, state) {
@@ -126,7 +127,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 IconData icon;
                 Color iconColor;
                 switch (type.toString().toLowerCase()) {
-                  case 'donation':
+                  case 'funding':
+                  case 'donation': // Legacy backend alias
                   case 'escrow':
                     icon = PhosphorIconsRegular.heart;
                     iconColor = colors.success;

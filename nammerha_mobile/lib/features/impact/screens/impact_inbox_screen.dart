@@ -1,3 +1,4 @@
+import '../../../core/i18n/t.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -68,7 +69,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
     return Scaffold(
       backgroundColor: colors.backgroundSecondary,
       appBar: AppBar(
-        title: const Text('أثرك الميداني'), // Impact
+        title: Text(context.tr('impact_field')), // Impact
         actions: [
           BlocBuilder<ImpactBloc, ImpactState>(
             builder: (context, state) {
