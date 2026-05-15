@@ -59,6 +59,7 @@ import monetizationRoutes from './monetization.routes';
 import subscriptionRoutes from './subscription.routes';
 import enterpriseRoutes from './enterprise.routes';
 import socialAuthRoutes from './social-auth.routes';
+import contractPaymentRoutes from './contract-payment.routes';
 
 /**
  * Register all API routes on the Express app.
@@ -118,6 +119,11 @@ export function registerRoutes(app: Express): void {
     app.use('/api/tradesperson', tradespersonRoutes);
     app.use('/api/homeowner', homeownerRoutes);
     app.use('/api/donor', donorRoutes);
+
+    // ── Phase 1 Backend: Service Contracts & Payments ────────────────────────
+    // Rate limited with paymentLimiter — financial mutation endpoints.
+    // IMPORTANT: Registered BEFORE /api/dashboard to prevent route shadowing.
+    app.use('/api/contracts', paymentLimiter, contractPaymentRoutes);
 
     // ── Phase 2: Client Dashboard ──────────────────────────────────────────
     app.use('/api/dashboard', dashboardRoutes);

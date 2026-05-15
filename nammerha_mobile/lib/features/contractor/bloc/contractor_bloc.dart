@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/contractor_repository.dart';
+import '../../../core/i18n/error_keys.dart';
 import 'contractor_event.dart';
 import 'contractor_state.dart';
 
@@ -42,11 +43,11 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
         estimatedDays: event.estimatedDays,
         coverLetter: event.coverLetter,
       );
-      emit(const ContractorActionSuccess('Bid submitted successfully.'));
+      emit(const ContractorActionSuccess(ErrorKeys.bidSubmitted));
       // Reload dashboard to reflect the new bid
       add(LoadContractorDashboard());
     } catch (e) {
-      emit(ContractorError('Failed to submit bid: ${e.toString()}'));
+      emit(ContractorError(ErrorKeys.bidFailed));
     }
   }
 }

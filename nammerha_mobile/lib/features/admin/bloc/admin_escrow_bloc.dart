@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../api/admin_api.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/error_keys.dart';
 
 // ─── Events ─────────────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ class AdminEscrowBloc extends Bloc<AdminEscrowEvent, AdminEscrowState> {
   Future<void> _onRelease(ReleaseEscrow event, Emitter<AdminEscrowState> emit) async {
     try {
       final result = await _api.releaseEscrow(proofId: event.proofId, itemId: event.itemId);
-      final message = result['message'] as String? ?? 'تم تحرير الضمان بنجاح';
+      final message = result['message'] as String? ?? ErrorKeys.escrowReleaseSuccess;
       emit(AdminEscrowActionSuccess(message));
       // Reload cases after action
       add(LoadPendingCases());
@@ -99,7 +100,7 @@ class AdminEscrowBloc extends Bloc<AdminEscrowEvent, AdminEscrowState> {
   Future<void> _onFlag(FlagDiscrepancy event, Emitter<AdminEscrowState> emit) async {
     try {
       await _api.flagDiscrepancy(proofId: event.proofId, reason: event.reason);
-      emit(const AdminEscrowActionSuccess('تم تعليم التناقض — الإثبات مرفوض'));
+      emit(const AdminEscrowActionSuccess('err_discrepancy_flagged'));
       add(LoadPendingCases());
     } catch (e) {
       emit(AdminEscrowError(e.toString()));

@@ -7,21 +7,15 @@ import '../bloc/escrow_event.dart';
 import '../bloc/escrow_state.dart';
 import '../data/escrow_repository.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class EscrowSummaryScreen extends StatelessWidget {
   const EscrowSummaryScreen({super.key});
 
-  // Basic numeric formatting fallback if MockData is fully removed
-  String formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +72,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                     children: [
                       _buildStatusCard(
                         context,
-                        'مُؤمّن في الضمان',
+                        context.tr('escrow_locked_in'),
                         formatCurrency(totalLocked),
                         PhosphorIcons.lockKey(),
                         colors.success,
@@ -90,7 +84,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                           Expanded(
                             child: _buildStatusCard(
                               context,
-                              'تم الإفراج',
+                              context.tr('escrow_released'),
                               formatCurrency(totalReleased),
                               PhosphorIcons.checkCircle(),
                               colors.primaryBrand,
@@ -102,7 +96,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                           Expanded(
                             child: _buildStatusCard(
                               context,
-                              context.tr('str_223dd076'),
+                              context.tr('status_refunded'),
                               formatCurrency(totalRefunded),
                               PhosphorIcons.arrowCounterClockwise(),
                               colors.textSecondary,
@@ -126,7 +120,7 @@ class EscrowSummaryScreen extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'الأموال مؤمّنة بنظام الضمان المشفّر وفق معيار البلاتينيوم. لا يتم الإفراج عنها إلا بتقديم إثبات مكاني مُوثّق من المهندس المعيّن.',
+                                context.tr('escrow_trust_badge'),
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: colors.primaryBrand,

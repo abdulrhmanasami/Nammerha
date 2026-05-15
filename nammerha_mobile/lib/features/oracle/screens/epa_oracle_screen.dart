@@ -334,7 +334,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                 _resultRow('المبلغ الأصلي', formatCurrency(state.calculationResult!['original_amount'] ?? 0), colors),
                 _resultRow('المبلغ المعدّل', formatCurrency(state.calculationResult!['adjusted_amount'] ?? 0), colors),
                 _resultRow('نسبة التغيير', (state.calculationResult!['adjustment_factor'] as num?)?.toStringAsFixed(4) ?? '—', colors),
-                _resultRow(context.tr('str_0b79cb24'), formatCurrency((state.calculationResult!['adjusted_amount'] ?? 0) - (state.calculationResult!['original_amount'] ?? 0)), colors),
+                _resultRow(context.tr('difference'), formatCurrency((state.calculationResult!['adjusted_amount'] ?? 0) - (state.calculationResult!['original_amount'] ?? 0)), colors),
               ],
             ),
           ).animate().fadeIn().slideY(begin: 0.05, end: 0),
@@ -377,7 +377,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
   Widget _buildHistory(SemanticColors colors, OracleState state) {
     if (widget.projectId == null) return _emptyState(colors, PhosphorIconsRegular.clockCounterClockwise, 'اختر مشروعاً لعرض السجل', '');
     if (state.isLoading && state.history.isEmpty) return NammerhaShimmerLoader(colors: colors);
-    if (state.history.isEmpty) return _emptyState(colors, PhosphorIconsRegular.clockCounterClockwise, 'لا توجد تعديلات سابقة', '');
+    if (state.history.isEmpty) return _emptyState(colors, PhosphorIconsRegular.clockCounterClockwise, context.tr('no_adjustments_yet'), '');
     return RefreshIndicator(
       onRefresh: () async => _loadTabData(2),
       color: colors.primaryBrand,

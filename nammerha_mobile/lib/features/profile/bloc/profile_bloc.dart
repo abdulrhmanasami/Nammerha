@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/i18n/error_keys.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
 
@@ -49,7 +50,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
     
     if (user.isEmpty) {
-      emit(const ProfileError('تعذر تحميل بيانات الملف الشخصي. حاول مرة أخرى.'));
+      emit(const ProfileError(ErrorKeys.loadFailed));
       return;
     }
     
@@ -82,12 +83,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           updatedUser['email'] = event.email;
           emit(currentState.copyWith(user: updatedUser));
         } else {
-          emit(ProfileError('تعذر حفظ التعديلات: ${e.message}'));
+          emit(ProfileError(ErrorKeys.profileSaveFailed));
           // Re-emit loaded state so UI doesn't get stuck on error
           emit(currentState);
         }
       } catch (_) {
-        emit(const ProfileError('حدث خطأ أثناء حفظ التعديلات'));
+        emit(const ProfileError(ErrorKeys.profileSaveFailed));
         emit(currentState);
       }
     }

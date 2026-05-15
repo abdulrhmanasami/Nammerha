@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/services/api_services.dart';
+import '../../../core/i18n/error_keys.dart';
 import '../models/map_project_model.dart';
 import 'map_event.dart';
 import 'map_state.dart';
@@ -74,7 +75,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     } on ApiException catch (e) {
       emit(MapError(e.message));
     } catch (e) {
-      emit(MapError('تعذّر تحميل خريطة المشاريع: ${e.toString()}'));
+      emit(MapError(ErrorKeys.mapLoadFailed));
     }
   }
 

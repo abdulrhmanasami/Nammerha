@@ -47,10 +47,10 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
     context.tr('dr_step_photos'), context.tr('dr_step_review'),
   ];
 
-  static const _governorates = [
-    'دمشق', 'ريف دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية',
-    'طرطوس', 'دير الزور', 'الرقة', 'الحسكة', 'إدلب',
-    'درعا', 'السويداء', 'القنيطرة',
+  static const _governorateKeys = [
+    'gov_damascus', 'gov_rif_dimashq', 'gov_aleppo', 'gov_homs', 'gov_hama', 'gov_latakia',
+    'gov_tartous', 'gov_deir_ez_zor', 'gov_raqqa', 'gov_hasakeh', 'gov_idlib',
+    'gov_daraa', 'gov_sweida', 'gov_quneitra',
   ];
 
   @override
@@ -243,7 +243,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
               fillColor: colors.surfaceElevated,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
             ),
-            items: _governorates.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+            items: _governorateKeys.map((key) => DropdownMenuItem(value: key, child: Text(context.tr(key)))).toList(),
             onChanged: (val) {
               context.read<DamageReportBloc>().add(UpdateFormDataEvent(data.copyWith(governorate: val ?? '')));
             },
@@ -256,7 +256,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
               context.read<DamageReportBloc>().add(UpdateFormDataEvent(data.copyWith(neighborhood: val)));
             },
             decoration: InputDecoration(
-              labelText: context.tr('str_c9256712'),
+              labelText: context.tr('neighborhood'),
               hintText: context.tr('dr_neighborhood_hint'),
               filled: true,
               fillColor: colors.surfaceElevated,
@@ -340,13 +340,13 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             child: Column(
               children: [
                 _reviewRow(context.tr('dr_damage_type'), damageLabel, colors),
-                _reviewRow(context.tr('str_d5113593'), data.governorate, colors),
+                _reviewRow(context.tr('governorate_3'), data.governorate, colors),
                 if (data.neighborhood.isNotEmpty)
-                  _reviewRow(context.tr('str_c9256712'), data.neighborhood, colors),
-                _reviewRow(context.tr('str_5ed92505'), '${data.photos.length} ${context.tr('dr_photos')}', colors),
+                  _reviewRow(context.tr('neighborhood'), data.neighborhood, colors),
+                _reviewRow(context.tr('photos'), '${data.photos.length} ${context.tr('dr_photos')}', colors),
                 if (data.gpsPosition != null)
                   _reviewRow(
-                    context.tr('str_3cf6c7a4'),
+                    context.tr('coordinates'),
                     '${data.gpsPosition!.latitude.toStringAsFixed(4)}, ${data.gpsPosition!.longitude.toStringAsFixed(4)}',
                     colors,
                   ),

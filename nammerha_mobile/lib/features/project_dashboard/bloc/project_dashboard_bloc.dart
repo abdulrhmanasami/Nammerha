@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/i18n/error_keys.dart';
 import '../../../core/services/project_dashboard_api.dart';
 import 'project_dashboard_event_state.dart';
 
@@ -39,7 +40,7 @@ class ProjectDashboardBloc
     } on ApiException catch (e) {
       emit(ProjectDashboardError(e.message));
     } catch (e) {
-      emit(ProjectDashboardError('فشل تحميل لوحة المشروع: $e'));
+      emit(ProjectDashboardError(ErrorKeys.projectDashboardFailed));
     }
   }
 
@@ -58,13 +59,13 @@ class ProjectDashboardBloc
         workersOnSite: event.workersOnSite,
         images: event.images,
       );
-      emit(const DailyLogSubmitted('تم إرسال السجل اليومي بنجاح'));
+      emit(const DailyLogSubmitted('msg_daily_log_submitted'));
       // Reload dashboard after submission
       add(LoadProjectDashboard(event.projectId));
     } on ApiException catch (e) {
       emit(ProjectDashboardError(e.message));
     } catch (e) {
-      emit(ProjectDashboardError('فشل إرسال السجل: $e'));
+      emit(ProjectDashboardError(ErrorKeys.projectLogFailed));
     }
   }
 
@@ -81,12 +82,12 @@ class ProjectDashboardBloc
         description: event.description,
         materialSampleUrl: event.materialSampleUrl,
       );
-      emit(const ApprovalSubmitted('تم إرسال طلب الموافقة بنجاح'));
+      emit(const ApprovalSubmitted('msg_approval_submitted'));
       add(LoadProjectDashboard(event.projectId));
     } on ApiException catch (e) {
       emit(ProjectDashboardError(e.message));
     } catch (e) {
-      emit(ProjectDashboardError('فشل إرسال طلب الموافقة: $e'));
+      emit(ProjectDashboardError(ErrorKeys.projectApprovalFailed));
     }
   }
 
@@ -104,7 +105,7 @@ class ProjectDashboardBloc
     } on ApiException catch (e) {
       emit(ProjectDashboardError(e.message));
     } catch (e) {
-      emit(ProjectDashboardError('فشل الاستجابة لطلب الموافقة: $e'));
+      emit(ProjectDashboardError(ErrorKeys.projectApprovalResponseFailed));
     }
   }
 }

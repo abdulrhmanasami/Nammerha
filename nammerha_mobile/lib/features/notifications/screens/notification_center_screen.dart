@@ -74,7 +74,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                  if (unreadCount > 0) {
                   return TextButton(
                     onPressed: () => context.read<NotificationsBloc>().add(MarkAllAsReadRequested()),
-                    child: Text('قراءة الكل', style: TextStyle(fontSize: 13, color: colors.primaryBrand, fontWeight: FontWeight.w600)),
+                    child: Text(context.tr('notifications_mark_all_read'), style: TextStyle(fontSize: 13, color: colors.primaryBrand, fontWeight: FontWeight.w600)),
                   );
                  }
               }
@@ -108,7 +108,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     ElevatedButton.icon(
                       onPressed: () => context.read<NotificationsBloc>().add(LoadNotificationsRequested()),
                       icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: const Text('إعادة المحاولة'),
+                      label: Text(context.tr('retry')),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
                   ],
@@ -222,11 +222,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSubtle),
+          Icon(PhosphorIconsRegular.bellSlash, size: 64, color: colors.textSubtle),
           const SizedBox(height: 16),
-          Text('لا توجد إشعارات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          Text(context.tr('notifications_empty'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 6),
-          Text('ستظهر الإشعارات الجديدة هنا', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+          Text(context.tr('notifications_empty_hint'), style: TextStyle(fontSize: 13, color: colors.textSecondary)),
         ],
       ),
     );
@@ -236,10 +236,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final dt = DateTime.parse(dateStr);
       final diff = DateTime.now().difference(dt);
-      if (diff.inMinutes < 1) return context.tr('str_3d57faea');
-      if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
-      if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
-      if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
+      if (diff.inMinutes < 1) return context.tr('now');
+      if (diff.inMinutes < 60) return context.tr('time_ago_minutes').replaceAll(r'$1', '${diff.inMinutes}');
+      if (diff.inHours < 24) return context.tr('time_ago_hours').replaceAll(r'$1', '${diff.inHours}');
+      if (diff.inDays < 7) return context.tr('time_ago_days').replaceAll(r'$1', '${diff.inDays}');
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
     } catch (_) {
       return dateStr;

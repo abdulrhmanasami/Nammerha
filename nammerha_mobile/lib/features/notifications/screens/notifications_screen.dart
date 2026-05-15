@@ -1,6 +1,7 @@
 import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -17,12 +18,29 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationsBloc>().add(LoadNotificationsRequested());
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Wave 4: Infinite scroll trigger — 80% threshold.
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      context.read<NotificationsBloc>().add(const LoadMoreNotificationsEvent());
+    }
   }
 
   @override
@@ -41,7 +59,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   onPressed: () {
                     context.read<NotificationsBloc>().add(MarkAllAsReadRequested());
                   },
-                  child: Text('قراءة الكل', style: TextStyle(color: colors.primaryBrand, fontSize: 13)),
+                  child: Text(context.tr('notifications_mark_all_read'), style: TextStyle(color: colors.primaryBrand, fontSize: 13)),
                 );
               }
               return const SizedBox.shrink();
@@ -58,7 +76,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 children: [
                   NammerhaShimmerLoader(colors: colors, isList: false),
                   const SizedBox(height: 16),
-                  Text('جارٍ تحميل الإشعارات...', style: TextStyle(color: colors.textSecondary)),
+                  Text(context.tr('notifications_loading'), style: TextStyle(color: colors.textSecondary)),
                 ],
               ),
             );
@@ -78,7 +96,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ElevatedButton.icon(
                       onPressed: () => context.read<NotificationsBloc>().add(LoadNotificationsRequested()),
                       icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: const Text('إعادة المحاولة'),
+                      label: Text(context.tr('retry')),
                       style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
                     ),
                   ],
@@ -99,13 +117,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
+                  Icon(PhosphorIconsRegular.bellSlash, size: 64, color: colors.textSecondary),
                   const SizedBox(height: 16),
-                  Text('لا توجد إشعارات', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
+                  Text(context.tr('notifications_empty'), style: TextStyle(color: colors.textSecondary, fontSize: 16)),
                 ],
               ),
             );
           }
+
+          final isLoadingMore = state is NotificationsLoaded && state.isLoadingMore;
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -114,8 +134,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             color: colors.primaryBrand,
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: notifications.length,
+              itemCount: notifications.length + (isLoadingMore ? 1 : 0),
+              controller: _scrollController,
               itemBuilder: (context, index) {
+                // Loading footer for pagination
+                if (index >= notifications.length) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(
+                        context.tr('loading_more'),
+                        style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      ),
+                    ),
+                  );
+                }
                 final n = notifications[index];
                 final isRead = n['is_read'] ?? n['isRead'] ?? false;
                 final title = n['title'] ?? '';
@@ -155,6 +188,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                 return GestureDetector(
                   onTap: () {
+                    HapticFeedback.lightImpact();
                     if (!isRead) {
                       context.read<NotificationsBloc>().add(MarkAsReadRequested(notifId));
                     }
@@ -232,9 +266,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       final dt = DateTime.parse(isoString);
       final diff = DateTime.now().difference(dt);
-      if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
-      if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
-      if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
+      if (diff.inMinutes < 60) return context.tr('time_ago_minutes').replaceAll(r'$1', '${diff.inMinutes}');
+      if (diff.inHours < 24) return context.tr('time_ago_hours').replaceAll(r'$1', '${diff.inHours}');
+      if (diff.inDays < 7) return context.tr('time_ago_days').replaceAll(r'$1', '${diff.inDays}');
       return '${dt.day}/${dt.month}/${dt.year}';
     } catch (_) {
       return '';

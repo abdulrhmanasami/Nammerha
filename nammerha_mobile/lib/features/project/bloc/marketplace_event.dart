@@ -26,3 +26,8 @@ class FilterProjectsEvent extends MarketplaceEvent {
   @override
   List<Object?> get props => [filter, sort, searchQuery];
 }
+
+/// Wave 4: Infinite scroll — loads next page of projects
+class LoadMoreProjectsEvent extends MarketplaceEvent {
+  const LoadMoreProjectsEvent();
+}

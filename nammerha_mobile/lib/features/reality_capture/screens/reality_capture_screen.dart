@@ -158,7 +158,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
     final captures = state is CapturesLoaded ? state.captures : <Map<String, dynamic>>[];
 
     if (captures.isEmpty) {
-      return _emptyState(colors, PhosphorIconsRegular.cube, 'لا توجد التقاطات بعد', 'اضغط على "التقاط جديد" لبدء التوثيق');
+      return _emptyState(colors, PhosphorIconsRegular.cube, context.tr('no_captures_yet'), context.tr('capture_start_hint'));
     }
 
     return RefreshIndicator(
@@ -212,7 +212,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
 
     final works = state.works;
     if (works.isEmpty) {
-      return _emptyState(colors, PhosphorIconsRegular.eyeSlash, 'لا توجد أعمال مخفية', 'التقاطات ما قبل الصب ستظهر هنا');
+      return _emptyState(colors, PhosphorIconsRegular.eyeSlash, context.tr('no_hidden_work'), context.tr('hidden_work_hint'));
     }
 
     return ListView(

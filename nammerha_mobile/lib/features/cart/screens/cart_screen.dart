@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
-import '../../../core/services/api_services.dart';
+import '../../../core/utils/format_utils.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../escrow/screens/escrow_checkout_screen.dart';
 import '../models/cart_item.dart';
@@ -169,10 +169,10 @@ class _CartScreenState extends State<CartScreen> {
         CartStore.instance.removeItem(item.id);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم حذف ${item.name}'),
+            content: Text('${context.tr('cart_item_removed')} ${item.name}'),
             backgroundColor: colors.textPrimary,
             action: SnackBarAction(
-              label: context.tr('str_32d990bf'),
+              label: context.tr('undo'),
               textColor: colors.primaryBrand,
               onPressed: () {
                 HapticFeedback.mediumImpact();
@@ -233,7 +233,7 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    formatCurrency(item.unitPrice),
+                    FormatUtils.currency(item.unitPrice),
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.textSecondary,
@@ -327,17 +327,17 @@ class _CartScreenState extends State<CartScreen> {
               children: [
                 _buildTipSelector(colors, tipState),
                 const SizedBox(height: 16),
-                _buildSummaryRow(context.tr('str_d89e6acb'), formatCurrency(CartStore.instance.total), colors),
+                _buildSummaryRow(context.tr('subtotal'), FormatUtils.currency(CartStore.instance.total), colors),
                 if (tip > 0) ...[
                   const SizedBox(height: 8),
-                  _buildSummaryRow(context.tr('str_db10fb33'), formatCurrency(tip), colors, valueColor: colors.success),
+                  _buildSummaryRow(context.tr('platform_tip'), FormatUtils.currency(tip), colors, valueColor: colors.success),
                 ],
                 const SizedBox(height: 12),
                 Container(height: 1, color: colors.strokeSubtle),
                 const SizedBox(height: 12),
-                _buildSummaryRow(context.tr('str_88fc73eb'), formatCurrency(grand), colors, isBold: true, valueColor: colors.primaryBrand),
+                _buildSummaryRow(context.tr('total_label'), FormatUtils.currency(grand), colors, isBold: true, valueColor: colors.primaryBrand),
                 const SizedBox(height: 16),
-                GradientButton(label: context.tr('str_70cdd2d4'), icon: PhosphorIconsRegular.lockKey, onPressed: () => _proceedToCheckout(tipState)),
+                GradientButton(label: context.tr('payment'), icon: PhosphorIconsRegular.lockKey, onPressed: () => _proceedToCheckout(tipState)),
               ],
             ),
           ),
@@ -350,7 +350,7 @@ class _CartScreenState extends State<CartScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(context.tr('str_4a61abad'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+        Text(context.tr('platform_tip_optional'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -387,7 +387,7 @@ class _CartScreenState extends State<CartScreen> {
                     border: Border.all(color: tipState.isCustomTip ? colors.primaryBrand : colors.strokeSubtle, width: tipState.isCustomTip ? 1.5 : 1),
                   ),
                   child: Center(
-                    child: Text(context.tr('str_94d3bff8'), style: TextStyle(fontSize: 13, fontWeight: tipState.isCustomTip ? FontWeight.w700 : FontWeight.w500, color: tipState.isCustomTip ? colors.primaryBrand : colors.textSecondary)),
+                    child: Text(context.tr('custom'), style: TextStyle(fontSize: 13, fontWeight: tipState.isCustomTip ? FontWeight.w700 : FontWeight.w500, color: tipState.isCustomTip ? colors.primaryBrand : colors.textSecondary)),
                   ),
                 ),
               ),
@@ -401,8 +401,8 @@ class _CartScreenState extends State<CartScreen> {
             keyboardType: TextInputType.number,
             onChanged: (_) => context.read<TipSelectorCubit>().notifyCustomChanged(),
             decoration: InputDecoration(
-              hintText: context.tr('str_ca21430f'),
-              suffixText: 'ل.س',
+              hintText: context.tr('amount_4'),
+              suffixText: context.tr('currency_suffix'),
               filled: true,
               fillColor: colors.backgroundSecondary,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colors.strokeSubtle)),
@@ -486,7 +486,7 @@ class _CartScreenState extends State<CartScreen> {
             style: TextStyle(color: colors.textPrimary),
           ),
           content: Text(
-            context.tr('str_8598ae12'),
+            context.tr('cart_delete'),
             style: TextStyle(color: colors.textSecondary),
           ),
           actions: [
@@ -499,7 +499,7 @@ class _CartScreenState extends State<CartScreen> {
                 CartStore.instance.clear();
                 Navigator.pop(ctx);
               },
-              child: Text(context.tr('str_5fae28ad'), style: TextStyle(color: colors.error)),
+              child: Text(context.tr('delete'), style: TextStyle(color: colors.error)),
             ),
           ],
         );

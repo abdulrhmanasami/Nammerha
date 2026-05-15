@@ -130,7 +130,7 @@ class _FintechView extends StatelessWidget {
           _sectionHeader(colors, 'إعدادات الرسوم', PhosphorIconsRegular.sliders),
           const SizedBox(height: 8),
           if (state.feeConfigs.isEmpty)
-            _emptyCard(colors, 'لا توجد إعدادات')
+            _emptyCard(colors, context.tr('admin_no_configs'))
           else
             ...state.feeConfigs.map((f) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -143,7 +143,7 @@ class _FintechView extends StatelessWidget {
           _sectionHeader(colors, context.tr('admin_organizations'), PhosphorIconsRegular.warningCircle),
           const SizedBox(height: 8),
           if (state.organizations.isEmpty)
-            _emptyCard(colors, 'لا توجد مؤسسات')
+            _emptyCard(colors, context.tr('admin_no_orgs'))
           else
             ...state.organizations.map((o) => Padding(
               padding: const EdgeInsets.only(bottom: 8),

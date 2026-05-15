@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/boq_repository.dart';
+import '../../../core/i18n/error_keys.dart';
 import '../models/boq_models.dart';
 import 'boq_event.dart';
 import 'boq_state.dart';
@@ -22,7 +23,7 @@ class BoqBloc extends Bloc<BoqEvent, BoqState> {
       emit(BoqLoaded(items));
     } catch (e) {
       // H1 FIX: Surface error instead of silent fallback — user sees SnackBar
-      emit(BoqError(const [], 'Failed to load BOQ — starting fresh'));
+      emit(BoqError(const [], ErrorKeys.boqLoadFailed));
       emit(const BoqLoaded([]));
     }
   }
@@ -57,7 +58,7 @@ class BoqBloc extends Bloc<BoqEvent, BoqState> {
       emit(BoqPublishSuccess(state.items));
     } catch (e) {
       // H1 FIX: English generic error message
-      emit(BoqError(state.items, 'Publish failed — please try again'));
+      emit(BoqError(state.items, ErrorKeys.boqPublishFailed));
       emit(BoqLoaded(state.items)); // Revert to loaded so they can retry
     }
   }

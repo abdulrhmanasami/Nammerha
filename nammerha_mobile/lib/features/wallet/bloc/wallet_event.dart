@@ -8,3 +8,8 @@ abstract class WalletEvent extends Equatable {
 }
 
 class LoadWalletEvent extends WalletEvent {}
+
+/// Wave 4: Infinite scroll — loads next page of transactions
+class LoadMoreTransactionsEvent extends WalletEvent {
+  const LoadMoreTransactionsEvent();
+}

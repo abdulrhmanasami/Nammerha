@@ -250,7 +250,7 @@ class _ProjectDashboardView extends StatelessWidget {
           Icon(PhosphorIcons.fileText(), size: 48, color: colors.textSecondary.withAlpha(80)),
           const SizedBox(height: 12),
           Text(
-            'لا توجد سجلات يومية بعد',
+            context.tr('no_daily_logs_yet'),
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary),
           ),
           const SizedBox(height: 4),
@@ -395,7 +395,7 @@ class _ProjectDashboardView extends StatelessWidget {
     final descController = TextEditingController();
     final workController = TextEditingController();
     final issuesController = TextEditingController();
-    String weatherCondition = context.tr('str_073de245');
+    String weatherCondition = context.tr('weather_sunny');
     int workersOnSite = 1;
 
     showModalBottomSheet(
@@ -456,7 +456,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 // Weather
                 Row(
                   children: [
-                    Text(context.tr('str_fad1a3cc'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                    Text(context.tr('weather'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButton<String>(
@@ -464,7 +464,7 @@ class _ProjectDashboardView extends StatelessWidget {
                         isExpanded: true,
                         dropdownColor: colors.surfaceElevated,
                         style: TextStyle(color: colors.textPrimary, fontSize: 13),
-                        items: [context.tr('str_073de245'), context.tr('str_9e8dbe3a'), context.tr('str_a020adc6'), context.tr('str_46e24efe'), context.tr('str_d14ed194')]
+                        items: [context.tr('weather_sunny'), context.tr('weather_cloudy'), context.tr('weather_rainy'), context.tr('weather_windy'), context.tr('weather_snowy')]
                             .map((w) => DropdownMenuItem(value: w, child: Text(w)))
                             .toList(),
                         onChanged: (v) => setModalState(() => weatherCondition = v ?? weatherCondition),
@@ -543,7 +543,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 backgroundColor: colors.primaryBrand,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.white)),
+              child: Text(context.tr('retry'), style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

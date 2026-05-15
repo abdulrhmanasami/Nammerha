@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/compliance_repository.dart';
+import '../../../core/i18n/error_keys.dart';
 import 'compliance_event.dart';
 import 'compliance_state.dart';
 
@@ -26,7 +27,7 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
     try {
       // محاكاة الاتصال بـ OFAC / SDN
       await Future.delayed(const Duration(seconds: 2));
-      emit(const ComplianceActionSuccess('تم فحص قاعدة SDN/OFAC بنجاح. لا توجد قيود على أي جهة متعاقدة.'));
+      emit(const ComplianceActionSuccess(ErrorKeys.complianceClear));
       
       // العودة للحالة السابقة إن أمكن
       if (currentState is ComplianceLoaded) {
@@ -35,7 +36,7 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
         add(LoadComplianceDashboard());
       }
     } catch (e) {
-      emit(ComplianceError('فشل فحص العقوبات: ${e.toString()}'));
+      emit(ComplianceError(ErrorKeys.complianceScanFailed));
     }
   }
 
@@ -58,11 +59,11 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
   ) async {
     try {
       await repository.approveReview(event.reference);
-      emit(const ComplianceActionSuccess('تمت الموافقة على تحرير الضمان بنجاح.'));
+      emit(const ComplianceActionSuccess(ErrorKeys.escrowReleaseSuccess));
       // Reload to reflect the change
       add(LoadComplianceDashboard());
     } catch (e) {
-      emit(ComplianceError('فشلت الموافقة: ${e.toString()}'));
+      emit(ComplianceError(ErrorKeys.complianceApprovalFailed));
     }
   }
 
@@ -72,10 +73,10 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
   ) async {
     try {
       await repository.flagReview(event.reference);
-      emit(const ComplianceActionSuccess('تم الإبلاغ عن المراجعة للتحقيق.'));
+      emit(const ComplianceActionSuccess('msg_compliance_flagged'));
       add(LoadComplianceDashboard());
     } catch (e) {
-      emit(ComplianceError('فشل الإبلاغ: ${e.toString()}'));
+      emit(ComplianceError(ErrorKeys.complianceReportFailed));
     }
   }
 }

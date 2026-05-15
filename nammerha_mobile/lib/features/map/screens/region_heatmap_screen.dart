@@ -146,7 +146,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
                     const SizedBox(width: 16),
                     _legendDot(colors.warning, context.tr('pw_strength_good')),
                     const SizedBox(width: 16),
-                    _legendDot(colors.success, context.tr('str_d6f3661b')),
+                    _legendDot(colors.success, context.tr('low')),
                   ]),
                   const SizedBox(height: 16),
 
@@ -154,7 +154,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
                   if (regions.isEmpty)
                     Center(child: Padding(
                       padding: const EdgeInsets.all(32),
-                      child: Text('لا توجد بيانات جغرافية', style: TextStyle(color: colors.textSecondary)),
+                      child: Text(context.tr('no_geo_data'), style: TextStyle(color: colors.textSecondary)),
                     ))
                   else
                     ...List.generate(regions.length, (i) => _regionCard(regions[i], colors, i, maxCount)),

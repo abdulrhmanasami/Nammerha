@@ -13,6 +13,8 @@ import '../bloc/wallet_event.dart';
 import '../bloc/wallet_state.dart';
 import '../data/wallet_repository.dart';
 
+import '../../../core/utils/format_utils.dart';
+
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
@@ -25,17 +27,37 @@ class WalletScreen extends StatelessWidget {
   }
 }
 
-class _WalletView extends StatelessWidget {
+class _WalletView extends StatefulWidget {
   const _WalletView();
 
-  String formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
+  @override
+  State<_WalletView> createState() => _WalletViewState();
+}
+
+class _WalletViewState extends State<_WalletView> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
   }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Wave 4: Infinite scroll trigger — 80% threshold.
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      context.read<WalletBloc>().add(const LoadMoreTransactionsEvent());
+    }
+  }
+
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +84,7 @@ class _WalletView extends StatelessWidget {
               },
               color: colors.primaryBrand,
               child: ListView(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 children: [
                   _buildBalanceCard(context, data.totalLocked, colors),
@@ -74,6 +97,17 @@ class _WalletView extends StatelessWidget {
                     (e) => _buildTransactionItem(context, e.value, colors, e.key),
                   ),
                   if (data.transactions.isEmpty) _buildEmptyTransactions(context, colors),
+                  // Wave 4: Pagination loading footer
+                  if (state.isLoadingMore)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: Text(
+                          context.tr('loading_more'),
+                          style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             );

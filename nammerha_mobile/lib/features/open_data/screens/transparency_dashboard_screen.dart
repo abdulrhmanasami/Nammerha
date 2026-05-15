@@ -8,7 +8,7 @@ import '../../../core/services/open_data_api.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/error_localizer.dart';
-import '../../../core/services/api_services.dart' show formatCurrency;
+import '../../../core/utils/format_utils.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/transparency_dashboard_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
@@ -103,7 +103,7 @@ class _TransparencyDashboardContentState
         backgroundColor: colors.backgroundPrimary,
         elevation: 0,
         title: Text(
-          'الشفافية والبيانات المفتوحة (OCDS)',
+          context.tr('td_title'),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -162,9 +162,9 @@ class _TransparencyDashboardContentState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoCard(
-              title: 'الشفافية المطلقة',
+              title: context.tr('td_absolute_transparency'),
               description:
-                  'يتوافق هذا المشروع مع معايير التعاقد المفتوح (OCDS). يمكنك تتبع كل ليرة تم تمويلها حتى لحظة صرفها.',
+                  context.tr('td_transparency_desc'),
               icon: PhosphorIconsRegular.warningCircle,
               color: colors.primaryBrand,
               colors: colors,
@@ -179,7 +179,7 @@ class _TransparencyDashboardContentState
 
             // Escrow Ledger Timeline
             Text(
-              'سجل الضمان (Escrow Ledger)',
+              context.tr('td_escrow_ledger'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -298,17 +298,17 @@ class _TransparencyDashboardContentState
           if (ocid.isNotEmpty)
             _buildOCDSField('OCID', ocid, colors),
           if (releaseDate.isNotEmpty)
-            _buildOCDSField('تاريخ الإصدار', releaseDate, colors),
+            _buildOCDSField(context.tr('td_release_date'), releaseDate, colors),
           if (tag.isNotEmpty)
-            _buildOCDSField(context.tr('str_91b260c9'), tag, colors),
+            _buildOCDSField(context.tr('tags'), tag, colors),
           _buildOCDSField(
-            'إجمالي التكلفة',
-            formatCurrency(totalAmount as num),
+            context.tr('td_total_cost'),
+            FormatUtils.currency(totalAmount as num),
             colors,
           ),
           _buildOCDSField(
-            'إجمالي المموّل',
-            formatCurrency(fundedAmount as num),
+            context.tr('td_total_funded'),
+            FormatUtils.currency(fundedAmount as num),
             colors,
           ),
         ],
@@ -357,7 +357,7 @@ class _TransparencyDashboardContentState
                   size: 48, color: colors.textSubtle),
               const SizedBox(height: 12),
               Text(
-                'لا توجد سجلات ضمان لهذا المشروع بعد',
+                context.tr('td_no_ledger_entries'),
                 style: TextStyle(
                     fontSize: 14, color: colors.textSecondary),
               ),
@@ -418,7 +418,7 @@ class _TransparencyDashboardContentState
                 children: [
                   Text(
                     amount is num
-                        ? formatCurrency(amount)
+                        ? FormatUtils.currency(amount)
                         : amount.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -439,8 +439,8 @@ class _TransparencyDashboardContentState
                     ),
                     child: Text(
                       isReleased
-                          ? 'مُفرج (Released)'
-                          : 'محتجز (Locked)',
+                          ? context.tr('td_released')
+                          : context.tr('td_locked'),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

@@ -132,7 +132,7 @@ class _RevenueView extends StatelessWidget {
             'مستويات العمولة',
             PhosphorIconsRegular.stack,
             state.tiers.isEmpty
-                ? _emptyState(colors, 'لا توجد مستويات')
+                ? _emptyState(colors, context.tr('admin_no_tiers'))
                 : Column(
                     children: state.tiers.map((t) => _buildTierRow(colors, t)).toList(),
                   ),
@@ -146,7 +146,7 @@ class _RevenueView extends StatelessWidget {
             'العمولات الأخيرة',
             PhosphorIconsRegular.receipt,
             state.commissions.isEmpty
-                ? _emptyState(colors, 'لا توجد عمولات')
+                ? _emptyState(colors, context.tr('admin_no_commissions'))
                 : Column(
                     children: state.commissions.map((c) => _buildCommissionRow(colors, c)).toList(),
                   ),
@@ -160,7 +160,7 @@ class _RevenueView extends StatelessWidget {
             'الإكراميات الأخيرة',
             PhosphorIconsRegular.heart,
             state.tips.isEmpty
-                ? _emptyState(colors, 'لا توجد إكراميات')
+                ? _emptyState(colors, context.tr('admin_no_tips'))
                 : Column(
                     children: state.tips.map((t) => _buildTipRow(colors, t)).toList(),
                   ),

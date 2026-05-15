@@ -102,7 +102,7 @@ class _ContactScreenState extends State<ContactScreen> {
             const SizedBox(height: 10),
             Text(context.tr('we_are_here_to_help'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 4),
-            Text('سنرد خلال 24 ساعة عمل', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
+            Text(context.tr('contact_response_time'), style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
           ]),
         ).animate().fadeIn(duration: 400.ms),
         const SizedBox(height: 24),
@@ -111,13 +111,13 @@ class _ContactScreenState extends State<ContactScreen> {
           initialValue: _category,
           dropdownColor: colors.surfaceElevated,
           style: TextStyle(color: colors.textPrimary, fontSize: 14),
-          decoration: _inputDecor(colors, context.tr('str_dc731208')),
-          items: const [
-            DropdownMenuItem(value: 'general', child: Text('استفسار عام')),
-            DropdownMenuItem(value: 'technical', child: Text('دعم تقني')),
-            DropdownMenuItem(value: 'financial', child: Text('مالي / ضمان')),
-            DropdownMenuItem(value: 'partnership', child: Text('شراكات')),
-            DropdownMenuItem(value: 'complaint', child: Text('شكوى')),
+          decoration: _inputDecor(colors, context.tr('category')),
+          items: [
+            DropdownMenuItem(value: 'general', child: Text(context.tr('contact_cat_general'))),
+            DropdownMenuItem(value: 'technical', child: Text(context.tr('contact_cat_technical'))),
+            DropdownMenuItem(value: 'financial', child: Text(context.tr('contact_cat_financial'))),
+            DropdownMenuItem(value: 'partnership', child: Text(context.tr('contact_cat_partnership'))),
+            DropdownMenuItem(value: 'complaint', child: Text(context.tr('contact_cat_complaint'))),
           ],
           onChanged: (v) {
             if (v != null) {
@@ -127,27 +127,27 @@ class _ContactScreenState extends State<ContactScreen> {
         ),
         const SizedBox(height: 14),
         TextFormField(controller: _nameCtrl, style: TextStyle(color: colors.textPrimary), textInputAction: TextInputAction.next,
-          decoration: _inputDecor(colors, 'الاسم الكامل *'),
-          validator: (v) => v == null || v.trim().isEmpty ? context.tr('str_bbd73382') : null),
+          decoration: _inputDecor(colors, context.tr('contact_full_name')),
+          validator: (v) => v == null || v.trim().isEmpty ? context.tr('required_2') : null),
         const SizedBox(height: 14),
         TextFormField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next,
           textDirection: TextDirection.ltr, style: TextStyle(color: colors.textPrimary),
-          decoration: _inputDecor(colors, 'البريد الإلكتروني *'),
+          decoration: _inputDecor(colors, context.tr('contact_email')),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return context.tr('str_bbd73382');
-            if (!v.contains('@')) return 'بريد إلكتروني غير صالح';
+            if (v == null || v.trim().isEmpty) return context.tr('required_2');
+            if (!v.contains('@')) return context.tr('contact_invalid_email');
             return null;
           }),
         const SizedBox(height: 14),
         TextFormField(controller: _subjectCtrl, style: TextStyle(color: colors.textPrimary), textInputAction: TextInputAction.next,
-          decoration: _inputDecor(colors, 'الموضوع *'),
-          validator: (v) => v == null || v.trim().isEmpty ? context.tr('str_bbd73382') : null),
+          decoration: _inputDecor(colors, context.tr('contact_subject')),
+          validator: (v) => v == null || v.trim().isEmpty ? context.tr('required_2') : null),
         const SizedBox(height: 14),
         TextFormField(controller: _messageCtrl, maxLines: 5, style: TextStyle(color: colors.textPrimary), textInputAction: TextInputAction.done,
-          decoration: _inputDecor(colors, 'الرسالة *'),
+          decoration: _inputDecor(colors, context.tr('contact_message')),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return context.tr('str_bbd73382');
-            if (v.trim().length < 10) return 'الرسالة قصيرة جداً';
+            if (v == null || v.trim().isEmpty) return context.tr('required_2');
+            if (v.trim().length < 10) return context.tr('contact_msg_too_short');
             return null;
           }),
         const SizedBox(height: 24),
@@ -172,9 +172,9 @@ class _ContactScreenState extends State<ContactScreen> {
         child: Icon(PhosphorIconsRegular.checkCircle, size: 48, color: colors.success),
       ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
       const SizedBox(height: 24),
-      Text('تم إرسال رسالتك بنجاح!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)).animate(delay: 200.ms).fadeIn(),
+      Text(context.tr('contact_sent_success'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)).animate(delay: 200.ms).fadeIn(),
       const SizedBox(height: 8),
-      Text('سنتواصل معك في أقرب وقت ممكن', style: TextStyle(fontSize: 14, color: colors.textSecondary)).animate(delay: 300.ms).fadeIn(),
+      Text(context.tr('contact_will_reply'), style: TextStyle(fontSize: 14, color: colors.textSecondary)).animate(delay: 300.ms).fadeIn(),
       const SizedBox(height: 32),
       ElevatedButton(onPressed: () => Navigator.pop(context),
         style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,

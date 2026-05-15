@@ -28,3 +28,8 @@ class PushNotificationReceived extends NotificationsEvent {
   @override
   List<Object?> get props => [notification];
 }
+
+/// Wave 4: Infinite scroll — loads next page of notifications
+class LoadMoreNotificationsEvent extends NotificationsEvent {
+  const LoadMoreNotificationsEvent();
+}

@@ -18,7 +18,7 @@ class WalletTransactionModel extends Equatable {
   factory WalletTransactionModel.fromJson(Map<String, dynamic> json) {
     return WalletTransactionModel(
       id: (json['id'] ?? '').toString(),
-      materialName: json['material_name']?.toString() ?? json['description']?.toString() ?? 'معاملة',
+      materialName: json['material_name']?.toString() ?? json['description']?.toString() ?? 'transaction_item',
       amount: json['amount'] ?? json['amount_locked'] ?? 0,
       status: json['payment_status']?.toString() ?? json['status']?.toString() ?? 'pending',
       createdAt: json['created_at']?.toString() ?? json['createdAt']?.toString() ?? '',

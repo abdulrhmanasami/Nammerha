@@ -70,7 +70,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
         backgroundColor: colors.surfaceElevated,
         elevation: 0,
         title: Text(
-          'جداول الكميات والتسعير',
+          context.tr('boq_title'),
           style: TextStyle(
             color: colors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -109,7 +109,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
                     );
                   },
                   child: Text(
-                    'تقديم عطاء (Bid)',
+                    context.tr('boq_submit_bid'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -166,7 +166,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
                 size: 48, color: colors.textSubtle),
             const SizedBox(height: 12),
             Text(
-              'لا توجد عناصر في جدول الكميات',
+              context.tr('boq_no_items'),
               style: TextStyle(color: colors.textSecondary),
             ),
           ],
@@ -225,7 +225,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
                           color: colors.warningText, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        'تضخم (FIDIC 13.8)',
+                        context.tr('boq_inflation'),
                         style: TextStyle(
                           color: colors.warningText,
                           fontSize: 10,
@@ -246,12 +246,12 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStat(context.tr('str_5101659e'), '${item.quantity} ${item.unit}', colors),
+              _buildStat(context.tr('quantity'), '${item.quantity} ${item.unit}', colors),
               _buildStat(
-                  'السعر التقديري', '${item.estimatedUnitPrice} USD', colors),
+                  context.tr('boq_estimated_price'), '${item.estimatedUnitPrice} USD', colors),
               if (item.currentMarketPrice != null)
                 _buildStat(
-                  'سعر السوق (Oracle)',
+                  context.tr('boq_market_price'),
                   '${item.currentMarketPrice} USD',
                   colors,
                   isWarning: item.hasInflation,

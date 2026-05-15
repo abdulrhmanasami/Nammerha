@@ -22,9 +22,9 @@ class BOQItem {
   factory BOQItem.fromJson(Map<String, dynamic> json) {
     return BOQItem(
       id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? 'عنصر غير مسمى',
+      name: json['name'] as String? ?? 'Unnamed Item',
       description: json['description'] as String? ?? '',
-      unit: json['unit'] as String? ?? 'وحدة',
+      unit: json['unit'] as String? ?? 'unit',
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       estimatedUnitPrice: (json['estimatedUnitPrice'] as num?)?.toDouble() ?? 0.0,
       currentMarketPrice: (json['currentMarketPrice'] as num?)?.toDouble(),

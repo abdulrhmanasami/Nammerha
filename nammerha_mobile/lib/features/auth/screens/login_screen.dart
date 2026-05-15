@@ -176,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            context.tr('str_e29cfbf2'),
+                            context.tr('nammerha_brand'),
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.w900,

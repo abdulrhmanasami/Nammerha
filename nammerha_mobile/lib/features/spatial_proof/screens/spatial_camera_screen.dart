@@ -94,7 +94,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        throw Exception('لا توجد كاميرا متاحة.');
+        throw Exception(context.tr('no_camera_available'));
       }
 
       final backCamera = cameras.firstWhere(
@@ -245,7 +245,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _initializeHardware,
-                      child: const Text('إعادة المحاولة'),
+                      child: Text(context.tr('retry')),
                     ),
                   ],
                 ),
@@ -346,7 +346,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                     children: [
                       Icon(PhosphorIconsRegular.warning, color: colors.warning, size: 20),
                       const SizedBox(height: 4),
-                      Text(context.tr('str_0976264c'), style: TextStyle(fontSize: 10, color: colors.textSecondary)),
+                      Text(context.tr('map'), style: TextStyle(fontSize: 10, color: colors.textSecondary)),
                     ],
                   ),
                 ),

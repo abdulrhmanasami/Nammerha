@@ -10,6 +10,7 @@ import '../../../core/i18n/t.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/bids_fetch_cubit.dart';
+import '../../payments/screens/contract_list_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BidsScreen — Platinum Standard (Absolute Zero setState)
@@ -118,7 +119,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
           children: [
             Icon(PhosphorIconsRegular.gavel, size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
-            Text('لا توجد عروض بعد', style: TextStyle(color: colors.textSecondary, fontSize: 16)),
+            Text(context.tr('no_bids_yet'), style: TextStyle(color: colors.textSecondary, fontSize: 16)),
           ],
         ),
       );
@@ -145,7 +146,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
             case 'مقبول':
               statusColor = colors.success;
               statusIcon = PhosphorIconsRegular.checkCircle;
-              statusLabel = context.tr('str_19837e3e');
+              statusLabel = context.tr('accepted');
               break;
             case 'rejected':
             case 'مرفوض':
@@ -206,10 +207,35 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
                     children: [
                       _buildRow(context, 'قيمة العرض', formatCurrency(bidAmount as num)),
                       const SizedBox(height: 6),
-                      _buildRow(context, context.tr('str_e690c520'), methodology.toString()),
+                      _buildRow(context, context.tr('methodology'), methodology.toString()),
                     ],
                   ),
                 ),
+                // Phase 4: CTA for accepted bids → contract creation
+                if (status.toLowerCase() == 'accepted' || status == 'مقبول') ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ContractListScreen()),
+                        );
+                      },
+                      icon: const Icon(PhosphorIconsRegular.fileText, size: 18),
+                      label: Text(context.tr('create_contract')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.primaryBrand,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           )

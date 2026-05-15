@@ -43,7 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
           },
           decoration: InputDecoration(
             // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
-            hintText: context.tr('str_f0f1855c'),
+            hintText: context.tr('project_contractor'),
             hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
             border: InputBorder.none,
             prefixIcon: Icon(PhosphorIconsRegular.magnifyingGlass, color: colors.primaryBrand),
@@ -71,7 +71,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 16),
                   Text(
                   // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
-                  context.tr('str_a4b6a448'),
+                  context.tr('projects_start'),
                     style: textTheme.titleMedium?.copyWith(
                       color: colors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -87,7 +87,7 @@ class _SearchScreenState extends State<SearchScreen> {
               return Center(
                 child: Text(
                   // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
-                  context.tr('str_22b9ada9'),
+                  context.tr('not_found'),
                   style: textTheme.titleMedium?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -154,7 +154,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               const Spacer(),
               Text(
-                'مُنجز \${project.fundedPercentage}%',
+                '${context.tr('search_completed_pct')} \${project.fundedPercentage}%',
                 style: textTheme.bodySmall?.copyWith(
                   color: colors.secondaryAccent,
                   fontWeight: FontWeight.w600,
@@ -188,7 +188,7 @@ class _SearchScreenState extends State<SearchScreen> {
               const SizedBox(height: 16),
               Text(
                 // FRIC-2026-F14 FIX: Was hardcoded Arabic — now uses i18n key.
-                context.tr('str_29f48a6c'),
+                context.tr('filter_results'),
                 style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colors.textPrimary,
@@ -197,7 +197,7 @@ class _SearchScreenState extends State<SearchScreen> {
               const SizedBox(height: 20),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(context.tr('str_1c6d11f6'), style: textTheme.bodyMedium),
+                title: Text(context.tr('projects_2'), style: textTheme.bodyMedium),
                 trailing: Icon(PhosphorIconsRegular.sealCheck, color: colors.primaryBrand),
                 onTap: () {
                   Navigator.pop(ctx);

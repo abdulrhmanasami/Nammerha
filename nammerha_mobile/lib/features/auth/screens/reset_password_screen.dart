@@ -70,7 +70,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   String _strengthLabel(double strength) {
     if (strength < 0.3) return 'ضعيفة جداً';
     if (strength < 0.6) return context.tr('pw_strength_good');
-    if (strength < 0.85) return context.tr('str_5edbdc1c');
+    if (strength < 0.85) return context.tr('password_good');
     return 'قوية جداً ✓';
   }
 

@@ -1,15 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/api_services.dart';
+import '../../../core/i18n/error_keys.dart';
 import 'notifications_event.dart';
 import 'notifications_state.dart';
 
+/// Wave 4: Pagination-aware NotificationsBloc.
+/// Page size = 20 (optimized for Syria 2G networks).
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   final NotificationsApi _api;
+  static const int _pageSize = 20;
 
   NotificationsBloc({NotificationsApi? api})
       : _api = api ?? NotificationsApi(),
         super(NotificationsInitial()) {
     on<LoadNotificationsRequested>(_onLoadNotifications);
+    on<LoadMoreNotificationsEvent>(_onLoadMore);
     on<MarkAllAsReadRequested>(_onMarkAllAsRead);
     on<MarkAsReadRequested>(_onMarkAsRead);
     on<PushNotificationReceived>(_onPushNotificationReceived);
@@ -23,10 +28,41 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         
     emit(NotificationsLoading(oldNotifications: currentNotifs));
     try {
-      final notifications = await _api.getAll();
-      emit(NotificationsLoaded(notifications: notifications));
+      final notifications = await _api.getAll(limit: _pageSize, offset: 0);
+      emit(NotificationsLoaded(
+        notifications: notifications,
+        hasMore: notifications.length >= _pageSize,
+      ));
     } catch (e) {
-      emit(const NotificationsError('حدث خطأ في تحميل الإشعارات'));
+      emit(NotificationsError(ErrorKeys.generic));
+    }
+  }
+
+  /// Wave 4: Infinite scroll — appends next page.
+  Future<void> _onLoadMore(
+      LoadMoreNotificationsEvent event, Emitter<NotificationsState> emit) async {
+    if (state is! NotificationsLoaded) return;
+    final currentState = state as NotificationsLoaded;
+
+    // Guard: don't load if already loading or no more pages
+    if (currentState.isLoadingMore || !currentState.hasMore) return;
+
+    emit(currentState.copyWith(isLoadingMore: true));
+
+    try {
+      final nextPage = await _api.getAll(
+        limit: _pageSize,
+        offset: currentState.notifications.length,
+      );
+
+      emit(currentState.copyWith(
+        notifications: [...currentState.notifications, ...nextPage],
+        hasMore: nextPage.length >= _pageSize,
+        isLoadingMore: false,
+      ));
+    } catch (_) {
+      // Silently fail pagination — keep showing existing data
+      emit(currentState.copyWith(isLoadingMore: false));
     }
   }
 

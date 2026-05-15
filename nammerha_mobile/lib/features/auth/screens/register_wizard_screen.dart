@@ -8,45 +8,49 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/auth_bloc.dart';
+import '../bloc/register_wizard_cubit.dart';
 import '../widgets/password_strength_indicator.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Register Wizard Screen
+/// Register Wizard Screen — Platinum Standard
 /// ═══════════════════════════════════════════════════════════════════════════
 /// UX-F027 REMEDIATION: Cross-platform parity with web registration wizard.
 ///
-/// PREVIOUS (8 defects):
-///   - P0: Password validation = 6 chars (web = 8 + upper/lower/num/symbol)
-///   - P0: ALL 17 strings hardcoded Arabic — no i18n
-///   - P0: warningCircle on back button (should be arrowLeft)
-///   - P0: warningCircle on email icon (should be envelope)
-///   - P0: No terms/consent checkbox (GDPR Art.7)
-///   - P1: PasswordStrengthIndicator widget exists but not used
-///   - P1: No review summary card (web has one in Step 3)
-///   - P2: pw_strength_none key missing
-///
-/// NOW:
-///   - Password validation matches web: 8+, uppercase, lowercase, number, symbol
-///   - All strings use context.tr() with i18n keys
-///   - Correct Phosphor icons (arrowLeft, envelope)
-///   - Terms checkbox with validation gate
-///   - PasswordStrengthIndicator wired to Step 3
-///   - Review card showing name + email + strength before submit
+/// ARCHITECTURE (Wave 4.8 — setState → Cubit):
+///   - RegisterWizardCubit: manages page index, password visibility,
+///     terms checkbox, password text (for strength indicator).
+///   - AuthBloc: manages the actual registration API call.
+///   - StatelessWidget: zero setState, fully reactive via BlocBuilder.
+///   - TextEditingControllers live in _RegisterWizardBody (StatefulWidget)
+///     because Flutter requires dispose() for controllers.
 ///
 /// Step 1: Identity (Full Name)
 /// Step 2: Account (Email)
 /// Step 3: Security (Password, Confirm, Strength, Review, Terms, Submit)
 /// ═══════════════════════════════════════════════════════════════════════════
-class RegisterWizardScreen extends StatefulWidget {
+class RegisterWizardScreen extends StatelessWidget {
   const RegisterWizardScreen({super.key});
 
   @override
-  State<RegisterWizardScreen> createState() => _RegisterWizardScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => RegisterWizardCubit(),
+      child: const _RegisterWizardBody(),
+    );
+  }
 }
 
-class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
+/// Internal body — StatefulWidget ONLY for TextEditingController lifecycle.
+/// All UI state flows through RegisterWizardCubit (zero setState).
+class _RegisterWizardBody extends StatefulWidget {
+  const _RegisterWizardBody();
+
+  @override
+  State<_RegisterWizardBody> createState() => _RegisterWizardBodyState();
+}
+
+class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
   final _pageController = PageController();
-  int _currentPage = 0;
 
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
@@ -56,10 +60,6 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
-  bool _termsAccepted = false;
 
   @override
   void dispose() {
@@ -83,7 +83,8 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
   }
 
   void _goBack() {
-    if (_currentPage > 0) {
+    final cubit = context.read<RegisterWizardCubit>();
+    if (cubit.state.currentPage > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -120,8 +121,10 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
   void _submit() {
     if (!(_formKey3.currentState?.validate() ?? false)) return;
 
+    final cubit = context.read<RegisterWizardCubit>();
+
     // UX-F027: Terms validation — GDPR Art.7 active consent required.
-    if (!_termsAccepted) {
+    if (!cubit.state.termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.tr('reg_terms_required')),
@@ -158,51 +161,55 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
           );
         }
       },
-      builder: (context, state) {
-        final isLoading = state is AuthLoading;
+      builder: (context, authState) {
+        final isLoading = authState is AuthLoading;
 
-        return Scaffold(
-          backgroundColor: colors.backgroundPrimary,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            // UX-F027 FIX: warningCircle → arrowLeft for back navigation.
-            // PREVIOUS: warningCircle conveyed danger/error on a back button — P0 trust violation.
-            leading: IconButton(
-              icon: Icon(PhosphorIconsRegular.arrowLeft, color: colors.textPrimary),
-              onPressed: _goBack,
-            ),
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildProgress(colors),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: (i) => setState(() => _currentPage = i),
-                    children: [
-                      _buildStep1(colors),
-                      _buildStep2(colors),
-                      _buildStep3(colors, isLoading),
-                    ],
-                  ),
+        return BlocBuilder<RegisterWizardCubit, RegisterWizardState>(
+          builder: (context, wizState) {
+            return Scaffold(
+              backgroundColor: colors.backgroundPrimary,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                // UX-F027 FIX: warningCircle → arrowLeft for back navigation.
+                leading: IconButton(
+                  icon: Icon(PhosphorIconsRegular.arrowLeft, color: colors.textPrimary),
+                  onPressed: _goBack,
                 ),
-              ],
-            ),
-          ),
+              ),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    _buildProgress(colors, wizState.currentPage),
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        onPageChanged: (i) =>
+                            context.read<RegisterWizardCubit>().setPage(i),
+                        children: [
+                          _buildStep1(colors),
+                          _buildStep2(colors),
+                          _buildStep3(colors, isLoading, wizState),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildProgress(SemanticColors colors) {
+  Widget _buildProgress(SemanticColors colors, int currentPage) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         children: List.generate(3, (index) {
-          final isActive = index <= _currentPage;
+          final isActive = index <= currentPage;
           return Expanded(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -289,7 +296,6 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
               decoration: InputDecoration(
                 labelText: context.tr('email_label'),
                 // UX-F027 FIX: warningCircle → envelope for email field.
-                // PREVIOUS: warningCircle conveyed error state on a normal input.
                 prefixIcon: Icon(PhosphorIconsRegular.envelope),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -315,7 +321,9 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
   // ═══════════════════════════════════════════════════════════════════════════
   // STEP 3: Security — Password, Confirm, Strength, Review, Terms, Submit
   // ═══════════════════════════════════════════════════════════════════════════
-  Widget _buildStep3(SemanticColors colors, bool isLoading) {
+  Widget _buildStep3(SemanticColors colors, bool isLoading, RegisterWizardState wizState) {
+    final cubit = context.read<RegisterWizardCubit>();
+
     return Form(
       key: _formKey3,
       child: SingleChildScrollView(
@@ -337,28 +345,28 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
             // Password field
             TextFormField(
               controller: _passwordController,
-              obscureText: _obscurePassword,
+              obscureText: wizState.obscurePassword,
               decoration: InputDecoration(
                 labelText: context.tr('password_label'),
                 prefixIcon: Icon(PhosphorIconsRegular.lockKey),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(wizState.obscurePassword
+                      ? PhosphorIconsRegular.eyeSlash
+                      : PhosphorIconsRegular.eye),
+                  onPressed: cubit.toggleObscurePassword,
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               // UX-F027 FIX: Password validation matches web auth.ts (8+, upper, lower, num, symbol).
-              // PREVIOUS: v.length < 6 — users registered with "abc123" then failed backend validation.
               validator: _validatePassword,
               textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}), // Trigger rebuild for strength indicator
+              onChanged: cubit.updatePassword,
             ),
 
-            // UX-F027 FIX: Password strength indicator — widget existed but was never wired.
-            // Uses the same scoring algorithm as the web (4 bars, color-coded).
-            PasswordStrengthIndicator(password: _passwordController.text),
+            // UX-F027 FIX: Password strength indicator — reactive via Cubit.
+            PasswordStrengthIndicator(password: wizState.password),
 
-            // Password requirements hint (matches web pw_requirements text)
+            // Password requirements hint
             Padding(
               padding: const EdgeInsetsDirectional.only(bottom: 8),
               child: Text(
@@ -372,13 +380,15 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
             // Confirm password field
             TextFormField(
               controller: _confirmPasswordController,
-              obscureText: _obscureConfirm,
+              obscureText: wizState.obscureConfirm,
               decoration: InputDecoration(
                 labelText: context.tr('confirm_password_label'),
                 prefixIcon: Icon(PhosphorIconsRegular.lockKey),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirm ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye),
-                  onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                  icon: Icon(wizState.obscureConfirm
+                      ? PhosphorIconsRegular.eyeSlash
+                      : PhosphorIconsRegular.eye),
+                  onPressed: cubit.toggleObscureConfirm,
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -394,16 +404,12 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
             const SizedBox(height: 24),
 
             // ═══ Review Card ═══
-            // UX-F027 FIX: Review summary — matches web Step 3 review card.
-            // Shows what the user entered (name, email) + password strength indicator.
-            // Nielsen #1 (System Status Visibility) — confirm data before final submit.
             _buildReviewCard(colors),
 
             const SizedBox(height: 16),
 
             // ═══ Terms Checkbox ═══
-            // UX-F027 FIX: GDPR Art.7 active consent — matches web auth.html line 437-451.
-            // PREVIOUS: No terms checkbox — legal liability.
+            // UX-F027 FIX: GDPR Art.7 active consent.
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -411,8 +417,8 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
                   width: 24,
                   height: 24,
                   child: Checkbox(
-                    value: _termsAccepted,
-                    onChanged: (v) => setState(() => _termsAccepted = v ?? false),
+                    value: wizState.termsAccepted,
+                    onChanged: (v) => cubit.setTerms(v ?? false),
                     activeColor: colors.primaryBrand,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
@@ -420,7 +426,7 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _termsAccepted = !_termsAccepted),
+                    onTap: cubit.toggleTerms,
                     child: Text(
                       context.tr('reg_terms_agree'),
                       style: TextStyle(fontSize: 13, color: colors.textSecondary, height: 1.5),
@@ -445,7 +451,7 @@ class _RegisterWizardScreenState extends State<RegisterWizardScreen> {
     );
   }
 
-  /// Review card showing name, email, and password strength before final submit.
+  /// Review card showing name, email before final submit.
   Widget _buildReviewCard(SemanticColors colors) {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();

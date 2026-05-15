@@ -10,6 +10,7 @@ import '../../boq/screens/boq_details_screen.dart';
 import '../../open_data/screens/transparency_dashboard_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
+import '../../payments/screens/contract_list_screen.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/project_details_bloc.dart';
 import '../bloc/project_details_event.dart';
@@ -164,7 +165,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 children: [
                   NammerhaShimmerLoader(colors: colors, isList: false),
                   const SizedBox(height: 16),
-                  Text('جارٍ التحميل...', style: TextStyle(color: colors.textSecondary)),
+                  Text(context.tr('loading_details'), style: TextStyle(color: colors.textSecondary)),
                 ],
               ),
             );
@@ -232,7 +233,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32),
-                          child: Text('لا توجد عناصر BOQ', style: TextStyle(color: colors.textSecondary)),
+                          child: Text(context.tr('no_boq_items'), style: TextStyle(color: colors.textSecondary)),
                         ),
                       )
                     else
@@ -381,11 +382,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              _infoChip(colors, context.tr('str_5101659e'), '$required $unit'),
+              _infoChip(colors, context.tr('quantity'), '$required $unit'),
               const SizedBox(width: 12),
               _infoChip(colors, 'سعر الوحدة', formatCurrency(unitPrice)),
               const SizedBox(width: 12),
-              _infoChip(colors, context.tr('str_3b5f3860'), '$remainingQty $unit'),
+              _infoChip(colors, context.tr('remaining'), '$remainingQty $unit'),
             ],
           ),
           const SizedBox(height: 10),
@@ -556,9 +557,69 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        // SUSPENDED: Donation button removed (May 2026 strategic decision)
-        // Donate action was here — system suspended indefinitely.
-        const SizedBox(height: 12),
+        // Wave 4: Funding dead-end RESOLVED — 'Hire Provider' CTA
+        // PREVIOUS: Dead 'Donate' button (system suspended)
+        // NOW: Links to contract/payment system for hiring contractors
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colors.primaryBrand, colors.primaryBrand.withAlpha(200)],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const ContractListScreen(),
+                ));
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(40),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(PhosphorIconsRegular.handshake, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr('hire_provider'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            context.tr('hire_provider_subtitle'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withAlpha(200),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(PhosphorIconsRegular.arrowRight, color: Colors.white.withAlpha(180)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
         // Transparency Dashboard — available to ALL users
         OutlinedButton.icon(
           onPressed: () {

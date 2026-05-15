@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/services/reality_capture_api.dart';
+import '../../../core/i18n/error_keys.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EVENTS
@@ -160,12 +161,12 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
     } on ApiException catch (e) {
       emit(RealityCaptureError(e.message));
     } catch (e) {
-      emit(RealityCaptureError('فشل تحميل الالتقاطات: $e'));
+      emit(RealityCaptureError(ErrorKeys.captureLoadFailed));
     }
   }
 
   Future<void> _onSubmit(SubmitCapture event, Emitter<RealityCaptureState> emit) async {
-    emit(const CaptureUploading('جارِ تشفير الالتقاط 360°...'));
+    emit(const CaptureUploading(ErrorKeys.captureEncrypting));
     try {
       // Step 1: SHA-256 hash in isolate (60fps safe)
       final timestamp = DateTime.now().toIso8601String();
@@ -177,7 +178,7 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
       }));
 
       // Step 2: Get pre-signed S3 upload URL
-      emit(const CaptureUploading('جارِ تأمين رابط الرفع...'));
+      emit(const CaptureUploading('msg_securing_upload'));
       final ext = event.captureType == CaptureType.photo360 ? 'jpg' : 'mp4';
       final contentTypeStr = event.captureType == CaptureType.photo360 ? 'image/jpeg' : 'video/mp4';
       final uploadData = await _storage.getUploadUrl(
@@ -191,12 +192,12 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
       final publicUrl = uploadData['public_url'] as String? ?? '';
 
       if (uploadUrl.isEmpty || publicUrl.isEmpty) {
-        emit(const RealityCaptureError('فشل الحصول على رابط الرفع'));
+        emit(const RealityCaptureError('err_upload_url_failed'));
         return;
       }
 
       // Step 3: Direct S3 upload (matching spatial_proof_repository pattern)
-      emit(const CaptureUploading('جارِ رفع الالتقاط 360°...'));
+      emit(const CaptureUploading(ErrorKeys.captureUploading));
       final contentType = event.captureType == CaptureType.photo360 ? 'image/jpeg' : 'video/mp4';
       final s3Response = await http.put(
         Uri.parse(uploadUrl),
@@ -205,12 +206,12 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
       );
 
       if (s3Response.statusCode < 200 || s3Response.statusCode >= 300) {
-        emit(const RealityCaptureError('فشل رفع الملف إلى السحابة'));
+        emit(const RealityCaptureError('err_cloud_upload_failed'));
         return;
       }
 
       // Step 4: Register capture in backend
-      emit(const CaptureUploading('جارِ تسجيل الالتقاط...'));
+      emit(const CaptureUploading('msg_registering_capture'));
       await _api.submitCapture(
         projectId: event.projectId,
         fileUrl: publicUrl,
@@ -224,7 +225,7 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
         fileSizeBytes: event.imageBytes.length,
       );
 
-      emit(const CaptureSubmitted('تم رفع الالتقاط 360° بنجاح ✓'));
+      emit(const CaptureSubmitted(ErrorKeys.captureSuccess));
 
       // Auto-reload
       if (_lastProjectId != null) {
@@ -234,11 +235,11 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
       emit(RealityCaptureError(e.message));
     } catch (e) {
       if (e is SocketException || e.toString().contains('SocketException') || e.toString().contains('Failed host lookup')) {
-        emit(const CaptureUploading('لا يوجد اتصال، جارِ الحفظ محلياً للرفع لاحقاً...'));
+        emit(const CaptureUploading('msg_saving_offline'));
         await _saveCaptureOffline(event);
-        emit(const CaptureSubmitted('تم حفظ الالتقاط محلياً. سيتم رفعه عند توفر الإنترنت.'));
+        emit(const CaptureSubmitted('msg_saved_offline'));
       } else {
-        emit(RealityCaptureError('فشل رفع الالتقاط: $e'));
+        emit(RealityCaptureError(ErrorKeys.captureUploadFailed));
       }
     }
   }
@@ -288,7 +289,7 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
     } on ApiException catch (e) {
       emit(RealityCaptureError(e.message));
     } catch (e) {
-      emit(RealityCaptureError('فشل تحميل الأعمال المخفية: $e'));
+      emit(RealityCaptureError(ErrorKeys.captureHiddenWorkFailed));
     }
   }
 }

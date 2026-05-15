@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Damage Type Selector — Grid of damage categories
@@ -12,6 +13,7 @@ import '../../../core/theme/semantic_colors.dart';
 
 class DamageCategory {
   final String key;
+  /// i18n key for the label — resolved at build time via context.tr()
   final String label;
   final IconData icon;
   final Color Function(SemanticColors) colorGetter;
@@ -37,37 +39,37 @@ class DamageTypeSelector extends StatelessWidget {
   static final List<DamageCategory> categories = [
     DamageCategory(
       key: 'structural',
-      label: 'إنشائي',
+      label: 'dmg_structural',
       icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.error,
     ),
     DamageCategory(
       key: 'electrical',
-      label: 'كهربائي',
+      label: 'dmg_electrical',
       icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.warning,
     ),
     DamageCategory(
       key: 'plumbing',
-      label: 'سباكة',
+      label: 'dmg_plumbing',
       icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.info,
     ),
     DamageCategory(
       key: 'finishing',
-      label: 'تشطيبات',
+      label: 'dmg_finishing',
       icon: PhosphorIconsRegular.paintRoller,
       colorGetter: (c) => c.secondaryAccent,
     ),
     DamageCategory(
       key: 'roofing',
-      label: 'أسقف',
+      label: 'dmg_roofing',
       icon: PhosphorIconsRegular.warningCircle,
       colorGetter: (c) => c.primaryBrand,
     ),
     DamageCategory(
       key: 'other',
-      label: 'أخرى',
+      label: 'dmg_other',
       icon: PhosphorIconsRegular.wrench,
       colorGetter: (c) => c.textSecondary,
     ),
@@ -136,7 +138,7 @@ class DamageTypeSelector extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  cat.label,
+                  context.tr(cat.label),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

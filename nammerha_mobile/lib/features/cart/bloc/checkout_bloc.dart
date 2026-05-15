@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/i18n/error_keys.dart';
 import '../data/checkout_graphql_repository.dart';
 import '../data/checkout_repository.dart';
 import 'checkout_event.dart';
@@ -95,7 +96,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         emit(CheckoutError(e.message));
       }
     } catch (e) {
-      emit(CheckoutError('خطأ غير متوقع: ${e.toString()}'));
+      emit(CheckoutError(ErrorKeys.checkoutGeneric));
     }
   }
 
@@ -133,7 +134,7 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     } on ApiException catch (e) {
       emit(CheckoutError(e.message));
     } catch (e) {
-      emit(CheckoutError('خطأ في الشبكة: ${e.toString()}'));
+      emit(CheckoutError(ErrorKeys.checkoutNetwork));
     }
   }
 }

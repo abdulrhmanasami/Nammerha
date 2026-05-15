@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../repositories/auth_repository.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/i18n/error_keys.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EVENTS
@@ -224,30 +225,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   // of calls in constant time without iterating 15 regex patterns.
 
   /// Tier 1: O(1) exact match for common error messages (case-insensitive via lowercase keys).
+  /// Wave 4: Values are now i18n ERROR KEYS, not hardcoded Arabic.
+  /// The UI layer translates via context.tr(key).
   static final Map<String, String> _exactErrorMap = {
-    'verify your email': 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.',
-    'invalid email or password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
-    'account temporarily locked': 'الحساب مقفل مؤقتاً — حاول مرة أخرى لاحقاً',
-    'authentication required': 'يجب تسجيل الدخول',
-    'token expired': 'انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً',
-    'session expired': 'انتهت الجلسة — يرجى تسجيل الدخول مجدداً',
-    'token invalidated': 'تم إلغاء الجلسة — يرجى تسجيل الدخول مجدداً',
-    'invalid token': 'رمز غير صالح',
-    'missing required fields': 'الحقول المطلوبة مفقودة',
-    'missing required field': 'الحقول المطلوبة مفقودة',
-    'too many requests': 'طلبات كثيرة جداً — حاول مرة أخرى لاحقاً',
-    'internal server error': 'خطأ في الخادم',
-    'not found': 'غير موجود',
-    'unauthorized': 'غير مصرح',
-    'profile setup required': 'يجب إكمال الملف الشخصي أولاً',
+    'verify your email': ErrorKeys.verifyEmail,
+    'invalid email or password': ErrorKeys.invalidCredentials,
+    'account temporarily locked': ErrorKeys.accountLocked,
+    'authentication required': ErrorKeys.authRequired,
+    'token expired': ErrorKeys.sessionExpired,
+    'session expired': ErrorKeys.sessionExpired,
+    'token invalidated': ErrorKeys.tokenInvalidated,
+    'invalid token': ErrorKeys.invalidToken,
+    'missing required fields': ErrorKeys.missingFields,
+    'missing required field': ErrorKeys.missingFields,
+    'too many requests': ErrorKeys.tooManyRequests,
+    'internal server error': ErrorKeys.serverError,
+    'not found': ErrorKeys.notFound,
+    'unauthorized': ErrorKeys.unauthorized,
+    'profile setup required': ErrorKeys.profileRequired,
   };
 
   /// Tier 2: O(n) regex fallback for fuzzy/partial matches (rare cases).
   static final List<MapEntry<RegExp, String>> _regexErrorFallbacks = [
     MapEntry(RegExp(r'verify your email', caseSensitive: false),
-        'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.'),
+        ErrorKeys.verifyEmail),
     MapEntry(RegExp(r'no longer supported.*update', caseSensitive: false),
-        'يرجى تحديث التطبيق من متجر التطبيقات'),
+        ErrorKeys.generic),
   ];
 
   /// M3 FIX: Two-tier localization — HashMap O(1) → RegExp O(n) fallback.
@@ -286,7 +289,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (!user.isEmailVerified) {
         emit(AuthEmailNotVerified(
           email: event.email,
-          message: 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.',
+          message: ErrorKeys.verifyEmail,
         ));
         return;
       }
@@ -303,7 +306,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthError(_localizeError(e.message)));
       }
     } catch (e) {
-      emit(AuthError('حدث خطأ أثناء تسجيل الدخول: ${e.toString()}'));
+      emit(AuthError(ErrorKeys.loginFailed));
     }
   }
 
@@ -319,7 +322,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(AuthError('حدث خطأ أثناء إنشاء الحساب: ${e.toString()}'));
+      emit(AuthError(ErrorKeys.registerFailed));
     }
   }
 
@@ -338,7 +341,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(AuthError('حدث خطأ: ${e.toString()}'));
+      emit(AuthError(ErrorKeys.generic));
     }
   }
 
@@ -360,7 +363,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(AuthError('فشل تغيير كلمة المرور: ${e.toString()}'));
+      emit(AuthError(ErrorKeys.generic));
     }
   }
 
@@ -375,7 +378,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on ApiException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(AuthError('فشل إعادة تعيين كلمة المرور: ${e.toString()}'));
+      emit(AuthError(ErrorKeys.generic));
     }
   }
 }

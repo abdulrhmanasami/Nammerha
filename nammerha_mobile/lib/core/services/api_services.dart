@@ -477,9 +477,15 @@ class NotificationsApi {
   NotificationsApi({NammerhaApiClient? api}) : _api = api ?? NammerhaApiClient.instance;
 
   /// GET /api/notifications
-  Future<List<Map<String, dynamic>>> getAll() async {
+  /// Wave 4: Pagination-aware (limit/offset for infinite scroll)
+  Future<List<Map<String, dynamic>>> getAll({int? limit, int? offset}) async {
+    final params = <String, String>{};
+    if (limit != null) params['limit'] = limit.toString();
+    if (offset != null) params['offset'] = offset.toString();
+    final qs = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    final endpoint = '/notifications${qs.isNotEmpty ? '?$qs' : ''}';
     final response = await _api.request<List<dynamic>>(
-      '/notifications',
+      endpoint,
       fromData: (d) => d as List<dynamic>,
     );
     return response.data?.cast<Map<String, dynamic>>() ?? [];

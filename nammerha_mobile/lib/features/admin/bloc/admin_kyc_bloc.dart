@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../api/admin_api.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/error_keys.dart';
 
 // ─── Events ─────────────────────────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ class AdminKycBloc extends Bloc<AdminKycEvent, AdminKycState> {
         decision: event.decision,
         reason: event.reason,
       );
-      final actionLabel = event.decision == 'verified' ? 'تم التحقق' : 'تم الرفض';
+      final actionLabel = event.decision == 'verified' ? ErrorKeys.kycVerified : ErrorKeys.kycRejected;
       final name = result['full_name'] as String? ?? '';
       emit(AdminKycDecisionSuccess('$actionLabel: $name'));
       // Reload with same filter

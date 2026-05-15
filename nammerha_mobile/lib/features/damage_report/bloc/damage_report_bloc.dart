@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/damage_report_repository.dart';
+import '../../../core/i18n/error_keys.dart';
 import '../models/damage_report_data.dart';
 import 'damage_report_event.dart';
 import 'damage_report_state.dart';
@@ -34,7 +35,7 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
   }
 
   Future<void> _onDetectGPS(DetectGPSEvent event, Emitter<DamageReportState> emit) async {
-    emit(DamageReportLoading(state.formData, message: 'جاري تحديد الموقع...'));
+    emit(DamageReportLoading(state.formData, message: 'msg_detecting_gps'));
     try {
       final position = await repository.detectGPS();
       final newData = state.formData.copyWith(gpsPosition: position);
@@ -47,12 +48,12 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
   }
 
   Future<void> _onSubmitReport(SubmitReportEvent event, Emitter<DamageReportState> emit) async {
-    emit(DamageReportLoading(state.formData, message: 'جاري إرسال التقرير...'));
+    emit(DamageReportLoading(state.formData, message: 'msg_submitting_report'));
     try {
       await repository.submitReport(state.formData);
       emit(DamageReportSuccess(state.formData));
     } catch (e) {
-      emit(DamageReportError(state.formData, 'فشل الإرسال: ${e.toString()}'));
+      emit(DamageReportError(state.formData, ErrorKeys.damageReportFailed));
       // Reset back to draft
       emit(DamageReportDraft(state.formData));
     }

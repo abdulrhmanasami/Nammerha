@@ -166,7 +166,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
               break;
             case 'COMPLETED':
               statusColor = colors.primaryBrand;
-              statusLabel = context.tr('str_95159717');
+              statusLabel = context.tr('completed');
               break;
             default:
               statusColor = colors.textSecondary;
@@ -252,7 +252,21 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
   final titleCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
-  String selectedDamage = 'هيكلي جزئي';
+  String selectedDamage = 'partial_structural';
+
+  // Damage type keys mapped to API values
+  static const _damageKeys = [
+    'partial_structural',
+    'total_destruction',
+    'surface_damage',
+    'new_construction',
+  ];
+  static const _damageI18nKeys = [
+    'damage_partial_structural',
+    'damage_total_destruction',
+    'damage_surface',
+    'damage_new_construction',
+  ];
 
   @override
   void dispose() {
@@ -295,7 +309,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
             const SizedBox(height: 12),
             _sheetField(colors, descCtrl, context.tr('project_desc_label'), PhosphorIconsRegular.fileText, maxLines: 3),
             const SizedBox(height: 12),
-            _sheetField(colors, addressCtrl, context.tr('str_6dc65880'), PhosphorIconsRegular.mapPin),
+            _sheetField(colors, addressCtrl, context.tr('title'), PhosphorIconsRegular.mapPin),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: selectedDamage,
@@ -306,9 +320,9 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                 filled: true,
                 fillColor: colors.backgroundSecondary,
               ),
-              items: ['هيكلي جزئي', 'تدمير كامل', 'أضرار سطحية', 'بناء جديد', context.tr('str_72955a96')]
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+              items: List.generate(_damageKeys.length, (i) =>
+                DropdownMenuItem(value: _damageKeys[i], child: Text(context.tr(_damageI18nKeys[i]))),
+              ),
               onChanged: (v) {
                 if (v != null) {
                   setState(() => selectedDamage = v);

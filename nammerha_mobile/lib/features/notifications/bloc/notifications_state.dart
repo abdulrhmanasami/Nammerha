@@ -20,19 +20,29 @@ class NotificationsLoading extends NotificationsState {
 
 class NotificationsLoaded extends NotificationsState {
   final List<Map<String, dynamic>> notifications;
+  final bool hasMore;
+  final bool isLoadingMore;
 
-  const NotificationsLoaded({required this.notifications});
+  const NotificationsLoaded({
+    required this.notifications,
+    this.hasMore = true,
+    this.isLoadingMore = false,
+  });
 
   NotificationsLoaded copyWith({
     List<Map<String, dynamic>>? notifications,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return NotificationsLoaded(
       notifications: notifications ?? this.notifications,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 
   @override
-  List<Object?> get props => [notifications];
+  List<Object?> get props => [notifications, hasMore, isLoadingMore];
 }
 
 class NotificationsError extends NotificationsState {

@@ -50,53 +50,43 @@ class _AboutScreenState extends State<AboutScreen> {
           Center(child: Column(children: [
             SvgPicture.asset(isDark ? 'assets/brand/Nammerha_logo_Full_dark.svg' : 'assets/brand/Nammerha_logo_Full.svg', width: 180, height: 65),
             const SizedBox(height: 8),
-            if (_version.isNotEmpty) Text('الإصدار $_version', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+            if (_version.isNotEmpty) Text('${context.tr('about_version')} $_version', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
           ])).animate().fadeIn(duration: 500.ms),
           const SizedBox(height: 28),
 
           // Mission
-          _sectionCard(colors, icon: PhosphorIconsRegular.flag, title: context.tr('str_55da8344'), body:
-            'نعمّرها هي منصة إعادة إعمار سوريا الرقمية الأولى، مبنية على الشفافية الجذرية ومعيار البيانات المفتوحة للتعاقد (OCDS). '
-            'نضمن وصول كل ليرة إلى حيث يجب عبر آلية ضمان إسكرو مع إثبات مكاني بالـ GPS.',
+          _sectionCard(colors, icon: PhosphorIconsRegular.flag, title: context.tr('our_mission'), body:
+            context.tr('about_mission_body'),
           ),
           const SizedBox(height: 14),
 
           // How it works
-          _sectionCard(colors, icon: PhosphorIconsRegular.compassTool, title: 'كيف تعمل المنصة', body:
-            '١. أصحاب المنازل المتضررة يسجّلون مشاريعهم بتقارير أضرار مصوّرة\n'
-            '٢. المانحون يموّلون المشاريع عبر ضمان إسكرو آمن\n'
-            '٣. المقاولون والمهندسون ينفذون الأعمال مع إثباتات مكانية حيّة\n'
-            '٤. الأموال تُفرَج فقط بعد التحقق من الإنجاز بالصور و GPS',
+          _sectionCard(colors, icon: PhosphorIconsRegular.compassTool, title: context.tr('about_how_it_works'), body:
+            context.tr('about_how_body'),
           ),
           const SizedBox(height: 14),
 
           // Values
-          _sectionCard(colors, icon: PhosphorIconsRegular.shieldCheck, title: context.tr('str_6874f4fa'), body:
-            '• الشفافية الجذرية — كل معاملة مرئية ومتتبَّعة\n'
-            '• الأمان المالي — إسكرو معتمد، لا تحويلات مباشرة\n'
-            '• إثبات الواقع — تحقق GPS + SHA-256 للصور\n'
-            '• العدالة — نظام مطابقة ذكي يمنع تضارب المصالح',
+          _sectionCard(colors, icon: PhosphorIconsRegular.shieldCheck, title: context.tr('our_values'), body:
+            context.tr('about_values_body'),
           ),
           const SizedBox(height: 14),
 
           // Standards
-          _sectionCard(colors, icon: PhosphorIconsRegular.warningCircle, title: 'المعايير الدولية', body:
-            '• OCDS — معيار البيانات المفتوحة للتعاقد\n'
-            '• FIDIC 13.8 — تعديل الأسعار الديناميكي\n'
-            '• OFAC GL25 / FATF 8 — فحص العقوبات\n'
-            '• ISO 25010 — جودة البرمجيات البلاتينية',
+          _sectionCard(colors, icon: PhosphorIconsRegular.warningCircle, title: context.tr('about_standards'), body:
+            context.tr('about_standards_body'),
           ),
           const SizedBox(height: 24),
 
           // Links
-          _linkTile(colors, PhosphorIconsRegular.warningCircle, 'سياسة الخصوصية', 'https://nammerha.com/privacy'),
-          _linkTile(colors, PhosphorIconsRegular.fileText, 'شروط الاستخدام', 'https://nammerha.com/terms'),
-          _linkTile(colors, PhosphorIconsRegular.warningCircle, 'البيانات المفتوحة (OCDS)', 'https://nammerha.com/open-data'),
+          _linkTile(colors, PhosphorIconsRegular.warningCircle, context.tr('about_privacy_policy'), 'https://nammerha.com/privacy'),
+          _linkTile(colors, PhosphorIconsRegular.fileText, context.tr('about_terms'), 'https://nammerha.com/terms'),
+          _linkTile(colors, PhosphorIconsRegular.warningCircle, context.tr('about_open_data'), 'https://nammerha.com/open-data'),
           const SizedBox(height: 20),
 
           // Copyright
           Center(child: Text(
-            '© ${DateTime.now().year} نعمّرها — جميع الحقوق محفوظة',
+            '© ${DateTime.now().year} ${context.tr('about_copyright')}',
             style: TextStyle(fontSize: 11, color: colors.textSubtle),
           )),
           const SizedBox(height: 20),

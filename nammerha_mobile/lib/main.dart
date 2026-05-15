@@ -16,6 +16,7 @@ import 'core/services/performance_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/i18n/locale_cubit.dart';
+import 'core/widgets/connectivity_banner.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/repositories/auth_repository.dart';
 import 'features/auth/screens/login_screen.dart';
@@ -247,6 +248,16 @@ class NammerhaMobileApp extends StatelessWidget {
 
                   // Entry Point — Navigation Flow Controller
                   home: const _AppFlowController(),
+
+                  // Wave 4: Global ConnectivityBanner — covers ALL screens.
+                  // PREVIOUS: Only dashboard had offline indicator.
+                  // NOW: Every screen gets automatic offline awareness.
+                  // Standard: Syria 2G resilience — user MUST know when offline.
+                  builder: (context, child) {
+                    return ConnectivityBanner(
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
                 );
               },
             );

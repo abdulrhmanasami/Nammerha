@@ -87,7 +87,7 @@ class _OracleView extends StatelessWidget {
           children: [
             Icon(PhosphorIconsRegular.tag, size: 48, color: colors.textMuted),
             const SizedBox(height: 8),
-            Text('لا توجد أسعار متاحة', style: TextStyle(color: colors.textMuted)),
+            Text(context.tr('admin_no_prices'), style: TextStyle(color: colors.textMuted)),
           ],
         ),
       );

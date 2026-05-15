@@ -295,7 +295,7 @@ class _EscrowView extends StatelessWidget {
               controller: controller,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: context.tr('str_d7fe8228'),
+                hintText: context.tr('reason_hint'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

@@ -68,7 +68,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.tr('str_245e3f1e')),
+            content: Text(context.tr('sent_success_submitted_success_bid')),
             backgroundColor: const Color(0xFF0A6E55),
           ),
         );
@@ -101,7 +101,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
           backgroundColor: colors.backgroundPrimary,
           appBar: AppBar(
             title: Text(
-              context.tr('str_45e92099'),
+              context.tr('submit_bid_2'),
               style: textTheme.titleMedium?.copyWith(
                 color: colors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -116,7 +116,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.tr('str_c30dd161'),
+                    context.tr('total_amount'),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
@@ -131,7 +131,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: colors.surfaceElevated,
-                      hintText: context.tr('str_5673bc83'),
+                      hintText: context.tr('input_amount_enter'),
                       hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -140,16 +140,16 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                       prefixIcon: Icon(PhosphorIcons.currencyDollar(), color: colors.primaryBrand),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) return context.tr('str_1e2dbbad');
+                      if (val == null || val.isEmpty) return context.tr('amount_required');
                       final num = double.tryParse(val);
-                      if (num == null) return context.tr('str_3dd6c40b');
-                      if (num <= 0) return context.tr('str_944f5777');
+                      if (num == null) return context.tr('validation_validation_3');
+                      if (num <= 0) return context.tr('validation_validation_amount');
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    context.tr('str_58c1734a'),
+                    context.tr('notes_terms_optional'),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
@@ -164,7 +164,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: colors.surfaceElevated,
-                      hintText: context.tr('str_443b4e92'),
+                      hintText: context.tr('hint_additional_terms'),
                       hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textSubtle),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -186,7 +186,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                           ? SizedBox(width: 24, height: 24, child: NammerhaShimmerLoader(colors: colors),
                             )
                           : Text(
-                              context.tr('str_83bb6499'),
+                              context.tr('bid_submit'),
                               style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,

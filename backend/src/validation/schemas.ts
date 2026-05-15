@@ -245,3 +245,49 @@ export const batchTranslateSchema = z.object({
     source_lang: z.string().min(2).max(5),
     target_lang: z.string().min(2).max(5),
 });
+
+// ─── Contract Payment Schemas (Phase 1 Backend) ────────────────────────────
+
+export const providerTypeSchema = z.enum([
+    'contractor', 'engineer', 'tradesperson', 'supplier',
+]);
+
+export const contractPayMethodSchema = z.enum([
+    'fatora', 'cash', 'bank_transfer',
+]);
+
+/** Milestone definition for contract creation */
+const milestoneDefSchema = z.object({
+    title: z.string().min(2).max(300).trim(),
+    description: z.string().max(2000).optional(),
+    milestone_order: z.number().int().min(0).max(50),
+    amount: centsSchema,
+    percentage: z.number().positive().max(100),
+});
+
+export const createContractSchema = z.object({
+    project_id: uuidSchema,
+    provider_id: uuidSchema,
+    provider_type: providerTypeSchema,
+    total_agreed_amount: centsSchema,
+    bid_id: uuidSchema.optional(),
+    notes: z.string().max(5000).optional(),
+    milestones: z.array(milestoneDefSchema).max(20).optional(),
+});
+
+export const createContractPaymentSchema = z.object({
+    amount: centsSchema,
+    payment_method: contractPayMethodSchema,
+    milestone_id: uuidSchema.optional(),
+    confirmation_note: z.string().max(2000).optional(),
+    transfer_receipt_url: z.string().url().optional(),
+});
+
+export const confirmContractPaymentSchema = z.object({
+    note: z.string().max(2000).optional(),
+});
+
+export const contractListQuerySchema = z.object({
+    status: z.enum(['draft', 'active', 'completed', 'disputed', 'cancelled']).optional(),
+    ...paginationSchema.shape,
+});

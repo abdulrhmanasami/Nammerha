@@ -16,6 +16,7 @@ import '../bloc/boq_bloc.dart';
 import '../bloc/boq_event.dart';
 import '../bloc/boq_state.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class BoqBuilderScreen extends StatelessWidget {
@@ -59,14 +60,8 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
     return items.fold(0, (sum, item) => sum + (item.unitPrice * item.quantity));
   }
 
-  String _formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String _formatCurrency(num amount) => FormatUtils.currency(amount);
 
   void _showAddItemModal(BuildContext blocContext) {
     showModalBottomSheet(

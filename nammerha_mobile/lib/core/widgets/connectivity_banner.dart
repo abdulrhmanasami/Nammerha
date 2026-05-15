@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../offline/offline_queue.dart';
 import '../theme/semantic_colors.dart';
+import '../i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Connectivity Banner — Network-aware offline indicator (Platinum Standard)
@@ -102,8 +103,8 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
                       Flexible(
                         child: Text(
                           pendingCount > 0
-                              ? 'غير متصل — $pendingCount طلب في الانتظار'
-                              : 'غير متصل بالإنترنت',
+                              ? '${context.tr('offline_status')} — $pendingCount ${context.tr('pending_requests')}'
+                              : context.tr('offline_status'),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

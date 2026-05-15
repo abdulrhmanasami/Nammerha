@@ -106,7 +106,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _emailController.text = state.user['email']?.toString() ?? '';
         }
         if (state is ProfileLoggedOut) {
-          Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+          // P1-007 FIX: Delegate navigation to _AppFlowController via AuthBloc
+          // instead of pushNamedAndRemoveUntil which creates a duplicate root.
+          context.read<AuthBloc>().add(AuthLogoutRequested());
         }
       },
       builder: (context, state) {
@@ -628,7 +630,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(ctx);
                   context.read<ProfileBloc>().add(LogoutRequested());
                 },
-                child: Text(context.tr('str_60806661'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
+                child: Text(context.tr('logout'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
               ),
             ],
           ),

@@ -133,7 +133,7 @@ class _ReviewsView extends StatelessWidget {
                 children: [
                   Icon(PhosphorIconsRegular.star, size: 48, color: colors.textSubtle),
                   const SizedBox(height: 12),
-                  Text('لا توجد تقييمات بعد', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+                  Text(context.tr('no_reviews_yet'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textSecondary)),
                 ],
               ),
             )
@@ -209,7 +209,7 @@ class _ReviewsView extends StatelessWidget {
                   child: Row(children: [
                     Icon(PhosphorIconsRegular.flag, size: 14, color: colors.textSubtle),
                     const SizedBox(width: 4),
-                    Text(context.tr('str_d40b505f'), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                    Text(context.tr('report_flag'), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                   ]),
                 ),
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/homeowner_repository.dart';
+import '../../../core/i18n/error_keys.dart';
 import 'homeowner_event.dart';
 import 'homeowner_state.dart';
 
@@ -36,7 +37,7 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
       // M2 FIX: Error message uses generic key — will be localized via i18n
-      emit(HomeownerError(state.data, 'Failed to load data'));
+      emit(HomeownerError(state.data, ErrorKeys.homeownerLoadFailed));
     }
   }
 
@@ -50,7 +51,7 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
       updatedData = await repository.loadDashboard();
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
-      emit(HomeownerError(state.data, 'Action failed — please try again'));
+      emit(HomeownerError(state.data, ErrorKeys.homeownerActionFailed));
       emit(HomeownerLoaded(state.data)); // Fallback
     }
   }
@@ -65,7 +66,7 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
       updatedData = await repository.loadDashboard();
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
-      emit(HomeownerError(state.data, 'Cancel failed — please try again'));
+      emit(HomeownerError(state.data, ErrorKeys.homeownerCancelFailed));
       emit(HomeownerLoaded(state.data));
     }
   }

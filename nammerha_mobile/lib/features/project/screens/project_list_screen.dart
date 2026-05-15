@@ -44,7 +44,7 @@ class ProjectListScreen extends StatelessWidget {
               if (projects.isEmpty) {
                 return Center(
                   child: Text(
-                    'لا توجد مشاريع حالياً',
+                    context.tr('no_projects_now'),
                     style: TextStyle(color: colors.textSecondary),
                   ),
                 );

@@ -170,7 +170,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             IconButton(
               icon: Icon(PhosphorIconsRegular.shareNetwork, color: colors.primaryBrand),
               onPressed: _sharePdf,
-              tooltip: context.tr('str_81a50c9d'),
+              tooltip: context.tr('share'),
             ),
         ],
       ),

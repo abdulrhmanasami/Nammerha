@@ -87,7 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: TextButton(
                   onPressed: widget.onComplete,
                   child: Text(
-                    context.tr('str_69b04b59'),
+                    context.tr('skip'),
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 15,

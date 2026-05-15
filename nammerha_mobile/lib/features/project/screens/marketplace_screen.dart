@@ -6,6 +6,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
 import '../../map/screens/project_map_screen.dart';
@@ -46,22 +47,31 @@ class MarketplaceView extends StatefulWidget {
 
 class _MarketplaceViewState extends State<MarketplaceView> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // Fallback formatter instead of importing the internal wallet formatter logic directly
-  String formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
+  /// Wave 4: Infinite scroll trigger — loads next page at 80% threshold.
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      context.read<MarketplaceBloc>().add(const LoadMoreProjectsEvent());
     }
-    return '${amount.toStringAsFixed(0)} ل.س';
   }
+
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -212,9 +222,23 @@ class _MarketplaceViewState extends State<MarketplaceView> {
               },
               color: colors.primaryBrand,
               child: ListView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 20),
-                itemCount: state.projects.length,
+                // +1 for loading indicator footer when paginating
+                itemCount: state.projects.length + (state.isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
+                  // Loading footer
+                  if (index >= state.projects.length) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: Text(
+                          context.tr('loading_more'),
+                          style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                        ),
+                      ),
+                    );
+                  }
                   final project = state.projects[index];
                   return _buildProjectCard(context, project, colors, index);
                 },

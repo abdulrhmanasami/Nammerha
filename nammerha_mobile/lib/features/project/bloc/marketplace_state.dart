@@ -18,6 +18,8 @@ class MarketplaceLoaded extends MarketplaceState {
   final String? activeFilter;
   final String? activeSort;
   final String? activeSearchQuery;
+  final bool hasMore;
+  final bool isLoadingMore;
 
   const MarketplaceLoaded({
     required this.projects,
@@ -25,6 +27,8 @@ class MarketplaceLoaded extends MarketplaceState {
     this.activeFilter,
     this.activeSort,
     this.activeSearchQuery,
+    this.hasMore = true,
+    this.isLoadingMore = false,
   });
 
   MarketplaceLoaded copyWith({
@@ -36,6 +40,8 @@ class MarketplaceLoaded extends MarketplaceState {
     bool clearFilter = false,
     bool clearSort = false,
     bool clearSearch = false,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return MarketplaceLoaded(
       projects: projects ?? this.projects,
@@ -43,11 +49,13 @@ class MarketplaceLoaded extends MarketplaceState {
       activeFilter: clearFilter ? null : (activeFilter ?? this.activeFilter),
       activeSort: clearSort ? null : (activeSort ?? this.activeSort),
       activeSearchQuery: clearSearch ? null : (activeSearchQuery ?? this.activeSearchQuery),
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 
   @override
-  List<Object?> get props => [projects, allProjects, activeFilter, activeSort, activeSearchQuery];
+  List<Object?> get props => [projects, allProjects, activeFilter, activeSort, activeSearchQuery, hasMore, isLoadingMore];
 }
 
 class MarketplaceError extends MarketplaceState {

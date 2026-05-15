@@ -405,7 +405,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      // H3 FIX: Semantic key replaces hash key 'str_bd78c08e'
+                      // H3 FIX: Semantic key replaces hash key 'approval'
                       child: _actionButton(context.tr('ho_approve'), colors.success, () {
                         context.read<HomeownerBloc>().add(RespondToApprovalEvent(a.approvalId, 'approved'));
                       }),

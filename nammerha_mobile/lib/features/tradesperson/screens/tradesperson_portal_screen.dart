@@ -12,6 +12,7 @@ import '../bloc/tradesperson_bloc.dart';
 import '../bloc/tradesperson_event.dart';
 import '../bloc/tradesperson_state.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 class TradespersonPortalScreen extends StatelessWidget {
@@ -55,14 +56,8 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
     super.dispose();
   }
 
-  String _formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String _formatCurrency(num amount) => FormatUtils.currency(amount);
 
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '—';

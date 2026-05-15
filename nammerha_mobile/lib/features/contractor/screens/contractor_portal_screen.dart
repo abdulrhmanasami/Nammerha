@@ -14,6 +14,7 @@ import '../bloc/contractor_event.dart';
 import '../bloc/contractor_state.dart';
 import '../data/contractor_repository.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Contractor Portal — Multi-tab Dashboard (Platinum Standard)
@@ -60,14 +61,8 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
     super.dispose();
   }
 
-  String formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +105,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             return NammerhaShimmerLoader(colors: colors, itemCount: 4);
           }
 
-          // G10 FIX: Was `state.message.contains(context.tr('str_a838e35c'))` — magic string!
+          // G10 FIX: Was `state.message.contains(context.tr('failed_2'))` — magic string!
           // Any ContractorError at this point means the dashboard failed to load.
           if (state is ContractorError) {
             return Center(

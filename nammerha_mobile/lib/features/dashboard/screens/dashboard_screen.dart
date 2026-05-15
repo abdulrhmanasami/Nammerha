@@ -27,15 +27,17 @@ import '../../admin/screens/admin_kyc_screen.dart';
 import '../../project/screens/marketplace_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
-import '../../../core/widgets/connectivity_banner.dart';
+import '../../../core/i18n/t.dart';
 // P2-001 FIX: Raw shimmer import removed — all usages now use NammerhaShimmerLoader
 // UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
-import '../../../core/i18n/t.dart';
+// Wave 4: ConnectivityBanner import removed — now global via MaterialApp.builder
 import '../../../core/bloc/page_index_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 // UX-F029: Guided feature tour — shows on first login after onboarding
 import '../../onboarding/screens/guided_tour_screen.dart';
+// Phase 4: Payment system — contract list screen integration
+import '../../payments/screens/contract_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -248,8 +250,8 @@ class _DashboardHomeView extends StatelessWidget {
                 : <Map<String, dynamic>>[];
             final isLoadingActivity = isLoading;
 
-            return ConnectivityBanner(
-              child: RefreshIndicator(
+            // Wave 4: ConnectivityBanner removed — now global via MaterialApp.builder
+            return RefreshIndicator(
                 onRefresh: () async {
                   context.read<DashboardHomeBloc>().add(
                     LoadDashboardHome(role),
@@ -497,8 +499,7 @@ class _DashboardHomeView extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            );
+              );
           },
         ),
       ),
@@ -772,6 +773,29 @@ class _DashboardHomeView extends StatelessWidget {
           colors.success,
           // UX-REM-I012 FIX: Reduced from 900ms to 300ms
           300,
+          isHorizontal: true,
+        ),
+        const SizedBox(height: 12),
+        // Phase 4: Contracts & Payments workspace
+        _buildBentoSection(
+          context,
+          context.tr('contracts_payments'),
+          [
+            _WorkspaceItem(
+              context.tr('my_contracts'),
+              PhosphorIconsRegular.fileText,
+              colors.secondaryAccent,
+              const ContractListScreen(),
+            ),
+            _WorkspaceItem(
+              context.tr('new_payment'),
+              PhosphorIconsRegular.money,
+              colors.secondaryAccent,
+              const ContractListScreen(), // Opens list → user selects contract → payment
+            ),
+          ],
+          colors.secondaryAccent,
+          400,
           isHorizontal: true,
         ),
       ],

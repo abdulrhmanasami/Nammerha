@@ -15,6 +15,7 @@ import '../data/supplier_repository.dart';
 import '../bloc/supplier_portal_ui_cubit.dart';
 import 'supplier_subscription_screen.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -79,14 +80,8 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
     );
   }
 
-  String formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {

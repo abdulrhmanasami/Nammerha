@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../api/admin_api.dart';
 import '../models/admin_models.dart';
+import '../../../core/i18n/error_keys.dart';
 
 // ─── Events ─────────────────────────────────────────────────────────────────
 
@@ -81,7 +82,7 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
       overview = await _api.getStatsOverview();
     } catch (e) {
       _logError('getStatsOverview', e);
-      emit(const AdminDashboardError('فشل تحميل إحصائيات المنصة'));
+      emit(const AdminDashboardError(ErrorKeys.adminLoadStatsFailed));
       return;
     }
 

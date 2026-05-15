@@ -1,4 +1,5 @@
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,15 +51,8 @@ class EscrowCheckoutView extends StatelessWidget {
     required this.tipAmount,
   });
 
-  // Fallback formatter
-  String formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   void _handleCheckout(BuildContext context) {
     final selectedGateway = context.read<GatewaySelectorCubit>().state;
@@ -107,7 +101,7 @@ class EscrowCheckoutView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('ملخص التمويل', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                  Text(context.tr('escrow_funding_summary'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
                   const SizedBox(height: 16),
 
                   // Items list
@@ -151,7 +145,7 @@ class EscrowCheckoutView extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('إكرامية المنصة', style: TextStyle(fontWeight: FontWeight.w500, color: colors.textSecondary)),
+                          Text(context.tr('escrow_platform_tip'), style: TextStyle(fontWeight: FontWeight.w500, color: colors.textSecondary)),
                           Text(formatCurrency(tipAmount), style: TextStyle(fontWeight: FontWeight.w700, color: colors.success)),
                         ],
                       ),
@@ -174,7 +168,7 @@ class EscrowCheckoutView extends StatelessWidget {
                           children: [
                             Icon(PhosphorIconsRegular.lockKey, color: colors.primaryBrand, size: 20),
                             const SizedBox(width: 8),
-                            Text('إجمالي الضمان', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
+                            Text(context.tr('escrow_total'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
                           ],
                         ),
                         Text(
@@ -187,7 +181,7 @@ class EscrowCheckoutView extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // Gateway Selector
-                  Text('اختر بوابة الدفع', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                  Text(context.tr('escrow_select_gateway'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                   const SizedBox(height: 12),
                   _buildGatewaySelector(context, 'Fatora (محلي/دولي)', 'fatora', PhosphorIconsRegular.bank),
                   const SizedBox(height: 24),
@@ -215,7 +209,7 @@ class EscrowCheckoutView extends StatelessWidget {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'الأموال مؤمّنة في حساب الضمان ولا يتم الإفراج عنها إلا بإثبات مكاني مُوثّق',
+                          context.tr('escrow_trust_badge_short'),
                           style: TextStyle(fontSize: 11, color: colors.textSecondary, height: 1.4),
                         ),
                       ),
@@ -225,7 +219,7 @@ class EscrowCheckoutView extends StatelessWidget {
 
                   // Checkout Button
                   GradientButton(
-                    label: 'تأمين الأموال في الضمان',
+                    label: context.tr('escrow_secure_funds'),
                     icon: PhosphorIconsRegular.lockKey,
                     isLoading: isLoading,
                     onPressed: () => _handleCheckout(context),

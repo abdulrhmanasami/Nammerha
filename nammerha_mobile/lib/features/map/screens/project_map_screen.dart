@@ -617,7 +617,7 @@ class _ProjectDetailPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      context.tr('str_00675587'),
+                      context.tr('funding'),
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,

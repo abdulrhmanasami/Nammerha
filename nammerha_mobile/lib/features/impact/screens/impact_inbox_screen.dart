@@ -76,7 +76,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
               if (state is ImpactLoaded && state.unreadCount > 0) {
                 return IconButton(
                   icon: Icon(PhosphorIcons.checks()),
-                  tooltip: 'تحديد الكل كمقروء',
+                  tooltip: context.tr('notifications_mark_all_read'),
                   onPressed: () {
                     context.read<ImpactBloc>().add(MarkAllMessagesAsRead());
                   },
@@ -143,7 +143,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
           ),
           const SizedBox(height: NammerhaTheme.spaceMd),
           Text(
-            'لا توجد رسائل أثر حالياً',
+            context.tr('no_impact_messages'),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: colors.textSecondary,
             ),
@@ -160,12 +160,12 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
         children: [
           Icon(PhosphorIcons.warningCircle(), color: colors.error, size: 48),
           const SizedBox(height: NammerhaTheme.spaceMd),
-          Text('فشل تحميل رسائل الأثر', style: Theme.of(context).textTheme.titleMedium),
+          Text(context.tr('failed_to_load'), style: Theme.of(context).textTheme.titleMedium),
           TextButton(
             onPressed: () {
               context.read<ImpactBloc>().add(FetchImpactMessages(refresh: true));
             },
-            child: const Text('إعادة المحاولة'),
+            child: Text(context.tr('retry')),
           ),
         ],
       ),

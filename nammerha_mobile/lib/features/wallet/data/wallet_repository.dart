@@ -3,16 +3,19 @@ import '../models/wallet_model.dart';
 
 class WalletRepository {
   final PaymentsApi _paymentsApi;
+  static const int pageSize = 20;
 
   WalletRepository({PaymentsApi? paymentsApi})
       : _paymentsApi = paymentsApi ?? PaymentsApi();
 
-  Future<WalletSummaryModel> loadWallet() async {
+  /// Wave 4: Pagination-aware wallet load.
+  /// Initial load fetches summary + first page of transactions.
+  Future<WalletSummaryModel> loadWallet({int limit = 20, int offset = 0}) async {
     List<Map<String, dynamic>> transactionsMap = [];
 
     try {
       transactionsMap = await _paymentsApi
-          .getMyPayments(limit: 50)
+          .getMyPayments(limit: limit, offset: offset)
           .catchError((_) => <Map<String, dynamic>>[]);
     } catch (_) {}
 
@@ -21,7 +24,7 @@ class WalletRepository {
         .toList();
 
     // Escrow summary: derived from transaction data (PaymentsApi).
-    // was removed. Payment transactions contain escrow metadata.
+    // Payment transactions contain escrow metadata.
     int totalLocked = 0;
     int lockedCount = 0;
     int releasedCount = 0;
@@ -46,5 +49,19 @@ class WalletRepository {
       refundedCount: refundedCount,
       transactions: transactions,
     );
+  }
+
+  /// Wave 4: Loads additional transaction pages for infinite scroll.
+  /// Returns raw transactions only (summary unchanged).
+  Future<List<WalletTransactionModel>> loadMoreTransactions({
+    required int offset,
+    int limit = 20,
+  }) async {
+    try {
+      final raw = await _paymentsApi.getMyPayments(limit: limit, offset: offset);
+      return raw.map((tx) => WalletTransactionModel.fromJson(tx)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 }

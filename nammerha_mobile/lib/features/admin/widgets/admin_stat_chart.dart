@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// Simple bar chart using CustomPainter — no external charting library.
 /// Renders time-series data with Trust Blue gradient bars.
@@ -51,7 +52,7 @@ class AdminStatChart extends StatelessWidget {
             child: data.isEmpty
                 ? Center(
                     child: Text(
-                      'لا توجد بيانات',
+                      context.tr('no_chart_data'),
                       style: TextStyle(
                         fontSize: 12,
                         color: colors.textMuted,

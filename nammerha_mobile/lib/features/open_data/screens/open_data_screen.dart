@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import '../bloc/open_data_bloc.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
@@ -20,11 +21,8 @@ import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 class OpenDataScreen extends StatelessWidget {
   const OpenDataScreen({super.key});
 
-  String _formatCurrency(num amount) {
-    if (amount >= 1000000) return '${(amount / 1000000).toStringAsFixed(1)}M';
-    if (amount >= 1000) return '${(amount / 1000).toStringAsFixed(0)}K';
-    return amount.toStringAsFixed(0);
-  }
+  // Centralized formatter via FormatUtils (Platinum Standard)
+  String _formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +62,7 @@ class OpenDataScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   _buildStatsGrid(context, colors, state.stats, total),
                   const SizedBox(height: 20),
-                  _buildProjectsList(colors, state.projects, total),
+                  _buildProjectsList(context, colors, state.projects, total),
                 ],
               ),
             );
@@ -90,7 +88,7 @@ class OpenDataScreen extends StatelessWidget {
         ]),
         const SizedBox(height: 10),
         Text(
-          'معيار البيانات المفتوحة للتعاقد\nOpen Contracting Data Standard',
+          context.tr('od_ocds_subtitle'),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200), height: 1.6),
         ),
@@ -107,16 +105,16 @@ class OpenDataScreen extends StatelessWidget {
 
   Widget _buildStatsGrid(BuildContext context, SemanticColors colors, Map<String, dynamic> stats, int total) {
     final items = [
-      _StatItem('المشاريع المنشورة', '${stats['total_projects'] ?? total}', PhosphorIconsRegular.article, colors.primaryBrand),
-      _StatItem('إجمالي التمويل', '${_formatCurrency((stats['total_funding'] ?? 0) as num)} ل.س', PhosphorIconsRegular.bank, colors.secondaryAccent),
-      _StatItem(context.tr('str_9ddc2404'), '${stats['total_donors'] ?? 0}', PhosphorIconsRegular.warningCircle, colors.info),
+      _StatItem(context.tr('od_published_projects'), '${stats['total_projects'] ?? total}', PhosphorIconsRegular.article, colors.primaryBrand),
+      _StatItem(context.tr('od_total_funding'), _formatCurrency((stats['total_funding'] ?? 0) as num), PhosphorIconsRegular.bank, colors.secondaryAccent),
+      _StatItem(context.tr('funders'), '${stats['total_donors'] ?? 0}', PhosphorIconsRegular.warningCircle, colors.info),
       _StatItem(context.tr('admin_contractors'), '${stats['total_contractors'] ?? 0}', PhosphorIconsRegular.hardHat, colors.success),
-      _StatItem('المشاريع المكتملة', '${stats['completed_projects'] ?? 0}', PhosphorIconsRegular.checkCircle, colors.success),
-      _StatItem('المناطق المغطاة', '${stats['total_regions'] ?? 0}', PhosphorIconsRegular.mapTrifold, colors.warning),
+      _StatItem(context.tr('od_completed_projects'), '${stats['completed_projects'] ?? 0}', PhosphorIconsRegular.checkCircle, colors.success),
+      _StatItem(context.tr('od_regions_covered'), '${stats['total_regions'] ?? 0}', PhosphorIconsRegular.mapTrifold, colors.warning),
     ];
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('إحصائيات المنصة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+      Text(context.tr('od_platform_stats'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
       const SizedBox(height: 12),
       GridView.builder(
         shrinkWrap: true,
@@ -146,10 +144,10 @@ class OpenDataScreen extends StatelessWidget {
     ]);
   }
 
-  Widget _buildProjectsList(SemanticColors colors, List<Map<String, dynamic>> projects, int total) {
+  Widget _buildProjectsList(BuildContext context, SemanticColors colors, List<Map<String, dynamic>> projects, int total) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Text('المشاريع المنشورة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        Text(context.tr('od_published_projects'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const Spacer(),
         Text('$total مشروع', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
       ]),
@@ -160,7 +158,7 @@ class OpenDataScreen extends StatelessWidget {
           child: Column(children: [
             Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textSubtle),
             const SizedBox(height: 12),
-            Text('لا توجد مشاريع منشورة بعد', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+            Text(context.tr('od_no_projects'), style: TextStyle(fontSize: 14, color: colors.textSecondary)),
           ]),
         ))
       else
@@ -210,7 +208,7 @@ class OpenDataScreen extends StatelessWidget {
           ],
           Icon(PhosphorIconsRegular.wallet, size: 13, color: colors.textSubtle),
           const SizedBox(width: 3),
-          Text('${_formatCurrency(funding)} ل.س', style: TextStyle(fontSize: 12, color: colors.textSecondary, fontWeight: FontWeight.w600)),
+          Text(_formatCurrency(funding), style: TextStyle(fontSize: 12, color: colors.textSecondary, fontWeight: FontWeight.w600)),
         ]),
         if (ocdsId.isNotEmpty) ...[
           const SizedBox(height: 6),

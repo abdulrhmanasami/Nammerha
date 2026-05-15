@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/services/review_api.dart';
+import '../../../core/i18n/error_keys.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EVENTS
@@ -198,7 +199,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
     } on ApiException catch (e) {
       emit(ReviewError(e.message));
     } catch (e) {
-      emit(ReviewError('فشل تحميل المراجعات: $e'));
+      emit(ReviewError(ErrorKeys.reviewLoadFailed));
     }
   }
 
@@ -214,48 +215,48 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         projectId: event.projectId,
         ratings: event.ratings,
       );
-      emit(const ReviewSubmitted('تم إرسال التقييم بنجاح ✓'));
+      emit(const ReviewSubmitted('msg_review_submitted'));
       _reload();
     } on ApiException catch (e) {
       emit(ReviewError(e.message));
     } catch (e) {
-      emit(ReviewError('فشل إرسال التقييم: $e'));
+      emit(ReviewError(ErrorKeys.reviewSubmitFailed));
     }
   }
 
   Future<void> _onVoteHelpful(VoteHelpful event, Emitter<ReviewState> emit) async {
     try {
       await _api.voteHelpful(event.reviewId, isHelpful: event.isHelpful);
-      emit(const ReviewActionSuccess('تم تسجيل التصويت'));
+      emit(const ReviewActionSuccess('msg_vote_recorded'));
       _reload();
     } on ApiException catch (e) {
       emit(ReviewError(e.message));
     } catch (e) {
-      emit(ReviewError('فشل التصويت: $e'));
+      emit(ReviewError(ErrorKeys.reviewVoteFailed));
     }
   }
 
   Future<void> _onFlag(FlagReview event, Emitter<ReviewState> emit) async {
     try {
       await _api.flagReview(event.reviewId, reason: event.reason, description: event.description);
-      emit(const ReviewActionSuccess('تم الإبلاغ — شكراً لمساعدتك'));
+      emit(const ReviewActionSuccess('msg_review_reported'));
       _reload();
     } on ApiException catch (e) {
       emit(ReviewError(e.message));
     } catch (e) {
-      emit(ReviewError('فشل الإبلاغ: $e'));
+      emit(ReviewError(ErrorKeys.reviewReportFailed));
     }
   }
 
   Future<void> _onDelete(DeleteReview event, Emitter<ReviewState> emit) async {
     try {
       await _api.deleteReview(event.reviewId);
-      emit(const ReviewActionSuccess('تم حذف التقييم'));
+      emit(const ReviewActionSuccess('msg_review_deleted'));
       _reload();
     } on ApiException catch (e) {
       emit(ReviewError(e.message));
     } catch (e) {
-      emit(ReviewError('فشل حذف التقييم: $e'));
+      emit(ReviewError(ErrorKeys.reviewDeleteFailed));
     }
   }
 
