@@ -54,7 +54,7 @@ class _OracleView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+                  Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
                   const SizedBox(height: 12),
                   Text(state.message, style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 16),

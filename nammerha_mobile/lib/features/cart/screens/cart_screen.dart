@@ -66,7 +66,7 @@ class _CartScreenState extends State<CartScreen> {
             builder: (context, _) {
               if (CartStore.instance.isEmpty) return const SizedBox.shrink();
               return IconButton(
-                icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.error),
+                icon: Icon(PhosphorIconsRegular.trash, color: colors.error),
                 onPressed: _confirmClear,
                 tooltip: context.tr('empty_cart'),
               );
@@ -95,7 +95,7 @@ class _CartScreenState extends State<CartScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              PhosphorIconsRegular.warningCircle,
+              PhosphorIconsRegular.shoppingCartSimple,
               size: 80,
               color: colors.textSubtle,
             ),
@@ -450,22 +450,22 @@ class _CartScreenState extends State<CartScreen> {
     switch (category.toLowerCase()) {
       case 'cement':
       case 'إسمنت':
-        return PhosphorIconsRegular.warningCircle;
+        return PhosphorIconsRegular.cube;
       case 'steel':
       case 'حديد':
-        return PhosphorIconsRegular.warningCircle;
+        return PhosphorIconsRegular.barbell;
       case 'electrical':
       case 'كهرباء':
-        return PhosphorIconsRegular.warningCircle;
+        return PhosphorIconsRegular.lightning;
       case 'plumbing':
       case 'سباكة':
-        return PhosphorIconsRegular.warningCircle;
+        return PhosphorIconsRegular.drop;
       case 'paint':
       case 'دهان':
         return PhosphorIconsRegular.paintRoller;
       case 'wood':
       case 'خشب':
-        return PhosphorIconsRegular.warningCircle;
+        return PhosphorIconsRegular.tree;
       default:
         return PhosphorIconsRegular.package;
     }

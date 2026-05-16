@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../widgets/wizard_stepper.dart';
 import '../widgets/damage_type_selector.dart';
@@ -77,22 +78,56 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Scaffold(
-      backgroundColor: colors.backgroundPrimary,
-      appBar: AppBar(
-        title: Text(context.tr('dr_title')),
-        leading: BlocBuilder<DamageReportBloc, DamageReportState>(
-          buildWhen: (p, c) => p.formData.currentStep != c.formData.currentStep,
-          builder: (context, state) {
-            return state.formData.currentStep > 0
-                ? IconButton(
-                    icon: Icon(PhosphorIconsRegular.arrowLeft),
-                    onPressed: () => context.read<DamageReportBloc>().add(PrevStepEvent()),
-                  )
-                : const BackButton();
-          },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final bloc = context.read<DamageReportBloc>();
+        final data = bloc.state.formData;
+
+        // If form is clean, pop immediately
+        if (!data.isDirty) {
+          if (context.mounted) Navigator.of(context).pop();
+          return;
+        }
+
+        // Show discard confirmation
+        final shouldDiscard = await _showDiscardDialog(context, colors);
+        if (shouldDiscard == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: colors.backgroundPrimary,
+        appBar: AppBar(
+          title: Text(context.tr('dr_title')),
+          leading: BlocBuilder<DamageReportBloc, DamageReportState>(
+            buildWhen: (p, c) => p.formData.currentStep != c.formData.currentStep,
+            builder: (context, state) {
+              if (state.formData.currentStep > 0) {
+                return IconButton(
+                  icon: Icon(PhosphorIconsRegular.arrowLeft),
+                  onPressed: () => context.read<DamageReportBloc>().add(PrevStepEvent()),
+                );
+              }
+              // Step 0: show close/back with discard guard
+              return IconButton(
+                icon: Icon(PhosphorIconsRegular.x),
+                onPressed: () async {
+                  final data = context.read<DamageReportBloc>().state.formData;
+                  if (!data.isDirty) {
+                    if (context.mounted) Navigator.of(context).pop();
+                    return;
+                  }
+                  final shouldDiscard = await _showDiscardDialog(context, colors);
+                  if (shouldDiscard == true && context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              );
+            },
+          ),
         ),
-      ),
       body: BlocConsumer<DamageReportBloc, DamageReportState>(
         listener: (context, state) {
           // Navigation Side Effects
@@ -144,6 +179,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           );
         },
       ),
+    ),
     );
   }
 
@@ -205,7 +241,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
               child: Row(
                 children: [
                   Icon(
-                    data.gpsPosition != null ? PhosphorIconsRegular.crosshair : PhosphorIconsRegular.warningCircle,
+                    data.gpsPosition != null ? PhosphorIconsRegular.crosshair : PhosphorIconsRegular.mapPinLine,
                     color: data.gpsPosition != null ? colors.success : colors.primaryBrand,
                   ),
                   const SizedBox(width: 12),
@@ -394,6 +430,61 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
     );
   }
 
+  // ─── Discard Confirmation (P3-003) ─────────────────────────────────────
+
+  Future<bool?> _showDiscardDialog(BuildContext context, SemanticColors colors) {
+    Haptics.medium();
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surfaceElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: Icon(PhosphorIconsRegular.warning, size: 40, color: colors.warning),
+        title: Text(
+          context.tr('dr_discard_title'),
+          style: TextStyle(fontWeight: FontWeight.w800, color: colors.textPrimary),
+        ),
+        content: Text(
+          context.tr('dr_discard_body'),
+          style: TextStyle(color: colors.textSecondary, fontSize: 14),
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          OutlinedButton(
+            onPressed: () {
+              Haptics.heavy();
+              Navigator.pop(ctx, true);
+            },
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: colors.error.withAlpha(60)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(
+              context.tr('dr_discard_leave'),
+              style: TextStyle(color: colors.error, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primaryBrand,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(
+              context.tr('dr_discard_stay'),
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── Bottom Bar ───────────────────────────────────────────────────────
 
   Widget _buildBottomBar(BuildContext context, DamageReportState state, SemanticColors colors) {
@@ -413,12 +504,18 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
                 label: loadingMessage ?? context.tr('dr_submit_btn'),
                 icon: PhosphorIconsRegular.paperPlaneRight,
                 isLoading: isLoading,
-                onPressed: data.canProceed && !isLoading ? () => context.read<DamageReportBloc>().add(SubmitReportEvent()) : null,
+                onPressed: data.canProceed && !isLoading ? () {
+                  Haptics.heavy();
+                  context.read<DamageReportBloc>().add(SubmitReportEvent());
+                } : null,
               )
             : GradientButton(
                 label: context.tr('next'),
                 icon: PhosphorIconsRegular.arrowRight,
-                onPressed: data.canProceed ? () => context.read<DamageReportBloc>().add(NextStepEvent()) : null,
+                onPressed: data.canProceed ? () {
+                  Haptics.medium();
+                  context.read<DamageReportBloc>().add(NextStepEvent());
+                } : null,
               ),
       ),
     );

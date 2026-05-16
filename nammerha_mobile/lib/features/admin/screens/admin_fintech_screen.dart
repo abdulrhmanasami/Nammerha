@@ -50,7 +50,7 @@ class _FintechView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+                  Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
                   const SizedBox(height: 12),
                   Text(state.message, style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 16),
@@ -104,14 +104,14 @@ class _FintechView extends StatelessWidget {
               AdminKpiCard(
                 title: 'رسوم الشهر',
                 value: fees.mtdFeeRevenue,
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.calendarBlank,
                 accentColor: colors.secondaryAccent,
                 isCurrency: true,
               ),
               AdminKpiCard(
                 title: 'عدد الرسوم',
                 value: fees.totalFeesCount,
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.hashStraight,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
@@ -140,7 +140,7 @@ class _FintechView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Enterprise Organizations
-          _sectionHeader(colors, context.tr('admin_organizations'), PhosphorIconsRegular.warningCircle),
+          _sectionHeader(colors, context.tr('admin_organizations'), PhosphorIconsRegular.buildingOffice),
           const SizedBox(height: 8),
           if (state.organizations.isEmpty)
             _emptyCard(colors, context.tr('admin_no_orgs'))

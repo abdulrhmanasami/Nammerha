@@ -8,6 +8,7 @@ import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/review_bloc.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/haptics.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Reviews Screen — displays reviews + aggregates for any entity.
@@ -46,7 +47,7 @@ class _ReviewsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        title: Text('تقييمات $entityName', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+        title: Text(context.tr('rv_title').replaceAll('\$1', entityName), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         backgroundColor: colors.backgroundPrimary,
         elevation: 0,
         iconTheme: IconThemeData(color: colors.textPrimary),
@@ -55,7 +56,7 @@ class _ReviewsView extends StatelessWidget {
         onPressed: () => _showSubmitSheet(context),
         backgroundColor: colors.primaryBrand,
         icon: Icon(PhosphorIconsRegular.star, color: Colors.white),
-        label: const Text('أضف تقييم', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        label: Text(context.tr('rv_add_review'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<ReviewBloc, ReviewState>(
         listener: (ctx, state) {
@@ -109,14 +110,14 @@ class _ReviewsView extends StatelessWidget {
                       color: Colors.white, size: 18,
                     ))),
                     const SizedBox(height: 4),
-                    Text('$totalReviews تقييم', style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12)),
+                    Text(context.tr('rv_total_reviews').replaceAll('\$1', '$totalReviews'), style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12)),
                   ],
                 ),
                 const Spacer(),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('نقاط الثقة', style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 11)),
+                    Text(context.tr('rv_trust_score'), style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 11)),
                     Text('${(trustScore * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
                   ],
                 ),
@@ -196,7 +197,7 @@ class _ReviewsView extends StatelessWidget {
                   child: Row(children: [
                     Icon(PhosphorIconsRegular.thumbsUp, size: 14, color: colors.textSubtle),
                     const SizedBox(width: 4),
-                    Text('مفيد ($helpfulCount)', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                    Text(context.tr('rv_helpful').replaceAll('\$1', '$helpfulCount'), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                   ]),
                 ),
               ),
@@ -238,7 +239,7 @@ class _ReviewsView extends StatelessWidget {
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Center(child: BottomSheetGrabber(colors: colors)),
               const SizedBox(height: 16),
-              Text('إضافة تقييم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
+              Text(context.tr('rv_add_review_title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
               const SizedBox(height: 20),
               // Star rating
               Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(5, (i) => GestureDetector(
@@ -250,16 +251,17 @@ class _ReviewsView extends StatelessWidget {
               ))),
               const SizedBox(height: 16),
               TextField(controller: titleCtrl, style: TextStyle(color: colors.textPrimary),
-                decoration: InputDecoration(labelText: 'عنوان التقييم (اختياري)', filled: true, fillColor: colors.backgroundSecondary,
+                decoration: InputDecoration(labelText: context.tr('rv_field_title'), filled: true, fillColor: colors.backgroundSecondary,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)))),
               const SizedBox(height: 12),
               TextField(controller: bodyCtrl, maxLines: 4, style: TextStyle(color: colors.textPrimary),
-                decoration: InputDecoration(labelText: 'تفاصيل التقييم *', filled: true, fillColor: colors.backgroundSecondary,
+                decoration: InputDecoration(labelText: context.tr('rv_field_body'), filled: true, fillColor: colors.backgroundSecondary,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)))),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (selectedRating == 0 || bodyCtrl.text.trim().length < 10) return;
+                  Haptics.medium();
                   context.read<ReviewBloc>().add(SubmitReview(
                     reviewableType: type, reviewableId: entityId,
                     overallRating: selectedRating, body: bodyCtrl.text.trim(),
@@ -270,7 +272,7 @@ class _ReviewsView extends StatelessWidget {
                 style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                child: const Text('إرسال التقييم', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                child: Text(context.tr('rv_submit'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
               ),
             ]),
           ),

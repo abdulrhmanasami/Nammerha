@@ -118,7 +118,7 @@ class _KycView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textMuted),
+                      Icon(PhosphorIconsRegular.identificationBadge, size: 48, color: colors.textMuted),
                       const SizedBox(height: 8),
                       Text(context.tr('admin_no_requests'), style: TextStyle(color: colors.textMuted)),
                     ],
@@ -245,13 +245,13 @@ class _KycView extends StatelessWidget {
               spacing: 12,
               runSpacing: 4,
               children: [
-                _kycDetail(colors, PhosphorIconsRegular.warningCircle, '${context.tr('admin_role_label')} ${entry.role}'),
+                _kycDetail(colors, PhosphorIconsRegular.userCircle, '${context.tr('admin_role_label')} ${entry.role}'),
                 if (entry.commercialRegisterNumber != null)
                   _kycDetail(colors, PhosphorIconsRegular.storefront, '${context.tr('admin_register')} ${entry.commercialRegisterNumber}'),
                 if (entry.engineeringLicenseNumber != null)
                   _kycDetail(colors, PhosphorIconsRegular.hardHat, '${context.tr('admin_license')} ${entry.engineeringLicenseNumber}'),
                 if (entry.guildMembershipId != null)
-                  _kycDetail(colors, PhosphorIconsRegular.warningCircle, '${context.tr('admin_guild')} ${entry.guildMembershipId}'),
+                  _kycDetail(colors, PhosphorIconsRegular.certificate, '${context.tr('admin_guild')} ${entry.guildMembershipId}'),
               ],
             ),
           ),

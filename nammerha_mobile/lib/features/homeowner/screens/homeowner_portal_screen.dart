@@ -140,7 +140,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
           ]).animate().fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
-            _kpiCard(context.tr('ho_kpi_approvals'), '${data.stats.pendingApprovals}', colors.warning, PhosphorIconsRegular.warningCircle, colors),
+            _kpiCard(context.tr('ho_kpi_approvals'), '${data.stats.pendingApprovals}', colors.warning, PhosphorIconsRegular.hourglass, colors),
             const SizedBox(width: 8),
             _kpiCard(context.tr('ho_kpi_invested'), _formatCurrency(data.stats.totalInvested), colors.secondaryAccent, PhosphorIconsRegular.bank, colors),
           ]).animate(delay: 100.ms).fadeIn(),
@@ -152,7 +152,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
             (e) => _activeProjectCard(e.value, colors, e.key),
           ),
           if (data.projects.where((p) => !['completed', 'cancelled'].contains(p.status)).isEmpty)
-            _emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ho_no_active'), context.tr('ho_report_to_start')),
+            _emptyState(colors, PhosphorIconsRegular.buildings, context.tr('ho_no_active'), context.tr('ho_report_to_start')),
         ],
       ),
     );
@@ -234,7 +234,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
 
   Widget _buildProjects(HomeownerDashboardModel data, bool isLoading, SemanticColors colors) {
     if (isLoading && data.projects.isEmpty) return NammerhaShimmerLoader(colors: colors);
-    if (data.projects.isEmpty) return _emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ho_no_projects'), '');
+    if (data.projects.isEmpty) return _emptyState(colors, PhosphorIconsRegular.buildings, context.tr('ho_no_projects'), '');
     return RefreshIndicator(
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(1)); },
       color: colors.primaryBrand,
@@ -254,7 +254,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
       onRefresh: () async { context.read<HomeownerBloc>().add(const LoadHomeownerTabEvent(2)); },
       color: colors.primaryBrand,
       child: data.serviceRequests.isEmpty
-          ? ListView(children: [_emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ho_no_requests'), context.tr('ho_create_request_hint'))])
+          ? ListView(children: [_emptyState(colors, PhosphorIconsRegular.clipboardText, context.tr('ho_no_requests'), context.tr('ho_create_request_hint'))])
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: data.serviceRequests.length,

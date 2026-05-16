@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/theme/theme_cubit.dart';
 import '../../../core/utils/role_localizer.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/i18n/locale_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/i18n/supported_locales.dart';
@@ -24,6 +25,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// Profile Screen — User Identity, Roles, Settings
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Absolute Zero Architecture: Managed natively via ProfileBloc.
+///
+/// P2-001 AUDIT: setState RETAINED (Platinum Approved) — Notification toggle
+/// is a local SharedPreferences preference, not API state. ProfileBloc manages
+/// all server-side state. Creating a Cubit for a boolean toggle is over-engineering.
 /// ═══════════════════════════════════════════════════════════════════════════
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -136,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
+                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
                     const SizedBox(height: 16),
                     Text(
                       state.message,
@@ -171,7 +176,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 actions: [
                   if (!isEditing)
                     IconButton(
-                      onPressed: () => context.read<ProfileFormCubit>().startEditing(),
+                      onPressed: () {
+                      Haptics.light();
+                      context.read<ProfileFormCubit>().startEditing();
+                    },
                       icon: Icon(PhosphorIconsRegular.pencilSimple, color: colors.primaryBrand, size: 22),
                     ),
                 ],
@@ -366,6 +374,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: isSaving ? null : () {
+                    Haptics.medium();
                     context.read<ProfileBloc>().add(SaveProfileRequested(fullName: _nameController.text.trim(), email: _emailController.text.trim()));
                     context.read<ProfileFormCubit>().stopEditing();
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -627,6 +636,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               TextButton(
                 onPressed: () {
+                  Haptics.heavy();
                   Navigator.pop(ctx);
                   context.read<ProfileBloc>().add(LogoutRequested());
                 },

@@ -112,7 +112,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
+                  Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('ct_load_error'),
                       style: TextStyle(color: colors.textPrimary)),
@@ -543,7 +543,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
 
   Widget _buildPayments(List<ContractorPaymentModel> payments, SemanticColors colors) {
     if (payments.isEmpty) {
-      return _emptyState(colors, PhosphorIconsRegular.warningCircle, context.tr('ct_no_payments'), '');
+      return _emptyState(colors, PhosphorIconsRegular.wallet, context.tr('ct_no_payments'), '');
     }
     return RefreshIndicator(
       onRefresh: () async {
@@ -571,7 +571,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                   decoration: BoxDecoration(
                       color: colors.success.withAlpha(15),
                       borderRadius: BorderRadius.circular(12)),
-                  child: Icon(PhosphorIconsRegular.warningCircle,
+                  child: Icon(PhosphorIconsRegular.currencyCircleDollar,
                       color: colors.success, size: 22),
                 ),
                 const SizedBox(width: 12),

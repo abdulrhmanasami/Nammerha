@@ -98,7 +98,7 @@ class _ContactScreenState extends State<ContactScreen> {
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(children: [
-            Icon(PhosphorIconsRegular.warningCircle, color: Colors.white, size: 40),
+            Icon(PhosphorIconsRegular.chatCircle, color: Colors.white, size: 40),
             const SizedBox(height: 10),
             Text(context.tr('we_are_here_to_help'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 4),

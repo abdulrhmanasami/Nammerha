@@ -62,7 +62,7 @@ class _ProjectDashboardView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          projectTitle.isNotEmpty ? projectTitle : 'لوحة المشروع',
+          projectTitle.isNotEmpty ? projectTitle : context.tr('pd_title_fallback'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -90,7 +90,7 @@ class _ProjectDashboardView extends StatelessWidget {
               ),
             );
           } else if (state is ApprovalResponded) {
-            final label = state.decision == 'approved' ? 'تمت الموافقة ✅' : 'تم الرفض ❌';
+            final label = state.decision == 'approved' ? context.tr('pd_approval_approved') : context.tr('pd_approval_rejected');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(label), backgroundColor: colors.primaryBrand),
             );
@@ -155,7 +155,7 @@ class _ProjectDashboardView extends StatelessWidget {
 
             // Daily Logs
             Text(
-              'السجلات اليومية',
+              context.tr('pd_daily_logs'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -191,7 +191,7 @@ class _ProjectDashboardView extends StatelessWidget {
           children: [
             Expanded(
               child: _KPICard(
-                label: 'تقدم البناء',
+                label: context.tr('pd_kpi_construction'),
                 value: '${progress.toStringAsFixed(0)}%',
                 icon: PhosphorIcons.trendUp(),
                 color: colors.success,
@@ -201,7 +201,7 @@ class _ProjectDashboardView extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _KPICard(
-                label: 'نسبة التمويل',
+                label: context.tr('pd_kpi_funding'),
                 value: '${fundingPercent.toStringAsFixed(0)}%',
                 icon: PhosphorIcons.wallet(),
                 color: colors.primaryBrand,
@@ -215,7 +215,7 @@ class _ProjectDashboardView extends StatelessWidget {
           children: [
             Expanded(
               child: _KPICard(
-                label: 'المراحل المنجزة',
+                label: context.tr('pd_kpi_milestones'),
                 value: '$milestonesDone / $milestonesTotal',
                 icon: PhosphorIcons.flag(),
                 color: colors.goldFunding,
@@ -224,7 +224,7 @@ class _ProjectDashboardView extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _KPICard(
-                label: 'فريق العمل',
+                label: context.tr('pd_kpi_team'),
                 value: '$teamSize',
                 icon: PhosphorIcons.users(),
                 color: colors.info,
@@ -255,7 +255,7 @@ class _ProjectDashboardView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'اضغط الزر أدناه لإضافة أول سجل بناء',
+            context.tr('pd_empty_logs_hint'),
             style: TextStyle(fontSize: 12, color: colors.textSecondary.withAlpha(150)),
             textAlign: TextAlign.center,
           ),
@@ -310,7 +310,7 @@ class _ProjectDashboardView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'سجل يومي #${index + 1}',
+                      '${context.tr('pd_log_entry')} #${index + 1}',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary),
                     ),
                     if (dateLabel.isNotEmpty)
@@ -422,7 +422,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 BottomSheetGrabber(colors: colors),
                 const SizedBox(height: 16),
                 Text(
-                  'إضافة سجل يومي',
+                  context.tr('pd_add_log_title'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary),
                   textAlign: TextAlign.center,
                 ),
@@ -431,7 +431,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 // Description
                 _DialogTextField(
                   controller: descController,
-                  label: 'وصف العمل اليومي *',
+                  label: context.tr('pd_field_description'),
                   maxLines: 3,
                   colors: colors,
                 ),
@@ -440,7 +440,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 // Work Completed
                 _DialogTextField(
                   controller: workController,
-                  label: 'الأعمال المنجزة',
+                  label: context.tr('pd_field_work_completed'),
                   colors: colors,
                 ),
                 const SizedBox(height: 14),
@@ -448,7 +448,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 // Issues
                 _DialogTextField(
                   controller: issuesController,
-                  label: 'مشاكل واجهت العمل (اختياري)',
+                  label: context.tr('pd_field_issues'),
                   colors: colors,
                 ),
                 const SizedBox(height: 14),
@@ -477,7 +477,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 // Workers
                 Row(
                   children: [
-                    Text('عمال الموقع:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                    Text(context.tr('pd_workers_on_site'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                     const Spacer(),
                     IconButton(
                       onPressed: () => setModalState(() => workersOnSite = (workersOnSite - 1).clamp(0, 999)),
@@ -531,7 +531,7 @@ class _ProjectDashboardView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(PhosphorIcons.warningCircle(), size: 64, color: colors.error),
+            Icon(PhosphorIcons.cloudSlash(), size: 64, color: colors.error),
             const SizedBox(height: 16),
             Text(message, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: 15)),
             const SizedBox(height: 20),

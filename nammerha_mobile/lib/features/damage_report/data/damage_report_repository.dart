@@ -1,5 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import '../../../core/services/api_services.dart';
+import '../../../core/i18n/error_keys.dart';
+import '../../../core/i18n/translations.dart';
 import '../models/damage_report_data.dart';
 import '../widgets/damage_type_selector.dart';
 
@@ -12,7 +14,7 @@ class DamageReportRepository {
     final permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      throw Exception('صلاحية الموقع مطلوبة لتحديد الإحداثيات');
+      throw Exception(ErrorKeys.gpsPermissionRequired);
     }
     return await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
@@ -26,7 +28,9 @@ class DamageReportRepository {
         .firstWhere((c) => c.key == data.damageType,
             orElse: () => DamageTypeSelector.categories.last)
         .label;
-    final title = 'إصلاح $damageLabel — ${data.governorate}';
+    // P1-001i: Use translation template for locale-aware project title
+    final titleTemplate = kTranslations['dr_project_title_template']?['ar'] ?? 'Repair \$1 — \$2';
+    final title = titleTemplate.replaceAll('\$1', damageLabel).replaceAll('\$2', data.governorate);
 
     final addr = data.addressText.isNotEmpty 
         ? '${data.governorate}, ${data.neighborhood}, ${data.addressText}' 

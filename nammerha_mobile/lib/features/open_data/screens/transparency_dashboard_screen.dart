@@ -165,7 +165,7 @@ class _TransparencyDashboardContentState
               title: context.tr('td_absolute_transparency'),
               description:
                   context.tr('td_transparency_desc'),
-              icon: PhosphorIconsRegular.warningCircle,
+              icon: PhosphorIconsRegular.eye,
               color: colors.primaryBrand,
               colors: colors,
             ).animate().fadeIn(duration: 400.ms),

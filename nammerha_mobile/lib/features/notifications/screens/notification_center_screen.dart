@@ -10,6 +10,7 @@ import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
 import '../../../core/i18n/t.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:nammerha_mobile/core/utils/notification_navigator.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Notification Center — Full notification history + mark read
@@ -37,12 +38,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     switch (type.toLowerCase()) {
       case 'bid_accepted': return PhosphorIconsRegular.checkCircle;
       case 'bid_received': return PhosphorIconsRegular.gavel;
-      case 'payment_received': return PhosphorIconsRegular.warningCircle;
+      case 'payment_received': return PhosphorIconsRegular.currencyCircleDollar;
       case 'escrow_released': return PhosphorIconsRegular.lockKeyOpen;
       case 'project_update': return PhosphorIconsRegular.buildings;
       case 'proof_verified': return PhosphorIconsRegular.sealCheck;
       case 'assignment': return PhosphorIconsRegular.clipboardText;
-      case 'request': return PhosphorIconsRegular.warningCircle;
+      case 'request': return PhosphorIconsRegular.chatDots;
       default: return PhosphorIconsRegular.bell;
     }
   }
@@ -141,13 +142,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final isRead = n['is_read'] == true || n['isRead'] == true;
     final type = n['type']?.toString() ?? '';
     final iconColor = _colorForType(type, colors);
-    final notifId = (n['notification_id'] ?? n['id'] ?? '').toString();
 
     return GestureDetector(
       onTap: () {
-        if (!isRead) {
-          context.read<NotificationsBloc>().add(MarkAsReadRequested(notifId));
-        }
+        // P0-003: Route to target screen (marks as read internally)
+        NotificationNavigator.handleTap(context, n);
       },
       child: AnimatedContainer(
         duration: NammerhaAnimations.fast,
@@ -209,6 +208,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 decoration: BoxDecoration(
                   color: colors.primaryBrand,
                   shape: BoxShape.circle,
+                ),
+              ),
+            // P0-003: Chevron indicator for navigable notifications
+            if (NotificationNavigator.isNavigable(n))
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 4),
+                child: Icon(
+                  PhosphorIconsRegular.caretRight,
+                  size: 14,
+                  color: colors.textSubtle,
                 ),
               ),
           ],

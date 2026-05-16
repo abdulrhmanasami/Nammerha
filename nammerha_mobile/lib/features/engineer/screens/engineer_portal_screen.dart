@@ -98,7 +98,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIcons.warningCircle(), size: 64, color: colors.error),
+                  Icon(PhosphorIcons.cloudSlash(), size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('eng_load_error'),
                       style: TextStyle(color: colors.textPrimary)),

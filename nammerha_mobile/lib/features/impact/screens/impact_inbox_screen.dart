@@ -158,7 +158,7 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(PhosphorIcons.warningCircle(), color: colors.error, size: 48),
+          Icon(PhosphorIcons.cloudSlash(), color: colors.error, size: 48),
           const SizedBox(height: NammerhaTheme.spaceMd),
           Text(context.tr('failed_to_load'), style: Theme.of(context).textTheme.titleMedium),
           TextButton(
@@ -254,7 +254,7 @@ class _MessageCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _formatTimeAgo(message.createdAt),
+                              _formatTimeAgo(context, message.createdAt),
                               style: theme.textTheme.bodySmall,
                             ),
                           ],
@@ -286,17 +286,17 @@ class _MessageCard extends StatelessWidget {
     );
   }
 
-  /// Formats a DateTime as a human-readable Arabic relative time string.
-  /// Uses intl (already in pubspec) instead of the unavailable timeago package.
-  String _formatTimeAgo(DateTime dateTime) {
+  /// Formats a DateTime as a human-readable locale-aware relative time string.
+  /// P1-001d: i18n — uses translation keys with $1 parameter substitution.
+  String _formatTimeAgo(BuildContext context, DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
 
-    if (diff.inMinutes < 1) return 'الآن';
-    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
-    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
-    if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
-    return DateFormat('yyyy/MM/dd', 'ar').format(dateTime);
+    if (diff.inMinutes < 1) return context.tr('time_ago_just_now');
+    if (diff.inMinutes < 60) return context.tr('time_ago_minutes').replaceAll('\$1', '${diff.inMinutes}');
+    if (diff.inHours < 24) return context.tr('time_ago_hours').replaceAll('\$1', '${diff.inHours}');
+    if (diff.inDays < 7) return context.tr('time_ago_days').replaceAll('\$1', '${diff.inDays}');
+    return DateFormat('yyyy/MM/dd', context.localeCode).format(dateTime);
   }
 
   IconData _getIconForType() {

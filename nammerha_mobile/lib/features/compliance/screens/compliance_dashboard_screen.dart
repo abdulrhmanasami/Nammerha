@@ -92,7 +92,7 @@ class _ComplianceDashboardView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
+                  Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('co_load_error'),
                       style: TextStyle(color: colors.textPrimary, fontSize: 16)),

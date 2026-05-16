@@ -9,6 +9,7 @@ import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import 'package:nammerha_mobile/core/utils/notification_navigator.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -155,7 +156,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final message = n['message'] ?? n['body'] ?? '';
                 final type = n['type'] ?? '';
                 final createdAt = n['created_at'] ?? n['createdAt'] ?? '';
-                final notifId = (n['notification_id'] ?? n['id'] ?? '').toString();
 
                 IconData icon;
                 Color iconColor;
@@ -189,9 +189,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 return GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    if (!isRead) {
-                      context.read<NotificationsBloc>().add(MarkAsReadRequested(notifId));
-                    }
+                    // P0-003: Route to target screen (marks as read internally)
+                    NotificationNavigator.handleTap(context, n);
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
@@ -249,6 +248,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             width: 8, height: 8,
                             margin: const EdgeInsets.only(top: 4),
                             decoration: BoxDecoration(color: colors.primaryBrand, shape: BoxShape.circle),
+                          ),
+                        // P0-003: Chevron indicator for navigable notifications
+                        if (NotificationNavigator.isNavigable(n))
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 4),
+                            child: Icon(
+                              PhosphorIconsRegular.caretRight,
+                              size: 14,
+                              color: colors.textSubtle,
+                            ),
                           ),
                       ],
                     ),

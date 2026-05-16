@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/i18n/t.dart';
@@ -93,7 +94,7 @@ class _ServicePaymentViewState extends State<_ServicePaymentView> {
         buildWhen: (prev, curr) => curr is ContractDetailsLoaded || curr is ContractPaymentLoading,
         builder: (context, state) {
           if (state is ContractPaymentLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildPaymentShimmer(colors);
           }
           if (state is ContractDetailsLoaded) {
             return _buildForm(context, state, colors);
@@ -421,5 +422,143 @@ class _ServicePaymentViewState extends State<_ServicePaymentView> {
       case 'tradesperson': return PhosphorIconsRegular.wrench;
       default: return PhosphorIconsRegular.package;
     }
+  }
+
+  // ─── P0-002: Payment Form Skeleton Shimmer ──────────────────────────
+  // Mirrors the actual form layout (provider header → method selector →
+  // milestone items → submit) to maximize perceived-performance illusion.
+  Widget _buildPaymentShimmer(SemanticColors colors) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Provider header skeleton ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors.surfaceElevated,
+              borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
+              border: Border.all(color: colors.strokeSubtle.withAlpha(100)),
+            ),
+            child: Row(
+              children: [
+                _shimmerBox(colors, width: 28, height: 28, radius: 8),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _shimmerBox(colors, width: 120, height: 16),
+                      const SizedBox(height: 6),
+                      _shimmerBox(colors, width: 80, height: 12),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _shimmerBox(colors, width: 70, height: 16),
+                    const SizedBox(height: 4),
+                    _shimmerBox(colors, width: 50, height: 10),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Section title skeleton ──
+          _shimmerBox(colors, width: 140, height: 16),
+          const SizedBox(height: 12),
+
+          // ── Payment method selector skeleton (3 cards) ──
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Container(
+                margin: const EdgeInsetsDirectional.only(end: 8),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: colors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
+                  border: Border.all(color: colors.strokeSubtle.withAlpha(100)),
+                ),
+                child: Column(
+                  children: [
+                    _shimmerBox(colors, width: 24, height: 24, radius: 6),
+                    const SizedBox(height: 6),
+                    _shimmerBox(colors, width: 40, height: 11),
+                  ],
+                ),
+              ),
+            )),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Milestone section title ──
+          _shimmerBox(colors, width: 120, height: 16),
+          const SizedBox(height: 12),
+
+          // ── Milestone items skeleton ──
+          ...List.generate(2, (i) => Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colors.surfaceElevated,
+              borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
+              border: Border.all(color: colors.strokeSubtle.withAlpha(100)),
+            ),
+            child: Row(
+              children: [
+                _shimmerBox(colors, width: 20, height: 20, radius: 10),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _shimmerBox(colors, width: 140, height: 14),
+                      const SizedBox(height: 6),
+                      _shimmerBox(colors, width: 100, height: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )),
+          const SizedBox(height: 24),
+
+          // ── Submit button skeleton ──
+          _shimmerBox(colors, width: double.infinity, height: 50, radius: NammerhaTheme.radiusLg),
+          const SizedBox(height: 16),
+
+          // ── Trust badge skeleton ──
+          Row(
+            children: [
+              _shimmerBox(colors, width: 16, height: 16, radius: 8),
+              const SizedBox(width: 6),
+              Expanded(child: _shimmerBox(colors, width: double.infinity, height: 11)),
+            ],
+          ),
+        ],
+      ),
+    ).animate(onPlay: (controller) => controller.repeat()).shimmer(
+      duration: 1500.ms,
+      color: colors.primaryBrand.withAlpha(20),
+    );
+  }
+
+  Widget _shimmerBox(SemanticColors colors, {
+    required double width,
+    required double height,
+    double radius = 4,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: colors.textSubtle.withAlpha(30),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
   }
 }

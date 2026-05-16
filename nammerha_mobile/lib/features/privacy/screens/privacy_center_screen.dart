@@ -71,7 +71,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceLg),
               
               _ActionCard(
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.downloadSimple,
                 title: 'تصدير البيانات (GDPR)',
                 description: 'احصل على نسخة كاملة من جميع بياناتك المسجلة لدينا بصيغة JSON قابلة للقراءة.',
                 buttonText: 'طلب تصدير',
@@ -88,7 +88,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceMd),
 
               _ActionCard(
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.handPalm,
                 title: 'سحب الموافقة',
                 description: 'إيقاف معالجة بياناتك لأغراض التحليل وتحسين الخدمات. لن يؤثر ذلك على خدمات الضمان الأساسية (Escrow).',
                 buttonText: 'سحب الموافقة',
@@ -107,7 +107,7 @@ class _PrivacyCenterView extends StatelessWidget {
               const SizedBox(height: NammerhaTheme.spaceMd),
 
               _ActionCard(
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.trash,
                 title: 'حذف الحساب نهائياً',
                 description: 'سيتم مسح جميع بياناتك الشخصية من خوادمنا بشكل لا رجعة فيه. ستبقى السجلات المالية مجهولة الهوية لأغراض التدقيق القانوني.',
                 buttonText: 'حذف الحساب',

@@ -226,7 +226,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
             border: Border.all(color: colors.warning.withAlpha(40)),
           ),
           child: Row(children: [
-            Icon(PhosphorIconsRegular.warningCircle, color: colors.warning, size: 20),
+            Icon(PhosphorIconsRegular.info, color: colors.warning, size: 20),
             const SizedBox(width: 10),
             Expanded(child: Text(
               'الأعمال المخفية: تصوير ما قبل الصب الخرساني كدليل قانوني على جودة السباكة والكهرباء',
@@ -301,7 +301,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(PhosphorIconsRegular.warningCircle, size: 14, color: Colors.white),
+                    Icon(PhosphorIconsRegular.globeHemisphereEast, size: 14, color: Colors.white),
                     SizedBox(width: 4),
                     Text('360°', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
                   ]),
@@ -397,7 +397,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
               Text('نوع الالتقاط', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
               const SizedBox(height: 8),
               Row(children: [
-                _typeChip(ctx, setModalState, selectedType, CaptureType.photo360, PhosphorIconsRegular.warningCircle, colors, (v) => selectedType = v),
+                _typeChip(ctx, setModalState, selectedType, CaptureType.photo360, PhosphorIconsRegular.circlesFour, colors, (v) => selectedType = v),
                 const SizedBox(width: 8),
                 _typeChip(ctx, setModalState, selectedType, CaptureType.photoStandard, PhosphorIconsRegular.camera, colors, (v) => selectedType = v),
               ]),

@@ -118,7 +118,7 @@ void main() async {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
-                      PhosphorIcons.warningCircle(),
+                      PhosphorIcons.warningOctagon(),
                       size: 40,
                       color: const Color(0xFFEF4444),
                     ),

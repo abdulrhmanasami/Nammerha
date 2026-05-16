@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../../../core/i18n/error_keys.dart';
 
 class BidsRepository {
   final NammerhaApiClient _apiClient;
@@ -29,7 +30,7 @@ class BidsRepository {
       );
       return data['projectBOQ'] as List<dynamic>;
     } catch (e) {
-      throw ApiException('فشل في جلب جداول الكميات: $e');
+      throw ApiException(ErrorKeys.loadBids);
     }
   }
 
@@ -56,7 +57,7 @@ class BidsRepository {
   }) async {
     if (totalAmount <= 0) {
       throw const ApiException(
-        'قيمة العطاء يجب أن تكون أكبر من صفر',
+        ErrorKeys.bidFailed,
         statusCode: 400,
       );
     }
@@ -76,7 +77,7 @@ class BidsRepository {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException('فشل في إرسال العطاء: $e');
+      throw ApiException(ErrorKeys.bidFailed);
     }
   }
 }

@@ -1,16 +1,27 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../core/services/api_services.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/utils/error_localizer.dart';
+import '../../../core/i18n/error_keys.dart';
+import '../models/bid_model.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════
-// BidsFetchCubit — Platinum Standard (Absolute Zero setState)
+// BidsFetchCubit — Platinum Standard (P1-002 Architectural Purity)
 // ═══════════════════════════════════════════════════════════════════════════
-// Replaces 4 setState calls in BidsScreen for data loading lifecycle.
+// OWNS the data lifecycle: fetch → parse → filter → sort.
+// Widget is now a pure presentation layer with zero API awareness.
+// Uses typed BidModel instead of raw Map<String, dynamic>.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── State ──────────────────────────────────────────────────────────────────
 
 class BidsFetchState extends Equatable {
   final bool isLoading;
   final String? error;
-  final List<Map<String, dynamic>> bids; // filtered bids
-  final List<Map<String, dynamic>> allBids; // raw bids
+  final List<BidModel> bids;       // filtered + sorted bids for display
+  final List<BidModel> allBids;    // raw bids from API
   final String? activeFilter;
   final String? activeSort;
 
@@ -26,8 +37,8 @@ class BidsFetchState extends Equatable {
   BidsFetchState copyWith({
     bool? isLoading,
     String? error,
-    List<Map<String, dynamic>>? bids,
-    List<Map<String, dynamic>>? allBids,
+    List<BidModel>? bids,
+    List<BidModel>? allBids,
     String? activeFilter,
     String? activeSort,
     bool clearFilter = false,
@@ -47,31 +58,41 @@ class BidsFetchState extends Equatable {
   List<Object?> get props => [isLoading, error, bids, allBids, activeFilter, activeSort];
 }
 
+// ─── Cubit ──────────────────────────────────────────────────────────────────
+
 class BidsFetchCubit extends Cubit<BidsFetchState> {
-  BidsFetchCubit() : super(const BidsFetchState());
+  final EngineerApi _engineerApi;
 
-  void setLoading() => emit(const BidsFetchState(isLoading: true));
-  
-  void setLoaded(List<Map<String, dynamic>> bids) {
-    emit(BidsFetchState(isLoading: false, bids: bids, allBids: bids));
+  BidsFetchCubit({EngineerApi? engineerApi})
+      : _engineerApi = engineerApi ?? EngineerApi(),
+        super(const BidsFetchState());
+
+  /// Fetches bids from the API. Owns the full data lifecycle.
+  Future<void> fetchBids() async {
+    emit(const BidsFetchState(isLoading: true));
+    try {
+      final rawBids = await _engineerApi.getBids();
+      final models = rawBids.map((json) => BidModel.fromJson(json)).toList();
+      emit(BidsFetchState(isLoading: false, bids: models, allBids: models));
+    } on ApiException catch (e) {
+      emit(BidsFetchState(isLoading: false, error: localizeApiError(e.message)));
+    } catch (e) {
+      emit(BidsFetchState(isLoading: false, error: ErrorKeys.loadBids));
+    }
   }
-  
-  void setError(String message) => emit(BidsFetchState(isLoading: false, error: message));
 
+  /// Applies filter and/or sort to the cached allBids list.
   void applyFilter({String? filter, String? sort}) {
-    List<Map<String, dynamic>> filtered = List.from(state.allBids);
+    List<BidModel> filtered = List.from(state.allBids);
 
     if (filter != null && filter != 'all') {
-      filtered = filtered.where((b) {
-        final status = (b['status']?.toString() ?? '').toLowerCase();
-        return status == filter.toLowerCase();
-      }).toList();
+      filtered = filtered.where((b) => b.normalizedStatus == filter.toLowerCase()).toList();
     }
 
     if (sort == 'highest_amount') {
-      filtered.sort((a, b) => (b['amount'] as num? ?? 0).compareTo(a['amount'] as num? ?? 0));
+      filtered.sort((a, b) => b.proposedCost.compareTo(a.proposedCost));
     } else if (sort == 'lowest_amount') {
-      filtered.sort((a, b) => (a['amount'] as num? ?? 0).compareTo(b['amount'] as num? ?? 0));
+      filtered.sort((a, b) => a.proposedCost.compareTo(b.proposedCost));
     }
 
     emit(state.copyWith(

@@ -57,13 +57,13 @@ const Map<String, RoleMeta> roleMeta = {
   'tradesperson': RoleMeta(
     nameAr: 'صاحب مهنة',
     nameEn: 'Tradesperson',
-    icon: PhosphorIconsRegular.warningCircle,
+    icon: PhosphorIconsRegular.hammer,
     color: Color(0xFFFCC934), // Warning Yellow
   ),
   'admin': RoleMeta(
     nameAr: 'مدير',
     nameEn: 'Admin',
-    icon: PhosphorIconsRegular.warningCircle,
+    icon: PhosphorIconsRegular.gearSix,
     color: Color(0xFF242424), // Tech Dark
   ),
   'auditor': RoleMeta(

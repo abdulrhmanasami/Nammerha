@@ -478,7 +478,7 @@ class _ProjectMarker extends StatelessWidget {
           ],
         ),
         child: Icon(
-          PhosphorIconsRegular.warningCircle,
+          PhosphorIconsRegular.buildings,
           color: Colors.white,
           size: isSelected ? 26 : 20,
         ),
@@ -570,7 +570,7 @@ class _ProjectDetailPanel extends StatelessWidget {
                     ),
                     if (project.damageType.isNotEmpty)
                       _Badge(
-                        icon: PhosphorIconsRegular.warningCircle,
+                        icon: PhosphorIconsRegular.firstAidKit,
                         label: project.damageType,
                         color: colors.warmEarth,
                         colors: colors,

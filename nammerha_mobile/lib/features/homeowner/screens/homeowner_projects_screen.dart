@@ -9,6 +9,7 @@ import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/error_localizer.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/homeowner_projects_cubit.dart';
 
@@ -125,7 +126,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.textSecondary),
+            Icon(PhosphorIconsRegular.buildings, size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
             Text(context.tr('no_projects_yet'), style: TextStyle(color: colors.textSecondary, fontSize: 16)),
             const SizedBox(height: 12),
@@ -305,7 +306,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
             const SizedBox(height: 16),
             Text(context.tr('create_new_project'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.textPrimary)),
             const SizedBox(height: 20),
-            _sheetField(colors, titleCtrl, context.tr('project_title_label'), PhosphorIconsRegular.warningCircle),
+            _sheetField(colors, titleCtrl, context.tr('project_title_label'), PhosphorIconsRegular.textAa),
             const SizedBox(height: 12),
             _sheetField(colors, descCtrl, context.tr('project_desc_label'), PhosphorIconsRegular.fileText, maxLines: 3),
             const SizedBox(height: 12),
@@ -415,6 +416,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
 
                 if (context.mounted) Navigator.pop(context); // close bottom sheet
                 try {
+                  Haptics.heavy();
                   await widget.api.createProject(
                     title: titleCtrl.text.trim(),
                     damageType: selectedDamage,

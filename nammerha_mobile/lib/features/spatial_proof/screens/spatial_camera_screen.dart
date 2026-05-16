@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:math' as math;
 import 'dart:isolate';
+import '../../../core/utils/haptics.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/semantic_colors.dart';
@@ -86,7 +87,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
       if (statuses[Permission.camera] != PermissionStatus.granted ||
           statuses[Permission.locationWhenInUse] != PermissionStatus.granted) {
-        hwCubit.setPermissionDenied('صلاحيات الكاميرا والموقع مطلوبة للإثبات المكاني.');
+        hwCubit.setPermissionDenied(context.tr('sc_perm_required'));
         return;
       }
 
@@ -117,7 +118,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       }
     } catch (e) {
       if (mounted) {
-        hwCubit.setError('خطأ في التهيئة: ${e.toString()}');
+        hwCubit.setError(context.tr('sc_init_error').replaceAll('\$1', e.toString()));
       }
     }
   }
@@ -146,6 +147,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
     final localColors = context.colors;
 
     try {
+      Haptics.heavy();
       // 1. Refresh precise location
       final position = await Geolocator.getCurrentPosition();
       _updateSignatureFromPosition(position);
@@ -172,7 +174,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('أنت بعيد عن موقع المشروع بمسافة ${distance.toInt()} متر. الحد الأقصى هو 150 متر.'),
+                content: Text(context.tr('sc_distance_warning').replaceAll('\$1', '${distance.toInt()}')),
                 backgroundColor: localColors.error,
               ),
             );
@@ -199,7 +201,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل الالتقاط: $e'),
+            content: Text(context.tr('sc_capture_failed').replaceAll('\$1', '$e')),
             backgroundColor: localColors.error,
           ),
         );
@@ -222,7 +224,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                 children: [
                   NammerhaShimmerLoader(colors: colors, isList: false),
                   const SizedBox(height: 16),
-                  Text('جارِ تأمين الاتصال بالأجهزة...', style: TextStyle(color: colors.textSecondary)),
+                  Text(context.tr('sc_initializing'), style: TextStyle(color: colors.textSecondary)),
                 ],
               ),
             ),
@@ -239,7 +241,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
+                    Icon(PhosphorIconsRegular.shieldSlash, size: 64, color: colors.error),
                     const SizedBox(height: 16),
                     Text(hwState.errorMessage, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: 16)),
                     const SizedBox(height: 24),
@@ -259,7 +261,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
         if (state is SpatialProofSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ تم تشفير ورفع الإثبات المكاني بنجاح!'),
+              content: Text(context.tr('sc_proof_success')),
               backgroundColor: colors.success,
             ),
           );
@@ -267,7 +269,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
         } else if (state is SpatialProofError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('خطأ: ${state.message}'),
+              content: Text(context.tr('sc_error_prefix').replaceAll('\$1', state.message)),
               backgroundColor: colors.error,
             ),
           );
@@ -307,20 +309,20 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'خط العرض: ${hwState.latitude?.toStringAsFixed(5)}',
+                        context.tr('sc_latitude').replaceAll('\$1', '${hwState.latitude?.toStringAsFixed(5)}'),
                         style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
                       ),
                       Text(
-                        'خط الطول: ${hwState.longitude?.toStringAsFixed(5)}',
+                        context.tr('sc_longitude').replaceAll('\$1', '${hwState.longitude?.toStringAsFixed(5)}'),
                         style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
                       ),
                       Text(
-                        'الدقة: ±${hwState.accuracy?.toStringAsFixed(1)}م',
+                        context.tr('sc_accuracy').replaceAll('\$1', '${hwState.accuracy?.toStringAsFixed(1)}'),
                         style: TextStyle(color: colors.warning, fontFamily: 'monospace', fontSize: 12),
                       ),
                       if (_currentSignature != null)
                         Text(
-                          'التوقيع الأساسي مُؤمّن',
+                          context.tr('sc_signature_secured'),
                           style: TextStyle(color: colors.textSubtle, fontFamily: 'monospace', fontSize: 10),
                         ),
                     ],

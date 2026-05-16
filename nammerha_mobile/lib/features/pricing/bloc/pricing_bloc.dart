@@ -72,7 +72,7 @@ class PricingBloc extends Bloc<PricingEvent, PricingState> {
       emit(state.copyWith(
         isSubscribing: false,
         subscriptionResult: result,
-        successMessage: 'تم الاشتراك بنجاح',
+        successMessage: 'msg_subscription_success',
       ));
     } catch (e) {
       emit(state.copyWith(

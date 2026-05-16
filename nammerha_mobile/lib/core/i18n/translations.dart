@@ -1635,4 +1635,139 @@ const Map<String, Map<String, String>> kTranslations = {
   'surface_damage': {'ar': 'أضرار سطحية', 'en': 'Surface Damage'},
   'payment_redirect': {'ar': '✅ تم توجيهك إلى بوابة الدفع الآمنة', 'en': '✅ Redirected to secure payment gateway'},
   'transparency_load_error': {'ar': 'تعذر تحميل بيانات الشفافية', 'en': 'Failed to load transparency data'},
+
+  // ═══ BIDS SCREEN (P1-001a — i18n Completeness) ═══
+  'bid_value': {'ar': 'قيمة العرض', 'en': 'Bid Value'},
+  'bid_under_review': {'ar': 'قيد المراجعة', 'en': 'Under Review'},
+  'bid_filter_sort': {'ar': 'فرز وتصفية', 'en': 'Sort & Filter'},
+  'bid_status_label': {'ar': 'حالة العرض', 'en': 'Bid Status'},
+  'bid_amount_section': {'ar': 'القيمة المالية', 'en': 'Financial Value'},
+  'bid_sort_highest': {'ar': 'الأعلى قيمة', 'en': 'Highest Value'},
+  'bid_sort_lowest': {'ar': 'الأقل قيمة', 'en': 'Lowest Value'},
+  'bid_select_project_hint': {'ar': 'يرجى اختيار المشروع من "سوق المشاريع" لتقديم العرض عليه، لا يمكن تقديم عرض عشوائي.', 'en': 'Please select a project from the "Project Marketplace" to submit a bid. Random bids cannot be submitted.'},
+
+  // ═══ PRICING SCREEN (P1-001b — i18n Completeness) ═══
+  // ── Tier Names ──
+  'price_tier_free': {'ar': 'مجاني', 'en': 'Free'},
+  'price_tier_pro': {'ar': 'احترافي', 'en': 'Pro'},
+  'price_tier_business': {'ar': 'أعمال', 'en': 'Business'},
+  'price_tier_enterprise': {'ar': 'مؤسسات', 'en': 'Enterprise'},
+
+  // ── Free Tier Features ──
+  'price_free_f1': {'ar': 'تصفح المشاريع', 'en': 'Browse Projects'},
+  'price_free_f2': {'ar': 'تتبع التمويل', 'en': 'Track Funding'},
+  'price_free_f3': {'ar': 'خريطة المشاريع التفاعلية', 'en': 'Interactive Project Map'},
+  'price_free_f4': {'ar': 'إشعارات أساسية', 'en': 'Basic Notifications'},
+
+  // ── Pro Tier Features ──
+  'price_pro_f1': {'ar': 'جميع ميزات المجاني', 'en': 'All Free features'},
+  'price_pro_f2': {'ar': 'تقارير OCDS مفصلة', 'en': 'Detailed OCDS Reports'},
+  'price_pro_f3': {'ar': 'أولوية في محرك التوفيق', 'en': 'Priority Matchmaking'},
+  'price_pro_f4': {'ar': 'كاميرا مكانية GPS', 'en': 'GPS Spatial Camera'},
+  'price_pro_f5': {'ar': 'دعم فني مباشر', 'en': 'Direct Tech Support'},
+
+  // ── Business Tier Features ──
+  'price_biz_f1': {'ar': 'جميع ميزات الاحترافي', 'en': 'All Pro features'},
+  'price_biz_f2': {'ar': 'لوحة تحكم متقدمة', 'en': 'Advanced Dashboard'},
+  'price_biz_f3': {'ar': 'تحليلات الإيرادات', 'en': 'Revenue Analytics'},
+  'price_biz_f4': {'ar': 'إدارة فريق متعدد', 'en': 'Multi-team Management'},
+  'price_biz_f5': {'ar': 'API وصول كامل', 'en': 'Full API Access'},
+  'price_biz_f6': {'ar': 'تقارير مخصصة PDF/XLSX', 'en': 'Custom PDF/XLSX Reports'},
+
+  // ── Enterprise Tier Features ──
+  'price_ent_f1': {'ar': 'جميع ميزات الأعمال', 'en': 'All Business features'},
+  'price_ent_f2': {'ar': 'بيئة مخصصة', 'en': 'Dedicated Environment'},
+  'price_ent_f3': {'ar': 'SLA مضمون', 'en': 'Guaranteed SLA'},
+  'price_ent_f4': {'ar': 'مدير حساب مخصص', 'en': 'Dedicated Account Manager'},
+  'price_ent_f5': {'ar': 'تدريب وإعداد مخصص', 'en': 'Custom Onboarding & Training'},
+  'price_ent_f6': {'ar': 'تكامل مخصص', 'en': 'Custom Integration'},
+  'price_ent_f7': {'ar': 'فحص عقوبات OFAC/SDN', 'en': 'OFAC/SDN Sanctions Screening'},
+
+  // ── UI Strings ──
+  'price_title': {'ar': 'الأسعار والاشتراكات', 'en': 'Pricing & Subscriptions'},
+  'price_choose_plan': {'ar': 'اختر الخطة المناسبة لمشروعك', 'en': 'Choose the right plan for your project'},
+  'price_all_plans_include': {'ar': 'جميع الخطط تشمل الشفافية الكاملة وتتبع الأموال', 'en': 'All plans include full transparency and fund tracking'},
+  'price_footer_note': {'ar': 'جميع الأسعار بالدولار الأمريكي. الاشتراك السنوي يوفر 20%.', 'en': 'All prices in USD. Annual billing saves 20%.'},
+  'price_monthly': {'ar': 'شهري', 'en': 'Monthly'},
+  'price_yearly_discount': {'ar': 'سنوي (-20%)', 'en': 'Yearly (-20%)'},
+  'price_per_month': {'ar': '/شهر', 'en': '/mo'},
+  'price_per_month_yearly': {'ar': '/شهر (سنوي)', 'en': '/mo (billed annually)'},
+  'price_most_popular': {'ar': 'الأكثر شيوعاً', 'en': 'Most Popular'},
+  'price_start_free': {'ar': 'ابدأ مجاناً', 'en': 'Start Free'},
+  'price_contact_us': {'ar': 'تواصل معنا', 'en': 'Contact Us'},
+  'price_subscribe_now': {'ar': 'اشترك الآن', 'en': 'Subscribe Now'},
+
+  // ═══ PROJECT DASHBOARD (P1-001c — i18n Completeness) ═══
+  'pd_title_fallback': {'ar': 'لوحة المشروع', 'en': 'Project Dashboard'},
+  'pd_approval_approved': {'ar': 'تمت الموافقة ✅', 'en': 'Approved ✅'},
+  'pd_approval_rejected': {'ar': 'تم الرفض ❌', 'en': 'Rejected ❌'},
+  'pd_daily_logs': {'ar': 'السجلات اليومية', 'en': 'Daily Logs'},
+  'pd_kpi_construction': {'ar': 'تقدم البناء', 'en': 'Construction Progress'},
+  'pd_kpi_funding': {'ar': 'نسبة التمويل', 'en': 'Funding Ratio'},
+  'pd_kpi_milestones': {'ar': 'المراحل المنجزة', 'en': 'Milestones Completed'},
+  'pd_kpi_team': {'ar': 'فريق العمل', 'en': 'Team Size'},
+  'pd_empty_logs_hint': {'ar': 'اضغط الزر أدناه لإضافة أول سجل بناء', 'en': 'Tap the button below to add your first construction log'},
+  'pd_log_entry': {'ar': 'سجل يومي', 'en': 'Daily Log'},
+  'pd_add_log_title': {'ar': 'إضافة سجل يومي', 'en': 'Add Daily Log'},
+  'pd_field_description': {'ar': 'وصف العمل اليومي *', 'en': 'Daily Work Description *'},
+  'pd_field_work_completed': {'ar': 'الأعمال المنجزة', 'en': 'Work Completed'},
+  'pd_field_issues': {'ar': 'مشاكل واجهت العمل (اختياري)', 'en': 'Issues Encountered (optional)'},
+  'pd_workers_on_site': {'ar': 'عمال الموقع:', 'en': 'Workers on Site:'},
+
+  // ═══ IMPACT INBOX (P1-001d — i18n Completeness) ═══
+  'time_ago_just_now': {'ar': 'الآن', 'en': 'Just now'},
+
+  // ═══ PHOTO UPLOADER (P1-001e — i18n Completeness) ═══
+  'pu_camera': {'ar': 'الكاميرا', 'en': 'Camera'},
+  'pu_gallery': {'ar': 'المعرض', 'en': 'Gallery'},
+  'pu_max_photos': {'ar': 'الحد الأقصى \$1 صور', 'en': 'Maximum \$1 photos'},
+  'pu_photos_counter': {'ar': '\$1 / \$2 صور', 'en': '\$1 / \$2 photos'},
+  'pu_add_damage_photos': {'ar': 'أضف صور الأضرار', 'en': 'Add Damage Photos'},
+
+  // ═══ REVIEWS SCREEN (P1-001f — i18n Completeness) ═══
+  'rv_title': {'ar': 'تقييمات \$1', 'en': '\$1 Reviews'},
+  'rv_add_review': {'ar': 'أضف تقييم', 'en': 'Add Review'},
+  'rv_total_reviews': {'ar': '\$1 تقييم', 'en': '\$1 reviews'},
+  'rv_trust_score': {'ar': 'نقاط الثقة', 'en': 'Trust Score'},
+  'rv_helpful': {'ar': 'مفيد (\$1)', 'en': 'Helpful (\$1)'},
+  'rv_add_review_title': {'ar': 'إضافة تقييم', 'en': 'Add Review'},
+  'rv_field_title': {'ar': 'عنوان التقييم (اختياري)', 'en': 'Review Title (optional)'},
+  'rv_field_body': {'ar': 'تفاصيل التقييم *', 'en': 'Review Details *'},
+  'rv_submit': {'ar': 'إرسال التقييم', 'en': 'Submit Review'},
+
+  // ═══ SPATIAL CAMERA (P1-001g — i18n Completeness) ═══
+  'sc_perm_required': {'ar': 'صلاحيات الكاميرا والموقع مطلوبة للإثبات المكاني.', 'en': 'Camera and location permissions are required for spatial proof.'},
+  'sc_init_error': {'ar': 'خطأ في التهيئة: \$1', 'en': 'Initialization error: \$1'},
+  'sc_distance_warning': {'ar': 'أنت بعيد عن موقع المشروع بمسافة \$1 متر. الحد الأقصى هو 150 متر.', 'en': 'You are \$1 meters away from the project site. Maximum distance is 150 meters.'},
+  'sc_capture_failed': {'ar': 'فشل الالتقاط: \$1', 'en': 'Capture failed: \$1'},
+  'sc_initializing': {'ar': 'جارِ تأمين الاتصال بالأجهزة...', 'en': 'Securing hardware connection...'},
+  'sc_proof_success': {'ar': '✅ تم تشفير ورفع الإثبات المكاني بنجاح!', 'en': '✅ Spatial proof encrypted and uploaded successfully!'},
+  'sc_error_prefix': {'ar': 'خطأ: \$1', 'en': 'Error: \$1'},
+  'sc_latitude': {'ar': 'خط العرض: \$1', 'en': 'Lat: \$1'},
+  'sc_longitude': {'ar': 'خط الطول: \$1', 'en': 'Lng: \$1'},
+  'sc_accuracy': {'ar': 'الدقة: ±\$1م', 'en': 'Accuracy: ±\$1m'},
+  'sc_signature_secured': {'ar': 'التوقيع الأساسي مُؤمّن', 'en': 'Base signature secured'},
+
+  // ═══ OPEN DATA (P1-001h — i18n Completeness) ═══
+  'od_project_count': {'ar': '\$1 مشروع', 'en': '\$1 projects'},
+
+  // ═══ DAMAGE REPORT (P1-001i — i18n Completeness) ═══
+  'err_gps_permission_required': {'ar': 'صلاحية الموقع مطلوبة لتحديد الإحداثيات', 'en': 'Location permission is required to determine coordinates'},
+  'dr_project_title_template': {'ar': 'إصلاح \$1 — \$2', 'en': 'Repair \$1 — \$2'},
+
+  // ═══ PRICING BLOC (P1-001j — i18n Completeness) ═══
+  'msg_subscription_success': {'ar': 'تم الاشتراك بنجاح', 'en': 'Subscribed successfully'},
+
+  // ═══ EMPTY STATE CTAs (P3-001 — Polish) ═══
+  'cta_browse_projects': {'ar': 'تصفّح المشاريع المتاحة', 'en': 'Browse Available Projects'},
+  'cta_explore_marketplace': {'ar': 'استكشف سوق المشاريع', 'en': 'Explore Marketplace'},
+  'empty_bids_subtitle': {'ar': 'ابحث عن مشاريع وقدّم عروضك', 'en': 'Find projects and submit your bids'},
+  'empty_contracts_subtitle': {'ar': 'العقود ستظهر هنا عند إنشائها', 'en': 'Contracts will appear here when created'},
+  'empty_od_subtitle': {'ar': 'لم يتم نشر مشاريع بعد', 'en': 'No projects published yet'},
+
+  // ═══ DISCARD CONFIRMATION (P3-003 — Polish) ═══
+  'dr_discard_title': {'ar': 'هل تريد المغادرة؟', 'en': 'Leave Report?'},
+  'dr_discard_body': {'ar': 'سيتم فقدان جميع البيانات المُدخلة. هل أنت متأكد؟', 'en': 'All entered data will be lost. Are you sure?'},
+  'dr_discard_leave': {'ar': 'مغادرة', 'en': 'Leave'},
+  'dr_discard_stay': {'ar': 'متابعة التعبئة', 'en': 'Continue Editing'},
 };

@@ -21,96 +21,64 @@ import '../bloc/billing_toggle_cubit.dart';
 // Per profitability study §2: SaaS Monetization — Geo-appropriate pricing.
 // $15 Pro for local Syrian contractors, $49 Business for firms,
 // $99 Enterprise for international organizations.
+//
+// P1-001b: Full i18n — all strings resolved via translation keys.
 // ═══════════════════════════════════════════════════════════════════════════
 
 class PricingScreen extends StatelessWidget {
   const PricingScreen({super.key});
 
-  // Price constants (cents)
+  // ── Tier definitions — i18n keys only, no hardcoded strings ──
   static const _tiers = [
     _PricingTier(
       slug: 'free',
-      nameAr: 'مجاني',
-      nameEn: 'Free',
+      nameKey: 'price_tier_free',
       monthlyPriceCents: 0,
-      features: [
-        'تصفح المشاريع',
-        'تتبع التمويل',
-        'خريطة المشاريع التفاعلية',
-        'إشعارات أساسية',
-      ],
-      featuresEn: [
-        'Browse Projects',
-        'Track Funding',
-        'Interactive Project Map',
-        'Basic Notifications',
+      featureKeys: [
+        'price_free_f1',
+        'price_free_f2',
+        'price_free_f3',
+        'price_free_f4',
       ],
     ),
     _PricingTier(
       slug: 'pro',
-      nameAr: 'احترافي',
-      nameEn: 'Pro',
+      nameKey: 'price_tier_pro',
       monthlyPriceCents: 1500,
       highlighted: true,
-      features: [
-        'جميع ميزات المجاني',
-        'تقارير OCDS مفصلة',
-        'أولوية في محرك التوفيق',
-        'كاميرا مكانية GPS',
-        'دعم فني مباشر',
-      ],
-      featuresEn: [
-        'All Free features',
-        'Detailed OCDS reports',
-        'Priority matchmaking',
-        'GPS Spatial Camera',
-        'Direct tech support',
+      featureKeys: [
+        'price_pro_f1',
+        'price_pro_f2',
+        'price_pro_f3',
+        'price_pro_f4',
+        'price_pro_f5',
       ],
     ),
     _PricingTier(
       slug: 'business',
-      nameAr: 'أعمال',
-      nameEn: 'Business',
+      nameKey: 'price_tier_business',
       monthlyPriceCents: 4900,
-      features: [
-        'جميع ميزات الاحترافي',
-        'لوحة تحكم متقدمة',
-        'تحليلات الإيرادات',
-        'إدارة فريق متعدد',
-        'API وصول كامل',
-        'تقارير مخصصة PDF/XLSX',
-      ],
-      featuresEn: [
-        'All Pro features',
-        'Advanced Dashboard',
-        'Revenue Analytics',
-        'Multi-team Management',
-        'Full API Access',
-        'Custom PDF/XLSX Reports',
+      featureKeys: [
+        'price_biz_f1',
+        'price_biz_f2',
+        'price_biz_f3',
+        'price_biz_f4',
+        'price_biz_f5',
+        'price_biz_f6',
       ],
     ),
     _PricingTier(
       slug: 'enterprise',
-      nameAr: 'مؤسسات',
-      nameEn: 'Enterprise',
+      nameKey: 'price_tier_enterprise',
       monthlyPriceCents: 9900,
-      features: [
-        'جميع ميزات الأعمال',
-        'بيئة مخصصة',
-        'SLA مضمون',
-        'مدير حساب مخصص',
-        'تدريب وإعداد مخصص',
-        'تكامل مخصص',
-        'فحص عقوبات OFAC/SDN',
-      ],
-      featuresEn: [
-        'All Business features',
-        'Dedicated Environment',
-        'Guaranteed SLA',
-        'Dedicated Account Manager',
-        'Custom Onboarding & Training',
-        'Custom Integration',
-        'OFAC/SDN Sanctions Screening',
+      featureKeys: [
+        'price_ent_f1',
+        'price_ent_f2',
+        'price_ent_f3',
+        'price_ent_f4',
+        'price_ent_f5',
+        'price_ent_f6',
+        'price_ent_f7',
       ],
     ),
   ];
@@ -126,7 +94,7 @@ class PricingScreen extends StatelessWidget {
         builder: (context, isYearly) {
           return Scaffold(
       appBar: AppBar(
-        title: Text(context.tr('str_7e2f72d3')), // 'الأسعار والاشتراكات' or fallback
+        title: Text(context.tr('price_title')),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -135,7 +103,7 @@ class PricingScreen extends StatelessWidget {
           children: [
             // ── Header ──────────────────────────────────────────────
             Text(
-              'اختر الخطة المناسبة لمشروعك',
+              context.tr('price_choose_plan'),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -143,7 +111,7 @@ class PricingScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'جميع الخطط تشمل الشفافية الكاملة وتتبع الأموال',
+              context.tr('price_all_plans_include'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -175,7 +143,7 @@ class PricingScreen extends StatelessWidget {
 
             // ── Footer ──────────────────────────────────────────────
             Text(
-              'جميع الأسعار بالدولار الأمريكي. الاشتراك السنوي يوفر 20%.',
+              context.tr('price_footer_note'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -200,12 +168,12 @@ class PricingScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _toggleButton('شهري', !isYearly, colors, () {
+          _toggleButton(context.tr('price_monthly'), !isYearly, colors, () {
             HapticFeedback.selectionClick();
             context.read<BillingToggleCubit>().setMonthly();
           }),
           const SizedBox(width: 4),
-          _toggleButton('سنوي (-20%)', isYearly, colors, () {
+          _toggleButton(context.tr('price_yearly_discount'), isYearly, colors, () {
             HapticFeedback.selectionClick();
             context.read<BillingToggleCubit>().setYearly();
           }),
@@ -242,13 +210,13 @@ class PricingScreen extends StatelessWidget {
         ? (tier.monthlyPriceCents * 0.80).round()
         : tier.monthlyPriceCents;
     final priceStr = tier.monthlyPriceCents == 0
-        ? 'مجاني'
+        ? context.tr('price_tier_free')
         : '\$${(priceCents / 100).toStringAsFixed(0)}';
     final interval = tier.monthlyPriceCents == 0
         ? ''
         : isYearly
-            ? '/شهر (سنوي)'
-            : '/شهر';
+            ? context.tr('price_per_month_yearly')
+            : context.tr('price_per_month');
 
     return Container(
       width: double.infinity,
@@ -298,11 +266,11 @@ class PricingScreen extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('الأكثر شيوعاً',
-                        style: TextStyle(color: Colors.white, fontSize: 11)),
+                    child: Text(context.tr('price_most_popular'),
+                        style: const TextStyle(color: Colors.white, fontSize: 11)),
                   ),
                 Text(
-                  tier.nameAr,
+                  context.tr(tier.nameKey),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -352,7 +320,7 @@ class PricingScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                ...tier.features.map((feature) => Padding(
+                ...tier.featureKeys.map((key) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
@@ -360,7 +328,7 @@ class PricingScreen extends StatelessWidget {
                               size: 18, color: const Color(0xFF0A6E55)),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(feature,
+                            child: Text(context.tr(key),
                                 style: TextStyle(
                                     fontSize: 13.5,
                                     color: colors.textPrimary)),
@@ -394,10 +362,10 @@ class PricingScreen extends StatelessWidget {
                     ),
                     child: Text(
                       tier.slug == 'free'
-                          ? 'ابدأ مجاناً'
+                          ? context.tr('price_start_free')
                           : tier.slug == 'enterprise'
-                              ? 'تواصل معنا'
-                              : 'اشترك الآن',
+                              ? context.tr('price_contact_us')
+                              : context.tr('price_subscribe_now'),
                       style: const TextStyle(
                           fontWeight: FontWeight.w600, fontSize: 15),
                     ),
@@ -426,23 +394,21 @@ class PricingScreen extends StatelessWidget {
 }
 
 // ─── Data Model ─────────────────────────────────────────────────────────────
+// P1-001b REFACTOR: Stores translation KEYS instead of literal strings.
+// Resolved at render time via context.tr(key).
 
 class _PricingTier {
   final String slug;
-  final String nameAr;
-  final String nameEn;
+  final String nameKey;
   final int monthlyPriceCents;
   final bool highlighted;
-  final List<String> features;
-  final List<String> featuresEn;
+  final List<String> featureKeys;
 
   const _PricingTier({
     required this.slug,
-    required this.nameAr,
-    required this.nameEn,
+    required this.nameKey,
     required this.monthlyPriceCents,
     this.highlighted = false,
-    required this.features,
-    required this.featuresEn,
+    required this.featureKeys,
   });
 }

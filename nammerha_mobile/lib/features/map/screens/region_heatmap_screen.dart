@@ -132,7 +132,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Column(children: [
-                      Icon(PhosphorIconsRegular.warningCircle, color: Colors.white, size: 36),
+                      Icon(PhosphorIconsRegular.mapTrifold, color: Colors.white, size: 36),
                       const SizedBox(height: 8),
                       Text('${stats['total_regions'] ?? regions.length} محافظة', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
                       Text('${stats['total_projects'] ?? 0} مشروع إعادة إعمار', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
@@ -198,7 +198,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
           Container(
             width: 40, height: 40,
             decoration: BoxDecoration(color: heatColor.withAlpha(20), borderRadius: BorderRadius.circular(10)),
-            child: Icon(PhosphorIconsRegular.warningCircle, color: heatColor, size: 20),
+            child: Icon(PhosphorIconsRegular.mapPin, color: heatColor, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

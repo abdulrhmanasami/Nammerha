@@ -56,6 +56,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // UNIFIED DASHBOARD: All users see the same navigation.
   // Admin/Auditor get admin-specific pages. Everyone else gets unified tabs.
   // No role switching — all tools accessible from Quick Actions.
+  //
+  // P2-001 AUDIT: setState RETAINED (Platinum Approved) — Lazy tab visited
+  // tracking (_visitedTabs) is ephemeral navigation state. Prevents building
+  // unvisited tabs on resource-constrained 2G devices. Not API state.
   // ═══════════════════════════════════════════════════════════════════════════
 
   bool get _isAdmin => widget.role == 'ADMIN' || widget.role == 'AUDITOR';
@@ -418,7 +422,7 @@ class _DashboardHomeView extends StatelessWidget {
                             child: Column(
                               children: [
                                 Icon(
-                                  PhosphorIconsRegular.warningCircle,
+                                  PhosphorIconsRegular.cloudSlash,
                                   color: colors.error,
                                   size: 32,
                                 ),

@@ -313,7 +313,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           // Submit
           GradientButton(
             label: 'تعيين كلمة المرور الجديدة',
-            icon: PhosphorIconsRegular.warningCircle,
+            icon: PhosphorIconsRegular.lockKey,
             isLoading: formState.isSubmitting,
             onPressed: () => _submit(context),
           ),

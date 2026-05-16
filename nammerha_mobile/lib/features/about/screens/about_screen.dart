@@ -10,6 +10,9 @@ import '../../../core/i18n/t.dart';
 
 /// About Screen — platform info, mission, team, and legal links.
 /// GAP-M5 FIX: Previously web-only (about.ts).
+///
+/// P2-001 AUDIT: setState RETAINED (Platinum Approved) — One-time platform
+/// query (PackageInfo). Version string is ephemeral and does not justify a Cubit.
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
 
@@ -73,15 +76,15 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 14),
 
           // Standards
-          _sectionCard(colors, icon: PhosphorIconsRegular.warningCircle, title: context.tr('about_standards'), body:
+          _sectionCard(colors, icon: PhosphorIconsRegular.certificate, title: context.tr('about_standards'), body:
             context.tr('about_standards_body'),
           ),
           const SizedBox(height: 24),
 
           // Links
-          _linkTile(colors, PhosphorIconsRegular.warningCircle, context.tr('about_privacy_policy'), 'https://nammerha.com/privacy'),
+          _linkTile(colors, PhosphorIconsRegular.shieldCheck, context.tr('about_privacy_policy'), 'https://nammerha.com/privacy'),
           _linkTile(colors, PhosphorIconsRegular.fileText, context.tr('about_terms'), 'https://nammerha.com/terms'),
-          _linkTile(colors, PhosphorIconsRegular.warningCircle, context.tr('about_open_data'), 'https://nammerha.com/open-data'),
+          _linkTile(colors, PhosphorIconsRegular.database, context.tr('about_open_data'), 'https://nammerha.com/open-data'),
           const SizedBox(height: 20),
 
           // Copyright

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Photo Uploader — Multi-photo picker with upload progress
@@ -81,7 +82,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
     final colors = context.colors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('الحد الأقصى ${widget.maxPhotos} صور'),
+        content: Text(context.tr('pu_max_photos').replaceAll('\$1', '${widget.maxPhotos}')),
         backgroundColor: colors.warning,
       ),
     );
@@ -100,7 +101,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
             Expanded(
               child: _actionButton(
                 icon: PhosphorIconsRegular.camera,
-                label: 'الكاميرا',
+                label: context.tr('pu_camera'),
                 onTap: _pickFromCamera,
                 colors: colors,
               ),
@@ -109,7 +110,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
             Expanded(
               child: _actionButton(
                 icon: PhosphorIconsRegular.images,
-                label: 'المعرض',
+                label: context.tr('pu_gallery'),
                 onTap: _pickFromGallery,
                 colors: colors,
               ),
@@ -120,7 +121,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
 
         // Counter
         Text(
-          '${widget.photos.length} / ${widget.maxPhotos} صور',
+          context.tr('pu_photos_counter').replaceAll('\$1', '${widget.photos.length}').replaceAll('\$2', '${widget.maxPhotos}'),
           style: TextStyle(
             fontSize: 13,
             color: colors.textSecondary,
@@ -161,7 +162,7 @@ class _PhotoUploaderState extends State<PhotoUploader> {
                 Icon(PhosphorIconsRegular.cameraPlus, size: 36, color: colors.textSubtle),
                 const SizedBox(height: 8),
                 Text(
-                  'أضف صور الأضرار',
+                  context.tr('pu_add_damage_photos'),
                   style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 ),
               ],

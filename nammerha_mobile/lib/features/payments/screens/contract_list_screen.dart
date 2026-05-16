@@ -239,16 +239,37 @@ class _ContractListView extends StatelessWidget {
 
   Widget _buildEmpty(BuildContext context, SemanticColors colors) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(PhosphorIconsRegular.fileText, size: 64, color: colors.textSecondary),
-          const SizedBox(height: 16),
-          Text(
-            context.tr('no_contracts'),
-            style: TextStyle(fontSize: 16, color: colors.textSecondary),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(PhosphorIconsRegular.fileText, size: 64, color: colors.textSecondary),
+            const SizedBox(height: 16),
+            Text(
+              context.tr('no_contracts'),
+              style: TextStyle(fontSize: 16, color: colors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.tr('empty_contracts_subtitle'),
+              style: TextStyle(fontSize: 13, color: colors.textSubtle),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(PhosphorIconsRegular.arrowLeft, size: 18),
+              label: Text(context.tr('cta_explore_marketplace')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.primaryBrand,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

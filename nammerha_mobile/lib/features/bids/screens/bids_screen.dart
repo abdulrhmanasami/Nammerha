@@ -4,18 +4,20 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart';
-import '../../../core/network/api_client.dart';
-import '../../../core/utils/error_localizer.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/bids_fetch_cubit.dart';
+import '../models/bid_model.dart';
 import '../../payments/screens/contract_list_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// BidsScreen — Platinum Standard (Absolute Zero setState)
+/// BidsScreen — Platinum Standard (P1-002 Architectural Purity)
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Data loading lifecycle managed via BidsFetchCubit.
+/// PURE PRESENTATION LAYER — Zero API calls, zero raw Map access.
+/// Data lifecycle fully owned by BidsFetchCubit.
+/// All bid data accessed via typed BidModel.
 /// ═══════════════════════════════════════════════════════════════════════════
 
 class BidsScreen extends StatelessWidget {
@@ -24,40 +26,14 @@ class BidsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => BidsFetchCubit(),
+      create: (_) => BidsFetchCubit()..fetchBids(),
       child: const _BidsScreenContent(),
     );
   }
 }
 
-class _BidsScreenContent extends StatefulWidget {
+class _BidsScreenContent extends StatelessWidget {
   const _BidsScreenContent();
-
-  @override
-  State<_BidsScreenContent> createState() => _BidsScreenContentState();
-}
-
-class _BidsScreenContentState extends State<_BidsScreenContent> {
-  final EngineerApi _engineerApi = EngineerApi();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBids();
-  }
-
-  Future<void> _loadBids() async {
-    final cubit = context.read<BidsFetchCubit>();
-    cubit.setLoading();
-    try {
-      final bids = await _engineerApi.getBids();
-      cubit.setLoaded(bids);
-    } on ApiException catch (e) {
-      cubit.setError(localizeApiError(e.message));
-    } catch (e) {
-      cubit.setError('حدث خطأ في تحميل العروض');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +55,12 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
         ],
       ),
       body: BlocBuilder<BidsFetchCubit, BidsFetchState>(
-        builder: (context, state) => _buildBody(colors, state),
+        builder: (context, state) => _buildBody(context, colors, state),
       ),
     );
   }
 
-  Widget _buildBody(SemanticColors colors, BidsFetchState state) {
+  Widget _buildBody(BuildContext context, SemanticColors colors, BidsFetchState state) {
     if (state.isLoading) {
       return NammerhaShimmerLoader(colors: colors, itemCount: 4);
     }
@@ -98,11 +74,11 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
             children: [
               Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
               const SizedBox(height: 16),
-              Text(state.error!, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
+              Text(context.tr(state.error!), style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
               const SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: _loadBids,
-                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
+                onPressed: () => context.read<BidsFetchCubit>().fetchBids(),
+                icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
                 label: Text(context.tr('retry')),
                 style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
               ),
@@ -120,131 +96,141 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
             Icon(PhosphorIconsRegular.gavel, size: 64, color: colors.textSecondary),
             const SizedBox(height: 16),
             Text(context.tr('no_bids_yet'), style: TextStyle(color: colors.textSecondary, fontSize: 16)),
+            const SizedBox(height: 8),
+            Text(context.tr('empty_bids_subtitle'), style: TextStyle(color: colors.textSubtle, fontSize: 13), textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => _showAddBidDialog(context, colors),
+              icon: const Icon(PhosphorIconsRegular.plusCircle, size: 18),
+              label: Text(context.tr('cta_browse_projects')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.primaryBrand,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ],
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: _loadBids,
+      onRefresh: () => context.read<BidsFetchCubit>().fetchBids(),
       color: colors.primaryBrand,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: state.bids.length,
-        itemBuilder: (context, index) {
-          final bid = state.bids[index];
-          final status = (bid['status'] ?? '') as String;
-          final projectTitle = bid['project_title'] ?? bid['projectTitle'] ?? '';
-          final bidAmount = bid['proposed_cost'] ?? bid['bidAmount'] ?? 0;
-          final methodology = bid['methodology'] ?? bid['cover_letter'] ?? '';
-
-          Color statusColor;
-          IconData statusIcon;
-          String statusLabel;
-          switch (status.toLowerCase()) {
-            case 'accepted':
-            case 'مقبول':
-              statusColor = colors.success;
-              statusIcon = PhosphorIconsRegular.checkCircle;
-              statusLabel = context.tr('accepted');
-              break;
-            case 'rejected':
-            case 'مرفوض':
-              statusColor = colors.error;
-              statusIcon = PhosphorIconsRegular.warningCircle;
-              statusLabel = context.tr('admin_filter_rejected');
-              break;
-            default:
-              statusColor = colors.warning;
-              statusIcon = PhosphorIconsRegular.hourglassHigh;
-              statusLabel = 'قيد المراجعة';
-          }
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: colors.surfaceElevated,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colors.strokeSubtle),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        projectTitle.toString(),
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withAlpha(15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(statusIcon, size: 14, color: statusColor),
-                          const SizedBox(width: 4),
-                          Text(statusLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colors.backgroundSecondary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildRow(context, 'قيمة العرض', formatCurrency(bidAmount as num)),
-                      const SizedBox(height: 6),
-                      _buildRow(context, context.tr('methodology'), methodology.toString()),
-                    ],
-                  ),
-                ),
-                // Phase 4: CTA for accepted bids → contract creation
-                if (status.toLowerCase() == 'accepted' || status == 'مقبول') ...[
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ContractListScreen()),
-                        );
-                      },
-                      icon: const Icon(PhosphorIconsRegular.fileText, size: 18),
-                      label: Text(context.tr('create_contract')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.primaryBrand,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          )
-              .animate(delay: (index * 120).ms)
-              .fadeIn()
-              .slideY(begin: 0.08, end: 0);
-        },
+        itemBuilder: (context, index) => _bidCard(context, colors, state.bids[index], index),
       ),
     );
+  }
+
+  Widget _bidCard(BuildContext context, SemanticColors colors, BidModel bid, int index) {
+    // Resolve status display from normalizedStatus
+    final Color statusColor;
+    final IconData statusIcon;
+    final String statusLabel;
+
+    switch (bid.normalizedStatus) {
+      case 'accepted':
+        statusColor = colors.success;
+        statusIcon = PhosphorIconsRegular.checkCircle;
+        statusLabel = context.tr('accepted');
+        break;
+      case 'rejected':
+        statusColor = colors.error;
+        statusIcon = PhosphorIconsRegular.xCircle;
+        statusLabel = context.tr('admin_filter_rejected');
+        break;
+      default:
+        statusColor = colors.warning;
+        statusIcon = PhosphorIconsRegular.hourglassHigh;
+        statusLabel = context.tr('bid_under_review');
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.strokeSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  bid.projectTitle,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withAlpha(15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(statusIcon, size: 14, color: statusColor),
+                    const SizedBox(width: 4),
+                    Text(statusLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colors.backgroundSecondary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                _buildRow(context, context.tr('bid_value'), formatCurrency(bid.proposedCost)),
+                const SizedBox(height: 6),
+                _buildRow(context, context.tr('methodology'), bid.methodology),
+              ],
+            ),
+          ),
+          // Phase 4: CTA for accepted bids → contract creation
+          if (bid.normalizedStatus == 'accepted') ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ContractListScreen()),
+                  );
+                },
+                icon: const Icon(PhosphorIconsRegular.fileText, size: 18),
+                label: Text(context.tr('create_contract')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colors.primaryBrand,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    )
+        .animate(delay: (index * 120).ms)
+        .fadeIn()
+        .slideY(begin: 0.08, end: 0);
   }
 
   Widget _buildRow(BuildContext context, String label, String value) {
@@ -284,27 +270,27 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     BottomSheetGrabber(colors: colors),
-                    Text('فرز وتصفية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
+                    Text(context.tr('bid_filter_sort'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
                     const SizedBox(height: 20),
-                    Text('حالة العرض', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+                    Text(context.tr('bid_status_label'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
                       children: [
-                        _filterChip(ctx, 'الكل', 'all', colors),
-                        _filterChip(ctx, 'قيد المراجعة', 'pending', colors),
-                        _filterChip(ctx, 'مقبول', 'approved', colors),
-                        _filterChip(ctx, 'مرفوض', 'rejected', colors),
+                        _filterChip(ctx, context.tr('filter_all'), 'all', colors),
+                        _filterChip(ctx, context.tr('bid_under_review'), 'pending', colors),
+                        _filterChip(ctx, context.tr('ct_bid_accepted'), 'accepted', colors),
+                        _filterChip(ctx, context.tr('ct_bid_rejected'), 'rejected', colors),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    Text('القيمة المالية', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
+                    Text(context.tr('bid_amount_section'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textSecondary)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
                       children: [
-                        _sortChip(ctx, 'الأعلى قيمة', 'highest_amount', colors),
-                        _sortChip(ctx, 'الأقل قيمة', 'lowest_amount', colors),
+                        _sortChip(ctx, context.tr('bid_sort_highest'), 'highest_amount', colors),
+                        _sortChip(ctx, context.tr('bid_sort_lowest'), 'lowest_amount', colors),
                       ],
                     ),
                     SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
@@ -328,6 +314,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
       selected: isActive,
       onSelected: (selected) {
         if (selected) {
+          Haptics.select();
           cubit.applyFilter(filter: filterValue, sort: state.activeSort);
           Navigator.pop(context);
         }
@@ -346,6 +333,7 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
       label: Text(label),
       selected: isActive,
       onSelected: (selected) {
+        Haptics.select();
         cubit.applyFilter(filter: state.activeFilter, sort: selected ? sortValue : null);
         Navigator.pop(context);
       },
@@ -361,11 +349,11 @@ class _BidsScreenContentState extends State<_BidsScreenContent> {
         backgroundColor: colors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(context.tr('submit_new_bid'), style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w800)),
-        content: Text('يرجى اختيار المشروع من "سوق المشاريع" لتقديم العرض عليه، لا يمكن تقديم عرض عشوائي.', style: TextStyle(color: colors.textSecondary)),
+        content: Text(context.tr('bid_select_project_hint'), style: TextStyle(color: colors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('حسناً', style: TextStyle(color: colors.primaryBrand, fontWeight: FontWeight.bold)),
+            child: Text(context.tr('ok'), style: TextStyle(color: colors.primaryBrand, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

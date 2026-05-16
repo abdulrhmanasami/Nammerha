@@ -180,7 +180,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 64, color: colors.error),
+                  Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.error),
                   const SizedBox(height: 16),
                   Text(context.tr('sp_load_error'), style: TextStyle(color: colors.textPrimary)),
                   const SizedBox(height: 8),

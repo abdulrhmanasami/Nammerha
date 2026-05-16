@@ -9,6 +9,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 // - Share via system share sheet
 // - Error handling with retry
 // - RTL-safe layout
+//
+// P2-001 AUDIT: setState RETAINED (Platinum Approved) — Hardware controller
+// pattern. Download progress, page count, and error states are ephemeral,
+// widget-scoped, and do not justify a Cubit/BLoC.
 // ============================================================================
 
 
@@ -307,7 +311,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                PhosphorIconsRegular.warningCircle,
+                PhosphorIconsRegular.fileX,
                 size: 40,
                 color: colors.error,
               ),
@@ -352,7 +356,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
               },
-              icon: Icon(PhosphorIconsRegular.warningCircle, color: colors.textSecondary, size: 18),
+              icon: Icon(PhosphorIconsRegular.arrowSquareOut, color: colors.textSecondary, size: 18),
               label: Text(
                 'فتح في المتصفح',
                 style: TextStyle(color: colors.textSecondary, fontSize: 13),

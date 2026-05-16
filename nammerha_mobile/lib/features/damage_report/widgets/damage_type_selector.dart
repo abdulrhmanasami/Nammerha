@@ -40,19 +40,19 @@ class DamageTypeSelector extends StatelessWidget {
     DamageCategory(
       key: 'structural',
       label: 'dmg_structural',
-      icon: PhosphorIconsRegular.warningCircle,
+      icon: PhosphorIconsRegular.buildings,
       colorGetter: (c) => c.error,
     ),
     DamageCategory(
       key: 'electrical',
       label: 'dmg_electrical',
-      icon: PhosphorIconsRegular.warningCircle,
+      icon: PhosphorIconsRegular.lightning,
       colorGetter: (c) => c.warning,
     ),
     DamageCategory(
       key: 'plumbing',
       label: 'dmg_plumbing',
-      icon: PhosphorIconsRegular.warningCircle,
+      icon: PhosphorIconsRegular.drop,
       colorGetter: (c) => c.info,
     ),
     DamageCategory(
@@ -64,7 +64,7 @@ class DamageTypeSelector extends StatelessWidget {
     DamageCategory(
       key: 'roofing',
       label: 'dmg_roofing',
-      icon: PhosphorIconsRegular.warningCircle,
+      icon: PhosphorIconsRegular.house,
       colorGetter: (c) => c.primaryBrand,
     ),
     DamageCategory(

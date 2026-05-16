@@ -62,6 +62,7 @@ abstract final class ErrorKeys {
 
   // ─── Damage Report ────────────────────────────────────────────────────
   static const damageReportFailed = 'err_damage_report_failed';
+  static const gpsPermissionRequired = 'err_gps_permission_required';
 
   // ─── Map ───────────────────────────────────────────────────────────────
   static const mapLoadFailed = 'err_map_load_failed';

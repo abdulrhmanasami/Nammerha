@@ -306,7 +306,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: state.isLoading ? null : _calculateAdjustment,
-            icon: Icon(state.isLoading ? PhosphorIconsRegular.hourglassHigh : PhosphorIconsRegular.warningCircle, size: 18),
+            icon: Icon(state.isLoading ? PhosphorIconsRegular.hourglassHigh : PhosphorIconsRegular.calculator, size: 18),
             label: Text(state.isLoading ? 'جارِ الحساب...' : 'احسب التعديل'),
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryBrand,
@@ -396,7 +396,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
             ),
             child: Row(
               children: [
-                Icon(PhosphorIconsRegular.warningCircle, color: colors.primaryBrand),
+                Icon(PhosphorIconsRegular.chartBar, color: colors.primaryBrand),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

@@ -267,7 +267,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                 const SizedBox(height: 32),
                 GradientButton(
                   label: selectedTierIndex == 0 ? context.tr('sp_sub_free_btn') : context.tr('sp_sub_upgrade_btn'),
-                  icon: selectedTierIndex == 0 ? PhosphorIconsRegular.arrowRight : PhosphorIconsRegular.warningCircle,
+                  icon: selectedTierIndex == 0 ? PhosphorIconsRegular.arrowRight : PhosphorIconsRegular.crownSimple,
                   isLoading: state.isSubscribing,
                   onPressed: () => _processSubscription(tiers),
                 ).animate(delay: 600.ms).fadeIn(),

@@ -95,7 +95,7 @@ class OpenDataScreen extends StatelessWidget {
         const SizedBox(height: 14),
         OutlinedButton.icon(
           onPressed: () => launchUrl(Uri.parse('https://standard.open-contracting.org/'), mode: LaunchMode.externalApplication),
-          icon: Icon(PhosphorIconsRegular.warningCircle, size: 16, color: Colors.white),
+          icon: Icon(PhosphorIconsRegular.arrowSquareOut, size: 16, color: Colors.white),
           label: Text(context.tr('learn_more'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white38), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
         ),
@@ -107,7 +107,7 @@ class OpenDataScreen extends StatelessWidget {
     final items = [
       _StatItem(context.tr('od_published_projects'), '${stats['total_projects'] ?? total}', PhosphorIconsRegular.article, colors.primaryBrand),
       _StatItem(context.tr('od_total_funding'), _formatCurrency((stats['total_funding'] ?? 0) as num), PhosphorIconsRegular.bank, colors.secondaryAccent),
-      _StatItem(context.tr('funders'), '${stats['total_donors'] ?? 0}', PhosphorIconsRegular.warningCircle, colors.info),
+      _StatItem(context.tr('funders'), '${stats['total_donors'] ?? 0}', PhosphorIconsRegular.handHeart, colors.info),
       _StatItem(context.tr('admin_contractors'), '${stats['total_contractors'] ?? 0}', PhosphorIconsRegular.hardHat, colors.success),
       _StatItem(context.tr('od_completed_projects'), '${stats['completed_projects'] ?? 0}', PhosphorIconsRegular.checkCircle, colors.success),
       _StatItem(context.tr('od_regions_covered'), '${stats['total_regions'] ?? 0}', PhosphorIconsRegular.mapTrifold, colors.warning),
@@ -149,16 +149,18 @@ class OpenDataScreen extends StatelessWidget {
       Row(children: [
         Text(context.tr('od_published_projects'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         const Spacer(),
-        Text('$total مشروع', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+        Text(context.tr('od_project_count').replaceAll('\$1', '$total'), style: TextStyle(fontSize: 12, color: colors.textSubtle)),
       ]),
       const SizedBox(height: 12),
       if (projects.isEmpty)
         Center(child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(children: [
-            Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.textSubtle),
+            Icon(PhosphorIconsRegular.tray, size: 48, color: colors.textSubtle),
             const SizedBox(height: 12),
             Text(context.tr('od_no_projects'), style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+            const SizedBox(height: 6),
+            Text(context.tr('empty_od_subtitle'), style: TextStyle(fontSize: 12, color: colors.textSubtle), textAlign: TextAlign.center),
           ]),
         ))
       else

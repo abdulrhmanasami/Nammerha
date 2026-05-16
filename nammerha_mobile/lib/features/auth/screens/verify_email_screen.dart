@@ -100,11 +100,11 @@ class _VerifyEmailView extends StatelessWidget {
       iconColor = colors.success;
       bgColor = colors.success.withAlpha(15);
     } else if (state is VerifyEmailExpired) {
-      icon = PhosphorIconsRegular.warningCircle;
+      icon = PhosphorIconsRegular.clockCountdown;
       iconColor = colors.warning;
       bgColor = colors.warning.withAlpha(15);
     } else {
-      icon = PhosphorIconsRegular.warningCircle;
+      icon = PhosphorIconsRegular.xCircle;
       iconColor = colors.error;
       bgColor = colors.error.withAlpha(15);
     }

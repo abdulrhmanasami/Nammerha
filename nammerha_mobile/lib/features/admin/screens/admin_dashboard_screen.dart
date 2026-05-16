@@ -70,7 +70,7 @@ class _DashboardView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+          Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
           const SizedBox(height: 12),
           Text(message, style: TextStyle(color: colors.textSecondary, fontSize: 14)),
           const SizedBox(height: 16),
@@ -146,7 +146,7 @@ class _DashboardView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), PhosphorIconsRegular.warningCircle),
+                _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), PhosphorIconsRegular.users),
                 _divider(colors),
                 _buildMiniStat(colors, context.tr('admin_funding'), overview.totalDonations.toString(), PhosphorIconsRegular.heart),
                 _divider(colors),

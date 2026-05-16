@@ -50,7 +50,7 @@ class _RevenueView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+                  Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
                   const SizedBox(height: 12),
                   Text(state.message, style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 16),
@@ -111,13 +111,13 @@ class _RevenueView extends StatelessWidget {
               AdminKpiCard(
                 title: 'عدد المعاملات',
                 value: summary.transactionCount,
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.receipt,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
                 title: 'عمولات الشهر',
                 value: summary.mtdCommissions,
-                icon: PhosphorIconsRegular.warningCircle,
+                icon: PhosphorIconsRegular.calendarBlank,
                 accentColor: colors.info,
                 isCurrency: true,
               ),

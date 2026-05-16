@@ -60,6 +60,14 @@ class DamageReportData extends Equatable {
     }
   }
 
+  /// Whether the user has entered any data that would be lost on discard.
+  bool get isDirty =>
+      damageType != null ||
+      governorate.isNotEmpty ||
+      description.trim().isNotEmpty ||
+      addressText.trim().isNotEmpty ||
+      photos.isNotEmpty;
+
   @override
   List<Object?> get props => [
         currentStep,
