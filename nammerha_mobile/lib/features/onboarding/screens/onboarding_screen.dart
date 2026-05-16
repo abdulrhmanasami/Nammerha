@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
+import '../../../core/utils/animation_budget.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/bloc/page_index_cubit.dart';
 import '../../../core/i18n/t.dart';
@@ -202,21 +203,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 24),
 
                   // Swipe Hint
+                  // AUD-025 FIX: Infinite shimmer guarded by AnimationBudget.
+                  // On 2G devices, this permanent GPU loop is suppressed.
                   if (currentPage < _slides.length - 1)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(PhosphorIconsRegular.arrowsLeftRight, size: 16, color: colors.textSubtle),
-                        const SizedBox(width: 8),
-                        Text(
-                          context.tr('swipe_to_continue'),
-                          style: TextStyle(fontSize: 12, color: colors.textSubtle),
-                        ),
-                      ],
-                    ).animate(onPlay: (controller) => controller.repeat()).shimmer(
-                      duration: 2500.ms,
-                      color: colors.primaryBrand.withAlpha(50),
-                    ),
+                    Builder(builder: (context) {
+                      final swipeRow = Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(PhosphorIconsRegular.arrowsLeftRight, size: 16, color: colors.textSubtle),
+                          const SizedBox(width: 8),
+                          Text(
+                            context.tr('swipe_to_continue'),
+                            style: TextStyle(fontSize: 12, color: colors.textSubtle),
+                          ),
+                        ],
+                      );
+                      if (AnimationBudget.shouldAnimate(context)) {
+                        return swipeRow.animate(onPlay: (c) => c.repeat()).shimmer(
+                          duration: 2500.ms,
+                          color: colors.primaryBrand.withAlpha(50),
+                        );
+                      }
+                      return swipeRow;
+                    }),
                   
                   const SizedBox(height: 16),
 

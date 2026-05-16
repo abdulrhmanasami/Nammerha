@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:isolate';
 import '../../../core/utils/haptics.dart';
@@ -93,7 +94,11 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
       hwCubit.setPermissionsGranted();
 
-      final cameras = await availableCameras();
+      // AUD-009 FIX: Timeout on camera discovery (15s).
+      // On slow 2G devices, availableCameras() can hang indefinitely.
+      final cameras = await availableCameras()
+          .timeout(const Duration(seconds: 15),
+              onTimeout: () => throw TimeoutException(context.tr('sc_camera_timeout')));
       if (cameras.isEmpty) {
         throw Exception(context.tr('no_camera_available'));
       }
@@ -109,12 +114,24 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
         enableAudio: false,
       );
 
-      await _cameraController!.initialize();
-      final position = await Geolocator.getCurrentPosition();
+      // AUD-009 FIX: Timeout on camera initialization (15s).
+      await _cameraController!.initialize()
+          .timeout(const Duration(seconds: 15),
+              onTimeout: () => throw TimeoutException(context.tr('sc_camera_init_timeout')));
+
+      // AUD-009 FIX: Timeout on GPS acquisition (10s).
+      // Cold GPS start on older devices can take 30s+ without timeout.
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(timeLimit: Duration(seconds: 10)),
+      );
       _updateSignatureFromPosition(position);
 
       if (mounted) {
         hwCubit.setReady(lat: position.latitude, lng: position.longitude, acc: position.accuracy);
+      }
+    } on TimeoutException catch (e) {
+      if (mounted) {
+        hwCubit.setError(e.message ?? context.tr('sc_init_timeout_generic'));
       }
     } catch (e) {
       if (mounted) {
@@ -330,29 +347,11 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                 ),
               ),
 
-              // Map Placeholder (PiP)
-              PositionedDirectional(
-                top: 60,
-                end: 16,
-                child: Container(
-                  width: 100,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    color: colors.backgroundSecondary,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white30, width: 2),
-                    boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(PhosphorIconsRegular.warning, color: colors.warning, size: 20),
-                      const SizedBox(height: 4),
-                      Text(context.tr('map'), style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-                    ],
-                  ),
-                ),
-              ),
+              // AUD-008 FIX: Dead map PiP placeholder REMOVED.
+              // Previous: 100×130px container showed ⚠️ warning icon + "Map" text.
+              // This was a non-functional placeholder that wasted viewport space
+              // and displayed a trust-eroding warning icon on the camera screen.
+              // Real minimap can be added in a future phase if needed.
 
               // Capture Button & Loading State
               PositionedDirectional(
@@ -378,22 +377,29 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        GestureDetector(
-                          onTap: isCapturing ? null : _captureSpatialProof,
-                          child: Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                              color: isCapturing ? Colors.grey : colors.primaryBrand.withAlpha(200),
+                        // AUD-020 FIX: Semantics for screen readers.
+                        // Without this, VoiceOver announces "Button" with no context.
+                        Semantics(
+                          label: context.tr('capture_spatial_proof'),
+                          button: true,
+                          enabled: !isCapturing,
+                          child: GestureDetector(
+                            onTap: isCapturing ? null : _captureSpatialProof,
+                            child: Container(
+                              width: 76,
+                              height: 76,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 4),
+                                color: isCapturing ? Colors.grey : colors.primaryBrand.withAlpha(200),
+                              ),
+                              child: isCapturing
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Icon(PhosphorIconsRegular.spinnerGap, color: Colors.white, size: 36).animate(onPlay: (c) => c.repeat()).rotate(duration: 1.seconds),
+                                    )
+                                  : Icon(PhosphorIconsRegular.camera, color: Colors.white, size: 36),
                             ),
-                            child: isCapturing
-                                ? Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Icon(PhosphorIconsRegular.spinnerGap, color: Colors.white, size: 36).animate(onPlay: (c) => c.repeat()).rotate(duration: 1.seconds),
-                                  )
-                                : Icon(PhosphorIconsRegular.camera, color: Colors.white, size: 36),
                           ),
                         ),
                       ],

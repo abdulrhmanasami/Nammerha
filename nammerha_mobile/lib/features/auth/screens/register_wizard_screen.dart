@@ -18,11 +18,15 @@ import '../widgets/password_strength_indicator.dart';
 ///
 /// ARCHITECTURE (Wave 4.8 — setState → Cubit):
 ///   - RegisterWizardCubit: manages page index, password visibility,
-///     terms checkbox, password text (for strength indicator).
+///     terms checkbox, password text (for strength indicator),
+///     and AUD-003 draft persistence (name + email + step).
 ///   - AuthBloc: manages the actual registration API call.
-///   - StatelessWidget: zero setState, fully reactive via BlocBuilder.
 ///   - TextEditingControllers live in _RegisterWizardBody (StatefulWidget)
 ///     because Flutter requires dispose() for controllers.
+///
+/// AUD-003 FIX: Draft persistence — saves name + email + step to
+/// SharedPreferences when advancing steps and on dispose. Restores
+/// on next mount. NEVER persists passwords.
 ///
 /// Step 1: Identity (Full Name)
 /// Step 2: Account (Email)
@@ -40,8 +44,9 @@ class RegisterWizardScreen extends StatelessWidget {
   }
 }
 
-/// Internal body — StatefulWidget ONLY for TextEditingController lifecycle.
-/// All UI state flows through RegisterWizardCubit (zero setState).
+/// Internal body — StatefulWidget ONLY for TextEditingController lifecycle
+/// and draft restore/save coordination. All UI state flows through
+/// RegisterWizardCubit (zero setState).
 class _RegisterWizardBody extends StatefulWidget {
   const _RegisterWizardBody();
 
@@ -61,8 +66,26 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  /// AUD-003: Tracks whether draft restore has been applied to controllers.
+  /// Prevents re-applying on every build.
+  bool _draftApplied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // AUD-003: Restore any saved draft on mount.
+    // Uses addPostFrameCallback to ensure BlocProvider is available.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<RegisterWizardCubit>().restoreDraft();
+    });
+  }
+
   @override
   void dispose() {
+    // AUD-003: Save draft on dispose — catches "swipe away" / back navigation.
+    // Fire-and-forget: we don't await since the widget is being disposed.
+    _saveDraftSync();
     _pageController.dispose();
     _nameController.dispose();
     _emailController.dispose();
@@ -71,10 +94,28 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     super.dispose();
   }
 
+  /// AUD-003: Fire-and-forget draft save on dispose.
+  void _saveDraftSync() {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    if (name.isNotEmpty || email.isNotEmpty) {
+      // We can't read Cubit after dispose, so call directly.
+      // The Cubit's saveDraft handles SharedPreferences async internally.
+      context.read<RegisterWizardCubit>().saveDraft(name: name, email: email);
+    }
+  }
+
   void _nextPage(GlobalKey<FormState> key) {
     if (key.currentState?.validate() ?? false) {
       HapticFeedback.lightImpact();
       FocusScope.of(context).unfocus();
+
+      // AUD-003: Save draft on step advance — captures progress.
+      context.read<RegisterWizardCubit>().saveDraft(
+            name: _nameController.text.trim(),
+            email: _emailController.text.trim(),
+          );
+
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -144,6 +185,46 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
         );
   }
 
+  /// AUD-003: Apply restored draft values to TextEditingControllers.
+  /// Called once when the Cubit emits state with draftRestored == true.
+  void _applyDraft(RegisterWizardState wizState) {
+    if (_draftApplied || !wizState.draftRestored) return;
+    _draftApplied = true;
+
+    // Pre-fill controllers with restored values.
+    if (wizState.draftName.isNotEmpty && _nameController.text.isEmpty) {
+      _nameController.text = wizState.draftName;
+    }
+    if (wizState.draftEmail.isNotEmpty && _emailController.text.isEmpty) {
+      _emailController.text = wizState.draftEmail;
+    }
+
+    // Navigate to the restored step (0 or 1 — never step 2/password).
+    if (wizState.currentPage > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pageController.hasClients) {
+          _pageController.jumpToPage(wizState.currentPage);
+        }
+      });
+    }
+
+    // Show a subtle notification that draft was restored.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr('reg_draft_restored')),
+          backgroundColor: context.colors.success,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      context.read<RegisterWizardCubit>().acknowledgeDraftRestore();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -151,6 +232,8 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthRegistrationSuccess) {
+          // AUD-003: Clear draft on successful registration.
+          context.read<RegisterWizardCubit>().clearDraft();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: colors.success),
           );
@@ -166,6 +249,9 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
 
         return BlocBuilder<RegisterWizardCubit, RegisterWizardState>(
           builder: (context, wizState) {
+            // AUD-003: Apply draft to controllers when restored.
+            _applyDraft(wizState);
+
             return Scaffold(
               backgroundColor: colors.backgroundPrimary,
               appBar: AppBar(

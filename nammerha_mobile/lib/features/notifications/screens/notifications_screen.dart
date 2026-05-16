@@ -2,6 +2,8 @@ import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/animation_budget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -186,10 +188,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     iconColor = colors.primaryBrand;
                 }
 
-                return GestureDetector(
+                // AUD-020: Semantics + AUD-022: Conditional animation
+                final rawCard = GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    // P0-003: Route to target screen (marks as read internally)
                     NotificationNavigator.handleTap(context, n);
                   },
                   child: Container(
@@ -236,7 +238,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               if (createdAt.toString().isNotEmpty) ...[
                                 const SizedBox(height: 6),
                                 Text(
-                                  _formatTime(createdAt.toString()),
+                                  NammerhaDateUtils.relativeTimeFromString(context, createdAt.toString()),
                                   style: TextStyle(fontSize: 10, color: colors.textSecondary),
                                 ),
                               ],
@@ -249,7 +251,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             margin: const EdgeInsets.only(top: 4),
                             decoration: BoxDecoration(color: colors.primaryBrand, shape: BoxShape.circle),
                           ),
-                        // P0-003: Chevron indicator for navigable notifications
                         if (NotificationNavigator.isNavigable(n))
                           Padding(
                             padding: const EdgeInsetsDirectional.only(start: 4),
@@ -262,7 +263,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ],
                     ),
                   ),
-                ).animate(delay: (index * 60).ms).fadeIn().slideX(begin: 0.03);
+                );
+                final card = Semantics(
+                  label: '$title — ${type.isNotEmpty ? type : "general"} ${context.tr("notification")}',
+                  button: true,
+                  child: rawCard,
+                );
+                return AnimationBudget.shouldAnimate(context)
+                    ? card.animate(delay: (index * 60).ms).fadeIn().slideX(begin: 0.03)
+                    : card;
               },
             ),
           );
@@ -271,16 +280,4 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  String _formatTime(String isoString) {
-    try {
-      final dt = DateTime.parse(isoString);
-      final diff = DateTime.now().difference(dt);
-      if (diff.inMinutes < 60) return context.tr('time_ago_minutes').replaceAll(r'$1', '${diff.inMinutes}');
-      if (diff.inHours < 24) return context.tr('time_ago_hours').replaceAll(r'$1', '${diff.inHours}');
-      if (diff.inDays < 7) return context.tr('time_ago_days').replaceAll(r'$1', '${diff.inDays}');
-      return '${dt.day}/${dt.month}/${dt.year}';
-    } catch (_) {
-      return '';
-    }
-  }
 }

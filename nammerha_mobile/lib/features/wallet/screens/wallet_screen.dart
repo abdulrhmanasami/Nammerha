@@ -6,7 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/date_utils.dart';
 import '../models/wallet_model.dart';
 import '../bloc/wallet_bloc.dart';
 import '../bloc/wallet_event.dart';
@@ -128,10 +130,16 @@ class _WalletViewState extends State<_WalletView> {
           const SizedBox(height: 16),
           Text(errorMsg, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
           const SizedBox(height: 20),
+          // AUD-013 FIX: Explicit brand styling — prevents default Material blue
+          // on unstyled ElevatedButton. Matches notifications & impact error screens.
           ElevatedButton.icon(
             onPressed: () => context.read<WalletBloc>().add(LoadWalletEvent()),
             icon: Icon(PhosphorIconsRegular.arrowsClockwise),
             label: Text(context.tr('retry')),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colors.primaryBrand,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
@@ -266,7 +274,10 @@ class _WalletViewState extends State<_WalletView> {
         statusLabel = tx.status;
     }
 
-    return Container(
+    // AUD-027 FIX: Transaction items are now tappable — shows detail sheet.
+    return GestureDetector(
+      onTap: () => _showTransactionDetail(context, tx, colors, statusColor, statusIcon, statusLabel),
+      child: Container(
       margin: const EdgeInsetsDirectional.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -300,7 +311,7 @@ class _WalletViewState extends State<_WalletView> {
                 ),
                 if (tx.createdAt.isNotEmpty)
                   Text(
-                    _formatDate(tx.createdAt),
+                    NammerhaDateUtils.relativeTimeFromString(context, tx.createdAt),
                     style: TextStyle(fontSize: 12, color: colors.textSubtle),
                   ),
               ],
@@ -337,6 +348,7 @@ class _WalletViewState extends State<_WalletView> {
           ),
         ],
       ),
+      ),
     ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
@@ -356,12 +368,91 @@ class _WalletViewState extends State<_WalletView> {
     );
   }
 
-  String _formatDate(String dateStr) {
-    try {
-      final dt = DateTime.parse(dateStr);
-      return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return dateStr;
-    }
+  // AUD-027 FIX: Transaction detail bottom sheet.
+  // Shows full transaction info: material, amount, status, date, project link.
+  void _showTransactionDetail(
+    BuildContext context,
+    WalletTransactionModel tx,
+    SemanticColors colors,
+    Color statusColor,
+    IconData statusIcon,
+    String statusLabel,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            BottomSheetGrabber(colors: colors),
+            const SizedBox(height: 16),
+            // Header
+            Row(
+              children: [
+                Container(
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    color: statusColor.withAlpha(15),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(statusIcon, color: statusColor, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tx.materialName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: statusColor.withAlpha(15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(statusLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: statusColor)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Details
+            _detailRow(context, colors, PhosphorIconsRegular.currencyDollar, context.tr('wallet_amount'), formatCurrency(tx.amount)),
+            _detailRow(context, colors, PhosphorIconsRegular.clock, context.tr('wallet_date'), tx.createdAt.isNotEmpty ? NammerhaDateUtils.relativeTimeFromString(context, tx.createdAt) : '—'),
+            if (tx.projectTitle.isNotEmpty)
+              _detailRow(context, colors, PhosphorIconsRegular.buildings, context.tr('wallet_project'), tx.projectTitle),
+            SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(BuildContext context, SemanticColors colors, IconData icon, String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.backgroundPrimary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: colors.textSubtle),
+          const SizedBox(width: 10),
+          Text(label, style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+          const Spacer(),
+          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+        ],
+      ),
+    );
   }
 }

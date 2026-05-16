@@ -1,7 +1,7 @@
 import '../../../core/i18n/t.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import '../../../core/utils/date_utils.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -11,7 +11,10 @@ import '../bloc/impact_state.dart';
 import '../data/impact_repository.dart';
 import '../models/impact_message_model.dart';
 import '../../../core/widgets/shimmer_loader.dart';
+// AUD-015 FIX: Import PhosphorIconsRegular (constant syntax) instead of
+// PhosphorIcons (function syntax) for compile-time icon resolution.
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'impact_message_detail_screen.dart';
 
 class ImpactInboxScreen extends StatelessWidget {
   const ImpactInboxScreen({super.key});
@@ -64,7 +67,8 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<SemanticColors>()!;
+    // AUD-016 FIX: Theme.of(context).extension<SemanticColors>()! → context.colors
+    final colors = context.colors;
 
     return Scaffold(
       backgroundColor: colors.backgroundSecondary,
@@ -75,7 +79,8 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
             builder: (context, state) {
               if (state is ImpactLoaded && state.unreadCount > 0) {
                 return IconButton(
-                  icon: Icon(PhosphorIcons.checks()),
+                  // AUD-015 FIX: PhosphorIcons.checks() → PhosphorIconsRegular.checks
+                  icon: Icon(PhosphorIconsRegular.checks),
                   tooltip: context.tr('notifications_mark_all_read'),
                   onPressed: () {
                     context.read<ImpactBloc>().add(MarkAllMessagesAsRead());
@@ -136,15 +141,19 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // AUD-015 FIX: PhosphorIcons.envelopeOpen() → PhosphorIconsRegular.envelopeOpen
           Icon(
-            PhosphorIcons.envelopeOpen(),
+            PhosphorIconsRegular.envelopeOpen,
             size: 64,
             color: colors.textMuted,
           ),
           const SizedBox(height: NammerhaTheme.spaceMd),
+          // AUD-016 FIX: Theme.of(context).textTheme → direct TextStyle with semantic tokens
           Text(
             context.tr('no_impact_messages'),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: colors.textSecondary,
             ),
           ),
@@ -158,9 +167,18 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(PhosphorIcons.cloudSlash(), color: colors.error, size: 48),
+          // AUD-015 FIX: PhosphorIcons.cloudSlash() → PhosphorIconsRegular.cloudSlash
+          Icon(PhosphorIconsRegular.cloudSlash, color: colors.error, size: 48),
           const SizedBox(height: NammerhaTheme.spaceMd),
-          Text(context.tr('failed_to_load'), style: Theme.of(context).textTheme.titleMedium),
+          // AUD-016 FIX: Theme.of(context).textTheme.titleMedium → direct TextStyle
+          Text(
+            context.tr('failed_to_load'),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
           TextButton(
             onPressed: () {
               context.read<ImpactBloc>().add(FetchImpactMessages(refresh: true));
@@ -180,14 +198,29 @@ class _MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<SemanticColors>()!;
-    final theme = Theme.of(context);
+    // AUD-016 FIX: Theme.of(context).extension<SemanticColors>()! → context.colors
+    // Removed: `final theme = Theme.of(context);` — all textTheme references
+    // replaced with direct TextStyle using semantic color tokens.
+    final colors = context.colors;
 
-    return GestureDetector(
+    // AUD-020 FIX: Semantics wrapper for screen readers.
+    // VoiceOver/TalkBack announces: "{title} — Open message"
+    return Semantics(
+      label: '${message.title} — ${context.tr("open_message")}',
+      button: true,
+      child: GestureDetector(
       onTap: () {
+        // AUD-017 FIX: Mark as read AND navigate to detail screen.
+        // Previously only marked as read — dead end, user saw no detail.
         if (!message.isRead) {
           context.read<ImpactBloc>().add(MarkMessageAsRead(message.id));
         }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImpactMessageDetailScreen(message: message),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: NammerhaTheme.spaceMd),
@@ -206,16 +239,20 @@ class _MessageCard extends StatelessWidget {
             if (message.imageUrl != null && message.imageUrl!.isNotEmpty)
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(NammerhaTheme.radiusMd)),
-                child: Image.network(
-                  message.imageUrl!,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (ctx, err, stack) => Container(
+                child: Hero(
+                  tag: 'impact_image_${message.id}',
+                  child: Image.network(
+                    message.imageUrl!,
                     height: 160,
-                    color: colors.backgroundPrimary,
-                    child: Center(
-                      child: Icon(PhosphorIcons.imageBroken(), color: colors.textMuted),
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, stack) => Container(
+                      height: 160,
+                      color: colors.backgroundPrimary,
+                      child: Center(
+                        // AUD-015 FIX: PhosphorIcons.imageBroken() → PhosphorIconsRegular.imageBroken
+                        child: Icon(PhosphorIconsRegular.imageBroken, color: colors.textMuted),
+                      ),
                     ),
                   ),
                 ),
@@ -245,17 +282,23 @@ class _MessageCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // AUD-016 FIX: theme.textTheme.titleMedium?.copyWith → direct TextStyle
                             Text(
                               message.title,
-                              style: theme.textTheme.titleMedium?.copyWith(
+                              style: TextStyle(
+                                fontSize: 16,
                                 fontWeight: message.isRead ? FontWeight.w600 : FontWeight.w700,
                                 color: colors.textHeading,
                               ),
                             ),
                             const SizedBox(height: 4),
+                            // AUD-016 FIX: theme.textTheme.bodySmall → direct TextStyle
                             Text(
-                              _formatTimeAgo(context, message.createdAt),
-                              style: theme.textTheme.bodySmall,
+                              NammerhaDateUtils.relativeTime(context, message.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -273,9 +316,14 @@ class _MessageCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: NammerhaTheme.spaceMd),
+                  // AUD-016 FIX: theme.textTheme.bodyMedium → direct TextStyle
                   Text(
                     message.body,
-                    style: theme.textTheme.bodyMedium,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.textPrimary,
+                      height: 1.5,
+                    ),
                   ),
                 ],
               ),
@@ -283,32 +331,24 @@ class _MessageCard extends StatelessWidget {
           ],
         ),
       ),
+    ), // Semantics (AUD-020)
     );
   }
 
-  /// Formats a DateTime as a human-readable locale-aware relative time string.
-  /// P1-001d: i18n — uses translation keys with $1 parameter substitution.
-  String _formatTimeAgo(BuildContext context, DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
 
-    if (diff.inMinutes < 1) return context.tr('time_ago_just_now');
-    if (diff.inMinutes < 60) return context.tr('time_ago_minutes').replaceAll('\$1', '${diff.inMinutes}');
-    if (diff.inHours < 24) return context.tr('time_ago_hours').replaceAll('\$1', '${diff.inHours}');
-    if (diff.inDays < 7) return context.tr('time_ago_days').replaceAll('\$1', '${diff.inDays}');
-    return DateFormat('yyyy/MM/dd', context.localeCode).format(dateTime);
-  }
 
+  // AUD-015 FIX: All PhosphorIcons.xxx() → PhosphorIconsRegular.xxx
+  // Compile-time constant syntax replaces runtime function calls.
   IconData _getIconForType() {
     switch (message.type) {
       case 'milestone':
-        return PhosphorIcons.flag();
+        return PhosphorIconsRegular.flag;
       case 'completion':
-        return PhosphorIcons.checkCircle();
+        return PhosphorIconsRegular.checkCircle;
       case 'thank_you':
-        return PhosphorIcons.heart();
+        return PhosphorIconsRegular.heart;
       default:
-        return PhosphorIcons.info();
+        return PhosphorIconsRegular.info;
     }
   }
 

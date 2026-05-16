@@ -27,6 +27,7 @@ import '../../admin/screens/admin_kyc_screen.dart';
 import '../../project/screens/marketplace_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
+import '../../reality_capture/screens/reality_capture_screen.dart';
 import '../../../core/i18n/t.dart';
 // P2-001 FIX: Raw shimmer import removed — all usages now use NammerhaShimmerLoader
 // UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
@@ -69,6 +70,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // NOW: Only builds a tab's widget tree on first selection.
   // Once built, it stays alive (same as IndexedStack post-visit behavior).
   // Memory: 5 concurrent widget trees → 1 on launch, grows as tabs are visited.
+  //
+  // AUD-007 DECISION: LRU eviction REJECTED for 5 tabs. Rationale:
+  //   1. Evicting a visited tab destroys scroll position, BLoC state, loaded data
+  //   2. Re-visiting an evicted tab triggers full API reload (costly on 2G)
+  //   3. 5 lightweight tabs ≈ 2-4 MB total — within acceptable bounds
+  //   4. AutomaticKeepAliveClientMixin is equivalent (keeps alive = IndexedStack)
   final Set<int> _visitedTabs = {0}; // Home tab always built
 
   // UX-F029: Guided tour trigger flag — prevents re-trigger on rebuilds.
@@ -546,18 +553,33 @@ class _DashboardHomeView extends StatelessWidget {
         '${stats['total_projects'] ?? stats['totalProjects'] ?? stats['assignedProjects'] ?? stats['assigned_projects'] ?? 0}',
         PhosphorIconsRegular.buildings,
         colors.primaryBrand,
+        // AUD-012 FIX: Drill-down → My Projects filter
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialFilter: 'my_projects')));
+        },
       ),
       _StatItem(
         context.tr('active_bids'),
         '${stats['pending_bids'] ?? stats['pendingBids'] ?? stats['pendingOrders'] ?? stats['pending_orders'] ?? 0}',
         PhosphorIconsRegular.gavel,
         colors.warning,
+        // AUD-012 FIX: Drill-down → My Bids filter
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialFilter: 'my_bids')));
+        },
       ),
       _StatItem(
         context.tr('verified_proofs'),
         '${stats['verifiedProofs'] ?? stats['verified_proofs'] ?? stats['proofsSeen'] ?? stats['proofs_seen'] ?? 0}',
         PhosphorIconsRegular.sealCheck,
         colors.success,
+        // AUD-012 FIX: Drill-down → My Projects (proofs are per-project)
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen(initialFilter: 'my_projects')));
+        },
       ),
       _StatItem(
         context.tr('wallet'),
@@ -570,6 +592,11 @@ class _DashboardHomeView extends StatelessWidget {
         ),
         PhosphorIconsRegular.wallet,
         colors.goldFunding,
+        // AUD-012 FIX: Drill-down → Wallet Screen (balance + transactions)
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
+        },
       ),
     ];
 
@@ -588,49 +615,67 @@ class _DashboardHomeView extends StatelessWidget {
         return Semantics(
               // GAP-M4: Each stat card announces its label and value to TalkBack/VoiceOver
               label: '${item.label}: ${item.value}',
-              child: GlassCard(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ExcludeSemantics(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: item.color.withAlpha(20),
-                          borderRadius: BorderRadius.circular(10),
+              button: item.onTap != null,
+              child: GestureDetector(
+                // AUD-012 FIX: Stat cards are now tappable for drill-down.
+                onTap: item.onTap,
+                child: GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ExcludeSemantics(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: item.color.withAlpha(20),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(item.icon, size: 20, color: item.color),
+                            ),
+                            // AUD-012 FIX: Subtle chevron hint — Fitts' Law affordance.
+                            // Signals the card is interactive without cluttering the layout.
+                            if (item.onTap != null)
+                              Icon(
+                                PhosphorIconsRegular.caretRight,
+                                size: 14,
+                                color: colors.textSubtle,
+                              ),
+                          ],
                         ),
-                        child: Icon(item.icon, size: 20, color: item.color),
                       ),
-                    ),
-                    ExcludeSemantics(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.value,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: colors.textPrimary,
+                      ExcludeSemantics(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.value,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: colors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: colors.textSecondary,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 2),
+                            Text(
+                              item.label,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             )
@@ -729,11 +774,16 @@ class _DashboardHomeView extends StatelessWidget {
         const DamageReportScreen(), // Placeholder, overridden below
         isCameraAction: true,
       ),
+      // AUD-005 FIX: Was 'damage_report' → DamageReportScreen (duplicate of
+      // 'create_project' in Projects section). Replaced with Reality Capture 360°
+      // which is a genuinely distinct field tool (panoramic vs single-shot).
+      // Uses same project-picker pattern as Spatial Camera (isCameraAction).
       _WorkspaceItem(
-        context.tr('damage_report'),
-        PhosphorIconsRegular.notepad,
-        colors.warning,
-        const DamageReportScreen(),
+        context.tr('capture_360'),
+        PhosphorIconsRegular.cube,
+        colors.success,
+        const DamageReportScreen(), // Placeholder, overridden by isRealityCaptureAction
+        isRealityCaptureAction: true,
       ),
     ];
 
@@ -791,11 +841,14 @@ class _DashboardHomeView extends StatelessWidget {
               colors.secondaryAccent,
               const ContractListScreen(),
             ),
+            // AUD-005 FIX: Was 'new_payment' → ContractListScreen (duplicate of
+            // 'my_contracts' above). Replaced with Wallet which is a genuinely
+            // distinct financial screen showing balances and transaction history.
             _WorkspaceItem(
-              context.tr('new_payment'),
-              PhosphorIconsRegular.money,
+              context.tr('wallet'),
+              PhosphorIconsRegular.wallet,
               colors.secondaryAccent,
-              const ContractListScreen(), // Opens list → user selects contract → payment
+              const WalletScreen(),
             ),
           ],
           colors.secondaryAccent,
@@ -901,6 +954,11 @@ class _DashboardHomeView extends StatelessWidget {
           // Standard: Nielsen #7 (Flexibility and efficiency of use).
           if (action.isCameraAction) {
             _showProjectPickerForCamera(context);
+            return;
+          }
+          // AUD-005 FIX: Reality Capture 360° also needs project context.
+          if (action.isRealityCaptureAction) {
+            _showProjectPickerForRealityCapture(context);
             return;
           }
           Navigator.push(
@@ -1315,6 +1373,126 @@ class _DashboardHomeView extends StatelessWidget {
       return [];
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUD-005 FIX: Project picker for Reality Capture 360°
+  // Same pattern as _showProjectPickerForCamera, but navigates to
+  // RealityCaptureScreen instead of SpatialCameraScreen.
+  // ═══════════════════════════════════════════════════════════════════════════
+  void _showProjectPickerForRealityCapture(BuildContext context) {
+    final colors = context.colors;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          decoration: BoxDecoration(
+            color: colors.surfaceCard,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BottomSheetGrabber(colors: colors),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
+                child: Row(
+                  children: [
+                    Icon(PhosphorIconsRegular.cube, color: colors.success, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        context.tr('select_project_for_capture'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _fetchUserProjects(),
+                  builder: (ctx, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: NammerhaShimmerLoader(colors: colors, isList: true),
+                      );
+                    }
+                    if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
+                      return Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(PhosphorIconsRegular.buildings, color: colors.textSecondary, size: 40),
+                            const SizedBox(height: 12),
+                            Text(
+                              context.tr('no_projects_for_camera'),
+                              style: TextStyle(color: colors.textSecondary, fontSize: 14),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    final projects = snapshot.data!;
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: projects.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1, indent: 20, endIndent: 20),
+                      itemBuilder: (_, index) {
+                        final p = projects[index];
+                        final projectId = p['project_id']?.toString() ?? '';
+                        final title = p['title']?.toString() ?? '';
+                        final status = p['status']?.toString() ?? '';
+                        return ListTile(
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: colors.success.withAlpha(20),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(PhosphorIconsRegular.cube, color: colors.success, size: 20),
+                          ),
+                          title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                          subtitle: Text(status.replaceAll('_', ' '), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                          trailing: Icon(PhosphorIconsRegular.caretRight, color: colors.textSecondary, size: 18),
+                          onTap: () {
+                            Navigator.pop(sheetCtx);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => RealityCaptureScreen(
+                                  projectId: projectId,
+                                  projectTitle: title,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _StatItem {
@@ -1322,7 +1500,9 @@ class _StatItem {
   final String value;
   final IconData icon;
   final Color color;
-  const _StatItem(this.label, this.value, this.icon, this.color);
+  // AUD-012 FIX: Optional drill-down navigation callback.
+  final VoidCallback? onTap;
+  const _StatItem(this.label, this.value, this.icon, this.color, {this.onTap});
 }
 
 class _WorkspaceItem {
@@ -1332,7 +1512,9 @@ class _WorkspaceItem {
   final Widget screen;
   // P0-003 FIX: Flag to indicate this workspace requires project selection
   final bool isCameraAction;
-  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false});
+  // AUD-005 FIX: Flag for Reality Capture 360° — also needs project picker
+  final bool isRealityCaptureAction;
+  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false, this.isRealityCaptureAction = false});
 }
 
 class _ActivityMeta {

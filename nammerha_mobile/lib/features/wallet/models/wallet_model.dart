@@ -6,6 +6,7 @@ class WalletTransactionModel extends Equatable {
   final num amount;
   final String status;
   final String createdAt;
+  final String projectTitle;
 
   const WalletTransactionModel({
     required this.id,
@@ -13,6 +14,7 @@ class WalletTransactionModel extends Equatable {
     required this.amount,
     required this.status,
     required this.createdAt,
+    this.projectTitle = '',
   });
 
   factory WalletTransactionModel.fromJson(Map<String, dynamic> json) {
@@ -22,11 +24,12 @@ class WalletTransactionModel extends Equatable {
       amount: json['amount'] ?? json['amount_locked'] ?? 0,
       status: json['payment_status']?.toString() ?? json['status']?.toString() ?? 'pending',
       createdAt: json['created_at']?.toString() ?? json['createdAt']?.toString() ?? '',
+      projectTitle: json['project_title']?.toString() ?? json['projectTitle']?.toString() ?? '',
     );
   }
 
   @override
-  List<Object?> get props => [id, materialName, amount, status, createdAt];
+  List<Object?> get props => [id, materialName, amount, status, createdAt, projectTitle];
 }
 
 class WalletSummaryModel extends Equatable {

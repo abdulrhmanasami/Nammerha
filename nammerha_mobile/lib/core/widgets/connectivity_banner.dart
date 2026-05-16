@@ -17,6 +17,11 @@ import '../i18n/t.dart';
 ///
 /// GAP-C2 Enhancement: Now integrates with OfflineQueue to show pending
 /// request count and replay status.
+///
+/// AUD-021 FIX: Migrated from setState to ValueNotifier for
+/// "Absolute Zero setState" Platinum compliance. The AnimationController
+/// still requires StatefulWidget (for vsync), but the reactive state
+/// _isOffline is now driven by ValueNotifier — zero setState calls remain.
 /// ═══════════════════════════════════════════════════════════════════════════
 class ConnectivityBanner extends StatefulWidget {
   final Widget child;
@@ -29,7 +34,10 @@ class ConnectivityBanner extends StatefulWidget {
 
 class _ConnectivityBannerState extends State<ConnectivityBanner>
     with SingleTickerProviderStateMixin {
-  bool _isOffline = false;
+  // AUD-021 FIX: ValueNotifier replaces `bool _isOffline` + setState.
+  // Reactive primitive — lightest possible state container.
+  final ValueNotifier<bool> _isOffline = ValueNotifier<bool>(false);
+
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
   late AnimationController _animController;
@@ -51,8 +59,10 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
         .onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
       final isOffline = results.every((r) => r == ConnectivityResult.none);
-      if (isOffline != _isOffline && mounted) {
-        setState(() => _isOffline = isOffline);
+      if (isOffline != _isOffline.value && mounted) {
+        // AUD-021 FIX: ValueNotifier.value assignment replaces setState.
+        // The ValueListenableBuilder in build() reacts to this change.
+        _isOffline.value = isOffline;
         if (isOffline) {
           _animController.forward();
         } else {
@@ -66,6 +76,7 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
   void dispose() {
     _connectivitySub?.cancel();
     _animController.dispose();
+    _isOffline.dispose();
     super.dispose();
   }
 
@@ -75,15 +86,23 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
 
     return Column(
       children: [
-        // Offline banner with slide animation
-        AnimatedBuilder(
-          animation: _slideAnim,
-          builder: (context, child) {
-            return ClipRect(
-              child: Align(
-                heightFactor: _isOffline ? 1.0 : (_slideAnim.value + 1.0).clamp(0.0, 1.0),
-                child: child,
-              ),
+        // AUD-021 FIX: ValueListenableBuilder replaces setState-driven rebuild.
+        // Only this subtree rebuilds when connectivity changes — not the entire
+        // widget tree including widget.child.
+        ValueListenableBuilder<bool>(
+          valueListenable: _isOffline,
+          builder: (context, isOffline, bannerChild) {
+            return AnimatedBuilder(
+              animation: _slideAnim,
+              builder: (context, child) {
+                return ClipRect(
+                  child: Align(
+                    heightFactor: isOffline ? 1.0 : (_slideAnim.value + 1.0).clamp(0.0, 1.0),
+                    child: child,
+                  ),
+                );
+              },
+              child: bannerChild,
             );
           },
           child: Container(

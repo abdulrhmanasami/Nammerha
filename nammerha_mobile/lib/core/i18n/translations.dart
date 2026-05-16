@@ -542,6 +542,10 @@ const Map<String, Map<String, String>> kTranslations = {
   'transaction_log': {'ar': 'سجل المعاملات', 'en': 'Transaction Log'},
   'wallet_no_transactions': {'ar': 'لا توجد معاملات بعد', 'en': 'No transactions yet'},
   'transaction_item': {'ar': 'معاملة', 'en': 'Transaction'},
+  // AUD-027 FIX: Transaction detail bottom sheet keys
+  'wallet_amount': {'ar': 'المبلغ', 'en': 'Amount'},
+  'wallet_date': {'ar': 'التاريخ', 'en': 'Date'},
+  'wallet_project': {'ar': 'المشروع', 'en': 'Project'},
 
   // ═══ MARKETPLACE FILTER CHIPS (P0-006 FIX — hardcoded Arabic) ═══
   'filter_all': {'ar': 'الكل', 'en': 'All'},
@@ -955,6 +959,11 @@ const Map<String, Map<String, String>> kTranslations = {
   'notifications_mark_read': {'ar': 'تعليم كمقروء', 'en': 'Mark as read'},
   'notifications_mark_all_read': {'ar': 'قراءة الكل', 'en': 'Read All'},
   'notifications_loading': {'ar': 'جارٍ تحميل الإشعارات...', 'en': 'Loading notifications...'},
+  // AUD-020 FIX: Semantics labels for screen readers (WCAG AAA)
+  'notification': {'ar': 'إشعار', 'en': 'notification'},
+  'capture_spatial_proof': {'ar': 'التقاط إثبات مكاني', 'en': 'Capture spatial proof'},
+  'detect_gps_location': {'ar': 'تحديد الموقع الجغرافي', 'en': 'Detect GPS location'},
+  'open_message': {'ar': 'فتح الرسالة', 'en': 'Open message'},
 
   // ═══ COMMON EMPTY/ERROR/TIME ═══
   'no_reviews_yet': {'ar': 'لا توجد تقييمات بعد', 'en': 'No reviews yet'},
@@ -979,6 +988,14 @@ const Map<String, Map<String, String>> kTranslations = {
   'no_adjustments_yet': {'ar': 'لا توجد تعديلات سابقة', 'en': 'No previous adjustments'},
   'compliance_scan_success': {'ar': 'تم فحص قاعدة SDN/OFAC بنجاح. لا توجد قيود على أي جهة متعاقدة.', 'en': 'SDN/OFAC scan completed successfully. No restrictions on any contracting entity.'},
   'no_impact_messages': {'ar': 'لا توجد رسائل أثر حالياً', 'en': 'No impact messages currently'},
+
+  // ═══ AUD-017: Impact Message Detail Screen ═══
+  'impact_type_milestone': {'ar': 'إنجاز مرحلي', 'en': 'Milestone'},
+  'impact_type_completion': {'ar': 'اكتمال', 'en': 'Completion'},
+  'impact_type_thanks': {'ar': 'رسالة شكر', 'en': 'Thank You'},
+  'impact_type_update': {'ar': 'تحديث', 'en': 'Update'},
+  'impact_linked_project': {'ar': 'المشروع المرتبط', 'en': 'Linked Project'},
+  'impact_transparency_note': {'ar': 'هذه الرسالة مرتبطة بمشروع إعادة إعمار موثّق عبر الإسكرو. كل تقدّم مدعوم بإثبات مكاني GPS.', 'en': 'This message is linked to an escrow-verified reconstruction project. All progress is backed by GPS spatial proof.'},
 
   // ═══ LANGUAGE PICKER ═══
   'language_picker_title': {'ar': 'اختر اللغة', 'en': 'Choose Language'},
@@ -1559,6 +1576,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'time_ago_days': {'ar': 'منذ \$1 يوم', 'en': '\$1d ago'},
   'select_project_first': {'ar': 'اختر مشروعاً أولاً', 'en': 'Select a project first'},
   'select_project_for_camera': {'ar': 'اختر المشروع للتصوير المكاني', 'en': 'Select project for spatial capture'},
+  // AUD-005 FIX: Reality Capture 360° project picker title
+  'select_project_for_capture': {'ar': 'اختر المشروع للالتقاط 360°', 'en': 'Select project for 360° capture'},
 
   // ═══ UX-F029: Guided Feature Tour Steps (May 2026) ═══
   'tour_dashboard_title': {'ar': 'لوحة مهامك', 'en': 'Your Task Board'},
@@ -1747,6 +1766,10 @@ const Map<String, Map<String, String>> kTranslations = {
   'sc_longitude': {'ar': 'خط الطول: \$1', 'en': 'Lng: \$1'},
   'sc_accuracy': {'ar': 'الدقة: ±\$1م', 'en': 'Accuracy: ±\$1m'},
   'sc_signature_secured': {'ar': 'التوقيع الأساسي مُؤمّن', 'en': 'Base signature secured'},
+  // AUD-009 FIX: Camera initialization timeout messages
+  'sc_camera_timeout': {'ar': 'انتهت مهلة اكتشاف الكاميرا — حاول مرة أخرى', 'en': 'Camera discovery timed out — please retry'},
+  'sc_camera_init_timeout': {'ar': 'انتهت مهلة تهيئة الكاميرا — حاول مرة أخرى', 'en': 'Camera initialization timed out — please retry'},
+  'sc_init_timeout_generic': {'ar': 'انتهت مهلة الاتصال بالأجهزة', 'en': 'Hardware connection timed out'},
 
   // ═══ OPEN DATA (P1-001h — i18n Completeness) ═══
   'od_project_count': {'ar': '\$1 مشروع', 'en': '\$1 projects'},
@@ -1770,4 +1793,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'dr_discard_body': {'ar': 'سيتم فقدان جميع البيانات المُدخلة. هل أنت متأكد؟', 'en': 'All entered data will be lost. Are you sure?'},
   'dr_discard_leave': {'ar': 'مغادرة', 'en': 'Leave'},
   'dr_discard_stay': {'ar': 'متابعة التعبئة', 'en': 'Continue Editing'},
+
+  // ═══ AUD-003: Registration Draft Persistence ═══
+  'reg_draft_restored': {'ar': 'تم استعادة بياناتك السابقة ✓', 'en': 'Your previous data has been restored ✓'},
 };

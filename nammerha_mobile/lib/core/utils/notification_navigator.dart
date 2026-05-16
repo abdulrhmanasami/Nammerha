@@ -134,6 +134,9 @@ class NotificationNavigator {
 
   static bool _isProjectType(String type) {
     return const {
+      // AUD-024 VERIFIED: 'donation_received' is a BACKEND CONTRACT KEY
+      // preserved per Donation Eradication KI. The backend still sends this
+      // type in push payloads. DO NOT REMOVE without coordinated backend migration.
       'donation_received',
       'funding',
       'escrow',

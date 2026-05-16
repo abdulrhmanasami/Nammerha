@@ -9,7 +9,6 @@ import '../../../core/services/social_auth_service.dart';
 import 'register_wizard_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
-import '../widgets/password_strength_indicator.dart';
 import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -30,8 +29,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController(); // C4 FIX: Confirm password
-  final _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   late AnimationController _animController;
@@ -49,53 +46,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose(); // C4 FIX: Dispose confirm password controller
-    _nameController.dispose();
     _animController.dispose();
     super.dispose();
   }
 
-  void _submit(bool isLoginMode, bool termsAccepted) {
+  /// AUD-001 FIX: Login-only submit. Registration path removed — handled
+  /// exclusively by RegisterWizardScreen (3-step wizard).
+  void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    // C4 FIX: Validate confirm password match in registration mode.
-    if (!isLoginMode) {
-      if (_passwordController.text != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr('auth_pw_mismatch')),
-            backgroundColor: context.colors.error,
-          ),
-        );
-        return;
-      }
-
-      // C5 FIX: Validate Terms & Privacy acceptance (GDPR Art. 7).
-      if (!termsAccepted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr('auth_terms_required')),
-            backgroundColor: context.colors.error,
-          ),
-        );
-        return;
-      }
-    }
-
-    final authBloc = context.read<AuthBloc>();
-
-    if (isLoginMode) {
-      authBloc.add(AuthLoginRequested(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      ));
-    } else {
-      authBloc.add(AuthRegisterRequested(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        fullName: _nameController.text.trim(),
-      ));
-    }
+    context.read<AuthBloc>().add(AuthLoginRequested(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    ));
   }
 
   @override
@@ -108,15 +71,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             widget.onLoginSuccess();
-          } else if (state is AuthRegistrationSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: colors.success,
-                duration: const Duration(seconds: 5),
-              ),
-            );
-            context.read<LoginFormCubit>().switchToLoginMode();
           } else if (state is AuthEmailNotVerified) {
             // Show persistent verification banner with resend action
             ScaffoldMessenger.of(context).clearSnackBars();
@@ -148,14 +102,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               opacity: _fadeIn,
               child: BlocBuilder<LoginFormCubit, LoginFormState>(
                 builder: (context, formState) {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<AuthBloc>().add(AuthCheckSession());
-                      await Future.delayed(const Duration(milliseconds: 500));
-                    },
-                    color: colors.primaryBrand,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
+                  // AUD-004 FIX: Removed RefreshIndicator — PTR on login is
+                  // semantically confusing (Nielsen #2). Users don't expect
+                  // "pull to check session" on a login form.
+                  return SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Form(
                       key: _formKey,
@@ -186,28 +136,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            formState.isLoginMode
-                                ? context.tr('auth_login_subtitle')
-                                : context.tr('auth_register_subtitle'),
+                            context.tr('auth_login_subtitle'),
                             style: TextStyle(fontSize: 16, color: colors.textSecondary),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 36),
 
-                          // Full Name (register only)
-                          if (!formState.isLoginMode) ...[
-                            _buildTextField(
-                              controller: _nameController,
-                              label: context.tr('auth_full_name'),
-                              icon: PhosphorIconsRegular.user,
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty) return context.tr('auth_name_required');
-                                if (v.trim().length < 3) return context.tr('auth_name_min_length');
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
 
                           // Email
                           _buildTextField(
@@ -240,105 +174,25 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                             validator: (v) {
                               if (v == null || v.isEmpty) return context.tr('auth_password_required');
-                              if (!formState.isLoginMode) {
-                                if (v.length < 8) return context.tr('auth_password_min_length');
-                                if (v.length > 128) return context.tr('auth_password_max_length');
-                                if (!RegExp(r'[A-Z]').hasMatch(v)) return context.tr('auth_password_uppercase');
-                                if (!RegExp(r'[a-z]').hasMatch(v)) return context.tr('auth_password_lowercase');
-                                if (!RegExp(r'[0-9]').hasMatch(v)) return context.tr('auth_password_digit');
-                                if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return context.tr('auth_password_special');
-                              }
                               return null;
                             },
                           ),
 
-                          // C4 FIX: Confirm Password (register only)
-                          // Mirrors web's reg-password-confirm field.
-                          // Without this, users could register with a typo in their
-                          // password and be permanently locked out.
-                          if (!formState.isLoginMode) ...[
-                            ListenableBuilder(
-                              listenable: _passwordController,
-                              builder: (context, _) => PasswordStrengthIndicator(
-                                password: _passwordController.text,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildTextField(
-                              controller: _confirmPasswordController,
-                              label: context.tr('auth_confirm_password'),
-                              icon: PhosphorIconsRegular.lockKey,
-                              obscureText: formState.obscureConfirmPassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  formState.obscureConfirmPassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
-                                  color: colors.textSecondary,
-                                ),
-                                onPressed: () => context.read<LoginFormCubit>().toggleConfirmPasswordVisibility(),
-                              ),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) return context.tr('auth_confirm_password_required');
-                                if (v != _passwordController.text) return context.tr('auth_pw_mismatch');
-                                return null;
-                              },
-                            ),
-                          ],
+
 
                           // Forgot Password
-                          if (formState.isLoginMode) ...[
-                            // P1-003 FIX: Physical Alignment.centerLeft → Logical AlignmentDirectional.centerStart
-                          // Physical alignment breaks RTL — Forgot Password link renders on wrong side.
                           Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: TextButton(
-                                onPressed: () => _showForgotPasswordDialog(),
-                                child: Text(
-                                  context.tr('auth_forgot_password'),
-                                  style: TextStyle(color: colors.primaryBrand, fontSize: 14),
-                                ),
+                            alignment: AlignmentDirectional.centerStart,
+                            child: TextButton(
+                              onPressed: () => _showForgotPasswordDialog(),
+                              child: Text(
+                                context.tr('auth_forgot_password'),
+                                style: TextStyle(color: colors.primaryBrand, fontSize: 14),
                               ),
                             ),
-                          ],
+                          ),
 
-                          // UNIFIED CITIZEN: Role selector removed.
-                          // All users get all roles automatically.
-                          // Terms & Privacy only shown during registration.
-                          if (!formState.isLoginMode) ...[
-                            // C5 FIX: Terms & Privacy acceptance (GDPR Art. 7).
-                            // Mirrors web's Step 3 consent checkbox.
-                            // Without this, registration on mobile lacks legally
-                            // required consent capture.
-                            const SizedBox(height: 20),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: Checkbox(
-                                    value: formState.termsAccepted,
-                                    onChanged: (_) => context.read<LoginFormCubit>().toggleTerms(),
-                                    activeColor: colors.primaryBrand,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => context.read<LoginFormCubit>().toggleTerms(),
-                                    child: Text(
-                                      context.tr('auth_terms_text'),
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: colors.textSecondary,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+
 
                           const SizedBox(height: 28),
 
@@ -346,16 +200,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           BlocBuilder<AuthBloc, AuthState>(
                             builder: (context, state) {
                               return GradientButton(
-                                label: formState.isLoginMode
-                                    ? context.tr('auth_sign_in_btn')
-                                    : context.tr('auth_create_account_btn'),
-                                // UX-F001 FIX: Register button uses userPlus (was warningCircle placeholder).
-                                icon: formState.isLoginMode ? PhosphorIconsRegular.signIn : PhosphorIconsRegular.userPlus,
+                                label: context.tr('auth_sign_in_btn'),
+                                icon: PhosphorIconsRegular.signIn,
                                 isLoading: state is AuthLoading,
-                                onPressed: () => _submit(
-                                  formState.isLoginMode,
-                                  formState.termsAccepted,
-                                ),
+                                onPressed: _submit,
                               );
                             },
                           ),
@@ -393,7 +241,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const SizedBox(height: 40),
                         ],
                       ),
-                    ),
                     ),
                   );
                 },
@@ -634,11 +481,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
+  /// AUD-002 FIX: Facebook OAuth hidden — feature unavailable.
+  /// Only Google and Apple shown as functional providers.
   Widget _buildSocialButtons() {
     return Row(
       children: [
         Expanded(
-          // UX-F001 FIX: warningCircle → googleLogo (Phosphor brand icon)
           child: _buildSocialButton(
             label: 'Google',
             icon: PhosphorIconsRegular.googleLogo,
@@ -650,7 +498,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ),
         const SizedBox(width: 10),
         Expanded(
-          // UX-F001 FIX: warningCircle → appleLogo (Phosphor brand icon)
           child: _buildSocialButton(
             label: 'Apple',
             icon: PhosphorIconsRegular.appleLogo,
@@ -658,18 +505,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             foregroundColor: Colors.white,
             borderColor: Colors.black,
             onPressed: () => _handleSocialLogin('apple'),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          // UX-F001 FIX: warningCircle → facebookLogo (Phosphor brand icon)
-          child: _buildSocialButton(
-            label: 'Facebook',
-            icon: PhosphorIconsRegular.facebookLogo,
-            backgroundColor: const Color(0xFF1877F2),
-            foregroundColor: Colors.white,
-            borderColor: const Color(0xFF1877F2),
-            onPressed: () => _handleSocialLogin('facebook'),
           ),
         ),
       ],

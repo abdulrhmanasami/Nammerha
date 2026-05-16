@@ -167,7 +167,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildStep1DamageType(context, data, colors),
-                    _buildStep2Location(context, data, colors),
+                    _buildStep2Location(context, data, state, colors),
                     _buildStep3Photos(context, data, colors),
                     _buildStep4Review(context, data, colors),
                   ],
@@ -214,7 +214,12 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
 
   // ─── Step 2: Location ─────────────────────────────────────────────────
 
-  Widget _buildStep2Location(BuildContext context, DamageReportData data, SemanticColors colors) {
+  Widget _buildStep2Location(BuildContext context, DamageReportData data, DamageReportState state, SemanticColors colors) {
+    // AUD-010 FIX: Detect loading state for GPS button feedback.
+    // The BLoC emits DamageReportLoading(message: 'msg_detecting_gps') during
+    // GPS acquisition. Previously, the button showed NO visual change.
+    final isDetectingGPS = state is DamageReportLoading;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -226,38 +231,85 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
           const SizedBox(height: 20),
 
-          GestureDetector(
-            onTap: () => context.read<DamageReportBloc>().add(DetectGPSEvent()),
-            child: Container(
+          // AUD-010 FIX: GPS detect button — 3 visual states:
+          //   1. Idle (no GPS): Blue border, "Detect location" text, tap enabled
+          //   2. Loading: Animated pulse, spinner + "Detecting..." text, tap disabled
+          //   3. Success: Green border, checkmark + coordinates, tap to re-detect
+          // AUD-020 FIX: Semantics for screen readers (WCAG AAA).
+          Semantics(
+            label: context.tr('detect_gps_location'),
+            button: true,
+            enabled: !isDetectingGPS,
+            child: GestureDetector(
+            onTap: isDetectingGPS
+                ? null // Guard: prevent double-tap during GPS acquisition
+                : () {
+                    Haptics.light();
+                    context.read<DamageReportBloc>().add(DetectGPSEvent());
+                  },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: data.gpsPosition != null ? colors.success.withAlpha(10) : colors.primaryBrand.withAlpha(10),
+                color: isDetectingGPS
+                    ? colors.primaryBrand.withAlpha(8)
+                    : data.gpsPosition != null
+                        ? colors.success.withAlpha(10)
+                        : colors.primaryBrand.withAlpha(10),
                 borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
                 border: Border.all(
-                  color: data.gpsPosition != null ? colors.success : colors.primaryBrand,
+                  color: isDetectingGPS
+                      ? colors.primaryBrand.withAlpha(80)
+                      : data.gpsPosition != null
+                          ? colors.success
+                          : colors.primaryBrand,
                   width: 1.5,
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    data.gpsPosition != null ? PhosphorIconsRegular.crosshair : PhosphorIconsRegular.mapPinLine,
-                    color: data.gpsPosition != null ? colors.success : colors.primaryBrand,
-                  ),
+                  if (isDetectingGPS)
+                    // AUD-010: Pulsing spinner during GPS acquisition
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(colors.primaryBrand),
+                      ),
+                    ).animate(onComplete: (c) => c.repeat()).shimmer(
+                      duration: 1200.ms,
+                      color: colors.primaryBrand.withAlpha(40),
+                    )
+                  else
+                    Icon(
+                      data.gpsPosition != null
+                          ? PhosphorIconsRegular.crosshair
+                          : PhosphorIconsRegular.mapPinLine,
+                      color: data.gpsPosition != null ? colors.success : colors.primaryBrand,
+                    ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          data.gpsPosition != null ? context.tr('dr_location_detected') : context.tr('dr_detect_location'),
+                          isDetectingGPS
+                              ? context.tr('msg_detecting_gps')
+                              : data.gpsPosition != null
+                                  ? context.tr('dr_location_detected')
+                                  : context.tr('dr_detect_location'),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: data.gpsPosition != null ? colors.success : colors.primaryBrand,
+                            color: isDetectingGPS
+                                ? colors.primaryBrand
+                                : data.gpsPosition != null
+                                    ? colors.success
+                                    : colors.primaryBrand,
                           ),
                         ),
-                        if (data.gpsPosition != null)
+                        if (data.gpsPosition != null && !isDetectingGPS)
                           Text(
                             '${data.gpsPosition!.latitude.toStringAsFixed(5)}, ${data.gpsPosition!.longitude.toStringAsFixed(5)}',
                             style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: colors.textSecondary),
@@ -267,11 +319,15 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
                   ),
                 ],
               ),
-            ),
-          ),
+            ),  // AnimatedContainer
+          ),    // GestureDetector
+          ),    // Semantics (AUD-020)
           const SizedBox(height: 20),
 
           DropdownButtonFormField<String>(
+            // AUD-011 FIX: Using `initialValue` — the correct API for
+            // DropdownButtonFormField (Flutter 3.33+). Shows pre-selected
+            // governorate when navigating back from later wizard steps.
             initialValue: data.governorate.isNotEmpty ? data.governorate : null,
             decoration: InputDecoration(
               labelText: '${context.tr('dr_governorate')} *',
