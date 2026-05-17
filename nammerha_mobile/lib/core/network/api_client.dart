@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
-import 'dart:typed_data';
+// P3-001: dart:typed_data removed — Uint8List provided by foundation.dart
 
 import '../offline/offline_queue.dart';
 
@@ -112,7 +113,8 @@ class NammerhaApiClient {
         _deviceModel = ios.utsname.machine;
         _osVersion = 'iOS ${ios.systemVersion}';
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] network/api_client: $e');
       // Non-fatal: telemetry is optional
     }
   }
@@ -211,6 +213,7 @@ class NammerhaApiClient {
 
         return ApiResponse.fromJson(responseBody, fromData: fromData);
       } on SocketException catch (e) {
+        debugPrint('[Nammerha] network/api_client: $e');
         lastError = e;
         if (attempt < maxRetries) {
           await _exponentialBackoff(attempt);
@@ -257,6 +260,7 @@ class NammerhaApiClient {
       } on ApiException {
         rethrow;
       } catch (e) {
+        debugPrint('[Nammerha] network/api_client: $e');
         lastError = e;
         if (attempt < maxRetries) {
           await _exponentialBackoff(attempt);
@@ -459,6 +463,7 @@ class NammerhaApiClient {
 
         return data;
       } on SocketException catch (e) {
+        debugPrint('[Nammerha] network/api_client: $e');
         lastError = e;
         if (attempt < maxRetries) {
           await _exponentialBackoff(attempt);
@@ -480,6 +485,7 @@ class NammerhaApiClient {
         // Covers both ApiException and its subtype GraphQLException
         rethrow;
       } catch (e) {
+        debugPrint('[Nammerha] network/api_client: $e');
         lastError = e;
         if (attempt < maxRetries) {
           await _exponentialBackoff(attempt);

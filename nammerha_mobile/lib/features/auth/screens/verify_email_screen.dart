@@ -6,7 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/i18n/t.dart';
 import '../bloc/verify_email_bloc.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Verify Email Screen — Platinum Standard (Absolute Zero setState)
@@ -65,11 +67,11 @@ class _VerifyEmailView extends StatelessWidget {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildIcon(colors, state),
+                    _buildIcon(context, colors, state),
                     const SizedBox(height: 32),
-                    _buildTitle(colors, state),
+                    _buildTitle(context, colors, state),
                     const SizedBox(height: 12),
-                    _buildMessage(colors, state),
+                    _buildMessage(context, colors, state),
                     const SizedBox(height: 40),
                     _buildAction(context, colors, state),
                   ],
@@ -82,13 +84,13 @@ class _VerifyEmailView extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon(SemanticColors colors, VerifyEmailState state) {
+  Widget _buildIcon(BuildContext context, SemanticColors colors, VerifyEmailState state) {
     if (state is VerifyEmailVerifying) {
       return SizedBox(
         width: 80,
         height: 80,
         child: NammerhaShimmerLoader(colors: colors),
-      ).animate().fadeIn();
+      ).nmAnimate(context).fadeIn();
     }
 
     IconData icon;
@@ -118,21 +120,21 @@ class _VerifyEmailView extends StatelessWidget {
       ),
       child: Icon(icon, size: 48, color: iconColor),
     )
-        .animate()
+        .nmAnimate(context)
         .fadeIn(duration: 500.ms)
         .scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1));
   }
 
-  Widget _buildTitle(SemanticColors colors, VerifyEmailState state) {
+  Widget _buildTitle(BuildContext context, SemanticColors colors, VerifyEmailState state) {
     String title;
     if (state is VerifyEmailVerifying) {
-      title = 'جارِ التحقق...';
+      title = context.tr('verify_loading');
     } else if (state is VerifyEmailSuccess) {
-      title = 'تم التحقق ✓';
+      title = context.tr('verify_success');
     } else if (state is VerifyEmailExpired) {
-      title = 'انتهت الصلاحية';
+      title = context.tr('verify_expired');
     } else {
-      title = 'فشل التحقق';
+      title = context.tr('verify_failed');
     }
 
     return Text(
@@ -142,10 +144,10 @@ class _VerifyEmailView extends StatelessWidget {
         fontWeight: FontWeight.w800,
         color: colors.textPrimary,
       ),
-    ).animate(delay: 200.ms).fadeIn();
+    ).nmAnimate(context, delay: 200.ms).fadeIn();
   }
 
-  Widget _buildMessage(SemanticColors colors, VerifyEmailState state) {
+  Widget _buildMessage(BuildContext context, SemanticColors colors, VerifyEmailState state) {
     String message = '';
     if (state is VerifyEmailSuccess) {
       message = state.message;
@@ -165,7 +167,7 @@ class _VerifyEmailView extends StatelessWidget {
         color: colors.textSecondary,
         height: 1.5,
       ),
-    ).animate(delay: 400.ms).fadeIn();
+    ).nmAnimate(context, delay: 400.ms).fadeIn();
   }
 
   Widget _buildAction(
@@ -176,17 +178,17 @@ class _VerifyEmailView extends StatelessWidget {
 
     if (state is VerifyEmailSuccess) {
       return Text(
-        'سيتم تحويلك تلقائياً...',
+        context.tr('auto_redirect'),
         style: TextStyle(fontSize: 13, color: colors.textSubtle),
-      ).animate(delay: 600.ms).fadeIn();
+      ).nmAnimate(context, delay: 600.ms).fadeIn();
     }
 
     return GradientButton(
-      label: 'العودة لتسجيل الدخول',
+      label: context.tr('back_to_login'),
       icon: PhosphorIconsRegular.signIn,
       onPressed: () {
         Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
       },
-    ).animate(delay: 600.ms).fadeIn();
+    ).nmAnimate(context, delay: 600.ms).fadeIn();
   }
 }

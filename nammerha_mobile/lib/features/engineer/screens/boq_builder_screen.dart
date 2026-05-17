@@ -18,6 +18,7 @@ import '../bloc/boq_state.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class BoqBuilderScreen extends StatelessWidget {
   final String? projectId;
@@ -226,7 +227,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
           ],
         ),
       ),
-    ).animate(delay: (index * 60).ms).fadeIn().slideX(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (index * 60).ms).fadeIn().slideX(begin: 0.05, end: 0);
   }
 
   Widget _qtyBtn(IconData icon, VoidCallback onTap, SemanticColors colors, {bool isPrimary = false}) {

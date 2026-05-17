@@ -160,7 +160,8 @@ class PerformanceService {
     for (final entry in _activeTraces.entries) {
       try {
         await entry.value.stop();
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[Nammerha] services/performance_service: $e');
         // Ignore — trace may have already been stopped
       }
     }

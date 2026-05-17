@@ -13,8 +13,10 @@ import '../bloc/map_event.dart';
 import '../bloc/map_state.dart';
 import '../models/map_project_model.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/i18n/translations.dart';
 import '../../project/screens/project_details_screen.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ProjectMapScreen — Production Geospatial Intelligence View
@@ -116,7 +118,7 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
                           NammerhaShimmerLoader(colors: colors, isList: false),
                           const SizedBox(height: 12),
                           Text(
-                            'جارِ تحميل خريطة المشاريع...',
+                            context.tr('map_loading'),
                             style: TextStyle(
                               color: colors.textSecondary,
                               fontSize: 14,
@@ -126,7 +128,7 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
                         ],
                       ),
                     ),
-                  ).animate().fadeIn(duration: 200.ms),
+                  ).nmAnimate(context).fadeIn(duration: 200.ms),
                 ),
 
               // ── Layer 5: Error overlay ───────────────────────────────────
@@ -161,7 +163,7 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
                       ),
                     ),
                   ),
-                ).animate().slideY(begin: 1.0, end: 0.0, duration: 300.ms,
+                ).nmAnimate(context).slideY(begin: 1.0, end: 0.0, duration: 300.ms,
                     curve: Curves.easeOutCubic),
             ],
           );
@@ -274,7 +276,7 @@ class _MapAppBar extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: Text(
-              'خريطة المشاريع',
+              context.tr('map_title'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -308,7 +310,7 @@ class _FilterChipsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final allRegionItems = [
-      (null, 'الكل (${state.allProjects.length})'),
+      (null, '${context.tr('map_filter_all')} (${state.allProjects.length})'),
       ...state.availableRegions.map((r) {
         final count = state.allProjects.where((p) => p.region == r).length;
         return (r as String?, '$r ($count)');
@@ -397,7 +399,7 @@ class _StatsPill extends StatelessWidget {
           Icon(PhosphorIconsRegular.mapPin, size: 14, color: colors.primaryBrand),
           const SizedBox(width: 6),
           Text(
-            '${state.filteredProjects.length} مشروع',
+            '${state.filteredProjects.length} ${context.tr('map_project_count')}',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -423,7 +425,7 @@ class _StatsPill extends StatelessWidget {
           ],
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9));
+    ).nmAnimate(context).fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9));
   }
 }
 
@@ -658,15 +660,16 @@ class _ProjectDetailPanel extends StatelessWidget {
                     onPressed: onNavigate,
                     icon: Icon(PhosphorIconsRegular.arrowRight,
                         color: Colors.white, size: 18),
-                    label: const Text(
-                      'عرض تفاصيل المشروع',
-                      style: TextStyle(
+                    label: Text(
+                      context.tr('map_view_details'),
+                      style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 15),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.primaryBrand,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -685,13 +688,19 @@ class _ProjectDetailPanel extends StatelessWidget {
   }
 
   String _statusLabel(String status) {
-    const labels = {
-      'completed': 'مكتمل',
-      'in_progress': 'قيد التنفيذ',
-      'funded': 'ممول',
-      'active': 'نشط',
+    // Status labels use i18n keys for locale-safe rendering.
+    const keyMap = {
+      'completed': 'map_status_completed',
+      'in_progress': 'map_status_in_progress',
+      'funded': 'map_status_funded',
+      'active': 'map_status_active',
     };
-    return labels[status] ?? status;
+    final key = keyMap[status];
+    if (key != null) {
+      final locale = 'ar'; // Map panel doesn't have BuildContext — use default
+      return kTranslations[key]?[locale] ?? status;
+    }
+    return status;
   }
 
   Color _statusColor(String status, SemanticColors colors) {
@@ -789,6 +798,7 @@ class _ErrorOverlay extends StatelessWidget {
                     style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primaryBrand,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),

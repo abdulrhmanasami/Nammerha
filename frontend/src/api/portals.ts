@@ -94,21 +94,7 @@ export const homeowner = {
     respondToApproval: (approvalId: string, decision: 'approved' | 'rejected') => request(`/dashboard/approvals/${approvalId}`, { method: 'PATCH', body: JSON.stringify({ decision }), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
 };
 
-// ── Donor Types ─────────────────────────────────────────────────────────────
-interface DonorStats { total_donated: number; projects_supported: number; items_funded: number; escrow_locked: number; escrow_released: number; impact_score: number; }
-interface DonorDonation { escrow_id: string; project_title: string; material_name: string; amount_locked: number; status: string; locked_at: string; }
-interface DonorFundedProject { project_id: string; title: string; damage_type: string; region: string | null; status: string; my_total_donated: number; funded_percentage: number; items_i_funded: number; }
-interface DonorMarketProject { project_id: string; title: string; damage_type: string; region: string | null; total_cost: number; total_funded: number; funded_percentage: number; items_count: number; }
-interface DonorProof { proof_id: string; project_title: string; material_name: string; photo_url: string | null; gps_lat: number | null; gps_lng: number | null; verified_by: string | null; verified_at: string | null; description: string | null; }
-
-export const donor = {
-    getStats: () => request<DonorStats>('/donor/stats'),
-    getDonations: (limit?: number) => { const qs = limit ? `?limit=${limit}` : ''; return request<DonorDonation[]>(`/donor/donations${qs}`); },
-    getImpact: () => request<DonorFundedProject[]>('/donor/impact'),
-    getMarketplace: () => request<DonorMarketProject[]>('/donor/marketplace'),
-    getProjectFunding: (projectId: string) => request(`/donor/projects/${projectId}/funding`),
-    getProofs: () => request<DonorProof[]>('/donor/proofs'),
-    getTimeline: (limit?: number) => { const qs = limit ? `?limit=${limit}` : ''; return request<{ event_type: 'donated' | 'delivered' | 'verified' | 'released' | 'refunded'; event_date: string; project_id: string; project_title: string; item_id: string; material_name: string; amount: number; proof_image_url: string | null; proof_gps_lat: number | null; proof_gps_lng: number | null; verified_by_name: string | null; verified_at: string | null; gift_recipient_name: string | null; donation_intent: string | null }[]>(`/donor/timeline${qs}`); },
-    requestRefund: (data: { escrow_id: string; reason: string }) => request('/donor/refunds', { method: 'POST', body: JSON.stringify(data), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
-    getReceiptUrl: (escrowId: string) => `/api/donor/receipts/${escrowId}`,
-};
+// ── Donor Types — ERADICATED ────────────────────────────────────────────────
+// P2-003: Entire Donor API client removed — Donation Eradication KI (May 2026).
+// Backend endpoints (/donor/*) are preserved for future use per KI mandate.
+// See: nammerha_donation_suspension KI for full context.

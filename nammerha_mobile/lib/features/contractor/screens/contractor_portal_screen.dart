@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +16,7 @@ import '../bloc/contractor_state.dart';
 import '../data/contractor_repository.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Contractor Portal — Multi-tab Dashboard (Platinum Standard)
@@ -23,7 +25,7 @@ import '../../../core/utils/format_utils.dart';
 /// 4 tabs: Dashboard, Marketplace, Bids, Payments
 ///
 /// P0.2 UPGRADE: Migrated from StatefulWidget+setState to BLoC architecture.
-/// P0.3 FIX: All `catch (_) {}` replaced with structured error handling.
+/// P0.3 FIX: All silent catch blocks replaced with structured error handling.
 /// ═══════════════════════════════════════════════════════════════════════════
 class ContractorPortalScreen extends StatelessWidget {
   const ContractorPortalScreen({super.key});
@@ -108,25 +110,9 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           // G10 FIX: Was `state.message.contains(context.tr('failed_2'))` — magic string!
           // Any ContractorError at this point means the dashboard failed to load.
           if (state is ContractorError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.error),
-                  const SizedBox(height: 16),
-                  Text(context.tr('ct_load_error'),
-                      style: TextStyle(color: colors.textPrimary)),
-                  const SizedBox(height: 8),
-                  Text(state.message,
-                      style: TextStyle(fontSize: 12, color: colors.textSubtle),
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => context.read<ContractorBloc>().add(LoadContractorDashboard()),
-                    child: Text(context.tr('ct_retry')),
-                  ),
-                ],
-              ),
+            return NammerhaErrorState(
+              message: context.tr('ct_load_error'),
+              onRetry: () => context.read<ContractorBloc>().add(LoadContractorDashboard()),
             );
           }
 
@@ -190,7 +176,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
         const SizedBox(width: 8),
         _kpiCard(context.tr('ct_earnings'), formatCurrency(stats.totalEscrowReceived), colors.secondaryAccent, colors),
       ],
-    ).animate().fadeIn(duration: 400.ms);
+    ).nmAnimate(context).fadeIn(duration: 400.ms);
   }
 
   Widget _kpiCard(String label, String value, Color accent, SemanticColors colors) {
@@ -275,7 +261,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           ),
         ],
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
   Widget _phaseBadge(String phase, SemanticColors colors) {
@@ -437,7 +423,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           ),
         ],
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
   Widget _miniStat(String label, String value, SemanticColors colors) {
@@ -536,7 +522,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
           ),
         ],
       ),
-    ).animate(delay: (index * 80).ms).fadeIn();
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn();
   }
 
   // ─── Tab 4: Payments ──────────────────────────────────────────────────
@@ -597,7 +583,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                         color: colors.secondaryAccent)),
               ],
             ),
-          ).animate(delay: (i * 80).ms).fadeIn();
+          ).nmAnimate(context, delay: (i * 80).ms).fadeIn();
         },
       ),
     );
@@ -657,7 +643,8 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
     try {
       final dt = DateTime.parse(dateStr);
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] screens/contractor_portal_screen: $e');
       return dateStr;
     }
   }

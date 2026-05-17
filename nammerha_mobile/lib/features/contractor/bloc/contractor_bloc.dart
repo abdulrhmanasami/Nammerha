@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/contractor_repository.dart';
 import '../../../core/i18n/error_keys.dart';
@@ -7,7 +8,7 @@ import 'contractor_state.dart';
 // ═══════════════════════════════════════════════════════════════════════════
 // Contractor BLoC — Business Logic (Platinum Standard)
 // ═══════════════════════════════════════════════════════════════════════════
-// Replaces the raw setState + catch (_) {} pattern in contractor_portal_screen.
+// Replaces the raw setState + silent catch pattern in contractor_portal_screen.
 // Follows the SupplierBloc pattern exactly: events → repository → states.
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -28,6 +29,7 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
       final dashboard = await repository.loadFullDashboard();
       emit(ContractorLoaded(dashboard: dashboard));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/contractor_bloc: $e');
       emit(ContractorError(e.toString()));
     }
   }
@@ -47,6 +49,7 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
       // Reload dashboard to reflect the new bid
       add(LoadContractorDashboard());
     } catch (e) {
+      debugPrint('[Nammerha] bloc/contractor_bloc: $e');
       emit(ContractorError(ErrorKeys.bidFailed));
     }
   }

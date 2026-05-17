@@ -178,6 +178,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.primaryBrand,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),

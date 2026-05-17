@@ -14,6 +14,7 @@ import '../models/cart_item.dart';
 import '../state/cart_store.dart';
 import '../bloc/tip_selector_cubit.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Cart Screen — Dynamic Construction Basket
@@ -126,7 +127,7 @@ class _CartScreenState extends State<CartScreen> {
           ],
         ),
       ),
-    ).animate().fadeIn(duration: 400.ms);
+    ).nmAnimate(context).fadeIn(duration: 400.ms);
   }
 
   Widget _buildCartContent(SemanticColors colors) {
@@ -288,7 +289,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ],
         ),
-      ).animate(delay: (index * 80).ms).fadeIn().slideX(begin: 0.05, end: 0),
+      ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideX(begin: 0.05, end: 0),
     );
   }
 
@@ -446,29 +447,27 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+  /// Maps material category → icon. Handles both canonical English keys
+  /// and Arabic aliases from the backend (defensive bilateral matching).
+  static const _kCategoryIcons = <String, IconData>{
+    // Canonical English (Oracle / OCDS standard)
+    'cement': PhosphorIconsRegular.cube,
+    'steel': PhosphorIconsRegular.barbell,
+    'electrical': PhosphorIconsRegular.lightning,
+    'plumbing': PhosphorIconsRegular.drop,
+    'paint': PhosphorIconsRegular.paintRoller,
+    'wood': PhosphorIconsRegular.tree,
+    // Arabic aliases (backend may send Arabic category names)
+    'إسمنت': PhosphorIconsRegular.cube,
+    'حديد': PhosphorIconsRegular.barbell,
+    'كهرباء': PhosphorIconsRegular.lightning,
+    'سباكة': PhosphorIconsRegular.drop,
+    'دهان': PhosphorIconsRegular.paintRoller,
+    'خشب': PhosphorIconsRegular.tree,
+  };
+
   IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'cement':
-      case 'إسمنت':
-        return PhosphorIconsRegular.cube;
-      case 'steel':
-      case 'حديد':
-        return PhosphorIconsRegular.barbell;
-      case 'electrical':
-      case 'كهرباء':
-        return PhosphorIconsRegular.lightning;
-      case 'plumbing':
-      case 'سباكة':
-        return PhosphorIconsRegular.drop;
-      case 'paint':
-      case 'دهان':
-        return PhosphorIconsRegular.paintRoller;
-      case 'wood':
-      case 'خشب':
-        return PhosphorIconsRegular.tree;
-      default:
-        return PhosphorIconsRegular.package;
-    }
+    return _kCategoryIcons[category.toLowerCase()] ?? PhosphorIconsRegular.package;
   }
 
   void _confirmClear() {

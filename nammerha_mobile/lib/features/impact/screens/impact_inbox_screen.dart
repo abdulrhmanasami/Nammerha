@@ -1,4 +1,5 @@
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/utils/date_utils.dart';
@@ -163,30 +164,10 @@ class _ImpactInboxViewState extends State<_ImpactInboxView> {
   }
 
   Widget _buildErrorState(BuildContext context, String error, SemanticColors colors) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // AUD-015 FIX: PhosphorIcons.cloudSlash() → PhosphorIconsRegular.cloudSlash
-          Icon(PhosphorIconsRegular.cloudSlash, color: colors.error, size: 48),
-          const SizedBox(height: NammerhaTheme.spaceMd),
-          // AUD-016 FIX: Theme.of(context).textTheme.titleMedium → direct TextStyle
-          Text(
-            context.tr('failed_to_load'),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<ImpactBloc>().add(FetchImpactMessages(refresh: true));
-            },
-            child: Text(context.tr('retry')),
-          ),
-        ],
-      ),
+    return NammerhaErrorState(
+      message: context.tr('failed_to_load'),
+      onRetry: () => context.read<ImpactBloc>().add(FetchImpactMessages(refresh: true)),
+      iconSize: 48,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,6 +17,7 @@ import '../bloc/wallet_state.dart';
 import '../data/wallet_repository.dart';
 
 import '../../../core/utils/format_utils.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
@@ -122,27 +124,9 @@ class _WalletViewState extends State<_WalletView> {
   }
 
   Widget _buildError(BuildContext context, String errorMsg, SemanticColors colors) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-          const SizedBox(height: 16),
-          Text(errorMsg, style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
-          const SizedBox(height: 20),
-          // AUD-013 FIX: Explicit brand styling — prevents default Material blue
-          // on unstyled ElevatedButton. Matches notifications & impact error screens.
-          ElevatedButton.icon(
-            onPressed: () => context.read<WalletBloc>().add(LoadWalletEvent()),
-            icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-            label: Text(context.tr('retry')),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colors.primaryBrand,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
+    return NammerhaErrorState(
+      message: errorMsg,
+      onRetry: () => context.read<WalletBloc>().add(LoadWalletEvent()),
     );
   }
 
@@ -189,7 +173,7 @@ class _WalletViewState extends State<_WalletView> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0);
+    ).nmAnimate(context).fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0);
   }
 
   Widget _buildStatsRow(BuildContext context, WalletSummaryModel data, SemanticColors colors) {
@@ -201,7 +185,7 @@ class _WalletViewState extends State<_WalletView> {
         const SizedBox(width: 10),
         _statCard(context.tr('escrow_refunded_label'), '${data.refundedCount}', colors.info, colors),
       ],
-    ).animate(delay: 200.ms).fadeIn();
+    ).nmAnimate(context, delay: 200.ms).fadeIn();
   }
 
   Widget _statCard(String label, String value, Color accent, SemanticColors colors) {
@@ -349,7 +333,7 @@ class _WalletViewState extends State<_WalletView> {
         ],
       ),
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
   Widget _buildEmptyTransactions(BuildContext context, SemanticColors colors) {

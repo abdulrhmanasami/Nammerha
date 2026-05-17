@@ -10,6 +10,7 @@ import '../bloc/review_bloc.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/haptics.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// Reviews Screen — displays reviews + aggregates for any entity.
 /// GAP-H1 FIX: Previously web-only.
@@ -123,7 +124,7 @@ class _ReviewsView extends StatelessWidget {
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 400.ms),
+          ).nmAnimate(context).fadeIn(duration: 400.ms),
           const SizedBox(height: 20),
 
           // Reviews list
@@ -218,7 +219,7 @@ class _ReviewsView extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: (300 + index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (300 + index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
   void _showSubmitSheet(BuildContext context) {
@@ -269,7 +270,7 @@ class _ReviewsView extends StatelessWidget {
                   ));
                   Navigator.pop(ctx);
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,
+                style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                 child: Text(context.tr('rv_submit'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),

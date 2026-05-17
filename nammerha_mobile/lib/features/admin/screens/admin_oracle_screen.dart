@@ -1,5 +1,6 @@
 import '../../../core/i18n/t.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -31,7 +32,7 @@ class _OracleView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'أسعار المواد — أوراكل',
+          context.tr('admin_oracle_prices_title'),
           style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
         ),
         backgroundColor: colors.surfaceElevated,
@@ -50,22 +51,10 @@ class _OracleView extends StatelessWidget {
             return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminOracleError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
-                  const SizedBox(height: 12),
-                  Text(state.message, style: TextStyle(color: colors.textSecondary)),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
-                    icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                    label: Text(context.tr('retry')),
-                    style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
-                  ),
-                ],
-              ),
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => context.read<AdminOracleBloc>().add(LoadOraclePrices()),
+              iconSize: 48,
             );
           }
           if (state is AdminOracleLoaded) {
@@ -128,8 +117,8 @@ class _OracleView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'محرك التسعير FIDIC 13.8',
+                      Text(
+                        context.tr('admin_oracle_engine'),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
@@ -137,7 +126,7 @@ class _OracleView extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${prices.length} مادة مُراقبة',
+                        '${prices.length} ${context.tr('admin_oracle_monitored')}',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 12,
@@ -155,7 +144,7 @@ class _OracleView extends StatelessWidget {
           // Price cards
           ...prices.map((p) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: _buildPriceCard(colors, p),
+            child: _buildPriceCard(context, colors, p),
           )),
 
           const SizedBox(height: 32),
@@ -164,7 +153,7 @@ class _OracleView extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceCard(SemanticColors colors, OraclePriceEntry price) {
+  Widget _buildPriceCard(BuildContext context, SemanticColors colors, OraclePriceEntry price) {
     final isPositive = price.changePercent >= 0;
     final changeColor = isPositive ? colors.error : colors.success;
     final changeIcon = isPositive ? PhosphorIconsRegular.trendUp : PhosphorIconsRegular.trendDown;
@@ -201,7 +190,7 @@ class _OracleView extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'الوحدة: ${price.unit}',
+                  '${context.tr('admin_oracle_unit_label')} ${price.unit}',
                   style: TextStyle(fontSize: 11, color: colors.textMuted),
                 ),
               ],

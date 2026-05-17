@@ -24,7 +24,7 @@ class CheckoutRepository {
     if (response.success && response.data != null) {
       return response.data!;
     } else {
-      throw ApiException(response.error ?? 'تعذر معالجة عملية الإيداع في الضمان');
+      throw ApiException(response.error ?? 'err_escrow_checkout');
     }
   }
 }

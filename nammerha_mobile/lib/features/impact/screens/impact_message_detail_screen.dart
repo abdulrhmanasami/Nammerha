@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../models/impact_message_model.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Impact Message Detail Screen — Platinum Standard
@@ -57,7 +58,7 @@ class ImpactMessageDetailScreen extends StatelessWidget {
                       color: colors.textHeading,
                       height: 1.3,
                     ),
-                  ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05),
+                  ).nmAnimate(context).fadeIn(duration: 300.ms).slideY(begin: 0.05),
                   const SizedBox(height: 16),
 
                   // Divider
@@ -80,7 +81,7 @@ class ImpactMessageDetailScreen extends StatelessWidget {
                       height: 1.7,
                       letterSpacing: 0.15,
                     ),
-                  ).animate(delay: 100.ms).fadeIn(duration: 300.ms),
+                  ).nmAnimate(context, delay: 100.ms).fadeIn(duration: 300.ms),
                   const SizedBox(height: 24),
 
                   // Project reference card (if linked)
@@ -190,7 +191,7 @@ class ImpactMessageDetailScreen extends StatelessWidget {
           ],
         ),
       ],
-    ).animate().fadeIn(duration: 200.ms);
+    ).nmAnimate(context).fadeIn(duration: 200.ms);
   }
 
   // ─── Project Reference Card ──────────────────────────────────────────
@@ -233,7 +234,7 @@ class ImpactMessageDetailScreen extends StatelessWidget {
           Icon(PhosphorIconsRegular.arrowSquareOut, size: 18, color: colors.textSubtle),
         ],
       ),
-    ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.05);
+    ).nmAnimate(context, delay: 200.ms).fadeIn().slideY(begin: 0.05);
   }
 
   // ─── Transparency Footer ─────────────────────────────────────────────
@@ -262,7 +263,7 @@ class ImpactMessageDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: 300.ms).fadeIn();
+    ).nmAnimate(context, delay: 300.ms).fadeIn();
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────

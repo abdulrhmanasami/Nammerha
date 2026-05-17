@@ -10,6 +10,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/region_heatmap_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Region Heatmap Screen — Advanced map visualization
@@ -84,9 +85,11 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
       final regions = regionMap.values.toList()..sort((a, b) => b.count.compareTo(a.count));
       final maxCount = regions.isEmpty ? 1 : regions.first.count;
       cubit.setLoaded(regions: regions, stats: stats, maxCount: maxCount);
-    } on ApiException catch (_) {
+    } on ApiException catch (e) {
+      debugPrint('[Nammerha] screens/region_heatmap_screen: $e');
       cubit.setLoaded(regions: [], stats: {}, maxCount: 1);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] screens/region_heatmap_screen: $e');
       cubit.setLoaded(regions: [], stats: {}, maxCount: 1);
     }
   }
@@ -137,7 +140,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
                       Text('${stats['total_regions'] ?? regions.length} محافظة', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white)),
                       Text('${stats['total_projects'] ?? 0} مشروع إعادة إعمار', style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
                     ]),
-                  ).animate().fadeIn(duration: 400.ms),
+                  ).nmAnimate(context).fadeIn(duration: 400.ms),
                   const SizedBox(height: 20),
 
                   // Legend
@@ -227,7 +230,7 @@ class _RegionHeatmapContentState extends State<_RegionHeatmapContent> {
           )).toList()),
         ],
       ]),
-    ).animate(delay: (index * 60).ms).fadeIn().slideY(begin: 0.03);
+    ).nmAnimate(context, delay: (index * 60).ms).fadeIn().slideY(begin: 0.03);
   }
 }
 

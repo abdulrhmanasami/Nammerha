@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class PasswordStrengthIndicator extends StatelessWidget {
   final String password;
@@ -74,7 +75,7 @@ class PasswordStrengthIndicator extends StatelessWidget {
             }),
           ),
         ],
-      ).animate().fadeIn(duration: 200.ms),
+      ).nmAnimate(context).fadeIn(duration: 200.ms),
     );
   }
 }

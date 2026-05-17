@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/format_utils.dart';
@@ -13,6 +14,7 @@ import '../bloc/contract_payment_event.dart';
 import '../bloc/contract_payment_state.dart';
 import '../models/service_contract.dart';
 import 'contract_details_screen.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Contract List Screen — "عقودي"
@@ -221,7 +223,7 @@ class _ContractListView extends StatelessWidget {
           ],
         ),
       ),
-    ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.05);
+    ).nmAnimate(context, delay: (index * 100).ms).fadeIn().slideY(begin: 0.05);
   }
 
   Widget _amountChip(String label, String value, Color accent, SemanticColors colors) {
@@ -275,26 +277,9 @@ class _ContractListView extends StatelessWidget {
   }
 
   Widget _buildError(BuildContext context, String msg, SemanticColors colors) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-            const SizedBox(height: 16),
-            Text(msg, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () =>
-                  context.read<ContractPaymentBloc>().add(const LoadMyContractsEvent()),
-              icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
-              label: Text(context.tr('retry')),
-              style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
-            ),
-          ],
-        ),
-      ),
+    return NammerhaErrorState(
+      message: msg,
+      onRetry: () => context.read<ContractPaymentBloc>().add(const LoadMyContractsEvent()),
     );
   }
 

@@ -9,6 +9,7 @@ import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/project_dashboard_bloc.dart';
 import '../bloc/project_dashboard_event_state.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// Project Dashboard Screen — per-project management console.
 ///
@@ -161,7 +162,7 @@ class _ProjectDashboardView extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: colors.textPrimary,
               ),
-            ).animate(delay: 300.ms).fadeIn(),
+            ).nmAnimate(context, delay: 300.ms).fadeIn(),
             const SizedBox(height: 14),
 
             if (logs.isEmpty)
@@ -209,7 +210,7 @@ class _ProjectDashboardView extends StatelessWidget {
               ),
             ),
           ],
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+        ).nmAnimate(context).fadeIn(duration: 400.ms).slideY(begin: 0.1),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -231,7 +232,7 @@ class _ProjectDashboardView extends StatelessWidget {
               ),
             ),
           ],
-        ).animate(delay: 200.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
+        ).nmAnimate(context, delay: 200.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1),
       ],
     );
   }
@@ -261,7 +262,7 @@ class _ProjectDashboardView extends StatelessWidget {
           ),
         ],
       ),
-    ).animate(delay: 400.ms).fadeIn();
+    ).nmAnimate(context, delay: 400.ms).fadeIn();
   }
 
   Widget _buildLogCard(BuildContext context, Map<String, dynamic> log, int index) {
@@ -278,7 +279,9 @@ class _ProjectDashboardView extends StatelessWidget {
       try {
         final dt = DateTime.parse(createdAt);
         dateLabel = '${dt.day}/${dt.month}/${dt.year}';
-      } catch (_) {}
+      } catch (e) {
+      debugPrint('[Nammerha] screens/project_dashboard_screen: $e');
+    }
     }
 
     return Container(
@@ -387,7 +390,7 @@ class _ProjectDashboardView extends StatelessWidget {
           ],
         ],
       ),
-    ).animate(delay: (400 + index * 100).ms).fadeIn().slideY(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (400 + index * 100).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
   void _showSubmitLogDialog(BuildContext context) {
@@ -510,6 +513,7 @@ class _ProjectDashboardView extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
@@ -541,6 +545,7 @@ class _ProjectDashboardView extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.primaryBrand,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(context.tr('retry'), style: TextStyle(color: Colors.white)),

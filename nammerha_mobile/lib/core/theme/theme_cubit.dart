@@ -26,7 +26,8 @@ class ThemeCubit extends Cubit<ThemeMode> {
       } else {
         emit(ThemeMode.light);
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] theme/theme_cubit: $e');
       // Fallback: light mode on error (fail-safe)
       emit(ThemeMode.light);
     }
@@ -57,7 +58,8 @@ class ThemeCubit extends Cubit<ThemeMode> {
         ThemeMode.light => 'light',
       };
       await prefs.setString(_key, value);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] theme/theme_cubit: $e');
       // Silent — non-critical persistence failure
     }
   }

@@ -8,6 +8,7 @@ import '../../../core/widgets/gradient_button.dart';
 import '../../../core/i18n/t.dart';
 import '../../pricing/bloc/pricing_bloc.dart';
 import '../../../core/bloc/page_index_cubit.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// Typed tier model — replaces raw `Map<String, dynamic>` for type safety.
 class SubscriptionTier {
@@ -140,7 +141,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                     color: colors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
-                ).animate().fadeIn().slideY(begin: -0.1),
+                ).nmAnimate(context).fadeIn().slideY(begin: -0.1),
                 const SizedBox(height: 8),
                 Text(
                   context.tr('sp_sub_description'),
@@ -149,7 +150,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
-                ).animate(delay: 100.ms).fadeIn(),
+                ).nmAnimate(context, delay: 100.ms).fadeIn(),
                 const SizedBox(height: 32),
 
                 // Tiers
@@ -228,7 +229,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(bottom: 6),
                                 child: Text(
-                                  'ل.س / ${tier.period}',
+                                  '${context.tr('currency_suffix')} / ${tier.period}',
                                   style: textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: colors.textSecondary,
@@ -261,7 +262,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                         ],
                       ),
                     ),
-                  ).animate(delay: (200 + index * 100).ms).fadeIn().slideY(begin: 0.1);
+                  ).nmAnimate(context, delay: (200 + index * 100).ms).fadeIn().slideY(begin: 0.1);
                 }),
 
                 const SizedBox(height: 32),
@@ -270,7 +271,7 @@ class _SupplierSubscriptionScreenContentState extends State<_SupplierSubscriptio
                   icon: selectedTierIndex == 0 ? PhosphorIconsRegular.arrowRight : PhosphorIconsRegular.crownSimple,
                   isLoading: state.isSubscribing,
                   onPressed: () => _processSubscription(tiers),
-                ).animate(delay: 600.ms).fadeIn(),
+                ).nmAnimate(context, delay: 600.ms).fadeIn(),
                 const SizedBox(height: 24),
               ],
             ),

@@ -349,6 +349,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.primaryBrand,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: Text(context.tr('auth_send_btn'), style: const TextStyle(color: Colors.white)),

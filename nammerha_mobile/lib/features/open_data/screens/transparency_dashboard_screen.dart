@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import '../../../core/utils/format_utils.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/transparency_dashboard_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Transparency Dashboard — لوحة الشفافية والبيانات المفتوحة (OCDS)
@@ -124,31 +126,9 @@ class _TransparencyDashboardContentState
     }
 
     if (tState.error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(PhosphorIconsRegular.cloudSlash,
-                  size: 64, color: colors.textSecondary),
-              const SizedBox(height: 16),
-              Text(
-                tState.error!,
-                style: TextStyle(color: colors.error, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _loadData,
-                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: Text(context.tr('retry')),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primaryBrand),
-              ),
-            ],
-          ),
-        ),
+      return NammerhaErrorState(
+        message: tState.error!,
+        onRetry: _loadData,
       );
     }
 
@@ -168,7 +148,7 @@ class _TransparencyDashboardContentState
               icon: PhosphorIconsRegular.eye,
               color: colors.primaryBrand,
               colors: colors,
-            ).animate().fadeIn(duration: 400.ms),
+            ).nmAnimate(context).fadeIn(duration: 400.ms),
             const SizedBox(height: 20),
 
             // OCDS Release Summary (if available)
@@ -313,7 +293,7 @@ class _TransparencyDashboardContentState
           ),
         ],
       ),
-    ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.03);
+    ).nmAnimate(context, delay: 200.ms).fadeIn().slideY(begin: 0.03);
   }
 
   Widget _buildOCDSField(
@@ -469,7 +449,7 @@ class _TransparencyDashboardContentState
               ],
             ],
           ),
-        ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.03);
+        ).nmAnimate(context, delay: (index * 100).ms).fadeIn().slideY(begin: 0.03);
       },
     );
   }

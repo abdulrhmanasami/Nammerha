@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/wallet_repository.dart';
 import '../models/wallet_model.dart';
@@ -24,6 +25,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         hasMore: data.transactions.length >= WalletRepository.pageSize,
       ));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/wallet_bloc: $e');
       emit(WalletError(e.toString()));
     }
   }
@@ -65,7 +67,8 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         hasMore: nextPage.length >= WalletRepository.pageSize,
         isLoadingMore: false,
       ));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/wallet_bloc: $e');
       // Silently fail pagination — keep showing existing data
       emit(currentState.copyWith(isLoadingMore: false));
     }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/network/api_client.dart';
@@ -90,6 +91,7 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
 
       emit(const VerifyEmailSuccess('تم تأكيد بريدك الإلكتروني بنجاح!'));
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/verify_email_bloc: $e');
       if (e.statusCode == 410 || e.message.contains('expired')) {
         emit(const VerifyEmailExpired(
           'انتهت صلاحية رابط التحقق — اطلب رابطاً جديداً',
@@ -97,7 +99,8 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
       } else {
         emit(VerifyEmailError(e.message));
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/verify_email_bloc: $e');
       emit(const VerifyEmailError('حدث خطأ في التحقق — حاول مرة أخرى'));
     }
   }

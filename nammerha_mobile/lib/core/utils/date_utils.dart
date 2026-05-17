@@ -50,7 +50,8 @@ class NammerhaDateUtils {
     try {
       final dt = DateTime.parse(isoString);
       return relativeTime(context, dt);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] utils/date_utils: $e');
       return '';
     }
   }

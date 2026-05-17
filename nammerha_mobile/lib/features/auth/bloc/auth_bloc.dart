@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../repositories/auth_repository.dart';
@@ -195,7 +196,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         emit(AuthUnauthenticated());
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthUnauthenticated());
     }
   }
@@ -211,10 +213,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // Apply same i18n defense as email login
       final translatedMsg = _localizeError(e.message);
       emit(AuthError(translatedMsg));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(_localizeError(e.toString())));
     }
   }
@@ -296,6 +300,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // Detect email verification errors and emit specific state
       if (_isEmailVerificationError(e.message)) {
         emit(AuthEmailNotVerified(
@@ -306,6 +311,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthError(_localizeError(e.message)));
       }
     } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.loginFailed));
     }
   }
@@ -320,8 +326,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthRegistrationSuccess(message));
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(e.message));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.registerFailed));
     }
   }
@@ -339,8 +347,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final message = await _authRepository.forgotPassword(email: event.email);
       emit(AuthPasswordResetSent(message));
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(e.message));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
     }
   }
@@ -361,8 +371,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthPasswordChanged(message));
       }
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(e.message));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
     }
   }
@@ -376,8 +388,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthPasswordResetSuccess(message));
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(e.message));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
     }
   }

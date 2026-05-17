@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,7 @@ import '../data/compliance_repository.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Compliance Dashboard — OCDS Audit & Escrow Review (Platinum Standard)
@@ -48,7 +50,8 @@ class _ComplianceDashboardView extends StatelessWidget {
     try {
       final dt = DateTime.parse(dateStr);
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] screens/compliance_dashboard_screen: $e');
       return dateStr;
     }
   }
@@ -88,21 +91,9 @@ class _ComplianceDashboardView extends StatelessWidget {
           }
 
           if (state is ComplianceError && state.message.contains(context.tr('failed_2'))) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.error),
-                  const SizedBox(height: 16),
-                  Text(context.tr('co_load_error'),
-                      style: TextStyle(color: colors.textPrimary, fontSize: 16)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => context.read<ComplianceBloc>().add(LoadComplianceDashboard()),
-                    child: Text(context.tr('ct_retry')),
-                  ),
-                ],
-              ),
+            return NammerhaErrorState(
+              message: context.tr('co_load_error'),
+              onRetry: () => context.read<ComplianceBloc>().add(LoadComplianceDashboard()),
             );
           }
 
@@ -157,7 +148,7 @@ class _ComplianceDashboardView extends StatelessWidget {
             const SizedBox(width: 8),
             _kpiCard(context.tr('co_resolved'), '${stats.resolvedThisMonth}', colors.success, colors),
           ],
-        ).animate().fadeIn(duration: 400.ms),
+        ).nmAnimate(context).fadeIn(duration: 400.ms),
       ],
     );
   }
@@ -238,7 +229,7 @@ class _ComplianceDashboardView extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(delay: 200.ms);
+    ).nmAnimate(context).fadeIn(delay: 200.ms);
   }
 
   Widget _metricBar({
@@ -389,7 +380,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                 if (review.gpsAccuracy != null) ...[
                   Icon(PhosphorIconsRegular.crosshair, size: 14, color: colors.textSubtle),
                   const SizedBox(width: 4),
-                  Text('±${review.gpsAccuracy!.toStringAsFixed(0)}م',
+                  Text('±${review.gpsAccuracy!.toStringAsFixed(0)}${context.tr('compliance_meter_suffix')}',
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -454,7 +445,7 @@ class _ComplianceDashboardView extends StatelessWidget {
           ],
         ],
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
   Widget _emptyState(BuildContext context, SemanticColors colors) {

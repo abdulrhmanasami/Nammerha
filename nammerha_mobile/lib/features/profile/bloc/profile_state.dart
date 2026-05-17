@@ -47,4 +47,26 @@ class ProfileError extends ProfileState {
   List<Object?> get props => [message];
 }
 
+/// Emitted when a SAVE operation fails.
+///
+/// Unlike [ProfileError] (which triggers the full error screen for load failures),
+/// [ProfileSaveError] preserves the user data so the form stays visible and the
+/// user can retry without losing their edits.
+///
+/// P1-002 Platinum Fix: Differentiates load-time vs save-time errors.
+class ProfileSaveError extends ProfileState {
+  final Map<String, dynamic> user;
+  final List<Map<String, dynamic>> roles;
+  final String message;
+
+  const ProfileSaveError({
+    required this.user,
+    required this.roles,
+    required this.message,
+  });
+
+  @override
+  List<Object?> get props => [user, roles, message];
+}
+
 class ProfileLoggedOut extends ProfileState {}

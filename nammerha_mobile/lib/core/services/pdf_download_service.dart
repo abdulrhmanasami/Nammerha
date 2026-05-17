@@ -89,6 +89,7 @@ class PdfDownloadService {
       onProgress?.call(1.0);
       return PdfDownloadResult(localPath: filePath, fromCache: false);
     } catch (e) {
+      debugPrint('[Nammerha] services/pdf_download_service: $e');
       // Clean up partial download
       if (await file.exists()) {
         await file.delete();
@@ -106,7 +107,8 @@ class PdfDownloadService {
       if (await cacheDir.exists()) {
         await cacheDir.delete(recursive: true);
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] services/pdf_download_service: $e');
       // Non-fatal
     }
   }

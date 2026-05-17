@@ -160,6 +160,7 @@ class PushNotificationService {
 
       debugPrint('[Nammerha Push] Token registered successfully');
     } catch (e) {
+      debugPrint('[Nammerha] services/push_notification_service: $e');
       // Non-fatal: push is a best-effort feature
       debugPrint('[Nammerha Push] Token registration failed: $e');
     }
@@ -198,7 +199,8 @@ class PushNotificationService {
           'platform': platform,
         },
       );
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] services/push_notification_service: $e');
       // Fallback: try GraphQL mutation if REST endpoint not available
       try {
         await api.graphql(
@@ -254,7 +256,8 @@ class PushNotificationService {
           try {
             final data = jsonDecode(response.payload!) as Map<String, dynamic>;
             onNotificationTapped?.call(data);
-          } catch (_) {
+          } catch (e) {
+            debugPrint('[Nammerha] services/push_notification_service: $e');
             // Payload parse failed — ignore
           }
         }

@@ -1,4 +1,5 @@
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -86,25 +87,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
 
           if (state is NotificationsError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-                    const SizedBox(height: 16),
-                    Text(state.message, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () => context.read<NotificationsBloc>().add(LoadNotificationsRequested()),
-                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: Text(context.tr('retry')),
-                      style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
-                    ),
-                  ],
-                ),
-              ),
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => context.read<NotificationsBloc>().add(LoadNotificationsRequested()),
             );
           }
 
@@ -165,7 +150,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   case 'funding':
                   case 'donation': // Legacy backend alias
                   case 'escrow':
-                    icon = PhosphorIconsRegular.heart;
+                    icon = PhosphorIconsRegular.wallet;
                     iconColor = colors.success;
                     break;
                   case 'proof':
@@ -269,9 +254,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   button: true,
                   child: rawCard,
                 );
-                return AnimationBudget.shouldAnimate(context)
-                    ? card.animate(delay: (index * 60).ms).fadeIn().slideX(begin: 0.03)
-                    : card;
+                return card.nmAnimate(context, delay: (index * 60).ms).fadeIn().slideX(begin: 0.03);
               },
             ),
           );

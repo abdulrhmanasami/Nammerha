@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/impact_repository.dart';
 import 'impact_event.dart';
@@ -51,6 +52,7 @@ class ImpactBloc extends Bloc<ImpactEvent, ImpactState> {
         ));
       }
     } catch (e) {
+      debugPrint('[Nammerha] bloc/impact_bloc: $e');
       emit(ImpactError(e.toString()));
     }
   }
@@ -81,7 +83,8 @@ class ImpactBloc extends Bloc<ImpactEvent, ImpactState> {
       // Network request (Offline resilience managed by repository)
       try {
         await repository.markAsRead(event.messageId);
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[Nammerha] bloc/impact_bloc: $e');
         // Handled silently by OfflineQueue in repo
       }
     }
@@ -106,7 +109,8 @@ class ImpactBloc extends Bloc<ImpactEvent, ImpactState> {
       // Network request
       try {
         await repository.markAllAsRead();
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[Nammerha] bloc/impact_bloc: $e');
         // Handled silently by OfflineQueue in repo
       }
     }

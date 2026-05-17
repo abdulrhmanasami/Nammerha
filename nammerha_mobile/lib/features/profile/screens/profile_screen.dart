@@ -18,8 +18,10 @@ import '../bloc/profile_form_cubit.dart';
 import '../bloc/change_password_form_cubit.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Profile Screen — User Identity, Roles, Settings
@@ -77,15 +79,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  /// P2-005 FIX: Profile completion — 4 meaningful milestones (25% each).
+  ///
+  /// PREVIOUS (6 steps): Awarded 16.6% for having 1 role AND 16.6% for
+  /// having 2+ roles — gamified multi-role registration ("collect them all").
+  /// Also had a redundant `user['role']` check (always set if user exists).
+  ///
+  /// NOW (4 steps): Aligned with Universal Access paradigm. Roles are
+  /// contextual enablers, not achievements. Each milestone represents
+  /// a genuine, actionable profile strengthening action:
+  ///
+  ///   1. Name set (25%)  — identity
+  ///   2. Email set (25%) — contact
+  ///   3. Role active (25%) — platform access (1 is sufficient)
+  ///   4. KYC verified (25%) — trust & escrow eligibility
   int _calculateCompletionPct(Map<String, dynamic>? user, List<Map<String, dynamic>> roles) {
     if (user == null) return 0;
-    int steps = 6, completed = 0;
+    const steps = 4;
+    int completed = 0;
     if ((user['full_name']?.toString() ?? '').isNotEmpty) completed++;
     if ((user['email']?.toString() ?? '').isNotEmpty) completed++;
-    if (user['kyc_verified'] == true) completed++;
     if (roles.isNotEmpty) completed++;
-    if (roles.length >= 2) completed++;
-    if ((user['role']?.toString() ?? '').isNotEmpty) completed++;
+    if (user['kyc_verified'] == true) completed++;
     return ((completed / steps) * 100).round();
   }
 
@@ -110,6 +125,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _nameController.text = state.user['full_name']?.toString() ?? '';
           _emailController.text = state.user['email']?.toString() ?? '';
         }
+        // P1-002 FIX: Deferred save feedback — success only after API confirms.
+        if (state is ProfileLoaded && isEditing) {
+          context.read<ProfileFormCubit>().stopEditing();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.tr('profile_updated')), backgroundColor: colors.success),
+          );
+        }
+        // P1-002 FIX: Save error — show error snackbar but KEEP the form open.
+        // User stays in edit mode so they can retry without re-entering data.
+        if (state is ProfileSaveError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.tr(state.message)), backgroundColor: colors.error),
+          );
+        }
+        // Load errors are handled by the builder (full error screen).
         if (state is ProfileLoggedOut) {
           // P1-007 FIX: Delegate navigation to _AppFlowController via AuthBloc
           // instead of pushNamedAndRemoveUntil which creates a duplicate root.
@@ -128,6 +158,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (state is ProfileLoaded) {
           user = state.user;
           roles = state.roles;
+        } else if (state is ProfileSaveError) {
+          // P1-002: Save failed — preserve user data in form for retry
+          user = state.user;
+          roles = state.roles;
         } else if (state is ProfileLoading) {
           user = state.user;
           roles = state.roles ?? [];
@@ -135,34 +169,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Scaffold(
             backgroundColor: colors.backgroundPrimary,
             appBar: AppBar(title: Text(context.tr('profile_title'))),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.message,
-                      style: TextStyle(color: colors.error, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () => context.read<ProfileBloc>().add(LoadProfileRequested()),
-                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: Text(context.tr('retry')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.primaryBrand,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            body: NammerhaErrorState(
+              message: state.message,
+              onRetry: () => context.read<ProfileBloc>().add(LoadProfileRequested()),
             ),
           );
         }
@@ -243,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.08, end: 0);
+    ).nmAnimate(context).fadeIn(duration: 500.ms).slideY(begin: -0.08, end: 0);
   }
 
   // ─── Profile Completion ───────────────────────────────────────────────
@@ -279,7 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    ).animate(delay: 200.ms).fadeIn();
+    ).nmAnimate(context, delay: 200.ms).fadeIn();
   }
 
   // ─── Info Display ─────────────────────────────────────────────────────
@@ -376,10 +385,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: isSaving ? null : () {
                     Haptics.medium();
                     context.read<ProfileBloc>().add(SaveProfileRequested(fullName: _nameController.text.trim(), email: _emailController.text.trim()));
-                    context.read<ProfileFormCubit>().stopEditing();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(context.tr('profile_updated')), backgroundColor: colors.success),
-                    );
+                    // P1-002 FIX: Do NOT call stopEditing() or show success here.
+                    // Deferred to BlocConsumer listener — waits for API confirmation.
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.primaryBrand,
@@ -394,7 +401,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn();
+    ).nmAnimate(context).fadeIn();
   }
 
   // ─── Roles Section ────────────────────────────────────────────────────

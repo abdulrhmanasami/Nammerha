@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,7 @@ import '../../bids/screens/submit_bid_screen.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/boq_details_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BOQ Details Screen — جداول الكميات والتسعير
@@ -130,31 +132,9 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
       return NammerhaShimmerLoader(colors: colors);
     }
     if (bState.error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(PhosphorIconsRegular.cloudSlash,
-                  size: 64, color: colors.textSecondary),
-              const SizedBox(height: 16),
-              Text(
-                bState.error!,
-                style: TextStyle(color: colors.error),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _fetchBOQ,
-                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: Text(context.tr('retry')),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primaryBrand),
-              ),
-            ],
-          ),
-        ),
+      return NammerhaErrorState(
+        message: bState.error!,
+        onRetry: _fetchBOQ,
       );
     }
     if (bState.items.isEmpty) {
@@ -260,7 +240,7 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
           ),
         ],
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.03);
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.03);
   }
 
   Widget _buildStat(String label, String val, SemanticColors colors,

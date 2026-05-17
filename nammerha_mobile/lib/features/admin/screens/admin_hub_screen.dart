@@ -22,7 +22,7 @@ class AdminHubScreen extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'لوحة الإدارة',
+          context.tr('admin_panel'),
           style: TextStyle(
             fontWeight: FontWeight.w800,
             color: colors.textHeading,
@@ -73,16 +73,16 @@ class AdminHubScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'مركز القيادة',
-                                style: TextStyle(
+                               Text(
+                                context.tr('admin_command_center'),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              Text(
-                                'إدارة المنصة والحوكمة',
+                               Text(
+                                context.tr('admin_platform_governance'),
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.8),
                                   fontSize: 13,
@@ -109,43 +109,43 @@ class AdminHubScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _SectionCard(
-                    title: 'لوحة القيادة',
-                    subtitle: 'إحصائيات المنصة',
+                    title: context.tr('admin_dashboard_title'),
+                    subtitle: context.tr('admin_dashboard_subtitle'),
                     icon: PhosphorIconsRegular.squaresFour,
                     accentColor: colors.primaryBrand,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen())),
                   ),
                   _SectionCard(
-                    title: 'الضمان المالي',
-                    subtitle: 'مراجعة الإثباتات',
+                    title: context.tr('admin_escrow_title'),
+                    subtitle: context.tr('admin_escrow_subtitle'),
                     icon: PhosphorIconsRegular.wallet,
                     accentColor: colors.secondaryAccent,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminEscrowScreen())),
                   ),
                   _SectionCard(
-                    title: 'التحقق (KYC)',
-                    subtitle: 'الهوية والوثائق',
+                    title: context.tr('admin_kyc_title'),
+                    subtitle: context.tr('admin_kyc_subtitle'),
                     icon: PhosphorIconsRegular.shieldCheck,
                     accentColor: colors.warmEarth,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminKycScreen())),
                   ),
                   _SectionCard(
                     title: context.tr('admin_revenue'),
-                    subtitle: 'عمولات وإكراميات',
+                    subtitle: context.tr('admin_revenue_subtitle'),
                     icon: PhosphorIconsRegular.trendUp,
                     accentColor: colors.success,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminRevenueScreen())),
                   ),
                   _SectionCard(
-                    title: 'الرسوم المالية',
-                    subtitle: 'إعدادات ومؤسسات',
+                    title: context.tr('admin_fintech_title'),
+                    subtitle: context.tr('admin_fintech_subtitle'),
                     icon: PhosphorIconsRegular.receipt,
                     accentColor: colors.info,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminFintechScreen())),
                   ),
                   _SectionCard(
-                    title: 'أسعار المواد',
-                    subtitle: 'أوراكل FIDIC',
+                    title: context.tr('admin_oracle_title'),
+                    subtitle: context.tr('admin_oracle_subtitle'),
                     icon: PhosphorIconsRegular.tag,
                     accentColor: colors.goldFunding,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOracleScreen())),

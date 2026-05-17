@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +12,7 @@ import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/bids_fetch_cubit.dart';
 import '../models/bid_model.dart';
 import '../../payments/screens/contract_list_screen.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// BidsScreen — Platinum Standard (P1-002 Architectural Purity)
@@ -66,25 +68,9 @@ class _BidsScreenContent extends StatelessWidget {
     }
 
     if (state.error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-              const SizedBox(height: 16),
-              Text(context.tr(state.error!), style: TextStyle(color: colors.error, fontSize: 16), textAlign: TextAlign.center),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => context.read<BidsFetchCubit>().fetchBids(),
-                icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: Text(context.tr('retry')),
-                style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
-              ),
-            ],
-          ),
-        ),
+      return NammerhaErrorState(
+        message: context.tr(state.error!),
+        onRetry: () => context.read<BidsFetchCubit>().fetchBids(),
       );
     }
 
@@ -228,7 +214,7 @@ class _BidsScreenContent extends StatelessWidget {
         ],
       ),
     )
-        .animate(delay: (index * 120).ms)
+        .nmAnimate(context, delay: (index * 120).ms)
         .fadeIn()
         .slideY(begin: 0.08, end: 0);
   }

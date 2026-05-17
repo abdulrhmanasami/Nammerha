@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/i18n/error_keys.dart';
@@ -34,6 +35,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         hasMore: notifications.length >= _pageSize,
       ));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/notifications_bloc: $e');
       emit(NotificationsError(ErrorKeys.generic));
     }
   }
@@ -60,7 +62,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         hasMore: nextPage.length >= _pageSize,
         isLoadingMore: false,
       ));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/notifications_bloc: $e');
       // Silently fail pagination — keep showing existing data
       emit(currentState.copyWith(isLoadingMore: false));
     }
@@ -81,6 +84,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         
         emit(currentState.copyWith(notifications: updatedNotifications));
       } catch (e) {
+        debugPrint('[Nammerha] bloc/notifications_bloc: $e');
         // Fall back to reload 
         add(LoadNotificationsRequested());
       }
@@ -106,6 +110,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         
         emit(currentState.copyWith(notifications: updatedNotifications));
       } catch (e) {
+        debugPrint('[Nammerha] bloc/notifications_bloc: $e');
         // Do nothing on failure locally
       }
     }

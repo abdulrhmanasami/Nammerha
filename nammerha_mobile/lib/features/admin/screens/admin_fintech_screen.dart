@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -33,7 +34,7 @@ class _FintechView extends StatelessWidget {
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
-          'الرسوم المالية',
+          context.tr('admin_fintech_fees_title'),
           style: TextStyle(fontWeight: FontWeight.w800, color: colors.textHeading),
         ),
         backgroundColor: colors.surfaceElevated,
@@ -46,22 +47,10 @@ class _FintechView extends StatelessWidget {
             return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminFintechError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
-                  const SizedBox(height: 12),
-                  Text(state.message, style: TextStyle(color: colors.textSecondary)),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => context.read<AdminFintechBloc>().add(LoadFintechData()),
-                    icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                    label: Text(context.tr('retry')),
-                    style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
-                  ),
-                ],
-              ),
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => context.read<AdminFintechBloc>().add(LoadFintechData()),
+              iconSize: 48,
             );
           }
           if (state is AdminFintechLoaded) {
@@ -95,27 +84,27 @@ class _FintechView extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               AdminKpiCard(
-                title: 'إيرادات الرسوم',
+                title: context.tr('admin_fintech_fee_revenue'),
                 value: fees.totalFeeRevenue,
                 icon: PhosphorIconsRegular.bank,
                 accentColor: colors.primaryBrand,
                 isCurrency: true,
               ),
               AdminKpiCard(
-                title: 'رسوم الشهر',
+                title: context.tr('admin_fintech_monthly_fees'),
                 value: fees.mtdFeeRevenue,
                 icon: PhosphorIconsRegular.calendarBlank,
                 accentColor: colors.secondaryAccent,
                 isCurrency: true,
               ),
               AdminKpiCard(
-                title: 'عدد الرسوم',
+                title: context.tr('admin_fintech_fee_count'),
                 value: fees.totalFeesCount,
                 icon: PhosphorIconsRegular.hashStraight,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
-                title: 'متوسط الرسم',
+                title: context.tr('admin_fintech_avg_fee'),
                 value: fees.averageFeeCents,
                 icon: PhosphorIconsRegular.chartLine,
                 accentColor: colors.info,
@@ -127,14 +116,14 @@ class _FintechView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Fee Configurations
-          _sectionHeader(colors, 'إعدادات الرسوم', PhosphorIconsRegular.sliders),
+          _sectionHeader(colors, context.tr('admin_fintech_fee_settings'), PhosphorIconsRegular.sliders),
           const SizedBox(height: 8),
           if (state.feeConfigs.isEmpty)
             _emptyCard(colors, context.tr('admin_no_configs'))
           else
             ...state.feeConfigs.map((f) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _buildFeeConfigCard(colors, f),
+              child: _buildFeeConfigCard(context, colors, f),
             )),
 
           const SizedBox(height: 20),
@@ -181,7 +170,7 @@ class _FintechView extends StatelessWidget {
     );
   }
 
-  Widget _buildFeeConfigCard(SemanticColors colors, FeeConfig config) {
+  Widget _buildFeeConfigCard(BuildContext context, SemanticColors colors, FeeConfig config) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -209,7 +198,7 @@ class _FintechView extends StatelessWidget {
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textHeading),
                 ),
                 Text(
-                  'يُطبّق على: ${config.appliesTo}',
+                  '${context.tr('admin_fintech_applies_to')} ${config.appliesTo}',
                   style: TextStyle(fontSize: 11, color: colors.textMuted),
                 ),
               ],
@@ -231,7 +220,7 @@ class _FintechView extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'أدنى: ${formatCurrency(config.minFeeCents)}',
+                '${context.tr('admin_fintech_min_fee')} ${formatCurrency(config.minFeeCents)}',
                 style: TextStyle(fontSize: 9, color: colors.textMuted),
               ),
             ],

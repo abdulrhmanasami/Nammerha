@@ -9,6 +9,7 @@ import '../../../core/widgets/gradient_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/reset_password_form_cubit.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Password Reset Screen — Platinum Standard (Absolute Zero setState)
@@ -68,10 +69,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   }
 
   String _strengthLabel(double strength) {
-    if (strength < 0.3) return 'ضعيفة جداً';
+    if (strength < 0.3) return context.tr('pw_strength_weak');
     if (strength < 0.6) return context.tr('pw_strength_good');
     if (strength < 0.85) return context.tr('password_good');
-    return 'قوية جداً ✓';
+    return context.tr('pw_strength_strong');
   }
 
   void _submit(BuildContext context) {
@@ -158,7 +159,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
           // Title
           Text(
-            'إعادة تعيين كلمة المرور',
+            context.tr('pw_reset_title'),
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -168,7 +169,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'أدخل كلمة المرور الجديدة لحسابك',
+            context.tr('pw_reset_subtitle'),
             style: TextStyle(fontSize: 14, color: colors.textSecondary),
             textAlign: TextAlign.center,
           ),
@@ -183,7 +184,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             onChanged: (value) =>
                 context.read<ResetPasswordFormCubit>().updateStrength(value),
             decoration: InputDecoration(
-              labelText: 'كلمة المرور الجديدة',
+              labelText: context.tr('pw_new_label'),
               labelStyle: TextStyle(color: colors.textSecondary),
               prefixIcon: Icon(PhosphorIconsRegular.lockKey, color: colors.textSecondary),
               suffixIcon: IconButton(
@@ -217,12 +218,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               ),
             ),
             validator: (v) {
-              if (v == null || v.isEmpty) return 'كلمة المرور مطلوبة';
-              if (v.length < 8) return 'يجب أن تكون 8 أحرف على الأقل';
-              if (!RegExp(r'[A-Z]').hasMatch(v)) return 'يجب أن تحتوي على حرف كبير';
-              if (!RegExp(r'[a-z]').hasMatch(v)) return 'يجب أن تحتوي على حرف صغير';
-              if (!RegExp(r'[0-9]').hasMatch(v)) return 'يجب أن تحتوي على رقم';
-              if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return 'يجب أن تحتوي على رمز خاص';
+              if (v == null || v.isEmpty) return context.tr('pw_required');
+              if (v.length < 8) return context.tr('pw_min_length');
+              if (!RegExp(r'[A-Z]').hasMatch(v)) return context.tr('pw_needs_upper');
+              if (!RegExp(r'[a-z]').hasMatch(v)) return context.tr('pw_needs_lower');
+              if (!RegExp(r'[0-9]').hasMatch(v)) return context.tr('pw_needs_digit');
+              if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return context.tr('pw_needs_special');
               return null;
             },
           ),
@@ -266,7 +267,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             textDirection: TextDirection.ltr,
             style: TextStyle(color: colors.textPrimary),
             decoration: InputDecoration(
-              labelText: 'تأكيد كلمة المرور',
+              labelText: context.tr('pw_confirm_label'),
               labelStyle: TextStyle(color: colors.textSecondary),
               prefixIcon:
                   Icon(PhosphorIconsRegular.lockKey, color: colors.textSecondary),
@@ -301,9 +302,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
               ),
             ),
             validator: (v) {
-              if (v == null || v.isEmpty) return 'تأكيد كلمة المرور مطلوب';
+              if (v == null || v.isEmpty) return context.tr('pw_confirm_required');
               if (v != _passwordController.text) {
-                return 'كلمتا المرور غير متطابقتين';
+                return context.tr('pw_mismatch');
               }
               return null;
             },
@@ -312,7 +313,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
 
           // Submit
           GradientButton(
-            label: 'تعيين كلمة المرور الجديدة',
+            label: context.tr('pw_submit_btn'),
             icon: PhosphorIconsRegular.lockKey,
             isLoading: formState.isSubmitting,
             onPressed: () => _submit(context),
@@ -337,37 +338,38 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             shape: BoxShape.circle,
           ),
           child: Icon(PhosphorIconsRegular.checkCircle, size: 48, color: colors.success),
-        ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
+        ).nmAnimate(context).scale(duration: 400.ms, curve: Curves.elasticOut),
         const SizedBox(height: 24),
         Text(
-          'تم تغيير كلمة المرور بنجاح!',
+          context.tr('pw_success_title'),
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
             color: colors.textPrimary,
           ),
           textAlign: TextAlign.center,
-        ).animate(delay: 200.ms).fadeIn(),
+        ).nmAnimate(context, delay: 200.ms).fadeIn(),
         const SizedBox(height: 12),
         Text(
-          'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة',
+          context.tr('pw_success_subtitle'),
           style: TextStyle(fontSize: 14, color: colors.textSecondary),
           textAlign: TextAlign.center,
-        ).animate(delay: 300.ms).fadeIn(),
+        ).nmAnimate(context, delay: 300.ms).fadeIn(),
         const SizedBox(height: 32),
         ElevatedButton(
           onPressed: () => Navigator.pop(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: colors.primaryBrand,
+            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
-          child: const Text(
-            'العودة لتسجيل الدخول',
+          child: Text(
+            context.tr('back_to_login'),
             style: TextStyle(
                 color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
           ),
-        ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.1),
+        ).nmAnimate(context, delay: 400.ms).fadeIn().slideY(begin: 0.1),
       ],
     );
   }

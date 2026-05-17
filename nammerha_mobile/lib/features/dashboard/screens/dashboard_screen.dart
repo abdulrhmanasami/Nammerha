@@ -29,6 +29,7 @@ import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
 import '../../reality_capture/screens/reality_capture_screen.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/error_state.dart';
 // P2-001 FIX: Raw shimmer import removed — all usages now use NammerhaShimmerLoader
 // UNIFIED: ContractorPortalScreen, TradespersonPortalScreen — features accessible via unified tabs
 // Wave 4: ConnectivityBanner import removed — now global via MaterialApp.builder
@@ -39,6 +40,7 @@ import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../onboarding/screens/guided_tour_screen.dart';
 // Phase 4: Payment system — contract list screen integration
 import '../../payments/screens/contract_list_screen.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -406,7 +408,7 @@ class _DashboardHomeView extends StatelessWidget {
                               ),
                             ],
                           )
-                          .animate()
+                          .nmAnimate(context)
                           .fadeIn(duration: 400.ms)
                           .slideY(begin: -0.1, end: 0),
                       const SizedBox(height: 28),
@@ -423,45 +425,10 @@ class _DashboardHomeView extends StatelessWidget {
                           ),
                         )
                       else if (state is DashboardHomeError)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  PhosphorIconsRegular.cloudSlash,
-                                  color: colors.error,
-                                  size: 32,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  state.message,
-                                  style: TextStyle(color: colors.error),
-                                  textAlign: TextAlign.center,
-                                ),
-                                // UX-REM-J004 FIX: Explicit retry button.
-                                // PREVIOUS: Only pull-to-refresh (undiscoverable gesture).
-                                // Standard: Nielsen #9 (Help users recognize and recover from errors).
-                                const SizedBox(height: 12),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    context.read<DashboardHomeBloc>().add(
-                                      LoadDashboardHome(role),
-                                    );
-                                  },
-                                  icon: Icon(PhosphorIconsRegular.arrowClockwise, size: 18),
-                                  label: Text(context.tr('retry')),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: colors.primaryBrand,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        NammerhaErrorState(
+                          message: state.message,
+                          onRetry: () => context.read<DashboardHomeBloc>().add(LoadDashboardHome(role)),
+                          iconSize: 32,
                         )
                       else
                         _buildStatsSection(context, stats, role),
@@ -476,7 +443,7 @@ class _DashboardHomeView extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: colors.textPrimary,
                         ),
-                      ).animate(delay: 200.ms).fadeIn(),
+                      ).nmAnimate(context, delay: 200.ms).fadeIn(),
                       const SizedBox(height: 14),
                       // P2-001 FIX: Raw Shimmer → NammerhaShimmerLoader for visual consistency
                       if (isLoading)
@@ -499,7 +466,7 @@ class _DashboardHomeView extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: colors.textPrimary,
                         ),
-                      ).animate(delay: 400.ms).fadeIn(),
+                      ).nmAnimate(context, delay: 400.ms).fadeIn(),
                       const SizedBox(height: 14),
                       _buildRecentActivity(
                         context,
@@ -592,10 +559,12 @@ class _DashboardHomeView extends StatelessWidget {
         ),
         PhosphorIconsRegular.wallet,
         colors.goldFunding,
-        // AUD-012 FIX: Drill-down → Wallet Screen (balance + transactions)
+        // P2-004 FIX: Switch to wallet tab instead of pushing duplicate WalletScreen.
+        // Previous: Navigator.push created a NEW WalletBloc — stale data on return.
+        // Now: Reuses the IndexedStack's persistent WalletScreen/WalletBloc.
         onTap: () {
           HapticFeedback.lightImpact();
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
+          context.read<PageIndexCubit>().setPage(2); // Wallet tab index
         },
       ),
     ];
@@ -679,7 +648,7 @@ class _DashboardHomeView extends StatelessWidget {
                 ),
               ),
             )
-            .animate(delay: (300 + index * 100).ms)
+            .nmAnimate(context, delay: (300 + index * 100).ms)
             .fadeIn()
             .scale(begin: const Offset(0.9, 0.9), duration: 400.ms);
       },
@@ -739,7 +708,7 @@ class _DashboardHomeView extends StatelessWidget {
         context.tr('create_project'),
         PhosphorIconsRegular.plusCircle,
         colors.primaryBrand,
-        const DamageReportScreen(), // UX-F022: Project creation = Damage Report
+        const DamageReportScreen(titleKey: 'create_project'), // P1-005: Title matches card label
       ),
       _WorkspaceItem(
         context.tr('my_projects'),
@@ -841,14 +810,13 @@ class _DashboardHomeView extends StatelessWidget {
               colors.secondaryAccent,
               const ContractListScreen(),
             ),
-            // AUD-005 FIX: Was 'new_payment' → ContractListScreen (duplicate of
-            // 'my_contracts' above). Replaced with Wallet which is a genuinely
-            // distinct financial screen showing balances and transaction history.
+            // P2-004 FIX: Switch to wallet tab instead of pushing duplicate.
             _WorkspaceItem(
               context.tr('wallet'),
               PhosphorIconsRegular.wallet,
               colors.secondaryAccent,
-              const WalletScreen(),
+              const SizedBox.shrink(), // Unused — switchToTabIndex handles navigation
+              switchToTabIndex: 2,
             ),
           ],
           colors.secondaryAccent,
@@ -930,7 +898,7 @@ class _DashboardHomeView extends StatelessWidget {
             ),
         ],
       ),
-    ).animate(delay: animDelay.ms).fadeIn().slideY(begin: 0.1, end: 0);
+    ).nmAnimate(context, delay: animDelay.ms).fadeIn().slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildBentoCard(
@@ -959,6 +927,13 @@ class _DashboardHomeView extends StatelessWidget {
           // AUD-005 FIX: Reality Capture 360° also needs project context.
           if (action.isRealityCaptureAction) {
             _showProjectPickerForRealityCapture(context);
+            return;
+          }
+          // P2-004 FIX: Tab switch for in-dashboard destinations.
+          // Previous: Always Navigator.push — created duplicate BlocProviders.
+          // Now: If switchToTabIndex is set, reuse the IndexedStack's persistent tab.
+          if (action.switchToTabIndex != null) {
+            context.read<PageIndexCubit>().setPage(action.switchToTabIndex!);
             return;
           }
           Navigator.push(
@@ -1081,7 +1056,7 @@ class _DashboardHomeView extends StatelessWidget {
             ),
           ],
         ),
-      ).animate(delay: 900.ms).fadeIn();
+      ).nmAnimate(context, delay: 900.ms).fadeIn();
     }
 
     return Column(
@@ -1108,7 +1083,9 @@ class _DashboardHomeView extends StatelessWidget {
             } else {
               timeAgo = context.tr('time_ago_days').replaceAll(r'$1', '${diff.inDays}');
             }
-          } catch (_) {}
+          } catch (e) {
+            debugPrint('[Dashboard] timeAgo parse error: $e');
+          }
         }
 
         return Container(
@@ -1198,7 +1175,7 @@ class _DashboardHomeView extends StatelessWidget {
                 ],
               ),
             )
-            .animate(delay: (900 + index * 80).ms)
+            .nmAnimate(context, delay: (900 + index * 80).ms)
             .fadeIn()
             .slideX(begin: 0.05, end: 0);
       }),
@@ -1369,7 +1346,8 @@ class _DashboardHomeView extends StatelessWidget {
         fromData: (d) => d as List<dynamic>,
       );
       return response.data?.cast<Map<String, dynamic>>() ?? [];
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Dashboard] _fetchUserProjects error: $e');
       return [];
     }
   }
@@ -1514,7 +1492,10 @@ class _WorkspaceItem {
   final bool isCameraAction;
   // AUD-005 FIX: Flag for Reality Capture 360° — also needs project picker
   final bool isRealityCaptureAction;
-  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false, this.isRealityCaptureAction = false});
+  // P2-004 FIX: If set, switches bottom nav tab instead of pushing a new route.
+  // Eliminates duplicate BlocProvider instances for screens already in IndexedStack.
+  final int? switchToTabIndex;
+  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false, this.isRealityCaptureAction = false, this.switchToTabIndex});
 }
 
 class _ActivityMeta {

@@ -10,6 +10,7 @@ import '../../contact/screens/contact_screen.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../supplier/screens/supplier_subscription_screen.dart';
 import '../bloc/billing_toggle_cubit.dart';
+import '../../../core/utils/animation_budget.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Pricing Screen — REM-004: 4-Tier SaaS Pricing Page
@@ -130,7 +131,7 @@ class PricingScreen extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: _buildTierCard(context, tier, colors, isDark, isYearly)
-                    .animate()
+                    .nmAnimate(context)
                     .fadeIn(
                       delay: Duration(milliseconds: 100 * index),
                       duration: 400.ms,

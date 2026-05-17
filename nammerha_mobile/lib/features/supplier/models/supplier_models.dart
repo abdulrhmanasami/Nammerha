@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 
 class SupplierItemModel extends Equatable {
@@ -146,19 +147,35 @@ class MonthlyRevenuePoint extends Equatable {
     );
   }
 
-  /// Short month label. Supports Arabic (default) and English.
+  /// Short month label. Uses i18n keys for locale-aware rendering.
   String monthLabel({String locale = 'ar'}) {
     try {
       final date = DateTime.parse(month);
-      const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-      const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return locale == 'ar' ? monthsAr[date.month - 1] : monthsEn[date.month - 1];
-    } catch (_) {
+      const monthKeys = ['month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may', 'month_jun',
+        'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'];
+      final key = monthKeys[date.month - 1];
+      // Access kTranslations directly (model layer — no BuildContext)
+      return _kMonthLabels[locale]?[key] ?? key;
+    } catch (e) {
+      debugPrint('[Nammerha] models/supplier_models: $e');
       return month;
     }
   }
+
+  static const _kMonthLabels = {
+    'ar': {
+      'month_jan': 'يناير', 'month_feb': 'فبراير', 'month_mar': 'مارس',
+      'month_apr': 'أبريل', 'month_may': 'مايو', 'month_jun': 'يونيو',
+      'month_jul': 'يوليو', 'month_aug': 'أغسطس', 'month_sep': 'سبتمبر',
+      'month_oct': 'أكتوبر', 'month_nov': 'نوفمبر', 'month_dec': 'ديسمبر',
+    },
+    'en': {
+      'month_jan': 'Jan', 'month_feb': 'Feb', 'month_mar': 'Mar',
+      'month_apr': 'Apr', 'month_may': 'May', 'month_jun': 'Jun',
+      'month_jul': 'Jul', 'month_aug': 'Aug', 'month_sep': 'Sep',
+      'month_oct': 'Oct', 'month_nov': 'Nov', 'month_dec': 'Dec',
+    },
+  };
 
   @override
   List<Object?> get props => [month, orderCount, revenue];

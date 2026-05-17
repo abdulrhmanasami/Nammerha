@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/marketplace_repository.dart';
 import '../models/project_model.dart';
@@ -33,6 +34,7 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
         hasMore: projects.length >= _pageSize,
       ));
     } catch (e) {
+      debugPrint('[Nammerha] bloc/marketplace_bloc: $e');
       emit(MarketplaceError(e.toString()));
     }
   }
@@ -71,7 +73,8 @@ class MarketplaceBloc extends Bloc<MarketplaceEvent, MarketplaceState> {
         hasMore: nextPage.length >= _pageSize,
         isLoadingMore: false,
       ));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/marketplace_bloc: $e');
       // Silently fail pagination — keep showing existing data
       emit(currentState.copyWith(isLoadingMore: false));
     }

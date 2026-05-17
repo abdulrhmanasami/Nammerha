@@ -183,7 +183,7 @@ class EscrowCheckoutView extends StatelessWidget {
                   // Gateway Selector
                   Text(context.tr('escrow_select_gateway'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                   const SizedBox(height: 12),
-                  _buildGatewaySelector(context, 'Fatora (محلي/دولي)', 'fatora', PhosphorIconsRegular.bank),
+                  _buildGatewaySelector(context, context.tr('fatora_gateway'), 'fatora', PhosphorIconsRegular.bank),
                   const SizedBox(height: 24),
 
                   // Error

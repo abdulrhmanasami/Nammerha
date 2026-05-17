@@ -7,7 +7,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/oracle_bloc.dart';
+import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// EPA Pricing Oracle — FIDIC 13.8 Price Adjustment Engine
@@ -112,9 +114,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
     );
   }
 
-  String formatCurrency(num amount) {
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  String formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +187,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                 Text('— LIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white.withAlpha(150))),
               ],
             ),
-          ).animate().fadeIn(),
+          ).nmAnimate(context).fadeIn(),
           const SizedBox(height: 16),
 
           // Price cards
@@ -238,7 +238,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                   ),
                 ],
               ),
-            ).animate(delay: (e.key * 60).ms).fadeIn();
+            ).nmAnimate(context, delay: (e.key * 60).ms).fadeIn();
           }),
         ],
       ),
@@ -271,7 +271,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
               ),
             ],
           ),
-        ).animate().fadeIn(),
+        ).nmAnimate(context).fadeIn(),
         const SizedBox(height: 16),
 
         Text('معاملات التعديل', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
@@ -337,7 +337,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                 _resultRow(context.tr('difference'), formatCurrency((state.calculationResult!['adjusted_amount'] ?? 0) - (state.calculationResult!['original_amount'] ?? 0)), colors),
               ],
             ),
-          ).animate().fadeIn().slideY(begin: 0.05, end: 0),
+          ).nmAnimate(context).fadeIn().slideY(begin: 0.05, end: 0),
         ],
       ],
     );
@@ -410,7 +410,7 @@ class _EpaOracleScreenContentState extends State<_EpaOracleScreenContent>
                 Text(formatCurrency(h['adjusted_amount'] ?? 0), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
               ],
             ),
-          ).animate(delay: (i * 60).ms).fadeIn();
+          ).nmAnimate(context, delay: (i * 60).ms).fadeIn();
         },
       ),
     );

@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Nammerha Splash Screen — Platinum Standard
@@ -74,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
                 )
-                    .animate()
+                    .nmAnimate(context)
                     .fadeIn(duration: 600.ms)
                     .scale(
                       begin: const Offset(0.5, 0.5),
@@ -94,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     letterSpacing: 2,
                   ),
                 )
-                    .animate(delay: 400.ms)
+                    .nmAnimate(context, delay: 400.ms)
                     .fadeIn(duration: 600.ms)
                     .slideY(
                       begin: 0.3,
@@ -114,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     letterSpacing: 0.5,
                   ),
                 )
-                    .animate(delay: 700.ms)
+                    .nmAnimate(context, delay: 700.ms)
                     .fadeIn(duration: 600.ms)
                     .slideY(begin: 0.3, end: 0, duration: 600.ms),
                 const SizedBox(height: 60),
@@ -125,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   height: 36,
                   child: NammerhaShimmerLoader(colors: colors),
                 )
-                    .animate(delay: 1200.ms)
+                    .nmAnimate(context, delay: 1200.ms)
                     .fadeIn(duration: 500.ms),
               ],
             ),

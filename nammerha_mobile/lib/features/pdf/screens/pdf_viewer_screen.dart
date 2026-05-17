@@ -218,7 +218,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'جاري تحميل المستند...',
+              context.tr('pdf_downloading'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -318,7 +318,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'تعذّر تحميل المستند',
+              context.tr('pdf_error_title'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -327,7 +327,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _errorMessage ?? 'خطأ غير معروف',
+              _errorMessage ?? context.tr('pdf_error_unknown'),
               style: TextStyle(fontSize: 13, color: colors.textMuted),
               textAlign: TextAlign.center,
               maxLines: 3,
@@ -358,7 +358,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
               },
               icon: Icon(PhosphorIconsRegular.arrowSquareOut, color: colors.textSecondary, size: 18),
               label: Text(
-                'فتح في المتصفح',
+                context.tr('pdf_open_browser'),
                 style: TextStyle(color: colors.textSecondary, fontSize: 13),
               ),
             ),

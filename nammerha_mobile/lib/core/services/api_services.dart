@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
 import '../../features/homeowner/models/homeowner_models.dart';
 
@@ -1382,7 +1383,8 @@ class HealthApi {
         fromData: (d) => d as Map<String, dynamic>,
       );
       return response.data ?? {'status': 'unknown'};
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] services/api_services: $e');
       return {'status': 'unreachable'};
     }
   }

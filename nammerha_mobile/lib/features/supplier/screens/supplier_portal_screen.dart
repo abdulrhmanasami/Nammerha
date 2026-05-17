@@ -18,6 +18,8 @@ import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Supplier Portal — 3-Tab Dashboard (Orders + Catalog + Analytics)
@@ -176,26 +178,9 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
           }
 
           if (state is SupplierError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.error),
-                  const SizedBox(height: 16),
-                  Text(context.tr('sp_load_error'), style: TextStyle(color: colors.textPrimary)),
-                  const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => context.read<SupplierBloc>().add(LoadDashboardEvent()),
-                    icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
-                    label: Text(context.tr('sp_retry')),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryBrand,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ],
-              ),
+            return NammerhaErrorState(
+              message: context.tr('sp_load_error'),
+              onRetry: () => context.read<SupplierBloc>().add(LoadDashboardEvent()),
             );
           }
 
@@ -244,7 +229,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
           _kpiChip(context.tr('sp_revenue'), formatCurrency(dashboard.totalRevenue), colors.success, colors),
         ],
       ),
-    ).animate().fadeIn();
+    ).nmAnimate(context).fadeIn();
   }
 
   Widget _kpiChip(String label, String value, Color accent, SemanticColors colors) {
@@ -376,7 +361,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                 ],
               ],
             ),
-          ).animate(delay: ((i * 70).clamp(0, 500)).ms).fadeIn().slideY(begin: 0.04, end: 0);
+          ).nmAnimate(context, delay: ((i * 70).clamp(0, 500)).ms).fadeIn().slideY(begin: 0.04, end: 0);
                     },
                   ),
                 ),
@@ -619,7 +604,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                 ),
               ),
             ),
-          ).animate(delay: ((i * 60).clamp(0, 500)).ms).fadeIn().scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+          ).nmAnimate(context, delay: ((i * 60).clamp(0, 500)).ms).fadeIn().scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
                     },
                   ),
                 ),
@@ -791,7 +776,7 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 400.ms);
+          ).nmAnimate(context).fadeIn(duration: 400.ms);
         }
 
         // Analytics-specific error — contained within this tab

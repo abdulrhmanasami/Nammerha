@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/services/api_services.dart';
 import '../models/wallet_model.dart';
 
@@ -17,7 +18,9 @@ class WalletRepository {
       transactionsMap = await _paymentsApi
           .getMyPayments(limit: limit, offset: offset)
           .catchError((_) => <Map<String, dynamic>>[]);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Nammerha] data/wallet_repository: $e');
+    }
 
     final transactions = transactionsMap
         .map((tx) => WalletTransactionModel.fromJson(tx))
@@ -60,7 +63,8 @@ class WalletRepository {
     try {
       final raw = await _paymentsApi.getMyPayments(limit: limit, offset: offset);
       return raw.map((tx) => WalletTransactionModel.fromJson(tx)).toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] data/wallet_repository: $e');
       return [];
     }
   }

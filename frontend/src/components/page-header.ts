@@ -49,9 +49,10 @@ export function initPageHeader(): void {
 
 /** Portal page patterns — any URL matching these is considered a portal referrer */
 const PORTAL_PATTERNS = [
-    'homeowner-portal', 'donor-portal', 'contractor-dashboard',
+    'homeowner-portal', 'contractor-dashboard',
     'supplier-dashboard', 'tradesperson-dashboard', 'engineer-dashboard',
     'admin-'
+    // P2-003: 'donor-portal' ERADICATED — Donation Eradication KI (May 2026)
 ];
 
 const PORTAL_REFERRER_KEY = 'nm-portal-referrer';

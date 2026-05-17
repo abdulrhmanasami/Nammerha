@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/contact_bloc.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// Contact Screen — mirrors web contact.ts
 /// GAP-M4 FIX: Contact form with category picker + Platinum BLoC integration.
@@ -104,7 +105,7 @@ class _ContactScreenState extends State<ContactScreen> {
             const SizedBox(height: 4),
             Text(context.tr('contact_response_time'), style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(200))),
           ]),
-        ).animate().fadeIn(duration: 400.ms),
+        ).nmAnimate(context).fadeIn(duration: 400.ms),
         const SizedBox(height: 24),
         // Category
         DropdownButtonFormField<String>(
@@ -153,7 +154,7 @@ class _ContactScreenState extends State<ContactScreen> {
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: state.isSubmitting ? null : () => _submit(context),
-          style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,
+          style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
           child: state.isSubmitting
@@ -170,18 +171,18 @@ class _ContactScreenState extends State<ContactScreen> {
       Container(width: 80, height: 80,
         decoration: BoxDecoration(color: colors.success.withAlpha(20), shape: BoxShape.circle),
         child: Icon(PhosphorIconsRegular.checkCircle, size: 48, color: colors.success),
-      ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
+      ).nmAnimate(context).scale(duration: 400.ms, curve: Curves.elasticOut),
       const SizedBox(height: 24),
-      Text(context.tr('contact_sent_success'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)).animate(delay: 200.ms).fadeIn(),
+      Text(context.tr('contact_sent_success'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)).nmAnimate(context, delay: 200.ms).fadeIn(),
       const SizedBox(height: 8),
-      Text(context.tr('contact_will_reply'), style: TextStyle(fontSize: 14, color: colors.textSecondary)).animate(delay: 300.ms).fadeIn(),
+      Text(context.tr('contact_will_reply'), style: TextStyle(fontSize: 14, color: colors.textSecondary)).nmAnimate(context, delay: 300.ms).fadeIn(),
       const SizedBox(height: 32),
       ElevatedButton(onPressed: () => Navigator.pop(context),
-        style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand,
+        style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
         child: Text(context.tr('back_btn'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-      ).animate(delay: 400.ms).fadeIn(),
+      ).nmAnimate(context, delay: 400.ms).fadeIn(),
     ]);
   }
 

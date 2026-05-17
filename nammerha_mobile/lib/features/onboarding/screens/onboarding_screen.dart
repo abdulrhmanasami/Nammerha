@@ -137,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             color: Colors.white,
                           ),
                         )
-                            .animate()
+                            .nmAnimate(context)
                             .fadeIn(duration: 500.ms)
                             .scale(begin: const Offset(0.8, 0.8), duration: 500.ms, curve: Curves.easeOut),
                         const SizedBox(height: 48),
@@ -153,7 +153,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             height: 1.3,
                           ),
                         )
-                            .animate(delay: 200.ms)
+                            .nmAnimate(context, delay: 200.ms)
                             .fadeIn(duration: 400.ms)
                             .slideY(begin: 0.2, end: 0),
                         const SizedBox(height: 16),
@@ -169,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             height: 1.8,
                           ),
                         )
-                            .animate(delay: 400.ms)
+                            .nmAnimate(context, delay: 400.ms)
                             .fadeIn(duration: 400.ms),
                       ],
                     ),

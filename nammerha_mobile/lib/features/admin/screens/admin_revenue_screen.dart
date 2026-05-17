@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -46,22 +47,10 @@ class _RevenueView extends StatelessWidget {
             return NammerhaShimmerLoader(colors: colors);
           }
           if (state is AdminRevenueError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
-                  const SizedBox(height: 12),
-                  Text(state.message, style: TextStyle(color: colors.textSecondary)),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: () => context.read<AdminRevenueBloc>().add(LoadRevenueDashboard()),
-                    icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                    label: Text(context.tr('retry')),
-                    style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
-                  ),
-                ],
-              ),
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => context.read<AdminRevenueBloc>().add(LoadRevenueDashboard()),
+              iconSize: 48,
             );
           }
           if (state is AdminRevenueLoaded) {
@@ -95,27 +84,27 @@ class _RevenueView extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               AdminKpiCard(
-                title: 'إيرادات العمولات',
+                title: context.tr('admin_revenue_commission'),
                 value: summary.totalCommissionRevenue,
                 icon: PhosphorIconsRegular.bank,
                 accentColor: colors.primaryBrand,
                 isCurrency: true,
               ),
               AdminKpiCard(
-                title: 'إيرادات الإكراميات',
+                title: context.tr('admin_revenue_tips'),
                 value: summary.totalTipRevenue,
                 icon: PhosphorIconsRegular.heart,
                 accentColor: colors.secondaryAccent,
                 isCurrency: true,
               ),
               AdminKpiCard(
-                title: 'عدد المعاملات',
+                title: context.tr('admin_revenue_transactions'),
                 value: summary.transactionCount,
                 icon: PhosphorIconsRegular.receipt,
                 accentColor: colors.warmEarth,
               ),
               AdminKpiCard(
-                title: 'عمولات الشهر',
+                title: context.tr('admin_revenue_monthly'),
                 value: summary.mtdCommissions,
                 icon: PhosphorIconsRegular.calendarBlank,
                 accentColor: colors.info,
@@ -129,7 +118,7 @@ class _RevenueView extends StatelessWidget {
           // Commission Tiers
           _buildSection(
             colors,
-            'مستويات العمولة',
+            context.tr('admin_revenue_tiers'),
             PhosphorIconsRegular.stack,
             state.tiers.isEmpty
                 ? _emptyState(colors, context.tr('admin_no_tiers'))
@@ -143,12 +132,12 @@ class _RevenueView extends StatelessWidget {
           // Recent Commissions
           _buildSection(
             colors,
-            'العمولات الأخيرة',
+            context.tr('admin_revenue_recent_commissions'),
             PhosphorIconsRegular.receipt,
             state.commissions.isEmpty
                 ? _emptyState(colors, context.tr('admin_no_commissions'))
                 : Column(
-                    children: state.commissions.map((c) => _buildCommissionRow(colors, c)).toList(),
+                    children: state.commissions.map((c) => _buildCommissionRow(context, colors, c)).toList(),
                   ),
           ),
 
@@ -157,12 +146,12 @@ class _RevenueView extends StatelessWidget {
           // Recent Tips
           _buildSection(
             colors,
-            'الإكراميات الأخيرة',
+            context.tr('admin_revenue_recent_tips'),
             PhosphorIconsRegular.heart,
             state.tips.isEmpty
                 ? _emptyState(colors, context.tr('admin_no_tips'))
                 : Column(
-                    children: state.tips.map((t) => _buildTipRow(colors, t)).toList(),
+                    children: state.tips.map((t) => _buildTipRow(context, colors, t)).toList(),
                   ),
           ),
 
@@ -245,7 +234,7 @@ class _RevenueView extends StatelessWidget {
     );
   }
 
-  Widget _buildCommissionRow(SemanticColors colors, CommissionEntry entry) {
+  Widget _buildCommissionRow(BuildContext context, SemanticColors colors, CommissionEntry entry) {
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 6),
       child: Row(
@@ -265,7 +254,7 @@ class _RevenueView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry.sourceType.isNotEmpty ? entry.sourceType : 'عمولة',
+                  entry.sourceType.isNotEmpty ? entry.sourceType : context.tr('admin_revenue_commission_label'),
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary),
                 ),
                 Text(
@@ -284,7 +273,7 @@ class _RevenueView extends StatelessWidget {
     );
   }
 
-  Widget _buildTipRow(SemanticColors colors, TipEntry tip) {
+  Widget _buildTipRow(BuildContext context, SemanticColors colors, TipEntry tip) {
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 6),
       child: Row(
@@ -301,7 +290,7 @@ class _RevenueView extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              tip.funderName.isNotEmpty ? tip.funderName : 'مموّل',
+              tip.funderName.isNotEmpty ? tip.funderName : context.tr('admin_revenue_funder_label'),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary),
             ),
           ),

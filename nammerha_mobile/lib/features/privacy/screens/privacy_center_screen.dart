@@ -163,6 +163,7 @@ class _PrivacyCenterView extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: isDestructive ? colors.error : colors.primaryBrand,
+              foregroundColor: Colors.white,
             ),
             onPressed: () {
               Navigator.pop(ctx);

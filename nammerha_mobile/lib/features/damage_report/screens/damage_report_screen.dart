@@ -17,21 +17,31 @@ import '../bloc/damage_report_bloc.dart';
 import '../bloc/damage_report_event.dart';
 import '../bloc/damage_report_state.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class DamageReportScreen extends StatelessWidget {
-  const DamageReportScreen({super.key});
+  /// Optional i18n key to override the AppBar title.
+  ///
+  /// P1-005 FIX: When launched from the dashboard "Create Project" card,
+  /// pass `titleKey: 'create_project'` to eliminate cognitive dissonance
+  /// (user expects "Create Project" but sees "Damage Report").
+  /// Default: `'dr_title'` ("تقرير الأضرار" / "Damage Report").
+  final String? titleKey;
+
+  const DamageReportScreen({super.key, this.titleKey});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => DamageReportBloc(repository: DamageReportRepository()),
-      child: const _DamageReportWizard(),
+      child: _DamageReportWizard(titleKey: titleKey),
     );
   }
 }
 
 class _DamageReportWizard extends StatefulWidget {
-  const _DamageReportWizard();
+  final String? titleKey;
+  const _DamageReportWizard({this.titleKey});
 
   @override
   State<_DamageReportWizard> createState() => _DamageReportWizardState();
@@ -100,7 +110,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
       child: Scaffold(
         backgroundColor: colors.backgroundPrimary,
         appBar: AppBar(
-          title: Text(context.tr('dr_title')),
+          title: Text(context.tr(widget.titleKey ?? 'dr_title')),
           leading: BlocBuilder<DamageReportBloc, DamageReportState>(
             buildWhen: (p, c) => p.formData.currentStep != c.formData.currentStep,
             builder: (context, state) {
@@ -209,7 +219,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    ).nmAnimate(context).fadeIn(duration: 300.ms);
   }
 
   // ─── Step 2: Location ─────────────────────────────────────────────────
@@ -370,7 +380,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    ).nmAnimate(context).fadeIn(duration: 300.ms);
   }
 
   // ─── Step 3: Photos ───────────────────────────────────────────────────
@@ -399,7 +409,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    ).nmAnimate(context).fadeIn(duration: 300.ms);
   }
 
   // ─── Step 4: Review & Submit ──────────────────────────────────────────
@@ -462,7 +472,7 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    ).nmAnimate(context).fadeIn(duration: 300.ms);
   }
 
   Widget _reviewRow(String label, String value, SemanticColors colors) {

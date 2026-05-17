@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import '../../../core/utils/error_localizer.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/homeowner_projects_cubit.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class HomeownerProjectsScreen extends StatelessWidget {
   const HomeownerProjectsScreen({super.key});
@@ -62,8 +64,10 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
       }).toList();
       cubit.setLoaded(projectMaps);
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] screens/homeowner_projects_screen: $e');
       cubit.setError(localizeApiError(e.message));
     } catch (e) {
+      debugPrint('[Nammerha] screens/homeowner_projects_screen: $e');
       cubit.setError(context.tr('load_projects_error'));
     }
   }
@@ -99,25 +103,9 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
     }
 
     if (state.error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-              const SizedBox(height: 16),
-              Text(state.error!, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _loadProjects,
-                icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                label: Text(context.tr('retry')),
-                style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
-              ),
-            ],
-          ),
-        ),
+      return NammerhaErrorState(
+        message: state.error!,
+        onRetry: _loadProjects,
       );
     }
 
@@ -217,7 +205,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
                 ),
               ],
             ),
-          ).animate(delay: (index * 100).ms).fadeIn().slideY(begin: 0.05);
+          ).nmAnimate(context, delay: (index * 100).ms).fadeIn().slideY(begin: 0.05);
         },
       ),
     );
@@ -388,7 +376,8 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                   );
                   gpsLat = position.latitude;
                   gpsLng = position.longitude;
-                } catch (_) {
+                } catch (e) {
+                  debugPrint('[Nammerha] screens/homeowner_projects_screen: $e');
                   // Fallback: try last known position
                   try {
                     final last = await Geolocator.getLastKnownPosition();
@@ -396,7 +385,9 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                       gpsLat = last.latitude;
                       gpsLng = last.longitude;
                     }
-                  } catch (_) {}
+                  } catch (e) {
+      debugPrint('[Nammerha] screens/homeowner_projects_screen: $e');
+    }
                 }
 
                 if (context.mounted) Navigator.pop(context); // dismiss spinner
@@ -432,6 +423,7 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                     );
                   }
                 } on ApiException catch (e) {
+                  debugPrint('[Nammerha] screens/homeowner_projects_screen: $e');
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(localizeApiError(e.message)), backgroundColor: colors.error),

@@ -72,7 +72,7 @@ class EscrowRepository {
     }
 
     throw ApiException(
-      response.error ?? 'فشل في جلب سجل الضمان',
+      response.error ?? 'err_escrow_transactions',
     );
   }
 
@@ -90,7 +90,7 @@ class EscrowRepository {
     if (response.success && response.data != null) {
       return response.data!;
     } else {
-      throw ApiException(response.error ?? 'فشل في جلب ملخص الضمان');
+      throw ApiException(response.error ?? 'err_escrow_summary');
     }
   }
 }

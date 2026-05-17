@@ -106,7 +106,7 @@ class SpatialProofRepository {
 
     final uploadResult = uploadData['requestUploadUrl'] as Map<String, dynamic>?;
     if (uploadResult == null) {
-      throw const ApiException('فشل في استخراج رابط الرفع الآمن');
+      throw const ApiException('err_upload_url_extract');
     }
 
     final uploadUrl = uploadResult['uploadUrl'] as String;
@@ -121,7 +121,7 @@ class SpatialProofRepository {
 
     if (s3Response.statusCode != 200 && s3Response.statusCode != 201) {
       throw ApiException(
-        'فشل في رفع الصورة إلى وحدة التخزين (HTTP ${s3Response.statusCode})',
+        'err_s3_upload',
       );
     }
 
@@ -144,7 +144,7 @@ class SpatialProofRepository {
 
     final proof = proofData['submitSpatialProof'] as Map<String, dynamic>?;
     if (proof == null) {
-      throw const ApiException('فشل في تسجيل الإثبات المكاني');
+      throw const ApiException('err_proof_register');
     }
 
     return SpatialProofResult.fromJson(proof);
@@ -173,7 +173,7 @@ class SpatialProofRepository {
     final fileUrl = uploadData['file_url'] as String?;
 
     if (uploadUrl == null || fileUrl == null) {
-      throw const ApiException('فشل في استخراج رابط الرفع (REST fallback)');
+      throw const ApiException('err_upload_url_rest');
     }
 
     // Phase 2: Direct S3 upload
@@ -185,7 +185,7 @@ class SpatialProofRepository {
 
     if (s3Response.statusCode != 200 && s3Response.statusCode != 201) {
       throw ApiException(
-        'فشل في رفع الصورة (REST fallback, HTTP ${s3Response.statusCode})',
+        'err_s3_upload_rest',
       );
     }
 

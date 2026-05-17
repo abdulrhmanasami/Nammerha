@@ -48,7 +48,7 @@ class SpatialProofBloc extends Bloc<SpatialProofEvent, SpatialProofState> {
     SubmitSpatialProofEvent event,
     Emitter<SpatialProofState> emit,
   ) async {
-    emit(const SpatialProofLoading('جارِ تشفير الإثبات المكاني...'));
+    emit(const SpatialProofLoading('sp_encrypting_proof'));
 
     try {
       final timestamp = DateTime.now().toIso8601String();
@@ -61,7 +61,7 @@ class SpatialProofBloc extends Bloc<SpatialProofEvent, SpatialProofState> {
         'timestamp': timestamp,
       }));
 
-      emit(const SpatialProofLoading('جارِ تأمين الرفع إلى السحابة...'));
+      emit(const SpatialProofLoading('sp_securing_upload'));
 
       // Dispatch to GraphQL-powered repository
       final result = await _repository.uploadAndSubmitProof(

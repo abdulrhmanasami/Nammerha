@@ -14,6 +14,8 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../bloc/reality_capture_bloc.dart';
+import '../bloc/capture_form_cubit.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Reality Capture 360° Screen
@@ -96,9 +98,9 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
           labelColor: colors.primaryBrand,
           unselectedLabelColor: colors.textSecondary,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'الالتقاطات', icon: Icon(PhosphorIconsRegular.cube, size: 20)),
-            Tab(text: 'أعمال مخفية', icon: Icon(PhosphorIconsRegular.eye, size: 20)),
+          tabs: [
+            Tab(text: context.tr('rc_tab_captures'), icon: const Icon(PhosphorIconsRegular.cube, size: 20)),
+            Tab(text: context.tr('rc_tab_hidden_works'), icon: const Icon(PhosphorIconsRegular.eye, size: 20)),
           ],
         ),
       ),
@@ -146,7 +148,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
         const SizedBox(height: 24),
         Text(stage, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
         const SizedBox(height: 8),
-        Text('يرجى عدم إغلاق التطبيق', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
+        Text(context.tr('rc_do_not_close_app'), style: TextStyle(fontSize: 12, color: colors.textSubtle)),
       ]),
     );
   }
@@ -180,7 +182,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
                 return Padding(
                   padding: const EdgeInsetsDirectional.only(end: 8),
                   child: FilterChip(
-                    label: Text('${phase.labelAr} ($count)'),
+                    label: Text('${phase.i18nLabel(context)} ($count)'),
                     selected: false,
                     onSelected: (_) {},
                     labelStyle: TextStyle(fontSize: 11, color: colors.textPrimary),
@@ -229,7 +231,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
             Icon(PhosphorIconsRegular.info, color: colors.warning, size: 20),
             const SizedBox(width: 10),
             Expanded(child: Text(
-              'الأعمال المخفية: تصوير ما قبل الصب الخرساني كدليل قانوني على جودة السباكة والكهرباء',
+              context.tr('rc_hidden_work_info'),
               style: TextStyle(fontSize: 12, color: colors.textPrimary, height: 1.5),
             )),
           ]),
@@ -252,106 +254,110 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
     // Find phase label
     String phaseLabel = phase;
     for (final p in ConstructionPhase.values) {
-      if (p.value == phase) { phaseLabel = p.labelAr; break; }
+      if (p.value == phase) { phaseLabel = p.i18nLabel(context); break; }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: colors.surfaceElevated,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isHiddenWork ? colors.warning.withAlpha(40) : colors.strokeSubtle),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Image preview
-        ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          child: Stack(children: [
-            if (thumbnailUrl.isNotEmpty)
-              CachedNetworkImage(
-                imageUrl: thumbnailUrl,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  height: 180,
-                  color: colors.backgroundSecondary,
-                  child: NammerhaShimmerLoader(colors: colors),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  height: 180,
-                  color: colors.backgroundSecondary,
-                  child: Icon(PhosphorIconsRegular.imageBroken, size: 40, color: colors.textSubtle),
-                ),
-              )
-            else
-              Container(
-                height: 180,
-                color: colors.backgroundSecondary,
-                child: Icon(is360 ? PhosphorIconsRegular.cube : PhosphorIconsRegular.image, size: 40, color: colors.textSubtle),
-              ),
-            // 360 badge
-            if (is360)
-              PositionedDirectional(
-                top: 10, start: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(180),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(PhosphorIconsRegular.globeHemisphereEast, size: 14, color: Colors.white),
-                    SizedBox(width: 4),
-                    Text('360°', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                  ]),
-                ),
-              ),
-            // Verified badge
-            if (isVerified)
-              PositionedDirectional(
-                top: 10, end: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colors.success.withAlpha(230),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(PhosphorIconsRegular.sealCheck, size: 14, color: Colors.white),
-                    SizedBox(width: 4),
-                    Text('مُوثّق', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                  ]),
-                ),
-              ),
-          ]),
+    return Semantics(
+      // P3-002: WCAG 4.1.2 — screen reader announces capture title, phase, GPS, verification
+      label: '${title.isNotEmpty ? title : context.tr('capture_360')}, $phaseLabel${isVerified ? ', ${context.tr('rc_verified_badge')}' : ''}${isHiddenWork ? ', Hidden Work' : ''}',
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isHiddenWork ? colors.warning.withAlpha(40) : colors.strokeSubtle),
         ),
-        // Metadata
-        Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (title.isNotEmpty) ...[
-              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-              const SizedBox(height: 6),
-            ],
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: colors.primaryBrand.withAlpha(15), borderRadius: BorderRadius.circular(6)),
-                child: Text(phaseLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
-              ),
-              const SizedBox(width: 8),
-              Icon(PhosphorIconsRegular.crosshair, size: 12, color: colors.textSubtle),
-              const SizedBox(width: 3),
-              Text(
-                '${(c['gps_lat'] as num?)?.toStringAsFixed(4) ?? '—'}, ${(c['gps_lng'] as num?)?.toStringAsFixed(4) ?? '—'}',
-                style: TextStyle(fontSize: 10, color: colors.textSubtle, fontFamily: 'monospace'),
-              ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Image preview
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Stack(children: [
+              if (thumbnailUrl.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: thumbnailUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 180,
+                    color: colors.backgroundSecondary,
+                    child: NammerhaShimmerLoader(colors: colors),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 180,
+                    color: colors.backgroundSecondary,
+                    child: Icon(PhosphorIconsRegular.imageBroken, size: 40, color: colors.textSubtle),
+                  ),
+                )
+              else
+                Container(
+                  height: 180,
+                  color: colors.backgroundSecondary,
+                  child: Icon(is360 ? PhosphorIconsRegular.cube : PhosphorIconsRegular.image, size: 40, color: colors.textSubtle),
+                ),
+              // 360 badge
+              if (is360)
+                PositionedDirectional(
+                  top: 10, start: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(180),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(PhosphorIconsRegular.globeHemisphereEast, size: 14, color: Colors.white),
+                      SizedBox(width: 4),
+                      Text('360°', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ]),
+                  ),
+                ),
+              // Verified badge
+              if (isVerified)
+                PositionedDirectional(
+                  top: 10, end: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colors.success.withAlpha(230),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(PhosphorIconsRegular.sealCheck, size: 14, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(context.tr('rc_verified_badge'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ]),
+                  ),
+                ),
             ]),
-          ]),
-        ),
-      ]),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.03);
+          ),
+          // Metadata
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (title.isNotEmpty) ...[
+                Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                const SizedBox(height: 6),
+              ],
+              Row(children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: colors.primaryBrand.withAlpha(15), borderRadius: BorderRadius.circular(6)),
+                  child: Text(phaseLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.primaryBrand)),
+                ),
+                const SizedBox(width: 8),
+                Icon(PhosphorIconsRegular.crosshair, size: 12, color: colors.textSubtle),
+                const SizedBox(width: 3),
+                Text(
+                  '${(c['gps_lat'] as num?)?.toStringAsFixed(4) ?? '—'}, ${(c['gps_lng'] as num?)?.toStringAsFixed(4) ?? '—'}',
+                  style: TextStyle(fontSize: 10, color: colors.textSubtle, fontFamily: 'monospace'),
+                ),
+              ]),
+            ]),
+          ),
+        ]),
+      ),
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.03);
   }
 
   Widget _emptyState(SemanticColors colors, IconData icon, String title, String subtitle) {
@@ -368,11 +374,11 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
   }
 
   // ─── Capture Sheet ─────────────────────────────────────────────────────
+  // P1-003 FIX: Replaced StatefulBuilder + setModalState with
+  // BlocProvider<CaptureFormCubit> + BlocBuilder (Absolute Zero setState).
 
   void _showCaptureSheet(BuildContext context) {
     final colors = context.colors;
-    ConstructionPhase selectedPhase = ConstructionPhase.foundation;
-    CaptureType selectedType = CaptureType.photo360;
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
 
@@ -381,92 +387,104 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
       isScrollControlled: true,
       backgroundColor: colors.surfaceElevated,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Center(child: BottomSheetGrabber(colors: colors)),
-              const SizedBox(height: 16),
-              Text('التقاط 360° جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
-              const SizedBox(height: 6),
-              Text('استخدم وضع البانوراما في الكاميرا للتصوير 360°', style: TextStyle(fontSize: 12, color: colors.textSubtle), textAlign: TextAlign.center),
-              const SizedBox(height: 20),
+      builder: (sheetCtx) => BlocProvider(
+        create: (_) => CaptureFormCubit(),
+        child: BlocBuilder<CaptureFormCubit, CaptureFormState>(
+          builder: (formCtx, formState) => Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(formCtx).viewInsets.bottom + 20),
+            child: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Center(child: BottomSheetGrabber(colors: colors)),
+                const SizedBox(height: 16),
+                Text(context.tr('rc_new_capture_title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
+                const SizedBox(height: 6),
+                Text(context.tr('rc_new_capture_desc'), style: TextStyle(fontSize: 12, color: colors.textSubtle), textAlign: TextAlign.center),
+                const SizedBox(height: 20),
 
-              // Capture type selector
-              Text('نوع الالتقاط', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-              const SizedBox(height: 8),
-              Row(children: [
-                _typeChip(ctx, setModalState, selectedType, CaptureType.photo360, PhosphorIconsRegular.circlesFour, colors, (v) => selectedType = v),
-                const SizedBox(width: 8),
-                _typeChip(ctx, setModalState, selectedType, CaptureType.photoStandard, PhosphorIconsRegular.camera, colors, (v) => selectedType = v),
+                // Capture type selector
+                Text(context.tr('rc_capture_type_label'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                const SizedBox(height: 8),
+                Row(children: [
+                  _typeChip(formCtx, formState.captureType, CaptureType.photo360, PhosphorIconsRegular.circlesFour, colors),
+                  const SizedBox(width: 8),
+                  _typeChip(formCtx, formState.captureType, CaptureType.photoStandard, PhosphorIconsRegular.camera, colors),
+                ]),
+                const SizedBox(height: 16),
+
+                // Phase dropdown
+                Text(context.tr('rc_phase_label'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<ConstructionPhase>(
+                  initialValue: formState.phase,
+                  dropdownColor: colors.surfaceElevated,
+                  style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
+                    filled: true, fillColor: colors.backgroundSecondary,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)),
+                  ),
+                  items: ConstructionPhase.values.map((p) => DropdownMenuItem(value: p, child: Text(p.i18nLabel(context)))).toList(),
+                  onChanged: (v) {
+                    if (v != null) formCtx.read<CaptureFormCubit>().selectPhase(v);
+                  },
+                ),
+                const SizedBox(height: 14),
+
+                TextField(controller: titleCtrl, style: TextStyle(color: colors.textPrimary),
+                  decoration: InputDecoration(labelText: context.tr('rc_title_optional'), filled: true, fillColor: colors.backgroundSecondary,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
+                const SizedBox(height: 12),
+                TextField(controller: descCtrl, maxLines: 2, style: TextStyle(color: colors.textPrimary),
+                  decoration: InputDecoration(labelText: context.tr('rc_desc_optional'), filled: true, fillColor: colors.backgroundSecondary,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
+                const SizedBox(height: 20),
+
+                ElevatedButton.icon(
+                  onPressed: () => _captureAndSubmit(formCtx, formState.phase, formState.captureType, titleCtrl.text, descCtrl.text),
+                  icon: Icon(PhosphorIconsRegular.camera, color: Colors.white),
+                  label: Text(
+                    formState.captureType == CaptureType.photo360 ? context.tr('rc_open_camera_360') : context.tr('rc_open_camera'),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primaryBrand,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
               ]),
-              const SizedBox(height: 16),
-
-              // Phase dropdown
-              Text('مرحلة البناء', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<ConstructionPhase>(
-                initialValue: selectedPhase,
-                dropdownColor: colors.surfaceElevated,
-                style: TextStyle(color: colors.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
-                  filled: true, fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)),
-                ),
-                items: ConstructionPhase.values.map((p) => DropdownMenuItem(value: p, child: Text(p.labelAr))).toList(),
-                onChanged: (v) => setModalState(() => selectedPhase = v ?? selectedPhase),
-              ),
-              const SizedBox(height: 14),
-
-              TextField(controller: titleCtrl, style: TextStyle(color: colors.textPrimary),
-                decoration: InputDecoration(labelText: 'عنوان (اختياري)', filled: true, fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-              const SizedBox(height: 12),
-              TextField(controller: descCtrl, maxLines: 2, style: TextStyle(color: colors.textPrimary),
-                decoration: InputDecoration(labelText: 'وصف (اختياري)', filled: true, fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-              const SizedBox(height: 20),
-
-              ElevatedButton.icon(
-                onPressed: () => _captureAndSubmit(ctx, selectedPhase, selectedType, titleCtrl.text, descCtrl.text),
-                icon: Icon(PhosphorIconsRegular.camera, color: Colors.white),
-                label: Text(
-                  selectedType == CaptureType.photo360 ? 'فتح الكاميرا (بانوراما 360°)' : 'فتح الكاميرا',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colors.primaryBrand,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ]),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _typeChip(BuildContext ctx, StateSetter setModalState, CaptureType current, CaptureType target,
-      IconData icon, SemanticColors colors, ValueChanged<CaptureType> onChanged) {
+  Widget _typeChip(BuildContext formCtx, CaptureType current, CaptureType target,
+      IconData icon, SemanticColors colors) {
     final isActive = current == target;
     return Expanded(
-      child: GestureDetector(
-        onTap: () => setModalState(() => onChanged(target)),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isActive ? colors.primaryBrand : colors.backgroundSecondary,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isActive ? colors.primaryBrand : colors.strokeSubtle),
+      child: Semantics(
+        // P3-002: WCAG 4.1.2 — GestureDetector has no implicit semantics
+        button: true,
+        selected: isActive,
+        label: target.i18nLabel(formCtx),
+        child: GestureDetector(
+          onTap: () => formCtx.read<CaptureFormCubit>().selectCaptureType(target),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isActive ? colors.primaryBrand : colors.backgroundSecondary,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isActive ? colors.primaryBrand : colors.strokeSubtle),
+            ),
+            child: Column(children: [
+              Icon(icon, size: 24, color: isActive ? Colors.white : colors.textSecondary),
+              const SizedBox(height: 4),
+              Text(target.i18nLabel(formCtx), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isActive ? Colors.white : colors.textSecondary)),
+            ]),
           ),
-          child: Column(children: [
-            Icon(icon, size: 24, color: isActive ? Colors.white : colors.textSecondary),
-            const SizedBox(height: 4),
-            Text(target.labelAr, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isActive ? Colors.white : colors.textSecondary)),
-          ]),
         ),
       ),
     );
@@ -515,7 +533,7 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ: $e'), backgroundColor: context.colors.error),
+          SnackBar(content: Text('${context.tr('rc_error_prefix')}: $e'), backgroundColor: context.colors.error),
         );
       }
     }

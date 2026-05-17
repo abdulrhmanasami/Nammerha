@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/i18n/error_keys.dart';
@@ -33,7 +34,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       if (meResult.data != null && meResult.data!['user'] != null) {
         user = Map<String, dynamic>.from(meResult.data!['user'] as Map);
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/profile_bloc: $e');
       // /auth/me failed — will show error below
     }
     
@@ -45,7 +47,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       if (rolesResult.data != null && rolesResult.data!['roles'] is List) {
         roles = (rolesResult.data!['roles'] as List).cast<Map<String, dynamic>>();
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/profile_bloc: $e');
       // /roles/my-roles failed — continue without roles
     }
     
@@ -60,7 +63,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onSaveProfile(SaveProfileRequested event, Emitter<ProfileState> emit) async {
     if (state is ProfileLoaded) {
       final currentState = state as ProfileLoaded;
-      
+
+      // P1-002 FIX: Emit loading state so UI shows "Saving..." and disables button
+      emit(ProfileLoading(user: currentState.user, roles: currentState.roles));
+
       try {
         await _api.request(
           '/auth/update-profile',
@@ -73,9 +79,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final updatedUser = Map<String, dynamic>.from(currentState.user);
         updatedUser['full_name'] = event.fullName;
         updatedUser['email'] = event.email;
-        
+
         emit(currentState.copyWith(user: updatedUser));
       } on ApiException catch (e) {
+        debugPrint('[Nammerha] bloc/profile_bloc: $e');
         // If endpoint doesn't exist yet (404), apply locally with warning
         if (e.statusCode == 404) {
           final updatedUser = Map<String, dynamic>.from(currentState.user);
@@ -83,13 +90,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           updatedUser['email'] = event.email;
           emit(currentState.copyWith(user: updatedUser));
         } else {
-          emit(ProfileError(ErrorKeys.profileSaveFailed));
-          // Re-emit loaded state so UI doesn't get stuck on error
-          emit(currentState);
+          // P1-002 FIX: Emit ProfileSaveError — preserves user data in form,
+          // user stays in edit mode and can retry without losing edits.
+          emit(ProfileSaveError(
+            user: currentState.user,
+            roles: currentState.roles,
+            message: ErrorKeys.profileSaveFailed,
+          ));
         }
-      } catch (_) {
-        emit(const ProfileError(ErrorKeys.profileSaveFailed));
-        emit(currentState);
+      } catch (e) {
+        debugPrint('[Nammerha] bloc/profile_bloc: $e');
+        emit(ProfileSaveError(
+          user: currentState.user,
+          roles: currentState.roles,
+          message: ErrorKeys.profileSaveFailed,
+        ));
       }
     }
   }
@@ -97,7 +112,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onLogout(LogoutRequested event, Emitter<ProfileState> emit) async {
     try {
       await _api.request('/auth/logout', method: 'POST');
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/profile_bloc: $e');
+    }
     emit(ProfileLoggedOut());
   }
 }

@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import '../network/api_client.dart';
+import '../i18n/t.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // REALITY CAPTURE API — Mirrors backend/src/routes/reality-capture.routes.ts
@@ -45,6 +47,36 @@ enum CaptureType {
   final String value;
   final String labelAr;
   const CaptureType(this.value, this.labelAr);
+
+  /// i18n-safe label accessor — use instead of `.labelAr` for locale-aware rendering.
+  String i18nLabel(BuildContext context) {
+    const map = {
+      CaptureType.photo360: 'capture_type_photo_360',
+      CaptureType.video360: 'capture_type_video_360',
+      CaptureType.pointCloud: 'capture_type_point_cloud',
+      CaptureType.photoStandard: 'capture_type_photo_standard',
+    };
+    return context.tr(map[this]!);
+  }
+}
+
+/// i18n-safe label extension for ConstructionPhase.
+extension ConstructionPhaseI18n on ConstructionPhase {
+  String i18nLabel(BuildContext context) {
+    const map = {
+      ConstructionPhase.demolition: 'phase_demolition',
+      ConstructionPhase.foundation: 'phase_foundation',
+      ConstructionPhase.structural: 'phase_structural',
+      ConstructionPhase.plumbingPreConcrete: 'phase_plumbing_pre_concrete',
+      ConstructionPhase.electricalPreConcrete: 'phase_electrical_pre_concrete',
+      ConstructionPhase.concretePour: 'phase_concrete_pour',
+      ConstructionPhase.masonry: 'phase_masonry',
+      ConstructionPhase.plastering: 'phase_plastering',
+      ConstructionPhase.finishing: 'phase_finishing',
+      ConstructionPhase.finalInspection: 'phase_final_inspection',
+    };
+    return context.tr(map[this]!);
+  }
 }
 
 class RealityCaptureApi {

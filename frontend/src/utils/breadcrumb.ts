@@ -43,11 +43,7 @@ export const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
         { label: 'BOQ Builder', href: 'engineer-boq.html', i18n: 'engineer_boq_builder', icon: 'clipboard-text' },
         { label: 'Site Verification', i18n: 'site_verification', icon: 'camera' },
     ],
-    'donor-proof.html': [
-        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
-        { label: 'Project Details', href: 'project-details.html', i18n: 'project_details', icon: 'buildings' },
-        { label: 'Proof of Delivery', i18n: 'proof_of_delivery', icon: 'shield-check' },
-    ],
+    // P2-003: donor-proof.html ERADICATED — Donation Eradication KI (May 2026)
     // UX-REM-I002 FIX: Contextual breadcrumb — shows origin portal.
     // PREVIOUS: Static 'Home > Project Details'. User loses context of WHERE
     // they came from (which portal? which tab?).
@@ -74,10 +70,7 @@ export const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
         crumbs.push({ label: 'Project Details', i18n: 'project_details', icon: 'buildings' });
         return crumbs;
     })(),
-    'donor-basket.html': [
-        { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
-        { label: 'Construction Basket', i18n: 'construction_basket', icon: 'shopping-cart' },
-    ],
+    // P2-003: donor-basket.html ERADICATED — Donation Eradication KI (May 2026)
     'homeowner-report.html': [
         { label: 'Home', href: 'index.html', i18n: 'home', icon: 'house' },
         { label: 'Report Damage', i18n: 'report_damage', icon: 'warning' },

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 
 /// User model matching backend auth response
@@ -133,7 +134,8 @@ class AuthRepository {
   Future<void> logout() async {
     try {
       await _api.request('/auth/logout', method: 'POST');
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] repositories/auth_repository: $e');
       // Non-fatal: always clear local token
     }
     await _api.clearToken();
@@ -155,6 +157,7 @@ class AuthRepository {
       }
       return null;
     } on ApiException catch (e) {
+      debugPrint('[Nammerha] repositories/auth_repository: $e');
       if (e.isUnauthorized) {
         await _api.clearToken();
         return null;

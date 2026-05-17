@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// About Screen — platform info, mission, team, and legal links.
 /// GAP-M5 FIX: Previously web-only (about.ts).
@@ -54,7 +55,7 @@ class _AboutScreenState extends State<AboutScreen> {
             SvgPicture.asset(isDark ? 'assets/brand/Nammerha_logo_Full_dark.svg' : 'assets/brand/Nammerha_logo_Full.svg', width: 180, height: 65),
             const SizedBox(height: 8),
             if (_version.isNotEmpty) Text('${context.tr('about_version')} $_version', style: TextStyle(fontSize: 12, color: colors.textSubtle)),
-          ])).animate().fadeIn(duration: 500.ms),
+          ])).nmAnimate(context).fadeIn(duration: 500.ms),
           const SizedBox(height: 28),
 
           // Mission
@@ -117,7 +118,7 @@ class _AboutScreenState extends State<AboutScreen> {
         const SizedBox(height: 12),
         Text(body, style: TextStyle(fontSize: 13, color: colors.textPrimary, height: 1.7)),
       ]),
-    ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.03, end: 0);
+    ).nmAnimate(context, delay: 200.ms).fadeIn().slideY(begin: 0.03, end: 0);
   }
 
   Widget _linkTile(SemanticColors colors, IconData icon, String label, String url) {

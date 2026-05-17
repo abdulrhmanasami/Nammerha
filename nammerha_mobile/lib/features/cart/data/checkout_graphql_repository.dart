@@ -63,7 +63,7 @@ class CheckoutGraphQLRepository {
     // Response key 'createDonation' is a backend contract — DO NOT rename
     final paymentIntent = data['createDonation'] as Map<String, dynamic>?;
     if (paymentIntent == null) {
-      throw const ApiException('فشل في إنشاء طلب الدفع — لم يتم إرجاع بيانات.');
+      throw const ApiException('err_payment_intent');
     }
 
     return PaymentIntentResult.fromJson(paymentIntent);

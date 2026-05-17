@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -17,6 +18,7 @@ import '../bloc/project_details_event.dart';
 import '../bloc/project_details_state.dart';
 import '../../../core/i18n/t.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Project Details Screen
@@ -26,11 +28,17 @@ import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 class ProjectDetailsScreen extends StatefulWidget {
   final String projectId;
   final String? projectTitle;
+  /// P3-003 FIX: Only enable Hero animation when navigating from a screen
+  /// that defines matching source Heroes (marketplace). Push notifications,
+  /// project map, and deep links don't have source Heroes — orphan
+  /// destination Heroes cause visual flicker during page transition.
+  final bool enableHero;
 
   const ProjectDetailsScreen({
     super.key,
     required this.projectId,
     this.projectTitle,
+    this.enableHero = false,
   });
 
   @override
@@ -44,6 +52,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId));
     });
+  }
+
+  /// P3-003: Conditionally wraps [child] in a Hero widget.
+  /// Only wraps when [enableHero] is true (marketplace navigation).
+  /// Push notifications, map, and deep links skip Hero to avoid
+  /// orphan destination flicker.
+  Widget _heroWrap(String tag, Widget child) {
+    if (widget.enableHero) {
+      return Hero(tag: tag, child: child);
+    }
+    return child;
   }
 
   int _calculateBasketTotal(List<Map<String, dynamic>> boqItems, Map<String, int> selected) {
@@ -70,14 +89,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
-        // UX-F028: Hero shared element — title morphs FROM marketplace card title.
-        // Material(type: transparency) prevents white background flash during flight.
-        title: Hero(
-          tag: 'project_title_${widget.projectId}',
-          child: Material(
+        // P3-003: Conditionally wrap in Hero — only from marketplace.
+        title: _heroWrap(
+          'project_title_${widget.projectId}',
+          Material(
             type: MaterialType.transparency,
             child: Text(
-              widget.projectTitle ?? 'تفاصيل المشروع',
+              widget.projectTitle ?? context.tr('project_details_title'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -93,6 +111,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             listenable: CartStore.instance,
             builder: (context, _) {
               final count = CartStore.instance.items.length;
+              // UX-REM-J008: Hide cart icon when empty — matches dashboard/marketplace pattern.
+              if (count == 0) return const SizedBox.shrink();
               return Stack(
                 alignment: Alignment.center,
                 children: [
@@ -102,19 +122,18 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                     },
                   ),
-                  if (count > 0)
-                    PositionedDirectional(
-                      top: 8,
-                      end: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: colors.error, shape: BoxShape.circle),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
+                  PositionedDirectional(
+                    top: 8,
+                    end: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(color: colors.error, shape: BoxShape.circle),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
+                  ),
                 ],
               );
             },
@@ -127,10 +146,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       // guaranteeing a smooth Hero flight from the marketplace card header.
       body: Column(
         children: [
-          // Hero destination — gradient strip (matches marketplace card header)
-          Hero(
-            tag: 'project_header_${widget.projectId}',
-            child: Container(
+          // P3-003: Conditionally wrap in Hero — only from marketplace.
+          _heroWrap(
+            'project_header_${widget.projectId}',
+            Container(
               height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
@@ -172,25 +191,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           }
 
           if (state is ProjectDetailsError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-                    const SizedBox(height: 16),
-                    Text(state.message, style: TextStyle(color: colors.error), textAlign: TextAlign.center),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () => context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId)),
-                      icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-                      label: Text(context.tr('retry')),
-                      style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand),
-                    ),
-                  ],
-                ),
-              ),
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId)),
             );
           }
 
@@ -217,14 +220,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                         Icon(PhosphorIconsRegular.listDashes, color: colors.primaryBrand, size: 22),
                         const SizedBox(width: 8),
                         Text(
-                          'جدول الكميات (BOQ)',
+                          context.tr('boq_section_title'),
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'اختر المواد التي تريد تمويلها',
+                      context.tr('boq_section_subtitle'),
                       style: TextStyle(fontSize: 13, color: colors.textSecondary),
                     ),
                     const SizedBox(height: 16),
@@ -328,7 +331,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn().slideY(begin: -0.05);
+    ).nmAnimate(context).fadeIn().slideY(begin: -0.05);
   }
 
   Widget _buildBOQItem(Map<String, dynamic> item, SemanticColors colors, int index, Map<String, int> selectedQuantities) {
@@ -347,13 +350,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     String statusLabel;
     if (isFullyFunded) {
       statusColor = colors.success;
-      statusLabel = 'مموّل بالكامل';
+      statusLabel = context.tr('boq_fully_funded');
     } else if (funded > 0) {
       statusColor = colors.warning;
-      statusLabel = 'ممول جزئياً';
+      statusLabel = context.tr('boq_partially_funded');
     } else {
       statusColor = colors.error;
-      statusLabel = 'غير مموّل';
+      statusLabel = context.tr('boq_not_funded');
     }
 
     return Container(
@@ -384,7 +387,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             children: [
               _infoChip(colors, context.tr('quantity'), '$required $unit'),
               const SizedBox(width: 12),
-              _infoChip(colors, 'سعر الوحدة', formatCurrency(unitPrice)),
+              _infoChip(colors, context.tr('boq_unit_price'), formatCurrency(unitPrice)),
               const SizedBox(width: 12),
               _infoChip(colors, context.tr('remaining'), '$remainingQty $unit'),
             ],
@@ -407,7 +410,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  selectedQty > 0 ? formatCurrency(unitPrice.toInt() * selectedQty) : 'اختر الكمية',
+                  selectedQty > 0 ? formatCurrency(unitPrice.toInt() * selectedQty) : context.tr('boq_select_quantity'),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: selectedQty > 0 ? colors.primaryBrand : colors.textSecondary),
                 ),
                 Row(
@@ -433,7 +436,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ],
         ],
       ),
-    ).animate(delay: (100 + index * 80).ms).fadeIn().slideY(begin: 0.03);
+    ).nmAnimate(context, delay: (100 + index * 80).ms).fadeIn().slideY(begin: 0.03);
   }
 
   Widget _infoChip(SemanticColors colors, String label, String value) {
@@ -477,7 +480,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$count عناصر', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                  Text('$count ${context.tr('boq_items_count')}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
                   Text(formatCurrency(total), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary)),
                 ],
               ),
@@ -628,7 +631,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ));
           },
           icon: Icon(PhosphorIconsRegular.eye, color: colors.primaryBrand),
-          label: Text('سجل الشفافية (OCDS)', style: TextStyle(color: colors.primaryBrand)),
+          label: Text(context.tr('transparency_log_ocds'), style: TextStyle(color: colors.primaryBrand)),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
             side: BorderSide(color: colors.primaryBrand),

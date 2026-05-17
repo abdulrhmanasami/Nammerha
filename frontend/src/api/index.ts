@@ -15,7 +15,7 @@
 //   ├── cross-cutting.ts → Notifications, Health, Contact, Payments
 //   ├── matchmaking.ts   → Matchmaking + EPA Oracle (FIDIC 13.8)
 //   ├── platform.ts      → Dashboard, Reality Capture, Open Data, Compliance, Translation
-//   ├── portals.ts       → All 6 role portals (Tradesperson→Donor)
+//   ├── portals.ts       → 5 active role portals (Tradesperson→Homeowner) [Donor ERADICATED May 2026]
 //   ├── fintech.ts       → Revenue, Subscriptions, Storage, Enterprise
 //   └── index.ts         → THIS FILE (barrel re-export)
 //
@@ -39,7 +39,8 @@ export { auth, roles } from './auth';
 export { notifications, health, contact, payments } from './cross-cutting';
 export { matchmaking, epaOracle } from './matchmaking';
 export { dashboard, realityCapture, openData, compliance, translation } from './platform';
-export { tradesperson, supplier, engineer, contractor, homeowner, donor } from './portals';
+export { tradesperson, supplier, engineer, contractor, homeowner } from './portals';
+// P2-003: 'donor' export ERADICATED — Donation Eradication KI (May 2026)
 export { revenueAdmin, subscriptions, storage, enterpriseAdmin } from './fintech';
 
 // ── Exported types (used by pages via `import type`) ────────────────────────

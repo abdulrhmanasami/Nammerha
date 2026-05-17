@@ -140,7 +140,7 @@ class _EscrowView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        c.poNumber.isNotEmpty ? c.poNumber : 'إثبات #${c.proofId.substring(0, 8)}',
+                        c.poNumber.isNotEmpty ? c.poNumber : '${context.tr('admin_escrow_proof_label')} #${c.proofId.substring(0, 8)}',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -252,7 +252,7 @@ class _EscrowView extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(context.tr('admin_release_confirm'), style: TextStyle(color: colors.textHeading, fontWeight: FontWeight.w700)),
         content: Text(
-          'هل تريد تحرير الضمان المالي لـ ${c.poNumber.isNotEmpty ? c.poNumber : c.proofId.substring(0, 8)}؟',
+          '${context.tr('admin_escrow_release_confirm')} ${c.poNumber.isNotEmpty ? c.poNumber : c.proofId.substring(0, 8)}?',
           style: TextStyle(color: colors.textBody),
         ),
         actions: [
@@ -331,7 +331,8 @@ class _EscrowView extends StatelessWidget {
     try {
       final date = DateTime.parse(isoDate);
       return '${date.day}/${date.month}/${date.year}';
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] screens/admin_escrow_screen: $e');
       return '—';
     }
   }

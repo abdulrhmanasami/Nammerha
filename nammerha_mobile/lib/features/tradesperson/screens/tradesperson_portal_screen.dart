@@ -14,6 +14,7 @@ import '../bloc/tradesperson_state.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class TradespersonPortalScreen extends StatelessWidget {
   const TradespersonPortalScreen({super.key});
@@ -64,7 +65,8 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
     try {
       final dt = DateTime.parse(dateStr);
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] screens/tradesperson_portal_screen: $e');
       return dateStr;
     }
   }
@@ -138,19 +140,19 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
             _kpiCard(context.tr('tp_active_jobs'), '${data.stats.activeJobs}', colors.primaryBrand, colors),
             const SizedBox(width: 8),
             _kpiCard(context.tr('ct_completed'), '${data.stats.completedJobs}', colors.success, colors),
-          ]).animate().fadeIn(),
+          ]).nmAnimate(context).fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
             _kpiCard(context.tr('ct_earnings'), _formatCurrency(data.stats.totalEarnings), colors.secondaryAccent, colors),
             const SizedBox(width: 8),
             _kpiCard(context.tr('tp_avg_rating'), data.stats.averageRating != null ? '${data.stats.averageRating!.toStringAsFixed(1)} ★' : '—', colors.warning, colors),
-          ]).animate(delay: 100.ms).fadeIn(),
+          ]).nmAnimate(context, delay: 100.ms).fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
             _kpiCard(context.tr('tp_pending_requests'), '${data.stats.pendingRequests}', colors.info, colors),
             const SizedBox(width: 8),
             _kpiCard(context.tr('tp_active_assignments'), '${data.stats.activeAssignments}', colors.warning, colors),
-          ]).animate(delay: 200.ms).fadeIn(),
+          ]).nmAnimate(context, delay: 200.ms).fadeIn(),
         ],
       ),
     );
@@ -290,7 +292,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                 ),
               ],
             ),
-          ).animate(delay: (i * 80).ms).fadeIn();
+          ).nmAnimate(context, delay: (i * 80).ms).fadeIn();
         },
       ),
     );
@@ -389,7 +391,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                 ),
               ],
             ),
-          ).animate(delay: (i * 80).ms).fadeIn();
+          ).nmAnimate(context, delay: (i * 80).ms).fadeIn();
         },
       ),
     );
@@ -472,7 +474,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                 Text(_formatCurrency(e.amount), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.secondaryAccent)),
               ],
             ),
-          ).animate(delay: (i * 80).ms).fadeIn();
+          ).nmAnimate(context, delay: (i * 80).ms).fadeIn();
         },
       ),
     );
@@ -506,7 +508,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                 Text(p.trade ?? context.tr('tp_unspecified'), style: TextStyle(fontSize: 14, color: const Color(0xFFFFFFFF).withAlpha(200))),
               ],
             ),
-          ).animate().fadeIn(duration: 500.ms),
+          ).nmAnimate(context).fadeIn(duration: 500.ms),
           const SizedBox(height: 16),
           _profileRow(context.tr('tp_experience_years'), '${p.yearsExperience ?? '—'}', colors),
           _profileRow(context.tr('tp_hourly_rate'), p.hourlyRate != null ? _formatCurrency(p.hourlyRate!) : '—', colors),

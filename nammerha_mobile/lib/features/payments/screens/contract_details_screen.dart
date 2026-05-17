@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/i18n/t.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/utils/format_utils.dart';
@@ -17,6 +18,7 @@ import '../models/contract_payment.dart';
 import '../models/payment_enums.dart';
 import '../models/service_contract.dart';
 import 'service_payment_screen.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// Contract Details Screen — shows milestones, payment progress, and history.
 class ContractDetailsScreen extends StatelessWidget {
@@ -164,7 +166,7 @@ class _ContractDetailsView extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1);
+    ).nmAnimate(context).fadeIn(duration: 500.ms).slideY(begin: -0.1);
   }
 
   Widget _buildProgressSection(BuildContext context, ServiceContract c, SemanticColors colors) {
@@ -174,7 +176,7 @@ class _ContractDetailsView extends StatelessWidget {
         const SizedBox(width: 10),
         _statCard(context.tr('remaining_balance'), FormatUtils.currency(c.remainingBalance), colors.warning, colors),
       ],
-    ).animate(delay: 200.ms).fadeIn();
+    ).nmAnimate(context, delay: 200.ms).fadeIn();
   }
 
   Widget _statCard(String label, String value, Color accent, SemanticColors colors) {
@@ -275,7 +277,7 @@ class _ContractDetailsView extends StatelessWidget {
           ],
         ],
       ),
-    ).animate(delay: (idx * 100).ms).fadeIn().slideY(begin: 0.03);
+    ).nmAnimate(context, delay: (idx * 100).ms).fadeIn().slideY(begin: 0.03);
   }
 
   Widget _buildPaymentHistory(BuildContext context, ServiceContract c, SemanticColors colors) {
@@ -341,25 +343,13 @@ class _ContractDetailsView extends StatelessWidget {
           Text(FormatUtils.currency(p.amount), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         ],
       ),
-    ).animate(delay: (idx * 60).ms).fadeIn();
+    ).nmAnimate(context, delay: (idx * 60).ms).fadeIn();
   }
 
   Widget _buildError(BuildContext context, String msg, SemanticColors colors) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(PhosphorIconsRegular.cloudSlash, size: 64, color: colors.textSecondary),
-          const SizedBox(height: 16),
-          Text(msg, style: TextStyle(color: colors.error)),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => context.read<ContractPaymentBloc>().add(LoadContractDetailsEvent(contractId)),
-            icon: const Icon(PhosphorIconsRegular.arrowsClockwise),
-            label: Text(context.tr('retry')),
-          ),
-        ],
-      ),
+    return NammerhaErrorState(
+      message: msg,
+      onRetry: () => context.read<ContractPaymentBloc>().add(LoadContractDetailsEvent(contractId)),
     );
   }
 

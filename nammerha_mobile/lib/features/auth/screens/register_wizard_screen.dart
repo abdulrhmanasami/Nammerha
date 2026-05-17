@@ -10,6 +10,7 @@ import '../../../core/i18n/t.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/register_wizard_cubit.dart';
 import '../widgets/password_strength_indicator.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Register Wizard Screen — Platinum Standard
@@ -350,7 +351,7 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
               onPressed: () => _nextPage(_formKey1),
             ),
           ],
-        ).animate().fadeIn().slideX(),
+        ).nmAnimate(context).fadeIn().slideX(),
       ),
     );
   }
@@ -399,7 +400,7 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
               onPressed: () => _nextPage(_formKey2),
             ),
           ],
-        ).animate().fadeIn().slideX(),
+        ).nmAnimate(context).fadeIn().slideX(),
       ),
     );
   }
@@ -532,7 +533,7 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
               icon: PhosphorIconsRegular.userPlus,
             ),
           ],
-        ).animate().fadeIn().slideX(),
+        ).nmAnimate(context).fadeIn().slideX(),
       ),
     );
   }
@@ -586,6 +587,6 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 200.ms);
+    ).nmAnimate(context).fadeIn(duration: 200.ms);
   }
 }

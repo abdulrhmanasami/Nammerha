@@ -11,6 +11,7 @@ import '../data/engineer_repository.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Engineer Portal — Multi-tab Dashboard (Platinum Standard)
@@ -157,7 +158,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
       children: [
         // KPI Grid
         _buildKPIGrid(dashboard.stats, colors)
-            .animate()
+            .nmAnimate(context)
             .fadeIn(duration: 400.ms)
             .slideY(begin: 0.1, end: 0),
         const SizedBox(height: 20),
@@ -180,7 +181,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
         else
           ...dashboard.projects.asMap().entries.map((entry) =>
               _buildProjectCard(entry.value, colors)
-                  .animate(delay: (80 * entry.key).ms)
+                  .nmAnimate(context, delay: (80 * entry.key).ms)
                   .fadeIn(duration: 300.ms)
                   .slideX(begin: 0.05, end: 0)),
       ],
@@ -454,7 +455,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
             ],
           ),
         )
-            .animate(delay: (80 * index).ms)
+            .nmAnimate(context, delay: (80 * index).ms)
             .fadeIn(duration: 300.ms)
             .slideX(begin: 0.05, end: 0);
       },
@@ -590,7 +591,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
             ],
           ),
         )
-            .animate(delay: (60 * index).ms)
+            .nmAnimate(context, delay: (60 * index).ms)
             .fadeIn(duration: 250.ms)
             .slideX(begin: 0.03, end: 0);
       },
@@ -650,7 +651,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
                   colors),
             ],
           ),
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+        ).nmAnimate(context).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
       ],
     );
   }
@@ -775,7 +776,8 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
     try {
       final dt = DateTime.parse(dateStr);
       return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] screens/engineer_portal_screen: $e');
       return dateStr;
     }
   }

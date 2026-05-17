@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
@@ -146,7 +147,8 @@ class RegisterWizardCubit extends Cubit<RegisterWizardState> {
         'ts': DateTime.now().millisecondsSinceEpoch,
       };
       await prefs.setString(_kRegDraftKey, jsonEncode(draft));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/register_wizard_cubit: $e');
       // Degrade gracefully — draft persistence is best-effort.
       // SharedPreferences may fail on restricted storage environments.
     }
@@ -188,7 +190,8 @@ class RegisterWizardCubit extends Cubit<RegisterWizardState> {
         currentPage: safeStep,
         draftRestored: true,
       ));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/register_wizard_cubit: $e');
       // Corrupt JSON or missing data — degrade gracefully.
     }
   }
@@ -199,7 +202,8 @@ class RegisterWizardCubit extends Cubit<RegisterWizardState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_kRegDraftKey);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/register_wizard_cubit: $e');
       // Best-effort cleanup.
     }
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/project_repository.dart';
 import 'project_details_event.dart';
@@ -24,14 +25,18 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
 
       try {
         projectData = await _repository.getProject(event.projectId);
-      } catch (_) {}
+      } catch (e) {
+      debugPrint('[Nammerha] bloc/project_details_bloc: $e');
+    }
 
       try {
         boqData = await _repository.getProjectBOQ(event.projectId);
-      } catch (_) {}
+      } catch (e) {
+      debugPrint('[Nammerha] bloc/project_details_bloc: $e');
+    }
       
       if (projectData == null) {
-        emit(const ProjectDetailsError('المشروع غير موجود'));
+        emit(const ProjectDetailsError('err_project_not_found'));
         return;
       }
       
@@ -41,7 +46,8 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
         selectedQuantities: const {},
       ));
     } catch (e) {
-      emit(const ProjectDetailsError('حدث خطأ في تحميل تفاصيل المشروع'));
+      debugPrint('[Nammerha] bloc/project_details_bloc: $e');
+      emit(const ProjectDetailsError('err_project_details_load'));
     }
   }
 

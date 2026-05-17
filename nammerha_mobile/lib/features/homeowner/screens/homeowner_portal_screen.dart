@@ -12,8 +12,10 @@ import '../bloc/homeowner_bloc.dart';
 import '../bloc/homeowner_event.dart';
 import '../bloc/homeowner_state.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/format_utils.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/utils/animation_budget.dart';
 
 class HomeownerPortalScreen extends StatelessWidget {
   const HomeownerPortalScreen({super.key});
@@ -54,14 +56,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
     super.dispose();
   }
 
-  String _formatCurrency(num amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M ل.س';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}k ل.س';
-    }
-    return '${amount.toStringAsFixed(0)} ل.س';
-  }
+  String _formatCurrency(num amount) => FormatUtils.currency(amount);
 
   @override
   Widget build(BuildContext context) {
@@ -137,13 +132,13 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
             _kpiCard(context.tr('ho_kpi_active'), '${data.stats.activeProjects}', colors.primaryBrand, PhosphorIconsRegular.buildings, colors),
             const SizedBox(width: 8),
             _kpiCard(context.tr('ho_kpi_bids'), '${data.stats.totalBidsReceived}', colors.info, PhosphorIconsRegular.gavel, colors),
-          ]).animate().fadeIn(),
+          ]).nmAnimate(context).fadeIn(),
           const SizedBox(height: 8),
           Row(children: [
             _kpiCard(context.tr('ho_kpi_approvals'), '${data.stats.pendingApprovals}', colors.warning, PhosphorIconsRegular.hourglass, colors),
             const SizedBox(width: 8),
             _kpiCard(context.tr('ho_kpi_invested'), _formatCurrency(data.stats.totalInvested), colors.secondaryAccent, PhosphorIconsRegular.bank, colors),
-          ]).animate(delay: 100.ms).fadeIn(),
+          ]).nmAnimate(context, delay: 100.ms).fadeIn(),
           const SizedBox(height: 20),
 
           Text(context.tr('ho_active_projects'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
@@ -227,7 +222,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
           ]),
         ],
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideY(begin: 0.04, end: 0);
+    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.04, end: 0);
   }
 
   // ─── Tab 2: All Projects ──────────────────────────────────────────────
@@ -319,7 +314,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                       ],
                     ],
                   ),
-                ).animate(delay: (i * 80).ms).fadeIn();
+                ).nmAnimate(context, delay: (i * 80).ms).fadeIn();
               },
             ),
     );
@@ -414,7 +409,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                 ],
               ],
             ),
-          ).animate(delay: (i * 80).ms).fadeIn();
+          ).nmAnimate(context, delay: (i * 80).ms).fadeIn();
         },
       ),
     );
@@ -449,13 +444,13 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
             _escrowCard(context.tr('ho_total_deposited'), _formatCurrency(data.escrow.totalDeposited), colors.primaryBrand, colors),
             const SizedBox(width: 10),
             _escrowCard(context.tr('ho_released'), _formatCurrency(data.escrow.totalReleased), colors.success, colors),
-          ]).animate().fadeIn(),
+          ]).nmAnimate(context).fadeIn(),
           const SizedBox(height: 10),
           Row(children: [
             _escrowCard(context.tr('ho_held_escrow'), _formatCurrency(data.escrow.heldInEscrow), colors.warning, colors),
             const SizedBox(width: 10),
             _escrowCard(context.tr('ho_escrow_projects'), '${data.escrow.projectsWithEscrow}', colors.textPrimary, colors),
-          ]).animate(delay: 100.ms).fadeIn(),
+          ]).nmAnimate(context, delay: 100.ms).fadeIn(),
 
           if (data.escrow.heldInEscrow > 0) ...[
             const SizedBox(height: 16),
@@ -478,7 +473,7 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
                   ),
                 ],
               ),
-            ).animate(delay: 200.ms).fadeIn(),
+            ).nmAnimate(context, delay: 200.ms).fadeIn(),
           ],
         ],
       ),

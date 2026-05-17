@@ -8,6 +8,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/bloc/page_index_cubit.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Guided Feature Tour — Post-login interactive walkthrough
@@ -242,7 +243,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
                                 ),
                                 child:
                                     Icon(step.icon, size: 52, color: Colors.white),
-                              ).animate().scale(
+                              ).nmAnimate(context).scale(
                                     begin: const Offset(0.8, 0.8),
                                     duration: 400.ms,
                                     curve: Curves.easeOut,
@@ -259,7 +260,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
                                   height: 1.3,
                                 ),
                               )
-                                  .animate(delay: 150.ms)
+                                  .nmAnimate(context, delay: 150.ms)
                                   .fadeIn()
                                   .slideY(begin: 0.15, end: 0),
                               const SizedBox(height: 16),
@@ -272,7 +273,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
                                   color: Colors.white.withAlpha(200),
                                   height: 1.8,
                                 ),
-                              ).animate(delay: 300.ms).fadeIn(),
+                              ).nmAnimate(context, delay: 300.ms).fadeIn(),
                             ],
                           ),
                         );
@@ -290,6 +291,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
                         onPressed: () => _next(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: context.colors.primaryBrand,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),

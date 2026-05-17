@@ -1,4 +1,5 @@
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../core/widgets/error_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
@@ -7,6 +8,7 @@ import '../widgets/admin_kpi_card.dart';
 import '../widgets/admin_stat_chart.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/i18n/translations.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin Dashboard — Platform Command Center
@@ -65,23 +67,10 @@ class _DashboardView extends StatelessWidget {
   }
 
   Widget _buildError(BuildContext context, String message) {
-    final colors = context.colors;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(PhosphorIconsRegular.cloudSlash, size: 48, color: colors.error),
-          const SizedBox(height: 12),
-          Text(message, style: TextStyle(color: colors.textSecondary, fontSize: 14)),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () => context.read<AdminDashboardBloc>().add(LoadDashboard()),
-            icon: Icon(PhosphorIconsRegular.arrowsClockwise),
-            label: Text(context.tr('ct_retry')),
-            style: FilledButton.styleFrom(backgroundColor: colors.primaryBrand),
-          ),
-        ],
-      ),
+    return NammerhaErrorState(
+      message: message,
+      onRetry: () => context.read<AdminDashboardBloc>().add(LoadDashboard()),
+      iconSize: 48,
     );
   }
 
@@ -302,11 +291,12 @@ class _DashboardView extends StatelessWidget {
     try {
       final date = DateTime.parse(isoDate);
       final diff = DateTime.now().difference(date);
-      if (diff.inMinutes < 60) return '${diff.inMinutes}د';
-      if (diff.inHours < 24) return '${diff.inHours}س';
-      if (diff.inDays < 30) return '${diff.inDays}ي';
-      return '${diff.inDays ~/ 30}ش';
-    } catch (_) {
+      if (diff.inMinutes < 60) return '${diff.inMinutes}${kTranslations['admin_time_minutes']?['ar'] ?? 'm'}';
+      if (diff.inHours < 24) return '${diff.inHours}${kTranslations['admin_time_hours']?['ar'] ?? 'h'}';
+      if (diff.inDays < 30) return '${diff.inDays}${kTranslations['admin_time_days']?['ar'] ?? 'd'}';
+      return '${diff.inDays ~/ 30}${kTranslations['admin_time_months']?['ar'] ?? 'mo'}';
+    } catch (e) {
+      debugPrint('[Nammerha] screens/admin_dashboard_screen: $e');
       return '—';
     }
   }
