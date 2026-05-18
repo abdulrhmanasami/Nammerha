@@ -294,22 +294,26 @@ async function loadActiveJobs(): Promise<void> {
             return;
         }
 
-        // P1-UXA-002 FIX: Progressive rendering for active jobs
-        // Merge requests + assignments into unified typed array for progressive rendering
-        type JobItem = { type: 'request'; data: typeof requests[0] } | { type: 'assignment'; data: typeof assignments[0] };
-        const allJobs: JobItem[] = [
-            ...requests.map(r => ({ type: 'request' as const, data: r })),
-            ...assignments.map(a => ({ type: 'assignment' as const, data: a })),
-        ];
+        // P2-010 FIX: Add section headers between Direct Requests and Contractor Assignments.
+        // PREVIOUS: Both job types were rendered in a flat list with only small badge
+        // differences ("direct" vs status). Tradesperson couldn't quickly distinguish
+        // their direct client requests from contractor-assigned tasks.
+        // NOW: Visual section headers separate the two categories.
+        // Standard: Nielsen #6 (Recognition Over Recall), Information Architecture.
+        const hasRequests = requests.length > 0;
+        const hasAssignments = assignments.length > 0;
 
-        renderProgressive({
-            items: allJobs,
-            containerEl: tbody,
-            pageSize: 20,
-            renderItem: (job) => {
-                if (job.type === 'request') {
-                    const r = job.data;
-                    return `
+        let sectionsHtml = '';
+
+        if (hasRequests) {
+            sectionsHtml += `
+                <div class="flex items-center gap-2 mb-3 mt-1">
+                    <i class="ph ph-user-focus text-teal-600 dark:text-teal-400" aria-hidden="true"></i>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400" data-i18n="tp_direct_requests">${esc(t('tp_direct_requests', 'Direct Requests'))}</h3>
+                    <span class="text-3xs font-bold bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">${requests.length}</span>
+                </div>
+            `;
+            sectionsHtml += requests.map(r => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
@@ -322,10 +326,18 @@ async function loadActiveJobs(): Promise<void> {
                     </div>
                     ${tradeLabel(r.trade_needed)}
                 </div>
-            </div>`;
-                } else {
-                    const a = job.data;
-                    return `
+            </div>`).join('');
+        }
+
+        if (hasAssignments) {
+            sectionsHtml += `
+                <div class="flex items-center gap-2 mb-3 ${hasRequests ? 'mt-6 pt-4 border-t border-slate-200 dark:border-dark-border' : 'mt-1'}">
+                    <i class="ph ph-buildings text-trust-blue dark:text-blue-400" aria-hidden="true"></i>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400" data-i18n="tp_contractor_assignments">${esc(t('tp_contractor_assignments', 'Contractor Assignments'))}</h3>
+                    <span class="text-3xs font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">${assignments.length}</span>
+                </div>
+            `;
+            sectionsHtml += assignments.map(a => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(a.project_title)}</h3>
@@ -338,11 +350,10 @@ async function loadActiveJobs(): Promise<void> {
                     </div>
                     ${tradeLabel(a.trade_required)}
                 </div>
-            </div>`;
-                }
-            },
-            emptyState: () => `<div class="text-center text-slate-400 text-sm py-8 dark:text-slate-500" data-i18n="tp_no_active_work">No active work</div>`,
-        });
+            </div>`).join('');
+        }
+
+        tbody.innerHTML = `<div class="flex flex-col gap-3">${sectionsHtml}</div>`;
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Tradesperson] Active jobs load failed'), { component: 'tradesperson', action: 'load_active_jobs' });
         renderErrorWithRetry(tbody, loadActiveJobs, 'failed_to_load', undefined, err);

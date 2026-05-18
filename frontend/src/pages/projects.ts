@@ -260,6 +260,9 @@ document.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach((pill) => {
 });
 
 // Sort
+// P2-012 NOTE: Sort re-fetch preserves search filter. fetchProjects() calls
+// applySearch(state.projects) which uses the persistent state.search value.
+// No search reset needed — state.search survives across sort changes.
 sortSelect?.addEventListener('change', () => {
     state.sort = sortSelect.value;
     void fetchProjects();
@@ -273,6 +276,30 @@ searchInput?.addEventListener('input', () => {
         state.search = searchInput.value.trim();
         const displayed = applySearch(state.projects);
         if (displayed.length === 0 && state.projects.length > 0) {
+            // P2-011 FIX: Show hint that search is client-side only.
+            // PREVIOUS: Empty state shown without context — user assumed
+            // zero results exist, but server may have matching projects
+            // beyond the initial 12-item fetch.
+            // NOW: Show "no local matches" with hint to load more.
+            // Standard: Nielsen #1 (System Status Visibility).
+            if (state.hasMore) {
+                const emptyEl = document.getElementById('projects-empty');
+                if (emptyEl) {
+                    const hintEl = emptyEl.querySelector('.nm-search-hint');
+                    if (!hintEl) {
+                        const hint = document.createElement('p');
+                        hint.className = 'nm-search-hint text-xs text-trust-blue mt-2 cursor-pointer hover:underline';
+                        hint.setAttribute('data-i18n', 'projects_load_more_hint');
+                        hint.textContent = t('projects_load_more_hint', 'Load more projects to expand search results');
+                        hint.addEventListener('click', () => {
+                            state.search = '';
+                            if (searchInput) { searchInput.value = ''; }
+                            void fetchProjects(true);
+                        });
+                        emptyEl.appendChild(hint);
+                    }
+                }
+            }
             showView('empty');
         } else if (displayed.length > 0) {
             renderProjects(displayed);

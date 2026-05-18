@@ -420,8 +420,20 @@ if (detectLocationBtn) {
                     btnIcon.classList.add('ph-check-circle');
                 }
                 if (btnLabel) { btnLabel.textContent = t('hr_location_detected', 'Location detected'); }
-                (detectLocationBtn as HTMLButtonElement).disabled = true;
-                detectLocationBtn.classList.add('opacity-60');
+                // P2-003 FIX: GPS re-detection — allow user to re-detect after success.
+                // PREVIOUS: Button was permanently disabled (L423-424). If user moved
+                // to the damage site after initial detection, they couldn't update GPS.
+                // NOW: After a brief delay, button text changes to "Re-detect" and is
+                // re-enabled. Standard: Nielsen #3 (User Control & Freedom).
+                setTimeout(() => {
+                    (detectLocationBtn as HTMLButtonElement).disabled = false;
+                    detectLocationBtn.classList.remove('opacity-60');
+                    if (btnIcon) {
+                        btnIcon.classList.remove('ph-check-circle');
+                        btnIcon.classList.add('ph-crosshair');
+                    }
+                    if (btnLabel) { btnLabel.textContent = t('hr_redetect_location', 'Re-detect location'); }
+                }, 2000);
 
                 // GAP-NEW-06: Persist GPS coords to sessionStorage
                 saveWizardState();

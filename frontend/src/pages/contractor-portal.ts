@@ -497,6 +497,15 @@ function openBidModal(projectId: string): void {
     // F-021 FIX: Exit animation for bid modal (was instant dialog.close()).
     // Parity with Hub Sheet which has animate-out before close.
     function closeModal(): void {
+        // P2-008 FIX: Disable interaction during 200ms close animation.
+        // PREVIOUS: Submit and Cancel buttons remained clickable during the
+        // fade-out. Rapid clicker could fire submitBid() DURING close animation.
+        // NOW: inert + pointer-events:none blocks ALL interaction immediately.
+        // Standard: WCAG 2.1.2 (No Keyboard Trap), Animation Safety.
+        const content = dialog.querySelector('.nm-dialog-inner, [class*="bg-white"]') as HTMLElement | null;
+        if (content) { content.setAttribute('inert', ''); }
+        dialog.style.pointerEvents = 'none';
+
         dialog.style.opacity = '0';
         dialog.style.transition = 'opacity 200ms ease-out';
         setTimeout(() => {

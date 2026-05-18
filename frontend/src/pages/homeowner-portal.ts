@@ -588,14 +588,16 @@ async function loadServiceRequests(): Promise<void> {
                     </div>
                 </div>
             </div>`,
-            emptyState: () => `
-            <div class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border">
-                <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 dark:bg-dark-elevated dark:text-slate-500">
-                    <i class="ph ph-wrench nm-icon-32" aria-hidden="true"></i>
-                </div>
-                <p class="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">${esc(t('ho_no_requests_yet', 'No service requests yet'))}</p>
-                <p class="text-xs mt-1 text-slate-500 dark:text-slate-400">${esc(t('ho_post_first_request', 'Use the form above to post your first request'))}</p>
-            </div>`,
+            // P2-005 FIX: Use renderEmptyState() for consistency.
+            // PREVIOUS: Inline HTML diverged from platform-standard empty component
+            // (different padding, icon sizing, dark mode tokens).
+            // NOW: Uses renderEmptyState() — same as projects, bids, approvals sections.
+            // Standard: DRY, Design System Consistency.
+            emptyState: () => renderEmptyState({
+                icon: 'wrench',
+                title: t('ho_no_requests_yet', 'No service requests yet'),
+                subtitle: t('ho_post_first_request', 'Use the form above to post your first request'),
+            }),
         });
 
         // HIGH-001 FIX + P0-001 FIX (Wave 2): Cancel handlers with event delegation.
@@ -819,6 +821,22 @@ async function loadApprovals(): Promise<void> {
 async function loadEscrow(): Promise<void> {
     const container = document.getElementById('escrow-content');
     if (!container) { return; }
+
+    // P2-006 FIX: Show loading skeleton — prevents empty flash on tab switch.
+    // PREVIOUS: Container was blank during API call. On 3G networks (Syria),
+    // user saw an empty section for 2-5 seconds with no loading indication.
+    // NOW: 4-stat skeleton grid matching the escrow KPI layout appears instantly.
+    // Standard: Nielsen #1 (System Status Visibility), Skeleton Loading Pattern.
+    container.innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" aria-hidden="true">
+            ${Array.from({ length: 4 }, (_, i) => `
+                <div class="rounded-xl p-4 bg-slate-100 dark:bg-dark-elevated nm-skeleton">
+                    <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 nm-skeleton-pulse" style="animation-delay:${i * 0.1}s"></div>
+                    <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mt-2 nm-skeleton-pulse" style="animation-delay:${i * 0.1 + 0.1}s"></div>
+                </div>
+            `).join('')}
+        </div>
+    `;
 
     try {
         const res = await homeowner.getEscrow();
