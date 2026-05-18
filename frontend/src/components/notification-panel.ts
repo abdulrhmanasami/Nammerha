@@ -105,6 +105,49 @@ function stopRepositionListeners(): void {
     }
 }
 
+// P2-015 FIX: Focus trap for notification panel (WCAG 2.4.3 Focus Order).
+// PREVIOUS: Panel opened without moving focus — Tab escaped to page content
+// behind the panel. Screen reader users didn't know the panel opened.
+// NOW: Focus moves to panel on open, Tab/Shift+Tab cycles within focusable
+// elements, focus returns to bell on ALL close paths.
+// Standard: WAI-ARIA Authoring Practices §3.9 (Dialog), WCAG 2.4.3, Apple HIG.
+const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href]:not([tabindex="-1"]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+let focusTrapCleanup: (() => void) | null = null;
+
+function installFocusTrap(container: HTMLElement): void {
+    const handler = (e: KeyboardEvent): void => {
+        if (e.key !== 'Tab') { return; }
+
+        const focusable = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+        if (focusable.length === 0) { return; }
+
+        const first = focusable[0]!;
+        const last = focusable[focusable.length - 1]!;
+
+        if (e.shiftKey) {
+            // Shift+Tab on first element → wrap to last
+            if (document.activeElement === first || !container.contains(document.activeElement)) {
+                e.preventDefault();
+                last.focus();
+            }
+        } else {
+            // Tab on last element → wrap to first
+            if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    };
+
+    container.addEventListener('keydown', handler);
+    focusTrapCleanup = () => container.removeEventListener('keydown', handler);
+}
+
+function removeFocusTrap(): void {
+    focusTrapCleanup?.();
+    focusTrapCleanup = null;
+}
+
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 /**
@@ -148,7 +191,7 @@ export function initNotificationPanel(): void {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && isOpen && activeBell) {
                 closePanel(activeBell);
-                activeBell.focus();
+                // P2-015: focus restore now handled by closePanel() for ALL paths
             }
         });
 
@@ -281,12 +324,23 @@ async function openPanel(bell: HTMLElement): Promise<void> {
 
     // Load notifications
     await loadNotifications();
+
+    // P2-015 FIX: Install focus trap AFTER content loads (mark-read buttons exist).
+    // Move focus into the panel so keyboard users know it opened.
+    if (panel) {
+        installFocusTrap(panel);
+        const firstFocusable = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        firstFocusable?.focus();
+    }
 }
 
 function closePanel(bell: HTMLElement): void {
     isOpen = false;
     activeBell = null;
     bell.setAttribute('aria-expanded', 'false');
+
+    // P2-015 FIX: Remove focus trap before DOM removal.
+    removeFocusTrap();
 
     // P1-009 FIX (Wave 2): Stop repositioning when panel closes.
     stopRepositionListeners();
@@ -301,6 +355,11 @@ function closePanel(bell: HTMLElement): void {
             }
         }, 200);
     }
+
+    // P2-015 FIX: Return focus to bell on ALL close paths.
+    // PREVIOUS: Focus restored only for Escape (L151) — outside click
+    // and mark-all-read close left focus in limbo.
+    bell.focus();
 }
 
 // ─── Load & Render ──────────────────────────────────────────────────────────
