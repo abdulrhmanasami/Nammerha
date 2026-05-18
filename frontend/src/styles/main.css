@@ -5193,6 +5193,64 @@ html[data-theme="dark"] .nm-dashboard-home-link {
     background-color: #25D366;
 }
 
+/* ── P1-014 FIX: WhatsApp CTA Positioning Wrapper ──────────────────────────
+   PREVIOUS: Inline Tailwind 'fixed bottom-36 start-4 end-4 z-30 max-w-md'
+   OVERLAP ISSUES:
+     1. Hub FAB (.nm-hub-fab) at start:24px, bottom:24px — CTA start:16px COVERED it
+     2. Hardcoded bottom:144px didn't adapt to runtime-measured nav height
+     3. No iOS safe-area compensation → clipped on notch devices
+     4. z-index:30 = --z-header — wrong semantic layer for a floating CTA
+     5. No keyboard-hide — CTA floated above keyboard during text input
+   NOW:
+     1. start offset: 76px (clears 48px FAB + 24px pos + 4px gap)
+     2. bottom: calc(--nm-nav-h + 16px) — adapts to real nav height + safe area
+     3. z-index: 50 — between --z-sidebar-overlay and --z-checkout
+     4. Keyboard-hide + desktop-reposition + reduced-motion + entry animation
+   Standard: Material Design 3 (FAB/Snackbar Stacking), Apple HIG (Safe Areas).
+   ──────────────────────────────────────────────────────────────────────────── */
+.nm-whatsapp-cta-wrap {
+    position: fixed;
+    /* Bottom: nav height + breathing room. Uses runtime --nm-nav-h from nav.js
+       (includes safe-area-inset-bottom), with fallback chain. */
+    bottom: calc(var(--nm-nav-h, var(--nav-height, 60px)) + 16px);
+    /* Start offset: clears Hub FAB (48px wide at 24px from start) + 4px gap */
+    inset-inline-start: 76px;
+    inset-inline-end: 16px;
+    z-index: 50; /* Above sidebar overlay (40), below checkout (80) */
+    max-width: 28rem;
+    /* Entry animation */
+    animation: nm-whatsapp-enter 0.5s ease-out 0.8s both;
+}
+/* Desktop: Hub FAB is hidden → reset start offset, cap width */
+@media (min-width: 768px) {
+    .nm-whatsapp-cta-wrap {
+        inset-inline-start: auto;
+        inset-inline-end: 24px;
+        max-width: 380px;
+    }
+}
+/* Keyboard: hide to avoid obscuring input fields */
+.keyboard-visible .nm-whatsapp-cta-wrap {
+    transform: translateY(100%);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+@keyframes nm-whatsapp-enter {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nm-whatsapp-cta-wrap {
+        animation-duration: 0.01ms !important;
+    }
+}
+
 /* ============================================================================
    PLAT-IOS-001 FIX: iPhone UX Architecture Traps
    1) 14px Input Zoom: Apple WebKit instantly zooms viewport to 114% if input < 16px.

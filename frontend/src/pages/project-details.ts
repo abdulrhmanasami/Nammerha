@@ -654,7 +654,11 @@ function initWhatsAppCTA(): void {
 
     const ctaBanner = document.createElement('div');
     ctaBanner.id = 'whatsapp-cta';
-    ctaBanner.className = 'fixed bottom-36 start-4 end-4 z-30 max-w-md mx-auto animate-fade-in-up';
+    // P1-014 FIX: Replaced 6 inline Tailwind classes with single CSS class.
+    // Previous: 'fixed bottom-36 start-4 end-4 z-30 max-w-md mx-auto' — collided
+    // with Hub FAB (start-4, bottom-24) and used hardcoded bottom that didn't
+    // account for measured nav height or iOS safe areas.
+    ctaBanner.className = 'nm-whatsapp-cta-wrap';
     ctaBanner.innerHTML = `
         <div class="nm-whatsapp-cta text-white p-4 rounded-xl shadow-2xl flex items-center gap-3">
             <div class="size-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
