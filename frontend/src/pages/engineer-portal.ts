@@ -192,11 +192,13 @@ async function loadKPIs(): Promise<void> {
         animateKPI('kpi-proofs-verified', data.proofs_verified ?? 0);
         animateKPI('kpi-escrow-released', data.escrow_released ?? 0, { prefix: '$', isCents: true });
 
-        const bidCount = document.getElementById('notif-count');
-        if (bidCount && data.active_bids > 0) {
-            bidCount.textContent = String(data.active_bids);
-            bidCount.classList.remove('nm-hidden');
-        }
+        // SYS-002 FIX: Removed active_bids → #notif-count write.
+        // PREVIOUS: active_bids (role-specific stat) was written to the header
+        // notification bell badge — conflating engineer workflow counts with
+        // unread notifications. Badge oscillated between notification-panel.ts
+        // poll (real unread count) and this write (active_bids) every 60s.
+        // NOW: notification-panel.ts is the sole owner of #notif-count.
+        // Standard: SRP (Single Responsibility), Nielsen #1 (System Status).
 
         // P2-UXA-002 FIX: Live KPI timestamp
         markKPIFetched();

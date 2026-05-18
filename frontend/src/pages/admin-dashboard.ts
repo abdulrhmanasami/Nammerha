@@ -97,14 +97,13 @@ async function loadKPIs(): Promise<void> {
                 }
             }
 
-            // Update notification count badge with pending count
-            const notifCount = document.getElementById('notif-count');
-            if (notifCount) {
-                const pending = (stats['kyc_pending'] as number | undefined) ?? 0;
-                notifCount.textContent = String(pending);
-                // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
-                notifCount.classList.toggle('nm-hidden', pending === 0);
-            }
+            // SYS-002 FIX: Removed kyc_pending → #notif-count write.
+            // PREVIOUS: kyc_pending (role-specific stat) was written to the header
+            // notification bell badge — conflating admin KYC review counts with
+            // unread notifications. Badge oscillated between notification-panel.ts
+            // poll (real unread count) and this write (kyc_pending) every 60s.
+            // NOW: notification-panel.ts is the sole owner of #notif-count.
+            // Standard: SRP (Single Responsibility), Nielsen #1 (System Status).
         }
 
         // Pending verifications count

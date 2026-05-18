@@ -215,8 +215,13 @@ async function loadKPIs(): Promise<void> {
         // Badge count
         const bidCount = document.getElementById('bid-count');
         if (bidCount) { bidCount.textContent = String(data.pending_orders ?? 0); }
-        const notifCount = document.getElementById('notif-count');
-        if (notifCount) { notifCount.textContent = String(data.pending_orders ?? 0); }
+        // SYS-002 FIX: Removed pending_orders → #notif-count write.
+        // PREVIOUS: pending_orders (role-specific stat) was written to the header
+        // notification bell badge — conflating supplier PO counts with unread
+        // notifications. Badge oscillated between notification-panel.ts poll
+        // (real unread count) and this write (pending_orders) every 60s.
+        // NOW: notification-panel.ts is the sole owner of #notif-count.
+        // Standard: SRP (Single Responsibility), Nielsen #1 (System Status).
 
         // P2-UXA-002 FIX: Live KPI timestamp
         markKPIFetched();
