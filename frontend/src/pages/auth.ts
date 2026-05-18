@@ -11,6 +11,9 @@ import { haptic } from '../utils/haptic';
 import { initPullToRefresh } from '../utils/pull-refresh';
 // PLT-MAR11-005 FIX: Import shared password strength utility (single source of truth)
 import { updatePasswordStrength } from '../utils/password-strength';
+// P1-006 FIX: Scroll-to-field on validation error — ensures failing field
+// is visible, focused, and highlighted on mobile browsers.
+import { scrollToField } from '../utils/scroll-to-field';
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
@@ -319,18 +322,18 @@ function validateCurrentStep(): boolean {
         const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
         if (!name) {
             showBanner('error', t('auth_name_required', 'Please enter your full name.'));
-            document.getElementById('reg-name')?.focus();
+            scrollToField(document.getElementById('reg-name'));
             return false;
         }
         if (!email) {
             showBanner('error', t('auth_email_required', 'Please enter your email address.'));
-            document.getElementById('reg-email')?.focus();
+            scrollToField(document.getElementById('reg-email'));
             return false;
         }
         // Basic email format check
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             showBanner('error', t('auth_email_invalid', 'Please enter a valid email address.'));
-            document.getElementById('reg-email')?.focus();
+            scrollToField(document.getElementById('reg-email'));
             return false;
         }
         hideBanner();
@@ -341,7 +344,7 @@ function validateCurrentStep(): boolean {
         const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
         if (pw.length < 8) {
             showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
-            document.getElementById('reg-password')?.focus();
+            scrollToField(document.getElementById('reg-password'));
             return false;
         }
         // H2 FIX: Max length check — mirrors backend SEC-003 (bcrypt DoS prevention).
@@ -349,17 +352,17 @@ function validateCurrentStep(): boolean {
         // checks but causes CPU starvation during bcrypt hashing on the server.
         if (pw.length > MAX_PASSWORD_LENGTH) {
             showBanner('error', t('auth_password_too_long', `Password must not exceed ${MAX_PASSWORD_LENGTH} characters.`));
-            document.getElementById('reg-password')?.focus();
+            scrollToField(document.getElementById('reg-password'));
             return false;
         }
         if (!/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
             showBanner('error', t('auth_password_complexity', 'Password must contain uppercase, lowercase, number, and symbol.'));
-            document.getElementById('reg-password')?.focus();
+            scrollToField(document.getElementById('reg-password'));
             return false;
         }
         if (pw !== confirmPw) {
             showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
-            document.getElementById('reg-password-confirm')?.focus();
+            scrollToField(document.getElementById('reg-password-confirm'));
             return false;
         }
         hideBanner();
@@ -621,7 +624,7 @@ function validateRegisterForm(): boolean {
     if (!nameInput?.value.trim()) {
         goToRegStep(1); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_name_required', 'Please enter your full name.'));
-        nameInput?.focus();
+        scrollToField(nameInput);
         return false;
     }
 
@@ -629,7 +632,7 @@ function validateRegisterForm(): boolean {
     if (!emailInput?.value.trim()) {
         goToRegStep(1); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_email_required', 'Please enter your email address.'));
-        emailInput?.focus();
+        scrollToField(emailInput);
         return false;
     }
 
@@ -639,7 +642,7 @@ function validateRegisterForm(): boolean {
     if (password.length < 8) {
         goToRegStep(2); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
-        passwordInput?.focus();
+        scrollToField(passwordInput);
         return false;
     }
 
@@ -647,7 +650,7 @@ function validateRegisterForm(): boolean {
     if (password.length > MAX_PASSWORD_LENGTH) {
         goToRegStep(2);
         showBanner('error', t('auth_password_too_long', `Password must not exceed ${MAX_PASSWORD_LENGTH} characters.`));
-        passwordInput?.focus();
+        scrollToField(passwordInput);
         return false;
     }
 
@@ -655,7 +658,7 @@ function validateRegisterForm(): boolean {
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
         goToRegStep(2); // PLAT-C01: Navigate to failing step
         showBanner('error', t('auth_password_complexity', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
-        passwordInput?.focus();
+        scrollToField(passwordInput);
         return false;
     }
 
@@ -665,7 +668,7 @@ function validateRegisterForm(): boolean {
     if (password !== confirmPw) {
         goToRegStep(2); // PLAT-C01: Navigate to failing step
         showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
-        confirmInput?.focus();
+        scrollToField(confirmInput);
         return false;
     }
 
@@ -958,6 +961,31 @@ async function handleLoginRedirect(
             finalTarget += (finalTarget.includes('?') ? '&' : '?') + 'onboarding=1';
         }
     } catch { /* Safari private mode */ }
+
+    // ─── P1-001 FIX: Workspace-Aware Post-Login Redirect ────────────────
+    // Returning users who previously selected a workspace (via Welcome Chooser
+    // or by clicking a portal card) are redirected directly to their preferred
+    // portal instead of the generic homepage.
+    //
+    // Priority chain (highest → lowest):
+    //   1. ?redirect= param (deep link from auth-guard — e.g. /project-details?id=X)
+    //   2. nmh_onboarding_pending (first login → homepage + welcome chooser)
+    //   3. nm_preferred_workspace (returning user → portal shortcut)
+    //   4. POST_LOGIN_REDIRECT / (default homepage)
+    //
+    // Security: resolveWorkspaceUrl() is a whitelist lookup — returns null for
+    // unknown IDs, preventing open redirect via tampered localStorage.
+    // ─────────────────────────────────────────────────────────────────────
+    if (!redirectParam && !finalTarget.includes('onboarding=1')) {
+        try {
+            const { resolveWorkspaceUrl, WS_STORAGE_KEY } = await import('../utils/workspace-map');
+            const preferredWs = localStorage.getItem(WS_STORAGE_KEY);
+            const wsUrl = resolveWorkspaceUrl(preferredWs);
+            if (wsUrl) {
+                finalTarget = wsUrl;
+            }
+        } catch { /* Module load failure — fall through to default homepage */ }
+    }
 
     setTimeout(() => { window.location.href = finalTarget; }, 800);
 }

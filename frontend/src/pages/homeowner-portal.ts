@@ -321,10 +321,17 @@ async function loadDashboardProjects(): Promise<void> {
                     <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${esc(p.project_id)}</span>
                 </div>
             </div>`,
+            // P1-002 FIX: Added actionable CTA button to empty state.
+            // Previous: "Report damage to get started" was plain text — no interaction path.
+            // New homeowners had to independently discover the report form, causing drop-off.
+            // Standard: Nielsen #3 (User Control), Onboarding Funnel Completion.
             emptyState: () => renderEmptyState({
                 icon: 'house',
                 title: t('ho_no_active_projects', 'No active projects'),
                 subtitle: t('ho_report_to_start', 'Report damage to get started'),
+                ctaLabel: t('ho_report_damage_cta', 'Report Damage'),
+                ctaHref: '/homeowner-report.html',
+                ctaI18nKey: 'ho_report_damage_cta',
             }),
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
@@ -714,7 +721,7 @@ async function loadApprovals(): Promise<void> {
 
                             // Fire immediately — abort if user clicks Undo
                             try {
-                                await homeowner.respondToApproval(id, decision);
+                                await homeowner.respondToApproval(id, decision, { signal: abortController.signal });
                                 if (!undone) {
                                     restore('success');
                                     loadApprovals();

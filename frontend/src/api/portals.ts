@@ -91,7 +91,12 @@ export const homeowner = {
     cancelServiceRequest: (requestId: string) => request(`/homeowner/service-requests/${requestId}/cancel`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } }),
     getApprovals: (status?: string) => { const qs = status ? `?status=${encodeURIComponent(status)}` : ''; return request<HomeownerApproval[]>(`/homeowner/approvals${qs}`); },
     getEscrow: () => request<HomeownerEscrowSummary>('/homeowner/escrow'),
-    respondToApproval: (approvalId: string, decision: 'approved' | 'rejected') => request(`/dashboard/approvals/${approvalId}`, { method: 'PATCH', body: JSON.stringify({ decision }), headers: { 'Idempotency-Key': crypto.randomUUID() } }),
+    // P1-012 FIX: Added optional AbortSignal for undo-capable approval flow.
+    // Previous: No signal parameter → AbortController in homeowner-portal.ts was
+    // created but never connected → users thought "Undo" cancelled the escrow
+    // release but the API call proceeded regardless. Financial safety hazard.
+    // Standard: AbortController API, Nielsen #5 (Error Prevention), FinTech Safety.
+    respondToApproval: (approvalId: string, decision: 'approved' | 'rejected', options?: { signal?: AbortSignal }) => request(`/dashboard/approvals/${approvalId}`, { method: 'PATCH', body: JSON.stringify({ decision }), headers: { 'Idempotency-Key': crypto.randomUUID() }, signal: options?.signal }),
 };
 
 // ── Donor Types — ERADICATED ────────────────────────────────────────────────

@@ -22,6 +22,8 @@ import { initSearch } from '../utils/search-overlay';
 import { initPageHeader } from '../components/page-header';
 // F-004 FIX: Hub FAB on all pages — portal navigation from inner pages
 import { mountHubFAB } from '../components/portal-context';
+// P1-006 FIX: Scroll-to-field on validation error
+import { scrollToField } from '../utils/scroll-to-field';
 // F-010 FIX: Breadcrumb navigation on inner pages
 import { initBreadcrumb } from '../utils/breadcrumb';
 // UX-REM-J007 FIX: Unified password strength (was using divergent inline algorithm)
@@ -440,7 +442,7 @@ async function saveProfile(): Promise<void> {
     // Validation
     if (!newName) {
         showEditBanner('error', t('profile_name_required', 'Please enter your name.'));
-        nameInput?.focus();
+        scrollToField(nameInput);
         return;
     }
     // PLT-UX-AUD P3-VAL-005 FIX: Stricter email regex for FinTech platform.
@@ -448,7 +450,7 @@ async function saveProfile(): Promise<void> {
     // Now: Requires 2+ char local part, 2+ char domain, 2+ char TLD.
     if (!newEmail || !/^[^\s@]{2,}@[^\s@]{2,}\.[^\s@]{2,}$/.test(newEmail)) {
         showEditBanner('error', t('profile_email_invalid', 'Please enter a valid email address.'));
-        emailInput?.focus();
+        scrollToField(emailInput);
         return;
     }
 

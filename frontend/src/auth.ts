@@ -65,6 +65,26 @@ export function clearAuth(): void {
     localStorage.removeItem(DEV_USER_KEY);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// P1-011 FIX: Cross-tab logout broadcast via Storage API.
+// Previous: Logout in one tab → other open tabs continued showing authenticated
+// state until their next API call returned 401 → confusing stale session.
+// Now: Uses the 'storage' event (fires in OTHER tabs when localStorage changes)
+// to detect session removal and redirect to auth page immediately.
+// Note: The 'storage' event does NOT fire in the tab that made the change.
+// Standard: NIST SP 800-63B (Session Management), Nielsen #1 (System Status).
+// ═══════════════════════════════════════════════════════════════════════════
+if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (e: StorageEvent) => {
+        // Only react to auth data being REMOVED (logout) or CHANGED (different user)
+        if (e.key === STORAGE_KEY && e.newValue === null && e.oldValue !== null) {
+            // Another tab cleared auth → session is gone
+            currentUser = null;
+            window.location.href = '/auth.html';
+        }
+    });
+}
+
 export function isAuthenticated(): boolean {
     return getCurrentUser() !== null;
 }

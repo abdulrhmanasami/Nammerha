@@ -66,11 +66,29 @@ function wireBackButton(): void {
         }
     } catch { /* sessionStorage unavailable — graceful degradation */ }
 
+    // P1-005 FIX: Track intra-app navigation for reliable back button behavior.
+    // Previous: `history.length > 1` is UNRELIABLE — browsers start at length=1,
+    // and Safari doesn't reset it for new tabs. Deep-linked users (email, bookmark,
+    // shared URL) had history.length=2 (Chrome counts the blank tab) → history.back()
+    // navigated AWAY from the app entirely (back to Gmail, WhatsApp, etc.).
+    // Now: A sessionStorage flag tracks whether the user navigated from within Nammerha.
+    // If not, we fall through to the <a href> fallback (homepage).
+    // Standard: Apple HIG (Navigation), Nielsen #3 (User Control and Freedom).
+    const NAV_FLAG_KEY = 'nm-has-app-history';
+    const hasAppHistory = (() => {
+        try { return sessionStorage.getItem(NAV_FLAG_KEY) === '1'; }
+        catch { return false; }
+    })();
+
+    // Mark that we're now inside the app — future pages can safely history.back()
+    try { sessionStorage.setItem(NAV_FLAG_KEY, '1'); }
+    catch { /* sessionStorage unavailable */ }
+
     const backBtns = document.querySelectorAll<HTMLAnchorElement>('[data-back-btn]');
     backBtns.forEach(btn => {
         btn.addEventListener('click', (e: Event) => {
-            // Priority 1: Browser history
-            if (history.length > 1) {
+            // Priority 1: Browser history — only if user navigated from within the app
+            if (hasAppHistory && history.length > 1) {
                 e.preventDefault();
                 history.back();
                 return;

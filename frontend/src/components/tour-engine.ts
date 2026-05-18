@@ -406,8 +406,15 @@ function completeTour(): void {
         return;
     }
 
-    markTourCompleted(activeTour.tour.id);
+    const tourId = activeTour.tour.id;
+    markTourCompleted(tourId);
     cleanupTour();
+
+    // P0-004 FIX: Dispatch tour completion event for downstream components.
+    // The welcome-chooser listens for this to show the role-selection modal
+    // AFTER the homepage tour finishes (not during — would be overwhelming).
+    // CustomEvent.detail carries the tourId for conditional logic.
+    document.dispatchEvent(new CustomEvent('nm:tour:complete', { detail: { tourId } }));
 }
 
 function cleanupTour(): void {

@@ -244,11 +244,23 @@ export function mountHubFAB(currentPortalId: string): void {
     // Don't double-mount
     if (document.getElementById('nm-hub-fab')) { return; }
 
+    // ── P1-003 FIX: First-Use Detection ──
+    // Check if user has ever interacted with the FAB before.
+    // If not, we'll add a pulse animation to draw attention.
+    const FAB_USED_KEY = 'nm_hub_fab_used';
+    let isFirstUse = false;
+    try { isFirstUse = localStorage.getItem(FAB_USED_KEY) !== '1'; } catch { /* noop */ }
+
     // ── Create FAB Button ──
     const fab = document.createElement('button');
     fab.id = 'nm-hub-fab';
     fab.type = 'button';
     fab.className = 'nm-hub-fab';
+    // P1-003 FIX: Add pulse class on first use — draws attention with
+    // expanding ring animation (3 cycles, then stops). Removed on first click.
+    if (isFirstUse) {
+        fab.classList.add('nm-hub-fab--pulse');
+    }
     fab.setAttribute('aria-label', t('ctx_switch_portals', 'Switch portals'));
     fab.setAttribute('data-haptic', 'tap');
     fab.innerHTML = '<i class="ph ph-squares-four" aria-hidden="true"></i>';
@@ -263,6 +275,12 @@ export function mountHubFAB(currentPortalId: string): void {
 
     // ── Wire FAB Click → Open Sheet ──
     fab.addEventListener('click', () => {
+        // P1-003 FIX: On first click, stop the pulse and mark as used.
+        if (fab.classList.contains('nm-hub-fab--pulse')) {
+            fab.classList.remove('nm-hub-fab--pulse');
+            try { localStorage.setItem(FAB_USED_KEY, '1'); } catch { /* quota */ }
+        }
+
         if (!dialog.open) {
             dialog.showModal();
             // Trigger entrance animation

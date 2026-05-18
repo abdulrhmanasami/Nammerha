@@ -15,7 +15,13 @@ import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
 import './offline/network-status';  // Self-injecting: bilingual offline status bar
 import './utils/cart-sync';          // INC-N05 FIX: Cross-page cart badge sync via Storage API
+// P0-001 FIX: Gate homepage CTA text behind feature flag — suspended donations → "View Details".
+import { CART_CHECKOUT_ENABLED } from './utils/feature-flags';
 import { autoTriggerTour } from './components/tour-engine';
+// P0-004 FIX: Post-registration onboarding — shows task-oriented role selection
+// modal after the homepage tour completes. Feeds nm_preferred_workspace for
+// the existing "Continue to [X]" banner on return visits.
+import { initWelcomeChooser } from './components/welcome-chooser';
 // P2-I18N-TIMING FIX: Explicit applyI18n call after dynamic card injection
 import { applyI18n } from './utils/locale';
 import { initSearch } from './utils/search-overlay';
@@ -44,6 +50,12 @@ registerServiceWorker();
 
 // Launch interactive guided tour on first portal visit
 autoTriggerTour();
+
+// P0-004 FIX: Post-registration welcome chooser — shows after tour completes.
+// Detects ?onboarding=1 URL param set by auth.ts handleLoginRedirect().
+// If tour is running, waits for 'nm:tour:complete' event before showing.
+// If tour already done, shows after a brief delay.
+initWelcomeChooser();
 
 // ─── Map Initialization (lazy-loaded) ───────────────────────────────────────
 // PLT-OPT-001: Dynamic import — maplibre-gl (~800KB) is loaded ONLY on pages
@@ -120,9 +132,26 @@ function buildProjectCard(project: ProjectCard, index: number): string {
     const projectRecord = project as unknown as Record<string, unknown>;
     const region = typeof projectRecord.region === 'string' ? projectRecord.region : '';
     
+    // ═══════════════════════════════════════════════════════════════════════
+    // P0-001 FIX: Gate CTA text behind CART_CHECKOUT_ENABLED feature flag.
+    // Previous: "Fund Now" shown even when donations are suspended, leading
+    // to project-details.html where BOQ items are read-only — a dead-end
+    // journey that destroys FinTech trust.
+    // Now: Shows "View Details" when funding is suspended, "Fund Now" when active.
+    // Standard: Nielsen #2 (Match System ↔ Real World), Honest Affordances.
+    // ═══════════════════════════════════════════════════════════════════════
+    const ctaI18nKey = CART_CHECKOUT_ENABLED ? 'fund_now' : 'view_details';
+    const ctaLabel = CART_CHECKOUT_ENABLED ? 'Fund Now' : 'View Details';
+    const ctaIcon = CART_CHECKOUT_ENABLED ? 'ph-arrow-right' : 'ph-eye';
+    const detailsUrl = `project-details.html?project=${project.project_id}`;
+
+    // P0-005 FIX: Entire card wrapped in <a> for full-surface clickability.
+    // Previous: Only the CTA button was clickable. Tapping card title, image,
+    // or body did nothing — wasted 90% of Fitts's Law target area.
+    // Standard: Fitts's Law, Apple HIG (Tappable Regions), Google MD3.
     // UXA-027 FIX: snap-start snap-always → magnetic card snapping during swipe.
     return `
-    <div class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up snap-start snap-always" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml(region)}">
+    <a href="${escapeHtml(detailsUrl)}" class="min-w-[280px] w-[280px] glass-card card-hover-lift rounded-2xl overflow-hidden shadow-md flex flex-col animate-fade-in-up snap-start snap-always no-underline text-inherit" style="${delay}" data-project-title="${escapeHtml(project.title)}" data-project-region="${escapeHtml(region)}">
       <div class="relative h-44 overflow-hidden bg-gradient-to-br from-warm-earth/20 to-slate-200">
         ${project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" fetchpriority="high" decoding="async" style="aspect-ratio: 16/9; background-color: #f1f5f9;" />`
@@ -149,16 +178,13 @@ function buildProjectCard(project: ProjectCard, index: number): string {
             <p class="text-3xs text-slate-400 font-bold uppercase dark:text-slate-500" data-i18n="card_funded">Funded</p>
             <p class="text-sm font-bold text-trust-blue">${formatCents(project.funded_amount)}</p>
           </div>
-          <!-- FRC-N04 FIX: Fund Now CTA upgraded from text-xs (12px) to text-sm (14px) font-bold.
-               This is the primary revenue-critical action on a crowdfunding platform — needs prominence.
-               Standard: Fitts's Law, Nielsen Heuristic #6 (Recognition). -->
-          <a href="project-details.html?project=${project.project_id}" class="btn-secondary nm-cta-inline font-bold">
-            <span data-i18n="fund_now">Fund Now</span>
-            <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
-          </a>
+          <span class="btn-secondary nm-cta-inline font-bold">
+            <span data-i18n="${ctaI18nKey}">${ctaLabel}</span>
+            <i class="ph ${ctaIcon} ph-sm" aria-hidden="true"></i>
+          </span>
         </div>
       </div>
-    </div>`;
+    </a>`;
 }
 
 // ─── Load Projects from API ─────────────────────────────────────────────────
@@ -451,14 +477,10 @@ function showAllQuickActions(): void {
 // Returning users see a highlighted "Continue to [X]" banner above the cards.
 // Standard: Airbnb/Fiverr pattern — task facade, portal backend.
 
-/** Workspace metadata for continue banner rendering */
-const WORKSPACE_META: Record<string, { href: string; icon: string; colorClass: string }> = {
-    homeowner:  { href: 'homeowner-portal.html',  icon: 'ph-house',      colorClass: 'text-trust-blue' },
-    contractor: { href: 'contractor-portal.html',  icon: 'ph-briefcase',  colorClass: 'text-warm-earth' },
-    supplier:   { href: 'supplier-dashboard.html', icon: 'ph-storefront', colorClass: 'text-purple-600 dark:text-purple-400' },
-};
-
-const WS_STORAGE_KEY = 'nm_preferred_workspace';
+// P1-001 REFACTOR: Import from shared workspace map (Single Source of Truth).
+// Previously: WORKSPACE_META was duplicated here and in welcome-chooser.ts.
+// Now: utils/workspace-map.ts is the canonical whitelist.
+import { WORKSPACE_DISPLAY, WS_STORAGE_KEY } from './utils/workspace-map';
 
 function initWorkspaceDiscovery(): void {
     const wsSection = document.getElementById('workspace-discovery');
@@ -473,8 +495,8 @@ function initWorkspaceDiscovery(): void {
 
         // ── Continue Banner (localStorage workspace memory) ──
         const preferredId = localStorage.getItem(WS_STORAGE_KEY);
-        if (preferredId && WORKSPACE_META[preferredId] && continueSlot) {
-            const meta = WORKSPACE_META[preferredId];
+        if (preferredId && WORKSPACE_DISPLAY[preferredId] && continueSlot) {
+            const meta = WORKSPACE_DISPLAY[preferredId];
             // Find the label from the corresponding card's data attribute
             const preferredCard = document.querySelector<HTMLElement>(`[data-workspace-id="${preferredId}"]`);
             const labelKey = preferredCard?.dataset.workspaceLabelKey ?? '';

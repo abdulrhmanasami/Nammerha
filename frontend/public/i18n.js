@@ -107,6 +107,10 @@
 
         // ═══ FUND NOW BUTTON ═══
         'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
+        // P0-001 FIX: "View Details" replaces "Fund Now" when donations are suspended.
+        'view_details': { ar: 'عرض التفاصيل', de: 'Details ansehen', fr: 'Voir les détails', tr: 'Detayları Gör' },
+        // P0-002 FIX: Impact tab → Transparency tab (deduplicated from Projects).
+        'nav_transparency': { ar: 'الشفافية', de: 'Transparenz', fr: 'Transparence', tr: 'Şeffaflık' },
 
         // ═══ INTERACTIVE MAP ═══
         // Filter Controls (map-controls.ts)
@@ -529,6 +533,24 @@
         'contact_failed': { ar: 'فشل الإرسال', de: 'Senden fehlgeschlagen', fr: 'Échec de l\'envoi', tr: 'Gönderim başarısız' },
         'contact_fill_required': { ar: 'يرجى ملء الحقول المطلوبة', de: 'Bitte Pflichtfelder ausfüllen', fr: 'Veuillez remplir les champs requis', tr: 'Lütfen gerekli alanları doldurun' },
         'contact_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // P0-004: Welcome Chooser — Post-Registration Onboarding Modal
+        // Task-oriented workspace selection shown once after first login.
+        // Standard: Nielsen #2 (Match System ↔ Real World), Apple HIG (Onboarding).
+        // ═══════════════════════════════════════════════════════════════════════
+        'wc_title': { ar: 'أهلاً بك في نعمّرها! 🎉', de: 'Willkommen bei Nammerha! 🎉', fr: 'Bienvenue sur Nammerha ! 🎉', tr: 'Nammerha\'ya Hoş Geldiniz! 🎉' },
+        'wc_subtitle': { ar: 'ما الذي يجلبك إلى هنا اليوم؟', de: 'Was führt Sie heute hierher?', fr: 'Qu\'est-ce qui vous amène ici aujourd\'hui ?', tr: 'Bugün sizi buraya getiren nedir?' },
+        'wc_later': { ar: 'ربما لاحقاً', de: 'Vielleicht später', fr: 'Peut-être plus tard', tr: 'Belki sonra' },
+        'wc_dialog_label': { ar: 'مرحباً — اختر مسارك', de: 'Willkommen — wählen Sie Ihren Weg', fr: 'Bienvenue — choisissez votre voie', tr: 'Hoş geldiniz — yolunuzu seçin' },
+        'wc_task_homeowner': { ar: 'أحتاج إصلاح بيتي', de: 'Ich brauche eine Hausreparatur', fr: 'J\'ai besoin de réparer ma maison', tr: 'Evimin onarılması gerekiyor' },
+        'wc_desc_homeowner': { ar: 'الإبلاغ عن الأضرار، متابعة الإصلاحات، وإدارة مشروع إعادة الإعمار', de: 'Schäden melden, Reparaturen verfolgen und Ihr Wiederaufbauprojekt verwalten', fr: 'Signaler les dégâts, suivre les réparations et gérer votre projet de reconstruction', tr: 'Hasarı bildirin, onarımları takip edin ve yeniden yapım projenizi yönetin' },
+        'wc_task_engineer': { ar: 'أنا مهندس أو مقاول', de: 'Ich bin Ingenieur oder Auftragnehmer', fr: 'Je suis ingénieur ou entrepreneur', tr: 'Ben bir mühendis veya yükleniciyim' },
+        'wc_desc_engineer': { ar: 'تقديم عروض على المشاريع، التحقق من البناء، وإدارة العمليات الميدانية', de: 'Auf Projekte bieten, Bauarbeiten verifizieren und Feldoperationen verwalten', fr: 'Soumissionner sur des projets, vérifier la construction et gérer les opérations de terrain', tr: 'Projelere teklif verin, inşaatı doğrulayın ve saha operasyonlarını yönetin' },
+        'wc_task_supplier': { ar: 'أنا مورد مواد بناء', de: 'Ich bin Baustofflieferant', fr: 'Je fournis des matériaux de construction', tr: 'Yapı malzemesi tedarikçisiyim' },
+        'wc_desc_supplier': { ar: 'عرض الكتالوج الخاص بك، تنفيذ أوامر الشراء، ومتابعة التوصيل', de: 'Ihren Katalog listen, Bestellungen erfüllen und Lieferungen verfolgen', fr: 'Lister votre catalogue, exécuter les commandes et suivre les livraisons', tr: 'Kataloğunuzu listeleyin, satın alma siparişlerini karşılayın ve teslimatları takip edin' },
+        'wc_task_explorer': { ar: 'أريد استكشاف المشاريع', de: 'Ich möchte Projekte erkunden', fr: 'Je veux explorer les projets', tr: 'Projeleri keşfetmek istiyorum' },
+        'wc_desc_explorer': { ar: 'تصفح مشاريع إعادة الإعمار، عرض التقدم، ورؤية الأثر', de: 'Wiederaufbauprojekte durchsuchen, Fortschritt sehen und Wirkung erleben', fr: 'Parcourir les projets de reconstruction, voir les progrès et l\'impact', tr: 'Yeniden yapım projelerine göz atın, ilerlemeyi görün ve etkiyi keşfedin' },
 
     };
 

@@ -3,6 +3,8 @@ import { auth } from '../api';
 import { updatePasswordStrength } from '../utils/password-strength';
 import { t } from '../utils/i18n';
 import { showStructuredBanner, type StructuredBannerElements } from '../utils/banner';
+// P1-006 FIX: Scroll-to-field on validation error
+import { scrollToField } from '../utils/scroll-to-field';
 
 // ============================================================================
 // Nammerha — Reset Password Page
@@ -97,12 +99,14 @@ form?.addEventListener('submit', async (e) => {
     // PLT-MAR11-007 FIX: All user-facing strings wrapped with i18n t()
     if (newPassword !== confirmPassword) {
         showBanner('error', t('reset_password_mismatch', 'Passwords do not match.'));
+        scrollToField(confirmPasswordInput);
         return;
     }
 
     if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword)
         || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
         showBanner('error', t('reset_password_weak', 'Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
+        scrollToField(newPasswordInput);
         return;
     }
 

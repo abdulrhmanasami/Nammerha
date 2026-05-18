@@ -83,10 +83,9 @@
         // 'donor-portal.html': 'impact',    — SUSPENDED
         'wallet.html': 'wallet',
         'profile.html': 'profile',
-        /* UXA-011 FIX: about.html moved from 'profile' → 'home'.
-           About is company information, not user-specific profile content.
-           Standard: Nielsen #2 (Match System ↔ Real World). */
-        'about.html': 'home',
+        /* P0-002 FIX: about.html now routes to Impact/Transparency tab.
+           Previously mapped to 'home' — now it IS the transparency destination. */
+        'about.html': 'impact',
         'pricing.html': 'profile',
         'contact.html': 'profile',
         'tradesperson-portal.html': 'projects',
@@ -136,11 +135,12 @@
     var TABS = [
         { id: 'home', label: 'Home', i18n: 'nav_home', icon: 'ph-house', href: '/index.html' },
         { id: 'projects', label: 'Projects', i18n: 'nav_projects', icon: 'ph-buildings', href: '/projects.html' },
-        /* UX-F011/F032 FIX: Impact tab → projects.html (active reconstruction).
-           Previous: donor-proof.html — 100% of taps hit 'Coming Soon' dead end.
-           Now: Routes to the actual impact — live construction projects.
-           Standard: Nielsen #2 (Match System ↔ Real World). */
-        { id: 'impact', label: 'Impact', i18n: 'nav_impact', icon: 'ph-chart-line-up', href: '/projects.html' },
+        /* P0-002 FIX: Impact tab → about.html (platform transparency & impact).
+           Previous: Pointed to /projects.html — IDENTICAL to Projects tab (2 tabs, 1 page).
+           Users expected personal impact data but saw generic project listing.
+           Now: Routes to Transparency page — platform-wide stats, mission, accountability.
+           Standard: Nielsen #2 (Match System ↔ Real World), Tab Bar Uniqueness. */
+        { id: 'impact', label: 'Transparency', i18n: 'nav_transparency', icon: 'ph-globe-hemisphere-west', href: '/about.html' },
         { id: 'wallet', label: 'Wallet', i18n: 'nav_wallet', icon: 'ph-wallet', href: '/wallet.html' },
         { id: 'profile', label: 'Profile', i18n: 'nav_profile', icon: 'ph-user', href: '/profile.html' },
     ];
