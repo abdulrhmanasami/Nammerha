@@ -71,6 +71,15 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 let panel: HTMLElement | null = null;
 let activeBell: HTMLElement | null = null;
 
+// SYS-005 FIX: Close/reopen race elimination.
+// closeTimerId: Tracks the 200ms exit animation timer from closePanel().
+//   Cancelled on reopen to prevent the stale timer from removing the new panel.
+// openGeneration: Monotonic counter incremented on each openPanel() call.
+//   After async loadNotifications() completes, the generation is checked —
+//   if it doesn't match, the completion is stale and ignored.
+let closeTimerId: ReturnType<typeof setTimeout> | null = null;
+let openGeneration = 0;
+
 // P1-009 FIX (Wave 2): RAF-throttled reposition handler for scroll/resize.
 // PREVIOUS: positionPanel() was called ONCE in openPanel(). Window resize
 // (portrait→landscape rotation) or scroll (non-fixed headers) left the panel
@@ -270,6 +279,22 @@ function togglePanel(bell: HTMLElement): void {
 }
 
 async function openPanel(bell: HTMLElement): Promise<void> {
+    // SYS-005 FIX (Race Vector 1): Cancel any pending close timer.
+    // PREVIOUS: closePanel() scheduled panel.remove() via setTimeout(200ms).
+    // If user clicked bell again within that 200ms window, the stale timer
+    // would fire mid-use — the guard `if (panel && !isOpen)` catches most
+    // cases, but edge cases with CSS animation state remain.
+    // NOW: Proactively cancel the timer, eliminating the race entirely.
+    if (closeTimerId !== null) {
+        clearTimeout(closeTimerId);
+        closeTimerId = null;
+    }
+
+    // SYS-005 FIX (Race Vector 2): Generation counter for async staleness.
+    // If user closes and reopens during the await loadNotifications(), the
+    // original async completion would install focus trap on stale content.
+    const generation = ++openGeneration;
+
     isOpen = true;
     activeBell = bell;
     bell.setAttribute('aria-expanded', 'true');
@@ -325,16 +350,26 @@ async function openPanel(bell: HTMLElement): Promise<void> {
     // Load notifications
     await loadNotifications();
 
+    // SYS-005 FIX: Check generation — if another open/close cycle happened
+    // during the await, this completion is STALE. Installing focus trap or
+    // moving focus would corrupt the current panel state.
+    if (generation !== openGeneration || !isOpen || !panel) { return; }
+
     // P2-015 FIX: Install focus trap AFTER content loads (mark-read buttons exist).
     // Move focus into the panel so keyboard users know it opened.
-    if (panel) {
-        installFocusTrap(panel);
-        const firstFocusable = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
-        firstFocusable?.focus();
-    }
+    installFocusTrap(panel);
+    const firstFocusable = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    firstFocusable?.focus();
 }
 
 function closePanel(bell: HTMLElement): void {
+    // SYS-005 FIX (Race Vector 3): Guard against double-close.
+    // PREVIOUS: Escape keydown + outside click could both fire closePanel
+    // within the same event loop tick. Second call would set aria-expanded=false
+    // on a bell that's already closed and schedule a redundant remove timer.
+    // NOW: Early exit if already closed.
+    if (!isOpen) { return; }
+
     isOpen = false;
     activeBell = null;
     bell.setAttribute('aria-expanded', 'false');
@@ -347,8 +382,9 @@ function closePanel(bell: HTMLElement): void {
 
     if (panel) {
         panel.classList.remove('nm-notif-panel-open');
-        // Remove after animation
-        setTimeout(() => {
+        // Remove after animation — SYS-005: Track timer for cancellation on reopen
+        closeTimerId = setTimeout(() => {
+            closeTimerId = null;
             if (panel && !isOpen) {
                 panel.remove();
                 panel = null;
@@ -357,8 +393,6 @@ function closePanel(bell: HTMLElement): void {
     }
 
     // P2-015 FIX: Return focus to bell on ALL close paths.
-    // PREVIOUS: Focus restored only for Escape (L151) — outside click
-    // and mark-all-read close left focus in limbo.
     bell.focus();
 }
 
