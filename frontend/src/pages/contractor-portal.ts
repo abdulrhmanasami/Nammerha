@@ -84,6 +84,14 @@ type TabName = 'dashboard' | 'marketplace' | 'bids' | 'payments';
 // PLT-AUD-E001: Guards prevent duplicate event delegation on re-render.
 const delegationWired = { marketplace: false } as Record<string, boolean>;
 
+// P2-007 FIX: Module-level guard prevents bid modal rapid-click race.
+// PREVIOUS: Rapid clicks on .bid-btn (especially touch double-fire) opened
+// multiple <dialog> instances — each appended to DOM and called showModal().
+// The L444 cleanup (getElementById('bid-modal')?.remove()) was insufficient
+// because createElement+showModal is async — clicks arrive before cleanup.
+// NOW: Boolean flag blocks re-entry entirely.
+let bidModalOpen = false;
+
 // PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
 const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
 
@@ -439,8 +447,19 @@ async function loadPayments(): Promise<void> {
 // ─── Bid Modal (Native <dialog>) ────────────────────────────────────────────
 // P3-001 FIX: Migrated from div-based overlay to native HTML <dialog>.
 // Benefits: native focus trapping, ::backdrop, top-layer API, Escape key, a11y.
+//
+// P2-007 FIX: Rapid-click race elimination — 3 race vectors neutralized:
+//   1. OPEN RACE: Module-level `bidModalOpen` flag blocks re-entry.
+//   2. SUBMIT RACE: Button disabled IMMEDIATELY on click (before validation).
+//   3. CLOSE RACE: Cancel button disabled during in-flight API call.
 function openBidModal(projectId: string): void {
-    // Remove existing modal
+    // P2-007 FIX (Race Vector 1): Guard against rapid .bid-btn clicks.
+    // PREVIOUS: getElementById('bid-modal')?.remove() was insufficient —
+    // on mobile touch, touchend+click double-fire opened 2 dialogs.
+    if (bidModalOpen) { return; }
+    bidModalOpen = true;
+
+    // Remove any stale modal DOM (defensive — should not exist due to guard)
     document.getElementById('bid-modal')?.remove();
 
     const dialog = document.createElement('dialog');
@@ -489,6 +508,8 @@ function openBidModal(projectId: string): void {
     // Native dialog auto-closes on Escape; we listen for cleanup + focus restore
     dialog.addEventListener('close', () => {
         dialog.remove();
+        // P2-007 FIX: Release guard on ANY close path (Escape, backdrop, cancel, success).
+        bidModalOpen = false;
         triggerEl?.focus();
     });
 
@@ -500,38 +521,57 @@ function openBidModal(projectId: string): void {
     document.getElementById('bid-cancel')?.addEventListener('click', () => { closeModal(); });
 
     document.getElementById('bid-submit')?.addEventListener('click', async () => {
+        const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
+        const cancelBtn = document.getElementById('bid-cancel') as HTMLButtonElement;
+        const errorEl = document.getElementById('bid-error');
+
+        // P2-007 FIX (Race Vector 2): Disable submit IMMEDIATELY — before validation.
+        // PREVIOUS: 30 lines of validation (L508-529) ran BEFORE disable (L531-534).
+        // Rapid clicks during validation window fired multiple contractor.submitBid() calls,
+        // each with a unique Idempotency-Key (crypto.randomUUID() per call in portals.ts).
+        // NOW: Disable is the FIRST action. Re-enable only if validation fails.
+        submitBtn.disabled = true;
+        submitBtn.classList.add('btn-loading', 'cursor-not-allowed');
+
         const cost = parseInt((document.getElementById('bid-cost') as HTMLInputElement).value, 10);
         const days = parseInt((document.getElementById('bid-days') as HTMLInputElement).value, 10);
         const letter = (document.getElementById('bid-letter') as HTMLTextAreaElement).value;
-        const errorEl = document.getElementById('bid-error');
+
+        // Helper: re-enable buttons on validation failure
+        const reEnableButtons = (): void => {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
+        };
 
         if (!cost || !days || cost <= 0 || days <= 0) {
             if (errorEl) { errorEl.textContent = t('ct_fill_cost_days', 'Please fill in cost and days'); errorEl.classList.remove('nm-hidden'); }
+            reEnableButtons();
             return;
         }
 
         // P1-006 FIX (Wave 2): Maximum cost/duration validation — FinTech guard.
-        // PREVIOUS: Only checked cost > 0 and days > 0. A contractor could submit a
-        // bid for $999,999,999 or 99,999 days — no upper bound validation.
-        // Homeowner-portal has budget validation (10M max), but contractor had NONE.
-        // NOW: 10M USD max cost (matches homeowner-portal budget ceiling),
+        // 10M USD max cost (matches homeowner-portal budget ceiling),
         // 3650 days max (10 years — reasonable upper bound for reconstruction).
         // Standard: FinTech Input Validation, OWASP Input Validation Cheat Sheet.
         const MAX_BID_COST = 10_000_000; // USD
         const MAX_BID_DAYS = 3650;       // ~10 years
         if (cost > MAX_BID_COST) {
             if (errorEl) { errorEl.textContent = t('ct_bid_cost_too_high', `Maximum bid cost is $${MAX_BID_COST.toLocaleString()}`); errorEl.classList.remove('nm-hidden'); }
+            reEnableButtons();
             return;
         }
         if (days > MAX_BID_DAYS) {
             if (errorEl) { errorEl.textContent = t('ct_bid_days_too_high', `Maximum timeline is ${MAX_BID_DAYS} days`); errorEl.classList.remove('nm-hidden'); }
+            reEnableButtons();
             return;
         }
 
-        const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
-        submitBtn.disabled = true;
-        // TICK-013: Spinner icon seamlessly mapped without CLS string mutation.
-        submitBtn.classList.add('btn-loading', 'cursor-not-allowed');
+        // P2-007 FIX (Race Vector 3): Disable cancel during in-flight API call.
+        // PREVIOUS: User could click Cancel while submitBid() was mid-flight.
+        // This closed the dialog (removing DOM) while the async handler still
+        // held references to now-removed elements → silent failure or orphan state.
+        cancelBtn.disabled = true;
+        cancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
         try {
             const res = await contractor.submitBid({
@@ -554,8 +594,10 @@ function openBidModal(projectId: string): void {
                 errorEl.textContent = err instanceof Error ? err.message : t('ct_submission_failed', 'Submission failed');
                 errorEl.classList.remove('nm-hidden');
             }
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
+            reEnableButtons();
+            // Re-enable cancel so user can dismiss after error
+            cancelBtn.disabled = false;
+            cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     });
 
