@@ -14,6 +14,8 @@ import { updatePasswordStrength } from '../utils/password-strength';
 // P1-006 FIX: Scroll-to-field on validation error — ensures failing field
 // is visible, focused, and highlighted on mobile browsers.
 import { scrollToField } from '../utils/scroll-to-field';
+// P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
+import '../utils/required-markers';
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)

@@ -5,6 +5,8 @@ import { t } from '../utils/i18n';
 import { showStructuredBanner, type StructuredBannerElements } from '../utils/banner';
 // P1-006 FIX: Scroll-to-field on validation error
 import { scrollToField } from '../utils/scroll-to-field';
+// P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
+import '../utils/required-markers';
 
 // ============================================================================
 // Nammerha — Reset Password Page

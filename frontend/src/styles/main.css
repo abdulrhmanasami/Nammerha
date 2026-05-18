@@ -4987,6 +4987,29 @@ html[data-theme="dark"] .nm-pano-wrapper {
     }
 }
 
+/* ── P1-013 FIX: Required Field Marker ─────────────────────────────────────
+   PREVIOUS: Forms had `required` HTML attribute on inputs but ZERO visual
+   indicators. Users didn't know which fields were mandatory until they
+   attempted submission and got validation errors.
+   NOW: Auto-detected by utils/required-markers.ts, which adds this class
+   to labels associated with required fields. The ::after pseudo-element
+   renders a red asterisk (*) — the universal convention for required fields.
+   Standard: WCAG 3.3.2 (Labels or Instructions), Material Design 3,
+   Apple HIG (Forms), ISO/IEC 25010 Usability (Learnability).
+   ──────────────────────────────────────────────────────────────────────── */
+.nm-required-label::after {
+    content: " *";
+    color: var(--error-red, #ef4444);
+    font-weight: 700;
+    font-size: 0.875em;
+    /* Prevent screen readers from reading the visual asterisk —
+       aria-required on the input is the accessible equivalent. */
+    speak: never;
+}
+html[data-theme="dark"] .nm-required-label::after {
+    color: #fca5a5; /* red-300 — sufficient contrast on dark backgrounds */
+}
+
 @keyframes nm-input-flash-focus-kf {
     0%   { box-shadow: 0 0 0 2px rgba(21, 88, 214, 0.5); border-color: var(--trust-blue); }
     100% { box-shadow: 0 0 0 0px rgba(21, 88, 214, 0); border-color: var(--border-subtle, #cbd5e1); }

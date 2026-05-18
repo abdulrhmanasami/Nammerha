@@ -13,6 +13,8 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-024: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
+import '../utils/required-markers';
 // P1-UX-002 FIX: Standardized empty state component
 import { renderEmptyState } from '../utils/empty-state';
 // P1-UX-003 FIX: Service Worker registration on all portal pages

@@ -4,6 +4,8 @@ initPullToRefresh();
 import { contact } from '../api';
 import { escapeHtml } from '../utils/xss';
 import { t } from '../utils/i18n';
+// P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
+import '../utils/required-markers';
 
 // ============================================================================
 // Nammerha — Contact Page Engine
