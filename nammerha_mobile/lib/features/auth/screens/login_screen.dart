@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/network/api_client.dart'; // ApiException
 import '../../../core/services/social_auth_service.dart';
 import 'register_wizard_screen.dart';
@@ -29,6 +30,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  // P0-UX-004 FIX: Social login loading state.
+  // PREVIOUS: Zero visual feedback during 3-10s SDK call.
+  // NOW: Spinner on button, all buttons disabled during auth.
+  bool _isSocialLoading = false;
   final _formKey = GlobalKey<FormState>();
 
   late AnimationController _animController;
@@ -142,7 +147,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 36),
 
-
                           // Email
                           _buildTextField(
                             controller: _emailController,
@@ -178,13 +182,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             },
                           ),
 
-
-
                           // Forgot Password
+                          // P2-UX-007 FIX: Tightened spacing.
+                          // PREVIOUS: 28px gap between forgot password and submit
+                          // → submit felt disconnected from the form.
+                          // NOW: 20px gap — forgot password and submit are
+                          // contextually linked auth actions.
+                          // Standard: Gestalt proximity principle.
                           Align(
                             alignment: AlignmentDirectional.centerStart,
                             child: TextButton(
-                              onPressed: () => _showForgotPasswordDialog(),
+                              onPressed: () => _showForgotPasswordSheet(),
                               child: Text(
                                 context.tr('auth_forgot_password'),
                                 style: TextStyle(color: colors.primaryBrand, fontSize: 14),
@@ -192,9 +200,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
 
-
-
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 20),
 
                           // Submit Button
                           BlocBuilder<AuthBloc, AuthState>(
@@ -208,13 +214,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             },
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
 
                           // ─── Social OAuth Divider + Buttons ──────────────
                           _buildSocialDivider(),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           _buildSocialButtons(),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
 
                           // Toggle Login/Register
                           Row(
@@ -298,65 +304,206 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   // UNIFIED CITIZEN: _buildRoleSelector removed — roles are auto-granted.
 
-  // P1-004 FIX: Forgot password dialog TextEditingController memory leak.
-  // Previous: controller created inside _showForgotPasswordDialog was NEVER disposed.
-  // Now: controller is disposed when the dialog closes via .then() callback.
-  void _showForgotPasswordDialog() {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // P1-UX-007 FIX: Forgot Password — Themed Bottom Sheet
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PREVIOUS: Raw AlertDialog — the ONLY modal in the entire app not using
+  // the standard bottom sheet pattern. Visually foreign: no grabber, no
+  // rounded top corners, no gradient CTA, basic input without themed borders.
+  // Violates Nielsen #4 (Consistency and Standards).
+  //
+  // NOW: showModalBottomSheet with:
+  //   • BottomSheetGrabber (drag affordance)
+  //   • Rounded top corners (24px)
+  //   • Themed InputDecoration (filled, branded focus border)
+  //   • GradientButton CTA (consistent with login/register)
+  //   • Email validation before submit
+  //   • Keyboard-aware padding (viewInsets)
+  //   • Semantics header for screen readers
+  //   • P1-004 preserved: controller disposed on close
+  //
+  // Standard: Nielsen #4, Material M3, Apple HIG.
+  // ═══════════════════════════════════════════════════════════════════════════
+  void _showForgotPasswordSheet() {
     final emailController = TextEditingController(text: _emailController.text);
+    final formKey = GlobalKey<FormState>();
     final colors = context.colors;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.surfaceElevated,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(context.tr('auth_forgot_password'), style: TextStyle(color: colors.textPrimary)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.tr('auth_forgot_password_desc'),
-              style: TextStyle(color: colors.textSecondary, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              textDirection: TextDirection.ltr,
-              decoration: InputDecoration(
-                hintText: 'example@email.com',
-                prefixIcon: Icon(PhosphorIconsRegular.envelope, color: colors.textSecondary),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Padding(
+          // Keyboard-aware: sheet rises above soft keyboard.
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colors.surfaceElevated,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textSecondary)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (emailController.text.trim().isNotEmpty) {
-                context.read<AuthBloc>().add(AuthForgotPassword(emailController.text.trim()));
-                Navigator.pop(ctx);
-                // UX-F026 FIX: REMOVED premature success snackbar.
-                // PREVIOUS: Showed 'Link sent ✓' BEFORE backend confirmed.
-                // NOW: BLocListener handles AuthPasswordResetSent (success)
-                // and AuthError (failure) — user sees accurate feedback only.
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colors.primaryBrand,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag handle
+                  BottomSheetGrabber(colors: colors),
+
+                  // Icon header
+                  Center(
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: colors.primaryBrandLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        PhosphorIconsRegular.lockKey,
+                        size: 28,
+                        color: colors.primaryBrand,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Title
+                  Semantics(
+                    header: true,
+                    child: Center(
+                      child: Text(
+                        context.tr('auth_forgot_password'),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Description
+                  Center(
+                    child: Text(
+                      context.tr('auth_forgot_password_desc'),
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 14,
+                        height: 1.6,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Email field — themed to match login inputs
+                  TextFormField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textDirection: TextDirection.ltr,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: context.tr('auth_email_label'),
+                      labelStyle: TextStyle(color: colors.textSecondary),
+                      hintText: 'example@email.com',
+                      hintStyle: TextStyle(color: colors.textSubtle),
+                      prefixIcon: Icon(
+                        PhosphorIconsRegular.envelope,
+                        color: colors.textSecondary,
+                      ),
+                      filled: true,
+                      fillColor: colors.backgroundPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: colors.strokeSubtle),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: colors.strokeSubtle),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: colors.primaryBrand,
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: colors.error),
+                      ),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return context.tr('auth_email_required');
+                      }
+                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
+                        return context.tr('auth_email_invalid');
+                      }
+                      return null;
+                    },
+                    onFieldSubmitted: (_) {
+                      if (formKey.currentState?.validate() ?? false) {
+                        context.read<AuthBloc>().add(
+                          AuthForgotPassword(emailController.text.trim()),
+                        );
+                        Navigator.pop(sheetCtx);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // CTA — GradientButton for visual consistency
+                  GradientButton(
+                    label: context.tr('auth_send_btn'),
+                    icon: PhosphorIconsRegular.paperPlaneTilt,
+                    onPressed: () {
+                      if (formKey.currentState?.validate() ?? false) {
+                        context.read<AuthBloc>().add(
+                          AuthForgotPassword(emailController.text.trim()),
+                        );
+                        Navigator.pop(sheetCtx);
+                        // UX-F026 FIX preserved: No premature success snackbar.
+                        // BLocListener handles AuthPasswordResetSent / AuthError.
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Cancel — subtle text button
+                  Center(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(sheetCtx),
+                      child: Text(
+                        context.tr('cancel'),
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Safe area bottom padding
+                  SizedBox(
+                    height: MediaQuery.of(sheetCtx).viewPadding.bottom + 8,
+                  ),
+                ],
+              ),
             ),
-            child: Text(context.tr('auth_send_btn'), style: const TextStyle(color: Colors.white)),
           ),
-        ],
-      ),
-    ).then((_) => emailController.dispose()); // P1-004: Dispose on dialog close
+        );
+      },
+    ).then((_) => emailController.dispose()); // P1-004 preserved: Dispose on close
   }
 
   /// Shows a persistent MaterialBanner for email verification errors.
@@ -485,27 +632,38 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   /// AUD-002 FIX: Facebook OAuth hidden — feature unavailable.
   /// Only Google and Apple shown as functional providers.
   Widget _buildSocialButtons() {
+    final colors = context.colors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
         Expanded(
+          // P0-UX-003 FIX: Dark mode contrast failure.
+          // PREVIOUS: Colors.white — jarring white island in dark mode.
+          // NOW: Themed surface with proper border contrast in both modes.
+          // Standard: WCAG 1.4.11 (Non-text Contrast 3:1 min).
           child: _buildSocialButton(
             label: 'Google',
             icon: PhosphorIconsRegular.googleLogo,
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF3C4043),
-            borderColor: const Color(0xFFDADCE0),
-            onPressed: () => _handleSocialLogin('google'),
+            backgroundColor: isDark ? colors.surfaceElevated : Colors.white,
+            foregroundColor: isDark ? colors.textPrimary : const Color(0xFF3C4043),
+            borderColor: colors.strokeBorder,
+            onPressed: _isSocialLoading ? null : () => _handleSocialLogin('google'),
+            isLoading: _isSocialLoading,
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
+          // P0-UX-003 FIX: Dark mode — Apple black was invisible.
+          // NOW: Uses high-contrast surface in dark, black in light.
           child: _buildSocialButton(
             label: 'Apple',
             icon: PhosphorIconsRegular.appleLogo,
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            borderColor: Colors.black,
-            onPressed: () => _handleSocialLogin('apple'),
+            backgroundColor: isDark ? colors.surfaceElevated : Colors.black,
+            foregroundColor: isDark ? colors.textPrimary : Colors.white,
+            borderColor: isDark ? colors.strokeBorder : Colors.black,
+            onPressed: _isSocialLoading ? null : () => _handleSocialLogin('apple'),
+            isLoading: _isSocialLoading,
           ),
         ),
       ],
@@ -518,7 +676,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     required Color backgroundColor,
     required Color foregroundColor,
     required Color borderColor,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
+    bool isLoading = false,
   }) {
     return Material(
       color: backgroundColor,
@@ -526,26 +685,41 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: borderColor, width: 1.5),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 22, color: foregroundColor),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: foregroundColor,
+        child: AnimatedOpacity(
+          // P0-UX-004 FIX: Visual dim during loading — signals disabled state.
+          opacity: isLoading ? 0.6 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor, width: 1.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isLoading)
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: foregroundColor,
+                    ),
+                  )
+                else
+                  Icon(icon, size: 22, color: foregroundColor),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: foregroundColor,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -555,7 +729,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   /// Handle social login via native SDK → backend verification.
   /// OAuth-001: Real SDK integration for Google and Apple.
   /// Facebook: Coming soon (requires Meta App review).
+  // P0-UX-004 FIX: Loading state for social login.
+  // PREVIOUS: Zero visual feedback during 3-10s native SDK call.
+  // NOW: _isSocialLoading → spinner on button, all social buttons disabled.
+  // Standard: Nielsen #1 (Visibility of System Status), Apple HIG.
   Future<void> _handleSocialLogin(String provider) async {
+    setState(() => _isSocialLoading = true);
     try {
       final result = await SocialAuthService.instance.signIn(provider);
 
@@ -599,6 +778,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isSocialLoading = false);
     }
   }
 }

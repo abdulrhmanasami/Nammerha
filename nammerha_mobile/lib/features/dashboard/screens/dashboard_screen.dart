@@ -284,6 +284,12 @@ class _DashboardHomeView extends StatelessWidget {
                   );
                 },
                 color: colors.primaryBrand,
+                // P2-UX-006 FIX: Dark mode flash on pull-to-refresh.
+                // PREVIOUS: backgroundColor defaults to white → blinding
+                // white circle on dark background during pull gesture.
+                // NOW: Uses themed surface. Consistent with wallet PTR fix.
+                // Standard: Material Design 3 RefreshIndicator spec.
+                backgroundColor: colors.surfaceElevated,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 20),

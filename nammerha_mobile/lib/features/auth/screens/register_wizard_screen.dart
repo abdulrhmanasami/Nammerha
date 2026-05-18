@@ -322,12 +322,55 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // P1-UX-004 FIX: Shared InputDecoration matching login_screen.dart styling.
+  // PREVIOUS: Minimal InputDecoration with just `border` — no fill, no custom
+  // border states. Login screen used filled + themed borders.
+  // NOW: Identical visual treatment on both auth screens.
+  // Standard: Nielsen #4 (Consistency and Standards).
+  // ═══════════════════════════════════════════════════════════════════════════
+  InputDecoration _themedInputDecoration({
+    required SemanticColors colors,
+    required String labelText,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: TextStyle(color: colors.textSecondary),
+      prefixIcon: Icon(prefixIcon, color: colors.textSecondary),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: colors.surfaceElevated,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: colors.strokeSubtle),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: colors.strokeSubtle),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: colors.primaryBrand, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: colors.error),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // STEP 1: Identity — Full Name
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildStep1(SemanticColors colors) {
     return Form(
       key: _formKey1,
       child: SingleChildScrollView(
+        // P2-UX-005 FIX: Keyboard dismiss on scroll.
+        // PREVIOUS: No keyboardDismissBehavior — iOS users couldn't
+        // dismiss the keyboard by scrolling.
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,10 +387,10 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
             const SizedBox(height: 32),
             TextFormField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: _themedInputDecoration(
+                colors: colors,
                 labelText: context.tr('full_name_label'),
-                prefixIcon: Icon(PhosphorIconsRegular.user),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: PhosphorIconsRegular.user,
               ),
               validator: (v) => v == null || v.trim().isEmpty ? context.tr('reg_name_required') : null,
               textInputAction: TextInputAction.next,
@@ -371,6 +414,7 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     return Form(
       key: _formKey2,
       child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,11 +432,11 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
+              decoration: _themedInputDecoration(
+                colors: colors,
                 labelText: context.tr('email_label'),
                 // UX-F027 FIX: warningCircle → envelope for email field.
-                prefixIcon: Icon(PhosphorIconsRegular.envelope),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: PhosphorIconsRegular.envelope,
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return context.tr('reg_email_required');
@@ -422,6 +466,7 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     return Form(
       key: _formKey3,
       child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,16 +486,16 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
             TextFormField(
               controller: _passwordController,
               obscureText: wizState.obscurePassword,
-              decoration: InputDecoration(
+              decoration: _themedInputDecoration(
+                colors: colors,
                 labelText: context.tr('password_label'),
-                prefixIcon: Icon(PhosphorIconsRegular.lockKey),
+                prefixIcon: PhosphorIconsRegular.lockKey,
                 suffixIcon: IconButton(
                   icon: Icon(wizState.obscurePassword
                       ? PhosphorIconsRegular.eyeSlash
                       : PhosphorIconsRegular.eye),
                   onPressed: cubit.toggleObscurePassword,
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               // UX-F027 FIX: Password validation matches web auth.ts (8+, upper, lower, num, symbol).
               validator: _validatePassword,
@@ -476,16 +521,16 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
             TextFormField(
               controller: _confirmPasswordController,
               obscureText: wizState.obscureConfirm,
-              decoration: InputDecoration(
+              decoration: _themedInputDecoration(
+                colors: colors,
                 labelText: context.tr('confirm_password_label'),
-                prefixIcon: Icon(PhosphorIconsRegular.lockKey),
+                prefixIcon: PhosphorIconsRegular.lockKey,
                 suffixIcon: IconButton(
                   icon: Icon(wizState.obscureConfirm
                       ? PhosphorIconsRegular.eyeSlash
                       : PhosphorIconsRegular.eye),
                   onPressed: cubit.toggleObscureConfirm,
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return context.tr('reg_confirm_required');

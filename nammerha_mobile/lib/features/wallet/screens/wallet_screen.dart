@@ -87,6 +87,12 @@ class _WalletViewState extends State<_WalletView> {
                 context.read<WalletBloc>().add(LoadWalletEvent());
               },
               color: colors.primaryBrand,
+              // P1-UX-001 FIX: Dark mode flash.
+              // PREVIOUS: backgroundColor not set → defaults to white.
+              // In dark mode, the pull indicator circle appeared on a
+              // blinding white background — jarring flash.
+              // NOW: Uses themed surface. Standard: Material Design 3.
+              backgroundColor: colors.surfaceElevated,
               child: ListView(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16),
@@ -136,7 +142,15 @@ class _WalletViewState extends State<_WalletView> {
     final textColorSolid = const Color(0xFFFFFFFF);
     final bgChipColor = const Color(0xFFFFFFFF).withAlpha(25);
 
-    return Container(
+    // P1-UX-002 FIX: Accessibility semantics for FinTech balance card.
+    // PREVIOUS: No Semantics wrapper — screen readers read individual Text
+    // fragments without understanding the card is a unified financial summary.
+    // NOW: Single semantic label announces "Escrow Balance: $12,500.00".
+    // Standard: WCAG 4.1.2 (Name, Role, Value).
+    return Semantics(
+      label: '${context.tr('escrow_balance')}: ${formatCurrency(totalLocked)}',
+      excludeSemantics: true,
+      child: Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: NammerhaGradients.brandPrimary,
@@ -172,6 +186,7 @@ class _WalletViewState extends State<_WalletView> {
             ),
           ),
         ],
+      ),
       ),
     ).nmAnimate(context).fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0);
   }

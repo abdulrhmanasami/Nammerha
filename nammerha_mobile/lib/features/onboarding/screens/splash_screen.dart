@@ -85,10 +85,14 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                 const SizedBox(height: 32),
 
-                // Arabic Title — preserving Shaddah
-                const Text(
-                  'نُعمّرها',
-                  style: TextStyle(
+                // P0-UX-001 FIX: Hardcoded Arabic → i18n.
+                // PREVIOUS: 'نُعمّرها' literal — bypassed translation engine.
+                // Non-Arabic users saw Arabic text on the FIRST screen.
+                // NOW: Uses context.tr() like every other screen.
+                // Standard: 100% i18n coverage, Nielsen #2.
+                Text(
+                  context.tr('nammerha_brand'),
+                  style: const TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
