@@ -27,6 +27,8 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-018: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from '../utils/dialog-polyfill';
 // P1-UX-002 FIX: Standardized empty state component
 import { renderEmptyState } from '../utils/empty-state';
 // P1-UX-003 FIX: Service Worker registration on all portal pages
@@ -611,6 +613,8 @@ function openBidModal(projectId: string): void {
     });
 
     // Show dialog — provides native focus trapping + backdrop + escape
+    // SYS-004: Polyfill for older browsers before calling showModal().
+    polyfillDialog(dialog);
     dialog.showModal();
     // Auto-focus first input
     const firstInput = dialog.querySelector<HTMLElement>('input, textarea');

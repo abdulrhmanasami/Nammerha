@@ -17,6 +17,8 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 // UX-004 FIX: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
 import { initBackToTop } from '../components/back-to-top';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from '../utils/dialog-polyfill';
 // GAP-N03 FIX: Global search overlay on inner pages
 import { initSearch } from '../utils/search-overlay';
 // INC-NEW-01 FIX: Unified page header — eliminates duplicate back-button wiring
@@ -280,6 +282,8 @@ function init(): void {
     if (depositBtn && depositDialog) {
         depositBtn.addEventListener('click', () => {
             haptic.medium(); // UX-004: Confirm action feedback
+            // SYS-004: Polyfill for older browsers before calling showModal().
+            polyfillDialog(depositDialog);
             depositDialog.showModal();
         });
         // UX-REM-F003 FIX: Deposit button honesty — aria-disabled for screen readers.

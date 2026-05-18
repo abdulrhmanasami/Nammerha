@@ -16,6 +16,8 @@
 // ============================================================================
 
 import { t } from './i18n';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from './dialog-polyfill';
 
 let gPressed = false;
 let gTimer: ReturnType<typeof setTimeout> | null = null;
@@ -73,6 +75,8 @@ function showShortcutHelp(): void {
         if (e.target === dialog) { dialog.close(); dialog.remove(); }
     });
 
+    // SYS-004: Polyfill for older browsers before calling showModal().
+    polyfillDialog(dialog);
     dialog.showModal();
 }
 

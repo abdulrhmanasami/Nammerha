@@ -12,6 +12,8 @@
 
 import { t } from '../utils/i18n';
 import { navigateWithTransition } from '../utils/view-transition';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from '../utils/dialog-polyfill';
 
 // ─── Portal Registry ────────────────────────────────────────────────────────
 // Single source of truth for all user-facing portals.
@@ -282,6 +284,8 @@ export function mountHubFAB(currentPortalId: string): void {
         }
 
         if (!dialog.open) {
+            // SYS-004: Polyfill for older browsers before calling showModal().
+            polyfillDialog(dialog);
             dialog.showModal();
             // Trigger entrance animation
             requestAnimationFrame(() => {

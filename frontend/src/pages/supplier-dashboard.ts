@@ -13,6 +13,8 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { guardSkeleton } from '../utils/skeleton-guard';
 // TICK-024: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from '../utils/dialog-polyfill';
 // P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
 import '../utils/required-markers';
 // P1-UX-002 FIX: Standardized empty state component
@@ -413,7 +415,11 @@ function setupCatalogModal(): void {
     }
 
     openBtn?.addEventListener('click', () => {
-        if (modal && !modal.open) { modal.showModal(); }
+        if (modal && !modal.open) {
+            // SYS-004: Polyfill for older browsers before calling showModal().
+            polyfillDialog(modal);
+            modal.showModal();
+        }
     });
 
     cancelBtn?.addEventListener('click', closeModal);
@@ -533,6 +539,8 @@ async function deactivateItem(catalogId: string): Promise<void> {
     });
     
     dialog.addEventListener('close', () => dialog.remove());
+    // SYS-004: Polyfill for older browsers before calling showModal().
+    polyfillDialog(dialog);
     dialog.showModal();
 }
 

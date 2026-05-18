@@ -66,6 +66,8 @@ interface ConfirmActionOptions {
 import { tryApplyI18n, tryTranslate } from './i18n-apply';
 // P3-UX-004 FIX: Haptic feedback on confirmation dialog actions.
 import { haptic } from './haptic';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from './dialog-polyfill';
 
 /**
  * Shows a confirmation dialog for destructive/irreversible actions.
@@ -152,6 +154,8 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
         });
 
         // ── Show dialog modally ────────────────────────────────────────────
+        // SYS-004: Polyfill for older browsers before calling showModal().
+        polyfillDialog(dialog);
         dialog.showModal();
 
         // Focus the cancel button by default (safer for destructive actions)

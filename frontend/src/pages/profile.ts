@@ -9,6 +9,8 @@ import { requireAuth } from '../utils/auth-guard';
 // Previous: Imported from role-switcher.ts which brought in 16KB of dead UI component code.
 import { ROLE_META, getRoleLabel, getRoleColor } from '../utils/role-meta';
 import { t, isRTL } from '../utils/i18n';
+// SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
+import { polyfillDialog } from '../utils/dialog-polyfill';
 // FRC-NEW-06: Loading state feedback for save buttons
 import { setLoadingState } from '../utils/loading-state';
 // TICK-015: showToast for consistent error feedback
@@ -340,10 +342,12 @@ const logoutBtn = document.getElementById('logout-action');
 const logoutDialog = document.getElementById('confirm-logout') as HTMLDialogElement | null;
 
 logoutBtn?.addEventListener('click', () => {
-    if (logoutDialog && typeof logoutDialog.showModal === 'function') {
+    if (logoutDialog) {
+        // SYS-004: Polyfill for older browsers before calling showModal().
+        polyfillDialog(logoutDialog);
         logoutDialog.showModal();
     } else {
-        // Fallback for browsers without native <dialog> support
+        // Ultimate fallback: no dialog element in DOM at all
         if (confirm(t('confirm_logout_title', 'Sign Out?'))) {
             logout();
         }
