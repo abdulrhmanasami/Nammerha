@@ -683,6 +683,22 @@ if (photoUploadZone && photoInput) {
         const maxPhotos = 5;
         const count = Math.min(files.length, maxPhotos - state.photoCount);
 
+        // P1-002 FIX (Wave 2): Warn when selected files exceed remaining slots.
+        // PREVIOUS: Excess files were SILENTLY dropped — Math.min() truncated them
+        // with zero feedback. User selects 5 photos, only 2 are added, no explanation.
+        // NOW: Transient warning banner with role="alert" for screen readers.
+        // Standard: Nielsen #1 (System Status Visibility), WCAG 4.1.3 (Status Messages).
+        const droppedCount = files.length - count;
+        if (droppedCount > 0 && photoThumbnails) {
+            const remaining = maxPhotos - state.photoCount;
+            const warnDiv = document.createElement('div');
+            warnDiv.className = 'w-full rounded-lg bg-warning-yellow/10 border border-warning-yellow/20 text-slate-700 text-xs p-2.5 mt-2 flex items-center gap-2 dark:text-slate-300 dark:border-warning-yellow/15 animate-fade-in-up';
+            warnDiv.setAttribute('role', 'alert');
+            warnDiv.innerHTML = `<i class="ph ph-warning text-warning-yellow shrink-0" aria-hidden="true"></i> ${esc(t('hr_photos_limit_exceeded', `Only ${remaining} of ${files.length} photos added — limit is ${maxPhotos}`))}`;
+            photoThumbnails.parentElement?.appendChild(warnDiv);
+            setTimeout(() => warnDiv.remove(), 5000);
+        }
+
         for (let i = 0; i < count; i++) {
             const file = files[i];
             if (!file) { continue; }
@@ -767,8 +783,31 @@ if (photoUploadZone && photoInput) {
             }
         }
 
+        // P1-002 FIX (Wave 2): Clear visual feedback when max photos reached.
+        // PREVIOUS: Upload zone dimmed to 50% opacity + pointer-events-none.
+        //   - The "0/5" counter was INSIDE the dimmed zone — nearly unreadable
+        //   - No text explanation of WHY the zone is disabled
+        //   - Users thought the feature was broken, not that they hit the limit
+        // NOW: Zone transforms into a clear success state with Smoky Jade branding.
+        //   - Camera icon → check-circle icon
+        //   - "Tap to upload" → "Maximum 5 photos uploaded"
+        //   - Dashed border → solid Smoky Jade border
+        //   - role="status" for ARIA live region (WCAG 4.1.3)
+        //   - File input disabled as belt-and-suspenders guard
+        // Standard: Nielsen #1 (System Status), WCAG 4.1.3 (Status Messages),
+        //           Apple HIG (Success State Feedback).
         if (state.photoCount >= maxPhotos) {
-            photoUploadZone.classList.add('opacity-50', 'pointer-events-none');
+            photoUploadZone.classList.add('pointer-events-none');
+            photoUploadZone.classList.remove('border-dashed', 'border-slate-200', 'cursor-pointer', 'active:border-trust-blue/40', 'dark:border-dark-border');
+            photoUploadZone.classList.add('border-solid', 'border-smoky-jade/30', 'bg-smoky-jade/5', 'dark:bg-smoky-jade/10', 'dark:border-smoky-jade/20');
+            photoUploadZone.innerHTML = `
+                <div class="size-12 rounded-full bg-smoky-jade/15 flex items-center justify-center">
+                    <i class="ph ph-check-circle text-smoky-jade nm-icon-28 dark:text-emerald-400" aria-hidden="true"></i>
+                </div>
+                <p class="text-smoky-jade text-sm font-bold dark:text-emerald-400" role="status">${esc(t('hr_max_photos_reached', 'Maximum 5 photos uploaded'))}</p>
+                <p class="text-slate-400 text-3xs dark:text-slate-500">${state.photoCount}/${maxPhotos} • ${esc(t('hr_all_photos_ready', 'All photos ready'))}</p>
+            `;
+            if (photoInput) { photoInput.disabled = true; }
         }
     });
 }
