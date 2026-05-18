@@ -510,6 +510,24 @@ function openBidModal(projectId: string): void {
             return;
         }
 
+        // P1-006 FIX (Wave 2): Maximum cost/duration validation — FinTech guard.
+        // PREVIOUS: Only checked cost > 0 and days > 0. A contractor could submit a
+        // bid for $999,999,999 or 99,999 days — no upper bound validation.
+        // Homeowner-portal has budget validation (10M max), but contractor had NONE.
+        // NOW: 10M USD max cost (matches homeowner-portal budget ceiling),
+        // 3650 days max (10 years — reasonable upper bound for reconstruction).
+        // Standard: FinTech Input Validation, OWASP Input Validation Cheat Sheet.
+        const MAX_BID_COST = 10_000_000; // USD
+        const MAX_BID_DAYS = 3650;       // ~10 years
+        if (cost > MAX_BID_COST) {
+            if (errorEl) { errorEl.textContent = t('ct_bid_cost_too_high', `Maximum bid cost is $${MAX_BID_COST.toLocaleString()}`); errorEl.classList.remove('nm-hidden'); }
+            return;
+        }
+        if (days > MAX_BID_DAYS) {
+            if (errorEl) { errorEl.textContent = t('ct_bid_days_too_high', `Maximum timeline is ${MAX_BID_DAYS} days`); errorEl.classList.remove('nm-hidden'); }
+            return;
+        }
+
         const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
         submitBtn.disabled = true;
         // TICK-013: Spinner icon seamlessly mapped without CLS string mutation.

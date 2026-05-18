@@ -103,6 +103,15 @@ type TabName = 'dashboard' | 'projects' | 'requests' | 'approvals' | 'payments';
 // PLT-FE-003 FIX: Module-level constant
 const ALL_TABS: TabName[] = ['dashboard', 'projects', 'requests', 'approvals', 'payments'];
 
+// P0-001 FIX (Wave 2): Event delegation guards — prevents exponential listener stacking.
+// PREVIOUS: querySelectorAll('.cancel-sr-btn').forEach attached individual listeners on EVERY render.
+// Each tab switch added N duplicate listeners. On 10 tab switches, cancel/approve buttons had 10×
+// listeners — causing N API calls per single click. CRITICAL for escrow fund integrity.
+// NOW: Single delegated listener on the container, wired once. Matches canonical pattern from
+// contractor-portal (PLT-AUD-E001), tradesperson-portal, and supplier-dashboard.
+// Standard: Event Delegation Pattern, Memory Management, FinTech Zero-Trust.
+const delegationWired = { requests: false, approvals: false } as Record<string, boolean>;
+
 // P1-003 FIX: Hash-based tab routing — bookmarkable, deep-linkable
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
@@ -589,13 +598,18 @@ async function loadServiceRequests(): Promise<void> {
             </div>`,
         });
 
-        // HIGH-001 FIX: Cancel handlers with confirmation dialog.
-        // Previous: Direct API call — one tap = irreversible cancellation.
-        // Now: confirmAction dialog protects against accidental cancellation.
-        // Standard: Nielsen #5 (Error Prevention), Apple HIG (Destructive Actions).
-        tbody.querySelectorAll('.cancel-sr-btn').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const id = (btn as HTMLElement).dataset['id'];
+        // HIGH-001 FIX + P0-001 FIX (Wave 2): Cancel handlers with event delegation.
+        // PREVIOUS: querySelectorAll('.cancel-sr-btn').forEach attached individual listeners
+        // on EVERY render cycle — no delegation guard. On 10 tab switches, each button had
+        // 10 duplicate listeners causing 10× API calls per click.
+        // NOW: Single delegated listener on the container, wired ONCE via guard flag.
+        // Standard: Event Delegation, Nielsen #5 (Error Prevention), FinTech Zero-Trust.
+        if (!delegationWired.requests) {
+            delegationWired.requests = true;
+            tbody.addEventListener('click', (e: MouseEvent) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('.cancel-sr-btn');
+                if (!btn) { return; }
+                const id = btn.dataset['id'];
                 if (!id) { return; }
                 confirmAction({
                     title: t('ho_confirm_cancel_title', 'Cancel Service Request'),
@@ -619,7 +633,7 @@ async function loadServiceRequests(): Promise<void> {
                     },
                 });
             });
-        });
+        }
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderErrorWithRetry(tbody, loadServiceRequests, undefined, undefined, err);
     }
@@ -674,14 +688,19 @@ async function loadApprovals(): Promise<void> {
             }),
         });
 
-        // HIGH-002 + HIGH-004 FIX: Approve/Reject with confirmation + loading state.
-        // Previous: Instant API call — no confirmation, no loading, no debounce.
-        // Now: Reject goes through confirmAction (destructive). Both use setLoadingState.
-        // Standard: Nielsen #5 (Error Prevention), Material Design 3 (Confirmation).
-        container.querySelectorAll('.approval-btn').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const id = (btn as HTMLElement).dataset['id'];
-                const decision = (btn as HTMLElement).dataset['decision'] as 'approved' | 'rejected';
+        // HIGH-002 + HIGH-004 FIX + P0-001 FIX (Wave 2): Event delegation for approval buttons.
+        // PREVIOUS: querySelectorAll('.approval-btn').forEach attached individual listeners
+        // on EVERY render cycle — no delegation guard. On re-renders, each button accumulated
+        // duplicate listeners, causing multiple simultaneous escrow API calls per click.
+        // NOW: Single delegated listener on the container, wired ONCE via guard flag.
+        // Standard: Event Delegation, Nielsen #5 (Error Prevention), FinTech Zero-Trust.
+        if (!delegationWired.approvals) {
+            delegationWired.approvals = true;
+            container.addEventListener('click', async (e: MouseEvent) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('.approval-btn');
+                if (!btn) { return; }
+                const id = btn.dataset['id'];
+                const decision = btn.dataset['decision'] as 'approved' | 'rejected';
                 if (!id || !decision) { return; }
 
                 const executeApproval = async () => {
@@ -690,17 +709,23 @@ async function loadApprovals(): Promise<void> {
                         ? t('ho_approving', 'Approving...')
                         : t('ho_rejecting', 'Rejecting...'));
                     try {
-                        // UX-REM-F005 FIX: Non-blocking undo for financial approval.
-                        // PREVIOUS: `await new Promise(r => setTimeout(r, 5000))` BLOCKED the
-                        // entire async flow for 5 seconds. 10 milestones × 5s = 50s of dead time.
-                        // NOW: API fires immediately via AbortController. If user taps "Undo"
-                        // within 4s, the request is aborted (server-side idempotency prevents
-                        // partial state). Non-blocking — UI remains interactive during grace period.
-                        // Standard: Optimistic UI with Rollback, Nielsen #5 (Error Prevention).
+                        // UX-REM-F005 FIX + P0-002 FIX (Wave 2): Non-blocking undo with completion tracking.
+                        // PREVIOUS (UX-REM-F005): setTimeout(5000) BLOCKED async flow.
+                        // PREVIOUS (Wave 2 audit): API could complete before user clicks Undo.
+                        // If API succeeds (fast network) then user clicks Undo:
+                        //   - abortController.abort() = no-op (Promise already resolved)
+                        //   - undone = true → if(!undone) guard skips restore('success')
+                        //   - Button stuck in permanent loading state, funds released but UI
+                        //     shows "Approval cancelled" — FinTech trust crisis.
+                        // NOW: `apiCompleted` flag tracks whether the API call has finished.
+                        // If Undo is clicked AFTER API completion, we show "Already processed"
+                        // toast and refresh the list to reflect the true state.
+                        // Standard: Optimistic UI with Completion Tracking, Nielsen #1 + #5.
                         if (decision === 'approved') {
                             const { showToast } = await import('../utils/toast');
                             const abortController = new AbortController();
                             let undone = false;
+                            let apiCompleted = false;
 
                             showToast(
                                 t('ho_approval_undo', 'Releasing escrow funds…'),
@@ -710,6 +735,17 @@ async function loadApprovals(): Promise<void> {
                                     action: {
                                         label: t('ho_undo', 'Undo'),
                                         onClick: () => {
+                                            if (apiCompleted) {
+                                                // P0-002 FIX: API already completed — cannot undo.
+                                                // Show honest feedback instead of misleading "cancelled".
+                                                void import('../utils/toast').then(m => m.showToast(
+                                                    t('ho_approval_already_processed', 'Approval already processed. Refreshing…'),
+                                                    'info',
+                                                ));
+                                                loadApprovals();
+                                                loadStats();
+                                                return;
+                                            }
                                             undone = true;
                                             abortController.abort();
                                             restore();
@@ -719,9 +755,10 @@ async function loadApprovals(): Promise<void> {
                                 },
                             );
 
-                            // Fire immediately — abort if user clicks Undo
+                            // Fire immediately — abort if user clicks Undo before completion
                             try {
                                 await homeowner.respondToApproval(id, decision, { signal: abortController.signal });
+                                apiCompleted = true;
                                 if (!undone) {
                                     restore('success');
                                     loadApprovals();
@@ -759,7 +796,6 @@ async function loadApprovals(): Promise<void> {
                     });
                 } else {
                     // P2-UX-006 FIX: Approve ALSO requires confirmation.
-                    // Previous: Approve was instant and irreversible — no confirmation dialog.
                     // On a FinTech platform, accidental approval releases escrow funds permanently.
                     // Standard: Nielsen #5 (Error Prevention), FIDIC 13.8 (Financial Guard).
                     confirmAction({
@@ -773,7 +809,7 @@ async function loadApprovals(): Promise<void> {
                     });
                 }
             });
-        });
+        }
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderErrorWithRetry(container, loadApprovals, undefined, undefined, err);
     }

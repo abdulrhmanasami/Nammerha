@@ -152,6 +152,12 @@ function switchTab(tab: EngineerTab): void {
             if (sectionEl) {
                 sectionEl.setAttribute('tabindex', '-1');
                 sectionEl.focus({ preventScroll: true });
+                // P1-011 FIX (Wave 2): Remove tabindex after focus so Tab continues into children.
+                // PREVIOUS: tabindex="-1" was set but NEVER removed — section permanently
+                // focusable, trapping Tab key users instead of navigating into content.
+                // NOW: Matches homeowner-portal canonical pattern (UX-REM-I010).
+                // Standard: WCAG 2.4.3 (Focus Order), WAI-ARIA 1.2 (Managing Focus).
+                requestAnimationFrame(() => sectionEl.removeAttribute('tabindex'));
             }
         } else {
             tabEl?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
@@ -321,7 +327,7 @@ async function loadCaptures(): Promise<void> {
             renderItem: (c, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="size-14 rounded-lg bg-slate-100 overflow-hidden shrink-0 dark:bg-dark-elevated">
-                    <img src="${esc(c.file_url)}" alt="${esc(c.title ?? 'Capture')}" class="size-14 object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'size-14 flex items-center justify-center\\'><i class=\\'ph ph-image-broken text-slate-400 text-xl\\'></i></div>'" />
+                    <img src="${esc(c.file_url)}" alt="${esc(c.title ?? 'Capture')}" class="size-14 object-cover" loading="lazy" data-capture-fallback />
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
@@ -340,6 +346,20 @@ async function loadCaptures(): Promise<void> {
                 title: t('eng_no_captures', 'No captures yet'),
                 subtitle: t('eng_no_captures_desc', 'Start capturing field evidence using the Field Camera.'),
             }),
+        });
+
+        // P1-007 FIX (Wave 2): CSP-safe image error fallback via addEventListener.
+        // PREVIOUS: Inline onerror="this.parentElement.innerHTML='...'" — the ONLY remaining
+        // inline event handler across the entire frontend. Violates CSP script-src 'self'.
+        // NOW: addEventListener('error') wired post-render. Same fallback, CSP-compliant.
+        // Standard: Content-Security-Policy compliance, OWASP CSP Best Practices.
+        container.querySelectorAll<HTMLImageElement>('img[data-capture-fallback]').forEach((img) => {
+            img.addEventListener('error', () => {
+                const parent = img.parentElement;
+                if (parent) {
+                    parent.innerHTML = '<div class="size-14 flex items-center justify-center"><i class="ph ph-image-broken text-slate-400 text-xl" aria-hidden="true"></i></div>';
+                }
+            }, { once: true });
         });
 
         applyI18n();

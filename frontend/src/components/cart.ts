@@ -97,9 +97,14 @@ class CartStoreImpl {
         return this.items.reduce((sum, i) => sum + i.quantity, 0);
     }
 
-    /** Get total price */
+    /** Get total price (integer-safe for FinTech precision) */
     getTotal(): number {
-        return this.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+        // P1-008 FIX (Wave 2): IEEE 754 floating-point arithmetic can produce
+        // rounding errors (e.g., 19.99 × 3 = 59.97000000000001). For a construction
+        // materials ordering system handling Syrian pounds, financial calculations
+        // MUST produce exact results. Math.round normalizes sub-cent deviations.
+        // Standard: FinTech Precision, IEEE 754 Avoidance in Financial Calculations.
+        return this.items.reduce((sum, i) => sum + Math.round(i.unitPrice * i.quantity), 0);
     }
 
     /** Check if an item is in the cart */
@@ -143,6 +148,20 @@ export function flyToCart(
     targetEl: HTMLElement,
     onComplete?: () => void
 ): void {
+    // P2-016 FIX (Wave 2): Respect prefers-reduced-motion for cart animation.
+    // PREVIOUS: flyToCart always animated regardless of user preference.
+    // Other platform animations (auth.ts L69) check this, but cart did NOT.
+    // NOW: Users who prefer reduced motion skip the fly animation entirely.
+    // Standard: WCAG 2.3.3 (Animation from Interactions), Apple HIG.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        targetEl.classList.add('nm-cart-bounce');
+        targetEl.addEventListener('animationend', () => {
+            targetEl.classList.remove('nm-cart-bounce');
+        }, { once: true });
+        onComplete?.();
+        return;
+    }
+
     const sourceRect = sourceEl.getBoundingClientRect();
     const targetRect = targetEl.getBoundingClientRect();
 

@@ -137,6 +137,12 @@ function switchTab(tab: TabName): void {
             if (tabId === tab) {
                 section.setAttribute('tabindex', '-1');
                 section.focus({ preventScroll: true });
+                // P1-011 FIX (Wave 2): Remove tabindex after focus so Tab continues into children.
+                // PREVIOUS: tabindex="-1" was set but NEVER removed — section permanently
+                // focusable, trapping Tab key users instead of navigating into content.
+                // NOW: Matches homeowner-portal canonical pattern (UX-REM-I010).
+                // Standard: WCAG 2.4.3 (Focus Order), WAI-ARIA 1.2 (Managing Focus).
+                requestAnimationFrame(() => section.removeAttribute('tabindex'));
             }
         }
     }

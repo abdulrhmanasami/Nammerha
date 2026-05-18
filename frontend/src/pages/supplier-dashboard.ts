@@ -423,17 +423,56 @@ function setupCatalogModal(): void {
         e.preventDefault();
         const fd = new FormData(form);
         const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-        // F-011 FIX: Use btn-loading alone (pointer-events:none + spinner).
-        // Previous: also set disabled=true — redundant, inconsistent with auth.ts pattern.
-        if (submitBtn) { submitBtn.classList.add('btn-loading'); }
+
+        // P1-012 FIX (Wave 2): Input validation before submission.
+        // PREVIOUS: Form submitted whatever FormData contained — no validation.
+        // material_name could be empty, unit_price_guide could be 0 or negative,
+        // min_order_qty could be 0. Every other form on the platform has validation.
+        // NOW: Comprehensive guard rails matching homeowner service request form pattern.
+        // Standard: FinTech Input Validation, Nielsen #5 (Error Prevention).
+        const materialName = (fd.get('material_name') as string || '').trim();
+        const unitPriceRaw = Number(fd.get('unit_price_guide'));
+        const minOrderQty = Number(fd.get('min_order_qty')) || 0;
+
+        if (!materialName) {
+            showBanner('error', t('supplier_name_required', 'Please enter a material name'));
+            return;
+        }
+        if (materialName.length > 200) {
+            showBanner('error', t('supplier_name_too_long', 'Material name must not exceed 200 characters'));
+            return;
+        }
+        if (!unitPriceRaw || unitPriceRaw <= 0) {
+            showBanner('error', t('supplier_price_required', 'Please enter a valid unit price'));
+            return;
+        }
+        if (unitPriceRaw > 10_000_000) {
+            showBanner('error', t('supplier_price_too_high', 'Unit price must not exceed $10,000,000'));
+            return;
+        }
+        if (minOrderQty < 1) {
+            showBanner('error', t('supplier_qty_required', 'Minimum order quantity must be at least 1'));
+            return;
+        }
+        if (minOrderQty > 100_000) {
+            showBanner('error', t('supplier_qty_too_high', 'Minimum order quantity must not exceed 100,000'));
+            return;
+        }
+
+        // F-011 FIX + P2-014 FIX (Wave 2): Use btn-loading AND disabled.
+        // PREVIOUS (F-011): btn-loading alone — pointer-events:none blocks mouse but
+        // button is still focusable via keyboard Tab+Enter, allowing double-submit.
+        // NOW: Both visual (btn-loading) and semantic (disabled) guards.
+        // Standard: WCAG 2.1.1 (Keyboard), FinTech Double-Submit Prevention.
+        if (submitBtn) { submitBtn.classList.add('btn-loading'); submitBtn.disabled = true; }
 
         try {
             const res = await supplier.addCatalogItem({
-                material_name: fd.get('material_name') as string,
+                material_name: materialName,
                 material_category: fd.get('material_category') as string,
                 unit: fd.get('unit') as string,
-                unit_price_guide: Math.round(Number(fd.get('unit_price_guide')) * 100), // dollars→cents
-                min_order_qty: Number(fd.get('min_order_qty')) || 1,
+                unit_price_guide: Math.round(unitPriceRaw * 100), // dollars→cents
+                min_order_qty: minOrderQty || 1,
                 lead_time_days: Number(fd.get('lead_time_days')) || 7,
                 description: (fd.get('description') as string) || undefined,
             });
@@ -451,7 +490,7 @@ function setupCatalogModal(): void {
         } catch (err) { reportWarning('[SupplierDashboard] Operation failed', { error: err instanceof Error ? err.message : String(err) });
             showBanner('error', t('supplier_network_error', 'Network error. Please try again.'));
         } finally {
-            if (submitBtn) { submitBtn.classList.remove('btn-loading'); }
+            if (submitBtn) { submitBtn.classList.remove('btn-loading'); submitBtn.disabled = false; }
         }
     });
 }
