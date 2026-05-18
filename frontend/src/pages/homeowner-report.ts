@@ -414,6 +414,13 @@ const voiceDescribeBtn = document.getElementById('voice-describe-btn');
 const voiceOverlay = document.getElementById('voice-overlay');
 const voiceStopBtn = document.getElementById('voice-stop-btn');
 const voiceTimerEl = document.getElementById('voice-timer');
+// P1-003 FIX (Wave 2): Dedicated transcript preview element.
+// PREVIOUS: voiceTimerEl served double-duty for both timer AND transcript preview.
+// Timer interval (200ms) and onresult (async) fought over the same textContent,
+// causing rapid flickering — user couldn't read either value.
+// NOW: Timer stays in #voice-timer, live transcript preview goes to #voice-transcript.
+// Standard: Single-Writer Principle, Nielsen #1 (System Status Visibility).
+const voiceTranscriptEl = document.getElementById('voice-transcript');
 const descriptionTextarea = document.getElementById('damage-description') as HTMLTextAreaElement | null;
 // FRIC-AUD-02 FIX: Character counter DOM reference
 const descCharCount = document.getElementById('desc-char-count');
@@ -551,10 +558,16 @@ function startVoice(): void {
             const prefix = descriptionTextarea.value ? ' ' : '';
             descriptionTextarea.value += prefix + finalTranscript.trim();
         }
-        // Show live preview of interim results in overlay
+        // P1-003 FIX (Wave 2): Show live preview in DEDICATED transcript element.
+        // PREVIOUS: voiceTimerEl.textContent was overwritten here, then overwritten
+        // back by the timer interval 200ms later — flickering between "00:15" and
+        // "الجدار فيه تشققات" made both unreadable.
+        // NOW: voiceTranscriptEl is a separate DOM element — zero contention.
         const preview = interimTranscript || finalTranscript;
-        if (voiceTimerEl && preview) {
-            voiceTimerEl.textContent = preview.slice(-60);
+        if (voiceTranscriptEl && preview) {
+            voiceTranscriptEl.textContent = preview.length > 80
+                ? '…' + preview.slice(-78)
+                : preview;
         }
     };
 
@@ -603,6 +616,8 @@ function stopVoice(): void {
     }
 
     if (voiceTimerEl) { voiceTimerEl.textContent = '00:00'; }
+    // P1-003 FIX (Wave 2): Clear transcript preview alongside timer reset.
+    if (voiceTranscriptEl) { voiceTranscriptEl.textContent = ''; }
 
     // Persist any changes from voice input
     if (descriptionTextarea) {
