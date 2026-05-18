@@ -71,6 +71,40 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 let panel: HTMLElement | null = null;
 let activeBell: HTMLElement | null = null;
 
+// P1-009 FIX (Wave 2): RAF-throttled reposition handler for scroll/resize.
+// PREVIOUS: positionPanel() was called ONCE in openPanel(). Window resize
+// (portrait→landscape rotation) or scroll (non-fixed headers) left the panel
+// at stale coordinates — visually detached from the bell icon or overflowing viewport.
+// NOW: Scroll + resize events trigger RAF-throttled repositioning while panel is open.
+// Handlers are removed on close to prevent memory leaks.
+// Standard: 60fps animation budget, Passive Event Listeners (battery optimization).
+let repositionRafId: number | null = null;
+
+function handleScrollOrResize(): void {
+    if (repositionRafId !== null) { return; } // Already scheduled — skip
+    repositionRafId = requestAnimationFrame(() => {
+        repositionRafId = null;
+        if (isOpen && activeBell && panel) {
+            positionPanel(activeBell);
+        }
+    });
+}
+
+function startRepositionListeners(): void {
+    // capture: true catches scroll on ANY ancestor (not just window)
+    window.addEventListener('scroll', handleScrollOrResize, { passive: true, capture: true });
+    window.addEventListener('resize', handleScrollOrResize, { passive: true });
+}
+
+function stopRepositionListeners(): void {
+    window.removeEventListener('scroll', handleScrollOrResize, true);
+    window.removeEventListener('resize', handleScrollOrResize);
+    if (repositionRafId !== null) {
+        cancelAnimationFrame(repositionRafId);
+        repositionRafId = null;
+    }
+}
+
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 /**
@@ -210,6 +244,9 @@ async function openPanel(bell: HTMLElement): Promise<void> {
     // Position relative to bell
     positionPanel(bell);
 
+    // P1-009 FIX (Wave 2): Start tracking scroll/resize while panel is open.
+    startRepositionListeners();
+
     // Loading state
     panel.innerHTML = `
         <div class="nm-notif-header">
@@ -250,6 +287,9 @@ function closePanel(bell: HTMLElement): void {
     isOpen = false;
     activeBell = null;
     bell.setAttribute('aria-expanded', 'false');
+
+    // P1-009 FIX (Wave 2): Stop repositioning when panel closes.
+    stopRepositionListeners();
 
     if (panel) {
         panel.classList.remove('nm-notif-panel-open');
@@ -343,21 +383,46 @@ function renderNotificationItem(n: Notification): string {
     `;
 }
 
-// ─── Panel Positioning ──────────────────────────────────────────────────────
-
+// P1-009 FIX (Wave 2): Enhanced positionPanel() with viewport clamping.
+// PREVIOUS: Blindly positioned panel below bell regardless of available space.
+// On mobile or when bell is near the bottom of the viewport, the panel overflowed
+// below the visible area — user had to scroll to see notifications.
+// NOW: Measures available space below vs above. If insufficient space below,
+// positions panel ABOVE the bell. Clamps horizontal position to prevent
+// left-edge overflow on narrow viewports.
+// Standard: Material Design 3 (Menu Positioning), Apple HIG (Popover Placement).
 function positionPanel(bell: HTMLElement): void {
     if (!panel) { return; }
     const rect = bell.getBoundingClientRect();
+    const panelHeight = panel.offsetHeight || 400; // Estimate before first render
 
-    // Position below the bell, aligned to the end edge
-    // P1-001 FIX: Physical left/right → CSS Logical Properties (insetInlineEnd)
-    // This automatically handles RTL without manual isRtl branching.
     panel.style.position = 'fixed';
-    panel.style.top = `${rect.bottom + 8}px`;
+
+    // Check if panel would overflow below viewport
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    if (spaceBelow < panelHeight && rect.top > panelHeight + 8) {
+        // Position ABOVE the bell (flip)
+        panel.style.top = `${rect.top - panelHeight - 8}px`;
+    } else {
+        // Default: position below the bell
+        panel.style.top = `${Math.min(rect.bottom + 8, window.innerHeight - panelHeight - 8)}px`;
+    }
 
     // Reset both physical + logical to avoid stale values
     panel.style.left = '';
     panel.style.right = '';
+    panel.style.insetInlineStart = '';
     // Align panel to the 'end' edge — near the bell icon
-    panel.style.insetInlineEnd = `${window.innerWidth - rect.right}px`;
+    panel.style.insetInlineEnd = `${Math.max(8, window.innerWidth - rect.right)}px`;
+
+    // Clamp horizontal: prevent left-edge overflow on narrow viewports
+    // (schedule after next frame to read computed layout)
+    requestAnimationFrame(() => {
+        if (!panel) { return; }
+        const panelRect = panel.getBoundingClientRect();
+        if (panelRect.left < 8) {
+            panel.style.insetInlineEnd = '';
+            panel.style.insetInlineStart = '8px';
+        }
+    });
 }
