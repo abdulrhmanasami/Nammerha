@@ -234,8 +234,8 @@ async function loadProjects(): Promise<void> {
                     <span class="flex items-center gap-1"><i class="ph ph-list-checks text-sm" aria-hidden="true"></i> ${esc(String(p.boq_count))} ${esc(t('eng_boq_items', 'BOQ items'))}</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden dark:bg-dark-elevated">
-                        <div class="h-full bg-trust-blue rounded-full transition-all" style="width: ${Math.min(p.progress, 100)}%"></div>
+                    <div class="nm-progress-track">
+                        <div class="bg-trust-blue nm-progress-bar" style="--progress: ${Math.min(p.progress, 100)}%"></div>
                     </div>
                     <span class="text-xs font-bold text-slate-600 dark:text-slate-300">${p.progress}%</span>
                 </div>

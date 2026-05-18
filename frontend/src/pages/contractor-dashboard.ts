@@ -205,8 +205,8 @@ async function loadProjectTimeline(): Promise<void> {
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
                     <div class="flex items-center gap-2 flex-grow max-w-[60%]">
                         <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="contractor_th_progress">Progress</span>
-                        <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full ${progressColor} rounded-full nm-progress-bar" style="--progress:${progress}%"></div>
+                        <div class="nm-progress-track">
+                            <div class="${progressColor} nm-progress-bar" style="--progress:${progress}%"></div>
                         </div>
                         <span class="text-3xs font-bold text-slate-500 dark:text-slate-400">${esc(String(progress))}%</span>
                     </div>

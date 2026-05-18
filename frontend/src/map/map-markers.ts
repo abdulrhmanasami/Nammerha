@@ -241,8 +241,8 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
                     <span class="text-slate-500 dark:text-slate-400">${t('map_funded', 'Funded')}</span>
                     <span class="font-bold text-slate-700 dark:text-slate-300">${fundedPct.toFixed(1)}%</span>
                 </div>
-                <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all nm-progress-bar" 
+                <div class="nm-progress-track">
+                    <div class="nm-progress-bar" 
                          style="--progress: ${Math.min(fundedPct, 100)}%; --status-color: ${statusColor}"></div>
                 </div>
             </div>

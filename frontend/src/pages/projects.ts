@@ -222,8 +222,8 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
                 <span class="font-bold text-slate-700 dark:text-slate-300">${pct}% ${esc(t('projects_funded', 'funded'))}</span>
                 <span class="text-slate-400 dark:text-slate-500">${formatCents(project.total_funded ?? 0)} / ${formatCents(project.total_cost ?? 0)}</span>
             </div>
-            <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div class="h-full ${urgencyClass} rounded-full transition-all duration-700 nm-progress-bar" style="--progress:${pct}%"></div>
+            <div class="nm-progress-track">
+                <div class="${urgencyClass} nm-progress-bar" style="--progress:${pct}%"></div>
             </div>
             ${pct < 30 ? `<span class="inline-block mt-2 text-3xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-500/10">${esc(t('projects_most_needed', '⚡ Most Needed'))}</span>` : ''}
         </div>

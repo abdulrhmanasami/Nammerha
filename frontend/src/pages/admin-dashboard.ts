@@ -207,7 +207,7 @@ async function loadProjects(): Promise<void> {
                             <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="th_progress">Progress</span>
                             <span class="text-xs ${textColor} font-bold">${esc(String(progress))}%</span>
                         </div>
-                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="${progressColor} h-full nm-progress-bar" style="--progress:${progress}%"></div></div>
+                        <div class="nm-progress-track"><div class="${progressColor} nm-progress-bar" style="--progress:${progress}%"></div></div>
                     </div>
                     <div class="hidden md:flex shrink-0">
                         <i class="ph ph-caret-left text-slate-300 group-hover:text-trust-blue transition-colors text-lg" aria-hidden="true"></i>

@@ -251,8 +251,8 @@ async function loadProjects(): Promise<void> {
                 <div class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-dark-border">
                     <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="th_progress">Progress</span>
                     <div class="flex items-center gap-2 flex-grow max-w-[60%] justify-end">
-                        <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-amber-500 rounded-full nm-progress-bar" style="--progress:${Math.min(100, Math.max(0, Number(p.progress) || 0))}%"></div>
+                        <div class="nm-progress-track">
+                            <div class="bg-amber-500 nm-progress-bar" style="--progress:${Math.min(100, Math.max(0, Number(p.progress) || 0))}%"></div>
                         </div>
                         <span class="text-xs font-bold text-slate-600 w-8 text-end dark:text-slate-400">${esc(String(p.progress))}%</span>
                     </div>
