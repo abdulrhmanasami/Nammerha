@@ -8,6 +8,8 @@ import { t } from '../utils/i18n';
 import { setLoadingState } from '../utils/loading-state';
 // DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
 import { haptic } from '../utils/haptic';
+// P1-005 FIX (Wave 2): Scroll-to-field on submission errors.
+import { scrollToField } from '../utils/scroll-to-field';
 // W6-003 FIX: Auth guard — was missing on this homeowner page.
 import { requireAuth } from '../utils/auth-guard';
 
@@ -221,6 +223,34 @@ if (nextBtn) {
                 showStep(3);
             }
         } else if (state.currentStep === 3) {
+            // ─── P1-005 FIX (Wave 2): Pre-submission validation with scroll-to-field ───
+            // PREVIOUS: If user reached step 3 via restored state with corrupt/missing
+            // data (e.g. damageType cleared, governorate missing), the API would return
+            // 400 with no client-side guidance. User was stranded on step 3.
+            // NOW: Validate required fields BEFORE the API call. On failure, navigate
+            // to the offending step and scroll+focus the missing field.
+            // Standard: WCAG 3.3.1 (Error Identification), Apple HIG (Form Validation).
+            // ──────────────────────────────────────────────────────────────────────────
+            if (!state.damageType) {
+                showStep(1);
+                // Flash the damage card list to draw attention
+                const damageList = document.getElementById('damage-type-list');
+                if (damageList) {
+                    damageList.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+            if (!state.governorate) {
+                showStep(2);
+                scrollToField(document.getElementById('governorate'));
+                return;
+            }
+            if (!state.neighborhood) {
+                showStep(2);
+                scrollToField(document.getElementById('neighborhood'));
+                return;
+            }
+
             state.description = (document.getElementById('damage-description') as HTMLTextAreaElement)?.value.trim() || '';
 
             // FRC-NEW-06 FIX: Visual loading state with spinner during API submission.
@@ -262,9 +292,23 @@ if (nextBtn) {
                 const message = err instanceof Error ? err.message : t('hr_submission_failed', 'Submission failed');
                 // HIGH-002 FIX: Replace alert() with inline error banner
                 const errDiv = document.createElement('div');
-                errDiv.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mx-4 mt-2 animate-fade-in-up';
-                errDiv.innerHTML = `<i class="ph ph-warning-circle" aria-hidden="true"></i> ${esc(message)}`;
+                errDiv.className = 'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mx-4 mt-2 animate-fade-in-up dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20';
+                errDiv.setAttribute('role', 'alert');
+                // P1-005 FIX: tabindex=-1 makes the div programmatically focusable for
+                // screen readers without adding it to the tab order.
+                errDiv.setAttribute('tabindex', '-1');
+                errDiv.innerHTML = `<i class="ph ph-warning-circle shrink-0" aria-hidden="true"></i> ${esc(message)}`;
                 steps[2]?.prepend(errDiv);
+
+                // P1-005 FIX (Wave 2): Scroll error banner into view.
+                // PREVIOUS: Banner was prepended at the TOP of step-3 section. On mobile,
+                // user is often scrolled down viewing photo thumbnails or the submit button.
+                // The banner appeared off-screen — invisible without manual scroll-up.
+                // NOW: Smooth scroll to the banner + focus it for screen reader announcement.
+                // Standard: WCAG 3.3.1 (Error Identification), Nielsen #9 (Help Users Recover).
+                errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => errDiv.focus({ preventScroll: true }), 350);
+
                 setTimeout(() => errDiv.remove(), 5000);
             }
         }
