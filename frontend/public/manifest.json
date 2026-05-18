@@ -54,10 +54,10 @@
       "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "تبرّع — Donate",
-      "short_name": "تبرّع",
-      "description": "Donate — تصفح المشاريع وتبرع",
-      "url": "/donor-basket.html",
+      "name": "المشاريع — Projects",
+      "short_name": "المشاريع",
+      "description": "Projects — تصفح مشاريع إعادة الإعمار",
+      "url": "/projects.html",
       "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],

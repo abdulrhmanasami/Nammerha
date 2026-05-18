@@ -243,9 +243,13 @@ document.querySelectorAll<HTMLButtonElement>('.filter-pill').forEach((pill) => {
         document.querySelectorAll('.filter-pill').forEach((p) => {
             p.classList.remove('filter-pill-active');
             p.classList.add('border-slate-200', 'text-slate-500');
+            // P2-WEB-001 FIX: Keep aria-pressed in sync with visual active state.
+            // Standard: WAI-ARIA 1.2 (Button Patterns), WCAG 4.1.2.
+            p.setAttribute('aria-pressed', 'false');
         });
         pill.classList.add('filter-pill-active');
         pill.classList.remove('border-slate-200', 'text-slate-500');
+        pill.setAttribute('aria-pressed', 'true');
 
         state.filter = pill.dataset['filter'] ?? 'all';
         void fetchProjects();

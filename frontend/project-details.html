@@ -56,7 +56,10 @@
       </a>
       <h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center page-header-title" data-i18n="project_details">Project Details</h2>
       <div class="flex items-center gap-1">
-        <a href="donor-basket.html" id="header-cart-btn" class="relative flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
+        <!-- P2-WEB-003 FIX: donor-basket.html suspended (KI: nammerha_donation_suspension).
+             Cart icon links to projects page for continued browsing.
+             Standard: KI Compliance, Nielsen #2. -->
+        <a href="projects.html" id="header-cart-btn" class="relative flex w-11 h-11 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Construction basket" data-i18n-aria="aria_construction_basket">
           <i class="ph ph-shopping-cart" aria-hidden="true"></i>
           <span class="cart-badge nm-hidden" id="header-cart-badge">0</span>
         </a>
@@ -256,7 +259,8 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold text-slate-800 truncate dark:text-slate-200" id="cart-toast-text" data-i18n="added_to_cart">Added to cart</p>
-          <a href="donor-basket.html" class="text-3xs font-semibold text-trust-blue hover:underline" data-i18n="view_basket">View basket →</a>
+          <!-- P2-WEB-003 FIX: donor-basket.html → projects.html (KI: nammerha_donation_suspension). -->
+          <a href="projects.html" class="text-3xs font-semibold text-trust-blue hover:underline" data-i18n="view_basket">View basket →</a>
         </div>
         <button type="button" id="cart-toast-dismiss" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors shrink-0" aria-label="Dismiss">
           <i class="ph ph-x text-slate-400 text-sm dark:text-slate-500" aria-hidden="true"></i>

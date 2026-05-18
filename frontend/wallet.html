@@ -16,7 +16,10 @@
   <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
   <title>Nammerha — Wallet | المحفظة</title>
-  <meta name="description" content="View your escrow balances, donation history, and payment transactions." />
+  <!-- P1-WEB-002 FIX: "donation history" → "funding history".
+       Donation system permanently suspended (KI: nammerha_donation_suspension).
+       Standard: SEO Accuracy, Trust UX, KI Compliance. -->
+  <meta name="description" content="View your escrow balances, funding history, and payment transactions." />
   <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
   <meta name="robots" content="noindex, nofollow" />
@@ -85,7 +88,9 @@
              Previous: Hardcoded "$0.00 USD" shown before API response — false impression
              of empty wallet. FinTech standard: financial data MUST show loading state.
              Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
-        <div id="wallet-balance" class="mt-1">
+        <!-- P2-WEB-002 FIX: Added aria-busy for screen reader loading state.
+             Standard: WCAG 4.1.3 (Status Messages). -->
+        <div id="wallet-balance" class="mt-1" aria-busy="true">
           <div class="flex items-baseline gap-2 animate-pulse" data-skeleton>
             <div class="h-8 w-28 bg-white/20 rounded-lg"></div>
             <div class="h-4 w-10 bg-white/15 rounded"></div>
@@ -126,12 +131,17 @@
     <!-- GAP-004 FIX: Grid expanded to 4 columns to include Deposit action -->
     <!-- FRC-003 FIX: wallet-quick-grid enables responsive 2×2 layout at ≤400px -->
     <div class="grid grid-cols-4 gap-2 wallet-quick-grid">
-      <a href="donor-basket.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
+      <!-- P0-WEB-001 FIX: Replaced <a href="donor-basket.html"> with coming-soon button.
+           Donation system permanently suspended (KI: nammerha_donation_suspension).
+           Visual parity with Deposit coming-soon pattern (L139-148).
+           Standard: Nielsen #2 (Match System ↔ Real World), Honest Affordances. -->
+      <button type="button" id="donate-action" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center transition-shadow opacity-60 relative">
         <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
           <i class="ph ph-hand-heart text-trust-blue" aria-hidden="true"></i>
         </div>
         <span class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400" data-i18n="donate">Donate</span>
-      </a>
+        <span class="absolute top-1 end-1 text-3xs bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold dark:text-slate-400" data-i18n="coming_soon">Soon</span>
+      </button>
       <!-- FRIC-001 FIX: Added "Soon" indicator to Deposit quick action.
            Previously: active-looking card opened "coming soon" dialog — false affordance.
            Now: visual parity with de-emphasized "Add Funds" button.
@@ -152,7 +162,11 @@
         </div>
         <span class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400" data-i18n="receipts">Receipts</span>
       </a>
-      <a href="donor-portal.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
+      <!-- P0-WEB-002 FIX: Replaced <a href="donor-portal.html"> with link to active projects.
+           Donor portal suspended (KI: nammerha_donation_suspension).
+           Impact tracking redirects to live projects page.
+           Standard: Nielsen #2 (Match System ↔ Real World), KI Compliance. -->
+      <a href="projects.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
         <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center">
           <i class="ph ph-chart-pie text-warm-earth" aria-hidden="true"></i>
         </div>

@@ -461,6 +461,18 @@ function setupServiceRequestForm(): void {
         if (!title) {
             errors.push(t('ho_sr_title_required', 'Please enter a title for your request'));
         }
+        // P2-WEB-004 FIX: Budget field accepts negative/non-numeric values.
+        // Previous: `parseInt(budget, 10) * 100` without min/max guard — could send
+        // negative cents or NaN to the API.
+        // Standard: OWASP Input Validation, FinTech UX (Financial Input Guards).
+        if (budget) {
+            const budgetNum = parseInt(budget, 10);
+            if (isNaN(budgetNum) || budgetNum <= 0) {
+                errors.push(t('ho_sr_budget_invalid', 'Budget must be a positive number'));
+            } else if (budgetNum > 10_000_000) {
+                errors.push(t('ho_sr_budget_too_high', 'Budget exceeds maximum allowed value'));
+            }
+        }
         if (errors.length > 0) {
             showSrBanner('error', errors.join(' • '));
             return;
