@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 
 /// User model matching backend auth response
+/// P0-003: Extended with phone and isKycVerified for progressive KYC gate.
+/// Defensive parsing — missing fields default to null/false (most restrictive).
 class NammerhaUser {
   final String userId;
   final String email;
@@ -10,6 +12,9 @@ class NammerhaUser {
   final List<String> roles;
   final bool isActive;
   final bool isEmailVerified;
+  // P0-003: Progressive KYC profiling fields
+  final String? phone;
+  final bool isKycVerified;
 
   const NammerhaUser({
     required this.userId,
@@ -19,6 +24,8 @@ class NammerhaUser {
     required this.roles,
     required this.isActive,
     required this.isEmailVerified,
+    this.phone,
+    this.isKycVerified = false,
   });
 
   factory NammerhaUser.fromJson(Map<String, dynamic> json) {
@@ -30,8 +37,15 @@ class NammerhaUser {
       roles: (json['roles'] as List<dynamic>?)?.cast<String>() ?? [json['role'] as String],
       isActive: json['is_active'] as bool? ?? false,
       isEmailVerified: json['is_email_verified'] as bool? ?? false,
+      // P0-003: Defensive — defaults to null/false if backend omits
+      phone: json['phone'] as String?,
+      isKycVerified: json['kyc_verified'] as bool? ?? false,
     );
   }
+
+  /// P0-003: Whether the user has a complete profile (name + phone set).
+  bool get isProfileComplete =>
+      fullName.trim().isNotEmpty && (phone?.trim().isNotEmpty ?? false);
 }
 
 /// Production Auth Repository — calls real backend API

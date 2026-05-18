@@ -12,6 +12,7 @@ import '../../../core/i18n/t.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/utils/animation_budget.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Engineer Portal — Multi-tab Dashboard (Platinum Standard)
@@ -447,7 +448,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
                       colors),
                   _bidDetailCol(
                       context.tr('eng_submitted'),
-                      _formatDate(bid.submittedAt),
+                      NammerhaDateUtils.formatDateShort(bid.submittedAt),
                       colors.textSecondary,
                       colors),
                 ],
@@ -582,7 +583,7 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
                         style: TextStyle(
                             fontSize: 12, color: colors.textSecondary),
                         overflow: TextOverflow.ellipsis),
-                    Text(_formatDate(capture.capturedAt),
+                    Text(NammerhaDateUtils.formatDateShort(capture.capturedAt),
                         style:
                             TextStyle(fontSize: 11, color: colors.textSubtle)),
                   ],
@@ -772,13 +773,5 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
     }
   }
 
-  String _formatDate(String dateStr) {
-    try {
-      final dt = DateTime.parse(dateStr);
-      return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (e) {
-      debugPrint('[Nammerha] screens/engineer_portal_screen: $e');
-      return dateStr;
-    }
-  }
+  // P2-002 FIX: Inline _formatDate() removed → NammerhaDateUtils.formatDateShort()
 }

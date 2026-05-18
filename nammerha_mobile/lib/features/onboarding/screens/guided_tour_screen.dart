@@ -61,12 +61,36 @@ Future<void> markTourCompleted() async {
   await prefs.setBool(_kTourCompleted, true);
 }
 
+/// P1-003 FIX: Static lock to prevent concurrent tour invocations.
+/// PREVIOUS: Only instance-level `_tourTriggered` protected against re-entry.
+/// If DashboardScreen was rebuilt (locale/theme change), a new instance with
+/// `_tourTriggered = false` was created, and `showGuidedTour()` was called
+/// again before SharedPreferences was written → double-fire.
+///
+/// NOW: Three mitigations:
+///   1. Static `_isShowing` lock → prevents concurrent calls app-wide.
+///   2. `markTourCompleted()` called BEFORE pushing overlay → no race window.
+///   3. Dashboard uses `static _tourTriggered` (see dashboard_screen.dart).
+bool _isShowing = false;
+
 /// Show the guided tour as a full-screen modal overlay.
 /// Internally checks SharedPreferences — safe to call unconditionally.
 Future<void> showGuidedTour(BuildContext context) async {
+  // P1-003 FIX: Static lock — prevents concurrent invocations.
+  if (_isShowing) return;
+
   if (!await shouldShowTour()) return;
 
-  if (!context.mounted) return;
+  // P1-003 FIX: Mark complete BEFORE pushing — eliminates the race window.
+  // PREVIOUS: markTourCompleted() was called AFTER Navigator.pop(), so a
+  // concurrent call during the overlay's lifetime would pass shouldShowTour().
+  _isShowing = true;
+  await markTourCompleted();
+
+  if (!context.mounted) {
+    _isShowing = false;
+    return;
+  }
 
   await Navigator.of(context).push(
     PageRouteBuilder(
@@ -77,7 +101,7 @@ Future<void> showGuidedTour(BuildContext context) async {
     ),
   );
 
-  await markTourCompleted();
+  _isShowing = false;
 }
 
 class _GuidedTourOverlay extends StatefulWidget {

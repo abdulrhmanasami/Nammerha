@@ -61,4 +61,17 @@ class NammerhaDateUtils {
   static String formatDate(BuildContext context, DateTime dateTime) {
     return DateFormat('d MMM yyyy, HH:mm', context.localeCode).format(dateTime);
   }
+
+  /// P2-002: Formats an ISO date string to compact date (YYYY/MM/DD).
+  /// Replaces 6+ inline `_formatDate()` methods across screens.
+  /// Returns original string on parse failure (fail-safe).
+  static String formatDateShort(String isoString) {
+    try {
+      final dt = DateTime.parse(isoString);
+      return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
+    } catch (e) {
+      debugPrint('[Nammerha] utils/date_utils: $e');
+      return isoString;
+    }
+  }
 }

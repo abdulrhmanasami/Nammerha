@@ -11,6 +11,8 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/register_wizard_cubit.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../../../core/utils/animation_budget.dart';
+// P0-002 FIX: Email verification interstitial — replaces SnackBar-and-pop
+import 'email_verification_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Register Wizard Screen — Platinum Standard
@@ -235,10 +237,16 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
         if (state is AuthRegistrationSuccess) {
           // AUD-003: Clear draft on successful registration.
           context.read<RegisterWizardCubit>().clearDraft();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: colors.success),
+          // P0-002 FIX: Navigate to email verification interstitial
+          // PREVIOUS: SnackBar + pop → user confused about email verification.
+          // NOW: Dedicated interstitial with resend, cooldown, and guidance.
+          // Standard: Nielsen #1 (Visibility of system status).
+          final email = _emailController.text.trim();
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => EmailVerificationScreen(email: email),
+            ),
           );
-          Navigator.of(context).pop(); // Go back to login
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: colors.error),

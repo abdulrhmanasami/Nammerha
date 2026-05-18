@@ -52,9 +52,11 @@ class _MarketplaceViewState extends State<MarketplaceView> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  /// P3-004: First-time welcome card visibility.
-  /// Defaults to false (hidden) until SharedPreferences confirms first visit.
-  bool _showWelcome = false;
+  /// P2-006 FIX: ValueNotifier replaces setState for welcome card visibility.
+  /// PREVIOUS: `setState(() => _showWelcome = ...)` rebuilt the ENTIRE screen
+  /// (660 lines of widgets) just to toggle a single welcome card.
+  /// NOW: ValueNotifier scopes the rebuild to only the welcome card consumer.
+  final ValueNotifier<bool> _showWelcome = ValueNotifier(false);
   static const _welcomeKey = 'nm_marketplace_welcome_dismissed';
 
   @override
@@ -65,17 +67,19 @@ class _MarketplaceViewState extends State<MarketplaceView> {
   }
 
   /// P3-004: Load welcome card visibility from SharedPreferences.
+  /// P2-006 FIX: Uses ValueNotifier instead of setState.
   Future<void> _loadWelcomeState() async {
     final prefs = await SharedPreferences.getInstance();
     final dismissed = prefs.getBool(_welcomeKey) ?? false;
     if (!dismissed && mounted) {
-      setState(() => _showWelcome = true);
+      _showWelcome.value = true;
     }
   }
 
   /// P3-004: Dismiss welcome card and persist.
+  /// P2-006 FIX: Uses ValueNotifier instead of setState.
   Future<void> _dismissWelcome() async {
-    setState(() => _showWelcome = false);
+    _showWelcome.value = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_welcomeKey, true);
   }
@@ -84,6 +88,7 @@ class _MarketplaceViewState extends State<MarketplaceView> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _showWelcome.dispose();
     super.dispose();
   }
 
@@ -282,40 +287,46 @@ class _MarketplaceViewState extends State<MarketplaceView> {
           }
 
           if (state is MarketplaceLoaded) {
-            final welcomeOffset = _showWelcome ? 1 : 0;
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<MarketplaceBloc>().add(const LoadProjectsEvent(isRefresh: true));
-                await Future.delayed(const Duration(milliseconds: 500));
+            // P2-006 FIX: ValueListenableBuilder scopes rebuilds to welcome toggle only.
+            return ValueListenableBuilder<bool>(
+              valueListenable: _showWelcome,
+              builder: (context, showWelcome, _) {
+                final welcomeOffset = showWelcome ? 1 : 0;
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<MarketplaceBloc>().add(const LoadProjectsEvent(isRefresh: true));
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  color: colors.primaryBrand,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 20),
+                    // P3-004: +1 for welcome card, +1 for loading footer
+                    itemCount: state.projects.length + welcomeOffset + (state.isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      // P3-004: Welcome card at position 0
+                      if (showWelcome && index == 0) {
+                        return _buildWelcomeCard(context, colors);
+                      }
+                      final projectIndex = index - welcomeOffset;
+                      // Loading footer
+                      if (projectIndex >= state.projects.length) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: Text(
+                              context.tr('loading_more'),
+                              style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                            ),
+                          ),
+                        );
+                      }
+                      final project = state.projects[projectIndex];
+                      return _buildProjectCard(context, project, colors, projectIndex);
+                    },
+                  ),
+                );
               },
-              color: colors.primaryBrand,
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 20),
-                // P3-004: +1 for welcome card, +1 for loading footer
-                itemCount: state.projects.length + welcomeOffset + (state.isLoadingMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  // P3-004: Welcome card at position 0
-                  if (_showWelcome && index == 0) {
-                    return _buildWelcomeCard(context, colors);
-                  }
-                  final projectIndex = index - welcomeOffset;
-                  // Loading footer
-                  if (projectIndex >= state.projects.length) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: Text(
-                          context.tr('loading_more'),
-                          style: TextStyle(color: colors.textSecondary, fontSize: 13),
-                        ),
-                      ),
-                    );
-                  }
-                  final project = state.projects[projectIndex];
-                  return _buildProjectCard(context, project, colors, projectIndex);
-                },
-              ),
             );
           }
 

@@ -27,6 +27,10 @@ import '../../admin/screens/admin_kyc_screen.dart';
 import '../../project/screens/marketplace_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
+// P0-001 FIX: Professional Portals — were orphaned (zero navigation entry points)
+import '../../engineer/screens/engineer_portal_screen.dart';
+import '../../contractor/screens/contractor_portal_screen.dart';
+import '../../supplier/screens/supplier_portal_screen.dart';
 import '../../reality_capture/screens/reality_capture_screen.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/widgets/error_state.dart';
@@ -35,12 +39,17 @@ import '../../../core/widgets/error_state.dart';
 // Wave 4: ConnectivityBanner import removed — now global via MaterialApp.builder
 import '../../../core/bloc/page_index_cubit.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
-import '../../../core/widgets/bottom_sheet_grabber.dart';
+// P2-003 FIX: BottomSheetGrabber import moved to ProjectPickerBottomSheet
 // UX-F029: Guided feature tour — shows on first login after onboarding
 import '../../onboarding/screens/guided_tour_screen.dart';
 // Phase 4: Payment system — contract list screen integration
 import '../../payments/screens/contract_list_screen.dart';
 import '../../../core/utils/animation_budget.dart';
+// P0-003 FIX: Progressive KYC profiling gate
+import '../../../core/kyc/kyc_guard.dart';
+import '../../../core/kyc/kyc_level.dart';
+// P2-003 FIX: Extracted project picker bottom sheet
+import '../../../core/widgets/project_picker_bottom_sheet.dart';
 
 class DashboardScreen extends StatefulWidget {
   final NammerhaUser user;
@@ -80,8 +89,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   //   4. AutomaticKeepAliveClientMixin is equivalent (keeps alive = IndexedStack)
   final Set<int> _visitedTabs = {0}; // Home tab always built
 
-  // UX-F029: Guided tour trigger flag — prevents re-trigger on rebuilds.
-  bool _tourTriggered = false;
+  // P1-003 FIX: Static tour trigger flag — survives widget rebuilds.
+  // PREVIOUS: Instance variable `_tourTriggered = false` — a locale/theme change
+  // would create a new State instance with _tourTriggered reset to false,
+  // causing showGuidedTour() to be called again (double-fire race).
+  // NOW: Static — persists across all instances of _DashboardScreenState.
+  static bool _tourTriggered = false;
 
   @override
   void initState() {
@@ -823,6 +836,44 @@ class _DashboardHomeView extends StatelessWidget {
           400,
           isHorizontal: true,
         ),
+        const SizedBox(height: 12),
+        // ═══════════════════════════════════════════════════════════════════
+        // P0-001 FIX: Professional Tools Bento Section
+        // PREVIOUS: EngineerPortalScreen (29KB), ContractorPortalScreen (29KB),
+        // SupplierPortalScreen (46KB) — 104KB of production code with ZERO
+        // navigation entry points after Universal Access migration.
+        // NOW: Accessible via dedicated "Professional Tools" workspace section.
+        // Standard: Nielsen #7 (Flexibility and efficiency of use).
+        // ═══════════════════════════════════════════════════════════════════
+        _buildBentoSection(
+          context,
+          context.tr('professional_tools'),
+          [
+            _WorkspaceItem(
+              context.tr('engineer_portal'),
+              PhosphorIconsRegular.hardHat,
+              colors.warmEarth,
+              const EngineerPortalScreen(),
+              kycRequirement: KycRequirements.engineerPortal,
+            ),
+            _WorkspaceItem(
+              context.tr('contractor_portal'),
+              PhosphorIconsRegular.crane,
+              colors.warmEarth,
+              const ContractorPortalScreen(),
+              kycRequirement: KycRequirements.contractorPortal,
+            ),
+            _WorkspaceItem(
+              context.tr('supplier_portal'),
+              PhosphorIconsRegular.package,
+              colors.warmEarth,
+              const SupplierPortalScreen(),
+              kycRequirement: KycRequirements.supplierPortal,
+            ),
+          ],
+          colors.warmEarth,
+          500,
+        ),
       ],
     );
   }
@@ -913,8 +964,17 @@ class _DashboardHomeView extends StatelessWidget {
       label: action.label,
       button: true,
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           HapticFeedback.lightImpact();
+          // ═══════════════════════════════════════════════════════════════
+          // P0-003 FIX: KYC Guard — check BEFORE any sensitive navigation.
+          // If the user's KYC level is insufficient, a bottom sheet
+          // explains what's needed and blocks navigation. O(1) check.
+          // ═══════════════════════════════════════════════════════════════
+          if (action.kycRequirement != null) {
+            if (!await KycGuard.check(context, action.kycRequirement!)) return;
+          }
+          if (!context.mounted) return;
           // UX-REM-F001 FIX: Camera action — project picker bottom sheet.
           // PREVIOUS: Dead SnackBar + TODO comment. User hit a dead end.
           // NOW: Opens a bottom sheet listing user's projects. On selection,
@@ -1223,116 +1283,30 @@ class _DashboardHomeView extends StatelessWidget {
   // ─── UX-REM-F001: Project Picker for Spatial Camera ─────────────────────
   // Replaces the dead SnackBar + TODO. Shows a bottom sheet listing the user's
   // projects. On selection, navigates to SpatialCameraScreen with project context.
+  // ═══════════════════════════════════════════════════════════════════════════
+  // P2-003 FIX: Project Pickers — Extracted to ProjectPickerBottomSheet
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PREVIOUS: Two near-identical 115-line methods (230 lines total):
+  //   _showProjectPickerForCamera() and _showProjectPickerForRealityCapture()
+  // NOW: Single reusable widget, each call is ~10 lines.
+  // ═══════════════════════════════════════════════════════════════════════════
+
   void _showProjectPickerForCamera(BuildContext context) {
     final colors = context.colors;
-    showModalBottomSheet<void>(
+    ProjectPickerBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetCtx) {
-        return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
-          ),
-          decoration: BoxDecoration(
-            color: colors.surfaceCard,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Grab handle — standardized Platinum component
-              BottomSheetGrabber(colors: colors),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIconsRegular.camera, color: colors.success, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        context.tr('select_project_for_camera'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Flexible(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _fetchUserProjects(),
-                  builder: (ctx, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: NammerhaShimmerLoader(colors: colors, isList: true),
-                      );
-                    }
-                    if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
-                      return Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(PhosphorIconsRegular.buildings, color: colors.textSecondary, size: 40),
-                            const SizedBox(height: 12),
-                            Text(
-                              context.tr('no_projects_for_camera'),
-                              style: TextStyle(color: colors.textSecondary, fontSize: 14),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    final projects = snapshot.data!;
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: projects.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1, indent: 20, endIndent: 20),
-                      itemBuilder: (_, index) {
-                        final p = projects[index];
-                        final projectId = p['project_id']?.toString() ?? '';
-                        final title = p['title']?.toString() ?? '';
-                        final status = p['status']?.toString() ?? '';
-                        return ListTile(
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: colors.primaryBrand.withAlpha(20),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(PhosphorIconsRegular.buildings, color: colors.primaryBrand, size: 20),
-                          ),
-                          title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                          subtitle: Text(status.replaceAll('_', ' '), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-                          trailing: Icon(PhosphorIconsRegular.caretRight, color: colors.textSecondary, size: 18),
-                          onTap: () {
-                            Navigator.pop(sheetCtx);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => SpatialCameraScreen(
-                                  projectId: projectId,
-                                  itemId: '', // General capture — no specific BOQ item
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+      headerIcon: PhosphorIconsRegular.camera,
+      headerTitleKey: 'select_project_for_camera',
+      leadingColor: colors.success,
+      projectsFuture: _fetchUserProjects(),
+      onProjectSelected: (projectId, _) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SpatialCameraScreen(
+              projectId: projectId,
+              itemId: '', // General capture — no specific BOQ item
+            ),
           ),
         );
       },
@@ -1354,118 +1328,24 @@ class _DashboardHomeView extends StatelessWidget {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // AUD-005 FIX: Project picker for Reality Capture 360°
-  // Same pattern as _showProjectPickerForCamera, but navigates to
-  // RealityCaptureScreen instead of SpatialCameraScreen.
+  // P2-003: Now uses extracted ProjectPickerBottomSheet.
   // ═══════════════════════════════════════════════════════════════════════════
   void _showProjectPickerForRealityCapture(BuildContext context) {
     final colors = context.colors;
-    showModalBottomSheet<void>(
+    ProjectPickerBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetCtx) {
-        return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6,
-          ),
-          decoration: BoxDecoration(
-            color: colors.surfaceCard,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BottomSheetGrabber(colors: colors),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIconsRegular.cube, color: colors.success, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        context.tr('select_project_for_capture'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Flexible(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _fetchUserProjects(),
-                  builder: (ctx, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: NammerhaShimmerLoader(colors: colors, isList: true),
-                      );
-                    }
-                    if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
-                      return Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(PhosphorIconsRegular.buildings, color: colors.textSecondary, size: 40),
-                            const SizedBox(height: 12),
-                            Text(
-                              context.tr('no_projects_for_camera'),
-                              style: TextStyle(color: colors.textSecondary, fontSize: 14),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    final projects = snapshot.data!;
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: projects.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1, indent: 20, endIndent: 20),
-                      itemBuilder: (_, index) {
-                        final p = projects[index];
-                        final projectId = p['project_id']?.toString() ?? '';
-                        final title = p['title']?.toString() ?? '';
-                        final status = p['status']?.toString() ?? '';
-                        return ListTile(
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: colors.success.withAlpha(20),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(PhosphorIconsRegular.cube, color: colors.success, size: 20),
-                          ),
-                          title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                          subtitle: Text(status.replaceAll('_', ' '), style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-                          trailing: Icon(PhosphorIconsRegular.caretRight, color: colors.textSecondary, size: 18),
-                          onTap: () {
-                            Navigator.pop(sheetCtx);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => RealityCaptureScreen(
-                                  projectId: projectId,
-                                  projectTitle: title,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+      headerIcon: PhosphorIconsRegular.cube,
+      headerTitleKey: 'select_project_for_capture',
+      leadingColor: colors.success,
+      projectsFuture: _fetchUserProjects(),
+      onProjectSelected: (projectId, title) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RealityCaptureScreen(
+              projectId: projectId,
+              projectTitle: title,
+            ),
           ),
         );
       },
@@ -1495,7 +1375,11 @@ class _WorkspaceItem {
   // P2-004 FIX: If set, switches bottom nav tab instead of pushing a new route.
   // Eliminates duplicate BlocProvider instances for screens already in IndexedStack.
   final int? switchToTabIndex;
-  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false, this.isRealityCaptureAction = false, this.switchToTabIndex});
+  // P0-003 FIX: Progressive KYC gate — minimum KYC level required to access.
+  // If null, no gate is applied (browsing actions). If set, KycGuard.check()
+  // is called before navigation and blocks with an interstitial if insufficient.
+  final KycLevel? kycRequirement;
+  const _WorkspaceItem(this.label, this.icon, this.color, this.screen, {this.isCameraAction = false, this.isRealityCaptureAction = false, this.switchToTabIndex, this.kycRequirement});
 }
 
 class _ActivityMeta {

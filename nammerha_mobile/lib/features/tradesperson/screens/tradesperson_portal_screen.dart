@@ -15,6 +15,7 @@ import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import '../../../core/utils/animation_budget.dart';
+import '../../../core/utils/date_utils.dart';
 
 class TradespersonPortalScreen extends StatelessWidget {
   const TradespersonPortalScreen({super.key});
@@ -60,16 +61,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
   // Centralized formatter via FormatUtils (Platinum Standard)
   String _formatCurrency(num amount) => FormatUtils.currency(amount);
 
-  String _formatDate(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty) return '—';
-    try {
-      final dt = DateTime.parse(dateStr);
-      return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (e) {
-      debugPrint('[Nammerha] screens/tradesperson_portal_screen: $e');
-      return dateStr;
-    }
-  }
+  // P2-002 FIX: Inline _formatDate() removed → NammerhaDateUtils.formatDateShort()
 
   @override
   Widget build(BuildContext context) {
@@ -465,7 +457,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
                         ),
                         if (e.completedAt != null) ...[
                           const SizedBox(width: 8),
-                          Text(_formatDate(e.completedAt), style: TextStyle(fontSize: 11, color: colors.textSubtle)),
+                          Text(e.completedAt != null ? NammerhaDateUtils.formatDateShort(e.completedAt!) : '—', style: TextStyle(fontSize: 11, color: colors.textSubtle)),
                         ],
                       ]),
                     ],

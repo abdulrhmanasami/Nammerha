@@ -17,6 +17,7 @@ import '../data/contractor_repository.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import '../../../core/utils/animation_budget.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Contractor Portal — Multi-tab Dashboard (Platinum Standard)
@@ -517,7 +518,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             children: [
               _miniStat(context.tr('ct_proposed_cost'), formatCurrency(b.proposedCost), colors),
               _miniStat(context.tr('ct_estimated_days'), '${b.estimatedDays} ${context.tr('ct_day')}', colors),
-              _miniStat(context.tr('date'), _formatDate(b.createdAt), colors),
+              _miniStat(context.tr('date'), NammerhaDateUtils.formatDateShort(b.createdAt), colors),
             ],
           ),
         ],
@@ -570,7 +571,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: colors.textPrimary)),
-                      Text(_formatDate(p.createdAt),
+                      Text(NammerhaDateUtils.formatDateShort(p.createdAt),
                           style: TextStyle(
                               fontSize: 11, color: colors.textSubtle)),
                     ],
@@ -639,15 +640,7 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
     );
   }
 
-  String _formatDate(String dateStr) {
-    try {
-      final dt = DateTime.parse(dateStr);
-      return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (e) {
-      debugPrint('[Nammerha] screens/contractor_portal_screen: $e');
-      return dateStr;
-    }
-  }
+  // P2-002 FIX: Inline _formatDate() removed → NammerhaDateUtils.formatDateShort()
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

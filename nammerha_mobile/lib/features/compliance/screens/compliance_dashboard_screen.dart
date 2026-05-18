@@ -15,6 +15,7 @@ import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import '../../../core/utils/animation_budget.dart';
+import '../../../core/utils/date_utils.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Compliance Dashboard — OCDS Audit & Escrow Review (Platinum Standard)
@@ -46,15 +47,7 @@ class _ComplianceDashboardView extends StatelessWidget {
   // Centralized formatter via FormatUtils (Platinum Standard)
   String _formatCurrency(num amount) => FormatUtils.currency(amount);
 
-  String _formatDate(String dateStr) {
-    try {
-      final dt = DateTime.parse(dateStr);
-      return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
-    } catch (e) {
-      debugPrint('[Nammerha] screens/compliance_dashboard_screen: $e');
-      return dateStr;
-    }
-  }
+  // P2-002 FIX: Inline _formatDate() removed → NammerhaDateUtils.formatDateShort()
 
   @override
   Widget build(BuildContext context) {
@@ -391,7 +384,7 @@ class _ComplianceDashboardView extends StatelessWidget {
                 ],
                 Icon(PhosphorIconsRegular.calendar, size: 14, color: colors.textSubtle),
                 const SizedBox(width: 4),
-                Text(_formatDate(review.submittedAt),
+                Text(NammerhaDateUtils.formatDateShort(review.submittedAt),
                     style: TextStyle(fontSize: 11, color: colors.textSecondary)),
                 const Spacer(),
                 Text(review.reference,

@@ -1983,4 +1983,53 @@ const Map<String, Map<String, String>> kTranslations = {
   'admin_oracle_unit_label': {'ar': 'الوحدة:', 'en': 'Unit:'},
   // Compliance
   'compliance_meter_suffix': {'ar': 'م', 'en': 'm'},
+
+  // ═══ P0-001 FIX: Professional Portals Bento Section (UX Forensic Audit) ═══
+  'professional_tools': {'ar': 'أدوات مهنية', 'en': 'Professional Tools'},
+  'engineer_portal': {'ar': 'بوابة المهندس', 'en': 'Engineer Portal'},
+  'contractor_portal': {'ar': 'بوابة المقاول', 'en': 'Contractor Portal'},
+  'supplier_portal': {'ar': 'بوابة المورّد', 'en': 'Supplier Portal'},
+
+  // ═══ P0-002 FIX: Email Verification Interstitial (UX Forensic Audit) ═══
+  'verify_email_title': {'ar': 'تحقق من بريدك الإلكتروني', 'en': 'Verify Your Email'},
+  'verify_email_subtitle': {'ar': 'أرسلنا رسالة تحقق إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد.', 'en': 'We sent a verification email to your inbox. Please check your email.'},
+  'verify_email_sent_to': {'ar': 'تم إرسال رابط التحقق إلى:', 'en': 'Verification link sent to:'},
+  'verify_email_check_spam': {'ar': 'تحقق من مجلد الرسائل غير المرغوبة إذا لم تجد الرسالة', 'en': 'Check your spam folder if you don\'t see the email'},
+  'verify_email_resend': {'ar': 'إعادة إرسال', 'en': 'Resend'},
+  'verify_email_resend_countdown': {'ar': 'إعادة إرسال بعد \$1 ثانية', 'en': 'Resend in \$1s'},
+  'verify_email_resent': {'ar': 'تم إعادة إرسال رابط التحقق ✓', 'en': 'Verification link resent ✓'},
+  'verify_email_open_mail': {'ar': 'فتح تطبيق البريد', 'en': 'Open Mail App'},
+  'verify_email_back_to_login': {'ar': 'العودة لتسجيل الدخول', 'en': 'Back to Login'},
+
+  // ═══ P1-001 FIX: Funding CTA Clarity (UX Forensic Audit) ═══
+  'fund_this_project': {'ar': 'ادعم هذا المشروع', 'en': 'Fund This Project'},
+  'fund_project_subtitle': {'ar': 'اختر مواد البناء التي تريد تمويلها من جدول الكميات', 'en': 'Select construction materials to fund from the bill of quantities'},
+
+  // ═══ P0-003 FIX: Progressive KYC Gate (UX Forensic Audit) ═══
+  'kyc_gate_title': {'ar': 'إكمال الملف الشخصي مطلوب', 'en': 'Profile Completion Required'},
+  'kyc_gate_subtitle': {'ar': 'يجب إكمال بعض الخطوات قبل الوصول إلى هذه الميزة لضمان أمان المنصة.', 'en': 'Some steps must be completed before accessing this feature to ensure platform security.'},
+  'kyc_gate_later': {'ar': 'لاحقاً', 'en': 'Later'},
+
+  // KYC Step Labels
+  'kyc_step_registered': {'ar': 'تم التسجيل', 'en': 'Registered'},
+  'kyc_step_email_verified': {'ar': 'تم تأكيد البريد', 'en': 'Email Verified'},
+  'kyc_step_profile_complete': {'ar': 'اكتمال الملف الشخصي', 'en': 'Profile Complete'},
+  'kyc_step_kyc_approved': {'ar': 'الهوية مُعتمدة', 'en': 'Identity Approved'},
+
+  // KYC Action Messages
+  'kyc_action_verify_email': {'ar': 'يرجى تأكيد بريدك الإلكتروني أولاً. تحقق من صندوق الوارد أو أعد إرسال رابط التحقق.', 'en': 'Please verify your email first. Check your inbox or resend the verification link.'},
+  'kyc_action_complete_profile': {'ar': 'يرجى إكمال بيانات ملفك الشخصي (الاسم ورقم الهاتف) للوصول إلى هذه الميزة.', 'en': 'Please complete your profile details (name and phone number) to access this feature.'},
+  'kyc_action_submit_docs': {'ar': 'يرجى تقديم وثائق إثبات الهوية للحصول على اعتماد KYC.', 'en': 'Please submit identity verification documents for KYC approval.'},
+
+  // KYC CTA Buttons
+  'kyc_cta_verify_email': {'ar': 'تأكيد البريد الإلكتروني', 'en': 'Verify Email'},
+  'kyc_cta_complete_profile': {'ar': 'إكمال الملف الشخصي', 'en': 'Complete Profile'},
+  'kyc_cta_upload_docs': {'ar': 'رفع المستندات', 'en': 'Upload Documents'},
+  'kyc_check_email_hint': {'ar': 'تحقق من صندوق الوارد لتأكيد بريدك الإلكتروني', 'en': 'Check your inbox to verify your email'},
+
+  // ═══ P1-005 FIX: Diagnostic Error Hints (NammerhaErrorState) ═══
+  'err_hint_network': {'ar': 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى.', 'en': 'Check your internet connection and try again.'},
+  'err_hint_server': {'ar': 'المشكلة من الخادم — يرجى المحاولة بعد قليل.', 'en': 'This is a server issue — please try again shortly.'},
+  'err_hint_auth': {'ar': 'انتهت صلاحية جلستك. أعد تسجيل الدخول للمتابعة.', 'en': 'Your session has expired. Please log in again to continue.'},
+  'err_hint_not_found': {'ar': 'المورد المطلوب غير موجود أو تم نقله.', 'en': 'The requested resource was not found or has been moved.'},
 };

@@ -19,6 +19,9 @@ import '../bloc/project_details_state.dart';
 import '../../../core/i18n/t.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import '../../../core/utils/animation_budget.dart';
+// P0-003 FIX: Progressive KYC profiling gate
+import '../../../core/kyc/kyc_guard.dart';
+import '../../../core/kyc/kyc_level.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Project Details Screen
@@ -544,9 +547,90 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // ═══════════════════════════════════════════════════════════════════
+        // P1-001 FIX: Funding CTA — dedicated entry point for funders/donors.
+        // PREVIOUS: After donation eradication, only "Hire Provider" existed.
+        // Funders (diaspora donors) didn't understand BOQ = funding mechanism.
+        // NOW: Clear "Fund This Project" CTA that anchors to BOQ items.
+        // Standard: Fitts' Law — primary intent should be primary affordance.
+        // ═══════════════════════════════════════════════════════════════════
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colors.success, colors.success.withAlpha(200)],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () async {
+                // P0-003 FIX: Funding requires email verification (Level 1)
+                if (!await KycGuard.check(context, KycRequirements.fund)) return;
+                // Scroll hint: the BOQ items are below — the user can select materials
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.tr('fund_project_subtitle')),
+                    backgroundColor: colors.success,
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(40),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(PhosphorIconsRegular.heartStraight, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr('fund_this_project'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            context.tr('fund_project_subtitle'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withAlpha(200),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(PhosphorIconsRegular.arrowDown, color: Colors.white.withAlpha(180)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         // Bid / BOQ action — available to ALL users
         ElevatedButton.icon(
-          onPressed: () {
+          onPressed: () async {
+            // P0-003 FIX: Submitting bids requires profile completion (Level 2)
+            if (!await KycGuard.check(context, KycRequirements.submitBid)) return;
+            if (!context.mounted) return;
             Navigator.push(context, MaterialPageRoute(
               builder: (_) => BOQDetailsScreen(projectId: widget.projectId),
             ));

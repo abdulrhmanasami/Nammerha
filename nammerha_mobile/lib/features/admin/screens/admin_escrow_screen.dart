@@ -6,6 +6,7 @@ import '../../../core/services/api_services.dart';
 import '../bloc/admin_escrow_bloc.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/date_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 
 /// Admin Escrow Verification — Review spatial proofs & release/flag escrow.
@@ -188,7 +189,7 @@ class _EscrowView extends StatelessWidget {
                   _detailChip(colors, PhosphorIconsRegular.mapPin,
                       '${c.latitude!.toStringAsFixed(4)}, ${c.longitude!.toStringAsFixed(4)}'),
                 if (c.submittedAt != null)
-                  _detailChip(colors, PhosphorIconsRegular.clock, _formatDate(c.submittedAt!)),
+                  _detailChip(colors, PhosphorIconsRegular.clock, NammerhaDateUtils.formatDateShort(c.submittedAt!)),
               ],
             ),
           ),
@@ -327,13 +328,5 @@ class _EscrowView extends StatelessWidget {
     );
   }
 
-  String _formatDate(String isoDate) {
-    try {
-      final date = DateTime.parse(isoDate);
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      debugPrint('[Nammerha] screens/admin_escrow_screen: $e');
-      return '—';
-    }
-  }
+  // P2-002 FIX: Inline _formatDate() removed → NammerhaDateUtils.formatDateShort()
 }
