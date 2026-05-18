@@ -905,6 +905,81 @@ if (hasRestoredState && state.currentStep > 1) {
         if (descArea) { descArea.value = state.description; }
     }
 
+    // ─── P1-004 FIX (Wave 2): Complete DOM synchronization for restored state ────
+    // PREVIOUS: restoreWizardState() correctly loaded all state fields from
+    // sessionStorage, but only synced a subset of DOM elements. Five gaps:
+    //   1. Photo counter (#photo-count) stayed at "0" despite state.photoCount > 0
+    //   2. Upload zone remained active even when max photos (5) were reached
+    //   3. Character counter (#desc-char-count) stayed at "0 / 1000" after restore
+    //   4. No visual indication of previously uploaded photos (thumbnails lost on reload)
+    //   5. GPS detect button reset to "Detect my location" after coords already captured
+    // These are all DOM-state coupling gaps — the JS state was correct, but the DOM
+    // did not reflect it.
+    // Standard: Nielsen #1 (System Status Visibility), Nielsen #5 (Error Prevention).
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    // P1-004-1: Sync photo counter display
+    if (state.photoCount > 0) {
+        const photoCountEl = document.getElementById('photo-count');
+        if (photoCountEl) { photoCountEl.textContent = String(state.photoCount); }
+    }
+
+    // P1-004-2: Restore upload zone max-reached state (mirrors P1-002 fix)
+    const maxPhotos = 5;
+    if (state.photoCount >= maxPhotos) {
+        const zone = document.getElementById('photo-upload-zone');
+        const input = document.getElementById('photo-input') as HTMLInputElement | null;
+        if (zone) {
+            zone.classList.add('pointer-events-none');
+            zone.classList.remove('border-dashed', 'border-slate-200', 'cursor-pointer', 'active:border-trust-blue/40', 'dark:border-dark-border');
+            zone.classList.add('border-solid', 'border-smoky-jade/30', 'bg-smoky-jade/5', 'dark:bg-smoky-jade/10', 'dark:border-smoky-jade/20');
+            zone.innerHTML = `
+                <div class="size-12 rounded-full bg-smoky-jade/15 flex items-center justify-center">
+                    <i class="ph ph-check-circle text-smoky-jade nm-icon-28 dark:text-emerald-400" aria-hidden="true"></i>
+                </div>
+                <p class="text-smoky-jade text-sm font-bold dark:text-emerald-400" role="status">${esc(t('hr_max_photos_reached', 'Maximum 5 photos uploaded'))}</p>
+                <p class="text-slate-400 text-3xs dark:text-slate-500">${state.photoCount}/${maxPhotos} • ${esc(t('hr_all_photos_ready', 'All photos ready'))}</p>
+            `;
+        }
+        if (input) { input.disabled = true; }
+    }
+
+    // P1-004-3: Sync character counter by dispatching input event
+    // programmatic .value = '' does NOT fire 'input' events — the counter stays stale
+    if (state.description) {
+        const descArea = document.getElementById('damage-description') as HTMLTextAreaElement | null;
+        if (descArea) { descArea.dispatchEvent(new Event('input')); }
+    }
+
+    // P1-004-4: Show restored photo badge (thumbnails are lost on reload — raw blobs
+    // aren't persisted). Instead, show a summary badge indicating previous uploads.
+    if (state.photoCount > 0 && state.uploadedPhotoUrls.length > 0) {
+        const thumbContainer = document.getElementById('photo-thumbnails');
+        if (thumbContainer) {
+            const badge = document.createElement('div');
+            badge.className = 'flex items-center gap-2 text-xs font-medium text-smoky-jade bg-smoky-jade/8 border border-smoky-jade/15 rounded-lg px-3 py-2 dark:text-emerald-400 dark:bg-smoky-jade/10 dark:border-smoky-jade/20';
+            badge.setAttribute('role', 'status');
+            badge.innerHTML = `<i class="ph ph-image-square text-base shrink-0" aria-hidden="true"></i> ${esc(t('hr_photos_restored', `${state.photoCount} photo${state.photoCount > 1 ? 's' : ''} previously uploaded`))}`;
+            thumbContainer.appendChild(badge);
+        }
+    }
+
+    // P1-004-5: Restore GPS detect button disabled state
+    if (state.gpsCoords) {
+        const detectBtn = document.getElementById('detect-location-btn') as HTMLButtonElement | null;
+        if (detectBtn) {
+            detectBtn.disabled = true;
+            detectBtn.classList.add('opacity-60');
+            const btnIcon = detectBtn.querySelector('.ph-crosshair');
+            if (btnIcon) {
+                btnIcon.classList.remove('ph-crosshair');
+                btnIcon.classList.add('ph-check-circle');
+            }
+            const btnLabel = detectBtn.querySelector('span');
+            if (btnLabel) { btnLabel.textContent = t('hr_location_detected', 'Location detected'); }
+        }
+    }
+
     showStep(state.currentStep);
 } else {
     showStep(1);
