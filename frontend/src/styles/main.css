@@ -1935,6 +1935,43 @@ html[data-theme="dark"] .nm-toast {
    Attaches to #notification-bell (injected by header-normalize.ts).
    RTL-safe, dark-mode safe, accessible, 200ms enter/exit animation.
    ============================================================================ */
+
+/* ── P1-010 FIX (Wave 2): Bell Icon Transition States ──────────────────────
+   PREVIOUS: Bell had zero visual feedback on click — panel appeared from
+   invisible state with no visual anchor connecting it to the bell icon.
+   User perceived a "jump" because there was no cause→effect animation link.
+   NOW: aria-expanded="true" (already toggled by JS) triggers:
+     1. Trust Blue background tint + icon color change
+     2. Bell ring micro-animation (scale + rotation wiggle)
+   Standard: Apple HIG (Immediate Feedback), Material Design 3 (Activation States).
+   ─────────────────────────────────────────────────────────────────────────── */
+#notification-bell,
+[data-notif-bell] {
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+#notification-bell[aria-expanded="true"],
+[data-notif-bell][aria-expanded="true"] {
+    background: color-mix(in srgb, var(--trust-blue, #1558D6) 12%, transparent);
+    animation: nm-bell-ring 0.5s ease;
+}
+#notification-bell[aria-expanded="true"] i,
+[data-notif-bell][aria-expanded="true"] i {
+    color: var(--trust-blue, #1558D6) !important;
+}
+@keyframes nm-bell-ring {
+    0%   { transform: scale(0.85); }
+    25%  { transform: scale(1.1) rotate(8deg); }
+    45%  { transform: scale(1.05) rotate(-6deg); }
+    65%  { transform: scale(1.02) rotate(3deg); }
+    80%  { transform: scale(1.01) rotate(-1deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+/* Dark mode: stronger tint for visibility */
+html[data-theme="dark"] #notification-bell[aria-expanded="true"],
+html[data-theme="dark"] [data-notif-bell][aria-expanded="true"] {
+    background: color-mix(in srgb, var(--trust-blue, #1558D6) 18%, transparent);
+}
+
 .nm-notif-panel {
     position: fixed;
     z-index: var(--z-toast, 9999);
@@ -1949,11 +1986,20 @@ html[data-theme="dark"] .nm-toast {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* P1-010 FIX: Panel grows FROM the bell's position — not from center.
+       LTR: bell is at the end edge (right), so origin is top right.
+       RTL: overridden below to top left. */
+    transform-origin: top right;
     /* Entry animation */
     opacity: 0;
     transform: translateY(-8px) scale(0.97);
     transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4,0,0.2,1);
     pointer-events: none;
+}
+/* P1-010: RTL flip — bell is at the start edge (left), origin flips. */
+html[dir="rtl"] .nm-notif-panel,
+[dir="rtl"] .nm-notif-panel {
+    transform-origin: top left;
 }
 .nm-notif-panel-open {
     opacity: 1;
