@@ -49,28 +49,33 @@ import { initNotificationPanel } from '../components/notification-panel';
  *
  * Keys NOT cleared:
  *   - nm_theme          → dark/light mode persists across sessions (device pref, not user pref)
- *   - nm_locale         → language persists (device pref)
+ *   - nm-locale         → language persists (device pref)
  *
  * Standard: NIST SP 800-63B (Session Termination), Zero-Trust Session Hygiene.
  */
 export function clearUserLocalData(): void {
-    const PRESERVED_KEYS = new Set(['nm_theme', 'nm_locale']);
-    const USER_PREFIXES = ['nammerha_', 'nm_', 'nmr_', 'nmh_', 'sr_form', 'fallback_'];
+  // BUG-006 FIX: Was 'nm_locale' — mismatched actual key 'nm-locale' (hyphen) used by _client.ts.
+  const PRESERVED_KEYS = new Set(['nm_theme', 'nm-locale']);
+  const USER_PREFIXES = ['nammerha_', 'nm_', 'nmr_', 'nmh_', 'sr_form', 'fallback_'];
 
-    try {
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!key || PRESERVED_KEYS.has(key)) { continue; }
-            if (USER_PREFIXES.some(prefix => key.startsWith(prefix))) {
-                keysToRemove.push(key);
-            }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || PRESERVED_KEYS.has(key)) {
+        continue;
+      }
+      if (USER_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
 
-        // Also clear sessionStorage (wizard drafts, registration drafts)
-        sessionStorage.clear();
-    } catch { /* Safari private mode — degrade gracefully */ }
+    // Also clear sessionStorage (wizard drafts, registration drafts)
+    sessionStorage.clear();
+  } catch {
+    /* Safari private mode — degrade gracefully */
+  }
 }
 
 /**
@@ -86,40 +91,42 @@ export function clearUserLocalData(): void {
  * Standard: Nielsen #1 (System Status Visibility), FinTech Trust UX.
  */
 function showAuthRequired(): void {
-    const mainContent = document.getElementById('main-content');
-    if (!mainContent) {
-        return;
+  const mainContent = document.getElementById('main-content');
+  if (!mainContent) {
+    return;
+  }
+
+  // P0-UX-005: Detect if this is a session expiry vs first visit
+  let isExpired = false;
+  try {
+    const staleAuth = localStorage.getItem('nammerha_auth');
+    if (staleAuth) {
+      // User HAD a session but it's no longer valid
+      isExpired = true;
+      // A3 FIX: Clear ALL user-specific localStorage keys on session expiry.
+      // PREVIOUS: Only 'nammerha_auth' was removed — leaving wizard drafts,
+      // workspace preferences, form drafts, and other user data orphaned.
+      // If User B logs in on the same device, they inherit User A's drafts.
+      // NOW: Purge all nm_*/nmr_*/nmh_*/sr_form prefixed keys.
+      // Standard: Zero-Trust Session Hygiene, NIST SP 800-63B (Session Termination).
+      clearUserLocalData();
     }
+  } catch {
+    /* Safari private mode */
+  }
 
-    // P0-UX-005: Detect if this is a session expiry vs first visit
-    let isExpired = false;
-    try {
-        const staleAuth = localStorage.getItem('nammerha_auth');
-        if (staleAuth) {
-            // User HAD a session but it's no longer valid
-            isExpired = true;
-            // A3 FIX: Clear ALL user-specific localStorage keys on session expiry.
-            // PREVIOUS: Only 'nammerha_auth' was removed — leaving wizard drafts,
-            // workspace preferences, form drafts, and other user data orphaned.
-            // If User B logs in on the same device, they inherit User A's drafts.
-            // NOW: Purge all nm_*/nmr_*/nmh_*/sr_form prefixed keys.
-            // Standard: Zero-Trust Session Hygiene, NIST SP 800-63B (Session Termination).
-            clearUserLocalData();
-        }
-    } catch { /* Safari private mode */ }
+  const icon = isExpired ? 'clock' : 'lock';
+  const titleKey = isExpired ? 'session_expired' : 'auth_required';
+  const titleDefault = isExpired ? 'Session Expired' : 'Sign in required';
+  const msgKey = isExpired ? 'session_expired_msg' : 'auth_required_msg';
+  const msgDefault = isExpired
+    ? 'Your session has expired for security. Please sign in again to continue.'
+    : 'Please sign in to access this page. Your data is safe and waiting for you.';
 
-    const icon = isExpired ? 'clock' : 'lock';
-    const titleKey = isExpired ? 'session_expired' : 'auth_required';
-    const titleDefault = isExpired ? 'Session Expired' : 'Sign in required';
-    const msgKey = isExpired ? 'session_expired_msg' : 'auth_required_msg';
-    const msgDefault = isExpired
-        ? 'Your session has expired for security. Please sign in again to continue.'
-        : 'Please sign in to access this page. Your data is safe and waiting for you.';
+  // Determine current page path for redirect-after-login
+  const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
 
-    // Determine current page path for redirect-after-login
-    const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
-
-    mainContent.innerHTML = `
+  mainContent.innerHTML = `
         <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
             <div class="size-20 rounded-full ${isExpired ? 'bg-warning-yellow/10' : 'bg-trust-blue/10'} flex items-center justify-center">
                 <i class="ph ph-${icon} ${isExpired ? 'text-warning-yellow' : 'text-trust-blue'} nm-icon-40" aria-hidden="true"></i>
@@ -134,9 +141,9 @@ function showAuthRequired(): void {
             </a>
         </div>`;
 
-    // PLT-AUD5-002 FIX: Replaced unsafe (window as unknown as Record<string, unknown>)
-    // double-cast with shared type-safe utility.
-    tryApplyI18n();
+  // PLT-AUD5-002 FIX: Replaced unsafe (window as unknown as Record<string, unknown>)
+  // double-cast with shared type-safe utility.
+  tryApplyI18n();
 }
 
 /**
@@ -150,14 +157,14 @@ function showAuthRequired(): void {
  * @returns true if authenticated, false if auth overlay was shown
  */
 export function requireAuth(): boolean {
-    if (checkSession()) {
-        initNotificationPanel();
-        return true;
-    }
+  if (checkSession()) {
+    initNotificationPanel();
+    return true;
+  }
 
-    // No valid session — show auth overlay
-    showAuthRequired();
-    return false;
+  // No valid session — show auth overlay
+  showAuthRequired();
+  return false;
 }
 
 /**
@@ -168,10 +175,9 @@ export function requireAuth(): boolean {
  * duplicating broken JWT localStorage logic.
  */
 export function isAuthenticated(): boolean {
-    const isAuth = checkSession();
-    if (isAuth) {
-        initNotificationPanel();
-    }
-    return isAuth;
+  const isAuth = checkSession();
+  if (isAuth) {
+    initNotificationPanel();
+  }
+  return isAuth;
 }
-

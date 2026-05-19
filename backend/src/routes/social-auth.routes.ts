@@ -67,6 +67,8 @@ const SocialAuthSchema = z.object({
   id_token: z.string().min(10, 'Token is required'),
   // Apple first-login only — name not included in subsequent tokens
   full_name: z.string().min(1).max(255).optional(),
+  // BUG-004 FIX: Remember Me for 30-day sessions (parity with email login).
+  remember: z.boolean().optional(),
 });
 
 // ─── Provider Verification Functions ────────────────────────────────────────
@@ -239,7 +241,7 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
       return;
     }
 
-    const { provider, id_token, full_name: clientName } = parsed.data;
+    const { provider, id_token, full_name: clientName, remember: rememberFlag } = parsed.data;
 
     // ── Step 2: Verify token with provider ──
     let socialUser: VerifiedSocialUser;
@@ -261,6 +263,29 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
     } catch (verifyErr) {
       const msg = verifyErr instanceof Error ? verifyErr.message : 'Token verification failed';
       logger.warn('Social auth: token verification failed', { provider, error: msg });
+
+      // BUG-009 FIX: Audit trail for failed social auth attempts (parity with email login).
+      const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      try {
+        await query(
+          `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+           VALUES ('social_login_failed', 'auth_failure', $1, NULL, $2)`,
+          [
+            `social::${clientIp}`,
+            JSON.stringify({
+              provider,
+              ip: clientIp,
+              error: msg,
+              timestamp: new Date().toISOString(),
+            }),
+          ],
+        );
+      } catch (auditErr) {
+        logger.error('Social auth: audit trail write failed', {
+          error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+        });
+      }
+
       res.status(401).json({
         success: false,
         error: 'Authentication failed. Please try again.',
@@ -400,7 +425,10 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
     const rolesForToken = allRoles.length > 0 ? allRoles : [user.role];
 
     // Generate JWT
-    const token = generateToken(user.user_id, primaryRole, rolesForToken);
+    // BUG-004 FIX: Support configurable expiry for Remember Me (30d), parity with email login.
+    const rememberMe = rememberFlag === true;
+    const jwtExpiry = rememberMe ? '30d' : undefined;
+    const token = generateToken(user.user_id, primaryRole, rolesForToken, jwtExpiry);
 
     // Detect mobile client (same pattern as auth.routes.ts)
     const clientPlatform = (req.headers['x-platform'] as string | undefined)?.toLowerCase();
@@ -410,9 +438,11 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
     if (!isMobileClient) {
       res.cookie('nammerha_jwt', token, {
         httpOnly: true,
-        secure: true,
+        // BUG-003 FIX: Was hardcoded `true` — cookies rejected on localhost.
+        secure: process.env['NODE_ENV'] === 'production',
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, // 24h
+        // BUG-004 FIX: 30-day cookie when Remember Me is checked (parity with auth.routes.ts).
+        maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
         path: '/',
       });
     }
@@ -444,6 +474,16 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
 
 // ─── Helper: Create New Social User ─────────────────────────────────────────
 
+// BUG-001 FIX: UNIFIED CITIZEN — All 5 standard roles are auto-assigned.
+// Donor excluded while DONATIONS_ENABLED=false (parity with auth.routes.ts L113-119).
+const AUTO_ASSIGN_ROLES: readonly string[] = [
+  'homeowner',
+  'engineer',
+  'contractor',
+  'supplier',
+  'tradesperson',
+] as const;
+
 async function createSocialUser(
   socialUser: VerifiedSocialUser,
   provider: SocialProvider,
@@ -452,7 +492,8 @@ async function createSocialUser(
     socialUser.email?.toLowerCase().trim() ??
     `${provider}_${socialUser.provider_user_id}@social.nammerha.com`;
   const fullName = socialUser.full_name ?? email.split('@')[0] ?? 'User';
-  const defaultRole: UserRole = 'donor';
+  // BUG-001 FIX: Was 'donor' (suspended). Now 'homeowner' — matches email registration.
+  const defaultRole: UserRole = 'homeowner';
 
   // Create user with no password (social-only)
   const userResult = await query<{ user_id: string }>(
@@ -467,19 +508,29 @@ async function createSocialUser(
     throw new Error('Failed to create social user');
   }
 
-  // Insert into user_roles junction table
+  // BUG-001 FIX: UNIFIED CITIZEN — Auto-assign ALL 5 roles (parity with auth.routes.ts L306-313).
   await query(
     `INSERT INTO user_roles (user_id, role_id, status, is_primary)
-         SELECT $1, r.role_id, 'active', TRUE
-         FROM roles r WHERE r.role_name = $2
+         SELECT $1, r.role_id, 'active', (r.role_name = 'homeowner')
+         FROM roles r WHERE r.role_name = ANY($2::text[])
          ON CONFLICT (user_id, role_id) DO NOTHING`,
-    [userId, defaultRole],
+    [userId, AUTO_ASSIGN_ROLES],
   );
 
-  // Create default donor profile
-  await query(`INSERT INTO donor_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [
-    userId,
-  ]);
+  // BUG-002 FIX: Create ALL 5 role-specific profile tables (parity with auth.routes.ts L318-329).
+  // Previous: only donor_profiles — caused "profile not found" on every portal.
+  const profileTables = [
+    'homeowner_profiles',
+    'engineer_profiles',
+    'contractor_profiles',
+    'supplier_profiles',
+    'tradesperson_profiles',
+  ] as const;
+  for (const table of profileTables) {
+    await query(`INSERT INTO ${table} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [
+      userId,
+    ]);
+  }
 
   // Link OAuth provider
   await query(

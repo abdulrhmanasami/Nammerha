@@ -1193,6 +1193,27 @@ function showInlineResendVerification(emailAddress: string): void {
       );
     } finally {
       btn.classList.remove('btn-loading');
+      // BUG-013 FIX: Apply 60s cooldown to prevent spam (parity with post-registration resend).
+      // Previous: No cooldown — users could hammer the button indefinitely.
+      btn.setAttribute('disabled', 'true');
+      btn.classList.add('opacity-50', 'pointer-events-none');
+      let countdown = 60;
+      const resendSpan = btn.querySelector('span');
+      const originalResendText = resendSpan?.textContent ?? '';
+      const resendTimer = setInterval(() => {
+        countdown--;
+        if (resendSpan) {
+          resendSpan.textContent = `${t('auth_resend_wait', 'انتظر')} (${countdown}s)`;
+        }
+        if (countdown <= 0) {
+          clearInterval(resendTimer);
+          btn.removeAttribute('disabled');
+          btn.classList.remove('opacity-50', 'pointer-events-none');
+          if (resendSpan) {
+            resendSpan.textContent = originalResendText;
+          }
+        }
+      }, 1000);
     }
   });
 }

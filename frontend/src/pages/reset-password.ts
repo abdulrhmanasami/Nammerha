@@ -34,6 +34,11 @@ const strengthLabel = document.getElementById('pw-strength-label');
 const urlParams = new URLSearchParams(window.location.search);
 const resetToken = urlParams.get('token');
 
+// BUG-008 FIX: Mirror backend SEC-003 — bcrypt truncates at 72 bytes but still
+// processes the full input. Without this check, a 500+ char password from the
+// reset form would cause CPU starvation on the backend.
+const MAX_PASSWORD_LENGTH = 128;
+
 // If no token, show error immediately
 if (!resetToken) {
   showBanner('error', t('reset_invalid_token', 'الرمز غير صالح أو منتهٍ'));
@@ -54,13 +59,18 @@ function updateSubmitButton(): void {
 
   const isValid =
     pw.length >= 8 &&
+    pw.length <= MAX_PASSWORD_LENGTH &&
     /[A-Z]/.test(pw) &&
     /[a-z]/.test(pw) &&
     /[0-9]/.test(pw) &&
     /[^A-Za-z0-9]/.test(pw) &&
     pw === confirm;
 
-  submitBtn.disabled = !isValid;
+  // BUG-007 FIX: Replaced disabled attribute with CSS class toggle.
+  // disabled removes button from tab order (WCAG 2.1.1 violation) and
+  // prevents users from understanding WHY it's disabled.
+  // Standard: Parity with auth.ts L629 pattern.
+  submitBtn.classList.toggle('nm-btn-disabled-soft', !isValid);
 }
 
 newPasswordInput?.addEventListener('input', () => {
@@ -202,6 +212,16 @@ form?.addEventListener('submit', async (e) => {
     !/[^A-Za-z0-9]/.test(newPassword)
   ) {
     showBanner('error', t('reset_password_weak', 'كلمة المرور ضعيفة جداً'));
+    scrollToField(newPasswordInput);
+    return;
+  }
+
+  // BUG-008 FIX: Max length check — mirrors backend SEC-003 (bcrypt DoS prevention).
+  if (newPassword.length > MAX_PASSWORD_LENGTH) {
+    showBanner(
+      'error',
+      t('reset_password_too_long', `كلمة المرور طويلة جداً (الحد ${MAX_PASSWORD_LENGTH})`),
+    );
     scrollToField(newPasswordInput);
     return;
   }

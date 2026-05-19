@@ -112,8 +112,9 @@ if (typeof window !== 'undefined') {
 
       const banner = document.createElement('div');
       banner.id = 'nm-cross-tab-logout';
+      // BUG-012 FIX: Added dark: variant — was missing, banner clashed in dark mode.
       banner.className =
-        'fixed inset-x-0 top-0 z-[9999] bg-red-600 text-white px-4 py-3 shadow-lg flex items-center justify-between gap-3 animate-fade-in-up';
+        'fixed inset-x-0 top-0 z-[9999] bg-red-600 dark:bg-red-700 text-white px-4 py-3 shadow-lg flex items-center justify-between gap-3 animate-fade-in-up';
       banner.setAttribute('role', 'alert');
       // P2-AUTH-002 FIX: i18n-wrapped text — was hardcoded English.
       const logoutMsg =

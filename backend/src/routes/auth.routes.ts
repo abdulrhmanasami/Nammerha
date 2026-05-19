@@ -54,6 +54,9 @@ const router = Router();
 // processes the full input. A 1MB password would cause CPU starvation.
 const MAX_PASSWORD_LENGTH = 128;
 
+// BUG-010 FIX: RFC 5321 max email length — prevents DoS via extremely long email strings.
+const MAX_EMAIL_LENGTH = 254;
+
 // SEC-002: Account lockout configuration
 // RED TEAM FIX: Lockout is now per-(IP + email) compound, not per-email alone.
 // An attacker brute-forcing from their IP only locks THEIR IP for that email —
@@ -152,6 +155,14 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     // All users get all 5 standard roles automatically.
 
     // Validate email format
+    // BUG-010 FIX: RFC 5321 max email length (using email.trim() since toLowerCase doesn't alter length).
+    if (email.trim().length > MAX_EMAIL_LENGTH) {
+      res.status(400).json({
+        success: false,
+        error: regLocale === 'ar' ? 'البريد الإلكتروني طويل جداً' : 'Email address is too long',
+      } as ApiResponse);
+      return;
+    }
     if (!EMAIL_REGEX.test(email)) {
       res.status(400).json({
         success: false,
@@ -386,6 +397,19 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     // Find user by email
     const normalizedEmail = email.toLowerCase().trim();
+
+    // BUG-010 FIX: RFC 5321 max email length.
+    if (normalizedEmail.length > MAX_EMAIL_LENGTH) {
+      res.status(401).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            : 'Invalid email or password',
+      } as ApiResponse);
+      return;
+    }
+
     const result = await query<
       Pick<
         User,
@@ -829,6 +853,13 @@ router.post(
       } as ApiResponse;
 
       const normalizedEmail = email.toLowerCase().trim();
+
+      // BUG-010 FIX: RFC 5321 max email length.
+      if (normalizedEmail.length > MAX_EMAIL_LENGTH) {
+        res.json(successResponse);
+        return;
+      }
+
       const result = await query<Pick<User, 'user_id' | 'email'>>(
         'SELECT user_id, email FROM users WHERE email = $1',
         [normalizedEmail],

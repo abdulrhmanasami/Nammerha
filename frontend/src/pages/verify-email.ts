@@ -214,7 +214,8 @@ try {
   if (urlEmail && resendEmail) {
     resendEmail.value = urlEmail;
   } else if (resendEmail) {
-    const draft = sessionStorage.getItem('nm_reg_draft');
+    // BUG-005 FIX: Was 'nm_reg_draft' — mismatched auth.ts REG_DRAFT_KEY ('nmh_reg_draft').
+    const draft = sessionStorage.getItem('nmh_reg_draft');
     if (draft) {
       const parsed = JSON.parse(draft) as { email?: string };
       if (parsed.email) {
