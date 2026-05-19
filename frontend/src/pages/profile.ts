@@ -215,7 +215,7 @@ async function loadUserRoles(): Promise<void> {
                         <span class="text-3xs text-slate-400 dark:text-slate-500">${verLabel}</span>
                     </div>
                 </div>
-                <i class="ph ph-caret-right text-slate-300" aria-hidden="true"></i>
+                <i class="ph ph-caret-right text-slate-300 nm-dir-shift" aria-hidden="true"></i>
             </div>`;
     }).join('');
 }

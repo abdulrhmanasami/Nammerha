@@ -4,6 +4,7 @@ import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { supplierStatusColor as statusColor } from '../utils/status-colors';
 import { requireAuth } from '../utils/auth-guard';
+import { initBreadcrumb } from '../utils/breadcrumb';
 import { supplier } from '../api';
 import { t } from '../utils/i18n';
 import { showSimpleBanner } from '../utils/banner';
@@ -33,6 +34,8 @@ import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils
 import { renderProgressive } from '../utils/progressive-render';
 // P2-ANIM-001 FIX: Centralized animation stagger constant
 import { staggerDelay } from '../constants/animation';
+// F3 FIX: Shared KPI animation — replaces local setKPI() duplicate
+import { animateKPI } from '../utils/kpi-animation';
 // PLT-AUD-I001+I002+I003 FIX: Centralized locale, currency formatting, and i18n
 import { getLocale, applyI18n } from '../utils/locale';
 import { formatCents } from '../utils/format';
@@ -100,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
     bootstrapPortal();
     mountContextSwitcher();
+    initBreadcrumb();
 
     initTimestamp();
     loadKPIs();
@@ -181,6 +185,14 @@ function switchSupplierTab(tab: SupplierTab): void {
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         if (sectionOrders) { sectionOrders.classList.remove('nm-hidden'); }
         if (sectionCatalog) { sectionCatalog.classList.add('nm-hidden'); }
+        // F2 FIX: Focus management on tab switch — screen reader parity.
+        // PREVIOUS: No focus management at all. Screen reader users stranded.
+        // Standard: WCAG 2.4.3 (Focus Order), parity with homeowner/engineer portals.
+        if (sectionOrders) {
+            sectionOrders.setAttribute('tabindex', '-1');
+            sectionOrders.focus({ preventScroll: true });
+            requestAnimationFrame(() => sectionOrders.removeAttribute('tabindex'));
+        }
     } else {
         tabCatalog?.classList.add('bg-trust-blue/10', 'text-trust-blue');
         tabCatalog?.classList.remove('text-slate-600');
@@ -192,6 +204,12 @@ function switchSupplierTab(tab: SupplierTab): void {
         // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
         if (sectionCatalog) { sectionCatalog.classList.remove('nm-hidden'); }
         if (sectionOrders) { sectionOrders.classList.add('nm-hidden'); }
+        // F2 FIX: Focus management on tab switch — screen reader parity.
+        if (sectionCatalog) {
+            sectionCatalog.setAttribute('tabindex', '-1');
+            sectionCatalog.focus({ preventScroll: true });
+            requestAnimationFrame(() => sectionCatalog.removeAttribute('tabindex'));
+        }
         loadCatalog();
     }
 
@@ -209,10 +227,14 @@ async function loadKPIs(): Promise<void> {
         if (!res.data) { return; }
         const data = res.data;
 
-        setKPI('pending-bids', data.pending_orders ?? 0);
-        setKPI('won-contracts', data.won_contracts ?? 0);
-        setKPI('in-transit', data.in_transit ?? 0);
-        setKPI('total-revenue', data.total_revenue ?? 0, '$');
+        // F3 FIX: Use shared animateKPI() instead of local setKPI().
+        // PREVIOUS: Local setKPI() (40 lines) was a copy of animateKPI().
+        // All other portals already use the shared version.
+        // Standard: DRY Principle, Visual Consistency.
+        animateKPI('kpi-pending-bids', data.pending_orders ?? 0);
+        animateKPI('kpi-won-contracts', data.won_contracts ?? 0);
+        animateKPI('kpi-in-transit', data.in_transit ?? 0);
+        animateKPI('kpi-total-revenue', data.total_revenue ?? 0, { prefix: '$', isCents: true });
 
         // Badge count
         const bidCount = document.getElementById('bid-count');
@@ -561,32 +583,10 @@ async function executeDeactivation(catalogId: string): Promise<void> {
 }
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
-// LOW-002 FIX: Normalized from querySelector('[data-kpi="${name}"]') to getElementById('kpi-${name}')
-// — matches all other portal TS files. Standard: Nielsen #4 (Consistency).
-function setKPI(name: string, value: number, prefix = ''): void {
-    const el = document.getElementById(`kpi-${name}`);
-    if (!el) { return; }
-
-    const duration = 1200;
-    const start = performance.now();
-    const locale = getLocale();
-
-    const tick = (now: number): void => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        if (prefix === '$') {
-            const current = Math.round((value / 100) * eased);
-            el.textContent = new Intl.NumberFormat(locale, {
-                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
-            }).format(current);
-        } else {
-            const current = Math.round(value * eased);
-            el.textContent = current.toLocaleString(locale);
-        }
-        if (progress < 1) { requestAnimationFrame(tick); }
-    };
-    requestAnimationFrame(tick);
-}
+// F3 FIX: Local setKPI() REMOVED — replaced by shared animateKPI() from utils/kpi-animation.ts.
+// Previous: 40-line local duplicate of the exact same animation logic.
+// All other portals (contractor, tradesperson, engineer) already use animateKPI().
+// Standard: DRY Principle.
 
 
 

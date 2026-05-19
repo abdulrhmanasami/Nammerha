@@ -4,6 +4,8 @@ import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
+import { initBreadcrumb } from '../utils/breadcrumb';
+import { guardSkeleton } from '../utils/skeleton-guard';
 import { auth as authApi } from '../api';
 import { statusColor, tradeColor, urgencyColor } from '../utils/status-colors';
 import { tradesperson } from '../api';
@@ -71,6 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
     bootstrapPortal();
     mountContextSwitcher();
+    initBreadcrumb();
+
+    // E2b FIX: Skeleton timeout guard — prevents infinite loading on Syria 2G/3G.
+    // Tradesperson portal was MISSING guardSkeleton.
+    guardSkeleton({
+        container: 'main-content',
+        onRetry: () => switchTab(hashRouter.getInitialTab()),
+    });
 
     setupTabs();
     setupAvailability();

@@ -339,7 +339,7 @@ function showError(type: 'not-found' | 'generic' = 'generic'): void {
                 <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-300" data-i18n="error_project_not_found">${t('error_project_not_found', 'Project Not Found')}</p>
                 <p class="mt-1 text-sm text-slate-400 dark:text-slate-500" data-i18n="error_project_not_found_desc">${t('error_project_not_found_desc', 'This project may have been removed or the link is invalid.')}</p>
                 <a href="projects.html" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors">
-                    <i class="ph ph-arrow-left" aria-hidden="true"></i>
+                    <i class="ph ph-arrow-left nm-dir-shift" aria-hidden="true"></i>
                     <span data-i18n="error_browse_projects">${t('error_browse_projects', 'Browse Projects')}</span>
                 </a>
             </div>

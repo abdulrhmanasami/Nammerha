@@ -56,7 +56,7 @@ export function renderEmptyState(config: EmptyStateConfig): string {
 
     const ctaHtml = ctaLabel && ctaHref
         ? `<a href="${esc(ctaHref)}" class="btn-primary nm-btn-sm mt-4 inline-flex items-center gap-2">
-               <i class="ph ph-arrow-right" aria-hidden="true"></i>
+               <i class="ph ph-arrow-right nm-dir-shift" aria-hidden="true"></i>
                <span${ctaI18nKey ? ` data-i18n="${esc(ctaI18nKey)}"` : ''}>${esc(ctaLabel)}</span>
            </a>`
         : '';

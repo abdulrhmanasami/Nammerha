@@ -142,7 +142,7 @@ function buildResultHTML(result: SearchResult): string {
                 <p class="text-sm font-semibold truncate"${i18nAttr}>${displayTitle}</p>
                 <p class="text-xs text-slate-500 truncate dark:text-slate-400">${displaySubtitle}</p>
             </div>
-            <i class="ph ph-caret-right text-slate-400 text-sm dark:text-slate-500" aria-hidden="true"></i>
+            <i class="ph ph-caret-right text-slate-400 text-sm dark:text-slate-500 nm-dir-shift" aria-hidden="true"></i>
         </a>`;
 }
 

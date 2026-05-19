@@ -11,6 +11,7 @@ import { formatCents } from '../utils/format';
 // BLOCKER-1 FIX: Auth guard — unauthenticated visitors see "Sign in required" overlay
 // instead of broken skeleton loaders with cryptic API errors.
 import { requireAuth } from '../utils/auth-guard';
+import { initBreadcrumb } from '../utils/breadcrumb';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -106,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
     bootstrapPortal();
     mountContextSwitcher();
+    initBreadcrumb();
 
     setupTabs();
     const initialTab = hashRouter.getInitialTab();
@@ -186,6 +188,12 @@ function switchTab(tab: TabName): void {
             if (tabId === tab) {
                 section.setAttribute('tabindex', '-1');
                 section.focus({ preventScroll: true });
+                // D-F1 FIX: Remove tabindex after focus so Tab continues into children.
+                // PREVIOUS: tabindex="-1" was set but NEVER removed — section permanently
+                // focusable, trapping Tab key users instead of navigating into content.
+                // NOW: Matches homeowner-portal canonical pattern (UX-REM-I010).
+                // Standard: WCAG 2.4.3 (Focus Order), WAI-ARIA 1.2 (Managing Focus).
+                requestAnimationFrame(() => section.removeAttribute('tabindex'));
             }
         }
     }
@@ -285,7 +293,10 @@ async function loadMarketplace(): Promise<void> {
     if (!tbody) { return; }
 
     try {
-        const res = await contractor.getMarketplace();
+        // E3 FIX: SWR cache for marketplace — parity with projects tab.
+        // PREVIOUS: Fresh API call on every tab switch — spinner flash.
+        // NOW: 30s SWR cache for perceived-instant switching.
+        const res = await swrFetch('ct-marketplace', () => contractor.getMarketplace(), { maxAge: 30_000 });
         const projects = (res.data ?? []) as unknown as MarketProject[];
 
         // P1-UXA-002 FIX: Progressive rendering for marketplace list

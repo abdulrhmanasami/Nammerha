@@ -22,6 +22,8 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 import { requireAuth } from '../utils/auth-guard';
+import { initBreadcrumb } from '../utils/breadcrumb';
+import { guardSkeleton } from '../utils/skeleton-guard';
 import { haptic } from '../utils/haptic';
 import { animateKPI } from '../utils/kpi-animation';
 // P1-UX-002 FIX: Standardized empty state component
@@ -421,7 +423,16 @@ document.addEventListener('DOMContentLoaded', () => {
     bootstrapPortal();
     mountContextSwitcher();
     initLiveTimestamp();
+    initBreadcrumb();
     setupTabs();
+
+    // E2a FIX: Skeleton timeout guard — prevents infinite loading on Syria 2G/3G.
+    // Portals WITH guardSkeleton: homeowner ✅, contractor ✅, supplier ✅, wallet ✅.
+    // Engineer was MISSING — skeleton could animate forever on timeout.
+    guardSkeleton({
+        container: 'main-content',
+        onRetry: () => { loadKPIs(); loadProjects(); },
+    });
 
     // Load initial data — signal hydration when primary content renders
     Promise.allSettled([loadKPIs(), loadProjects()]).then(signalHydrated);
