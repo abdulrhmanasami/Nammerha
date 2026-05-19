@@ -318,12 +318,21 @@ if (nextBtn) {
 if (backBtn) {
     backBtn.addEventListener('click', () => {
         if (state.currentStep === 1) {
-            window.location.href = 'index.html';
+            // B2 FIX: Use history.back() to preserve spatial navigation context.
+            // PREVIOUS: Hardcoded `window.location.href = 'index.html'` — user always
+            // lands on homepage even if they came from homeowner-portal.html.
+            // NOW: Respects browser history; falls back to homeowner portal if no history.
+            // Standard: Nielsen #3 (User Control & Freedom), Spatial Navigation Memory.
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/homeowner-portal.html';
+            }
         } else if (state.currentStep <= TOTAL_STEPS) {
             showStep(state.currentStep - 1);
         } else if (state.currentStep === 4) {
-            // From confirmation, go back to home
-            window.location.href = 'index.html';
+            // From confirmation, go back to portal
+            window.location.href = '/homeowner-portal.html';
         }
     });
 }

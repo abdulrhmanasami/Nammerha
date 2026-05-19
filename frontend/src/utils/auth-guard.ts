@@ -34,6 +34,46 @@ import { tryApplyI18n } from './i18n-apply';
 import { initNotificationPanel } from '../components/notification-panel';
 
 /**
+ * A3 FIX: Clears ALL user-specific localStorage keys on session termination.
+ * Prevents User A's wizard drafts, workspace preferences, and form data
+ * from leaking to User B on the same device.
+ *
+ * Prefixes targeted:
+ *   - nammerha_auth     → session identity
+ *   - nammerha_dev_user → dev mode user
+ *   - nm_*              → platform preferences (workspace, tour, FTV)
+ *   - nmr_*             → wizard state (damage report)
+ *   - nmh_*             → registration drafts
+ *   - sr_form           → service request form draft
+ *   - fallback_*        → cached HTML fallbacks (carousel, etc.)
+ *
+ * Keys NOT cleared:
+ *   - nm_theme          → dark/light mode persists across sessions (device pref, not user pref)
+ *   - nm_locale         → language persists (device pref)
+ *
+ * Standard: NIST SP 800-63B (Session Termination), Zero-Trust Session Hygiene.
+ */
+export function clearUserLocalData(): void {
+    const PRESERVED_KEYS = new Set(['nm_theme', 'nm_locale']);
+    const USER_PREFIXES = ['nammerha_', 'nm_', 'nmr_', 'nmh_', 'sr_form', 'fallback_'];
+
+    try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key || PRESERVED_KEYS.has(key)) { continue; }
+            if (USER_PREFIXES.some(prefix => key.startsWith(prefix))) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+
+        // Also clear sessionStorage (wizard drafts, registration drafts)
+        sessionStorage.clear();
+    } catch { /* Safari private mode — degrade gracefully */ }
+}
+
+/**
  * Shows the "Please sign in" overlay on the current page.
  * Replaces skeleton loaders with a clear auth-required message.
  *
@@ -58,8 +98,13 @@ function showAuthRequired(): void {
         if (staleAuth) {
             // User HAD a session but it's no longer valid
             isExpired = true;
-            // Clean up stale data to prevent perpetual "expired" state
-            localStorage.removeItem('nammerha_auth');
+            // A3 FIX: Clear ALL user-specific localStorage keys on session expiry.
+            // PREVIOUS: Only 'nammerha_auth' was removed — leaving wizard drafts,
+            // workspace preferences, form drafts, and other user data orphaned.
+            // If User B logs in on the same device, they inherit User A's drafts.
+            // NOW: Purge all nm_*/nmr_*/nmh_*/sr_form prefixed keys.
+            // Standard: Zero-Trust Session Hygiene, NIST SP 800-63B (Session Termination).
+            clearUserLocalData();
         }
     } catch { /* Safari private mode */ }
 

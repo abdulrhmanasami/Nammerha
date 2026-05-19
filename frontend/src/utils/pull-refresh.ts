@@ -89,10 +89,46 @@ export const REFRESH_EVENT = 'nammerha:pull-refresh';
 
 function resetIndicator(): void {
     if (indicator) {
-        indicator.classList.remove('pull-refresh-loading');
+        indicator.classList.remove('pull-refresh-loading', 'pull-refresh-complete');
         indicator.style.setProperty('--pull-y', '0px');
         indicator.style.setProperty('--pull-opacity', '0');
     }
+}
+
+/**
+ * C10 FIX: Show completion feedback before hiding the pull-refresh indicator.
+ * PREVIOUS: Spinner silently disappeared after 600ms — no visual confirmation
+ * that data actually refreshed. Users on slow networks couldn't tell if it worked.
+ * NOW: Spinner → green checkmark (400ms) → hide. Haptic success pulse.
+ * Standard: Apple HIG (Pull-to-Refresh Completion), Instagram/Twitter pattern,
+ * Nielsen #1 (Visibility of System Status).
+ */
+function showRefreshComplete(): void {
+    if (!indicator) { return; }
+
+    // Stop spinning, show checkmark
+    indicator.classList.remove('pull-refresh-loading');
+    indicator.classList.add('pull-refresh-complete');
+
+    // Swap icon: arrow → checkmark
+    const icon = indicator.querySelector<HTMLElement>('.pull-refresh-spinner i');
+    if (icon) {
+        icon.classList.remove('ph-arrow-counter-clockwise');
+        icon.classList.add('ph-check-circle');
+    }
+
+    // Success haptic — distinct from the initial "threshold reached" light pulse
+    haptic.success();
+
+    // Hold the checkmark visible for 700ms, then slide up and hide
+    setTimeout(() => {
+        resetIndicator();
+        // Restore original icon for next pull
+        if (icon) {
+            icon.classList.remove('ph-check-circle');
+            icon.classList.add('ph-arrow-counter-clockwise');
+        }
+    }, 700);
 }
 
 function handleTouchEnd(): void {
@@ -112,8 +148,11 @@ function handleTouchEnd(): void {
             const handled = !document.dispatchEvent(event);
 
             if (handled) {
-                // Page handled the refresh — reset indicator after one spin cycle
-                setTimeout(resetIndicator, 600);
+                // C10 FIX: Show completion checkmark instead of silently hiding spinner.
+                // PREVIOUS: setTimeout(resetIndicator, 600) — spinner just vanished.
+                // NOW: Spinner → green checkmark (holds 400ms) → slide up → hide.
+                // Standard: Apple HIG Pull-to-Refresh Completion Pattern.
+                showRefreshComplete();
             } else {
                 // No listener — fallback to full reload (backwards-compatible)
                 const spinner = indicator.querySelector('.pull-refresh-spinner');

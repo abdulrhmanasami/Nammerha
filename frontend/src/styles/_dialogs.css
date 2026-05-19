@@ -48,10 +48,16 @@ html[data-theme="dark"] .kpi-skeleton.kpi-skeleton span {
     margin: 0;
     padding: 0;
 }
-/* RTL: flip the chevron separator */
-[dir="rtl"] .breadcrumb-nav .ph-caret-right {
-    transform: scaleX(-1);
-}
+/* C4 FIX: REMOVED redundant breadcrumb RTL rule.
+   PREVIOUS: `[dir="rtl"] .breadcrumb-nav .ph-caret-right { transform: scaleX(-1) }`
+   CONFLICT: The global rule in main.css L3085 uses `scale: -1 1` (CSS Individual
+   Transform Property). Since `scale` and `transform` are INDEPENDENT, BOTH applied:
+   - `scale: -1 1` → flip ✓
+   - `transform: scaleX(-1)` → flip again ✗
+   NET RESULT: Double flip → icon stayed in original LTR direction → breadcrumb
+   carets did NOT flip in RTL. Removing this rule lets the global `scale` rule
+   work correctly in isolation.
+   Standard: CSS Architecture — Single Source of Truth, no redundant overrides. */
 html[data-theme="dark"] .breadcrumb-nav {
     background: rgba(30, 41, 59, 0.6);
     border-color: var(--dark-border-subtle);

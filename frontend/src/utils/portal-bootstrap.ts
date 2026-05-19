@@ -87,4 +87,49 @@ export function bootstrapPortal(): void {
         skip.setAttribute('data-i18n', 'skip_to_content');
         document.body.insertBefore(skip, document.body.firstChild);
     }
+
+    // A4 FIX: First-time portal orientation toast.
+    // PREVIOUS: New users selecting Supplier/Contractor/Tradesperson in the welcome
+    // chooser landed on a sidebar-nav portal with NO bottom nav and ZERO guidance.
+    // The spatial model changed abruptly from bottom-tab to sidebar — disorienting.
+    // NOW: Shows a brief orientation toast on first visit to any sidebar-nav portal.
+    // Uses localStorage guard — shows once per portal per device.
+    // Standard: Nielsen #6 (Recognition over Recall), First-Run UX, Apple HIG (Onboarding).
+    showPortalOrientationIfNeeded();
+}
+
+/**
+ * A4 FIX: Shows a one-time orientation toast for sidebar-nav portals.
+ * Detects the current portal from the URL pathname and shows a contextual
+ * message explaining the sidebar navigation pattern.
+ */
+function showPortalOrientationIfNeeded(): void {
+    // Only relevant for sidebar-nav portals (pages that suppress bottom nav)
+    const SIDEBAR_PORTALS: Record<string, { nameKey: string; nameFallback: string }> = {
+        '/supplier-dashboard.html': { nameKey: 'portal_supplier', nameFallback: 'Supplier Dashboard' },
+        '/contractor-portal.html': { nameKey: 'portal_contractor', nameFallback: 'Contractor Portal' },
+        '/tradesperson-portal.html': { nameKey: 'portal_tradesperson', nameFallback: 'Tradesperson Portal' },
+    };
+
+    const path = window.location.pathname;
+    const portal = SIDEBAR_PORTALS[path];
+    if (!portal) { return; } // Not a sidebar portal — skip
+
+    const storageKey = `nm_portal_oriented_${path}`;
+    try {
+        if (localStorage.getItem(storageKey)) { return; } // Already shown
+        localStorage.setItem(storageKey, '1');
+    } catch { return; } // Storage unavailable — skip
+
+    // Lazy-import showToast to avoid circular deps at module evaluation time
+    import('../utils/toast').then(({ showToast }) => {
+        // Small delay for the page to render first
+        setTimeout(() => {
+            showToast(
+                `Welcome to your ${portal.nameFallback}! Use the sidebar menu on the left to navigate.`,
+                'info',
+                { duration: 6000 }, // longer display for orientation
+            );
+        }, 1200);
+    }).catch(() => { /* toast module failed — degrade silently */ });
 }

@@ -53,6 +53,14 @@ interface Transaction {
     created_at: string;
 }
 
+// A2 FIX: Delegation guard for receipt download listener.
+// PREVIOUS: listener was added INSIDE loadTransactions() with no guard.
+// Pull-to-refresh or retry → loadTransactions() called again → duplicate listeners stacked.
+// Each tap fires N downloads on Syrian metered 3G — bandwidth and trust destroyer.
+// NOW: Module-level guard ensures single-attach. Same pattern as homeowner-portal.ts L609.
+// Standard: Event Delegation Best Practice, Nielsen #5 (Error Prevention).
+let receiptDelegationWired = false;
+
 // HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
 // P1-001 FIX: formatDate() deduplicated — imported from utils/locale.ts.
@@ -206,27 +214,31 @@ async function loadTransactions(): Promise<void> {
 
         // V-003 FIX: Receipt download — event delegation on the transaction list.
         // Opens PDF receipt in a new tab. Uses homeowner receipt endpoint.
-        listEl.addEventListener('click', (e: Event) => {
-            const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.v003-receipt-btn');
-            if (!btn) return;
-            e.stopPropagation();
-            const escrowId = btn.dataset['escrowId'];
-            if (!escrowId) return;
-            haptic.light(); // UX-004: Tactile download feedback
-            // P1-RECEIPT-001 FIX: Replaced window.open() with hidden anchor click.
-            // Previous: window.open() is blocked by mobile popup blockers (especially iOS Safari)
-            // with ZERO user feedback — the receipt button appeared dead.
-            // Now: Creates a transient <a> element and triggers .click() — bypasses popup blockers
-            // because <a> clicks are never blocked (they're user-initiated navigations, not popups).
-            // Standard: Mobile Safari Popup Policy, Apple HIG (Reliable Downloads).
-            const receiptLink = document.createElement('a');
-            receiptLink.href = `/api/homeowner/receipts/${encodeURIComponent(escrowId)}`;
-            receiptLink.target = '_blank';
-            receiptLink.rel = 'noopener noreferrer';
-            document.body.appendChild(receiptLink);
-            receiptLink.click();
-            receiptLink.remove();
-        });
+        // A2 FIX: Guard ensures this listener is attached ONCE per page lifecycle.
+        if (!receiptDelegationWired) {
+            receiptDelegationWired = true;
+            listEl.addEventListener('click', (e: Event) => {
+                const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.v003-receipt-btn');
+                if (!btn) return;
+                e.stopPropagation();
+                const escrowId = btn.dataset['escrowId'];
+                if (!escrowId) return;
+                haptic.light(); // UX-004: Tactile download feedback
+                // P1-RECEIPT-001 FIX: Replaced window.open() with hidden anchor click.
+                // Previous: window.open() is blocked by mobile popup blockers (especially iOS Safari)
+                // with ZERO user feedback — the receipt button appeared dead.
+                // Now: Creates a transient <a> element and triggers .click() — bypasses popup blockers
+                // because <a> clicks are never blocked (they're user-initiated navigations, not popups).
+                // Standard: Mobile Safari Popup Policy, Apple HIG (Reliable Downloads).
+                const receiptLink = document.createElement('a');
+                receiptLink.href = `/api/homeowner/receipts/${encodeURIComponent(escrowId)}`;
+                receiptLink.target = '_blank';
+                receiptLink.rel = 'noopener noreferrer';
+                document.body.appendChild(receiptLink);
+                receiptLink.click();
+                receiptLink.remove();
+            });
+        }
     } catch (err) {
         reportError(err instanceof Error ? err : new Error('[Wallet] Transaction history load failed'), { component: 'wallet', action: 'load_transactions' });
         renderErrorWithRetry(listEl, loadTransactions, 'wallet_load_failed', 'Unable to load transactions.', err);

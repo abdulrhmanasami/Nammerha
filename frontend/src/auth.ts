@@ -73,6 +73,13 @@ export function clearAuth(): void {
 // to detect session removal and redirect to auth page immediately.
 // Note: The 'storage' event does NOT fire in the tab that made the change.
 // Standard: NIST SP 800-63B (Session Management), Nielsen #1 (System Status).
+//
+// A5 FIX: REWRITTEN — Shows non-blocking overlay instead of instant redirect.
+// PREVIOUS: `window.location.href = '/auth.html'` destroyed any unsaved form
+// data in the current tab. Syrian users spending 10+ minutes on damage report
+// forms over 3G lost ALL progress when another tab logged out.
+// NOW: Shows a visible overlay warning + "Sign In" CTA. User decides when.
+// Standard: Nielsen #5 (Error Prevention), Data Loss Prevention.
 // ═══════════════════════════════════════════════════════════════════════════
 if (typeof window !== 'undefined') {
     window.addEventListener('storage', (e: StorageEvent) => {
@@ -80,7 +87,26 @@ if (typeof window !== 'undefined') {
         if (e.key === STORAGE_KEY && e.newValue === null && e.oldValue !== null) {
             // Another tab cleared auth → session is gone
             currentUser = null;
-            window.location.href = '/auth.html';
+
+            // A5 FIX: Show a non-blocking banner instead of instant redirect.
+            // This preserves any unsaved form data the user has in progress.
+            const existingBanner = document.getElementById('nm-cross-tab-logout');
+            if (existingBanner) { return; } // Already showing
+
+            const banner = document.createElement('div');
+            banner.id = 'nm-cross-tab-logout';
+            banner.className = 'fixed inset-x-0 top-0 z-[9999] bg-red-600 text-white px-4 py-3 shadow-lg flex items-center justify-between gap-3 animate-fade-in-up';
+            banner.setAttribute('role', 'alert');
+            banner.innerHTML = `
+                <div class="flex items-center gap-2 min-w-0">
+                    <i class="ph ph-warning-circle shrink-0 text-lg" aria-hidden="true"></i>
+                    <span class="text-sm font-medium truncate">You've been signed out in another tab</span>
+                </div>
+                <a href="/auth.html" class="shrink-0 bg-white text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors no-underline">
+                    Sign In
+                </a>
+            `;
+            document.body.appendChild(banner);
         }
     });
 }

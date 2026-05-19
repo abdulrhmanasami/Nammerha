@@ -46,6 +46,11 @@ import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils
 import { renderProgressive } from '../utils/progressive-render';
 // P2-ANIM-001 FIX: Centralized animation stagger constant
 import { staggerDelay } from '../constants/animation';
+// B7 FIX: Breadcrumb navigation on portal pages for spatial orientation.
+// PREVIOUS: Wallet and Profile had breadcrumbs, but portals didn't.
+// Users arriving via deep links had no spatial context.
+// Standard: WCAG 2.4.8 (Location), Nielsen #7 (Recognition).
+import { initBreadcrumb } from '../utils/breadcrumb';
 
 // FIX-005: Banner Pattern Consolidation.
 // Previous: Custom showSrBanner() manually created DOM elements, managed timeouts,
@@ -121,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) { return; }
     bootstrapPortal();
     mountContextSwitcher();
+    // B7 FIX: Breadcrumb on homeowner portal
+    initBreadcrumb();
 
     setupTabs();
     setupServiceRequestForm();
@@ -312,11 +319,11 @@ async function loadDashboardProjects(): Promise<void> {
             containerEl: container,
             pageSize: 20,
             renderItem: (p, i) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <a href="/project-details.html?project=${encodeURIComponent(p.project_id)}" class="block p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up no-underline text-inherit cursor-pointer group" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
-                            <h4 class="font-medium">${esc(p.title)}</h4>
+                            <h4 class="font-medium group-hover:text-trust-blue transition-colors">${esc(p.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(statusLabel(p.status))}</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
@@ -327,9 +334,9 @@ async function loadDashboardProjects(): Promise<void> {
                         </div>
                         ${p.total_boq_cost > 0 ? `<p class="text-xs text-slate-500 mt-1 dark:text-slate-400">${esc(t('ho_boq_total', 'BOQ Total'))}: <span class="font-mono font-bold">${formatCents(p.total_boq_cost)}</span></p>` : ''}
                     </div>
-                    <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${esc(p.project_id)}</span>
+                    <i class="ph ph-caret-right text-slate-300 group-hover:text-trust-blue nm-dir-shift shrink-0 dark:text-slate-600" aria-hidden="true"></i>
                 </div>
-            </div>`,
+            </a>`,
             // P1-002 FIX: Added actionable CTA button to empty state.
             // Previous: "Report damage to get started" was plain text — no interaction path.
             // New homeowners had to independently discover the report form, causing drop-off.
@@ -345,6 +352,20 @@ async function loadDashboardProjects(): Promise<void> {
         });
     } catch (err) { reportWarning('[HomeownerPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
         renderErrorWithRetry(container, loadDashboardProjects, undefined, undefined, err);
+    }
+
+    // B8 FIX: Persistent "Report Damage" CTA on dashboard.
+    // PREVIOUS: Empty state had a CTA, but once a project existed it disappeared.
+    // Users had to discover homeowner-report.html independently.
+    // NOW: Always-visible action button anchored below the projects list.
+    // Standard: Nielsen #7 (Flexibility), Primary Action Visibility.
+    if (!document.getElementById('ho-report-cta')) {
+        const cta = document.createElement('a');
+        cta.id = 'ho-report-cta';
+        cta.href = '/homeowner-report.html';
+        cta.className = 'flex items-center justify-center gap-2 mt-4 py-3 px-5 rounded-xl bg-trust-blue text-white font-bold text-sm shadow-md hover:bg-trust-blue/90 transition-colors no-underline animate-fade-in-up';
+        cta.innerHTML = `<i class="ph ph-plus-circle" aria-hidden="true"></i> <span data-i18n="ho_report_damage_cta">Report New Damage</span>`;
+        container.parentElement?.appendChild(cta);
     }
 }
 
@@ -363,10 +384,10 @@ async function loadProjects(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <a href="/project-details.html?project=${encodeURIComponent(p.project_id)}" class="block bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight no-underline text-inherit cursor-pointer group hover:shadow-md hover:border-trust-blue/30 dark:bg-dark-surface dark:border-dark-border dark:hover:border-trust-blue/40 animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <div>
-                        <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
+                        <h3 class="font-bold text-sm text-slate-900 group-hover:text-trust-blue transition-colors dark:text-slate-100">${esc(p.title)}</h3>
                         <p class="text-3xs text-slate-400 font-mono mt-0.5 dark:text-slate-500">${esc(p.project_id.substring(0, 8))}…</p>
                     </div>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(statusLabel(p.status))}</span>
@@ -392,8 +413,9 @@ async function loadProjects(): Promise<void> {
                         <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="ho_bids">Bids</span>
                         <span class="text-trust-blue font-bold text-xs">${esc(String(p.bid_count))}</span>
                     </div>
+                    <i class="ph ph-arrow-right text-slate-300 group-hover:text-trust-blue nm-dir-shift dark:text-slate-600" aria-hidden="true"></i>
                 </div>
-            </div>`,
+            </a>`,
             // UX-REM-I009 FIX: Consistent empty state component.
             // PREVIOUS: Inline HTML diverged from renderEmptyState() styling.
             // Standard: DRY, Visual Consistency (Design System Component Unity).
@@ -550,7 +572,7 @@ async function loadServiceRequests(): Promise<void> {
             containerEl: tbody,
             pageSize: 20,
             renderItem: (r, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" data-sr-card="${esc(r.request_id)}" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(statusLabel(r.status))}</span>
@@ -606,6 +628,17 @@ async function loadServiceRequests(): Promise<void> {
         // 10 duplicate listeners causing 10× API calls per click.
         // NOW: Single delegated listener on the container, wired ONCE via guard flag.
         // Standard: Event Delegation, Nielsen #5 (Error Prevention), FinTech Zero-Trust.
+        //
+        // C7 FIX: OPTIMISTIC UI PATTERN.
+        // PREVIOUS: User confirmed → spinner on button → await API (2-5s on 3G) →
+        //   restore('success') → loadServiceRequests() (another 2-5s full re-fetch).
+        //   Total perceived latency: 4-10 seconds with TWO loading phases.
+        // NOW: User confirms → card slides out IMMEDIATELY (0ms perceived latency) →
+        //   success toast appears → API fires in background → silent stat refresh.
+        //   If API fails → card rolls back into view + error toast.
+        // Two-phase exit: slide-out (300ms) → height collapse (300ms) → DOM removal.
+        // Standard: Optimistic UI (Google Material Design 3), Nielsen #1 (System Status),
+        //   Instagram/Twitter delete pattern, Apple HIG (Responsive Feedback).
         if (!delegationWired.requests) {
             delegationWired.requests = true;
             tbody.addEventListener('click', (e: MouseEvent) => {
@@ -621,15 +654,63 @@ async function loadServiceRequests(): Promise<void> {
                     variant: 'danger',
                     i18n: { title: 'ho_confirm_cancel_title', message: 'ho_confirm_cancel_msg', confirm: 'ho_cancel', cancel: 'common_cancel' },
                     onConfirm: async () => {
-                        const b = btn as HTMLButtonElement;
-                        const restore = setLoadingState(b, t('ho_cancelling', 'Cancelling...'));
+                        // ── Phase 0: Find card by data attribute ────────────────
+                        const card = tbody.querySelector<HTMLElement>(`[data-sr-card="${id}"]`);
+                        let collapseTimer: ReturnType<typeof setTimeout> | null = null;
+                        let removeTimer: ReturnType<typeof setTimeout> | null = null;
+                        let cardRemoved = false;
+
+                        // ── Phase 1: OPTIMISTIC — Slide out immediately ────────
+                        if (card) {
+                            card.classList.add('nm-card-removing');
+
+                            // Phase 2: After slide-out, collapse height to close gap
+                            collapseTimer = setTimeout(() => {
+                                card.style.transition = 'max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease, border-width 0.3s ease';
+                                card.style.maxHeight = `${card.scrollHeight}px`;
+                                void card.offsetHeight; // Force reflow for transition
+                                card.style.maxHeight = '0';
+                                card.style.padding = '0';
+                                card.style.margin = '0';
+                                card.style.borderWidth = '0';
+                                card.style.overflow = 'hidden';
+                            }, 300);
+
+                            // Phase 3: Remove from DOM after collapse completes
+                            removeTimer = setTimeout(() => {
+                                card.remove();
+                                cardRemoved = true;
+                            }, 620);
+                        }
+
+                        // ── Show instant success toast ─────────────────────────
+                        showToast(t('ho_request_cancelled', 'Service request cancelled'), 'success');
+
+                        // ── Phase 4: API call in background ────────────────────
                         try {
                             await homeowner.cancelServiceRequest(id);
-                            restore('success');
-                            loadServiceRequests();
+                            // API succeeded — silently refresh stats
                             loadStats();
                         } catch (err) {
-                            restore('error');
+                            // ── ROLLBACK: Restore card on API failure ──────────
+                            if (collapseTimer) { clearTimeout(collapseTimer); }
+                            if (removeTimer) { clearTimeout(removeTimer); }
+
+                            if (card && !cardRemoved) {
+                                // Card still in DOM — reverse the animation
+                                card.classList.remove('nm-card-removing');
+                                card.style.transition = '';
+                                card.style.maxHeight = '';
+                                card.style.padding = '';
+                                card.style.margin = '';
+                                card.style.borderWidth = '';
+                                card.style.overflow = '';
+                            } else {
+                                // Card already removed from DOM — full re-fetch
+                                loadServiceRequests();
+                            }
+
+                            showToast(t('ho_cancel_failed', 'Failed to cancel. Please try again.'), 'error');
                             reportWarning('[HomeownerPortal] Cancel failed', { error: err instanceof Error ? err.message : String(err) });
                         }
                     },
