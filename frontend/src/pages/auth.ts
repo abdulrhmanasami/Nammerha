@@ -813,7 +813,21 @@ formLogin?.addEventListener('submit', async (e) => {
         t('auth_welcome_back', 'أهلاً بعودتك!'),
       );
     } else {
-      showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
+      // P1-AUTH-001 FIX: Detect EMAIL_NOT_VERIFIED error code from backend.
+      // Backend returns code: 'EMAIL_NOT_VERIFIED' when user credentials are
+      // correct but email isn't verified. Show a resend verification option
+      // instead of a dead-end error message.
+      const errorCode = (response as unknown as Record<string, unknown>).code as string | undefined;
+      if (errorCode === 'EMAIL_NOT_VERIFIED') {
+        showBanner(
+          'info',
+          response.error ?? t('auth_email_not_verified', 'يرجى تأكيد بريدك الإلكتروني أولاً'),
+        );
+        // Show inline resend verification button
+        showInlineResendVerification(email);
+      } else {
+        showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
+      }
     }
   } catch (err) {
     const message =
@@ -894,8 +908,11 @@ formRegister?.addEventListener('submit', async (e) => {
     // P0-CRIT-001 FIX: intent field removed — no longer collected in the wizard flow.
     const response = await auth.register({ email, password, full_name });
 
-    // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
-    // The user must verify their email first, then log in.
+    // P0-AUTH-002 FIX: Override the generic anti-enumeration backend message
+    // with a clear, user-friendly success message + email verification instructions.
+    // The anti-enumeration protection remains intact — the HTTP response shape
+    // is identical for new/existing emails (backend). Only the frontend display
+    // is improved for the user who just completed the 3-step wizard.
     if (response.success) {
       // UX-REM-J002 FIX: Clear registration draft on successful registration.
       clearRegDraft();
@@ -905,21 +922,15 @@ formRegister?.addEventListener('submit', async (e) => {
       } catch {
         /* Safari private mode */
       }
-      // M-AUD-010 FIX: Show transition feedback before switching tabs.
-      // Previous: 2-second blank stare at Step 3 consent form with no indication.
-      // Now: Banner includes countdown hint so user knows what's happening next.
-      // Standard: Material Design 3 (State Transitions), Nielsen #1.
-      showBanner('success', response.message ?? t('auth_reg_success', 'تم إنشاء حسابك بنجاح!'));
-      // Switch to login tab after successful registration
-      setTimeout(() => {
-        switchTab('login');
-        // Pre-fill email
-        const loginEmail = document.getElementById('login-email') as HTMLInputElement | null;
-        if (loginEmail) {
-          loginEmail.value = email;
-          loginEmail.focus();
-        }
-      }, 1200); // M4 FIX: Reduced from 2000ms → 1200ms (MD3 transition standard)
+      // P0-AUTH-003 FIX: Show "Email Sent" confirmation panel with clear
+      // instructions instead of auto-switching to login tab.
+      // PREVIOUS: 1.2s delay → switchTab('login') → user sees login form with
+      // zero guidance about checking their inbox. They try to login immediately
+      // → EMAIL_NOT_VERIFIED error → frustrated dead-end.
+      // NOW: Dedicated confirmation panel with animated email icon, the user's
+      // email address, clear "check your inbox" instruction, and resend option.
+      // Standard: Material Design 3 (State Transitions), Nielsen #1 (System Status).
+      showEmailSentConfirmation(email);
     } else {
       showBanner('error', response.error ?? t('auth_reg_failed', 'فشل إنشاء الحساب'));
     }
@@ -998,17 +1009,193 @@ forgotBtn?.addEventListener('click', async (e) => {
     );
   } finally {
     if (forgotBtn) {
-      // GAP-2026-001 FIX: Restore original content with i18n data attribute.
-      // Previous: text-only "Sending..." with no spinner — inconsistent with btn-loading pattern.
-      // Now: uses data-i18n attribute for proper i18n restoration.
-      // Standard: Design System Governance (consistent loading states).
-      forgotBtn.innerHTML = `<span data-i18n="forgot_password">${esc(t('auth_forgot_link_text', 'إرسال رابط إعادة التعيين'))}</span>`;
+      // P2-AUTH-003 FIX: Restore the ORIGINAL i18n key and text, not the
+      // action text "Send reset link". The link should revert to "Forgot Password?".
+      // PREVIOUS: t('auth_forgot_link_text', 'إرسال رابط إعادة التعيين') — permanently
+      // changed the link text after the API call completed.
+      forgotBtn.innerHTML = `<span data-i18n="forgot_password">${esc(t('forgot_password', 'نسيت كلمة المرور؟'))}</span>`;
       forgotBtn.removeAttribute('aria-disabled');
       // P1-AUD4-002 FIX: Remove CSS cooldown class (replaces inline style reset).
       forgotBtn.classList.remove('nm-btn-cooldown');
     }
   }
 });
+
+// ─── P0-AUTH-003 FIX: Email Sent Confirmation Panel ─────────────────────────
+// After successful registration, instead of auto-switching to login tab with
+// zero guidance, we show a dedicated "Email Sent" confirmation panel.
+// Standard: Material Design 3 (State Transitions), Nielsen #1 (System Status).
+// ─────────────────────────────────────────────────────────────────────────────
+function showEmailSentConfirmation(emailAddress: string): void {
+  // Hide both login and register forms
+  if (formLogin) {
+    formLogin.classList.add('nm-hidden');
+    formLogin.setAttribute('aria-hidden', 'true');
+  }
+  if (formRegister) {
+    formRegister.classList.add('nm-hidden');
+    formRegister.setAttribute('aria-hidden', 'true');
+  }
+  hideBanner();
+
+  // Remove existing panel if re-triggered
+  document.getElementById('nm-email-sent-panel')?.remove();
+
+  // Create confirmation panel
+  const panel = document.createElement('div');
+  panel.id = 'nm-email-sent-panel';
+  panel.className = 'px-6 relative z-10 animate-fade-in-up';
+  panel.setAttribute('role', 'status');
+  panel.setAttribute('aria-live', 'polite');
+  panel.innerHTML = `
+    <div class="text-center py-6">
+      <div class="inline-flex items-center justify-center size-20 bg-smoky-jade/10 rounded-full mb-5">
+        <i class="ph ph-envelope-simple text-smoky-jade dark:text-emerald-400" style="font-size:2.5rem" aria-hidden="true"></i>
+      </div>
+      <h2 class="text-xl font-bold mb-2" data-i18n="auth_email_sent_title">${esc(t('auth_email_sent_title', 'تحقق من بريدك الإلكتروني'))}</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-1" data-i18n="auth_email_sent_desc">
+        ${esc(t('auth_email_sent_desc', 'أرسلنا رابط التحقق إلى'))}
+      </p>
+      <p class="text-sm font-bold text-trust-blue mb-4 break-all" dir="ltr">${esc(emailAddress)}</p>
+      <p class="text-xs text-slate-400 dark:text-slate-500 mb-6" data-i18n="auth_email_sent_hint">
+        ${esc(t('auth_email_sent_hint', 'تحقق من مجلد الرسائل غير المرغوب فيها (Spam) إذا لم تجد الرسالة'))}
+      </p>
+      <div class="flex flex-col gap-3">
+        <button type="button" id="nm-resend-from-confirm" class="btn-secondary w-full flex items-center justify-center gap-2">
+          <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
+          <span data-i18n="auth_resend_verification">${esc(t('auth_resend_verification', 'إعادة إرسال رابط التحقق'))}</span>
+        </button>
+        <button type="button" id="nm-back-to-login-from-confirm" class="text-sm text-trust-blue font-medium hover:underline">
+          <i class="ph ph-arrow-left nm-icon-back-arrow" aria-hidden="true"></i>
+          <span data-i18n="back_to_login">${esc(t('back_to_login', 'العودة لتسجيل الدخول'))}</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Insert after the banner area
+  const bannerEl = document.getElementById('auth-banner');
+  if (bannerEl?.parentNode) {
+    bannerEl.parentNode.insertBefore(panel, bannerEl.nextSibling);
+  }
+
+  // Wire "Back to Login" button
+  document.getElementById('nm-back-to-login-from-confirm')?.addEventListener('click', () => {
+    panel.remove();
+    switchTab('login');
+    // Pre-fill email for convenience
+    const loginEmail = document.getElementById('login-email') as HTMLInputElement | null;
+    if (loginEmail) {
+      loginEmail.value = emailAddress;
+      loginEmail.focus();
+    }
+  });
+
+  // Wire "Resend" button with cooldown
+  const resendBtn = document.getElementById('nm-resend-from-confirm') as HTMLButtonElement | null;
+  resendBtn?.addEventListener('click', async () => {
+    if (!resendBtn || resendBtn.classList.contains('btn-loading')) {
+      return;
+    }
+    resendBtn.classList.add('btn-loading');
+
+    try {
+      const data = await auth.resendVerification({ email: emailAddress });
+      if (data.success) {
+        showBanner('success', data.message ?? t('auth_resend_sent', 'تم إعادة إرسال رابط التحقق'));
+      } else {
+        showBanner('error', data.error ?? t('auth_resend_failed', 'فشل إعادة الإرسال'));
+      }
+    } catch (err) {
+      showBanner(
+        'error',
+        err instanceof Error
+          ? err.message
+          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+      );
+    } finally {
+      resendBtn.classList.remove('btn-loading');
+      // Apply 60s cooldown to prevent spam
+      resendBtn.setAttribute('disabled', 'true');
+      resendBtn.classList.add('opacity-50', 'pointer-events-none');
+      let countdown = 60;
+      const countdownSpan = resendBtn.querySelector('span');
+      const originalText = countdownSpan?.textContent ?? '';
+      const timer = setInterval(() => {
+        countdown--;
+        if (countdownSpan) {
+          countdownSpan.textContent = `${t('auth_resend_wait', 'انتظر')} (${countdown}s)`;
+        }
+        if (countdown <= 0) {
+          clearInterval(timer);
+          resendBtn.removeAttribute('disabled');
+          resendBtn.classList.remove('opacity-50', 'pointer-events-none');
+          if (countdownSpan) {
+            countdownSpan.textContent = originalText;
+          }
+        }
+      }, 1000);
+    }
+  });
+}
+
+// ─── P1-AUTH-001 FIX: Inline Resend Verification from Login Page ────────────
+// When login fails with EMAIL_NOT_VERIFIED, show a "Resend Verification" button
+// directly in the login form so the user isn't stuck at a dead-end.
+// Standard: Nielsen #9 (Error Recovery), WCAG 3.3.3 (Error Suggestion).
+// ─────────────────────────────────────────────────────────────────────────────
+function showInlineResendVerification(emailAddress: string): void {
+  // Remove existing if already shown
+  document.getElementById('nm-inline-resend')?.remove();
+
+  const container = document.createElement('div');
+  container.id = 'nm-inline-resend';
+  container.className =
+    'mt-3 p-3 bg-blue-50 rounded-xl border border-blue-200 text-center animate-fade-in-up dark:bg-blue-900/20 dark:border-blue-800';
+  container.innerHTML = `
+    <p class="text-xs text-blue-700 dark:text-blue-300 mb-2" data-i18n="auth_resend_prompt">
+      ${esc(t('auth_resend_prompt', 'لم تصلك رسالة التحقق؟'))}
+    </p>
+    <button type="button" id="nm-inline-resend-btn" class="btn-secondary nm-btn-compact text-xs flex items-center justify-center gap-1 mx-auto">
+      <i class="ph ph-envelope" aria-hidden="true"></i>
+      <span>${esc(t('auth_resend_verification', 'إعادة إرسال رابط التحقق'))}</span>
+    </button>
+  `;
+
+  // Insert after the login submit button
+  const loginSubmitWrapper = document.getElementById('login-submit')?.parentElement;
+  if (loginSubmitWrapper) {
+    loginSubmitWrapper.insertAdjacentElement('afterend', container);
+  }
+
+  // Wire button
+  const btn = document.getElementById('nm-inline-resend-btn') as HTMLButtonElement | null;
+  btn?.addEventListener('click', async () => {
+    if (!btn || btn.classList.contains('btn-loading')) {
+      return;
+    }
+    btn.classList.add('btn-loading');
+
+    try {
+      const data = await auth.resendVerification({ email: emailAddress });
+      if (data.success) {
+        showBanner('success', data.message ?? t('auth_resend_sent', 'تم إعادة إرسال رابط التحقق'));
+        container.remove();
+      } else {
+        showBanner('error', data.error ?? t('auth_resend_failed', 'فشل إعادة الإرسال'));
+      }
+    } catch (err) {
+      showBanner(
+        'error',
+        err instanceof Error
+          ? err.message
+          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+      );
+    } finally {
+      btn.classList.remove('btn-loading');
+    }
+  });
+}
 
 // ─── OAuth-001: Social Login Integration ──────────────────────────────────────
 // Replaces the old "Coming Soon" banners with real OAuth flows.
@@ -1107,12 +1294,30 @@ async function handleLoginRedirect(
  * C2 FIX: No longer duplicates the entire redirect logic.
  */
 async function handleSocialLoginSuccess(
-  response: { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+  response: {
+    success: boolean;
+    data?: { user?: Record<string, unknown>; is_new_user?: boolean };
+    error?: string;
+  },
   _provider: string,
 ): Promise<void> {
   if (!response.success || !response.data?.user) {
     showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     return;
+  }
+
+  // P1-AUTH-004 FIX: Set onboarding flag for social login new users.
+  // PREVIOUS: nmh_onboarding_pending was only set during email registration (L903-907).
+  // Social login users who auto-register via Google/Apple/Facebook never got the
+  // welcome tour — they landed on homepage with 5 roles and zero guidance.
+  // NOW: Backend social-auth response includes is_new_user. If true, set the flag.
+  // Standard: Nielsen #10 (Help \u0026 Documentation), Material Design 3 (Onboarding).
+  if (response.data.is_new_user) {
+    try {
+      localStorage.setItem('nmh_onboarding_pending', '1');
+    } catch {
+      /* Safari private mode */
+    }
   }
 
   await handleLoginRedirect(response.data.user, t('auth_welcome_social', 'مرحباً! تم تسجيل دخولك'));

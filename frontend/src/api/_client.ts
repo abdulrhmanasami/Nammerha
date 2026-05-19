@@ -98,6 +98,21 @@ export async function request<T>(
     }
   }
 
+  // P2-AUTH-004 FIX: Send user's chosen Nammerha locale for email language.
+  // PREVIOUS: Backend used Accept-Language header (browser language setting).
+  // If a Syrian user's browser was set to English but they use the Arabic UI,
+  // they'd receive English verification/reset emails.
+  // NOW: X-Locale header takes precedence over Accept-Language in backend.
+  // Standard: i18n Best Practices, User Language Preference.
+  try {
+    const userLocale = localStorage.getItem('nm-locale');
+    if (userLocale) {
+      headers['X-Locale'] = userLocale;
+    }
+  } catch {
+    /* localStorage may be unavailable */
+  }
+
   const isIdempotent = !!headers['Idempotency-Key'] || method === 'GET';
   const maxRetries = isIdempotent ? 2 : 0;
 

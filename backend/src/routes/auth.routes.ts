@@ -15,7 +15,11 @@ import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { query } from '../config/database';
 import { generateToken, authMiddleware } from '../middleware/auth.middleware';
-import { sendVerificationEmail, sendPasswordResetEmail, type EmailLocale } from '../services/email.service';
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  type EmailLocale,
+} from '../services/email.service';
 import type { User, UserRole, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
@@ -27,12 +31,20 @@ import { logger } from '../utils/logger';
  * This ensures email templates are rendered in the user's preferred language.
  */
 function getEmailLocale(req: Request): EmailLocale {
-    const acceptLang = req.headers['accept-language'] ?? '';
-    // Accept-Language: ar, ar-SA, ar-SY, etc.
-    if (/\bar/i.test(acceptLang)) {
-        return 'ar';
-    }
-    return 'en';
+  // P2-AUTH-004 FIX: Prioritize X-Locale header (set by frontend from the
+  // user's chosen Nammerha locale) over Accept-Language (browser system language).
+  // This ensures a Syrian user browsing in Arabic receives Arabic emails even
+  // if their browser's system language is English.
+  const xLocale = (req.headers['x-locale'] as string | undefined)?.trim().toLowerCase();
+  if (xLocale === 'ar' || xLocale === 'en') {
+    return xLocale as EmailLocale;
+  }
+  const acceptLang = req.headers['accept-language'] ?? '';
+  // Accept-Language: ar, ar-SA, ar-SY, etc.
+  if (/\bar/i.test(acceptLang)) {
+    return 'ar';
+  }
+  return 'en';
 }
 
 const router = Router();
@@ -60,324 +72,358 @@ const RESEND_COOLDOWN_SECONDS = 60;
 
 // ─── PLT-SEC-004 FIX: Anti-DoS Rate Limiting ────────────────────────────────
 const verifyEmailLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // Limit each IP to 20 verification requests
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, error: 'Too many verification attempts from this IP, please try again later.' } as ApiResponse
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 verification requests
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many verification attempts from this IP, please try again later.',
+  } as ApiResponse,
 });
 
 const sensitiveActionLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 15, // Limit each IP to 15 sensitive requests (resend/forgot-password/change-password)
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد 15 دقيقة.' } as ApiResponse
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // Limit each IP to 15 sensitive requests (resend/forgot-password/change-password)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد 15 دقيقة.',
+  } as ApiResponse,
 });
 
 // SEC-FIELD-002 FIX: ReDoS-safe email validation. The original RFC 5322 pattern
 // had nested quantifiers `(?:...)*` causing catastrophic backtracking on crafted input.
 // This version uses bounded {1,63} domain labels and requires at least one dot (TLD).
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,63}(?:\.[a-zA-Z]{2,63}){0,3}$/;
+const EMAIL_REGEX =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,63}(?:\.[a-zA-Z]{2,63}){0,3}$/;
 
 // Password complexity: min 8 chars, 1 upper, 1 lower, 1 digit, 1 special
 const PASSWORD_RULES = [
-    { test: (p: string) => p.length >= 8, msg: 'at least 8 characters' },
-    { test: (p: string) => /[A-Z]/.test(p), msg: 'at least one uppercase letter' },
-    { test: (p: string) => /[a-z]/.test(p), msg: 'at least one lowercase letter' },
-    { test: (p: string) => /[0-9]/.test(p), msg: 'at least one digit' },
-    { test: (p: string) => /[^A-Za-z0-9]/.test(p), msg: 'at least one special character' },
+  { test: (p: string) => p.length >= 8, msg: 'at least 8 characters' },
+  { test: (p: string) => /[A-Z]/.test(p), msg: 'at least one uppercase letter' },
+  { test: (p: string) => /[a-z]/.test(p), msg: 'at least one lowercase letter' },
+  { test: (p: string) => /[0-9]/.test(p), msg: 'at least one digit' },
+  { test: (p: string) => /[^A-Za-z0-9]/.test(p), msg: 'at least one special character' },
 ];
 
 // UNIFIED-ROLES: All 5 roles are auto-assigned to every user at registration.
 // Donor excluded while DONATIONS_ENABLED=false.
-const AUTO_ASSIGN_ROLES: readonly string[] = ['homeowner', 'engineer', 'contractor', 'supplier', 'tradesperson'] as const;
+const AUTO_ASSIGN_ROLES: readonly string[] = [
+  'homeowner',
+  'engineer',
+  'contractor',
+  'supplier',
+  'tradesperson',
+] as const;
 
 // ─── POST /api/auth/register ────────────────────────────────────────────────
-router.post(
-    '/register',
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { email, password, full_name, phone } = req.body as {
-                email: string;
-                password: string;
-                full_name: string;
-                // UNIFIED-ROLES: role parameter is no longer accepted
-                phone?: string;
-            };
+router.post('/register', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password, full_name, phone } = req.body as {
+      email: string;
+      password: string;
+      full_name: string;
+      // UNIFIED-ROLES: role parameter is no longer accepted
+      phone?: string;
+    };
 
-            // I18N-004: Locale-aware error messages for mobile clients
-            const regLocale = getEmailLocale(req);
+    // I18N-004: Locale-aware error messages for mobile clients
+    const regLocale = getEmailLocale(req);
 
-            // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
-            // Default primary role is 'homeowner' (most common use case).
-            const role: UserRole = 'homeowner';
+    // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
+    // Default primary role is 'homeowner' (most common use case).
+    const role: UserRole = 'homeowner';
 
-            // Validate required fields
-            if (!email || !password || !full_name) {
-                res.status(400).json({
-                    success: false,
-                    error: regLocale === 'ar'
-                        ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني، كلمة المرور، الاسم الكامل'
-                        : 'Missing required fields: email, password, full_name',
-                } as ApiResponse);
-                return;
-            }
+    // Validate required fields
+    if (!email || !password || !full_name) {
+      res.status(400).json({
+        success: false,
+        error:
+          regLocale === 'ar'
+            ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني، كلمة المرور، الاسم الكامل'
+            : 'Missing required fields: email, password, full_name',
+      } as ApiResponse);
+      return;
+    }
 
-            // UNIFIED-ROLES: Role validation removed — role parameter is ignored.
-            // All users get all 5 standard roles automatically.
+    // UNIFIED-ROLES: Role validation removed — role parameter is ignored.
+    // All users get all 5 standard roles automatically.
 
-            // Validate email format
-            if (!EMAIL_REGEX.test(email)) {
-                res.status(400).json({
-                    success: false,
-                    error: regLocale === 'ar'
-                        ? 'صيغة البريد الإلكتروني غير صحيحة'
-                        : 'Invalid email format',
-                } as ApiResponse);
-                return;
-            }
+    // Validate email format
+    if (!EMAIL_REGEX.test(email)) {
+      res.status(400).json({
+        success: false,
+        error: regLocale === 'ar' ? 'صيغة البريد الإلكتروني غير صحيحة' : 'Invalid email format',
+      } as ApiResponse);
+      return;
+    }
 
-            // SEC-003: Password max length check (before bcrypt hashing)
-            if (password.length > MAX_PASSWORD_LENGTH) {
-                res.status(400).json({
-                    success: false,
-                    error: regLocale === 'ar'
-                        ? `كلمة المرور يجب ألا تتجاوز ${MAX_PASSWORD_LENGTH} حرفاً`
-                        : `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
-                } as ApiResponse);
-                return;
-            }
+    // SEC-003: Password max length check (before bcrypt hashing)
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      res.status(400).json({
+        success: false,
+        error:
+          regLocale === 'ar'
+            ? `كلمة المرور يجب ألا تتجاوز ${MAX_PASSWORD_LENGTH} حرفاً`
+            : `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+      } as ApiResponse);
+      return;
+    }
 
-            // Validate password complexity
-            // I18N-004: Arabic password rule messages for mobile clients
-            const PASSWORD_RULES_AR: Record<string, string> = {
-                'at least 8 characters': '8 أحرف على الأقل',
-                'at least one uppercase letter': 'حرف كبير واحد على الأقل',
-                'at least one lowercase letter': 'حرف صغير واحد على الأقل',
-                'at least one digit': 'رقم واحد على الأقل',
-                'at least one special character': 'رمز خاص واحد على الأقل',
-            };
+    // Validate password complexity
+    // I18N-004: Arabic password rule messages for mobile clients
+    const PASSWORD_RULES_AR: Record<string, string> = {
+      'at least 8 characters': '8 أحرف على الأقل',
+      'at least one uppercase letter': 'حرف كبير واحد على الأقل',
+      'at least one lowercase letter': 'حرف صغير واحد على الأقل',
+      'at least one digit': 'رقم واحد على الأقل',
+      'at least one special character': 'رمز خاص واحد على الأقل',
+    };
 
-            const failedRules = PASSWORD_RULES
-                .filter(rule => !rule.test(password))
-                .map(rule => rule.msg);
+    const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(password)).map(
+      (rule) => rule.msg,
+    );
 
-            if (failedRules.length > 0) {
-                const localizedRules = regLocale === 'ar'
-                    ? failedRules.map(r => PASSWORD_RULES_AR[r] ?? r)
-                    : failedRules;
-                res.status(400).json({
-                    success: false,
-                    error: regLocale === 'ar'
-                        ? `كلمة المرور يجب أن تحتوي على: ${localizedRules.join('، ')}`
-                        : `Password must contain: ${failedRules.join(', ')}`,
-                } as ApiResponse);
-                return;
-            }
+    if (failedRules.length > 0) {
+      const localizedRules =
+        regLocale === 'ar' ? failedRules.map((r) => PASSWORD_RULES_AR[r] ?? r) : failedRules;
+      res.status(400).json({
+        success: false,
+        error:
+          regLocale === 'ar'
+            ? `كلمة المرور يجب أن تحتوي على: ${localizedRules.join('، ')}`
+            : `Password must contain: ${failedRules.join(', ')}`,
+      } as ApiResponse);
+      return;
+    }
 
-            // ─── PLT-AUD-001 FIX: Anti-Enumeration Canonical Response ─────────
-            // Both "email exists" and "new user" paths return an IDENTICAL 200
-            // response with the same JSON shape. This is the ONLY way to defeat
-            // email enumeration — an attacker cannot distinguish the two paths by
-            // status code, response body, or timing (bcrypt hash runs in both).
-            //
-            // JWT is NOT returned at registration. The user receives the token
-            // only after verifying their email and logging in. This also resolves
-            // PLT-AUD-008 (JWT before email verification).
-            // ──────────────────────────────────────────────────────────────────────
-            const GENERIC_REGISTRATION_RESPONSE: ApiResponse = {
-                success: true,
-                message: 'If your email is valid, you will receive a verification email shortly.',
-            };
+    // ─── PLT-AUD-001 FIX: Anti-Enumeration Canonical Response ─────────
+    // Both "email exists" and "new user" paths return an IDENTICAL 200
+    // response with the same JSON shape. This is the ONLY way to defeat
+    // email enumeration — an attacker cannot distinguish the two paths by
+    // status code, response body, or timing (bcrypt hash runs in both).
+    //
+    // JWT is NOT returned at registration. The user receives the token
+    // only after verifying their email and logging in. This also resolves
+    // PLT-AUD-008 (JWT before email verification).
+    // ──────────────────────────────────────────────────────────────────────
+    const GENERIC_REGISTRATION_RESPONSE: ApiResponse = {
+      success: true,
+      message: 'If your email is valid, you will receive a verification email shortly.',
+    };
 
-            // Check for existing user
-            const normalizedRegEmail = email.toLowerCase().trim();
-            const existing = await query<{ user_id: string, is_email_verified: boolean, email_token_expires_at: Date | null }>(
-                'SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
-                [normalizedRegEmail]
-            );
-            
-            if (existing.rows[0]) {
-                const existingUser = existing.rows[0];
-                
-                // PLT-AUD-009 FIX: The "Black Hole" Trap
-                // If a user registers, doesn't verify, and tries to register again days later,
-                // the system used to return GENERIC_REGISTRATION_RESPONSE but NEVER sent an email,
-                // leaving the user permanently stuck. We now silently treat this as a "resend" request.
-                if (!existingUser.is_email_verified) {
-                    let shouldSend = true;
-                    
-                    // Apply cooldown to prevent email bombing via /register endpoint
-                    if (existingUser.email_token_expires_at) {
-                        const tokenCreatedAt = new Date(existingUser.email_token_expires_at);
-                        tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
-                        const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
-                        if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
-                            shouldSend = false;
-                        }
-                    }
+    // Check for existing user
+    const normalizedRegEmail = email.toLowerCase().trim();
+    const existing = await query<{
+      user_id: string;
+      is_email_verified: boolean;
+      email_token_expires_at: Date | null;
+    }>('SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1', [
+      normalizedRegEmail,
+    ]);
 
-                    if (shouldSend) {
-                        const verificationToken = crypto.randomUUID();
-                        const tokenExpiry = new Date();
-                        tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
-                        
-                        await query(
-                            `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW() WHERE user_id = $3`,
-                            [verificationToken, tokenExpiry, existingUser.user_id]
-                        );
+    if (existing.rows[0]) {
+      const existingUser = existing.rows[0];
 
-                        const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-                        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-                        sendVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req)).catch((err) => {
-                            logger.error('Auth: Verification email dispatch failed (re-register)', { error: err instanceof Error ? err.message : String(err) });
-                        });
-                    }
-                }
-                
-                // SEC-FT-002 + PLT-AUD-001: Identical response — no enumeration leak
-                res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
-                return;
-            }
+      // PLT-AUD-009 FIX: The "Black Hole" Trap
+      // If a user registers, doesn't verify, and tries to register again days later,
+      // the system used to return GENERIC_REGISTRATION_RESPONSE but NEVER sent an email,
+      // leaving the user permanently stuck. We now silently treat this as a "resend" request.
+      if (!existingUser.is_email_verified) {
+        let shouldSend = true;
 
-            // Hash password with bcrypt
-            const password_hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+        // Apply cooldown to prevent email bombing via /register endpoint
+        if (existingUser.email_token_expires_at) {
+          const tokenCreatedAt = new Date(existingUser.email_token_expires_at);
+          tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
+          const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+          if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+            shouldSend = false;
+          }
+        }
 
-            // Generate email verification token
-            const verificationToken = crypto.randomUUID();
-            const tokenExpiry = new Date();
-            tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+        if (shouldSend) {
+          const verificationToken = crypto.randomUUID();
+          const tokenExpiry = new Date();
+          tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
 
-            // Create user with verification token
-            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>>(
-                `INSERT INTO users (email, password_hash, full_name, role, phone, is_active, is_email_verified, email_verification_token, email_token_expires_at)
+          await query(
+            `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW() WHERE user_id = $3`,
+            [verificationToken, tokenExpiry, existingUser.user_id],
+          );
+
+          const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+          const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+          sendVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req)).catch(
+            (err) => {
+              logger.error('Auth: Verification email dispatch failed (re-register)', {
+                error: err instanceof Error ? err.message : String(err),
+              });
+            },
+          );
+        }
+      }
+
+      // SEC-FT-002 + PLT-AUD-001: Identical response — no enumeration leak
+      res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
+      return;
+    }
+
+    // Hash password with bcrypt
+    const password_hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+
+    // Generate email verification token
+    const verificationToken = crypto.randomUUID();
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+
+    // Create user with verification token
+    const result = await query<
+      Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>
+    >(
+      `INSERT INTO users (email, password_hash, full_name, role, phone, is_active, is_email_verified, email_verification_token, email_token_expires_at)
                  VALUES ($1, $2, $3, $4, $5, FALSE, FALSE, $6, $7)
                  RETURNING user_id, email, full_name, role, is_active, is_email_verified`,
-                [
-                    normalizedRegEmail,
-                    password_hash,
-                    full_name.trim(),
-                    role,
-                    phone ?? null,
-                    verificationToken,
-                    tokenExpiry,
-                ]
-            );
+      [
+        normalizedRegEmail,
+        password_hash,
+        full_name.trim(),
+        role,
+        phone ?? null,
+        verificationToken,
+        tokenExpiry,
+      ],
+    );
 
-            const user = result.rows[0];
-            if (!user) {
-                throw new Error('Failed to create user');
-            }
+    const user = result.rows[0];
+    if (!user) {
+      throw new Error('Failed to create user');
+    }
 
-            // UNIFIED-ROLES: Auto-assign ALL 5 roles to every new user.
-            // This eliminates role switching — users see all features immediately.
-            // Each role gets status='active'. homeowner is the primary role.
-            await query(
-                `INSERT INTO user_roles (user_id, role_id, status, is_primary)
+    // UNIFIED-ROLES: Auto-assign ALL 5 roles to every new user.
+    // This eliminates role switching — users see all features immediately.
+    // Each role gets status='active'. homeowner is the primary role.
+    await query(
+      `INSERT INTO user_roles (user_id, role_id, status, is_primary)
                  SELECT $1, r.role_id, 'active', (r.role_name = 'homeowner')
                  FROM roles r WHERE r.role_name = ANY($2::text[])
                  ON CONFLICT (user_id, role_id) DO NOTHING`,
-                [user.user_id, AUTO_ASSIGN_ROLES]
-            );
+      [user.user_id, AUTO_ASSIGN_ROLES],
+    );
 
-            // Create ALL role-specific profiles at registration
-            // This ensures no "profile not found" errors when accessing any feature.
-            const profileTables = [
-                'homeowner_profiles',
-                'engineer_profiles',
-                'contractor_profiles',
-                'supplier_profiles',
-                'tradesperson_profiles',
-            ] as const;
-            for (const table of profileTables) {
-                await query(
-                    `INSERT INTO ${table} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`,
-                    [user.user_id]
-                );
-            }
-
-            // Send verification email (fire-and-forget, never blocks registration)
-            // PLT-AUD-006 FIX: Link points to frontend verify-email page, NOT the raw API.
-            // The frontend page calls the API and displays a user-friendly result.
-            const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-            const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
-            sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
-                logger.error('Auth: Verification email dispatch failed', { error: err instanceof Error ? err.message : String(err) });
-            });
-
-            // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
-            // No JWT, no user data — the response is indistinguishable from the
-            // existing-email path above.
-            res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.Register');
-        }
+    // Create ALL role-specific profiles at registration
+    // This ensures no "profile not found" errors when accessing any feature.
+    const profileTables = [
+      'homeowner_profiles',
+      'engineer_profiles',
+      'contractor_profiles',
+      'supplier_profiles',
+      'tradesperson_profiles',
+    ] as const;
+    for (const table of profileTables) {
+      await query(`INSERT INTO ${table} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [
+        user.user_id,
+      ]);
     }
-);
+
+    // Send verification email (fire-and-forget, never blocks registration)
+    // PLT-AUD-006 FIX: Link points to frontend verify-email page, NOT the raw API.
+    // The frontend page calls the API and displays a user-friendly result.
+    const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+    sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
+      logger.error('Auth: Verification email dispatch failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+
+    // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
+    // No JWT, no user data — the response is indistinguishable from the
+    // existing-email path above.
+    res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
+  } catch (error) {
+    safeRouteError(res, error, 'Auth.Register');
+  }
+});
 
 // ─── POST /api/auth/login ───────────────────────────────────────────────────
-router.post(
-    '/login',
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { email, password } = req.body as {
-                email: string;
-                password: string;
-            };
+router.post('/login', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // P0-AUTH-001 FIX: Accept `remember` field for 30-day sessions.
+    const { email, password, remember } = req.body as {
+      email: string;
+      password: string;
+      remember?: boolean;
+    };
 
-            // I18N-004: Locale-aware error messages for mobile clients
-            const loginLocale = getEmailLocale(req);
+    // I18N-004: Locale-aware error messages for mobile clients
+    const loginLocale = getEmailLocale(req);
 
-            if (!email || !password) {
-                res.status(400).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني وكلمة المرور'
-                        : 'Missing required fields: email, password',
-                } as ApiResponse);
-                return;
-            }
+    if (!email || !password) {
+      res.status(400).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني وكلمة المرور'
+            : 'Missing required fields: email, password',
+      } as ApiResponse);
+      return;
+    }
 
-            // SEC-003: Password max length check (before bcrypt comparison)
-            if (password.length > MAX_PASSWORD_LENGTH) {
-                res.status(401).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-                        : 'Invalid email or password',
-                } as ApiResponse);
-                return;
-            }
+    // SEC-003: Password max length check (before bcrypt comparison)
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      res.status(401).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            : 'Invalid email or password',
+      } as ApiResponse);
+      return;
+    }
 
-            // Find user by email
-            const normalizedEmail = email.toLowerCase().trim();
-            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified' | 'password_hash'>>(
-                'SELECT user_id, email, full_name, role, is_active, is_email_verified, password_hash FROM users WHERE email = $1',
-                [normalizedEmail]
-            );
+    // Find user by email
+    const normalizedEmail = email.toLowerCase().trim();
+    const result = await query<
+      Pick<
+        User,
+        | 'user_id'
+        | 'email'
+        | 'full_name'
+        | 'role'
+        | 'is_active'
+        | 'is_email_verified'
+        | 'password_hash'
+      >
+    >(
+      'SELECT user_id, email, full_name, role, is_active, is_email_verified, password_hash FROM users WHERE email = $1',
+      [normalizedEmail],
+    );
 
-            const user = result.rows[0];
-            if (!user) {
-                // Use generic message to prevent email enumeration
-                res.status(401).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-                        : 'Invalid email or password',
-                } as ApiResponse);
-                return;
-            }
+    const user = result.rows[0];
+    if (!user) {
+      // Use generic message to prevent email enumeration
+      res.status(401).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            : 'Invalid email or password',
+      } as ApiResponse);
+      return;
+    }
 
-            // SEC-002 + RED TEAM FIX: Independent check for IP and Email lockouts
-            // Splitting Email and IP trackers mitigates the rotating-proxy loop-hole.
-            const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-            const emailScope = `email::${normalizedEmail}`;
-            const ipScope = `ip::${clientIp}`;
+    // SEC-002 + RED TEAM FIX: Independent check for IP and Email lockouts
+    // Splitting Email and IP trackers mitigates the rotating-proxy loop-hole.
+    const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+    const emailScope = `email::${normalizedEmail}`;
+    const ipScope = `ip::${clientIp}`;
 
-            const checkLockout = async (scope: string) => {
-                const res = await query<{ failed_attempts: number; locked_until: Date | null }>(
-                    `SELECT
+    const checkLockout = async (scope: string) => {
+      const res = await query<{ failed_attempts: number; locked_until: Date | null }>(
+        `SELECT
                         COALESCE((
                             SELECT COUNT(*) FROM audit_trail
                             WHERE entity_type = 'auth_failure'
@@ -392,254 +438,282 @@ router.post(
                               AND created_at > NOW() - MAKE_INTERVAL(mins => $2)
                             ORDER BY created_at DESC LIMIT 1
                         ) AS locked_until`,
-                    [scope, LOCKOUT_DURATION_MINUTES]
-                );
-                return res.rows[0];
-            };
+        [scope, LOCKOUT_DURATION_MINUTES],
+      );
+      return res.rows[0];
+    };
 
-            const [emailLockout, ipLockout] = await Promise.all([
-                checkLockout(emailScope),
-                checkLockout(ipScope)
-            ]);
+    const [emailLockout, ipLockout] = await Promise.all([
+      checkLockout(emailScope),
+      checkLockout(ipScope),
+    ]);
 
-            const activeLockout = [emailLockout, ipLockout].find(l => l?.locked_until && new Date(l.locked_until) > new Date());
-            
-            if (activeLockout?.locked_until) {
-                const minutesLeft = Math.ceil(
-                    (new Date(activeLockout.locked_until).getTime() - Date.now()) / 60_000
-                );
-                res.status(429).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? `الحساب مقفل مؤقتاً. حاول مرة أخرى بعد ${minutesLeft} دقيقة.`
-                        : `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
-                } as ApiResponse);
-                return;
-            }
+    const activeLockout = [emailLockout, ipLockout].find(
+      (l) => l?.locked_until && new Date(l.locked_until) > new Date(),
+    );
 
-            // ── Social-Only Account Guard (Migration 042) ──────────────────────
-            // Users who registered via Google/Apple/Facebook have no password_hash.
-            // Attempting bcrypt.compare(password, null) would throw. Instead,
-            // return a clear error telling the user to use their social provider.
-            if (!user.password_hash) {
-                // Look up which social provider they used
-                const oauthResult = await query<{ provider: string }>(
-                    'SELECT provider FROM oauth_providers WHERE user_id = $1 LIMIT 1',
-                    [user.user_id]
-                );
-                const providerName = oauthResult.rows[0]?.provider ?? 'social';
-                const providerDisplay: Record<string, string> = {
-                    google: 'Google',
-                    apple: 'Apple',
-                    facebook: 'Facebook',
-                };
-                const displayName = providerDisplay[providerName] ?? providerName;
+    if (activeLockout?.locked_until) {
+      const minutesLeft = Math.ceil(
+        (new Date(activeLockout.locked_until).getTime() - Date.now()) / 60_000,
+      );
+      res.status(429).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? `الحساب مقفل مؤقتاً. حاول مرة أخرى بعد ${minutesLeft} دقيقة.`
+            : `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
+      } as ApiResponse);
+      return;
+    }
 
-                res.status(401).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? `هذا الحساب مسجّل عبر ${displayName}. يرجى تسجيل الدخول باستخدام ${displayName}.`
-                        : `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
-                    code: 'SOCIAL_ONLY_ACCOUNT',
-                } as ApiResponse);
-                return;
-            }
+    // ── Social-Only Account Guard (Migration 042) ──────────────────────
+    // Users who registered via Google/Apple/Facebook have no password_hash.
+    // Attempting bcrypt.compare(password, null) would throw. Instead,
+    // return a clear error telling the user to use their social provider.
+    if (!user.password_hash) {
+      // Look up which social provider they used
+      const oauthResult = await query<{ provider: string }>(
+        'SELECT provider FROM oauth_providers WHERE user_id = $1 LIMIT 1',
+        [user.user_id],
+      );
+      const providerName = oauthResult.rows[0]?.provider ?? 'social';
+      const providerDisplay: Record<string, string> = {
+        google: 'Google',
+        apple: 'Apple',
+        facebook: 'Facebook',
+      };
+      const displayName = providerDisplay[providerName] ?? providerName;
 
-            // Verify password
-            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-            if (!isPasswordValid) {
-                // Independent failure logging and lockout handling
-                const recordFailureAndLockIfOverLimit = async (scope: string, currentAttempts: number) => {
-                    await query(
-                        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+      res.status(401).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? `هذا الحساب مسجّل عبر ${displayName}. يرجى تسجيل الدخول باستخدام ${displayName}.`
+            : `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
+        code: 'SOCIAL_ONLY_ACCOUNT',
+      } as ApiResponse);
+      return;
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      // Independent failure logging and lockout handling
+      const recordFailureAndLockIfOverLimit = async (scope: string, currentAttempts: number) => {
+        await query(
+          `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                          VALUES ('login_failed', 'auth_failure', $1, NULL, $2)`,
-                        [scope, JSON.stringify({ email: normalizedEmail, ip: clientIp, timestamp: new Date().toISOString() })]
-                    );
-                    const newCount = currentAttempts + 1;
-                    if (newCount >= MAX_FAILED_ATTEMPTS) {
-                        await query(
-                            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+          [
+            scope,
+            JSON.stringify({
+              email: normalizedEmail,
+              ip: clientIp,
+              timestamp: new Date().toISOString(),
+            }),
+          ],
+        );
+        const newCount = currentAttempts + 1;
+        if (newCount >= MAX_FAILED_ATTEMPTS) {
+          await query(
+            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                              VALUES ('account_locked', 'auth_lockout', $1, NULL, $2)`,
-                            [scope, JSON.stringify({
-                                email: normalizedEmail,
-                                ip: clientIp,
-                                reason: `${MAX_FAILED_ATTEMPTS} consecutive failed login attempts on ${scope}`,
-                                duration_minutes: LOCKOUT_DURATION_MINUTES,
-                            })]
-                        );
-                        logger.warn(`Auth: Scope locked due to failed attempts`, { scope, maxAttempts: MAX_FAILED_ATTEMPTS });
-                    }
-                };
+            [
+              scope,
+              JSON.stringify({
+                email: normalizedEmail,
+                ip: clientIp,
+                reason: `${MAX_FAILED_ATTEMPTS} consecutive failed login attempts on ${scope}`,
+                duration_minutes: LOCKOUT_DURATION_MINUTES,
+              }),
+            ],
+          );
+          logger.warn(`Auth: Scope locked due to failed attempts`, {
+            scope,
+            maxAttempts: MAX_FAILED_ATTEMPTS,
+          });
+        }
+      };
 
-                await Promise.all([
-                    recordFailureAndLockIfOverLimit(emailScope, emailLockout?.failed_attempts ?? 0),
-                    recordFailureAndLockIfOverLimit(ipScope, ipLockout?.failed_attempts ?? 0)
-                ]);
+      await Promise.all([
+        recordFailureAndLockIfOverLimit(emailScope, emailLockout?.failed_attempts ?? 0),
+        recordFailureAndLockIfOverLimit(ipScope, ipLockout?.failed_attempts ?? 0),
+      ]);
 
-                res.status(401).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-                        : 'Invalid email or password',
-                } as ApiResponse);
-                return;
-            }
+      res.status(401).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            : 'Invalid email or password',
+      } as ApiResponse);
+      return;
+    }
 
-            // Login successful — clean up old failure records
-            // (No need to delete, they expire naturally via the time window)
+    // Login successful — clean up old failure records
+    // (No need to delete, they expire naturally via the time window)
 
-            // PLT-MAR11-002 FIX: Reject login for unverified email accounts.
-            // The registration path correctly withholds JWT until verification,
-            // but without this gate the login path was a bypass. An attacker
-            // could register, skip verification, and still access the platform.
-            if (!user.is_email_verified) {
-                res.status(403).json({
-                    success: false,
-                    error: loginLocale === 'ar'
-                        ? 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.'
-                        : 'Please verify your email before signing in. Check your inbox for the verification link.',
-                    code: 'EMAIL_NOT_VERIFIED',
-                } as ApiResponse);
-                return;
-            }
+    // PLT-MAR11-002 FIX: Reject login for unverified email accounts.
+    // The registration path correctly withholds JWT until verification,
+    // but without this gate the login path was a bypass. An attacker
+    // could register, skip verification, and still access the platform.
+    if (!user.is_email_verified) {
+      res.status(403).json({
+        success: false,
+        error:
+          loginLocale === 'ar'
+            ? 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.'
+            : 'Please verify your email before signing in. Check your inbox for the verification link.',
+        code: 'EMAIL_NOT_VERIFIED',
+      } as ApiResponse);
+      return;
+    }
 
-            // Fetch all active roles for multi-role JWT
-            // UNIFIED CITIZEN: All users have all roles. primaryRole used for JWT generation.
-            const userRolesResult = await query<{ role_name: string; is_primary: boolean }>(
-                `SELECT r.role_name, ur.is_primary FROM user_roles ur
+    // Fetch all active roles for multi-role JWT
+    // UNIFIED CITIZEN: All users have all roles. primaryRole used for JWT generation.
+    const userRolesResult = await query<{ role_name: string; is_primary: boolean }>(
+      `SELECT r.role_name, ur.is_primary FROM user_roles ur
                  JOIN roles r ON r.role_id = ur.role_id
                  WHERE ur.user_id = $1 AND ur.status = 'active'
                  ORDER BY ur.is_primary DESC, r.sort_order`,
-                [user.user_id]
-            );
-            const allRoles = userRolesResult.rows.map(r => r.role_name);
-            // UNIFIED CITIZEN: Use primary role for JWT sub-claim
-            const primaryRole = userRolesResult.rows.find(r => r.is_primary)?.role_name ?? user.role;
+      [user.user_id],
+    );
+    const allRoles = userRolesResult.rows.map((r) => r.role_name);
+    // UNIFIED CITIZEN: Use primary role for JWT sub-claim
+    const primaryRole = userRolesResult.rows.find((r) => r.is_primary)?.role_name ?? user.role;
 
-            // Generate JWT with all roles — use primaryRole as the active context
-            const token = generateToken(
-                user.user_id,
-                primaryRole,
-                allRoles.length > 0 ? allRoles : [user.role]
-            );
+    // Generate JWT with all roles — use primaryRole as the active context
+    // P0-AUTH-001 FIX: Use 30-day expiry when Remember Me is checked.
+    const jwtExpiry = remember ? '30d' : undefined;
+    const token = generateToken(
+      user.user_id,
+      primaryRole,
+      allRoles.length > 0 ? allRoles : [user.role],
+      jwtExpiry,
+    );
 
-            // V1-AUDIT FIX: Set JWT in httpOnly cookie — JS cannot read this token.
-            // This neutralizes XSS-based session theft entirely.
-            // MOB-AUTH-001: Skip cookie for native mobile clients — they use Bearer tokens.
-            const clientPlatform = req.headers['x-platform'] as string | undefined;
-            const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
+    // V1-AUDIT FIX: Set JWT in httpOnly cookie — JS cannot read this token.
+    // This neutralizes XSS-based session theft entirely.
+    // MOB-AUTH-001: Skip cookie for native mobile clients — they use Bearer tokens.
+    const clientPlatform = req.headers['x-platform'] as string | undefined;
+    const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
 
-            if (!isMobileClient) {
-                res.cookie('nammerha_jwt', token, {
-                    httpOnly: true,
-                    secure: process.env['NODE_ENV'] === 'production',
-                    sameSite: 'strict',
-                    maxAge: 24 * 60 * 60 * 1000, // 24h — mirrors JWT expiry
-                    path: '/',
-                });
-            }
-
-            // MOB-AUTH-001: Mobile clients receive the JWT in the response body
-            // because native apps cannot reliably use httpOnly cookies for cross-origin
-            // API requests. The token is stored in flutter_secure_storage (AES-encrypted
-            // on Android, Keychain on iOS) which provides equivalent security to httpOnly
-            // cookies in a native context.
-            // Web clients continue to use httpOnly cookies exclusively (NMR-AUD-H001).
-            res.json({
-                success: true,
-                data: {
-                    user: {
-                        user_id: user.user_id,
-                        email: user.email,
-                        full_name: user.full_name,
-                        role: primaryRole,
-                        // UNIFIED CITIZEN: All roles included for client-side feature gating
-                        roles: allRoles.length > 0 ? allRoles : [user.role],
-                        is_active: user.is_active,
-                        is_email_verified: user.is_email_verified,
-                    },
-                    // MOB-AUTH-001: Token only included for mobile clients
-                    ...(isMobileClient ? { token } : {}),
-                },
-            } as ApiResponse);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.Login');
-        }
+    if (!isMobileClient) {
+      res.cookie('nammerha_jwt', token, {
+        httpOnly: true,
+        secure: process.env['NODE_ENV'] === 'production',
+        sameSite: 'strict',
+        // P0-AUTH-001 FIX: 30-day cookie when Remember Me is checked.
+        maxAge: remember ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+        path: '/',
+      });
     }
-);
+
+    // MOB-AUTH-001: Mobile clients receive the JWT in the response body
+    // because native apps cannot reliably use httpOnly cookies for cross-origin
+    // API requests. The token is stored in flutter_secure_storage (AES-encrypted
+    // on Android, Keychain on iOS) which provides equivalent security to httpOnly
+    // cookies in a native context.
+    // Web clients continue to use httpOnly cookies exclusively (NMR-AUD-H001).
+    res.json({
+      success: true,
+      data: {
+        user: {
+          user_id: user.user_id,
+          email: user.email,
+          full_name: user.full_name,
+          role: primaryRole,
+          // UNIFIED CITIZEN: All roles included for client-side feature gating
+          roles: allRoles.length > 0 ? allRoles : [user.role],
+          is_active: user.is_active,
+          is_email_verified: user.is_email_verified,
+        },
+        // MOB-AUTH-001: Token only included for mobile clients
+        ...(isMobileClient ? { token } : {}),
+      },
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'Auth.Login');
+  }
+});
 
 // ─── GET /api/auth/verify-email/:token ──────────────────────────────────────
-router.get('/verify-email/:token', verifyEmailLimiter, async (req: Request, res: Response): Promise<void> => {
+router.get(
+  '/verify-email/:token',
+  verifyEmailLimiter,
+  async (req: Request, res: Response): Promise<void> => {
     try {
-        const { token } = req.params;
-        if (!token || token.length < 10) {
-            res.status(400).json({
-                success: false,
-                error: 'Invalid verification token',
-            } as ApiResponse);
-            return;
-        }
+      const { token } = req.params;
+      if (!token || token.length < 10) {
+        res.status(400).json({
+          success: false,
+          error: 'Invalid verification token',
+        } as ApiResponse);
+        return;
+      }
 
-        // Find user by token and check expiry
-        const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>>(
-            `SELECT user_id, email, is_email_verified, email_token_expires_at
+      // Find user by token and check expiry
+      const result = await query<
+        Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>
+      >(
+        `SELECT user_id, email, is_email_verified, email_token_expires_at
              FROM users WHERE email_verification_token = $1`,
-            [token]
-        );
+        [token],
+      );
 
-        const user = result.rows[0];
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: 'Verification token not found or already used',
-            } as ApiResponse);
-            return;
-        }
+      const user = result.rows[0];
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          error: 'Verification token not found or already used',
+        } as ApiResponse);
+        return;
+      }
 
-        if (user.is_email_verified) {
-            res.json({
-                success: true,
-                message: 'Email already verified',
-            } as ApiResponse);
-            return;
-        }
+      if (user.is_email_verified) {
+        res.json({
+          success: true,
+          message: 'Email already verified',
+        } as ApiResponse);
+        return;
+      }
 
-        // Check token expiry
-        if (user.email_token_expires_at && new Date(user.email_token_expires_at) < new Date()) {
-            res.status(410).json({
-                success: false,
-                error: 'Verification token has expired. Please request a new one.',
-            } as ApiResponse);
-            return;
-        }
+      // Check token expiry
+      if (user.email_token_expires_at && new Date(user.email_token_expires_at) < new Date()) {
+        res.status(410).json({
+          success: false,
+          error: 'Verification token has expired. Please request a new one.',
+        } as ApiResponse);
+        return;
+      }
 
-        // Verify the email + activate the account + clear the token
-        // PLT-AUTH-001 FIX: CRITICAL — previous code set is_email_verified = TRUE
-        // but NEVER set is_active = TRUE. This caused requireActive() middleware
-        // (used on ALL 20+ route files) to reject every verified user with 403
-        // "Account not activated. KYC verification required." — making the
-        // entire platform inaccessible to all self-registered users.
-        await query(
-            `UPDATE users
+      // Verify the email + activate the account + clear the token
+      // PLT-AUTH-001 FIX: CRITICAL — previous code set is_email_verified = TRUE
+      // but NEVER set is_active = TRUE. This caused requireActive() middleware
+      // (used on ALL 20+ route files) to reject every verified user with 403
+      // "Account not activated. KYC verification required." — making the
+      // entire platform inaccessible to all self-registered users.
+      await query(
+        `UPDATE users
              SET is_email_verified = TRUE,
                  is_active = TRUE,
                  email_verification_token = NULL,
                  email_token_expires_at = NULL,
                  updated_at = NOW()
              WHERE user_id = $1`,
-            [user.user_id]
-        );
+        [user.user_id],
+      );
 
-        logger.info('Auth: Email verified', { userId: user.user_id, email: user.email });
+      logger.info('Auth: Email verified', { userId: user.user_id, email: user.email });
 
-        res.json({
-            success: true,
-            message: 'Email verified successfully. You can now access all platform features.',
-        } as ApiResponse);
+      res.json({
+        success: true,
+        message: 'Email verified successfully. You can now access all platform features.',
+      } as ApiResponse);
     } catch (error) {
-        safeRouteError(res, error, 'Auth.VerifyEmail');
+      safeRouteError(res, error, 'Auth.VerifyEmail');
     }
-});
+  },
+);
 
 // ─── POST /api/auth/resend-verification ─────────────────────────────────────
 // PLT-AUTH-002 FIX: Removed authMiddleware — unverified users cannot login
@@ -647,245 +721,264 @@ router.get('/verify-email/:token', verifyEmailLimiter, async (req: Request, res:
 // dead-end: can't login → can't resend verification → can't verify → can't login.
 // Now accepts email in body and does its own user lookup with rate limiting.
 router.post(
-    '/resend-verification',
-    sensitiveActionLimiter,
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { email } = req.body as { email?: string };
+  '/resend-verification',
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body as { email?: string };
 
-            if (!email) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Email is required',
-                } as ApiResponse);
-                return;
-            }
+      if (!email) {
+        res.status(400).json({
+          success: false,
+          error: 'Email is required',
+        } as ApiResponse);
+        return;
+      }
 
-            // Anti-enumeration: always return success regardless of outcome
-            const GENERIC_RESPONSE: ApiResponse = {
-                success: true,
-                message: 'If your email is registered and unverified, a new verification link has been sent.',
-            };
+      // Anti-enumeration: always return success regardless of outcome
+      const GENERIC_RESPONSE: ApiResponse = {
+        success: true,
+        message:
+          'If your email is registered and unverified, a new verification link has been sent.',
+      };
 
-            const normalizedEmail = email.toLowerCase().trim();
+      const normalizedEmail = email.toLowerCase().trim();
 
-            // Find user by email
-            const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>>(
-                'SELECT user_id, email, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
-                [normalizedEmail]
-            );
-            const user = result.rows[0];
+      // Find user by email
+      const result = await query<
+        Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>
+      >(
+        'SELECT user_id, email, is_email_verified, email_token_expires_at FROM users WHERE email = $1',
+        [normalizedEmail],
+      );
+      const user = result.rows[0];
 
-            // If user not found or already verified, return generic response (anti-enumeration)
-            if (!user || user.is_email_verified) {
-                res.json(GENERIC_RESPONSE);
-                return;
-            }
+      // If user not found or already verified, return generic response (anti-enumeration)
+      if (!user || user.is_email_verified) {
+        res.json(GENERIC_RESPONSE);
+        return;
+      }
 
-            // Rate limit: check if last token was generated less than RESEND_COOLDOWN_SECONDS ago
-            if (user.email_token_expires_at) {
-                const tokenCreatedAt = new Date(user.email_token_expires_at);
-                tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
-                const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
-                if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
-                    const waitSeconds = Math.ceil(RESEND_COOLDOWN_SECONDS - secondsSinceLastSend);
-                    const reqLocale = getEmailLocale(req);
-                    res.status(429).json({
-                        success: false,
-                        error: reqLocale === 'ar'
-                            ? `يرجى الانتظار ${waitSeconds} ثانية قبل طلب رابط تحقق جديد.`
-                            : `Please wait ${waitSeconds} seconds before requesting another verification email`,
-                    } as ApiResponse);
-                    return;
-                }
-            }
-
-            // Generate new token
-            const newToken = crypto.randomUUID();
-            const tokenExpiry = new Date();
-            tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
-
-            await query(
-                `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW()
-                 WHERE user_id = $3`,
-                [newToken, tokenExpiry, user.user_id]
-            );
-
-            // Send verification email
-            // PLT-AUD-006 FIX: Point to frontend page, not raw API endpoint
-            const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-            const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}`;
-            sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
-                logger.error('Auth: Resend verification email failed', { error: err instanceof Error ? err.message : String(err) });
-            });
-
-            res.json(GENERIC_RESPONSE);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.ResendVerification');
+      // Rate limit: check if last token was generated less than RESEND_COOLDOWN_SECONDS ago
+      if (user.email_token_expires_at) {
+        const tokenCreatedAt = new Date(user.email_token_expires_at);
+        tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
+        const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+        if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+          const waitSeconds = Math.ceil(RESEND_COOLDOWN_SECONDS - secondsSinceLastSend);
+          const reqLocale = getEmailLocale(req);
+          res.status(429).json({
+            success: false,
+            error:
+              reqLocale === 'ar'
+                ? `يرجى الانتظار ${waitSeconds} ثانية قبل طلب رابط تحقق جديد.`
+                : `Please wait ${waitSeconds} seconds before requesting another verification email`,
+          } as ApiResponse);
+          return;
         }
+      }
+
+      // Generate new token
+      const newToken = crypto.randomUUID();
+      const tokenExpiry = new Date();
+      tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+
+      await query(
+        `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW()
+                 WHERE user_id = $3`,
+        [newToken, tokenExpiry, user.user_id],
+      );
+
+      // Send verification email
+      // PLT-AUD-006 FIX: Point to frontend page, not raw API endpoint
+      const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+      const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}`;
+      sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
+        logger.error('Auth: Resend verification email failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+
+      res.json(GENERIC_RESPONSE);
+    } catch (error) {
+      safeRouteError(res, error, 'Auth.ResendVerification');
     }
+  },
 );
 
 // ─── POST /api/auth/forgot-password ─────────────────────────────────────────
-router.post('/forgot-password', sensitiveActionLimiter, async (req: Request, res: Response): Promise<void> => {
+router.post(
+  '/forgot-password',
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email } = req.body as { email: string };
+      const { email } = req.body as { email: string };
 
-        if (!email) {
-            res.status(400).json({
-                success: false,
-                error: 'Email is required',
-            } as ApiResponse);
-            return;
-        }
+      if (!email) {
+        res.status(400).json({
+          success: false,
+          error: 'Email is required',
+        } as ApiResponse);
+        return;
+      }
 
-        // ALWAYS return success to prevent email enumeration (SEC-009)
-        const successResponse = {
-            success: true,
-            message: 'If an account with that email exists, a password reset link has been sent.',
-        } as ApiResponse;
+      // ALWAYS return success to prevent email enumeration (SEC-009)
+      const successResponse = {
+        success: true,
+        message: 'If an account with that email exists, a password reset link has been sent.',
+      } as ApiResponse;
 
-        const normalizedEmail = email.toLowerCase().trim();
-        const result = await query<Pick<User, 'user_id' | 'email'>>(
-            'SELECT user_id, email FROM users WHERE email = $1',
-            [normalizedEmail]
-        );
+      const normalizedEmail = email.toLowerCase().trim();
+      const result = await query<Pick<User, 'user_id' | 'email'>>(
+        'SELECT user_id, email FROM users WHERE email = $1',
+        [normalizedEmail],
+      );
 
-        const user = result.rows[0];
-        if (!user) {
-            // Return same success response to prevent enumeration
-            res.json(successResponse);
-            return;
-        }
-
-        // Generate cryptographically secure reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const tokenExpiry = new Date();
-        tokenExpiry.setMinutes(tokenExpiry.getMinutes() + RESET_TOKEN_EXPIRY_MINUTES);
-
-        await query(
-            `UPDATE users SET password_reset_token = $1, reset_token_expires_at = $2, updated_at = NOW()
-             WHERE user_id = $3`,
-            [resetToken, tokenExpiry, user.user_id]
-        );
-
-        // Send reset email
-        const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-        const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
-        sendPasswordResetEmail(user.email, resetUrl, getEmailLocale(req)).catch((err) => {
-            logger.error('Auth: Password reset email failed', { error: err instanceof Error ? err.message : String(err) });
-        });
-
-        logger.info('Auth: Password reset requested', { email: normalizedEmail });
+      const user = result.rows[0];
+      if (!user) {
+        // Return same success response to prevent enumeration
         res.json(successResponse);
+        return;
+      }
+
+      // Generate cryptographically secure reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const tokenExpiry = new Date();
+      tokenExpiry.setMinutes(tokenExpiry.getMinutes() + RESET_TOKEN_EXPIRY_MINUTES);
+
+      await query(
+        `UPDATE users SET password_reset_token = $1, reset_token_expires_at = $2, updated_at = NOW()
+             WHERE user_id = $3`,
+        [resetToken, tokenExpiry, user.user_id],
+      );
+
+      // Send reset email
+      const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+      const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
+      sendPasswordResetEmail(user.email, resetUrl, getEmailLocale(req)).catch((err) => {
+        logger.error('Auth: Password reset email failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+
+      logger.info('Auth: Password reset requested', { email: normalizedEmail });
+      res.json(successResponse);
     } catch (error) {
-        safeRouteError(res, error, 'Auth.ForgotPassword');
+      safeRouteError(res, error, 'Auth.ForgotPassword');
     }
-});
+  },
+);
 
 // ─── POST /api/auth/reset-password ──────────────────────────────────────────
-router.post('/reset-password', sensitiveActionLimiter, async (req: Request, res: Response): Promise<void> => {
+router.post(
+  '/reset-password',
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
     try {
-        const { token, new_password } = req.body as {
-            token: string;
-            new_password: string;
-        };
+      const { token, new_password } = req.body as {
+        token: string;
+        new_password: string;
+      };
 
-        if (!token || !new_password) {
-            res.status(400).json({
-                success: false,
-                error: 'Token and new password are required',
-            } as ApiResponse);
-            return;
-        }
+      if (!token || !new_password) {
+        res.status(400).json({
+          success: false,
+          error: 'Token and new password are required',
+        } as ApiResponse);
+        return;
+      }
 
-        // Validate password complexity
-        const failedRules = PASSWORD_RULES
-            .filter(rule => !rule.test(new_password))
-            .map(rule => rule.msg);
+      // Validate password complexity
+      const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(new_password)).map(
+        (rule) => rule.msg,
+      );
 
-        if (failedRules.length > 0) {
-            res.status(400).json({
-                success: false,
-                error: `Password must contain: ${failedRules.join(', ')}`,
-            } as ApiResponse);
-            return;
-        }
+      if (failedRules.length > 0) {
+        res.status(400).json({
+          success: false,
+          error: `Password must contain: ${failedRules.join(', ')}`,
+        } as ApiResponse);
+        return;
+      }
 
-        if (new_password.length > MAX_PASSWORD_LENGTH) {
-            res.status(400).json({
-                success: false,
-                error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
-            } as ApiResponse);
-            return;
-        }
+      if (new_password.length > MAX_PASSWORD_LENGTH) {
+        res.status(400).json({
+          success: false,
+          error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+        } as ApiResponse);
+        return;
+      }
 
-        // Find user by reset token
-        const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at'>>(
-            `SELECT user_id, email, reset_token_expires_at
+      // Find user by reset token
+      const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at'>>(
+        `SELECT user_id, email, reset_token_expires_at
              FROM users WHERE password_reset_token = $1`,
-            [token]
-        );
+        [token],
+      );
 
-        const user = result.rows[0];
-        if (!user) {
-            res.status(400).json({
-                success: false,
-                error: 'Invalid or expired reset token',
-            } as ApiResponse);
-            return;
-        }
+      const user = result.rows[0];
+      if (!user) {
+        res.status(400).json({
+          success: false,
+          error: 'Invalid or expired reset token',
+        } as ApiResponse);
+        return;
+      }
 
-        // Check token expiry
-        if (user.reset_token_expires_at && new Date(user.reset_token_expires_at) < new Date()) {
-            // Clear expired token
-            await query(
-                'UPDATE users SET password_reset_token = NULL, reset_token_expires_at = NULL WHERE user_id = $1',
-                [user.user_id]
-            );
-            res.status(410).json({
-                success: false,
-                error: 'Reset token has expired. Please request a new one.',
-            } as ApiResponse);
-            return;
-        }
-
-        // Hash new password, clear reset token, and invalidate all existing JWTs
-        const password_hash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
-        // MED-001 FIX: Setting token_invalidated_at = NOW() causes the auth
-        // middleware to reject any JWT issued before this moment. This ensures
-        // that stolen tokens become useless after a password reset.
+      // Check token expiry
+      if (user.reset_token_expires_at && new Date(user.reset_token_expires_at) < new Date()) {
+        // Clear expired token
         await query(
-            `UPDATE users
+          'UPDATE users SET password_reset_token = NULL, reset_token_expires_at = NULL WHERE user_id = $1',
+          [user.user_id],
+        );
+        res.status(410).json({
+          success: false,
+          error: 'Reset token has expired. Please request a new one.',
+        } as ApiResponse);
+        return;
+      }
+
+      // Hash new password, clear reset token, and invalidate all existing JWTs
+      const password_hash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
+      // MED-001 FIX: Setting token_invalidated_at = NOW() causes the auth
+      // middleware to reject any JWT issued before this moment. This ensures
+      // that stolen tokens become useless after a password reset.
+      await query(
+        `UPDATE users
              SET password_hash = $1,
                  password_reset_token = NULL,
                  reset_token_expires_at = NULL,
                  token_invalidated_at = NOW(),
                  updated_at = NOW()
              WHERE user_id = $2`,
-            [password_hash, user.user_id]
-        );
+        [password_hash, user.user_id],
+      );
 
-        // Log security event
-        await query(
-            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+      // Log security event
+      await query(
+        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
              VALUES ('password_reset_completed', 'user', $1, $1, $2)`,
-            [user.user_id, JSON.stringify({
-                email: user.email,
-                timestamp: new Date().toISOString(),
-            })]
-        );
+        [
+          user.user_id,
+          JSON.stringify({
+            email: user.email,
+            timestamp: new Date().toISOString(),
+          }),
+        ],
+      );
 
-        logger.info('Auth: Password reset completed', { userId: user.user_id });
+      logger.info('Auth: Password reset completed', { userId: user.user_id });
 
-        res.json({
-            success: true,
-            message: 'Password has been reset successfully. You can now log in with your new password.',
-        } as ApiResponse);
+      res.json({
+        success: true,
+        message: 'Password has been reset successfully. You can now log in with your new password.',
+      } as ApiResponse);
     } catch (error) {
-        safeRouteError(res, error, 'Auth.ResetPassword');
+      safeRouteError(res, error, 'Auth.ResetPassword');
     }
-});
+  },
+);
 
 // ─── POST /api/auth/logout ──────────────────────────────────────────────────
 // V1-AUDIT FIX: Server-side cookie clearance + NMR-AUD-M004 FIX: Token invalidation.
@@ -901,40 +994,37 @@ router.post('/reset-password', sensitiveActionLimiter, async (req: Request, res:
 // attempt to extract the user_id from the token, but always clear the cookie
 // regardless of whether the token is valid.
 router.post('/logout', async (req: Request, res: Response): Promise<void> => {
-    // NMR-AUD-M004 FIX: Soft-auth token invalidation.
-    // Try to decode the JWT to get the user_id and invalidate all their tokens.
-    // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
-    try {
-        const token = req.cookies?.['nammerha_jwt'] as string | undefined;
-        if (token) {
-            // Decode WITHOUT verification — we only need the user_id.
-            // The token is about to be invalidated anyway; verifying it first
-            // would just block logout for users with expired tokens.
-            const decoded = jwt.decode(token) as { sub?: string; user_id?: string } | null;
-            const userId = decoded?.sub ?? decoded?.user_id;
-            if (userId) {
-                await query(
-                    'UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1',
-                    [userId]
-                );
-                logger.info('Auth: Token invalidated on logout', { userId });
-            }
-        }
-    } catch (err) {
-        // Non-fatal: cookie will still be cleared below.
-        // The token will expire naturally within 24h even if invalidation fails.
-        logger.error('Auth: Failed to invalidate token on logout', {
-            error: err instanceof Error ? err.message : String(err),
-        });
+  // NMR-AUD-M004 FIX: Soft-auth token invalidation.
+  // Try to decode the JWT to get the user_id and invalidate all their tokens.
+  // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
+  try {
+    const token = req.cookies?.['nammerha_jwt'] as string | undefined;
+    if (token) {
+      // Decode WITHOUT verification — we only need the user_id.
+      // The token is about to be invalidated anyway; verifying it first
+      // would just block logout for users with expired tokens.
+      const decoded = jwt.decode(token) as { sub?: string; user_id?: string } | null;
+      const userId = decoded?.sub ?? decoded?.user_id;
+      if (userId) {
+        await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [userId]);
+        logger.info('Auth: Token invalidated on logout', { userId });
+      }
     }
-
-    res.clearCookie('nammerha_jwt', {
-        httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
-        sameSite: 'strict',
-        path: '/',
+  } catch (err) {
+    // Non-fatal: cookie will still be cleared below.
+    // The token will expire naturally within 24h even if invalidation fails.
+    logger.error('Auth: Failed to invalidate token on logout', {
+      error: err instanceof Error ? err.message : String(err),
     });
-    res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
+  }
+
+  res.clearCookie('nammerha_jwt', {
+    httpOnly: true,
+    secure: process.env['NODE_ENV'] === 'production',
+    sameSite: 'strict',
+    path: '/',
+  });
+  res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
 });
 
 // ─── POST /api/auth/change-password ─────────────────────────────────────────
@@ -945,186 +1035,187 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
 // SEC: Fresh JWT cookie reissued so current session survives.
 // AUDIT: Logged in audit_trail for forensic compliance.
 router.post(
-    '/change-password',
-    authMiddleware,
-    sensitiveActionLimiter,
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const userId = getAuthUser(req).user_id;
-            const { current_password, new_password } = req.body as {
-                current_password?: string;
-                new_password?: string;
-            };
+  '/change-password',
+  authMiddleware,
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = getAuthUser(req).user_id;
+      const { current_password, new_password } = req.body as {
+        current_password?: string;
+        new_password?: string;
+      };
 
-            // ── Validation: Required fields ────────────────────────────
-            if (!current_password || !new_password) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Current password and new password are required',
-                } as ApiResponse);
-                return;
-            }
+      // ── Validation: Required fields ────────────────────────────
+      if (!current_password || !new_password) {
+        res.status(400).json({
+          success: false,
+          error: 'Current password and new password are required',
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Validation: Max length (SEC-003: bcrypt DoS prevention) ─
-            if (new_password.length > MAX_PASSWORD_LENGTH) {
-                res.status(400).json({
-                    success: false,
-                    error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
-                } as ApiResponse);
-                return;
-            }
+      // ── Validation: Max length (SEC-003: bcrypt DoS prevention) ─
+      if (new_password.length > MAX_PASSWORD_LENGTH) {
+        res.status(400).json({
+          success: false,
+          error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Validation: Password complexity rules ──────────────────
-            const failedRules = PASSWORD_RULES
-                .filter(rule => !rule.test(new_password))
-                .map(rule => rule.msg);
+      // ── Validation: Password complexity rules ──────────────────
+      const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(new_password)).map(
+        (rule) => rule.msg,
+      );
 
-            if (failedRules.length > 0) {
-                res.status(400).json({
-                    success: false,
-                    error: `Password must contain: ${failedRules.join(', ')}`,
-                } as ApiResponse);
-                return;
-            }
+      if (failedRules.length > 0) {
+        res.status(400).json({
+          success: false,
+          error: `Password must contain: ${failedRules.join(', ')}`,
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Validation: No password reuse ──────────────────────────
-            if (current_password === new_password) {
-                res.status(400).json({
-                    success: false,
-                    error: 'New password must be different from current password',
-                } as ApiResponse);
-                return;
-            }
+      // ── Validation: No password reuse ──────────────────────────
+      if (current_password === new_password) {
+        res.status(400).json({
+          success: false,
+          error: 'New password must be different from current password',
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Fetch current password hash from DB ────────────────────
-            const userResult = await query<Pick<User, 'user_id' | 'email' | 'password_hash' | 'role'> & { roles?: string[] }>(
-                'SELECT user_id, email, password_hash, role FROM users WHERE user_id = $1',
-                [userId]
-            );
+      // ── Fetch current password hash from DB ────────────────────
+      const userResult = await query<
+        Pick<User, 'user_id' | 'email' | 'password_hash' | 'role'> & { roles?: string[] }
+      >('SELECT user_id, email, password_hash, role FROM users WHERE user_id = $1', [userId]);
 
-            const user = userResult.rows[0];
-            if (!user) {
-                res.status(404).json({
-                    success: false,
-                    error: 'User not found',
-                } as ApiResponse);
-                return;
-            }
+      const user = userResult.rows[0];
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          error: 'User not found',
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Social-Only Account Guard (Migration 042) ─────────────
-            // Social-only users have no password_hash — they cannot
-            // "change" a password that doesn't exist.
-            if (!user.password_hash) {
-                res.status(400).json({
-                    success: false,
-                    error: 'This account uses social login and does not have a password. Use your social provider to sign in.',
-                } as ApiResponse);
-                return;
-            }
+      // ── Social-Only Account Guard (Migration 042) ─────────────
+      // Social-only users have no password_hash — they cannot
+      // "change" a password that doesn't exist.
+      if (!user.password_hash) {
+        res.status(400).json({
+          success: false,
+          error:
+            'This account uses social login and does not have a password. Use your social provider to sign in.',
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Verify current password via bcrypt ─────────────────────
-            const isCurrentValid = await bcrypt.compare(current_password, user.password_hash);
-            if (!isCurrentValid) {
-                logger.warn('Auth: Change password — invalid current password', { userId });
-                res.status(401).json({
-                    success: false,
-                    error: 'Current password is incorrect',
-                } as ApiResponse);
-                return;
-            }
+      // ── Verify current password via bcrypt ─────────────────────
+      const isCurrentValid = await bcrypt.compare(current_password, user.password_hash);
+      if (!isCurrentValid) {
+        logger.warn('Auth: Change password — invalid current password', { userId });
+        res.status(401).json({
+          success: false,
+          error: 'Current password is incorrect',
+        } as ApiResponse);
+        return;
+      }
 
-            // ── Hash new password ──────────────────────────────────────
-            const newHash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
+      // ── Hash new password ──────────────────────────────────────
+      const newHash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
 
-            // ── Update DB: new hash + invalidate all other sessions ────
-            // token_invalidated_at = NOW() causes auth middleware to reject
-            // any JWT issued before this moment — all other sessions are killed.
-            await query(
-                `UPDATE users
+      // ── Update DB: new hash + invalidate all other sessions ────
+      // token_invalidated_at = NOW() causes auth middleware to reject
+      // any JWT issued before this moment — all other sessions are killed.
+      await query(
+        `UPDATE users
                  SET password_hash = $1,
                      token_invalidated_at = NOW(),
                      updated_at = NOW()
                  WHERE user_id = $2`,
-                [newHash, userId]
-            );
+        [newHash, userId],
+      );
 
-            // ── Reissue JWT for current session ────────────────────────
-            // Fetch all active roles for the new token
-            const rolesResult = await query<{ role_name: string }>(
-                `SELECT r.role_name FROM user_roles ur
+      // ── Reissue JWT for current session ────────────────────────
+      // Fetch all active roles for the new token
+      const rolesResult = await query<{ role_name: string }>(
+        `SELECT r.role_name FROM user_roles ur
                  JOIN roles r ON r.role_id = ur.role_id
                  WHERE ur.user_id = $1 AND ur.status = 'active'`,
-                [userId]
-            );
-            const allRoles = rolesResult.rows.map(r => r.role_name);
+        [userId],
+      );
+      const allRoles = rolesResult.rows.map((r) => r.role_name);
 
-            const token = generateToken(userId, user.role, allRoles);
-            res.cookie('nammerha_jwt', token, {
-                httpOnly: true,
-                secure: process.env['NODE_ENV'] === 'production',
-                sameSite: 'strict',
-                maxAge: 24 * 60 * 60 * 1000,
-                path: '/',
-            });
+      const token = generateToken(userId, user.role, allRoles);
+      res.cookie('nammerha_jwt', token, {
+        httpOnly: true,
+        secure: process.env['NODE_ENV'] === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000,
+        path: '/',
+      });
 
-            // ── Audit trail ────────────────────────────────────────────
-            await query(
-                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+      // ── Audit trail ────────────────────────────────────────────
+      await query(
+        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                  VALUES ('password_changed', 'user', $1, $1, $2)`,
-                [userId, JSON.stringify({
-                    email: user.email,
-                    timestamp: new Date().toISOString(),
-                    method: 'authenticated_change',
-                })]
-            );
+        [
+          userId,
+          JSON.stringify({
+            email: user.email,
+            timestamp: new Date().toISOString(),
+            method: 'authenticated_change',
+          }),
+        ],
+      );
 
-            logger.info('Auth: Password changed successfully', { userId });
+      logger.info('Auth: Password changed successfully', { userId });
 
-            res.json({
-                success: true,
-                message: 'Password changed successfully',
-            } as ApiResponse);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.ChangePassword');
-        }
+      res.json({
+        success: true,
+        message: 'Password changed successfully',
+      } as ApiResponse);
+    } catch (error) {
+      safeRouteError(res, error, 'Auth.ChangePassword');
     }
+  },
 );
 
 // ─── GET /api/auth/me ───────────────────────────────────────────────────────
 // V1-AUDIT FIX: Allows the frontend to check authentication status without
 // storing JWT in localStorage. The httpOnly cookie is sent automatically.
 // UNIFIED CITIZEN: Returns roles[] — all active roles for the user.
-router.get(
-    '/me',
-    authMiddleware,
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            // UNIFIED CITIZEN: authMiddleware already fetches all roles into req.authUser.roles.
-            const authUser = getAuthUser(req);
-            const result = await query<Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>>(
-                'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
-                [authUser.user_id]
-            );
-            const user = result.rows[0];
-            if (!user) {
-                res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
-                return;
-            }
-
-            res.json({
-                success: true,
-                data: {
-                    user: {
-                        ...user,
-                        roles: authUser.roles,
-                    },
-                },
-            } as ApiResponse);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.Me');
-        }
+router.get('/me', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // UNIFIED CITIZEN: authMiddleware already fetches all roles into req.authUser.roles.
+    const authUser = getAuthUser(req);
+    const result = await query<
+      Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>
+    >(
+      'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
+      [authUser.user_id],
+    );
+    const user = result.rows[0];
+    if (!user) {
+      res.status(404).json({ success: false, error: 'User not found' } as ApiResponse);
+      return;
     }
-);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...user,
+          roles: authUser.roles,
+        },
+      },
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'Auth.Me');
+  }
+});
 
 // ─── V-005 FIX: Active Session Management ──────────────────────────────────
 // Exposes pre-built device-auth.service.ts functions as user-facing endpoints.
@@ -1133,107 +1224,108 @@ router.get(
 // ────────────────────────────────────────────────────────────────────────────
 
 // GET /api/auth/sessions — List all active sessions for the authenticated user
-router.get(
-    '/sessions',
-    authMiddleware,
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { getActiveSessions } = await import('../services/device-auth.service');
-            const authUser = getAuthUser(req);
-            const sessions = await getActiveSessions(authUser.user_id);
+router.get('/sessions', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { getActiveSessions } = await import('../services/device-auth.service');
+    const authUser = getAuthUser(req);
+    const sessions = await getActiveSessions(authUser.user_id);
 
-            // Enrich with "is_current" flag based on device_id header
-            const currentDeviceId = req.headers['x-device-id'] as string | undefined;
-            const enriched = sessions.map(s => ({
-                ...s,
-                is_current: currentDeviceId ? s.device_id === currentDeviceId : false,
-            }));
+    // Enrich with "is_current" flag based on device_id header
+    const currentDeviceId = req.headers['x-device-id'] as string | undefined;
+    const enriched = sessions.map((s) => ({
+      ...s,
+      is_current: currentDeviceId ? s.device_id === currentDeviceId : false,
+    }));
 
-            res.json({
-                success: true,
-                data: { sessions: enriched, total: enriched.length },
-            } as ApiResponse);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.GetSessions');
-        }
-    }
-);
+    res.json({
+      success: true,
+      data: { sessions: enriched, total: enriched.length },
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'Auth.GetSessions');
+  }
+});
 
 // DELETE /api/auth/sessions/:deviceId — Revoke a specific device session
 router.delete(
-    '/sessions/:deviceId',
-    authMiddleware,
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { revokeDeviceTokens } = await import('../services/device-auth.service');
-            const authUser = getAuthUser(req);
-            const deviceId = String(req.params['deviceId']);
+  '/sessions/:deviceId',
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { revokeDeviceTokens } = await import('../services/device-auth.service');
+      const authUser = getAuthUser(req);
+      const deviceId = String(req.params['deviceId']);
 
-            if (!deviceId) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Device ID is required',
-                } as ApiResponse);
-                return;
-            }
+      if (!deviceId) {
+        res.status(400).json({
+          success: false,
+          error: 'Device ID is required',
+        } as ApiResponse);
+        return;
+      }
 
-            const revokedCount = await revokeDeviceTokens(authUser.user_id, deviceId);
+      const revokedCount = await revokeDeviceTokens(authUser.user_id, deviceId);
 
-            // Audit trail
-            await query(
-                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+      // Audit trail
+      await query(
+        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                  VALUES ('session_revoked', 'device_session', $1, $2, $3)`,
-                [deviceId, authUser.user_id, JSON.stringify({ device_id: deviceId, revoked_count: revokedCount })]
-            );
+        [
+          deviceId,
+          authUser.user_id,
+          JSON.stringify({ device_id: deviceId, revoked_count: revokedCount }),
+        ],
+      );
 
-            res.json({
-                success: true,
-                message: revokedCount > 0
-                    ? `Device session revoked (${revokedCount} token(s))`
-                    : 'No active sessions found for this device',
-                data: { revoked_count: revokedCount },
-            } as ApiResponse);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.RevokeDeviceSession');
-        }
+      res.json({
+        success: true,
+        message:
+          revokedCount > 0
+            ? `Device session revoked (${revokedCount} token(s))`
+            : 'No active sessions found for this device',
+        data: { revoked_count: revokedCount },
+      } as ApiResponse);
+    } catch (error) {
+      safeRouteError(res, error, 'Auth.RevokeDeviceSession');
     }
+  },
 );
 
 // DELETE /api/auth/sessions — Nuclear: Revoke ALL sessions (force logout all devices)
-router.delete(
-    '/sessions',
-    authMiddleware,
-    async (req: Request, res: Response): Promise<void> => {
-        try {
-            const { revokeAllUserTokens } = await import('../services/device-auth.service');
-            const authUser = getAuthUser(req);
+router.delete('/sessions', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { revokeAllUserTokens } = await import('../services/device-auth.service');
+    const authUser = getAuthUser(req);
 
-            const revokedCount = await revokeAllUserTokens(authUser.user_id, 'user_requested');
+    const revokedCount = await revokeAllUserTokens(authUser.user_id, 'user_requested');
 
-            // Audit trail
-            await query(
-                `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+    // Audit trail
+    await query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                  VALUES ('all_sessions_revoked', 'user_sessions', $1, $2, $3)`,
-                [authUser.user_id, authUser.user_id, JSON.stringify({ revoked_count: revokedCount, reason: 'user_requested' })]
-            );
+      [
+        authUser.user_id,
+        authUser.user_id,
+        JSON.stringify({ revoked_count: revokedCount, reason: 'user_requested' }),
+      ],
+    );
 
-            // Clear the JWT cookie for the current browser session
-            res.clearCookie('nammerha_jwt', {
-                httpOnly: true,
-                secure: process.env['NODE_ENV'] === 'production',
-                sameSite: 'strict',
-                path: '/',
-            });
+    // Clear the JWT cookie for the current browser session
+    res.clearCookie('nammerha_jwt', {
+      httpOnly: true,
+      secure: process.env['NODE_ENV'] === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
 
-            res.json({
-                success: true,
-                message: `All sessions revoked (${revokedCount} token(s)). You will need to log in again.`,
-                data: { revoked_count: revokedCount },
-            } as ApiResponse);
-        } catch (error) {
-            safeRouteError(res, error, 'Auth.RevokeAllSessions');
-        }
-    }
-);
+    res.json({
+      success: true,
+      message: `All sessions revoked (${revokedCount} token(s)). You will need to log in again.`,
+      data: { revoked_count: revokedCount },
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'Auth.RevokeAllSessions');
+  }
+});
 
 export default router;

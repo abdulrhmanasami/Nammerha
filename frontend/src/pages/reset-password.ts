@@ -70,7 +70,7 @@ newPasswordInput?.addEventListener('input', () => {
 });
 confirmPasswordInput?.addEventListener('input', updateSubmitButton);
 
-// ─── Password Toggle ────────────────────────────────────────────────────────
+// ─── Password Toggle (New Password) ────────────────────────────────────────
 const toggle = document.getElementById('reset-toggle-pw');
 if (toggle && newPasswordInput) {
   toggle.addEventListener('click', () => {
@@ -99,6 +99,85 @@ function showBanner(type: 'error' | 'success', message: string): void {
 // ─── Form Submission ────────────────────────────────────────────────────────
 let isSubmitting = false;
 
+// ─── P1-AUTH-003 FIX: Confirm Password Toggle ──────────────────────────────
+// auth.html has toggles on BOTH password fields. reset-password.html was missing
+// the toggle on confirm-password — users couldn't verify their input.
+// Standard: Password UX Parity, WCAG 1.3.1.
+const confirmToggle = document.getElementById('reset-toggle-pw-confirm');
+if (confirmToggle && confirmPasswordInput) {
+  confirmToggle.addEventListener('click', () => {
+    const isPassword = confirmPasswordInput.type === 'password';
+    confirmPasswordInput.type = isPassword ? 'text' : 'password';
+    const toggleIcon = confirmToggle.querySelector('.ph');
+    if (toggleIcon) {
+      toggleIcon.className = isPassword ? 'ph ph-eye-slash' : 'ph ph-eye';
+    }
+  });
+}
+
+// ─── P1-AUTH-002 FIX: Request New Reset Link (Expired/Missing Token) ────────
+// When token is missing or expired, the form is hidden. But previously there was
+// NO way to request a new link — user had to manually navigate to auth.html.
+// Now: Show an inline "Request New Link" form with email input.
+// Standard: Nielsen #9 (Error Recovery), WCAG 3.3.3 (Error Suggestion).
+// ─────────────────────────────────────────────────────────────────────────────
+const requestNewSection = document.getElementById('reset-request-new');
+const requestEmailInput = document.getElementById('reset-request-email') as HTMLInputElement | null;
+const requestBtn = document.getElementById('reset-request-btn') as HTMLButtonElement | null;
+const requestFeedback = document.getElementById('reset-request-feedback');
+
+// Show "Request New Link" section when token is missing
+if (!resetToken && requestNewSection) {
+  requestNewSection.classList.remove('nm-hidden');
+}
+
+requestBtn?.addEventListener('click', async () => {
+  const email = requestEmailInput?.value.trim();
+  if (!email) {
+    showRequestFeedback('error', t('reset_enter_email', 'أدخل بريدك الإلكتروني'));
+    requestEmailInput?.focus();
+    return;
+  }
+
+  if (requestBtn.classList.contains('btn-loading')) {
+    return;
+  }
+  requestBtn.classList.add('btn-loading');
+
+  try {
+    const data = await auth.forgotPassword({ email });
+    if (data.success) {
+      showRequestFeedback(
+        'success',
+        data.message ?? t('reset_link_sent', 'تم إرسال رابط إعادة التعيين'),
+      );
+    } else {
+      showRequestFeedback('error', data.error ?? t('reset_request_failed', 'فشل إرسال الرابط'));
+    }
+  } catch (err) {
+    showRequestFeedback(
+      'error',
+      err instanceof Error ? err.message : t('reset_network_error', 'خطأ في الشبكة'),
+    );
+  } finally {
+    requestBtn.classList.remove('btn-loading');
+  }
+});
+
+function showRequestFeedback(type: 'success' | 'error', message: string): void {
+  if (!requestFeedback) {
+    return;
+  }
+  requestFeedback.classList.remove('nm-hidden');
+  requestFeedback.className = `mt-2 rounded-lg p-2 text-xs font-medium ${
+    type === 'success'
+      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+      : 'bg-red-50 text-red-700 border border-red-200'
+  }`;
+  requestFeedback.textContent = message;
+}
+
+// Also show "Request New Link" on expired token errors from the API
 form?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isSubmitting || !resetToken) {
@@ -128,10 +207,6 @@ form?.addEventListener('submit', async (e) => {
   }
 
   isSubmitting = true;
-  // DEF-RESET-002 FIX: Replaced submitBtn.disabled with .btn-loading class.
-  // Previous: disabled attribute removes button from tab order (WCAG 2.1.1 violation)
-  // and shows no spinner. .btn-loading: pointer-events:none + spinner + opacity.
-  // Standard: Design System Governance (auth.ts uses .btn-loading since DEF-A08 FIX).
   if (submitBtn) {
     submitBtn.classList.add('btn-loading');
   }
@@ -140,13 +215,10 @@ form?.addEventListener('submit', async (e) => {
   }
 
   try {
-    // PLT-MAR11-006 FIX: Use centralized API client instead of raw fetch.
-    // Gains: 30s AbortController timeout, CSRF token, unified error handling.
     const data = await auth.resetPassword({ token: resetToken, new_password: newPassword });
 
     if (data.success) {
       showBanner('success', data.message ?? t('reset_success', 'تم تغيير كلمة المرور بنجاح'));
-      // DEF-RESET-002 FIX: Hide form via class toggle.
       if (form) {
         form.classList.add('nm-hidden');
       }
@@ -155,11 +227,30 @@ form?.addEventListener('submit', async (e) => {
       }, 2000);
     } else {
       showBanner('error', data.error ?? t('reset_failed', 'فشلت إعادة التعيين'));
+      // P1-AUTH-002 FIX: If the error indicates an expired token, show the
+      // "Request New Link" section so user isn't stuck at a dead-end.
+      const errorMsg = (data.error ?? '').toLowerCase();
+      if (errorMsg.includes('expired') || errorMsg.includes('منته')) {
+        if (form) {
+          form.classList.add('nm-hidden');
+        }
+        if (requestNewSection) {
+          requestNewSection.classList.remove('nm-hidden');
+        }
+      }
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : t('reset_network_error', 'خطأ في الشبكة');
     if (message.includes('timeout') || message.includes('abort')) {
       showBanner('error', t('reset_timeout', 'انقطع الاتصال'));
+    } else if (message.includes('410') || message.includes('expired')) {
+      showBanner('error', t('reset_token_expired', 'انتهت صلاحية الرمز'));
+      if (form) {
+        form.classList.add('nm-hidden');
+      }
+      if (requestNewSection) {
+        requestNewSection.classList.remove('nm-hidden');
+      }
     } else {
       showBanner('error', message);
     }

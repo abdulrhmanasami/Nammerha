@@ -205,5 +205,26 @@ function showResendFeedback(type: 'success' | 'error', message: string): void {
   resendFeedback.textContent = message;
 }
 
+// P2-AUTH-006 FIX: Pre-fill resend email from registration draft or URL.
+// Users just registered — they shouldn't have to re-type their email.
+// Priority: URL param > sessionStorage draft > empty.
+// Standard: Nielsen #6 (Recognition over Recall).
+try {
+  const urlEmail = urlParams.get('email');
+  if (urlEmail && resendEmail) {
+    resendEmail.value = urlEmail;
+  } else if (resendEmail) {
+    const draft = sessionStorage.getItem('nm_reg_draft');
+    if (draft) {
+      const parsed = JSON.parse(draft) as { email?: string };
+      if (parsed.email) {
+        resendEmail.value = parsed.email;
+      }
+    }
+  }
+} catch {
+  /* sessionStorage may be unavailable in private mode */
+}
+
 // Initialize on page load
 verifyEmail();
