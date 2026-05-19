@@ -1,303 +1,467 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <!-- PLAT-P0-001 FIX: Removed maximum-scale=1.0, user-scalable=no.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <!-- PLAT-P0-001 FIX: Removed maximum-scale=1.0, user-scalable=no.
        Previous: Zoom was blocked — cargo-culted from native camera apps.
        This is an HTML page, NOT a native camera. Users with low vision MUST be able to zoom
        to read GPS coordinates and timestamps in the telemetry strip.
        Standard: WCAG 2.2 SC 1.4.4 (Resize Text) — "text can be resized up to 200%". -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Site Verification | التحقق الميداني</title>
-  <meta name="description" content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>Nammerha — Site Verification | التحقق الميداني</title>
+    <meta
+      name="description"
+      content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Nammerha — Site Verification | التحقق الميداني" />
-  <meta property="og:description" content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Site Verification | التحقق الميداني" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/engineer-camera.ts"></script>
-  <style>
-    /* DEF-AUD3-003 FIX: Migrated from html.dark to html[data-theme="dark"] — matches theme-boot.js.
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Nammerha — Site Verification | التحقق الميداني" />
+    <meta
+      property="og:description"
+      content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Nammerha — Site Verification | التحقق الميداني" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/engineer-camera.ts"></script>
+    <style>
+      /* DEF-AUD3-003 FIX: Migrated from html.dark to html[data-theme="dark"] — matches theme-boot.js.
        Previous: class="dark" on <html> was legacy; theme-boot.js sets data-theme, not class.
        Standard: Theme System Consistency, Single Source of Truth. */
-    /* PLAT-P2-002 FIX: Removed !important — html[data-theme="dark"] body already
+      /* PLAT-P2-002 FIX: Removed !important — html[data-theme="dark"] body already
        wins by specificity over body { background-color }. !important was unnecessary
        and violated CSS Specificity Architecture standards. */
-    html[data-theme="dark"] body { background-color: #242424; color: #f1f5f9; }
-  </style>
-<link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<!-- PLAT-P3-003 FIX: Removed select-none from body — prevents ALL text selection globally.
+      html[data-theme='dark'] body {
+        background-color: #242424;
+        color: #f1f5f9;
+      }
+    </style>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <!-- PLAT-P3-003 FIX: Removed select-none from body — prevents ALL text selection globally.
      Users may need to select GPS coordinates or project IDs to copy-paste.
      select-none is now scoped to ONLY the viewfinder overlay (L124 crosshair div).
      Standard: WCAG 2.1 SC 1.3.1 (Content must be operable), Apple HIG (Text Selection). -->
-<body class="font-display min-h-screen flex flex-col antialiased">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<!-- DEF-AUD3-004 FIX: Changed <div> to <main> — WCAG 1.3.1 landmark semantics.
+  <body class="font-display min-h-screen flex flex-col antialiased">
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <!-- DEF-AUD3-004 FIX: Changed <div> to <main> — WCAG 1.3.1 landmark semantics.
      Previous: <div id="main-content"> — not recognized as a landmark by screen readers.
      skip-link targets #main-content which must be a <main> element.
      Standard: HTML5 §4.4.1, WCAG 1.3.1 (Info and Relationships). -->
-<main id="main-content" class="mobile-container min-h-screen flex flex-col">
-
-  <!-- ═══════════════════════════════════════════════════════════════════════
+    <main id="main-content" class="mobile-container min-h-screen flex flex-col">
+      <!-- ═══════════════════════════════════════════════════════════════════════
        TELEMETRY HEADER — GPS Coordinates + Project ID + Live Status
        ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- SWEEP-W8-002: bg-[#1a1a1a] → bg-neutral-900 (design token). -->
-  <header class="sticky top-0 z-20 bg-neutral-900/95 backdrop-blur-md border-b border-white/5">
-    <!-- Top Row: Navigation + Title + Menu -->
-    <div class="flex items-center justify-between px-4 py-3">
-      <a href="engineer-boq.html" class="size-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition-colors" aria-label="Back" data-i18n-aria="aria_back">
-        <i class="ph ph-arrow-left text-slate-300" aria-hidden="true"></i>
-      </a>
-      <div class="flex items-center gap-2">
-        <span class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"></span>
-        <h1 class="text-base font-bold text-white tracking-tight" data-i18n="site_verification">Site Verification</h1>
-      </div>
-      <div class="size-10 flex items-center justify-center rounded-full bg-white/10">
-        <i class="ph ph-list text-slate-300" aria-hidden="true"></i>
-      </div>
-    </div>
+      <!-- SWEEP-W8-002: bg-[#1a1a1a] → bg-neutral-900 (design token). -->
+      <header class="sticky top-0 z-20 bg-neutral-900/95 backdrop-blur-md border-b border-white/5">
+        <!-- Top Row: Navigation + Title + Menu -->
+        <div class="flex items-center justify-between px-4 py-3">
+          <a
+            href="engineer-boq.html"
+            class="size-10 flex items-center justify-center rounded-full bg-white/10 active:bg-white/20 transition-colors"
+            aria-label="Back"
+            data-i18n-aria="aria_back"
+          >
+            <i class="ph ph-arrow-left text-slate-300" aria-hidden="true"></i>
+          </a>
+          <div class="flex items-center gap-2">
+            <span class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"></span>
+            <h1 class="text-base font-bold text-white tracking-tight" data-i18n="site_verification">
+              التحقق الميداني
+            </h1>
+          </div>
+          <div class="size-10 flex items-center justify-center rounded-full bg-white/10">
+            <i class="ph ph-list text-slate-300" aria-hidden="true"></i>
+          </div>
+        </div>
 
-    <!-- Telemetry Strip: GPS + Project ID -->
-    <div class="flex items-center gap-3 px-4 pb-3">
-      <!-- GPS Coordinates -->
-      <div class="flex-1 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg">
-        <p class="text-3xs text-trust-blue font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1">
-          <!-- PLAT-P1-001 FIX: Was hardcoded English — Syrian field engineers need Arabic.
+        <!-- Telemetry Strip: GPS + Project ID -->
+        <div class="flex items-center gap-3 px-4 pb-3">
+          <!-- GPS Coordinates -->
+          <div class="flex-1 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg">
+            <p
+              class="text-3xs text-trust-blue font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1"
+            >
+              <!-- PLAT-P1-001 FIX: Was hardcoded English — Syrian field engineers need Arabic.
                Standard: Platform Translation Mandate, i18n RTL parity. -->
-          <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i> <span data-i18n="camera_gps_lock">GPS Lock</span>
-        </p>
-        <p class="text-white text-xs font-mono" id="gps-coords">36.2021° N, 37.1342° E</p>
-        <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" id="gps-accuracy">Accuracy: ±3.2m</p>
-      </div>
-      <!-- Project ID -->
-      <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-end">
-        <p class="text-3xs text-warning-yellow font-bold uppercase tracking-widest mb-0.5 flex items-center justify-end gap-1">
-          <!-- PLAT-P1-001 FIX: Was hardcoded English — now translatable. -->
-          <i class="ph ph-hash ph-xs" aria-hidden="true"></i> <span data-i18n="camera_project_label">Project</span>
-        </p>
-        <p class="text-white text-xs font-mono font-bold" data-i18n="nmr_hvr_001">NMR-HVR-001</p>
-        <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" data-i18n="harbor_view">منظر الميناء</p>
-      </div>
-    </div>
-  </header>
+              <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i>
+              <span data-i18n="camera_gps_lock">قفل GPS</span>
+            </p>
+            <p class="text-white text-xs font-mono" id="gps-coords">36.2021° N, 37.1342° E</p>
+            <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" id="gps-accuracy">
+              الدقة: ±٣٫٢م
+            </p>
+          </div>
+          <!-- Project ID -->
+          <div class="bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg text-end">
+            <p
+              class="text-3xs text-warning-yellow font-bold uppercase tracking-widest mb-0.5 flex items-center justify-end gap-1"
+            >
+              <!-- PLAT-P1-001 FIX: Was hardcoded English — now translatable. -->
+              <i class="ph ph-hash ph-xs" aria-hidden="true"></i>
+              <span data-i18n="camera_project_label">المشروع</span>
+            </p>
+            <p class="text-white text-xs font-mono font-bold" data-i18n="nmr_hvr_001">
+              NMR-HVR-001
+            </p>
+            <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" data-i18n="harbor_view">
+              منظر الميناء
+            </p>
+          </div>
+        </div>
+      </header>
 
-  <!-- PLAT-P2-001 FIX: sr-only h2 headings for screen reader section navigation.
+      <!-- PLAT-P2-001 FIX: sr-only h2 headings for screen reader section navigation.
        Previous: h1 "Site Verification" (L69) was the ONLY heading — no h2s at all.
        4 semantic sections had zero heading structure for assistive technology.
        Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy), Apple HIG (Accessibility). -->
-  <h2 class="sr-only" data-i18n="camera_section_viewfinder">Camera Viewfinder</h2>
+      <h2 class="sr-only" data-i18n="camera_section_viewfinder">عدسة الكاميرا</h2>
 
-  <!-- UXA-002 FIX: camera-viewport-wrapper constrains camera UI to phone-like
+      <!-- UXA-002 FIX: camera-viewport-wrapper constrains camera UI to phone-like
        max-width (480px→420px) on md+/lg+ screens. On mobile, no effect (full-width).
        The dark bg-neutral-900 fills the entire main area behind the wrapper.
        Standard: Responsive Design, Apple HIG ("Adapt to device size"). -->
-  <div class="camera-viewport-wrapper">
-
-  <!-- ═══════════════════════════════════════════════════════════════════════
+      <div class="camera-viewport-wrapper">
+        <!-- ═══════════════════════════════════════════════════════════════════════
        CAMERA VIEWFINDER — Full-screen dark viewport with crosshair overlay
        ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="flex-1 relative bg-neutral-900 flex items-center justify-center overflow-hidden">
-    <!-- Viewfinder Content -->
-    <!-- SWEEP-W8-002b: from-[#2a2a2a] to-[#171717] → from-neutral-800 to-neutral-900. -->
-    <div id="viewfinder" class="w-full h-full min-h-[45vh] bg-gradient-to-b from-neutral-800 to-neutral-900 flex items-center justify-center relative">
-      <!-- Default: Camera ready state -->
-      <div id="camera-ready" class="text-center px-6">
-        <div class="size-28 mx-auto rounded-full border-2 border-dashed border-trust-blue/30 flex items-center justify-center mb-5 animate-fade-in-up">
-          <i class="ph ph-camera-rotate text-trust-blue/50 nm-icon-60" aria-hidden="true"></i>
-        </div>
-        <p class="text-slate-400 text-sm font-semibold dark:text-slate-500" data-i18n="point_camera_at_delivery_site">Point camera at delivery site</p>
-        <p class="text-slate-600 text-xs mt-1.5 dark:text-slate-400" data-i18n="gps_timestamp_will_be_auto_embedded">GPS + timestamp will be auto-embedded</p>
-      </div>
+        <div
+          class="flex-1 relative bg-neutral-900 flex items-center justify-center overflow-hidden"
+        >
+          <!-- Viewfinder Content -->
+          <!-- SWEEP-W8-002b: from-[#2a2a2a] to-[#171717] → from-neutral-800 to-neutral-900. -->
+          <div
+            id="viewfinder"
+            class="w-full h-full min-h-[45vh] bg-gradient-to-b from-neutral-800 to-neutral-900 flex items-center justify-center relative"
+          >
+            <!-- Default: Camera ready state -->
+            <div id="camera-ready" class="text-center px-6">
+              <div
+                class="size-28 mx-auto rounded-full border-2 border-dashed border-trust-blue/30 flex items-center justify-center mb-5 animate-fade-in-up"
+              >
+                <i class="ph ph-camera-rotate text-trust-blue/50 nm-icon-60" aria-hidden="true"></i>
+              </div>
+              <p
+                class="text-slate-400 text-sm font-semibold dark:text-slate-500"
+                data-i18n="point_camera_at_delivery_site"
+              >
+                وجّه الكاميرا نحو موقع التسليم
+              </p>
+              <p
+                class="text-slate-600 text-xs mt-1.5 dark:text-slate-400"
+                data-i18n="gps_timestamp_will_be_auto_embedded"
+              >
+                سيتم تضمين الطابعين الزمني والمكاني تلقائياً
+              </p>
+            </div>
 
-      <!-- Captured state (hidden by default) -->
-      <div id="camera-captured" class="nm-hidden absolute inset-0 bg-neutral-900 flex items-center justify-center">
-        <div class="text-center">
-          <div class="size-20 mx-auto rounded-full bg-smoky-jade/20 flex items-center justify-center mb-4">
-            <i class="ph ph-check-circle text-smoky-jade nm-icon-48 dark:text-emerald-400" aria-hidden="true"></i>
-          </div>
-          <p class="text-smoky-jade text-sm font-bold dark:text-emerald-400" data-i18n="360_captured">360° Captured</p>
-          <p class="text-slate-500 text-xs mt-1 dark:text-slate-400" data-i18n="syncing_to_server">Syncing to server...</p>
-        </div>
-      </div>
+            <!-- Captured state (hidden by default) -->
+            <div
+              id="camera-captured"
+              class="nm-hidden absolute inset-0 bg-neutral-900 flex items-center justify-center"
+            >
+              <div class="text-center">
+                <div
+                  class="size-20 mx-auto rounded-full bg-smoky-jade/20 flex items-center justify-center mb-4"
+                >
+                  <i
+                    class="ph ph-check-circle text-smoky-jade nm-icon-48 dark:text-emerald-400"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <p
+                  class="text-smoky-jade text-sm font-bold dark:text-emerald-400"
+                  data-i18n="360_captured"
+                >
+                  تم التقاط °360
+                </p>
+                <p
+                  class="text-slate-500 text-xs mt-1 dark:text-slate-400"
+                  data-i18n="syncing_to_server"
+                >
+                  جاري المزامنة مع الخادم...
+                </p>
+              </div>
+            </div>
 
-      <!-- Crosshair overlay -->
-      <!-- UXA-001 FIX: Physical left/right → logical start/end for RTL field engineers.
+            <!-- Crosshair overlay -->
+            <!-- UXA-001 FIX: Physical left/right → logical start/end for RTL field engineers.
            Center lines (left-1/2, inset-x-0) remain physical — centering is direction-agnostic.
            Corner brackets use start/end → they flip correctly in RTL mode.
            Standard: CSS Logical Properties, Platform RTL-First Architecture. -->
-      <div class="absolute inset-0 pointer-events-none select-none">
-        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8 dark:bg-trust-blue/10"></div>
-        <div class="absolute top-1/2 inset-x-0 h-px bg-trust-blue/8 dark:bg-trust-blue/10"></div>
-        <!-- Corner brackets (logical positioning for RTL) -->
-        <div class="absolute top-6 start-6 w-8 h-8 border-s-2 border-t-2 border-trust-blue/25 rounded-ss-md"></div>
-        <div class="absolute top-6 end-6 w-8 h-8 border-e-2 border-t-2 border-trust-blue/25 rounded-se-md"></div>
-        <div class="absolute bottom-6 start-6 w-8 h-8 border-s-2 border-b-2 border-trust-blue/25 rounded-es-md"></div>
-        <div class="absolute bottom-6 end-6 w-8 h-8 border-e-2 border-b-2 border-trust-blue/25 rounded-ee-md"></div>
-      </div>
-    </div>
+            <div class="absolute inset-0 pointer-events-none select-none">
+              <div
+                class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8 dark:bg-trust-blue/10"
+              ></div>
+              <div
+                class="absolute top-1/2 inset-x-0 h-px bg-trust-blue/8 dark:bg-trust-blue/10"
+              ></div>
+              <!-- Corner brackets (logical positioning for RTL) -->
+              <div
+                class="absolute top-6 start-6 w-8 h-8 border-s-2 border-t-2 border-trust-blue/25 rounded-ss-md"
+              ></div>
+              <div
+                class="absolute top-6 end-6 w-8 h-8 border-e-2 border-t-2 border-trust-blue/25 rounded-se-md"
+              ></div>
+              <div
+                class="absolute bottom-6 start-6 w-8 h-8 border-s-2 border-b-2 border-trust-blue/25 rounded-es-md"
+              ></div>
+              <div
+                class="absolute bottom-6 end-6 w-8 h-8 border-e-2 border-b-2 border-trust-blue/25 rounded-ee-md"
+              ></div>
+            </div>
+          </div>
 
-    <!-- UXA-001 FIX: Timestamp Overlay — left-4 → start-4 for RTL mirror -->
-    <div class="absolute bottom-4 start-4 z-10">
-      <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
-        <i class="ph ph-clock text-trust-blue ph-sm" aria-hidden="true"></i>
-        <span class="text-white text-xs font-mono" id="live-timestamp">2026-03-07 23:12</span>
-      </div>
-    </div>
+          <!-- UXA-001 FIX: Timestamp Overlay — left-4 → start-4 for RTL mirror -->
+          <div class="absolute bottom-4 start-4 z-10">
+            <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
+              <i class="ph ph-clock text-trust-blue ph-sm" aria-hidden="true"></i>
+              <span class="text-white text-xs font-mono" id="live-timestamp">2026-03-07 23:12</span>
+            </div>
+          </div>
 
-    <!-- UXA-001 FIX: Photo Count Overlay — right-4 → end-4 for RTL mirror -->
-    <div class="absolute bottom-4 end-4 z-10">
-      <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
-        <i class="ph ph-image-square text-slate-400 ph-sm dark:text-slate-500" aria-hidden="true"></i>
-        <span class="text-white text-xs font-mono" id="photo-count">0 / 8</span>
-      </div>
-    </div>
-  </div>
+          <!-- UXA-001 FIX: Photo Count Overlay — right-4 → end-4 for RTL mirror -->
+          <div class="absolute bottom-4 end-4 z-10">
+            <div class="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg flex items-center gap-2">
+              <i
+                class="ph ph-image-square text-slate-400 ph-sm dark:text-slate-500"
+                aria-hidden="true"
+              ></i>
+              <span class="text-white text-xs font-mono" id="photo-count">0 / 8</span>
+            </div>
+          </div>
+        </div>
 
-  <h2 class="sr-only" data-i18n="camera_section_material">Material Context</h2>
+        <h2 class="sr-only" data-i18n="camera_section_material">سياق المواد</h2>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
+        <!-- ═══════════════════════════════════════════════════════════════════════
        MATERIAL CONTEXT CARD — Current BOQ item being verified
        ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="px-4 py-3 border-t border-white/5">
-    <div class="bg-white/5 rounded-xl p-3.5 flex items-center gap-3.5 border border-white/8">
-      <div class="size-12 bg-trust-blue/15 rounded-lg flex items-center justify-center shrink-0">
-        <i class="ph ph-package text-trust-blue" aria-hidden="true"></i>
-      </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-white text-sm font-bold truncate" data-i18n="50_bags_opc_cement">50 Bags — OPC Cement</p>
-        <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (PO reference). -->
-        <p class="text-slate-500 text-3xs truncate dark:text-slate-400" data-i18n="po_nmr_po_20260001_al_shams_materials">أمر شراء NMR-PO-20260001 — مواد الشمس</p>
-      </div>
-      <span class="badge-verified text-3xs shrink-0" data-i18n="matched">Matched</span>
-    </div>
-  </div>
+        <div class="px-4 py-3 border-t border-white/5">
+          <div class="bg-white/5 rounded-xl p-3.5 flex items-center gap-3.5 border border-white/8">
+            <div
+              class="size-12 bg-trust-blue/15 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-package text-trust-blue" aria-hidden="true"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-bold truncate" data-i18n="50_bags_opc_cement">
+                ٥٠ كيس — إسمنت بورتلاندي
+              </p>
+              <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (PO reference). -->
+              <p
+                class="text-slate-500 text-3xs truncate dark:text-slate-400"
+                data-i18n="po_nmr_po_20260001_al_shams_materials"
+              >
+                أمر شراء NMR-PO-20260001 — مواد الشمس
+              </p>
+            </div>
+            <span class="badge-verified text-3xs shrink-0" data-i18n="matched">مطابق</span>
+          </div>
+        </div>
 
-  <h2 class="sr-only" data-i18n="camera_section_actions">Capture Actions</h2>
+        <h2 class="sr-only" data-i18n="camera_section_actions">إجراءات الالتقاط</h2>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
+        <!-- ═══════════════════════════════════════════════════════════════════════
        ZERO UI ACTION ZONE — Massive floating buttons for field workers
        ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="px-4 pb-8 pt-2 border-t border-white/5">
-    <!-- CAPTURE 360 & SYNC — Primary action (massive blue button) -->
-    <button type="button" id="capture-btn" class="btn-field-capture w-full flex items-center justify-center gap-3 active:scale-[0.97] transition-transform">
-      <i class="ph ph-camera text-white nm-icon-28" aria-hidden="true"></i>
-      <span class="text-white text-lg font-extrabold tracking-tight uppercase" data-i18n="capture_360_sync">Capture 360 & Sync</span>
-    </button>
+        <div class="px-4 pb-8 pt-2 border-t border-white/5">
+          <!-- CAPTURE 360 & SYNC — Primary action (massive blue button) -->
+          <button
+            type="button"
+            id="capture-btn"
+            class="btn-field-capture w-full flex items-center justify-center gap-3 active:scale-[0.97] transition-transform"
+          >
+            <i class="ph ph-camera text-white nm-icon-28" aria-hidden="true"></i>
+            <span
+              class="text-white text-lg font-extrabold tracking-tight uppercase"
+              data-i18n="capture_360_sync"
+              >تصوير 360 ومزامنة</span
+            >
+          </button>
 
-    <!-- Secondary Actions Row -->
-    <div class="flex items-center justify-center gap-6 mt-4">
-      <!-- Voice Snagging Button (Yellow) -->
-      <button type="button" id="voice-snag-btn" class="btn-voice-snag flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
-        <div class="size-16 rounded-full bg-warning-yellow flex items-center justify-center shadow-[0_0_0_4px_rgba(252,201,52,0.2),0_4px_16px_rgba(252,201,52,0.3)]">
-          <i class="ph ph-microphone text-slate-900 nm-icon-32 dark:text-slate-100" aria-hidden="true"></i>
-        </div>
-        <span class="text-warning-yellow text-3xs font-bold uppercase tracking-widest" data-i18n="voice_snag">Voice Snag</span>
-      </button>
+          <!-- Secondary Actions Row -->
+          <div class="flex items-center justify-center gap-6 mt-4">
+            <!-- Voice Snagging Button (Yellow) -->
+            <button
+              type="button"
+              id="voice-snag-btn"
+              class="btn-voice-snag flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
+            >
+              <div
+                class="size-16 rounded-full bg-warning-yellow flex items-center justify-center shadow-[0_0_0_4px_rgba(252,201,52,0.2),0_4px_16px_rgba(252,201,52,0.3)]"
+              >
+                <i
+                  class="ph ph-microphone text-slate-900 nm-icon-32 dark:text-slate-100"
+                  aria-hidden="true"
+                ></i>
+              </div>
+              <span
+                class="text-warning-yellow text-3xs font-bold uppercase tracking-widest"
+                data-i18n="voice_snag"
+                >ملاحظة صوتية</span
+              >
+            </button>
 
-      <!-- Gallery / Review Button -->
-      <button type="button" id="gallery-btn" class="flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
-        <div class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
-          <i class="ph ph-images text-slate-300 nm-icon-28" aria-hidden="true"></i>
-        </div>
-        <span class="text-slate-500 text-3xs font-bold uppercase tracking-widest dark:text-slate-400" data-i18n="gallery">Gallery</span>
-      </button>
+            <!-- Gallery / Review Button -->
+            <button
+              type="button"
+              id="gallery-btn"
+              class="flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
+            >
+              <div
+                class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"
+              >
+                <i class="ph ph-images text-slate-300 nm-icon-28" aria-hidden="true"></i>
+              </div>
+              <span
+                class="text-slate-500 text-3xs font-bold uppercase tracking-widest dark:text-slate-400"
+                data-i18n="gallery"
+                >المعرض</span
+              >
+            </button>
 
-      <!-- Sync Status Button -->
-      <button type="button" id="sync-btn" class="flex flex-col items-center gap-1.5 active:scale-90 transition-transform">
-        <div class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
-          <i class="ph ph-cloud-arrow-up text-slate-300 nm-icon-28" aria-hidden="true"></i>
-        </div>
-        <span class="text-slate-500 text-3xs font-bold uppercase tracking-widest dark:text-slate-400" data-i18n="sync">Sync</span>
-      </button>
-    </div>
-  </div>
-
-  </div><!-- /.camera-viewport-wrapper (UXA-002) -->
-
-  <!-- Voice Snagging Active Overlay (hidden by default) -->
-  <!-- SWEEP-W8-002: bg-[#242424]/98 → bg-slate-900/98. -->
-  <div id="voice-overlay" class="nm-hidden fixed inset-0 z-50 bg-slate-900/98 flex flex-col items-center justify-center">
-    <div class="text-center">
-      <div id="voice-pulse" class="size-32 rounded-full bg-warning-yellow/20 flex items-center justify-center mb-6 animate-pulse">
-        <div class="size-24 rounded-full bg-warning-yellow/30 flex items-center justify-center">
-          <i class="ph ph-microphone text-warning-yellow nm-icon-60" aria-hidden="true"></i>
+            <!-- Sync Status Button -->
+            <button
+              type="button"
+              id="sync-btn"
+              class="flex flex-col items-center gap-1.5 active:scale-90 transition-transform"
+            >
+              <div
+                class="size-16 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"
+              >
+                <i class="ph ph-cloud-arrow-up text-slate-300 nm-icon-28" aria-hidden="true"></i>
+              </div>
+              <span
+                class="text-slate-500 text-3xs font-bold uppercase tracking-widest dark:text-slate-400"
+                data-i18n="sync"
+                >مزامنة</span
+              >
+            </button>
+          </div>
         </div>
       </div>
-      <p class="text-white text-xl font-bold mb-2" data-i18n="recording_snag_note">Recording Snag Note...</p>
-      <p class="text-slate-400 text-sm dark:text-slate-500" id="voice-timer">00:00</p>
-      <p class="text-slate-600 text-xs mt-4 max-w-[280px] dark:text-slate-400" data-i18n="describe_the_issue_clearly_your_voice_n">Describe the issue clearly. Your voice note will be attached to the GPS pin.</p>
-    </div>
-    <button type="button" id="voice-stop-btn" class="mt-10 px-8 py-4 rounded-full bg-red-500/80 text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2">
-      <i class="ph ph-stop-circle text-2xl" aria-hidden="true"></i>
-      <span data-i18n="stop_recording">Stop Recording</span>
-    </button>
-  </div>
+      <!-- /.camera-viewport-wrapper (UXA-002) -->
 
-</main>
-<!-- CRIT-003 FIX: Legal footer and gradient orbs were missing from engineer-camera.html.
+      <!-- Voice Snagging Active Overlay (hidden by default) -->
+      <!-- SWEEP-W8-002: bg-[#242424]/98 → bg-slate-900/98. -->
+      <div
+        id="voice-overlay"
+        class="nm-hidden fixed inset-0 z-50 bg-slate-900/98 flex flex-col items-center justify-center"
+      >
+        <div class="text-center">
+          <div
+            id="voice-pulse"
+            class="size-32 rounded-full bg-warning-yellow/20 flex items-center justify-center mb-6 animate-pulse"
+          >
+            <div class="size-24 rounded-full bg-warning-yellow/30 flex items-center justify-center">
+              <i class="ph ph-microphone text-warning-yellow nm-icon-60" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p class="text-white text-xl font-bold mb-2" data-i18n="recording_snag_note">
+            جاري تسجيل الملاحظة...
+          </p>
+          <p class="text-slate-400 text-sm dark:text-slate-500" id="voice-timer">00:00</p>
+          <p
+            class="text-slate-600 text-xs mt-4 max-w-[280px] dark:text-slate-400"
+            data-i18n="describe_the_issue_clearly_your_voice_n"
+          >
+            صف المشكلة بوضوح — سيتم تحويل ملاحظتك الصوتية إلى نص
+          </p>
+        </div>
+        <button
+          type="button"
+          id="voice-stop-btn"
+          class="mt-10 px-8 py-4 rounded-full bg-red-500/80 text-white font-bold text-base active:scale-95 transition-transform flex items-center gap-2"
+        >
+          <i class="ph ph-stop-circle text-2xl" aria-hidden="true"></i>
+          <span data-i18n="stop_recording">إيقاف التسجيل</span>
+        </button>
+      </div>
+    </main>
+    <!-- CRIT-003 FIX: Legal footer and gradient orbs were missing from engineer-camera.html.
      32/33 pages had them — this was the sole outlier. Platinum Standard requires 33/33 consistency.
      Note: Orbs use absolute positioning (position: absolute in main.css) — they do not interfere
      with the immersive fullscreen dark camera UI. Footer scrolls below fold.
      Standard: Platinum Standard Consistency Rule, Nielsen #4 (Consistency and Standards). -->
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-<div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-<div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/engineer.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/engineer.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<!-- PLAT-P2-003 FIX: Haptic feedback — camera page has 4 large touch targets (Capture 360,
+    <script src="/load-guard.js" defer></script>
+    <!-- PLAT-P2-003 FIX: Haptic feedback — camera page has 4 large touch targets (Capture 360,
      Voice Snag, Gallery, Sync) but had NO haptic feedback. This is the MOST touch-intensive
      page on the platform.
      Standard: Native-App Feel, Apple HIG (Tactile Feedback). -->
-<script src="/haptic.js" defer></script>
-<!-- PLAT-P1-002 FIX: Offline indicator — field engineers in Syria on 2G/3G are the PRIMARY
+    <script src="/haptic.js" defer></script>
+    <!-- PLAT-P1-002 FIX: Offline indicator — field engineers in Syria on 2G/3G are the PRIMARY
      users of this page. Without this, connectivity drops are SILENT while the page attempts
      S3 uploads of captured proofs. Critical for this specific page more than any other.
      Standard: Sustainable UX (Syrian 2G/3G), Nielsen #1 (System Status Visibility). -->
-<script src="/offline-indicator.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/offline-indicator.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

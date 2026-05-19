@@ -1,132 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
-  <script>(function(){var m=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{m=localStorage.getItem('nm-theme')||m}catch(e){}document.documentElement.setAttribute('data-theme',m)})();</script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>نعمّرها — من نحن | About Us</title>
-  <meta name="description" content="نعمّرها — منصة تقنية غير ربحية لإعادة إعمار سوريا بشفافية جذرية. اكتشف قصتنا ومنهجيتنا وفريقنا." />
-  <link rel="canonical" href="https://nammerha.com/about" />
-  <meta property="og:title" content="نعمّرها — من نحن | About Us" />
-  <meta property="og:description" content="نعمّرها — منصة تقنية غير ربحية لإعادة إعمار سوريا بشفافية جذرية. اكتشف قصتنا ومنهجيتنا وفريقنا." />
-  <meta property="og:url" content="https://nammerha.com/about" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="نعمّرها — من نحن | About Us" />
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
+    <script>
+      (function () {
+        var m =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+        try {
+          m = localStorage.getItem('nm-theme') || m;
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', m);
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — من نحن</title>
+    <meta
+      name="description"
+      content="نعمّرها — منصة تقنية غير ربحية لإعادة إعمار سوريا بشفافية جذرية. اكتشف قصتنا ومنهجيتنا وفريقنا."
+    />
+    <link rel="canonical" href="https://nammerha.com/about" />
+    <meta property="og:title" content="نعمّرها — من نحن" />
+    <meta
+      property="og:description"
+      content="نعمّرها — منصة تقنية غير ربحية لإعادة إعمار سوريا بشفافية جذرية. اكتشف قصتنا ومنهجيتنا وفريقنا."
+    />
+    <meta property="og:url" content="https://nammerha.com/about" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="نعمّرها — من نحن" />
 
-  <!-- Fonts: IBM Plex Sans Arabic + Plus Jakarta Sans (self-hosted, zero-CDN) -->
-  <!-- P0-002 FIX: Replaced Google Fonts CDN (fonts.googleapis.com) with self-hosted -->
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
-  <link rel="stylesheet" href="/fonts/plus-jakarta-sans.css" />
-  <!-- Phosphor Icons -->
-  <!-- P2-AUD-004 FIX: Removed duplicate font preload — was declared on both line 32 and here.
+    <!-- Fonts: IBM Plex Sans Arabic + Plus Jakarta Sans (self-hosted, zero-CDN) -->
+    <!-- P0-002 FIX: Replaced Google Fonts CDN (fonts.googleapis.com) with self-hosted -->
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
+    <link rel="stylesheet" href="/fonts/plus-jakarta-sans.css" />
+    <!-- Phosphor Icons -->
+    <!-- P2-AUD-004 FIX: Removed duplicate font preload — was declared on both line 32 and here.
        Duplicate <link rel="preload"> wastes browser resources and triggers console warnings.
        Standard: Performance hygiene, single source of preload. -->
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <!-- GSAP + ScrollTrigger (self-hosted, zero-CDN) -->
-  <!-- P0-002 FIX: Replaced cdnjs.cloudflare.com CDN with self-hosted copies -->
-  <script src="/vendor/gsap/gsap.min.js" defer></script>
-  <script src="/vendor/gsap/ScrollTrigger.min.js" defer></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <!-- GSAP + ScrollTrigger (self-hosted, zero-CDN) -->
+    <!-- P0-002 FIX: Replaced cdnjs.cloudflare.com CDN with self-hosted copies -->
+    <script src="/vendor/gsap/gsap.min.js" defer></script>
+    <script src="/vendor/gsap/ScrollTrigger.min.js" defer></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
 
-  <!-- DEFECT-01 FIX: All about-page CSS extracted to _about.css partial (loaded via main.css @import).
+    <!-- DEFECT-01 FIX: All about-page CSS extracted to _about.css partial (loaded via main.css @import).
        Previous: 1130 lines of internal <style> — violated CSS Architecture (caching, governance).
        Standard: CSS Single Source of Truth, Single Responsibility Principle. -->
-</head>
-<body class="about-page">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-
-  <!-- ═══ TOP NAV ═══════════════════════════════════════════════════════════ -->
-  <nav class="top-nav" id="topNav">
-    <div class="nav-logo">
-      <img src="/brand/Nammerha_logo_icon.svg?v=2" alt="نعمّرها" />
-      <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light nav-logo-text" />
-      <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark nav-logo-text" />
-    </div>
-    <div class="nav-actions">
-      <!-- CONF-2026-004 FIX: Unified theme engine via data attributes (was inline JS) -->
-      <button type="button" class="nav-back" id="themeToggle" title="تبديل السمة" data-nm-theme-toggle>
-        <i id="themeIcon" data-nm-theme-icon aria-hidden="true"></i>
-      </button>
-      <div class="nav-lang" id="langSwitcher">
-        <i class="ph ph-globe"></i>
-        <span id="langLabel">العربية</span>
-        <i class="ph ph-caret-down text-3xs" ></i>
+  </head>
+  <body class="about-page">
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
       </div>
-    </div>
-  </nav>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
 
-  <!-- P1-AUD3-002 FIX: Wrapped all page content in <main id="main-content"> landmark.
+    <!-- ═══ TOP NAV ═══════════════════════════════════════════════════════════ -->
+    <nav class="top-nav" id="topNav">
+      <div class="nav-logo">
+        <img src="/brand/Nammerha_logo_icon.svg?v=2" alt="نعمّرها" />
+        <img
+          src="/brand/nammerha_text_logo_vector.svg?v=2"
+          alt="نعمّرها"
+          class="logo-light nav-logo-text"
+        />
+        <img
+          src="/brand/nammerha_text_logo_vector_dark.svg?v=1"
+          alt="نعمّرها"
+          class="logo-dark nav-logo-text"
+        />
+      </div>
+      <div class="nav-actions">
+        <div class="nav-lang" id="langSwitcher">
+          <i class="ph ph-globe"></i>
+          <span id="langLabel">العربية</span>
+          <i class="ph ph-caret-down text-3xs"></i>
+        </div>
+      </div>
+    </nav>
+
+    <!-- P1-AUD3-002 FIX: Wrapped all page content in <main id="main-content"> landmark.
        Previous: skip-link targeted an empty <a> anchor — invalid landmark.
        Now: proper <main> wrapping provides WCAG 1.3.1 landmark + skip-link target.
        Standard: WCAG 2.4.1 (Bypass Blocks), WCAG 1.3.1 (Info and Relationships). -->
-  <main id="main-content">
-  <!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
-  <section class="hero" id="hero" tabindex="-1">
-    <!-- Ambient orbs -->
-    <!-- P2-AUD3-002 FIX: Inline right/left → inset-inline-end/start for RTL parity. -->
-    <!-- P1-SST-002 FIX: Inline styles → CSS classes (hero-orb-1/2/3 in _about.css). -->
-    <div class="orb hero-orb-1"></div>
-    <div class="orb hero-orb-2"></div>
-    <div class="orb hero-orb-3"></div>
+    <main id="main-content">
+      <!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
+      <section class="hero" id="hero" tabindex="-1">
+        <!-- Ambient orbs -->
+        <!-- P2-AUD3-002 FIX: Inline right/left → inset-inline-end/start for RTL parity. -->
+        <!-- P1-SST-002 FIX: Inline styles → CSS classes (hero-orb-1/2/3 in _about.css). -->
+        <div class="orb hero-orb-1"></div>
+        <div class="orb hero-orb-2"></div>
+        <div class="orb hero-orb-3"></div>
 
-    <div class="hero-logo">
-      <img src="/brand/Nammerha_logo_Full.svg?v=2" alt="نعمّرها" id="heroLogo" class="logo-light" />
-      <img src="/brand/Nammerha_logo_Full_dark.svg?v=1" alt="نعمّرها" id="heroLogoDark" class="logo-dark" />
-    </div>
+        <div class="hero-logo">
+          <img
+            src="/brand/Nammerha_logo_Full.svg?v=2"
+            alt="نعمّرها"
+            id="heroLogo"
+            class="logo-light"
+          />
+          <img
+            src="/brand/Nammerha_logo_Full_dark.svg?v=1"
+            alt="نعمّرها"
+            id="heroLogoDark"
+            class="logo-dark"
+          />
+        </div>
 
-    <h1 class="hero-title" id="heroTitle" data-i18n="about_hero_title">نُعيد بناء سوريا، بيتاً بيتاً</h1>
+        <h1 class="hero-title" id="heroTitle" data-i18n="about_hero_title">
+          نُعيد بناء سوريا، بيتاً بيتاً
+        </h1>
 
-    <p class="hero-subtitle" id="heroSub" data-i18n="about_hero_subtitle">
-      منصة تقنية غير ربحية مبنية على الشفافية الجذرية، حيث يُتتبع كل دولار،
-      ويُتحقق من كل تسليم عبر GPS، ويُقاس كل أثر بدقة متناهية.
-    </p>
+        <p class="hero-subtitle" id="heroSub" data-i18n="about_hero_subtitle">
+          منصة تقنية غير ربحية مبنية على الشفافية الجذرية، حيث يُتتبع كل دولار، ويُتحقق من كل تسليم
+          عبر GPS، ويُقاس كل أثر بدقة.
+        </p>
 
-    <div class="hero-badges">
-      <span class="badge badge-jade">
-        <i class="ph ph-shield-check"></i>
-        <span data-i18n="about_badge_ocds">متوافق مع OCDS</span>
-      </span>
-      <span class="badge badge-blue">
-        <i class="ph ph-map-pin"></i>
-        <span data-i18n="about_badge_gps">تحقق GPS</span>
-      </span>
-      <span class="badge badge-earth">
-        <i class="ph ph-lock"></i>
-        <span data-i18n="about_badge_escrow">ضمان محمي</span>
-      </span>
-    </div>
+        <div class="hero-badges">
+          <span class="badge badge-jade">
+            <i class="ph ph-shield-check"></i>
+            <span data-i18n="about_badge_ocds">متوافق مع OCDS</span>
+          </span>
+          <span class="badge badge-blue">
+            <i class="ph ph-map-pin"></i>
+            <span data-i18n="about_badge_gps">تحقق GPS</span>
+          </span>
+          <span class="badge badge-earth">
+            <i class="ph ph-lock"></i>
+            <span data-i18n="about_badge_escrow">ضمان محمي</span>
+          </span>
+        </div>
 
-    <div class="scroll-hint">
-      <div class="mouse"></div>
-      <span data-i18n="about_explore">استكشف</span>
-    </div>
-  </section>
+        <div class="scroll-hint">
+          <div class="mouse"></div>
+          <span data-i18n="about_explore">استكشف</span>
+        </div>
+      </section>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════════════
        GAP-2026-B05 FIX: Floating Table of Contents
        Provides in-page navigation for this 60KB long-form page.
        Uses IntersectionObserver for scroll-spy (no scroll event overhead).
@@ -134,495 +179,595 @@
        Standard: WCAG 2.4.8 (Location), Nielsen #1 (System Status Visibility),
        Apple HIG (In-Page Navigation).
        ═══════════════════════════════════════════════════════════════════════ -->
-  <nav class="nm-toc" id="nmToc" aria-label="Table of Contents">
-    <!-- Mobile toggle button -->
-    <button type="button" class="nm-toc-toggle" id="nmTocToggle" aria-label="Toggle table of contents" aria-expanded="false">
-      <i class="ph ph-list-bullets" aria-hidden="true"></i>
-    </button>
-    <div class="nm-toc-items">
-      <a href="#storySection" class="nm-toc-item">
-        <span class="nm-toc-dot"></span>
-        <i class="ph ph-book-open" aria-hidden="true"></i>
-        <span class="nm-toc-label" data-i18n="about_toc_story">قصتنا</span>
-      </a>
-      <a href="#leadershipSection" class="nm-toc-item">
-        <span class="nm-toc-dot"></span>
-        <i class="ph ph-users-three" aria-hidden="true"></i>
-        <span class="nm-toc-label" data-i18n="about_toc_leadership">القيادة</span>
-      </a>
-      <a href="#approachSection" class="nm-toc-item">
-        <span class="nm-toc-dot"></span>
-        <i class="ph ph-strategy" aria-hidden="true"></i>
-        <span class="nm-toc-label" data-i18n="about_toc_approach">منهجيتنا</span>
-      </a>
-      <a href="#trustSection" class="nm-toc-item">
-        <span class="nm-toc-dot"></span>
-        <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="nm-toc-label" data-i18n="about_toc_trust">الثقة والامتثال</span>
-      </a>
-    </div>
-  </nav>
-
-
-  <!-- ═══ STORY SECTION — Timeline ══════════════════════════════════════════ -->
-  <section class="section" id="storySection">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label section-label-blue" data-anim>
-          <i class="ph ph-book-open"></i>
-          <span data-i18n="about_origin_subtitle">الرحلة التي أوصلتنا إلى هنا</span>
-        </span>
-        <h2 class="section-title" data-anim data-i18n="about_origin_title">قصتنا</h2>
-        <p class="section-desc" data-anim data-i18n="about_origin_desc">
-          من مراقبة الفجوة الإنسانية إلى بناء نظام بيئي متكامل لإعادة الإعمار
-        </p>
-      </div>
-
-      <div class="timeline">
-        <div class="timeline-track">
-          <div class="timeline-track-bg"></div>
-          <div class="timeline-track-fill" id="timelineFill"></div>
+      <nav class="nm-toc" id="nmToc" aria-label="Table of Contents">
+        <!-- Mobile toggle button -->
+        <button
+          type="button"
+          class="nm-toc-toggle"
+          id="nmTocToggle"
+          aria-label="Toggle table of contents"
+          aria-expanded="false"
+        >
+          <i class="ph ph-list-bullets" aria-hidden="true"></i>
+        </button>
+        <div class="nm-toc-items">
+          <a href="#storySection" class="nm-toc-item">
+            <span class="nm-toc-dot"></span>
+            <i class="ph ph-book-open" aria-hidden="true"></i>
+            <span class="nm-toc-label" data-i18n="about_toc_story">قصتنا</span>
+          </a>
+          <a href="#leadershipSection" class="nm-toc-item">
+            <span class="nm-toc-dot"></span>
+            <i class="ph ph-users-three" aria-hidden="true"></i>
+            <span class="nm-toc-label" data-i18n="about_toc_leadership">القيادة</span>
+          </a>
+          <a href="#approachSection" class="nm-toc-item">
+            <span class="nm-toc-dot"></span>
+            <i class="ph ph-strategy" aria-hidden="true"></i>
+            <span class="nm-toc-label" data-i18n="about_toc_approach">منهجيتنا</span>
+          </a>
+          <a href="#trustSection" class="nm-toc-item">
+            <span class="nm-toc-dot"></span>
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span class="nm-toc-label" data-i18n="about_toc_trust">الثقة والامتثال</span>
+          </a>
         </div>
+      </nav>
 
-        <!-- Phase 1 -->
-        <div class="timeline-item" data-anim>
-          <div class="timeline-dot dot-blue">1</div>
-          <div class="timeline-card glass">
-            <div class="timeline-phase phase-blue" data-i18n="about_origin_phase1_label">النداء</div>
-            <h3 data-i18n="about_origin_phase1_title">أبعد من الإغاثة المؤقتة</h3>
-            <p data-i18n="about_origin_phase1_body">لم تولد نعمّرها في قاعة مؤتمرات أو من دراسة نظرية بحتة. ولدت من المعاينة الشخصية العميقة لواقع يقول إن الحالة الإنسانية في سوريا كانت تتطلب ما هو أبعد بكثير من الإغاثة المؤقتة. خلال حضور مؤتمرات التنمية الدولية في الولايات المتحدة، أدرك المؤسسون فجوة هيكلية: مليارات تُنفق على الطوارئ، لكن المجتمعات تبقى عاجزة عن إعادة بناء بيوتها.</p>
+      <!-- ═══ STORY SECTION — Timeline ══════════════════════════════════════════ -->
+      <section class="section" id="storySection">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-label section-label-blue" data-anim>
+              <i class="ph ph-book-open"></i>
+              <span data-i18n="about_origin_subtitle">الرحلة التي أوصلتنا إلى هنا</span>
+            </span>
+            <h2 class="section-title" data-anim data-i18n="about_origin_title">قصتنا</h2>
+            <p class="section-desc" data-anim data-i18n="about_origin_desc">
+              من مراقبة الفجوة الإنسانية إلى بناء نظام بيئي متكامل لإعادة الإعمار
+            </p>
           </div>
-        </div>
 
-        <!-- Phase 2 -->
-        <div class="timeline-item" data-anim>
-          <div class="timeline-dot dot-jade">2</div>
-          <div class="timeline-card glass">
-            <div class="timeline-phase phase-jade" data-i18n="about_origin_phase2_label">الفريق</div>
-            <h3 data-i18n="about_origin_phase2_title">حيث تلتقي الاستراتيجية بالهندسة</h3>
-            <p data-i18n="about_origin_phase2_body">من مناطق ما بعد النزاع في الشرق الأوسط إلى البيئات الهندسية المتقدمة في ألمانيا، تلاقى فريق متنوع يجمع بين خبرات إدارة الأزمات والحوكمة المالية وتصميم المنتجات والهندسة البرمجية. هذا المزيج الفريد من التفكير الاستراتيجي والتنفيذ التقني الدقيق منح نعمّرها القدرة على ترجمة الأهداف الإنسانية إلى منصات رقمية حية وقابلة للتدقيق.</p>
-          </div>
-        </div>
+          <div class="timeline">
+            <div class="timeline-track">
+              <div class="timeline-track-bg"></div>
+              <div class="timeline-track-fill" id="timelineFill"></div>
+            </div>
 
-        <!-- Phase 3 -->
-        <div class="timeline-item" data-anim>
-          <div class="timeline-dot dot-earth">3</div>
-          <div class="timeline-card glass">
-            <div class="timeline-phase phase-earth" data-i18n="about_origin_phase3_label">النظام المتكامل</div>
-            <h3 data-i18n="about_origin_phase3_title">بناء نظام بيئي متكامل</h3>
-            <p data-i18n="about_origin_phase3_body">اليوم، نعمّرها لا تُعيد بناء الجدران فحسب. بل نهندس نظاماً بيئياً متكاملاً — منصة تجمع بين الإدارة المتقدمة للأعمال والتصميم الهندسي، لتصنع أداة موثوقة تولّد أثراً تنموياً مستداماً. كل مورد يُستثمر بعناية، كل نتيجة تُوثّق بالأدلة. مساهمتك ليست صدقة تُنسى — بل استثمار في مستقبل مجتمع.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+            <!-- Phase 1 -->
+            <div class="timeline-item" data-anim>
+              <div class="timeline-dot dot-blue">1</div>
+              <div class="timeline-card glass">
+                <div class="timeline-phase phase-blue" data-i18n="about_origin_phase1_label">
+                  النداء
+                </div>
+                <h3 data-i18n="about_origin_phase1_title">أبعد من الإغاثة المؤقتة</h3>
+                <p data-i18n="about_origin_phase1_body">
+                  لم تولد نعمّرها في قاعة مؤتمرات أو من دراسة نظرية بحتة. ولدت من المعاينة الشخصية
+                  العميقة لواقع يقول إن الحالة الإنسانية في سوريا كانت تتطلب ما هو أبعد بكثير من
+                  الإغاثة المؤقتة. خلال حضور مؤتمرات التنمية الدولية في الولايات المتحدة، أدرك
+                  المؤسسون فجوة هيكلية: مليارات تُنفق على الطوارئ، لكن المجتمعات تبقى عاجزة عن إعادة
+                  بناء بيوتها.
+                </p>
+              </div>
+            </div>
 
-  <div class="divider"></div>
+            <!-- Phase 2 -->
+            <div class="timeline-item" data-anim>
+              <div class="timeline-dot dot-jade">2</div>
+              <div class="timeline-card glass">
+                <div class="timeline-phase phase-jade" data-i18n="about_origin_phase2_label">
+                  الفريق
+                </div>
+                <h3 data-i18n="about_origin_phase2_title">حيث تلتقي الاستراتيجية بالهندسة</h3>
+                <p data-i18n="about_origin_phase2_body">
+                  من مناطق ما بعد النزاع في الشرق الأوسط إلى البيئات الهندسية المتقدمة في ألمانيا،
+                  تلاقى فريق متنوع يجمع بين خبرات إدارة الأزمات والحوكمة المالية وتصميم المنتجات
+                  والهندسة البرمجية. هذا المزيج الفريد من التفكير الاستراتيجي والتنفيذ التقني الدقيق
+                  منح نعمّرها القدرة على ترجمة الأهداف الإنسانية إلى منصات رقمية حية وقابلة للتدقيق.
+                </p>
+              </div>
+            </div>
 
-  <!-- ═══ LEADERSHIP ════════════════════════════════════════════════════════ -->
-  <section class="section" id="leadershipSection">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label section-label-jade" data-anim>
-          <i class="ph ph-users-three"></i>
-          <span data-i18n="about_leadership_subtitle">حوكمة مؤسسية، لا سلطة شخصية</span>
-        </span>
-        <h2 class="section-title" data-anim data-i18n="about_leadership_title">القيادة</h2>
-      </div>
-
-      <div class="leaders-grid">
-        <div class="leader-card glass leader-blue" data-anim>
-          <div class="leader-avatar leader-avatar-blue leader-avatar-photo">
-            <img src="/brand/founder-badreddine.png?v=1" alt="بدر الدين" loading="lazy" />
-          </div>
-          <h3 data-i18n="about_leader1_name">المؤسس والرئيس التنفيذي</h3>
-          <div class="leader-role leader-role-blue" data-i18n="about_leader1_role">التوجيه الاستراتيجي والحوكمة</div>
-          <p class="bio" data-i18n="about_leader1_bio">ينطلق من قناعة عميقة بأن التغيير الفعلي يتطلب إدارة أزمات، وحوكمة مالية صلبة، وتخطيطاً استراتيجياً بعيد المدى — وليس مجرد نوايا حسنة. من خلال سنوات من دراسة وتحليل العمليات الإنسانية والملاحظات الميدانية، ساهم في صياغة حلول عملية محورها التكنولوجيا. يقود نعمّرها بتركيز على بناء نماذج تمويل مستدامة وتأسيس شراكات مؤسسية.</p>
-          <div class="leader-tags">
-            <span class="leader-tag tag-blue" data-i18n="about_leader1_tag1">إدارة الأزمات</span>
-            <span class="leader-tag tag-blue" data-i18n="about_leader1_tag2">الحوكمة المالية</span>
-            <span class="leader-tag tag-blue" data-i18n="about_leader1_tag3">الشراكات المؤسسية</span>
+            <!-- Phase 3 -->
+            <div class="timeline-item" data-anim>
+              <div class="timeline-dot dot-earth">3</div>
+              <div class="timeline-card glass">
+                <div class="timeline-phase phase-earth" data-i18n="about_origin_phase3_label">
+                  النظام المتكامل
+                </div>
+                <h3 data-i18n="about_origin_phase3_title">بناء نظام بيئي متكامل</h3>
+                <p data-i18n="about_origin_phase3_body">
+                  اليوم، نعمّرها لا تُعيد بناء الجدران فحسب. بل نهندس نظاماً بيئياً متكاملاً — منصة
+                  تجمع بين الإدارة المتقدمة للأعمال والتصميم الهندسي، لتصنع أداة موثوقة تولّد أثراً
+                  تنموياً مستداماً. كل مورد يُستثمر بعناية، كل نتيجة تُوثّق بالأدلة. مساهمتك ليست
+                  صدقة تُنسى — بل استثمار في مستقبل مجتمع.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div class="leader-card glass leader-jade" data-anim>
-          <div class="leader-avatar leader-avatar-jade leader-avatar-photo">
-            <img src="/brand/cofounder-abdulrahman.jpg?v=1" alt="عبد الرحمن" loading="lazy" />
+      <div class="divider"></div>
+
+      <!-- ═══ LEADERSHIP ════════════════════════════════════════════════════════ -->
+      <section class="section" id="leadershipSection">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-label section-label-jade" data-anim>
+              <i class="ph ph-users-three"></i>
+              <span data-i18n="about_leadership_subtitle">حوكمة مؤسسية، لا سلطة شخصية</span>
+            </span>
+            <h2 class="section-title" data-anim data-i18n="about_leadership_title">القيادة</h2>
           </div>
-          <h3 data-i18n="about_leader2_name">الشريك المؤسس والمدير التقني</h3>
-          <div class="leader-role leader-role-jade" data-i18n="about_leader2_role">التنفيذ التقني وهندسة المنتجات</div>
-          <p class="bio" data-i18n="about_leader2_bio">يمثل المحرك التشغيلي والجسر التقني الابتكاري للمنظمة. بخلفية هندسية مهنية صُقلت في ألمانيا، متخصص في تصميم وتطوير المنتجات، يتولى قيادة دورة حياة المشاريع كاملةً — من البحث الأولي والتصور، مروراً بهندسة المنصة، وصولاً إلى التسليم الميداني وتقييم الأثر.</p>
-          <div class="leader-tags">
-            <span class="leader-tag tag-jade" data-i18n="about_leader2_tag1">هندسة المنتجات</span>
-            <span class="leader-tag tag-jade" data-i18n="about_leader2_tag2">معمارية المنصة</span>
-            <span class="leader-tag tag-jade" data-i18n="about_leader2_tag3">قياس الأثر</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <div class="divider"></div>
+          <div class="leaders-grid">
+            <div class="leader-card glass leader-blue" data-anim>
+              <div class="leader-avatar leader-avatar-blue leader-avatar-photo">
+                <img src="/brand/founder-badreddine.png?v=1" alt="بدر الدين" loading="lazy" />
+              </div>
+              <h3 data-i18n="about_leader1_name">المؤسس والرئيس التنفيذي</h3>
+              <div class="leader-role leader-role-blue" data-i18n="about_leader1_role">
+                التوجيه الاستراتيجي والحوكمة
+              </div>
+              <p class="bio" data-i18n="about_leader1_bio">
+                ينطلق من قناعة عميقة بأن التغيير الفعلي يتطلب إدارة أزمات، وحوكمة مالية صلبة،
+                وتخطيطاً استراتيجياً بعيد المدى — وليس مجرد نوايا حسنة. من خلال سنوات من دراسة
+                وتحليل العمليات الإنسانية والملاحظات الميدانية، ساهم في صياغة حلول عملية محورها
+                التكنولوجيا. يقود نعمّرها بتركيز على بناء نماذج تمويل مستدامة وتأسيس شراكات مؤسسية.
+              </p>
+              <div class="leader-tags">
+                <span class="leader-tag tag-blue" data-i18n="about_leader1_tag1"
+                  >إدارة الأزمات</span
+                >
+                <span class="leader-tag tag-blue" data-i18n="about_leader1_tag2"
+                  >الحوكمة المالية</span
+                >
+                <span class="leader-tag tag-blue" data-i18n="about_leader1_tag3"
+                  >الشراكات المؤسسية</span
+                >
+              </div>
+            </div>
 
-  <!-- ═══ APPROACH — Bento Grid ═════════════════════════════════════════════ -->
-  <section class="section" id="approachSection">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label section-label-earth" data-anim>
-          <i class="ph ph-strategy"></i>
-          <span data-i18n="about_approach_subtitle">الشفافية الجذرية وهندسة الأثر</span>
-        </span>
-        <h2 class="section-title" data-anim data-i18n="about_approach_title">منهجيتنا</h2>
-      </div>
-
-      <div class="bento">
-        <!-- Large Card: Theory of Change -->
-        <div class="bento-card glass bento-large" data-anim>
-          <div class="bento-icon bento-icon-blue">
-            <i class="ph ph-graph"></i>
-          </div>
-          <h3 data-i18n="about_pillar1_title">نظرية التغيير</h3>
-          <p data-i18n="about_pillar1_body">لا نعتمد نماذج المنطق الخطي المبسطة. تخطيطنا الاستراتيجي يسترشد بإطار عمل شامل لنظرية التغيير يتعمق في فهم السياقات الاجتماعية والاقتصادية والبيئية المتشابكة في بيئات ما بعد النزاع — لضمان أن كل نشاط يُسهم في مسار واضح نحو تحوّل جذري ومستدام.</p>
-        </div>
-
-        <!-- TaaS -->
-        <div class="bento-card glass" data-anim>
-          <div class="bento-icon bento-icon-jade">
-            <i class="ph ph-shield-check"></i>
-          </div>
-          <h3 data-i18n="about_pillar2_title">الشفافية كخدمة</h3>
-          <p data-i18n="about_pillar2_body">بنيتنا التقنية بالتصميم، متوافقة مع معيار OCDS. تدقيق فوري لكل عقد وتدفق مالي منذ اليوم الأول.</p>
-        </div>
-
-        <!-- Hybrid Model -->
-        <div class="bento-card glass" data-anim>
-          <div class="bento-icon bento-icon-earth">
-            <i class="ph ph-scales"></i>
-          </div>
-          <h3 data-i18n="about_pillar3_title">الاستدامة الهجينة</h3>
-          <p data-i18n="about_pillar3_body">نموذج هجين يدمج اشتراكات السوق الرقمي وعمولات تجارية — بينما تبقى أموال التبرعات مقدسة 100%.</p>
-        </div>
-
-        <!-- MEAL -->
-        <div class="bento-card glass bento-span-2" data-anim>
-          <div class="bento-icon bento-icon-blue">
-            <i class="ph ph-chart-bar"></i>
-          </div>
-          <h3 data-i18n="about_pillar4_title">إطار المساءلة MEAL</h3>
-          <p data-i18n="about_pillar4_body">نظام مراقبة وتقييم ومساءلة وتعلّم صارم يتجاوز إحصاء المخرجات. باستخدام خوارزميات تسجيل متقدمة وقواعد منطقية، يُقيّم إطارنا جودة الأثر الإنساني — قياس التغيير على مستوى المجتمع، وليس مجرد إحصاءات التسليم.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- ═══ TRUST & COMPLIANCE — Stats ════════════════════════════════════════ -->
-  <section class="section" id="trustSection">
-    <div class="container">
-      <div class="stats-section" data-anim>
-        <div class="section-header-elevated">
-          <h2 class="section-title section-title-inline">
-            <i class="ph ph-shield-check nm-icon-32 text-smoky-jade dark:text-emerald-400"></i>
-            <span data-i18n="about_toc_trust">الثقة والامتثال</span>
-          </h2>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-number stat-jade" data-count="100" data-suffix="%">0%</div>
-            <div class="stat-label" data-i18n="about_trust_stat1_label">شفافية مالية</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number stat-blue">GPS</div>
-            <div class="stat-label" data-i18n="about_trust_stat2_label">تسليمات موثقة</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number stat-earth">OCDS</div>
-            <div class="stat-label" data-i18n="about_trust_stat3_label">معيار البيانات</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number stat-white" data-count="0" data-suffix="%">0%</div>
-            <div class="stat-label" data-i18n="about_trust_stat4_label">رسوم تبرع</div>
+            <div class="leader-card glass leader-jade" data-anim>
+              <div class="leader-avatar leader-avatar-jade leader-avatar-photo">
+                <img src="/brand/cofounder-abdulrahman.jpg?v=1" alt="عبد الرحمن" loading="lazy" />
+              </div>
+              <h3 data-i18n="about_leader2_name">الشريك المؤسس والمدير التقني</h3>
+              <div class="leader-role leader-role-jade" data-i18n="about_leader2_role">
+                التنفيذ التقني وهندسة المنتجات
+              </div>
+              <p class="bio" data-i18n="about_leader2_bio">
+                يمثل المحرك التشغيلي والجسر التقني الابتكاري للمنظمة. بخلفية هندسية مهنية صُقلت في
+                ألمانيا، متخصص في تصميم وتطوير المنتجات، يتولى قيادة دورة حياة المشاريع كاملةً — من
+                البحث الأولي والتصور، مروراً بهندسة المنصة، وصولاً إلى التسليم الميداني وتقييم
+                الأثر.
+              </p>
+              <div class="leader-tags">
+                <span class="leader-tag tag-jade" data-i18n="about_leader2_tag1"
+                  >هندسة المنتجات</span
+                >
+                <span class="leader-tag tag-jade" data-i18n="about_leader2_tag2"
+                  >معمارية المنصة</span
+                >
+                <span class="leader-tag tag-jade" data-i18n="about_leader2_tag3">قياس الأثر</span>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <p class="stats-body" data-i18n="about_trust_body">
-          مسارنا التشغيلي مصمم تقنياً وتشريعياً للامتثال التام مع متطلبات ما بعد العقوبات الديناميكية والقوانين الدولية المنظمة للعمليات المالية — لضمان استمرارية الأعمال وحماية الشركاء والمانحين من أي مخاطر قانونية أو سمعية.
-        </p>
-      </div>
-    </div>
-  </section>
+      <div class="divider"></div>
 
-  <!-- ═══ CTA ═══════════════════════════════════════════════════════════════ -->
-  <section class="cta-section">
-    <div class="container">
-      <div class="cta-box" data-anim>
-        <i class="ph ph-hand-heart nm-icon-56 opacity-15 relative z-[2] block mb-4"></i>
-        <h2 data-i18n="about_cta_title">رؤيتك في بناء عالم أكثر أماناً تبدأ من هنا</h2>
-        <p data-i18n="about_cta_body">
-          لأن مجتمعات تحمّلت الدمار تستحق أكثر من التعاطف — تستحق شريكاً يحوّل سخاءك إلى تغيير دائم وقابل للقياس. نحن نوفر الأدوات. أنت تصنع الأثر.
-        </p>
-        <!-- P2-WEB-003 FIX: Replaced donor-basket.html (suspended) with projects.html (live).
+      <!-- ═══ APPROACH — Bento Grid ═════════════════════════════════════════════ -->
+      <section class="section" id="approachSection">
+        <div class="container">
+          <div class="section-header">
+            <span class="section-label section-label-earth" data-anim>
+              <i class="ph ph-strategy"></i>
+              <span data-i18n="about_approach_subtitle">الشفافية الجذرية وهندسة الأثر</span>
+            </span>
+            <h2 class="section-title" data-anim data-i18n="about_approach_title">منهجيتنا</h2>
+          </div>
+
+          <div class="bento">
+            <!-- Large Card: Theory of Change -->
+            <div class="bento-card glass bento-large" data-anim>
+              <div class="bento-icon bento-icon-blue">
+                <i class="ph ph-graph"></i>
+              </div>
+              <h3 data-i18n="about_pillar1_title">نظرية التغيير</h3>
+              <p data-i18n="about_pillar1_body">
+                لا نعتمد نماذج المنطق الخطي المبسطة. تخطيطنا الاستراتيجي يسترشد بإطار عمل شامل
+                لنظرية التغيير يتعمق في فهم السياقات الاجتماعية والاقتصادية والبيئية المتشابكة في
+                بيئات ما بعد النزاع — لضمان أن كل نشاط يُسهم في مسار واضح نحو تحوّل جذري ومستدام.
+              </p>
+            </div>
+
+            <!-- TaaS -->
+            <div class="bento-card glass" data-anim>
+              <div class="bento-icon bento-icon-jade">
+                <i class="ph ph-shield-check"></i>
+              </div>
+              <h3 data-i18n="about_pillar2_title">الشفافية كخدمة</h3>
+              <p data-i18n="about_pillar2_body">
+                استجابةً لأعلى المعايير العالمية في القطاع الخيري، هندسنا بنيتنا التقنية لتكون
+                بالتصميم — متوافقة مع معيار بيانات التعاقد المفتوح (OCDS). هذا يتيح لشركائنا
+                والمانحين إجراء تدقيق فوري في كل عقد ومشتريات وتدفق مالي منذ اليوم الأول. نتجاوز
+                مفهوم التقارير الدورية — الشفافية مدمجة كخدمة مؤسسية.
+              </p>
+            </div>
+
+            <!-- Hybrid Model -->
+            <div class="bento-card glass" data-anim>
+              <div class="bento-icon bento-icon-earth">
+                <i class="ph ph-scales"></i>
+              </div>
+              <h3 data-i18n="about_pillar3_title">الاستدامة الهجينة</h3>
+              <p data-i18n="about_pillar3_body">
+                نموذج هجين يدمج اشتراكات السوق الرقمي وعمولات تجارية — بينما تبقى أموال التبرعات
+                مقدسة 100%.
+              </p>
+            </div>
+
+            <!-- MEAL -->
+            <div class="bento-card glass bento-span-2" data-anim>
+              <div class="bento-icon bento-icon-blue">
+                <i class="ph ph-chart-bar"></i>
+              </div>
+              <h3 data-i18n="about_pillar4_title">إطار المساءلة (MEAL)</h3>
+              <p data-i18n="about_pillar4_body">
+                نظام مراقبة وتقييم ومساءلة وتعلّم صارم يتجاوز إحصاء المخرجات. باستخدام خوارزميات
+                تسجيل متقدمة وقواعد منطقية، يُقيّم إطارنا جودة الأثر الإنساني — قياس التغيير على
+                مستوى المجتمع، وليس مجرد إحصاءات التسليم.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ═══ TRUST & COMPLIANCE — Stats ════════════════════════════════════════ -->
+      <section class="section" id="trustSection">
+        <div class="container">
+          <div class="stats-section" data-anim>
+            <div class="section-header-elevated">
+              <h2 class="section-title section-title-inline">
+                <i class="ph ph-shield-check nm-icon-32 text-smoky-jade dark:text-emerald-400"></i>
+                <span data-i18n="about_toc_trust">الثقة والامتثال</span>
+              </h2>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-number stat-jade" data-count="100" data-suffix="%">0%</div>
+                <div class="stat-label" data-i18n="about_trust_stat1_label">شفافية مالية</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number stat-blue">GPS</div>
+                <div class="stat-label" data-i18n="about_trust_stat2_label">تسليمات موثقة</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number stat-earth">OCDS</div>
+                <div class="stat-label" data-i18n="about_trust_stat3_label">معيار البيانات</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number stat-white" data-count="0" data-suffix="%">0%</div>
+                <div class="stat-label" data-i18n="about_trust_stat4_label">رسوم تبرع</div>
+              </div>
+            </div>
+
+            <p class="stats-body" data-i18n="about_trust_body">
+              مسارنا التشغيلي مصمم تقنياً وتشريعياً للامتثال التام مع متطلبات ما بعد العقوبات
+              الديناميكية والقوانين الدولية المنظمة للعمليات المالية — لضمان استمرارية الأعمال
+              وحماية الشركاء والمانحين من أي مخاطر قانونية أو سمعية.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ CTA ═══════════════════════════════════════════════════════════════ -->
+      <section class="cta-section">
+        <div class="container">
+          <div class="cta-box" data-anim>
+            <i class="ph ph-hand-heart nm-icon-56 opacity-15 relative z-[2] block mb-4"></i>
+            <h2 data-i18n="about_cta_title">رؤيتك في بناء عالم أكثر أماناً تبدأ من هنا</h2>
+            <p data-i18n="about_cta_body">
+              لأن مجتمعات تحمّلت الدمار تستحق أكثر من التعاطف — تستحق شريكاً يحوّل سخاءك إلى تغيير
+              دائم وقابل للقياس. نحن نوفر الأدوات. أنت تصنع الأثر.
+            </p>
+            <!-- P2-WEB-003 FIX: Replaced donor-basket.html (suspended) with projects.html (live).
              Donation system permanently suspended (KI: nammerha_donation_suspension).
              Users can browse and fund active reconstruction projects.
              Standard: Nielsen #2 (Match System ↔ Real World), KI Compliance. -->
-        <a href="projects.html" class="cta-btn">
-          <i class="ph ph-heart"></i>
-          <span data-i18n="about_cta_btn1">موّل مشروعاً الآن</span>
-        </a>
-        <div class="cta-links">
-          <a href="contact.html" data-i18n="about_cta_links_contact">تواصل معنا</a>
-          <a href="pricing.html" data-i18n="about_cta_links_pricing">خطط الشراكة</a>
+            <a href="projects.html" class="cta-btn">
+              <i class="ph ph-heart"></i>
+              <span data-i18n="about_cta_btn1">موّل مشروعاً الآن</span>
+            </a>
+            <div class="cta-links">
+              <a href="contact.html" data-i18n="about_cta_links_contact">تواصل معنا</a>
+              <a href="pricing.html" data-i18n="about_cta_links_pricing">خطط الشراكة</a>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  <!-- ═══ FOOTER ═══════════════════════════════════════════════════════════ -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-logo">
-        <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light" />
-        <img src="/brand/nammerha_text_logo_vector_dark.svg?v=1" alt="نعمّرها" class="logo-dark" />
-      </div>
-      <nav class="footer-links">
-        <a href="terms.html">شروط الخدمة</a>
-        <a href="privacy.html">سياسة الخصوصية</a>
-        <a href="contact.html">تواصل معنا</a>
-        <a href="refund-policy.html">سياسة الاسترداد</a>
-      </nav>
-      <p class="footer-copy">© ٢٠٢٦ نعمّرها. منصة إعادة إعمار متوافقة مع OCDS.</p>
-    </div>
-  </footer>
-  </main> <!-- P1-AUD3-002: End of <main> landmark -->
+      <!-- ═══ FOOTER ═══════════════════════════════════════════════════════════ -->
+      <footer class="site-footer">
+        <div class="container">
+          <div class="footer-logo">
+            <img src="/brand/nammerha_text_logo_vector.svg?v=2" alt="نعمّرها" class="logo-light" />
+            <img
+              src="/brand/nammerha_text_logo_vector_dark.svg?v=1"
+              alt="نعمّرها"
+              class="logo-dark"
+            />
+          </div>
+          <nav class="footer-links">
+            <a href="terms.html">شروط الخدمة</a>
+            <a href="privacy.html">سياسة الخصوصية</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="refund-policy.html">سياسة الاسترداد</a>
+          </nav>
+          <p class="footer-copy">© ٢٠٢٦ نعمّرها. منصة إعادة إعمار متوافقة مع OCDS.</p>
+        </div>
+      </footer>
+    </main>
+    <!-- P1-AUD3-002: End of <main> landmark -->
 
-  <!-- ═══ ANIMATIONS — GSAP ScrollTrigger ══════════════════════════════════ -->
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-
-    // ─── Nav scroll effect ───────────────────────────────────────────────
-    var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() {
-      if (window.scrollY > 60) nav.classList.add('scrolled');
-      else nav.classList.remove('scrolled');
-    });
-
-    // CONF-2026-004 FIX: Inline theme toggle REMOVED.
-    // All theme logic is now in theme-toggle.js (canonical engine).
-    // The #themeToggle button has data-nm-theme-toggle — auto-wired by theme-toggle.js.
-
-    // ─── Language Switcher (cycle) ───────────────────────────────────────
-    var langs = ['ar','en','de','fr','tr'];
-    var langNames = { ar:'العربية', en:'English', de:'Deutsch', fr:'Français', tr:'Türkçe' };
-    var currentIdx = 0;
-    var switcher = document.getElementById('langSwitcher');
-    var label = document.getElementById('langLabel');
-    if (switcher) {
-      switcher.addEventListener('click', function() {
-        currentIdx = (currentIdx + 1) % langs.length;
-        var code = langs[currentIdx];
-        label.textContent = langNames[code];
-        // If global i18n exists, use it
-        if (window.NammerhaI18n) {
-          window.NammerhaI18n.switchLanguage(code);
-        }
-      });
-    }
-
-    // ─── GSAP: Pure progressive enhancement (content is ALWAYS visible) ─
-    var gsapRetries = 0;
-    function initGSAP() {
-      if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-        gsapRetries++;
-        if (gsapRetries < 30) { setTimeout(initGSAP, 100); }
-        return; // Content is visible regardless
-      }
-
-      try {
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Hero entrance animation
-        var heroTl = gsap.timeline();
-        heroTl
-          .from('#heroLogo', { opacity: 0, scale: 0.8, duration: 1.2, ease: 'power3.out' })
-          .from('#heroTitle', { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' }, '-=0.6')
-          .from('#heroSub', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' }, '-=0.4')
-          .from('.hero-badges .badge', { opacity: 0, y: 15, duration: 0.5, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
-          .from('.scroll-hint', { opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2');
-
-        // Scroll-driven reveal for [data-anim] elements
-        gsap.utils.toArray('[data-anim]').forEach(function(el) {
-          gsap.from(el, {
-            opacity: 0,
-            y: 30,
-            duration: 0.7,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top 90%',
-              toggleActions: 'play none none none',
-            }
-          });
+    <!-- ═══ ANIMATIONS — GSAP ScrollTrigger ══════════════════════════════════ -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // ─── Nav scroll effect ───────────────────────────────────────────────
+        var nav = document.getElementById('topNav');
+        window.addEventListener('scroll', function () {
+          if (window.scrollY > 60) nav.classList.add('scrolled');
+          else nav.classList.remove('scrolled');
         });
 
-        // Timeline fill on scroll
-        var timelineFill = document.getElementById('timelineFill');
-        if (timelineFill) {
-          ScrollTrigger.create({
-            trigger: '.timeline',
-            start: 'top 70%',
-            end: 'bottom 40%',
-            scrub: 1,
-            onUpdate: function(self) {
-              timelineFill.style.height = (self.progress * 100) + '%';
+        // CONF-2026-004 FIX: Inline theme toggle REMOVED.
+        // All theme logic is now in theme-toggle.js (canonical engine).
+        // The #themeToggle button has data-nm-theme-toggle — auto-wired by theme-toggle.js.
+
+        // ─── Language Switcher (cycle) ───────────────────────────────────────
+        var langs = ['ar', 'en', 'de', 'fr', 'tr'];
+        var langNames = {
+          ar: 'العربية',
+          en: 'English',
+          de: 'Deutsch',
+          fr: 'Français',
+          tr: 'Türkçe',
+        };
+        var currentIdx = 0;
+        var switcher = document.getElementById('langSwitcher');
+        var label = document.getElementById('langLabel');
+        if (switcher) {
+          switcher.addEventListener('click', function () {
+            currentIdx = (currentIdx + 1) % langs.length;
+            var code = langs[currentIdx];
+            label.textContent = langNames[code];
+            // If global i18n exists, use it
+            if (window.NammerhaI18n) {
+              window.NammerhaI18n.switchLanguage(code);
             }
           });
         }
 
-        // Counter animation
-        document.querySelectorAll('[data-count]').forEach(function(counter) {
-          var target = parseInt(counter.dataset.count, 10);
-          var suffix = counter.dataset.suffix || '';
-          ScrollTrigger.create({
-            trigger: counter,
-            start: 'top 90%',
-            once: true,
-            onEnter: function() {
-              gsap.to({ val: 0 }, {
-                val: target,
-                duration: 2,
-                ease: 'power2.out',
-                onUpdate: function() {
-                  counter.textContent = Math.round(this.targets()[0].val) + suffix;
-                }
+        // ─── GSAP: Pure progressive enhancement (content is ALWAYS visible) ─
+        var gsapRetries = 0;
+        function initGSAP() {
+          if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+            gsapRetries++;
+            if (gsapRetries < 30) {
+              setTimeout(initGSAP, 100);
+            }
+            return; // Content is visible regardless
+          }
+
+          try {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Hero entrance animation
+            var heroTl = gsap.timeline();
+            heroTl
+              .from('#heroLogo', { opacity: 0, scale: 0.8, duration: 1.2, ease: 'power3.out' })
+              .from('#heroTitle', { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' }, '-=0.6')
+              .from('#heroSub', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' }, '-=0.4')
+              .from(
+                '.hero-badges .badge',
+                { opacity: 0, y: 15, duration: 0.5, stagger: 0.1, ease: 'power3.out' },
+                '-=0.3',
+              )
+              .from('.scroll-hint', { opacity: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2');
+
+            // Scroll-driven reveal for [data-anim] elements
+            gsap.utils.toArray('[data-anim]').forEach(function (el) {
+              gsap.from(el, {
+                opacity: 0,
+                y: 30,
+                duration: 0.7,
+                ease: 'power3.out',
+                scrollTrigger: {
+                  trigger: el,
+                  start: 'top 90%',
+                  toggleActions: 'play none none none',
+                },
+              });
+            });
+
+            // Timeline fill on scroll
+            var timelineFill = document.getElementById('timelineFill');
+            if (timelineFill) {
+              ScrollTrigger.create({
+                trigger: '.timeline',
+                start: 'top 70%',
+                end: 'bottom 40%',
+                scrub: 1,
+                onUpdate: function (self) {
+                  timelineFill.style.height = self.progress * 100 + '%';
+                },
               });
             }
-          });
-        });
 
-        // Parallax orbs
-        gsap.utils.toArray('.orb').forEach(function(orb) {
-          gsap.to(orb, {
-            y: -60,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: orb.parentElement,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 2,
-            }
-          });
-        });
+            // Counter animation
+            document.querySelectorAll('[data-count]').forEach(function (counter) {
+              var target = parseInt(counter.dataset.count, 10);
+              var suffix = counter.dataset.suffix || '';
+              ScrollTrigger.create({
+                trigger: counter,
+                start: 'top 90%',
+                once: true,
+                onEnter: function () {
+                  gsap.to(
+                    { val: 0 },
+                    {
+                      val: target,
+                      duration: 2,
+                      ease: 'power2.out',
+                      onUpdate: function () {
+                        counter.textContent = Math.round(this.targets()[0].val) + suffix;
+                      },
+                    },
+                  );
+                },
+              });
+            });
 
-        // Leader cards 3D hover
-        document.querySelectorAll('.leader-card').forEach(function(card) {
-          card.addEventListener('mousemove', function(e) {
-            var rect = card.getBoundingClientRect();
-            var x = (e.clientX - rect.left) / rect.width - 0.5;
-            var y = (e.clientY - rect.top) / rect.height - 0.5;
-            card.style.transform = 'translateY(-4px) perspective(600px) rotateY(' + (x * 4) + 'deg) rotateX(' + (-y * 4) + 'deg)';
-          });
-          card.addEventListener('mouseleave', function() {
-            card.style.transform = '';
-          });
-        });
+            // Parallax orbs
+            gsap.utils.toArray('.orb').forEach(function (orb) {
+              gsap.to(orb, {
+                y: -60,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger: orb.parentElement,
+                  start: 'top bottom',
+                  end: 'bottom top',
+                  scrub: 2,
+                },
+              });
+            });
 
-      } catch(e) {
-        // GSAP failed — content is already visible, no action needed
-        console.warn('GSAP enhancement skipped:', e);
-      }
-    }
-
-    initGSAP();
-
-    // ═══════════════════════════════════════════════════════════
-    // GAP-2026-B05 FIX: Table of Contents — Scroll-Spy Engine
-    // Uses IntersectionObserver for 60fps scroll tracking with
-    // zero scroll event overhead. Activates after hero section.
-    // ═══════════════════════════════════════════════════════════
-    (function initToc() {
-      var toc = document.getElementById('nmToc');
-      var toggle = document.getElementById('nmTocToggle');
-      if (!toc) return;
-
-      var tocItems = toc.querySelectorAll('.nm-toc-item');
-      var sectionIds = ['storySection', 'leadershipSection', 'approachSection', 'trustSection'];
-      var sections = sectionIds.map(function(id) { return document.getElementById(id); }).filter(Boolean);
-
-      // Show/hide ToC based on scroll position (visible after hero)
-      var heroObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            toc.classList.remove('visible');
-          } else {
-            toc.classList.add('visible');
+            // Leader cards 3D hover
+            document.querySelectorAll('.leader-card').forEach(function (card) {
+              card.addEventListener('mousemove', function (e) {
+                var rect = card.getBoundingClientRect();
+                var x = (e.clientX - rect.left) / rect.width - 0.5;
+                var y = (e.clientY - rect.top) / rect.height - 0.5;
+                card.style.transform =
+                  'translateY(-4px) perspective(600px) rotateY(' +
+                  x * 4 +
+                  'deg) rotateX(' +
+                  -y * 4 +
+                  'deg)';
+              });
+              card.addEventListener('mouseleave', function () {
+                card.style.transform = '';
+              });
+            });
+          } catch (e) {
+            // GSAP failed — content is already visible, no action needed
+            console.warn('GSAP enhancement skipped:', e);
           }
-        });
-      }, { threshold: 0.1 });
+        }
 
-      var hero = document.querySelector('.hero');
-      if (hero) heroObserver.observe(hero);
+        initGSAP();
 
-      // Scroll-spy: highlight active section
-      var sectionObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            var activeId = entry.target.id;
-            tocItems.forEach(function(item) {
-              var href = item.getAttribute('href');
-              if (href === '#' + activeId) {
-                item.classList.add('active');
-              } else {
-                item.classList.remove('active');
-              }
+        // ═══════════════════════════════════════════════════════════
+        // GAP-2026-B05 FIX: Table of Contents — Scroll-Spy Engine
+        // Uses IntersectionObserver for 60fps scroll tracking with
+        // zero scroll event overhead. Activates after hero section.
+        // ═══════════════════════════════════════════════════════════
+        (function initToc() {
+          var toc = document.getElementById('nmToc');
+          var toggle = document.getElementById('nmTocToggle');
+          if (!toc) return;
+
+          var tocItems = toc.querySelectorAll('.nm-toc-item');
+          var sectionIds = ['storySection', 'leadershipSection', 'approachSection', 'trustSection'];
+          var sections = sectionIds
+            .map(function (id) {
+              return document.getElementById(id);
+            })
+            .filter(Boolean);
+
+          // Show/hide ToC based on scroll position (visible after hero)
+          var heroObserver = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  toc.classList.remove('visible');
+                } else {
+                  toc.classList.add('visible');
+                }
+              });
+            },
+            { threshold: 0.1 },
+          );
+
+          var hero = document.querySelector('.hero');
+          if (hero) heroObserver.observe(hero);
+
+          // Scroll-spy: highlight active section
+          var sectionObserver = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  var activeId = entry.target.id;
+                  tocItems.forEach(function (item) {
+                    var href = item.getAttribute('href');
+                    if (href === '#' + activeId) {
+                      item.classList.add('active');
+                    } else {
+                      item.classList.remove('active');
+                    }
+                  });
+                }
+              });
+            },
+            {
+              rootMargin: '-20% 0px -60% 0px', // Center bias: section must be ~20-40% in viewport
+              threshold: 0,
+            },
+          );
+
+          sections.forEach(function (s) {
+            sectionObserver.observe(s);
+          });
+
+          // Mobile toggle
+          if (toggle) {
+            toggle.addEventListener('click', function () {
+              var expanded = toc.classList.toggle('expanded');
+              toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            });
+
+            // Close ToC on link click (mobile)
+            tocItems.forEach(function (item) {
+              item.addEventListener('click', function () {
+                toc.classList.remove('expanded');
+                toggle.setAttribute('aria-expanded', 'false');
+              });
             });
           }
-        });
-      }, {
-        rootMargin: '-20% 0px -60% 0px', // Center bias: section must be ~20-40% in viewport
-        threshold: 0
+        })();
       });
+    </script>
 
-      sections.forEach(function(s) { sectionObserver.observe(s); });
-
-      // Mobile toggle
-      if (toggle) {
-        toggle.addEventListener('click', function() {
-          var expanded = toc.classList.toggle('expanded');
-          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        });
-
-        // Close ToC on link click (mobile)
-        tocItems.forEach(function(item) {
-          item.addEventListener('click', function() {
-            toc.classList.remove('expanded');
-            toggle.setAttribute('aria-expanded', 'false');
-          });
-        });
-      }
-    })();
-  });
-  </script>
-
-  <!-- FIX-4: Duplicate global legal footer REMOVED.
+    <!-- FIX-4: Duplicate global legal footer REMOVED.
        The About page already has its own artisan footer (lines 379-393)
        with Terms, Privacy, Contact, and Refund links.
        The global nm-legal-footer created redundant visual clutter.
        FIX-COS: Gradient orbs REMOVED — the About page has its own
        hero-orb-1/2/3 system; the global orbs are for portal pages.
        Standard: DRY, Nielsen #4 (Consistency), Zero Redundancy. -->
-
-  <!-- CONF-2026-004 FIX: Unified theme engine (auto-wires [data-nm-theme-toggle] buttons) -->
-  <script src="/theme-toggle.js?v=2" defer></script>
-  <script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/legal.js" defer></script>
-  <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/legal.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-
-
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

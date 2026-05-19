@@ -71,6 +71,24 @@
 
         // ═══ P1-VOICE-001: Voice Recognition Error Messages ═══
         'voice_permission_denied': { ar: 'تم رفض إذن الميكروفون. يرجى السماح بالوصول من إعدادات المتصفح.', de: 'Mikrofonerlaubnis verweigert. Bitte erlauben Sie den Zugriff in den Browsereinstellungen.', fr: 'Permission du microphone refusée. Veuillez autoriser l\'accès dans les paramètres du navigateur.', tr: 'Mikrofon izni reddedildi. Lütfen tarayıcı ayarlarından erişime izin verin.' },
+
+        // ═══ SEED-001: Missing browse keys ═══
+        'browse_projects': { ar: 'تصفّح المشاريع', de: 'Projekte durchsuchen', fr: 'Parcourir les projets', tr: 'Projelere Göz At' },
+        'browse_projects_desc': { ar: 'استكشف مشاريع إعادة الإعمار', de: 'Wiederaufbauprojekte erkunden', fr: 'Explorer les projets de reconstruction', tr: 'Yeniden yapım projelerini keşfedin' },
+
+        // ═══ SEED-001: Card-level keys for demo project rendering ═══
+        'card_funded': { ar: 'مموّل', de: 'Finanziert', fr: 'Financé', tr: 'Finanse Edildi' },
+        'verified_ocds': { ar: 'موثّق OCDS', de: 'OCDS-Verifiziert', fr: 'OCDS Vérifié', tr: 'OCDS Doğrulandı' },
+        'view_details': { ar: 'عرض التفاصيل', de: 'Details ansehen', fr: 'Voir les détails', tr: 'Detayları Gör' },
+        'fund_now': { ar: 'موّل الآن', de: 'Jetzt finanzieren', fr: 'Financer maintenant', tr: 'Şimdi Finanse Et' },
+        // ═══ main.ts runtime keys (error states) ═══
+        'projects_load_failed': { ar: 'تعذّر تحميل المشاريع', de: 'Projekte konnten nicht geladen werden', fr: 'Impossible de charger les projets', tr: 'Projeler yüklenemedi' },
+        'projects_load_retry_hint': { ar: 'تحقق من اتصالك وحاول مجدداً', de: 'Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut', fr: 'Vérifiez votre connexion et réessayez', tr: 'Bağlantınızı kontrol edin ve tekrar deneyin' },
+        'common_retry': { ar: 'إعادة المحاولة', de: 'Wiederholen', fr: 'Réessayer', tr: 'Tekrar Dene' },
+        'search_no_results': { ar: 'لا توجد مشاريع مطابقة لبحثك', de: 'Keine Projekte entsprechen Ihrer Suche', fr: 'Aucun projet ne correspond à votre recherche', tr: 'Aramanızla eşleşen proje yok' },
+        'search_all_projects': { ar: 'ابحث في كل المشاريع', de: 'Alle Projekte durchsuchen', fr: 'Rechercher tous les projets', tr: 'Tüm projelerde ara' },
+        'map_unavailable': { ar: 'الخريطة غير متاحة', de: 'Karte nicht verfügbar', fr: 'Carte indisponible', tr: 'Harita kullanılamıyor' },
+        'map_network_issue': { ar: 'مشكلة بالشبكة منعت تحميل الخريطة', de: 'Netzwerkprobleme verhinderten das Laden der Karte', fr: 'Des problèmes réseau ont empêché le chargement de la carte', tr: 'Ağ sorunları haritanın yüklenmesini engelledi' },
         'voice_error': { ar: 'فشل التعرف على الصوت. يرجى كتابة الوصف يدوياً.', de: 'Spracherkennung fehlgeschlagen. Bitte geben Sie die Beschreibung manuell ein.', fr: 'La reconnaissance vocale a échoué. Veuillez saisir la description manuellement.', tr: 'Ses tanıma başarısız. Lütfen açıklamayı manuel olarak yazın.' },
         'voice_start_failed': { ar: 'تعذر بدء التعرف على الصوت.', de: 'Spracherkennung konnte nicht gestartet werden.', fr: 'Impossible de démarrer la reconnaissance vocale.', tr: 'Ses tanıma başlatılamadı.' }
         });

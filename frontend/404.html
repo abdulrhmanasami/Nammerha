@@ -1,359 +1,433 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — 404 | الصفحة غير موجودة</title>
-  <meta name="description" content="The page you're looking for doesn't exist." />
-  <meta property="og:title" content="Nammerha — 404 | الصفحة غير موجودة" />
-  <meta property="og:description" content="The page you're looking for doesn't exist." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — 404 | الصفحة غير موجودة" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-  <style>
-    /* GAP-006: Inline critical styles to avoid dependency on Vite build for error pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — الصفحة غير موجودة | الصفحة غير موجودة</title>
+    <meta name="description" content="The page you're looking for doesn't exist." />
+    <meta property="og:title" content="نعمّرها — الصفحة غير موجودة | الصفحة غير موجودة" />
+    <meta property="og:description" content="The page you're looking for doesn't exist." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="نعمّرها — الصفحة غير موجودة | الصفحة غير موجودة" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+    <style>
+      /* GAP-006: Inline critical styles to avoid dependency on Vite build for error pages.
        TD-002 SYNC GOVERNANCE (March 2026):
        These styles are manually synced from the following source-of-truth files:
          • src/styles/main.css — base typography, colors, glass-card, dark mode tokens
          • src/styles/_dark-mode.css — dark mode overrides
        When updating main.css or _dark-mode.css, check if 404.html styles need a corresponding update.
        This file is intentionally self-contained for standalone operation without Vite. */
-    body {
-      font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      /* GAP-2026-003 FIX: Bottom padding clears the injected nav bar */
-      padding-bottom: 96px;
-    }
-    .error-container {
-      max-width: 360px;
-      padding: 2rem;
-    }
-    .error-icon {
-      width: 6rem;
-      height: 6rem;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.5rem;
-      font-size: 2.5rem;
-    }
-    .error-code {
-      font-size: 4rem;
-      font-weight: 900;
-      letter-spacing: -0.05em;
-      line-height: 1;
-      margin-bottom: 0.5rem;
-    }
-    .error-title {
-      font-size: 1.125rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    .error-desc {
-      font-size: 0.8125rem;
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-    }
-    .error-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      align-items: center;
-    }
-    .btn-home {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      font-size: 0.875rem;
-      font-weight: 700;
-      text-decoration: none;
-      border-radius: 0.75rem;
-      transition: all 0.15s ease;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-back {
-      background: none;
-      border: none;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      text-decoration: none;
-    }
-    .btn-back:hover { opacity: 0.7; }
-
-    /* Light theme (default) */
-    html[data-theme="light"] body,
-    html:not([data-theme]) body {
-      background: #F4F6F8;
-      color: #0f172a;
-    }
-    html[data-theme="light"] .error-icon,
-    html:not([data-theme]) .error-icon {
-      background: rgba(26, 115, 232, 0.08);
-      color: #1A73E8;
-    }
-    html[data-theme="light"] .error-code,
-    html:not([data-theme]) .error-code {
-      background: linear-gradient(135deg, #1A73E8, #109173);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    html[data-theme="light"] .error-desc,
-    html:not([data-theme]) .error-desc {
-      color: #64748b;
-    }
-    html[data-theme="light"] .btn-home,
-    html:not([data-theme]) .btn-home {
-      background: #1A73E8;
-      color: white;
-    }
-    html[data-theme="light"] .btn-home:hover,
-    html:not([data-theme]) .btn-home:hover {
-      background: #1557b0;
-    }
-    html[data-theme="light"] .btn-back,
-    html:not([data-theme]) .btn-back {
-      color: #1A73E8;
-    }
-
-    /* Dark theme */
-    html[data-theme="dark"] body {
-      background: #0f1117;
-      color: #e2e8f0;
-    }
-    html[data-theme="dark"] .error-icon {
-      background: rgba(26, 115, 232, 0.15);
-      color: #60a5fa;
-    }
-    html[data-theme="dark"] .error-code {
-      background: linear-gradient(135deg, #60a5fa, #34d399);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    html[data-theme="dark"] .error-desc {
-      color: #94a3b8;
-    }
-    html[data-theme="dark"] .btn-home {
-      background: #2563eb;
-      color: white;
-    }
-    html[data-theme="dark"] .btn-home:hover {
-      background: #1d4ed8;
-    }
-    html[data-theme="dark"] .btn-back {
-      color: #60a5fa;
-    }
-
-    /* Haptic feedback */
-    @media (pointer: coarse) {
-      .btn-home:active {
-        transform: scale(0.97);
-        opacity: 0.85;
+      body {
+        font-family:
+          'IBM Plex Sans Arabic',
+          'Inter',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        /* GAP-2026-003 FIX: Bottom padding clears the injected nav bar */
+        padding-bottom: 96px;
       }
-    }
+      .error-container {
+        max-width: 360px;
+        padding: 2rem;
+      }
+      .error-icon {
+        width: 6rem;
+        height: 6rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+      }
+      .error-code {
+        font-size: 4rem;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+      .error-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .error-desc {
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+      .error-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .btn-home {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-decoration: none;
+        border-radius: 0.75rem;
+        transition: all 0.15s ease;
+        border: none;
+        cursor: pointer;
+      }
+      .btn-back {
+        background: none;
+        border: none;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        text-decoration: none;
+      }
+      .btn-back:hover {
+        opacity: 0.7;
+      }
 
-    /* ═══════════════════════════════════════════════════════════════════
+      /* Light theme (default) */
+      html[data-theme='light'] body,
+      html:not([data-theme]) body {
+        background: #f4f6f8;
+        color: #0f172a;
+      }
+      html[data-theme='light'] .error-icon,
+      html:not([data-theme]) .error-icon {
+        background: rgba(26, 115, 232, 0.08);
+        color: #1a73e8;
+      }
+      html[data-theme='light'] .error-code,
+      html:not([data-theme]) .error-code {
+        background: linear-gradient(135deg, #1a73e8, #109173);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      html[data-theme='light'] .error-desc,
+      html:not([data-theme]) .error-desc {
+        color: #64748b;
+      }
+      html[data-theme='light'] .btn-home,
+      html:not([data-theme]) .btn-home {
+        background: #1a73e8;
+        color: white;
+      }
+      html[data-theme='light'] .btn-home:hover,
+      html:not([data-theme]) .btn-home:hover {
+        background: #1557b0;
+      }
+      html[data-theme='light'] .btn-back,
+      html:not([data-theme]) .btn-back {
+        color: #1a73e8;
+      }
+
+      /* Dark theme */
+      html[data-theme='dark'] body {
+        background: #0f1117;
+        color: #e2e8f0;
+      }
+      html[data-theme='dark'] .error-icon {
+        background: rgba(26, 115, 232, 0.15);
+        color: #60a5fa;
+      }
+      html[data-theme='dark'] .error-code {
+        background: linear-gradient(135deg, #60a5fa, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      html[data-theme='dark'] .error-desc {
+        color: #94a3b8;
+      }
+      html[data-theme='dark'] .btn-home {
+        background: #2563eb;
+        color: white;
+      }
+      html[data-theme='dark'] .btn-home:hover {
+        background: #1d4ed8;
+      }
+      html[data-theme='dark'] .btn-back {
+        color: #60a5fa;
+      }
+
+      /* Haptic feedback */
+      @media (pointer: coarse) {
+        .btn-home:active {
+          transform: scale(0.97);
+          opacity: 0.85;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════════════════════
        GAP-2026-003 FIX: Bottom Navigation CSS (inline for self-containment)
        Extracted from main.css — 404.html must not depend on Vite build.
        Standard: Apple HIG (Persistent Navigation), Nielsen #3 (User Control).
        ═══════════════════════════════════════════════════════════════════ */
-    .nm-bottom-nav {
-      position: fixed;
-      bottom: 0;
-      inset-inline: 0;
-      z-index: 9900;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      background: rgba(17,24,39,0.95);
-      transition: background 0.3s ease, border-color 0.3s ease;
-    }
-    .nm-bottom-nav[data-nav-theme="light"] {
-      background: rgba(255,255,255,0.92);
-      border-top-color: rgba(226,232,240,0.6);
-    }
-    .nm-nav-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      padding: 8px 16px;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-    .nm-nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      text-decoration: none;
-      padding: 4px 8px;
-      min-width: 54px;
-      min-height: 44px;
-      color: #64748b;
-      transition: color 0.2s;
-    }
-    .nm-bottom-nav[data-nav-theme="light"] .nm-nav-item { color: #94a3b8; }
-    .nm-nav-item[aria-current="page"] { color: #1A73E8; }
-    .nm-nav-icon { font-size: 22px; }
-    .nm-nav-label { font-size: 10px; letter-spacing: 0.02em; font-weight: 500; }
-    .nm-nav-item[aria-current="page"] .nm-nav-label { font-weight: 700; }
-    .nm-theme-fab {
-      position: absolute;
-      top: -18px;
-      inset-inline-end: 16px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(17,24,39,0.95);
-      color: #fbbf24;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      transition: all 0.3s;
-      -webkit-appearance: none;
-      appearance: none;
-      outline: none;
-      padding: 0;
-    }
-    .nm-bottom-nav[data-nav-theme="light"] .nm-theme-fab {
-      border-color: rgba(0,0,0,0.1);
-      background: rgba(255,255,255,0.95);
-      color: #6366f1;
-    }
-    .nm-nav-safe-area {
-      height: max(env(safe-area-inset-bottom, 0px), 8px);
-    }
-    @media (min-width: 640px) {
-      .nm-bottom-nav { display: none !important; }
-    }
-    /* 404-ORB-001 FIX: Synced to canonical main.css gradient-orb values.
+      .nm-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        inset-inline: 0;
+        z-index: 9900;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(17, 24, 39, 0.95);
+        transition:
+          background 0.3s ease,
+          border-color 0.3s ease;
+      }
+      .nm-bottom-nav[data-nav-theme='light'] {
+        background: rgba(255, 255, 255, 0.92);
+        border-top-color: rgba(226, 232, 240, 0.6);
+      }
+      .nm-nav-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 8px 16px;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+      .nm-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        text-decoration: none;
+        padding: 4px 8px;
+        min-width: 54px;
+        min-height: 44px;
+        color: #64748b;
+        transition: color 0.2s;
+      }
+      .nm-bottom-nav[data-nav-theme='light'] .nm-nav-item {
+        color: #94a3b8;
+      }
+      .nm-nav-item[aria-current='page'] {
+        color: #1a73e8;
+      }
+      .nm-nav-icon {
+        font-size: 22px;
+      }
+      .nm-nav-label {
+        font-size: 10px;
+        letter-spacing: 0.02em;
+        font-weight: 500;
+      }
+      .nm-nav-item[aria-current='page'] .nm-nav-label {
+        font-weight: 700;
+      }
+      .nm-theme-fab {
+        position: absolute;
+        top: -18px;
+        inset-inline-end: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(17, 24, 39, 0.95);
+        color: #fbbf24;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s;
+        -webkit-appearance: none;
+        appearance: none;
+        outline: none;
+        padding: 0;
+      }
+      .nm-bottom-nav[data-nav-theme='light'] .nm-theme-fab {
+        border-color: rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        color: #6366f1;
+      }
+      .nm-nav-safe-area {
+        height: max(env(safe-area-inset-bottom, 0px), 8px);
+      }
+      @media (min-width: 640px) {
+        .nm-bottom-nav {
+          display: none !important;
+        }
+      }
+      /* 404-ORB-001 FIX: Synced to canonical main.css gradient-orb values.
        Previous: position:fixed, blur:80px, opacity:0.5, wrong sizes — diverged from PLAT-P04.
        Standard: TD-002 Sync Governance, Design System Single Source of Truth. */
-    .gradient-orb {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      filter: blur(48px);
-      z-index: 0;
-    }
-    .gradient-orb-primary { width: 200px; height: 200px; background: rgba(26,115,232,0.08); }
-    .gradient-orb-jade { width: 250px; height: 250px; background: rgba(16,145,115,0.06); }
-    .gradient-orb-pos-end { top: -60px; inset-inline-end: -60px; }
-    .gradient-orb-pos-start { top: 50%; inset-inline-start: -80px; }
-    /* 404-FOOTER-001 FIX: Synced to canonical .nm-legal-footer properties.
+      .gradient-orb {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        filter: blur(48px);
+        z-index: 0;
+      }
+      .gradient-orb-primary {
+        width: 200px;
+        height: 200px;
+        background: rgba(26, 115, 232, 0.08);
+      }
+      .gradient-orb-jade {
+        width: 250px;
+        height: 250px;
+        background: rgba(16, 145, 115, 0.06);
+      }
+      .gradient-orb-pos-end {
+        top: -60px;
+        inset-inline-end: -60px;
+      }
+      .gradient-orb-pos-start {
+        top: 50%;
+        inset-inline-start: -80px;
+      }
+      /* 404-FOOTER-001 FIX: Synced to canonical .nm-legal-footer properties.
        Visual output must match pixel-for-pixel while class name stays unique
        (404 is self-contained, no Vite). */
-    .nm-legal-footer-404 {
-      position: fixed; bottom: 70px; inset-inline: 0;
-      text-align: center; padding: 8px 16px;
-      border-top: 1px solid rgba(255,255,255,0.04);
-      z-index: 1;
-    }
-    .nm-legal-footer-404 a {
-      font-size: 9px; color: #94a3b8; text-decoration: none;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      font-weight: 600;
-      margin: 0 8px; transition: color 0.15s;
-    }
-    .nm-legal-footer-404 a:hover { color: #1A73E8; }
-    @media (min-width: 640px) {
-      .nm-legal-footer-404 { bottom: 0; }
-    }
-  </style>
-</head>
-<body>
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- DEF-AUD3-001 FIX: Skip-to-content link — was the only page missing it (WCAG 2.4.1).
+      .nm-legal-footer-404 {
+        position: fixed;
+        bottom: 70px;
+        inset-inline: 0;
+        text-align: center;
+        padding: 8px 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        z-index: 1;
+      }
+      .nm-legal-footer-404 a {
+        font-size: 9px;
+        color: #94a3b8;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        margin: 0 8px;
+        transition: color 0.15s;
+      }
+      .nm-legal-footer-404 a:hover {
+        color: #1a73e8;
+      }
+      @media (min-width: 640px) {
+        .nm-legal-footer-404 {
+          bottom: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- DEF-AUD3-001 FIX: Skip-to-content link — was the only page missing it (WCAG 2.4.1).
      On 404 pages there's no navigation to bypass, but consistency demands it.
      Standard: WCAG 2.4.1 (Bypass Blocks), Cross-page consistency. -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <!-- 404-STRUCT-001 FIX: Changed <div> to <main> — WCAG 1.3.1 landmark semantics.
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <!-- 404-STRUCT-001 FIX: Changed <div> to <main> — WCAG 1.3.1 landmark semantics.
        Previous: <div id="main-content"> — not recognized as a landmark by screen readers.
        skip-link targets #main-content which must be a <main> element.
        Standard: HTML5 §4.4.1, WCAG 1.3.1 (Info and Relationships). -->
-  <main id="main-content" class="error-container" role="main">
-    <div class="error-icon" aria-hidden="true">
-      <i class="ph ph-compass"></i>
-    </div>
-    <div class="error-code">404</div>
-    <h1 class="error-title" data-i18n="error_404_title">Page Not Found</h1>
-    <p class="error-desc" data-i18n="error_404_desc">The page you're looking for doesn't exist or has been moved. Let's get you back on track.</p>
-    <div class="error-actions">
-      <a href="/index.html" class="btn-home">
-        <i class="ph ph-house" aria-hidden="true"></i>
-        <span data-i18n="error_404_go_home">Go to Homepage</span>
-      </a>
-      <!-- DEF-AUD3-002 FIX: Replaced inline onclick with data-back-btn.
+    <main id="main-content" class="error-container" role="main">
+      <div class="error-icon" aria-hidden="true">
+        <i class="ph ph-compass"></i>
+      </div>
+      <div class="error-code">404</div>
+      <h1 class="error-title" data-i18n="error_404_title">الصفحة غير موجودة</h1>
+      <p class="error-desc" data-i18n="error_404_desc">
+        الصفحة التي تبحث عنها غير موجودة أو تم نقلها. دعنا نعيدك إلى المسار الصحيح.
+      </p>
+      <div class="error-actions">
+        <a href="/index.html" class="btn-home">
+          <i class="ph ph-house" aria-hidden="true"></i>
+          <span data-i18n="error_404_go_home">الذهاب للصفحة الرئيسية</span>
+        </a>
+        <!-- DEF-AUD3-002 FIX: Replaced inline onclick with data-back-btn.
            Previous: onclick="history.back()" violates CSP and breaks external script pattern.
            Now: data-back-btn attribute wired by nav.js (same as all other back buttons).
            Standard: CSP compliance, Nielsen #4 (Consistency). -->
-      <button type="button" data-back-btn class="btn-back" data-i18n="error_404_go_back">← Go Back</button>
-    </div>
-  </main>
+        <button type="button" data-back-btn class="btn-back" data-i18n="error_404_go_back">
+          العودة للخلف
+        </button>
+      </div>
+    </main>
 
-  <!-- GAP-2026-003 FIX: Decorative gradient orbs — visual consistency with all platform pages -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <!-- GAP-2026-003 FIX: Decorative gradient orbs — visual consistency with all platform pages -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-  <!-- GAP-2026-003 FIX: Legal footer — consistent with all other pages -->
-  <footer class="nm-legal-footer-404">
-    <nav aria-label="Legal navigation">
-      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-    </nav>
-  </footer>
+    <!-- GAP-2026-003 FIX: Legal footer — consistent with all other pages -->
+    <footer class="nm-legal-footer-404">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+    </footer>
 
-  <script src="/i18n.js?v=7" defer></script>
-  <!-- GAP-2026-003 FIX: Bottom navigation bar — users are no longer stranded on 404.
+    <script src="/i18n.js?v=7" defer></script>
+    <!-- GAP-2026-003 FIX: Bottom navigation bar — users are no longer stranded on 404.
        nav.js auto-injects the unified bottom nav + dynamically loads theme-toggle.js.
        Standard: Nielsen #3 (User Control & Freedom), Apple HIG (Persistent Navigation). -->
-  <script src="/i18n/common.js" defer></script>
-  <script src="/load-guard.js" defer></script>
-  <script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

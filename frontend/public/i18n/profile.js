@@ -150,7 +150,12 @@
         'password_too_short': { ar: 'كلمة المرور قصيرة جداً', de: 'Passwort zu kurz', fr: 'Mot de passe trop court', tr: 'Şifre çok kısa' },
         'password_mismatch': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' },
         'photo_too_large': { ar: 'الصورة كبيرة جداً (الحد ٢ ميغابايت)', de: 'Foto zu groß (max. 2 MB)', fr: 'Photo trop grande (max 2 Mo)', tr: 'Fotoğraf çok büyük (maks 2 MB)' },
-        'photo_invalid_type': { ar: 'نوع الصورة غير مدعوم', de: 'Dateityp nicht unterstützt', fr: 'Type de fichier non pris en charge', tr: 'Dosya türü desteklenmiyor' }
+        'photo_invalid_type': { ar: 'نوع الصورة غير مدعوم', de: 'Dateityp nicht unterstützt', fr: 'Type de fichier non pris en charge', tr: 'Dosya türü desteklenmiyor' },
+
+        /* ── THEME-SURG-001: Platform Theme Settings ─── */
+        'theme_setting': { ar: 'سمة المنصة', de: 'Design-Modus', fr: 'Thème', tr: 'Platform Teması' },
+        'theme_light': { ar: 'الوضع الفاتح', de: 'Heller Modus', fr: 'Mode clair', tr: 'Açık Mod' },
+        'theme_dark': { ar: 'الوضع الداكن', de: 'Dunkler Modus', fr: 'Mode sombre', tr: 'Koyu Mod' }
         });
     }
 })();

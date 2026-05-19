@@ -1,219 +1,341 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Refund & Dispute Policy | سياسة الاسترداد</title>
-  <meta name="description" content="Refund and dispute resolution policy for Nammerha. Clear escrow release conditions, donor protections, and dispute resolution procedures." />
-  <link rel="canonical" href="https://nammerha.com/refund-policy" />
-  <meta property="og:title" content="Nammerha — Refund & Dispute Policy | سياسة الاسترداد" />
-  <meta property="og:description" content="Refund and dispute resolution policy for Nammerha. Clear escrow release conditions, donor protections, and dispute resolution procedures." />
-  <meta property="og:url" content="https://nammerha.com/refund-policy" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Refund & Dispute Policy | سياسة الاسترداد" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-  <script type="module">import './src/styles/main.css';</script>
-</head>
-<body class="legal-page bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="mobile-container min-h-screen flex flex-col">
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>Nammerha — Refund & Dispute Policy | سياسة الاسترداد</title>
+    <meta
+      name="description"
+      content="Refund and dispute resolution policy for Nammerha. Clear escrow release conditions, donor protections, and dispute resolution procedures."
+    />
+    <link rel="canonical" href="https://nammerha.com/refund-policy" />
+    <meta property="og:title" content="Nammerha — Refund & Dispute Policy | سياسة الاسترداد" />
+    <meta
+      property="og:description"
+      content="Refund and dispute resolution policy for Nammerha. Clear escrow release conditions, donor protections, and dispute resolution procedures."
+    />
+    <meta property="og:url" content="https://nammerha.com/refund-policy" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Nammerha — Refund & Dispute Policy | سياسة الاسترداد" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+    <script type="module">
+      import './src/styles/main.css';
+    </script>
+  </head>
+  <body
+    class="legal-page bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="mobile-container min-h-screen flex flex-col">
+      <!-- Header -->
+      <header class="glass-nav sticky top-0 z-50">
+        <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+          <a
+            href="index.html"
+            class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors"
+          >
+            <i class="ph ph-arrow-left text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
+          </a>
+          <h1 class="text-lg font-bold tracking-tight page-header-title" data-i18n="refund_title">
+            سياسة الاسترداد والضمان
+          </h1>
+          <div class="w-10"></div>
+        </div>
+      </header>
 
-  <!-- Header -->
-  <header class="glass-nav sticky top-0 z-50">
-    <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
-      <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
-        <i class="ph ph-arrow-left text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
-      </a>
-      <h1 class="text-lg font-bold tracking-tight page-header-title" data-i18n="refund_title">Refund & Dispute Policy</h1>
-      <div class="w-10"></div>
+      <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_last_updated">
+            آخر تحديث: مارس ٢٠٢٦
+          </p>
+          <div class="flex items-center gap-3">
+            <div id="nm-lang-mount"></div>
+          </div>
+        </div>
+
+        <!-- Escrow Protection Overview -->
+        <section class="mb-8">
+          <div
+            class="flex items-center gap-3 p-4 rounded-xl bg-smoky-jade/5 border border-smoky-jade/10 mb-6"
+          >
+            <i
+              class="ph ph-lock-key text-smoky-jade nm-icon-28 dark:text-emerald-400"
+              aria-hidden="true"
+            ></i>
+            <p class="text-sm text-slate-600 dark:text-slate-400" data-i18n="refund_escrow_intro">
+              تُحتفظ جميع التبرعات في ضمان آمن حتى يتم التحقق من تسليم المواد.
+            </p>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="refund_how_escrow">كيف يعمل الضمان؟</h2>
+          <p
+            class="text-sm text-slate-600 leading-relaxed mb-3 dark:text-slate-400"
+            data-i18n="refund_escrow_detail"
+          >
+            تُحرَّر الأموال فقط بعد إثبات التسليم الميداني بطابع GPS.
+          </p>
+          <p
+            class="text-sm text-slate-600 leading-relaxed dark:text-slate-400"
+            data-i18n="refund_escrow_release"
+          >
+            تحرير الضمان
+          </p>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="refund_eligibility">أهلية الاسترداد</h2>
+          <div class="space-y-3">
+            <div
+              class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <i
+                class="ph ph-check-circle text-smoky-jade mt-0.5 text-lg dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+              <div>
+                <p class="text-sm font-medium" data-i18n="refund_elig_pending">معلّق</p>
+                <p
+                  class="text-xs text-slate-400 dark:text-slate-500"
+                  data-i18n="refund_elig_pending_detail"
+                >
+                  استرداد كامل — لم يتم تخصيص الأموال بعد.
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <i class="ph ph-warning-circle text-warm-earth mt-0.5 text-lg" aria-hidden="true"></i>
+              <div>
+                <p class="text-sm font-medium" data-i18n="refund_elig_released">محرر</p>
+                <p
+                  class="text-xs text-slate-400 dark:text-slate-500"
+                  data-i18n="refund_elig_released_detail"
+                >
+                  غير قابل للاسترداد — تم تسليم المواد والتحقق منها.
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <i class="ph ph-clock text-trust-blue mt-0.5 text-lg" aria-hidden="true"></i>
+              <div>
+                <p class="text-sm font-medium" data-i18n="refund_elig_stalled">متوقف</p>
+                <p
+                  class="text-xs text-slate-400 dark:text-slate-500"
+                  data-i18n="refund_elig_stalled_detail"
+                >
+                  استرداد كامل بعد ٩٠ يوماً من عدم النشاط.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="refund_dispute">حل النزاعات</h2>
+          <p
+            class="text-sm text-slate-600 leading-relaxed mb-3 dark:text-slate-400"
+            data-i18n="refund_dispute_intro"
+          >
+            في حال الخلاف، يفصل فريق التحقق بناءً على الأدلة الميدانية.
+          </p>
+          <div class="space-y-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span
+                class="size-6 bg-trust-blue text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                >1</span
+              >
+              <p class="text-sm" data-i18n="refund_step_1">١. تقديم طلب الاسترداد</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="size-6 bg-trust-blue text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                >2</span
+              >
+              <p class="text-sm" data-i18n="refund_step_2">٢. مراجعة فريق نعمِّرها</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="size-6 bg-trust-blue text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                >3</span
+              >
+              <p class="text-sm" data-i18n="refund_step_3">٣. التحقق من حالة الضمان</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="size-6 bg-smoky-jade text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                >4</span
+              >
+              <p class="text-sm" data-i18n="refund_step_4">٤. إصدار الاسترداد</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="refund_processing">خطوات المعالجة</h2>
+          <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-dark-border">
+            <div
+              class="bg-slate-50 flex items-center justify-between px-4 py-2 dark:bg-dark-elevated"
+            >
+              <span
+                class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400"
+                data-i18n="refund_col_type"
+                >النوع</span
+              >
+              <span
+                class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400"
+                data-i18n="refund_col_time"
+                >الوقت المقدر</span
+              >
+            </div>
+            <div class="divide-y divide-slate-100 text-sm dark:divide-dark-border-subtle">
+              <div class="flex items-center justify-between px-4 py-3">
+                <span data-i18n="refund_time_pending">٢٤-٤٨ ساعة عمل</span>
+                <span
+                  class="font-mono text-smoky-jade font-bold dark:text-emerald-400"
+                  data-i18n="refund_time_instant"
+                  >فوري</span
+                >
+              </div>
+              <div class="flex items-center justify-between px-4 py-3">
+                <span data-i18n="refund_time_approved">٢٤ ساعة</span>
+                <span class="font-mono text-warm-earth font-bold" data-i18n="refund_time_5_10"
+                  >٥-١٠ أيام عمل</span
+                >
+              </div>
+              <div class="flex items-center justify-between px-4 py-3">
+                <span data-i18n="refund_time_dispute">١٤ يوم عمل</span>
+                <span class="font-mono text-trust-blue font-bold" data-i18n="refund_time_7d"
+                  >٧ أيام عمل</span
+                >
+              </div>
+              <div class="flex items-center justify-between px-4 py-3">
+                <span data-i18n="refund_time_stalled">٥-٧ أيام عمل</span>
+                <span
+                  class="font-mono text-slate-600 font-bold dark:text-slate-400"
+                  data-i18n="refund_time_14d"
+                  >١٤ يوم عمل</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="refund_antifraud">مكافحة الاحتيال</h2>
+          <p
+            class="text-sm text-slate-600 leading-relaxed dark:text-slate-400"
+            data-i18n="refund_antifraud_detail"
+          >
+            تُسجَّل جميع المعاملات بطوابع GPS وزمنية لمنع الاحتيال.
+          </p>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="refund_contact">تواصل معنا</h2>
+          <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
+            <span data-i18n="refund_contact_detail">لطلبات الاسترداد:</span>
+            <a
+              href="mailto:support@nammerha.com"
+              class="text-trust-blue font-semibold hover:underline"
+              >support@nammerha.com</a
+            >
+            <span data-i18n="refund_contact_or">أو أرسل بريداً إلى</span>
+            <a
+              href="contact.html"
+              class="text-trust-blue font-semibold hover:underline"
+              data-i18n="refund_contact_link"
+              >صفحة التواصل</a
+            >.
+          </p>
+        </section>
+
+        <!-- Trust Badge -->
+        <div
+          class="flex items-center gap-3 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 mt-4"
+        >
+          <i class="ph ph-shield-check text-trust-blue text-2xl" aria-hidden="true"></i>
+          <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="refund_trust">
+            منصة OCDS — الشفافية المالية في كل معاملة.
+          </p>
+        </div>
+      </main>
     </div>
-  </header>
+    <!-- COS-003 FIX: Decorative gradient orbs — visual consistency with consumer pages -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-  <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto">
-    <div class="flex items-center justify-between mb-6">
-      <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_last_updated">Last updated: March 2026</p>
-      <div class="flex items-center gap-3">
-        <div id="nm-lang-mount"></div>
-        <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border cursor-pointer touch-safe shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-dark-elevated" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-          <i id="nm-theme-toggle-icon" class="text-lg text-slate-600 dark:text-slate-300" data-nm-theme-icon aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-    <!-- Escrow Protection Overview -->
-    <section class="mb-8">
-      <div class="flex items-center gap-3 p-4 rounded-xl bg-smoky-jade/5 border border-smoky-jade/10 mb-6">
-        <i class="ph ph-lock-key text-smoky-jade nm-icon-28 dark:text-emerald-400" aria-hidden="true"></i>
-        <p class="text-sm text-slate-600 dark:text-slate-400" data-i18n="refund_escrow_intro">
-          All donations on Nammerha are held in escrow and only released upon GPS-verified delivery of materials. Your funds are protected at every step.
-        </p>
-      </div>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="refund_how_escrow">1. How Escrow Protection Works</h2>
-      <p class="text-sm text-slate-600 leading-relaxed mb-3 dark:text-slate-400" data-i18n="refund_escrow_detail">
-        When you donate to a reconstruction project, your funds are not immediately transferred to the supplier or contractor. Instead, they are held in a secure escrow account managed by the Platform.
-      </p>
-      <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400" data-i18n="refund_escrow_release">
-        Funds are only released when: (a) the assigned engineer submits GPS-verified spatial proof of material delivery, (b) photographic evidence is reviewed and approved, and (c) the homeowner confirms receipt. This triple-verification ensures your donation reaches its intended purpose.
-      </p>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="refund_eligibility">2. Refund Eligibility</h2>
-      <div class="space-y-3">
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-          <i class="ph ph-check-circle text-smoky-jade mt-0.5 text-lg dark:text-emerald-400" aria-hidden="true"></i>
-          <div>
-            <p class="text-sm font-medium" data-i18n="refund_elig_pending">Pending Donations</p>
-            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_elig_pending_detail">Full refund available before escrow release. Cancel anytime from your donor portal.</p>
-          </div>
-        </div>
-
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-          <i class="ph ph-warning-circle text-warm-earth mt-0.5 text-lg" aria-hidden="true"></i>
-          <div>
-            <p class="text-sm font-medium" data-i18n="refund_elig_released">Released Donations</p>
-            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_elig_released_detail">Once funds are released after verified delivery, refunds are not available. Disputes must be filed within 14 days.</p>
-          </div>
-        </div>
-
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-          <i class="ph ph-clock text-trust-blue mt-0.5 text-lg" aria-hidden="true"></i>
-          <div>
-            <p class="text-sm font-medium" data-i18n="refund_elig_stalled">Stalled Projects</p>
-            <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="refund_elig_stalled_detail">If a project shows no progress for 90+ days, donors may request a full refund from escrow.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="refund_dispute">3. Dispute Resolution</h2>
-      <p class="text-sm text-slate-600 leading-relaxed mb-3 dark:text-slate-400" data-i18n="refund_dispute_intro">
-        We take disputes seriously and provide a structured resolution process:
-      </p>
-      <div class="space-y-2 mb-3">
-        <div class="flex items-center gap-2">
-          <span class="size-6 bg-trust-blue text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">1</span>
-          <p class="text-sm" data-i18n="refund_step_1">Submit dispute via your Donor Portal or email support@nammerha.com</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="size-6 bg-trust-blue text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">2</span>
-          <p class="text-sm" data-i18n="refund_step_2">Our team reviews spatial proof evidence within 4 hours</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="size-6 bg-trust-blue text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">3</span>
-          <p class="text-sm" data-i18n="refund_step_3">Independent auditor verification if evidence is contested</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="size-6 bg-smoky-jade text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">4</span>
-          <p class="text-sm" data-i18n="refund_step_4">Resolution issued within 7 business days</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="refund_processing">4. Processing Times</h2>
-      <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-dark-border">
-        <div class="bg-slate-50 flex items-center justify-between px-4 py-2 dark:bg-dark-elevated">
-          <span class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="refund_col_type">Type</span>
-          <span class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="refund_col_time">Timeframe</span>
-        </div>
-        <div class="divide-y divide-slate-100 text-sm dark:divide-dark-border-subtle">
-          <div class="flex items-center justify-between px-4 py-3">
-            <span data-i18n="refund_time_pending">Pending donation cancellation</span>
-            <span class="font-mono text-smoky-jade font-bold dark:text-emerald-400" data-i18n="refund_time_instant">Instant</span>
-          </div>
-          <div class="flex items-center justify-between px-4 py-3">
-            <span data-i18n="refund_time_approved">Approved refund processing</span>
-            <span class="font-mono text-warm-earth font-bold" data-i18n="refund_time_5_10">5–10 days</span>
-          </div>
-          <div class="flex items-center justify-between px-4 py-3">
-            <span data-i18n="refund_time_dispute">Dispute resolution</span>
-            <span class="font-mono text-trust-blue font-bold" data-i18n="refund_time_7d">7 days</span>
-          </div>
-          <div class="flex items-center justify-between px-4 py-3">
-            <span data-i18n="refund_time_stalled">Stalled project refund</span>
-            <span class="font-mono text-slate-600 font-bold dark:text-slate-400" data-i18n="refund_time_14d">14 days</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="refund_antifraud">5. Anti-Fraud Commitment</h2>
-      <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400" data-i18n="refund_antifraud_detail">
-        Nammerha employs GPS-timestamped spatial proofs, image hash verification, SDN/sanctions screening, and real-time escrow monitoring to prevent fraudulent activity. Any evidence of manipulation results in immediate account suspension and escalation to relevant authorities.
-      </p>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="refund_contact">6. Contact for Refund Requests</h2>
-      <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
-        <span data-i18n="refund_contact_detail">For refund inquiries, contact us at</span>
-        <a href="mailto:support@nammerha.com" class="text-trust-blue font-semibold hover:underline">support@nammerha.com</a>
-        <span data-i18n="refund_contact_or">or visit our</span>
-        <a href="contact.html" class="text-trust-blue font-semibold hover:underline" data-i18n="refund_contact_link">Contact Page</a>.
-      </p>
-    </section>
-
-    <!-- Trust Badge -->
-    <div class="flex items-center gap-3 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 mt-4">
-      <i class="ph ph-shield-check text-trust-blue text-2xl" aria-hidden="true"></i>
-      <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="refund_trust">Your donations are protected by escrow from the moment of payment until GPS-verified delivery is confirmed.</p>
-    </div>
-  </main>
-
-</div>
-<!-- COS-003 FIX: Decorative gradient orbs — visual consistency with consumer pages -->
-<div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-<div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/legal.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/legal.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

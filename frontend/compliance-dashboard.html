@@ -1,64 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Compliance | الامتثال والتدقيق</title>
-  <meta name="description" content="Compliance and auditor portal for verifying OCDS compliance, reviewing escrow releases, and auditing financial transparency." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — الامتثال | الامتثال والتدقيق</title>
+    <meta
+      name="description"
+      content="Compliance and auditor portal for verifying OCDS compliance, reviewing escrow releases, and auditing financial transparency."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Nammerha — Compliance | الامتثال والتدقيق" />
-  <meta property="og:description" content="Compliance and auditor portal for verifying OCDS compliance, reviewing escrow releases, and auditing financial transparency." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Compliance | الامتثال والتدقيق" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/compliance-dashboard.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="dashboard-layout">
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="نعمّرها — الامتثال | الامتثال والتدقيق" />
+    <meta
+      property="og:description"
+      content="Compliance and auditor portal for verifying OCDS compliance, reviewing escrow releases, and auditing financial transparency."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="نعمّرها — الامتثال | الامتثال والتدقيق" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/compliance-dashboard.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="dashboard-layout">
+      <!-- Sidebar Overlay (mobile) -->
+      <div class="sidebar-overlay" aria-hidden="true"></div>
 
-  <!-- Sidebar Overlay (mobile) -->
-  <div class="sidebar-overlay" aria-hidden="true"></div>
-
-  <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar">
-    <!-- P1-AUD-005 FIX: Standardized to p-4 + border-b (was p-6 no-border).
+      <!-- Sidebar Navigation -->
+      <aside class="dashboard-sidebar">
+        <!-- P1-AUD-005 FIX: Standardized to p-4 + border-b (was p-6 no-border).
          Matches homeowner-portal, donor-portal, contractor-dashboard sidebar headers.
          Standard: Nielsen #4 (Consistency), Brand identity. -->
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
-      <span class="font-bold text-sm" data-i18n="auditor_portal">Auditor Portal</span>
-    </div>
-    <!-- P0-AUD-002 FIX: Complete WAI-ARIA tablist rewrite.
+        <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
+          <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
+          <span class="font-bold text-sm" data-i18n="auditor_portal">بوابة المدقق</span>
+        </div>
+        <!-- P0-AUD-002 FIX: Complete WAI-ARIA tablist rewrite.
          Previous: <a href="#"> links with no ARIA semantics — violated WAI-ARIA §3.26.
          - Caused unwanted history entries and scroll-to-top on click
          - No role="tablist", role="tab", aria-selected, or aria-controls
@@ -66,301 +95,536 @@
          - Missing data-i18n on 4 of 5 sidebar items
          Now: Proper tablist with 2 tabs (Dashboard, Escrow Reviews) + separate nav links.
          Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2, Nielsen #4. -->
-    <!-- P3-AUD-002 FIX: Added pt-3 for breathing room between sidebar header and first tab.
+        <!-- P3-AUD-002 FIX: Added pt-3 for breathing room between sidebar header and first tab.
          Standard: Apple HIG Navigation Spacing, Nielsen #4 (Consistency). -->
-    <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Auditor portal navigation">
-      <button type="button" role="tab" id="tab-dashboard" aria-selected="true" aria-controls="section-dashboard" class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start">
-        <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="common_dashboard">Dashboard</span>
-      </button>
-      <button type="button" role="tab" id="tab-escrow" aria-selected="false" aria-controls="section-escrow" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start dark:text-slate-400">
-        <i class="ph ph-file-search" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="auditor_escrow_reviews">Escrow Reviews</span>
-        <span class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full" id="review-count">0</span>
-      </button>
-    </nav>
-    <!-- Navigation links outside tablist — these navigate to different pages.
+        <nav
+          class="flex-1 px-4 space-y-1 pt-3"
+          role="tablist"
+          aria-label="Auditor portal navigation"
+        >
+          <button
+            type="button"
+            role="tab"
+            id="tab-dashboard"
+            aria-selected="true"
+            aria-controls="section-dashboard"
+            class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start"
+          >
+            <i class="ph ph-squares-four" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="common_dashboard">لوحة التحكم</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="tab-escrow"
+            aria-selected="false"
+            aria-controls="section-escrow"
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start dark:text-slate-400"
+          >
+            <i class="ph ph-file-search" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="auditor_escrow_reviews">مراجعات الضمان</span>
+            <span
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              id="review-count"
+              >0</span
+            >
+          </button>
+        </nav>
+        <!-- Navigation links outside tablist — these navigate to different pages.
          Standard: WAI-ARIA §3.26 mandates tab containers may ONLY contain role="tab" elements. -->
-    <!-- DEF-NAV-001 FIX: Standardized from legacy px-4 space-y-1 pb-2 to canonical pattern.
+        <!-- DEF-NAV-001 FIX: Standardized from legacy px-4 space-y-1 pb-2 to canonical pattern.
          Standard: Nielsen #4 (Consistency), Design System Structural Unity. -->
-    <div class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border" data-section-label="Navigate" data-i18n-attr="data-section-label:sidebar_navigate">
-      <!-- CRIT-002 FIX: 3 dead href="#" links → disabled <span> with "Coming Soon" badge.
+        <div
+          class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border"
+          data-section-label="Navigate"
+          data-i18n-attr="data-section-label:sidebar_navigate"
+        >
+          <!-- CRIT-002 FIX: 3 dead href="#" links → disabled <span> with "Coming Soon" badge.
            Previous: <a href="#"> caused scroll-to-top, browser history pollution, and violated
            Nielsen #2 (No Dead Controls). WCAG 4.1.2 requires interactive elements to have purpose.
            Pattern: Matches admin-oracle.html CONF-ADM-006, admin-dashboard.html GAP-ADM-002.
            Standard: Nielsen #2, WCAG 4.1.2 (Name, Role, Value), Apple HIG (Disabled States). -->
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true">
-        <i class="ph ph-chart-bar" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="auditor_financial_reports">Financial Reports</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true">
-        <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="auditor_ocds_compliance">OCDS Compliance</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true">
-        <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="auditor_audit_trail">Audit Trail</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="profile.html">
-        <i class="ph ph-user-circle" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="nav_profile">Profile</span>
-      </a>
-    </div>
-    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-      <div class="flex items-center gap-3 px-3 py-2">
-        <div class="size-8 rounded-full bg-smoky-jade/20 flex items-center justify-center">
-          <i class="ph ph-user text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+          >
+            <i class="ph ph-chart-bar" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="auditor_financial_reports">التقارير المالية</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+          >
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="auditor_ocds_compliance">التوافق مع OCDS</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+          >
+            <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="auditor_audit_trail">سجل التدقيق</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="profile.html"
+          >
+            <i class="ph ph-user-circle" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="nav_profile">الملف الشخصي</span>
+          </a>
         </div>
-        <div>
-          <p class="text-xs font-bold" data-i18n="auditor_portal">Auditor Portal</p>
-          <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="auditor_access">Compliance Access</p>
-        </div>
-      </div>
-      <!-- P0-AUD-003 FIX: Logout button was missing from compliance sidebar.
+        <div class="p-4 border-t border-slate-200 dark:border-dark-border">
+          <div class="flex items-center gap-3 px-3 py-2">
+            <div class="size-8 rounded-full bg-smoky-jade/20 flex items-center justify-center">
+              <i
+                class="ph ph-user text-smoky-jade text-sm dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold" data-i18n="auditor_portal">بوابة المدقق</p>
+              <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="auditor_access">
+                وصول المدقق
+              </p>
+            </div>
+          </div>
+          <!-- P0-AUD-003 FIX: Logout button was missing from compliance sidebar.
            All other portal sidebars (homeowner, donor, tradesperson, contractor) have it.
            Standard: Nielsen #3 (User Control and Freedom), Security UX. -->
-      <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
-      </button>
-    </div>
-  </aside>
+          <button
+            type="button"
+            id="portal-logout-btn"
+            class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full"
+          >
+            <i class="ph ph-sign-out" aria-hidden="true"></i>
+            <span class="font-medium text-sm" data-i18n="common_logout">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
 
-  <!-- P0-AUD-001 FIX: Was <div> — skip-link targets #main-content, must be <main> landmark (WCAG 1.3.1).
+      <!-- P0-AUD-001 FIX: Was <div> — skip-link targets #main-content, must be <main> landmark (WCAG 1.3.1).
        Every other dashboard/portal page uses <main>. This was the sole violator.
        Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.1. -->
-  <main id="main-content" class="dashboard-main">
-    <!-- P2-AUD-002 FIX: Wrapped header content in max-w-6xl centered container.
+      <main id="main-content" class="dashboard-main">
+        <!-- P2-AUD-002 FIX: Wrapped header content in max-w-6xl centered container.
          Previous: content stretched edge-to-edge on wide screens.
          Standard: Nielsen #4 (Consistency), PLT-AUD2-C001 pattern. -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
-      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
-      <div class="flex items-center gap-3">
-        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
-        </button>
-        <span class="font-bold text-lg page-header-title" data-i18n="auditor_dashboard_title">Compliance Dashboard</span>
-        <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
-      </div>
-      <div class="flex items-center gap-4">
-             Standard: Design System Component Consistency. -->
-        <!-- PLAT-P1-004 FIX: Was ONLY portal missing data-scroll-target + title.
+        <header
+          class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
+        >
+          <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                class="sidebar-toggle"
+                aria-label="Toggle sidebar"
+                data-i18n-aria="aria_toggle_sidebar"
+              >
+                <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
+              </button>
+              <span class="font-bold text-lg page-header-title" data-i18n="auditor_dashboard_title"
+                >لوحة التدقيق</span
+              >
+              <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
+            </div>
+            <div class="flex items-center gap-4">
+              Standard: Design System Component Consistency. -->
+              <!-- PLAT-P1-004 FIX: Was ONLY portal missing data-scroll-target + title.
              All other 6 portals have both attributes on notification bell.
              Standard: Nielsen #4 (Consistency), WCAG 4.1.2 (Name, Role, Value). -->
-        <button type="button" class="relative" id="notification-bell" aria-label="Notifications" data-i18n-aria="aria_notifications" data-scroll-target="section-dashboard" title="Jump to overview">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500" aria-hidden="true"></i>
-          <!-- P2-AUD-003 FIX: Changed bg-warning-yellow → bg-trust-blue.
+              <button
+                type="button"
+                class="relative"
+                id="notification-bell"
+                aria-label="Notifications"
+                data-i18n-aria="aria_notifications"
+                data-scroll-target="section-dashboard"
+                title="Jump to overview"
+              >
+                <i
+                  class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
+                  aria-hidden="true"
+                ></i>
+                <!-- P2-AUD-003 FIX: Changed bg-warning-yellow → bg-trust-blue.
                All other portals use bg-trust-blue for notification count badge.
                Compliance was the sole outlier using bg-warning-yellow.
                Standard: Nielsen #4 (Consistency), Design System Color Token. -->
-          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden" id="notif-count"></span>
-        </button>
-      </div>
-      </div>
-    </header>
+                <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+                <span
+                  class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden"
+                  id="notif-count"
+                ></span>
+              </button>
+            </div>
+          </div>
+        </header>
 
-    <!-- P1-AUD-003 FIX: Added max-w-6xl wrapper — was missing.
+        <!-- P1-AUD-003 FIX: Added max-w-6xl wrapper — was missing.
          Content stretched full-width on >1920px screens. Every other portal has the centering wrapper.
          Standard: Nielsen #4 (Consistency), Apple HIG (Content Width), CRIT-006 pattern. -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
-    <div class="max-w-6xl mx-auto space-y-6">
-      <!-- P1-AUD-004 FIX: Content-level <h1> + subtitle — TYPE A heading pattern.
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <div class="max-w-6xl mx-auto space-y-6">
+            <!-- P1-AUD-004 FIX: Content-level <h1> + subtitle — TYPE A heading pattern.
            Was missing entirely. The only heading was the <span> in the sticky header bar.
            Standard: WCAG 1.3.1 (Heading Hierarchy), RES-I03 pattern. -->
-      <div>
-        <h1 class="text-xl font-bold" data-i18n="auditor_dashboard_heading">Compliance Overview</h1>
-        <p class="text-sm text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="auditor_dashboard_desc">Verify OCDS compliance, review escrow releases, and audit financial transparency</p>
-      </div>
+            <div>
+              <h1 class="text-xl font-bold" data-i18n="auditor_dashboard_heading">
+                لوحة التدقيق المالي
+              </h1>
+              <p
+                class="text-sm text-slate-500 mt-0.5 dark:text-slate-400"
+                data-i18n="auditor_dashboard_desc"
+              >
+                مراقبة الامتثال والشفافية المالية
+              </p>
+            </div>
 
-      <!-- ═══════ Dashboard Section (tab panel) ═══════ -->
-      <div id="section-dashboard" role="tabpanel" aria-labelledby="tab-dashboard">
-      <!-- KPI Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-currency-dollar text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
-            </div>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="auditor_total_audited">Total Funds Audited</p>
-          <!-- SWEEP-W5-001: Removed individual aria-live. -->
-          <p class="text-2xl font-black mt-1" data-kpi="total-audited" data-prefix="$">
-            <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-hourglass-medium text-warning-yellow text-xl" aria-hidden="true"></i>
-            </div>
-            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="contractor_pending">Pending</span>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="auditor_pending_reviews">Pending Reviews</p>
-          <!-- CRIT-001a FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
+            <!-- ═══════ Dashboard Section (tab panel) ═══════ -->
+            <div id="section-dashboard" role="tabpanel" aria-labelledby="tab-dashboard">
+              <!-- KPI Cards -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div
+                      class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center"
+                    >
+                      <i
+                        class="ph ph-currency-dollar text-smoky-jade text-xl dark:text-emerald-400"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                  </div>
+                  <p
+                    class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                    data-i18n="auditor_total_audited"
+                  >
+                    إجمالي المدقق
+                  </p>
+                  <!-- SWEEP-W5-001: Removed individual aria-live. -->
+                  <p class="text-2xl font-black mt-1" data-kpi="total-audited" data-prefix="$">
+                    <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span>
+                  </p>
+                </div>
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div
+                      class="size-10 rounded-xl bg-warning-yellow/10 flex items-center justify-center"
+                    >
+                      <i
+                        class="ph ph-hourglass-medium text-warning-yellow text-xl"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                    <span
+                      class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full"
+                      data-i18n="contractor_pending"
+                      >معلق</span
+                    >
+                  </div>
+                  <p
+                    class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                    data-i18n="auditor_pending_reviews"
+                  >
+                    مراجعات معلقة
+                  </p>
+                  <!-- CRIT-001a FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
                Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
                Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
-          <p class="text-2xl font-black mt-1 text-warning-yellow" data-kpi="pending-reviews">
-            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-check-circle text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
-            </div>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="auditor_approved_releases">Approved Releases</p>
-          <p class="text-2xl font-black mt-1" data-kpi="approved-releases">
-            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-        <!-- P2-AUD-001 FIX: Changed non-existent danger-red token to red-500 Tailwind utility.
+                  <p
+                    class="text-2xl font-black mt-1 text-warning-yellow"
+                    data-kpi="pending-reviews"
+                  >
+                    <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+                  </p>
+                </div>
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div
+                      class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center"
+                    >
+                      <i
+                        class="ph ph-check-circle text-smoky-jade text-xl dark:text-emerald-400"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                  </div>
+                  <p
+                    class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                    data-i18n="auditor_approved_releases"
+                  >
+                    تحريرات معتمدة
+                  </p>
+                  <p class="text-2xl font-black mt-1" data-kpi="approved-releases">
+                    <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+                  </p>
+                </div>
+                <!-- P2-AUD-001 FIX: Changed non-existent danger-red token to red-500 Tailwind utility.
              danger-red was not defined in :root or main.css — CSS custom property resolved to empty.
              Platform uses red-500 for destructive states (profile.html sign-out, error banners).
              Standard: Design System Token Governance, CSS Custom Property hygiene. -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <i class="ph ph-warning text-red-500 text-xl" aria-hidden="true"></i>
-            </div>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="auditor_flagged">Flagged Issues</p>
-          <p class="text-2xl font-black mt-1 text-red-500" data-kpi="flagged-issues">
-            <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-      </div>
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="size-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                      <i class="ph ph-warning text-red-500 text-xl" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                  <p
+                    class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                    data-i18n="auditor_flagged"
+                  >
+                    مُعلَّم
+                  </p>
+                  <p class="text-2xl font-black mt-1 text-red-500" data-kpi="flagged-issues">
+                    <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"></span>
+                  </p>
+                </div>
+              </div>
 
-      <!-- OCDS Compliance Status -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center gap-3 mb-3">
-            <i class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
-            <!-- CRIT-004 FIX: h3→h2 — bridges h1 (L176) → h2 heading hierarchy gap.
+              <!-- OCDS Compliance Status -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center gap-3 mb-3">
+                    <i
+                      class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400"
+                      aria-hidden="true"
+                    ></i>
+                    <!-- CRIT-004 FIX: h3→h2 — bridges h1 (L176) → h2 heading hierarchy gap.
                  Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy). -->
-            <h2 class="font-bold text-sm" data-i18n="auditor_ocds_status">OCDS Compliance</h2>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="nm-progress-track">
-              <div class="bg-smoky-jade nm-progress-bar" id="ocds-bar" style="--progress: 0%"></div>
+                    <h2 class="font-bold text-sm" data-i18n="auditor_ocds_status">حالة OCDS</h2>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="nm-progress-track">
+                      <div
+                        class="bg-smoky-jade nm-progress-bar"
+                        id="ocds-bar"
+                        style="--progress: 0%"
+                      ></div>
+                    </div>
+                    <span
+                      class="text-xs font-bold text-smoky-jade dark:text-emerald-400"
+                      id="ocds-percent"
+                    >
+                      <span class="inline-block h-4 w-10 bg-slate-200 rounded animate-pulse"></span>
+                    </span>
+                  </div>
+                  <p
+                    class="text-3xs text-slate-400 mt-2 dark:text-slate-500"
+                    data-i18n="auditor_ocds_desc"
+                  >
+                    حالة التوافق مع معيار OCDS
+                  </p>
+                </div>
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center gap-3 mb-3">
+                    <i class="ph ph-database text-trust-blue text-xl" aria-hidden="true"></i>
+                    <h2 class="font-bold text-sm" data-i18n="auditor_audit_integrity">
+                      نزاهة التدقيق
+                    </h2>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="text-lg font-black text-smoky-jade dark:text-emerald-400"
+                      id="audit-integrity"
+                    >
+                      <span class="inline-block h-5 w-14 bg-slate-200 rounded animate-pulse"></span>
+                    </span>
+                    <span
+                      class="text-xs text-slate-400 dark:text-slate-500"
+                      data-i18n="auditor_immutable"
+                      >غير قابل للتغيير</span
+                    >
+                  </div>
+                  <p
+                    class="text-3xs text-slate-400 mt-2 dark:text-slate-500"
+                    data-i18n="auditor_no_deletions"
+                  >
+                    لا حذف — لا تعديل
+                  </p>
+                </div>
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center gap-3 mb-3">
+                    <i class="ph ph-map-pin text-warm-earth text-xl" aria-hidden="true"></i>
+                    <h2 class="font-bold text-sm" data-i18n="auditor_spatial_accuracy">
+                      الدقة المكانية
+                    </h2>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg font-black" id="spatial-accuracy">
+                      <span class="inline-block h-5 w-12 bg-slate-200 rounded animate-pulse"></span>
+                    </span>
+                    <span
+                      class="text-xs text-slate-400 dark:text-slate-500"
+                      data-i18n="auditor_gps_verified"
+                      >محقق GPS</span
+                    >
+                  </div>
+                  <p
+                    class="text-3xs text-slate-400 mt-2 dark:text-slate-500"
+                    data-i18n="auditor_spatial_desc"
+                  >
+                    التحقق العالمي من الإثباتات المكانية
+                  </p>
+                </div>
+              </div>
             </div>
-            <span class="text-xs font-bold text-smoky-jade dark:text-emerald-400" id="ocds-percent">
-              <span class="inline-block h-4 w-10 bg-slate-200 rounded animate-pulse"></span>
-            </span>
-          </div>
-          <p class="text-3xs text-slate-400 mt-2 dark:text-slate-500" data-i18n="auditor_ocds_desc">All transactions verified against OCDS schema</p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center gap-3 mb-3">
-            <i class="ph ph-database text-trust-blue text-xl" aria-hidden="true"></i>
-            <h2 class="font-bold text-sm" data-i18n="auditor_audit_integrity">Audit Trail Integrity</h2>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-lg font-black text-smoky-jade dark:text-emerald-400" id="audit-integrity">
-              <span class="inline-block h-5 w-14 bg-slate-200 rounded animate-pulse"></span>
-            </span>
-            <span class="text-xs text-slate-400 dark:text-slate-500" data-i18n="auditor_immutable">INSERT-only / immutable</span>
-          </div>
-          <p class="text-3xs text-slate-400 mt-2 dark:text-slate-500" data-i18n="auditor_no_deletions">Zero DELETE/UPDATE operations detected</p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center gap-3 mb-3">
-            <i class="ph ph-map-pin text-warm-earth text-xl" aria-hidden="true"></i>
-            <h2 class="font-bold text-sm" data-i18n="auditor_spatial_accuracy">Spatial Verification</h2>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-lg font-black" id="spatial-accuracy">
-              <span class="inline-block h-5 w-12 bg-slate-200 rounded animate-pulse"></span>
-            </span>
-            <span class="text-xs text-slate-400 dark:text-slate-500" data-i18n="auditor_gps_verified">GPS-verified proofs</span>
-          </div>
-          <p class="text-3xs text-slate-400 mt-2 dark:text-slate-500" data-i18n="auditor_spatial_desc">Average accuracy of submitted spatial proofs</p>
-        </div>
-      </div>
-      </div>
 
-      <!-- ═══════ Escrow Review Section (hidden by default) ═══════ -->
-      <!-- DEF-VIS-001 FIX: Replaced style="display:none" with class="hidden".
+            <!-- ═══════ Escrow Review Section (hidden by default) ═══════ -->
+            <!-- DEF-VIS-001 FIX: Replaced style="display:none" with class="hidden".
            Previous: Inline style forced JS to remove BOTH .hidden AND inline style to show the panel.
            Every other portal uses class="hidden" exclusively for visibility toggling.
            Standard: Single Source of Truth for visibility state, CSS Architecture. -->
-      <div id="section-escrow" class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border" role="tabpanel" aria-labelledby="tab-escrow">
-        <div class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border">
-          <div>
-            <h2 class="font-bold" data-i18n="auditor_review_queue">Escrow Review Queue</h2>
-            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="auditor_review_desc">Escrow releases awaiting auditor sign-off</p>
-          </div>
-          <button type="button" class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
-            <i class="ph ph-download text-xs" aria-hidden="true"></i> <span data-i18n="auditor_export">Export Report</span>
-          </button>
-        </div>
-        <div id="escrow-review-body" class="divide-y divide-slate-100 dark:divide-dark-border-subtle">
-          <div class="px-5 py-8 text-center text-sm text-slate-300 animate-pulse" data-i18n="rev_loading">Loading...</div>
-        </div>
-      </div>
+            <div
+              id="section-escrow"
+              class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+              role="tabpanel"
+              aria-labelledby="tab-escrow"
+            >
+              <div
+                class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border"
+              >
+                <div>
+                  <h2 class="font-bold" data-i18n="auditor_review_queue">قائمة المراجعة</h2>
+                  <p
+                    class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                    data-i18n="auditor_review_desc"
+                  >
+                    معاملات بانتظار التدقيق
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <i class="ph ph-download text-xs" aria-hidden="true"></i>
+                  <span data-i18n="auditor_export">تصدير</span>
+                </button>
+              </div>
+              <div
+                id="escrow-review-body"
+                class="divide-y divide-slate-100 dark:divide-dark-border-subtle"
+              >
+                <div
+                  class="px-5 py-8 text-center text-sm text-slate-300 animate-pulse"
+                  data-i18n="rev_loading"
+                >
+                  جاري التحميل...
+                </div>
+              </div>
+            </div>
 
-      <!-- OCDS Footer -->
-      <div class="bg-slate-50 rounded-xl p-4 flex items-center gap-4 dark:bg-dark-elevated">
-        <div class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center shrink-0">
-          <i class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
-        </div>
-        <div>
-          <!-- PLAT-P3-001 FIX: Downgraded from h2→p. This is a decorative trust banner,
+            <!-- OCDS Footer -->
+            <div class="bg-slate-50 rounded-xl p-4 flex items-center gap-4 dark:bg-dark-elevated">
+              <div
+                class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center shrink-0"
+              >
+                <i
+                  class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400"
+                  aria-hidden="true"
+                ></i>
+              </div>
+              <div>
+                <!-- PLAT-P3-001 FIX: Downgraded from h2→p. This is a decorative trust banner,
                not a content section heading. Was creating 5+ h2 elements at the same level,
                diluting screen reader heading navigation.
                Standard: WCAG 1.3.1 (Heading Hierarchy), Semantic HTML. -->
-          <p class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</p>
-          <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="auditor_footer_desc">All auditing operations are logged in the immutable audit trail. Financial reports adhere to Open Contracting Data Standard for institutional transparency.</p>
+                <p class="text-sm font-bold" data-i18n="admin_ocds_compliant">متوافق مع OCDS</p>
+                <p
+                  class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                  data-i18n="auditor_footer_desc"
+                >
+                  سجلات تدقيق ثابتة — لا حذف، لا تعديل، لا تلاعب.
+                </p>
+              </div>
+              <span
+                class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider dark:text-emerald-400"
+                data-i18n="common_verified"
+                >موثّق</span
+              >
+            </div>
+          </div>
         </div>
-        <span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider dark:text-emerald-400" data-i18n="common_verified">Verified</span>
-      </div>
+      </main>
     </div>
-    </div>
-  </main>
-</div>
 
-  <!-- P1-AUD-001 FIX: Gradient orbs — were missing from compliance-dashboard.
+    <!-- P1-AUD-001 FIX: Gradient orbs — were missing from compliance-dashboard.
        Every other consumer and portal page has them for visual cohesion.
        Standard: Design System Visual Cohesion (INC-N03). -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-<!-- P1-AUD-002 FIX: Empty-state template — was missing from compliance-dashboard.
+    <!-- P1-AUD-002 FIX: Empty-state template — was missing from compliance-dashboard.
      All other portals (donor, homeowner, tradesperson, contractor-dashboard) have it.
      TS modules clone this template into empty tbody after data fetch.
      Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
-<template id="tpl-table-empty">
-  <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
-    <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
-      <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
-    </div>
-    <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300" data-i18n="common_no_data">No data yet</p>
-    <p class="text-xs text-slate-500 mt-1 nm-empty-desc dark:text-slate-400" data-i18n="common_no_data_desc">Data will appear here once available.</p>
-  </div>
-</template>
+    <template id="tpl-table-empty">
+      <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+        <div
+          class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500"
+        >
+          <i class="ph ph-clipboard-text nm-icon-32" aria-hidden="true"></i>
+        </div>
+        <p
+          class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300"
+          data-i18n="common_no_data"
+        >
+          لا توجد بيانات
+        </p>
+        <p
+          class="text-xs text-slate-500 mt-1 nm-empty-desc dark:text-slate-400"
+          data-i18n="common_no_data_desc"
+        >
+          لا توجد بيانات للعرض حالياً
+        </p>
+      </div>
+    </template>
 
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/admin.js" defer></script>
-<script src="/i18n/compliance.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/admin.js" defer></script>
+    <script src="/i18n/compliance.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-<script src="/sidebar.js?v=1" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+    <script src="/sidebar.js?v=1" defer></script>
+  </body>
 </html>

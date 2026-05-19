@@ -35,71 +35,71 @@ const ONBOARDING_PARAM = 'onboarding';
 // Each card answers "What do you need?" not "What role are you?"
 // Standard: Airbnb/Fiverr task-facade pattern — portals are implementation details.
 interface WorkspaceOption {
-    /** Workspace ID — matches WORKSPACE_ROUTES keys in utils/workspace-map.ts */
-    id: string;
-    /** Phosphor icon class (without ph- prefix) */
-    icon: string;
-    /** i18n key for the task title */
-    titleKey: string;
-    /** English fallback for title */
-    titleFallback: string;
-    /** i18n key for the task description */
-    descKey: string;
-    /** English fallback for description */
-    descFallback: string;
-    /** Navigation target href */
-    href: string;
-    /** Card accent color class */
-    colorClass: string;
-    /** Card accent background class */
-    bgClass: string;
+  /** Workspace ID — matches WORKSPACE_ROUTES keys in utils/workspace-map.ts */
+  id: string;
+  /** Phosphor icon class (without ph- prefix) */
+  icon: string;
+  /** i18n key for the task title */
+  titleKey: string;
+  /** English fallback for title */
+  titleFallback: string;
+  /** i18n key for the task description */
+  descKey: string;
+  /** English fallback for description */
+  descFallback: string;
+  /** Navigation target href */
+  href: string;
+  /** Card accent color class */
+  colorClass: string;
+  /** Card accent background class */
+  bgClass: string;
 }
 
 const WORKSPACE_OPTIONS: WorkspaceOption[] = [
-    {
-        id: 'homeowner',
-        icon: 'house-line',
-        titleKey: 'wc_task_homeowner',
-        titleFallback: 'I need my house repaired',
-        descKey: 'wc_desc_homeowner',
-        descFallback: 'Report damage, track repairs, and manage your reconstruction project',
-        href: '/homeowner-portal.html',
-        colorClass: 'text-trust-blue',
-        bgClass: 'bg-trust-blue/10 dark:bg-trust-blue/20',
-    },
-    {
-        id: 'engineer',
-        icon: 'hard-hat',
-        titleKey: 'wc_task_engineer',
-        titleFallback: 'I\'m an engineer or contractor',
-        descKey: 'wc_desc_engineer',
-        descFallback: 'Bid on projects, verify construction, and manage field operations',
-        href: '/projects.html',
-        colorClass: 'text-smoky-jade dark:text-emerald-400',
-        bgClass: 'bg-smoky-jade/10 dark:bg-emerald-400/20',
-    },
-    {
-        id: 'supplier',
-        icon: 'storefront',
-        titleKey: 'wc_task_supplier',
-        titleFallback: 'I supply building materials',
-        descKey: 'wc_desc_supplier',
-        descFallback: 'List your catalog, fulfill purchase orders, and track deliveries',
-        href: '/supplier-dashboard.html',
-        colorClass: 'text-purple-600 dark:text-purple-400',
-        bgClass: 'bg-purple-600/10 dark:bg-purple-400/20',
-    },
-    {
-        id: 'explorer',
-        icon: 'compass',
-        titleKey: 'wc_task_explorer',
-        titleFallback: 'I want to explore projects',
-        descKey: 'wc_desc_explorer',
-        descFallback: 'Browse reconstruction projects, view progress, and see the impact',
-        href: '/projects.html',
-        colorClass: 'text-warm-earth',
-        bgClass: 'bg-warm-earth/10 dark:bg-warm-earth/20',
-    },
+  {
+    id: 'homeowner',
+    icon: 'house-line',
+    titleKey: 'wc_task_homeowner',
+    titleFallback: 'I need my house repaired',
+    descKey: 'wc_desc_homeowner',
+    descFallback: 'Report damage, track repairs, and manage your reconstruction project',
+    href: '/homeowner-portal.html',
+    colorClass: 'text-trust-blue',
+    bgClass: 'bg-trust-blue/10 dark:bg-trust-blue/20',
+  },
+  {
+    id: 'engineer',
+    icon: 'hard-hat',
+    titleKey: 'wc_task_engineer',
+    titleFallback: "I'm an engineer or contractor",
+    descKey: 'wc_desc_engineer',
+    descFallback: 'Bid on projects, verify construction, and manage field operations',
+    href: '/projects.html',
+    colorClass: 'text-smoky-jade dark:text-emerald-400',
+    bgClass: 'bg-smoky-jade/10 dark:bg-emerald-400/20',
+  },
+  {
+    id: 'supplier',
+    icon: 'storefront',
+    titleKey: 'wc_task_supplier',
+    titleFallback: 'I supply building materials',
+    descKey: 'wc_desc_supplier',
+    descFallback: 'List your catalog, fulfill purchase orders, and track deliveries',
+    href: '/supplier-dashboard.html',
+    colorClass: 'text-purple-600 dark:text-purple-400',
+    bgClass: 'bg-purple-600/10 dark:bg-purple-400/20',
+  },
+  {
+    id: 'explorer',
+    icon: 'compass',
+    titleKey: 'wc_task_explorer',
+    titleFallback: 'I want to explore projects',
+    descKey: 'wc_desc_explorer',
+    descFallback: 'Browse reconstruction projects, view progress, and see the impact',
+    href: '/projects.html',
+    colorClass: 'text-warm-earth',
+    bgClass: 'bg-warm-earth/10 dark:bg-warm-earth/20',
+  },
 ];
 
 // ─── State ──────────────────────────────────────────────────────────────────
@@ -118,60 +118,71 @@ let chooserEl: HTMLElement | null = null;
  * 5. Show the chooser modal
  */
 export function initWelcomeChooser(): void {
-    // Gate 1: Only show on onboarding flow
-    const params = new URLSearchParams(window.location.search);
-    if (params.get(ONBOARDING_PARAM) !== '1') {
-        return;
+  // Gate 1: Only show on onboarding flow
+  const params = new URLSearchParams(window.location.search);
+  if (params.get(ONBOARDING_PARAM) !== '1') {
+    return;
+  }
+
+  // Gate 2: Only show once per user
+  try {
+    if (localStorage.getItem(CHOOSER_SHOWN_KEY) === '1') {
+      cleanOnboardingParam();
+      return;
     }
+  } catch {
+    /* Safari private mode — proceed, worst case shows again */
+  }
 
-    // Gate 2: Only show once per user
-    try {
-        if (localStorage.getItem(CHOOSER_SHOWN_KEY) === '1') {
-            cleanOnboardingParam();
-            return;
-        }
-    } catch { /* Safari private mode — proceed, worst case shows again */ }
+  // Clean ?onboarding=1 from URL (cosmetic — prevents bookmark with stale param)
+  cleanOnboardingParam();
 
-    // Clean ?onboarding=1 from URL (cosmetic — prevents bookmark with stale param)
-    cleanOnboardingParam();
-
-    // Determine if the homepage tour is currently active
-    const tourOverlay = document.getElementById('nmr-tour-overlay');
-    if (tourOverlay) {
-        // Tour is running → wait for it to finish
-        document.addEventListener('nm:tour:complete', () => {
-            // Small delay for smooth transition — don't stack modals
-            setTimeout(showChooser, 600);
-        }, { once: true });
-    } else {
-        // Tour already done or not applicable → show after page settles
-        setTimeout(showChooser, 1800);
-    }
+  // Determine if the homepage tour is currently active
+  const tourOverlay = document.getElementById('nmr-tour-overlay');
+  if (tourOverlay) {
+    // Tour is running → wait for it to finish
+    document.addEventListener(
+      'nm:tour:complete',
+      () => {
+        // Small delay for smooth transition — don't stack modals
+        setTimeout(showChooser, 600);
+      },
+      { once: true },
+    );
+  } else {
+    // Tour already done or not applicable → show after page settles
+    setTimeout(showChooser, 1800);
+  }
 }
 
 // ─── URL Cleanup ────────────────────────────────────────────────────────────
 
 function cleanOnboardingParam(): void {
-    try {
-        const url = new URL(window.location.href);
-        url.searchParams.delete(ONBOARDING_PARAM);
-        window.history.replaceState({}, '', url.toString());
-    } catch { /* URL API unavailable — harmless */ }
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(ONBOARDING_PARAM);
+    window.history.replaceState({}, '', url.toString());
+  } catch {
+    /* URL API unavailable — harmless */
+  }
 }
 
 // ─── Modal Rendering ────────────────────────────────────────────────────────
 
 function showChooser(): void {
-    // Safety: don't double-show
-    if (chooserEl) { return; }
+  // Safety: don't double-show
+  if (chooserEl) {
+    return;
+  }
 
-    const rtl = isRTL();
-    const titleText = t('wc_title', 'Welcome to Nammerha! 🎉');
-    const subtitleText = t('wc_subtitle', 'What brings you here today?');
-    const laterText = t('wc_later', 'Maybe later');
+  const rtl = isRTL();
+  const titleText = t('wc_title', 'أهلاً بك في نعمّرها! 🎉');
+  const subtitleText = t('wc_subtitle', 'ما الذي يجلبك إلى هنا اليوم؟');
+  const laterText = t('wc_later', 'لاحقاً');
 
-    // Build cards HTML
-    const cardsHtml = WORKSPACE_OPTIONS.map((opt, i) => `
+  // Build cards HTML
+  const cardsHtml = WORKSPACE_OPTIONS.map(
+    (opt, i) => `
         <button type="button"
                 class="nm-wc-card group"
                 data-wc-id="${esc(opt.id)}"
@@ -187,18 +198,19 @@ function showChooser(): void {
             </div>
             <i class="ph ph-caret-${rtl ? 'left' : 'right'} nm-wc-card-arrow ${opt.colorClass}" aria-hidden="true"></i>
         </button>
-    `).join('');
+    `,
+  ).join('');
 
-    // Create modal
-    const modal = document.createElement('div');
-    modal.id = 'nm-welcome-chooser';
-    modal.className = 'nm-wc-overlay';
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-label', t('wc_dialog_label', 'Welcome — choose your path'));
-    modal.dir = rtl ? 'rtl' : 'ltr';
+  // Create modal
+  const modal = document.createElement('div');
+  modal.id = 'nm-welcome-chooser';
+  modal.className = 'nm-wc-overlay';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', t('wc_dialog_label', 'مرحباً — اختر مسارك'));
+  modal.dir = rtl ? 'rtl' : 'ltr';
 
-    modal.innerHTML = `
+  modal.innerHTML = `
         <div class="nm-wc-backdrop"></div>
         <div class="nm-wc-panel">
             <div class="nm-wc-header">
@@ -218,123 +230,139 @@ function showChooser(): void {
         </div>
     `;
 
-    document.body.appendChild(modal);
-    chooserEl = modal;
+  document.body.appendChild(modal);
+  chooserEl = modal;
 
-    // Trigger entrance animation (next frame)
+  // Trigger entrance animation (next frame)
+  requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            modal.classList.add('nm-wc-overlay--visible');
-        });
+      modal.classList.add('nm-wc-overlay--visible');
     });
+  });
 
-    // ── Event Wiring ──
-    wireChooserEvents(modal);
+  // ── Event Wiring ──
+  wireChooserEvents(modal);
 
-    // ── Focus Management ──
-    // Focus the first card after animation settles
-    setTimeout(() => {
-        const firstCard = modal.querySelector<HTMLElement>('.nm-wc-card');
-        firstCard?.focus();
-    }, 500);
+  // ── Focus Management ──
+  // Focus the first card after animation settles
+  setTimeout(() => {
+    const firstCard = modal.querySelector<HTMLElement>('.nm-wc-card');
+    firstCard?.focus();
+  }, 500);
 }
 
 // ─── Event Handling ─────────────────────────────────────────────────────────
 
 function wireChooserEvents(modal: HTMLElement): void {
-    // Card selection
-    modal.querySelectorAll<HTMLElement>('.nm-wc-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const wsId = card.dataset.wcId;
-            const href = card.dataset.wcHref;
-            if (!wsId || !href) { return; }
+  // Card selection
+  modal.querySelectorAll<HTMLElement>('.nm-wc-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const wsId = card.dataset.wcId;
+      const href = card.dataset.wcHref;
+      if (!wsId || !href) {
+        return;
+      }
 
-            // Store workspace preference (feeds "Continue to [X]" banner)
-            try { localStorage.setItem(WS_STORAGE_KEY, wsId); } catch { /* quota */ }
+      // Store workspace preference (feeds "Continue to [X]" banner)
+      try {
+        localStorage.setItem(WS_STORAGE_KEY, wsId);
+      } catch {
+        /* quota */
+      }
 
-            // Animate selection
-            card.classList.add('nm-wc-card--selected');
-            modal.classList.add('nm-wc-overlay--exiting');
+      // Animate selection
+      card.classList.add('nm-wc-card--selected');
+      modal.classList.add('nm-wc-overlay--exiting');
 
-            // Navigate after exit animation
-            setTimeout(() => {
-                window.location.href = href;
-            }, 350);
-        });
-
-        // Keyboard: Enter/Space triggers click
-        card.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                card.click();
-            }
-        });
+      // Navigate after exit animation
+      setTimeout(() => {
+        window.location.href = href;
+      }, 350);
     });
 
-    // Dismiss button
-    const dismissBtn = modal.querySelector<HTMLElement>('[data-action="dismiss"]');
-    dismissBtn?.addEventListener('click', () => {
-        dismissChooser();
+    // Keyboard: Enter/Space triggers click
+    card.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        card.click();
+      }
     });
+  });
 
-    // Escape key
-    const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-            dismissChooser();
-            document.removeEventListener('keydown', handleEscape);
-        }
-    };
-    document.addEventListener('keydown', handleEscape);
+  // Dismiss button
+  const dismissBtn = modal.querySelector<HTMLElement>('[data-action="dismiss"]');
+  dismissBtn?.addEventListener('click', () => {
+    dismissChooser();
+  });
 
-    // Focus trap — Tab cycles within modal
-    modal.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key !== 'Tab') { return; }
+  // Escape key
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      dismissChooser();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
 
-        const focusable = modal.querySelectorAll<HTMLElement>(
-            'button, [href], [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusable.length === 0) { return; }
+  // Focus trap — Tab cycles within modal
+  modal.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key !== 'Tab') {
+      return;
+    }
 
-        const arr = Array.from(focusable);
-        const activeEl = document.activeElement as HTMLElement | null;
-        const currentIdx = activeEl ? arr.indexOf(activeEl) : -1;
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button, [href], [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable.length === 0) {
+      return;
+    }
 
-        if (e.shiftKey) {
-            // Shift+Tab → previous
-            if (currentIdx <= 0) {
-                e.preventDefault();
-                arr[arr.length - 1]?.focus();
-            }
-        } else {
-            // Tab → next
-            if (currentIdx >= arr.length - 1) {
-                e.preventDefault();
-                arr[0]?.focus();
-            }
-        }
-    });
+    const arr = Array.from(focusable);
+    const activeEl = document.activeElement as HTMLElement | null;
+    const currentIdx = activeEl ? arr.indexOf(activeEl) : -1;
 
-    // Backdrop click = dismiss
-    const backdrop = modal.querySelector('.nm-wc-backdrop');
-    backdrop?.addEventListener('click', () => {
-        dismissChooser();
-    });
+    if (e.shiftKey) {
+      // Shift+Tab → previous
+      if (currentIdx <= 0) {
+        e.preventDefault();
+        arr[arr.length - 1]?.focus();
+      }
+    } else {
+      // Tab → next
+      if (currentIdx >= arr.length - 1) {
+        e.preventDefault();
+        arr[0]?.focus();
+      }
+    }
+  });
+
+  // Backdrop click = dismiss
+  const backdrop = modal.querySelector('.nm-wc-backdrop');
+  backdrop?.addEventListener('click', () => {
+    dismissChooser();
+  });
 }
 
 // ─── Dismiss ────────────────────────────────────────────────────────────────
 
 function dismissChooser(): void {
-    if (!chooserEl) { return; }
+  if (!chooserEl) {
+    return;
+  }
 
-    // Mark as shown — won't re-trigger
-    try { localStorage.setItem(CHOOSER_SHOWN_KEY, '1'); } catch { /* quota */ }
+  // Mark as shown — won't re-trigger
+  try {
+    localStorage.setItem(CHOOSER_SHOWN_KEY, '1');
+  } catch {
+    /* quota */
+  }
 
-    // Exit animation
-    chooserEl.classList.add('nm-wc-overlay--exiting');
-    chooserEl.classList.remove('nm-wc-overlay--visible');
+  // Exit animation
+  chooserEl.classList.add('nm-wc-overlay--exiting');
+  chooserEl.classList.remove('nm-wc-overlay--visible');
 
-    setTimeout(() => {
-        chooserEl?.remove();
-        chooserEl = null;
-    }, 400);
+  setTimeout(() => {
+    chooserEl?.remove();
+    chooserEl = null;
+  }, 400);
 }

@@ -1,278 +1,406 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Wallet | المحفظة</title>
-  <!-- P1-WEB-002 FIX: "donation history" → "funding history".
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — المحفظة | المحفظة</title>
+    <!-- P1-WEB-002 FIX: "donation history" → "funding history".
        Donation system permanently suspended (KI: nammerha_donation_suspension).
        Standard: SEO Accuracy, Trust UX, KI Compliance. -->
-  <meta name="description" content="View your escrow balances, funding history, and payment transactions." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+    <meta
+      name="description"
+      content="View your escrow balances, funding history, and payment transactions."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Wallet — Nammerha" />
-  <meta property="og:description" content="View your escrow balances, donation history, and payment transactions." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <!-- GAP-AUD-B04 FIX: twitter:title was missing — all other pages include it.
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Wallet — Nammerha" />
+    <meta
+      property="og:description"
+      content="View your escrow balances, donation history, and payment transactions."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <!-- GAP-AUD-B04 FIX: twitter:title was missing — all other pages include it.
        Standard: Social sharing completeness, OG/Twitter parity. -->
-  <meta name="twitter:title" content="Wallet — Nammerha" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/wallet.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- GAP-010 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<!-- PLT-AUD-W05 FIX: Removed pb-28 — main.css L3332 SST-002 sets padding-bottom
+    <meta name="twitter:title" content="Wallet — Nammerha" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/wallet.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- GAP-010 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <!-- PLT-AUD-W05 FIX: Removed pb-28 — main.css L3332 SST-002 sets padding-bottom
      via var(--nm-nav-padding, 6rem). Tailwind pb-28 (7rem) had higher specificity
      and defeated nav.js dynamic padding calculation.
      Standard: CSS Single Source of Truth (SST-002). -->
-<main id="main-content" class="mobile-container min-h-screen flex flex-col">
-
-  <!-- INC-NEW-01 FIX: Unified .page-header component.
+    <main id="main-content" class="mobile-container min-h-screen flex flex-col">
+      <!-- INC-NEW-01 FIX: Unified .page-header component.
        Previous: glass-nav sticky top-0 z-50 with inner div.px-4.h-14.mobile-container — ad-hoc nesting.
        Now: Flat .page-header class — single source of truth for height, position, backdrop.
        Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
-  <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
-  <header class="page-header">
-      <!-- PLT-I002 FIX: Standardized to canonical Pattern B (flex w-11 h-11 shrink-0). -->
-      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
-        <i class="ph ph-arrow-left" aria-hidden="true"></i>
-      </a>
-      <h1 class="text-lg font-bold tracking-tight flex-1 text-center page-header-title" data-i18n="wallet_title">Wallet</h1>
-      <div class="flex items-center gap-1">
-        <button type="button" id="scroll-to-history" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Transaction history" data-i18n-aria="aria_transaction_history">
-          <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>
-        </button>
-      </div>
-  </header>
+      <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
+      <header class="page-header">
+        <!-- PLT-I002 FIX: Standardized to canonical Pattern B (flex w-11 h-11 shrink-0). -->
+        <a
+          href="index.html"
+          data-back-btn
+          class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+          aria-label="Go back"
+          data-i18n-aria="aria_go_back"
+        >
+          <i class="ph ph-arrow-left" aria-hidden="true"></i>
+        </a>
+        <h1
+          class="text-lg font-bold tracking-tight flex-1 text-center page-header-title"
+          data-i18n="wallet_title"
+        >
+          المحفظة
+        </h1>
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            id="scroll-to-history"
+            class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+            aria-label="Transaction history"
+            data-i18n-aria="aria_transaction_history"
+          >
+            <i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i>
+          </button>
+        </div>
+      </header>
 
-  <!-- Balance Card -->
-  <section class="px-4 pt-6 animate-fade-in-up">
-    <div class="bg-gradient-to-br from-trust-blue to-blue-700 text-white rounded-2xl p-6 relative overflow-hidden">
-      <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1" data-i18n="total_escrow">Total Escrow Balance</p>
-      <!-- FRC-N07 FIX: Escrow explanation for non-financial users.
+      <!-- Balance Card -->
+      <section class="px-4 pt-6 animate-fade-in-up">
+        <div
+          class="bg-gradient-to-br from-trust-blue to-blue-700 text-white rounded-2xl p-6 relative overflow-hidden"
+        >
+          <p
+            class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1"
+            data-i18n="total_escrow"
+          >
+            إجمالي رصيد الضمان
+          </p>
+          <!-- FRC-N07 FIX: Escrow explanation for non-financial users.
            Previous: "Total Escrow Balance" with no context — Syrian homeowners don't know what "escrow" means.
            Now: subtitle explains the concept in plain language.
            Standard: Plain Language Act, Nielsen Heuristic #2 (Match between system & real world). -->
-      <p class="text-white/50 text-3xs leading-tight -mt-0.5 mb-1" data-i18n="escrow_explainer">Funds held securely until construction milestones are verified</p>
-        <!-- FRC-X04 FIX: Explicit USD label — Syrian users may confuse $ with SYP.
+          <p class="text-white/50 text-3xs leading-tight -mt-0.5 mb-1" data-i18n="escrow_explainer">
+            أموالك محمية في حساب ضمان حتى اكتمال العمل
+          </p>
+          <!-- FRC-X04 FIX: Explicit USD label — Syrian users may confuse $ with SYP.
              Standard: ISO 4217 (always show currency code), FinTech UX. -->
-        <!-- GAP-AUD-03 FIX: Skeleton loader for wallet balance.
+          <!-- GAP-AUD-03 FIX: Skeleton loader for wallet balance.
              Previous: Hardcoded "$0.00 USD" shown before API response — false impression
              of empty wallet. FinTech standard: financial data MUST show loading state.
              Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
-        <!-- P2-WEB-002 FIX: Added aria-busy for screen reader loading state.
+          <!-- P2-WEB-002 FIX: Added aria-busy for screen reader loading state.
              Standard: WCAG 4.1.3 (Status Messages). -->
-        <div id="wallet-balance" class="mt-1" aria-busy="true">
-          <div class="flex items-baseline gap-2 animate-pulse" data-skeleton>
-            <div class="h-8 w-28 bg-white/20 rounded-lg"></div>
-            <div class="h-4 w-10 bg-white/15 rounded"></div>
+          <div id="wallet-balance" class="mt-1" aria-busy="true">
+            <div class="flex items-baseline gap-2 animate-pulse" data-skeleton>
+              <div class="h-8 w-28 bg-white/20 rounded-lg"></div>
+              <div class="h-4 w-10 bg-white/15 rounded"></div>
+            </div>
           </div>
-        </div>
-      <!-- PLAT-UX-003 FIX: Unified loading states — all financial values show skeletons.
+          <!-- PLAT-UX-003 FIX: Unified loading states — all financial values show skeletons.
            Previous: Balance showed skeleton but "0 locked" / "0 released" displayed real values.
            Now: All values use skeleton bars until wallet.ts hydrates with API data.
            Standard: Nielsen #1 (Visibility of System Status), FinTech UX (Unified Loading States). -->
-      <div class="flex items-center gap-3 mt-4">
-        <div class="flex items-center gap-1 text-white/80 text-xs">
-          <i class="ph ph-lock-simple text-sm" aria-hidden="true"></i>
-          <span id="locked-count" class="animate-pulse"><span class="inline-block h-3 w-12 bg-white/20 rounded"></span></span>
-        </div>
-        <div class="flex items-center gap-1 text-white/80 text-xs">
-          <i class="ph ph-check-circle text-sm" aria-hidden="true"></i>
-          <span id="released-count" class="animate-pulse"><span class="inline-block h-3 w-12 bg-white/20 rounded"></span></span>
-        </div>
-      </div>
-      <!-- GAP-004 FIX: "Add Funds" CTA — completes the wallet financial lifecycle.
+          <div class="flex items-center gap-3 mt-4">
+            <div class="flex items-center gap-1 text-white/80 text-xs">
+              <i class="ph ph-lock-simple text-sm" aria-hidden="true"></i>
+              <span id="locked-count" class="animate-pulse"
+                ><span class="inline-block h-3 w-12 bg-white/20 rounded"></span
+              ></span>
+            </div>
+            <div class="flex items-center gap-1 text-white/80 text-xs">
+              <i class="ph ph-check-circle text-sm" aria-hidden="true"></i>
+              <span id="released-count" class="animate-pulse"
+                ><span class="inline-block h-3 w-12 bg-white/20 rounded"></span
+              ></span>
+            </div>
+          </div>
+          <!-- GAP-004 FIX: "Add Funds" CTA — completes the wallet financial lifecycle.
            Standard: FinTech UX — "Every balance display must have a deposit action." -->
-      <!-- FRIC-AUD-01 FIX: De-emphasized from primary CTA to subtle secondary style.
+          <!-- FRIC-AUD-01 FIX: De-emphasized from primary CTA to subtle secondary style.
            Previous: Prominent white/20 bg full-width CTA opened a "coming soon" dialog.
            This created a false affordance — a primary action button must perform an action.
            Now: Muted styling with "Coming Soon" indicator so users know the feature isn't live.
            Standard: Nielsen #2 (Match between system & real world), Honest Affordances. -->
-      <button type="button" id="add-funds-btn" class="mt-4 w-full py-2.5 bg-white/10 hover:bg-white/15 backdrop-blur-sm rounded-xl text-xs font-semibold text-white/60 flex items-center justify-center gap-2 transition-colors border border-white/10">
-        <i class="ph ph-plus-circle text-base" aria-hidden="true"></i>
-        <span data-i18n="add_funds">Add Funds</span>
-        <span class="text-3xs bg-white/15 px-1.5 py-0.5 rounded-full uppercase tracking-wider" data-i18n="coming_soon">Soon</span>
-      </button>
-      <div class="absolute -end-6 -bottom-6 size-24 bg-white/10 rounded-full blur-2xl"></div>
-    </div>
-  </section>
+          <button
+            type="button"
+            id="add-funds-btn"
+            class="mt-4 w-full py-2.5 bg-white/10 hover:bg-white/15 backdrop-blur-sm rounded-xl text-xs font-semibold text-white/60 flex items-center justify-center gap-2 transition-colors border border-white/10"
+          >
+            <i class="ph ph-plus-circle text-base" aria-hidden="true"></i>
+            <span data-i18n="add_funds">إضافة رصيد</span>
+            <span
+              class="text-3xs bg-white/15 px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </button>
+          <div class="absolute -end-6 -bottom-6 size-24 bg-white/10 rounded-full blur-2xl"></div>
+        </div>
+      </section>
 
-  <!-- Quick Actions -->
-  <section class="px-4 pt-6">
-    <!-- GAP-004 FIX: Grid expanded to 4 columns to include Deposit action -->
-    <!-- FRC-003 FIX: wallet-quick-grid enables responsive 2×2 layout at ≤400px -->
-    <div class="grid grid-cols-4 gap-2 wallet-quick-grid">
-      <!-- P0-WEB-001 FIX: Replaced <a href="donor-basket.html"> with coming-soon button.
+      <!-- Quick Actions -->
+      <section class="px-4 pt-6">
+        <!-- GAP-004 FIX: Grid expanded to 4 columns to include Deposit action -->
+        <!-- FRC-003 FIX: wallet-quick-grid enables responsive 2×2 layout at ≤400px -->
+        <div class="grid grid-cols-4 gap-2 wallet-quick-grid">
+          <!-- P0-WEB-001 FIX: Replaced <a href="donor-basket.html"> with coming-soon button.
            Donation system permanently suspended (KI: nammerha_donation_suspension).
            Visual parity with Deposit coming-soon pattern (L139-148).
            Standard: Nielsen #2 (Match System ↔ Real World), Honest Affordances. -->
-      <button type="button" id="donate-action" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center transition-shadow opacity-60 relative">
-        <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
-          <i class="ph ph-hand-heart text-trust-blue" aria-hidden="true"></i>
-        </div>
-        <span class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400" data-i18n="donate">Donate</span>
-        <span class="absolute top-1 end-1 text-3xs bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold dark:text-slate-400" data-i18n="coming_soon">Soon</span>
-      </button>
-      <!-- FRIC-001 FIX: Added "Soon" indicator to Deposit quick action.
+          <button
+            type="button"
+            id="donate-action"
+            class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center transition-shadow opacity-60 relative"
+          >
+            <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-hand-heart text-trust-blue" aria-hidden="true"></i>
+            </div>
+            <span
+              class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400"
+              data-i18n="donate"
+              >تبرّع</span
+            >
+            <span
+              class="absolute top-1 end-1 text-3xs bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold dark:text-slate-400"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </button>
+          <!-- FRIC-001 FIX: Added "Soon" indicator to Deposit quick action.
            Previously: active-looking card opened "coming soon" dialog — false affordance.
            Now: visual parity with de-emphasized "Add Funds" button.
            Standard: Nielsen #2 (Match system & real world), Honest Affordances. -->
-      <button type="button" id="deposit-action" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center transition-shadow opacity-60 relative">
-        <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
-          <i class="ph ph-arrow-circle-down text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
-        </div>
-        <span class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400" data-i18n="deposit">Deposit</span>
-        <!-- PLT-AUD-W06 FIX: text-[8px] → text-3xs — INC-002 governance (min 10px).
+          <button
+            type="button"
+            id="deposit-action"
+            class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center transition-shadow opacity-60 relative"
+          >
+            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
+              <i
+                class="ph ph-arrow-circle-down text-smoky-jade dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <span
+              class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400"
+              data-i18n="deposit"
+              >إيداع</span
+            >
+            <!-- PLT-AUD-W06 FIX: text-[8px] → text-3xs — INC-002 governance (min 10px).
              Previous: 8px below legibility threshold on mobile screens.
              Standard: Design System Typography Scale Governance. -->
-        <span class="absolute top-1 end-1 text-3xs bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold dark:text-slate-400" data-i18n="coming_soon">Soon</span>
-      </button>
-      <a href="donor-proof.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
-        <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
-          <i class="ph ph-receipt text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
-        </div>
-        <span class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400" data-i18n="receipts">Receipts</span>
-      </a>
-      <!-- P0-WEB-002 FIX: Replaced <a href="donor-portal.html"> with link to active projects.
+            <span
+              class="absolute top-1 end-1 text-3xs bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold dark:text-slate-400"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </button>
+          <a
+            href="donor-proof.html"
+            class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow"
+          >
+            <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-receipt text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
+            </div>
+            <span
+              class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400"
+              data-i18n="receipts"
+              >إيصالات</span
+            >
+          </a>
+          <!-- P0-WEB-002 FIX: Replaced <a href="donor-portal.html"> with link to active projects.
            Donor portal suspended (KI: nammerha_donation_suspension).
            Impact tracking redirects to live projects page.
            Standard: Nielsen #2 (Match System ↔ Real World), KI Compliance. -->
-      <a href="projects.html" class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow">
-        <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center">
-          <i class="ph ph-chart-pie text-warm-earth" aria-hidden="true"></i>
+          <a
+            href="projects.html"
+            class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow"
+          >
+            <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center">
+              <i class="ph ph-chart-pie text-warm-earth" aria-hidden="true"></i>
+            </div>
+            <span
+              class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400"
+              data-i18n="impact"
+              >الأثر</span
+            >
+          </a>
         </div>
-        <span class="text-3xs font-bold text-slate-600 uppercase tracking-wider dark:text-slate-400" data-i18n="impact">Impact</span>
-      </a>
-    </div>
-  </section>
+      </section>
 
-  <!-- Transaction History -->
-  <!-- P3-AUD3-001 FIX: Added animate-fade-in-up — balance card animates but
+      <!-- Transaction History -->
+      <!-- P3-AUD3-001 FIX: Added animate-fade-in-up — balance card animates but
        transaction section appeared instantly. Now both animate with stagger.
        Standard: Visual consistency, Material Design (Staggered Entry). -->
-  <!-- PLT-AUD-W07 FIX: 120ms → 0.12s — unit consistency with all other pages.
+      <!-- PLT-AUD-W07 FIX: 120ms → 0.12s — unit consistency with all other pages.
        Standard: Platform Consistency (profile.html uses 0.1s, about.html uses 0.15s). -->
-  <!-- UXA-021 FIX: Standardized 0.12s → 0.1s (platform-wide animation delay step). -->
-  <section class="px-4 pt-8 animate-fade-in-up" style="--anim-delay: 0.1s">
-    <!-- INC-2026-C01 FIX: h3→h2 — heading hierarchy must not skip levels.
+      <!-- UXA-021 FIX: Standardized 0.12s → 0.1s (platform-wide animation delay step). -->
+      <section class="px-4 pt-8 animate-fade-in-up" style="--anim-delay: 0.1s">
+        <!-- INC-2026-C01 FIX: h3→h2 — heading hierarchy must not skip levels.
          Previous: h1 (Wallet) → h3 (Recent Transactions) — skipped h2.
          Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.3.10. -->
-    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100" data-i18n="recent_transactions">Recent Transactions</h2>
-    <!-- FRC-NEW-04 FIX: Added temporal grouping infrastructure.
+        <h2
+          class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100"
+          data-i18n="recent_transactions"
+        >
+          المعاملات الأخيرة
+        </h2>
+        <!-- FRC-NEW-04 FIX: Added temporal grouping infrastructure.
          Previous: flat list — no date context for financial transactions.
          Now: JS can insert date headers ("Today", "Yesterday", "March 15") between groups.
          Standard: FinTech UX (Temporal Context), iOS Wallet & Banking apps. -->
-    <div id="transaction-list" class="flex flex-col gap-2" role="list">
-      <!-- Date group template (JS inserts these between transaction groups) -->
-      <template id="date-group-template">
-        <div class="flex items-center gap-2 pt-3 pb-1" role="presentation">
-          <span class="text-3xs font-bold text-slate-400 uppercase tracking-widest dark:text-slate-500"></span>
-          <div class="flex-1 h-px bg-slate-100"></div>
+        <div id="transaction-list" class="flex flex-col gap-2" role="list">
+          <!-- Date group template (JS inserts these between transaction groups) -->
+          <template id="date-group-template">
+            <div class="flex items-center gap-2 pt-3 pb-1" role="presentation">
+              <span
+                class="text-3xs font-bold text-slate-400 uppercase tracking-widest dark:text-slate-500"
+              ></span>
+              <div class="flex-1 h-px bg-slate-100"></div>
+            </div>
+          </template>
+          <!-- Skeleton loaders -->
+          <div
+            class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface"
+          >
+            <div class="size-10 bg-slate-200 rounded-lg"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3 bg-slate-200 rounded w-3/4"></div>
+              <div class="h-2 bg-slate-100 rounded w-1/2"></div>
+            </div>
+            <div class="h-4 bg-slate-200 rounded w-16"></div>
+          </div>
+          <div
+            class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface"
+          >
+            <div class="size-10 bg-slate-200 rounded-lg"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+              <div class="h-2 bg-slate-100 rounded w-1/3"></div>
+            </div>
+            <div class="h-4 bg-slate-200 rounded w-16"></div>
+          </div>
         </div>
-      </template>
-      <!-- Skeleton loaders -->
-      <div class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface">
-        <div class="size-10 bg-slate-200 rounded-lg"></div>
-        <div class="flex-1 space-y-2">
-          <div class="h-3 bg-slate-200 rounded w-3/4"></div>
-          <div class="h-2 bg-slate-100 rounded w-1/2"></div>
-        </div>
-        <div class="h-4 bg-slate-200 rounded w-16"></div>
-      </div>
-      <div class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface">
-        <div class="size-10 bg-slate-200 rounded-lg"></div>
-        <div class="flex-1 space-y-2">
-          <div class="h-3 bg-slate-200 rounded w-2/3"></div>
-          <div class="h-2 bg-slate-100 rounded w-1/3"></div>
-        </div>
-        <div class="h-4 bg-slate-200 rounded w-16"></div>
-      </div>
-    </div>
-  </section>
+      </section>
+    </main>
 
-
-</main>
-
-  <!-- GAP-NEW-03 FIX: Deposit confirmation dialog — Add Funds and Deposit buttons were dead.
+    <!-- GAP-NEW-03 FIX: Deposit confirmation dialog — Add Funds and Deposit buttons were dead.
        FinTech UX mandate: every financial button must have a response.
        This dialog explains the feature status instead of silently failing.
        Standard: Nielsen #1 (System Status Visibility), FinTech UX (Financial Action Feedback). -->
-  <dialog id="deposit-dialog" class="nm-confirm-dialog">
-    <div class="nm-confirm-body">
-      <div class="size-14 rounded-full bg-trust-blue/10 flex items-center justify-center mx-auto mb-3">
-        <i class="ph ph-vault text-trust-blue nm-icon-28" aria-hidden="true"></i>
+    <dialog id="deposit-dialog" class="nm-confirm-dialog">
+      <div class="nm-confirm-body">
+        <div
+          class="size-14 rounded-full bg-trust-blue/10 flex items-center justify-center mx-auto mb-3"
+        >
+          <i class="ph ph-vault text-trust-blue nm-icon-28" aria-hidden="true"></i>
+        </div>
+        <h3 data-i18n="deposit_title">إيداع الأموال</h3>
+        <p data-i18n="deposit_desc">أضف رصيداً إلى محفظتك</p>
+        <div class="mt-3 bg-trust-blue/5 rounded-lg p-3 border border-trust-blue/10">
+          <p class="text-3xs text-trust-blue font-semibold flex items-center gap-1.5">
+            <i class="ph ph-info text-sm" aria-hidden="true"></i>
+            <span data-i18n="deposit_info">تتم معالجة الإيداعات بشكل آمن عبر Stripe</span>
+          </p>
+        </div>
       </div>
-      <h3 data-i18n="deposit_title">Fund Your Escrow Wallet</h3>
-      <p data-i18n="deposit_desc">Bank transfer deposits will be available soon. You'll receive instructions for transferring funds to your secure escrow account.</p>
-      <div class="mt-3 bg-trust-blue/5 rounded-lg p-3 border border-trust-blue/10">
-        <p class="text-3xs text-trust-blue font-semibold flex items-center gap-1.5">
-          <i class="ph ph-info text-sm" aria-hidden="true"></i>
-          <span data-i18n="deposit_info">Your funds are protected by escrow until milestones are verified</span>
-        </p>
-      </div>
-    </div>
-    <div class="nm-confirm-actions">
-      <!-- GAP-2026-B03 FIX: Added "Notify Me" action — dead CTA must offer alternative path.
+      <div class="nm-confirm-actions">
+        <!-- GAP-2026-B03 FIX: Added "Notify Me" action — dead CTA must offer alternative path.
            Previous: only Close button → user hits a wall with no next step.
            Now: Notification interest capture provides a meaningful user action.
            Standard: Nielsen #10 (Help and Documentation), FinTech UX (Financial Action Feedback). -->
-      <button type="button" id="deposit-notify-btn" class="nm-confirm-primary" data-i18n="deposit_notify_me">Notify Me When Available</button>
-      <button type="button" class="nm-confirm-cancel" data-action="cancel" data-i18n="close">Close</button>
-    </div>
-  </dialog>
+        <button
+          type="button"
+          id="deposit-notify-btn"
+          class="nm-confirm-primary"
+          data-i18n="deposit_notify_me"
+        >
+          أعلمني عند التوفر
+        </button>
+        <button type="button" class="nm-confirm-cancel" data-action="cancel" data-i18n="close">
+          إغلاق
+        </button>
+      </div>
+    </dialog>
 
-  <!-- CONF-A03 FIX: Gradient orbs moved OUTSIDE <main> — structural consistency.
+    <!-- CONF-A03 FIX: Gradient orbs moved OUTSIDE <main> — structural consistency.
        Previous: orbs were inside <main>, inconsistent with all other consumer pages.
        Standard: DOM structure consistency, visual layering isolation. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-  <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> — WCAG 1.3.1 landmark semantics. -->
-  <footer class="nm-legal-footer">
-    <nav aria-label="Legal navigation">
-      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-    </nav>
-    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-  </footer>
+    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> — WCAG 1.3.1 landmark semantics. -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-<script src="/i18n.js?v=7" defer></script>
-<!-- INC-002 FIX: Load wallet-specific i18n dictionary (was /i18n/profile.js — wrong page) -->
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/wallet.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <!-- INC-002 FIX: Load wallet-specific i18n dictionary (was /i18n/profile.js — wrong page) -->
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/wallet.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

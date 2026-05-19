@@ -21,34 +21,38 @@ let intervalId: ReturnType<typeof setInterval> | null = null;
  * Returns locale-aware "just now", "X min ago", "X hr ago".
  */
 function formatRelativeTime(fetchedAt: number): string {
-    const seconds = Math.floor((Date.now() - fetchedAt) / 1000);
+  const seconds = Math.floor((Date.now() - fetchedAt) / 1000);
 
-    if (seconds < 30) {
-        return t('kpi_just_updated', 'Updated just now');
-    }
-    if (seconds < 60) {
-        return t('kpi_updated_seconds', 'Updated {n}s ago').replace('{n}', String(seconds));
-    }
+  if (seconds < 30) {
+    return t('kpi_just_updated', 'تم التحديث للتو');
+  }
+  if (seconds < 60) {
+    return t('kpi_updated_seconds', 'تم التحديث منذ {n} ثانية').replace('{n}', String(seconds));
+  }
 
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-        return t('kpi_updated_minutes', 'Updated {n} min ago').replace('{n}', String(minutes));
-    }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return t('kpi_updated_minutes', 'تم التحديث منذ {n} دقيقة').replace('{n}', String(minutes));
+  }
 
-    const hours = Math.floor(minutes / 60);
-    return t('kpi_updated_hours', 'Updated {n}h ago').replace('{n}', String(hours));
+  const hours = Math.floor(minutes / 60);
+  return t('kpi_updated_hours', 'تم التحديث منذ {n} ساعة').replace('{n}', String(hours));
 }
 
 /**
  * Update the KPI timestamp element with the current relative time.
  */
 function updateDisplay(): void {
-    if (lastFetchTime === 0) { return; }
+  if (lastFetchTime === 0) {
+    return;
+  }
 
-    const el = document.getElementById('kpi-last-updated');
-    if (!el) { return; }
+  const el = document.getElementById('kpi-last-updated');
+  if (!el) {
+    return;
+  }
 
-    el.textContent = formatRelativeTime(lastFetchTime);
+  el.textContent = formatRelativeTime(lastFetchTime);
 }
 
 /**
@@ -61,24 +65,24 @@ function updateDisplay(): void {
  *   markKPIFetched();
  */
 export function markKPIFetched(): void {
-    lastFetchTime = Date.now();
-    updateDisplay();
+  lastFetchTime = Date.now();
+  updateDisplay();
 
-    // P2-UXA-007 FIX: Remove stale indicator when fresh data arrives
-    hideStaleIndicator();
+  // P2-UXA-007 FIX: Remove stale indicator when fresh data arrives
+  hideStaleIndicator();
 
-    // Start interval if not already running
-    if (intervalId === null) {
-        // Update every 15 seconds — good balance of freshness vs performance
-        intervalId = setInterval(updateDisplay, 15_000);
-        // Cleanup on page unload to prevent memory leaks
-        window.addEventListener('beforeunload', () => {
-            if (intervalId !== null) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-        });
-    }
+  // Start interval if not already running
+  if (intervalId === null) {
+    // Update every 15 seconds — good balance of freshness vs performance
+    intervalId = setInterval(updateDisplay, 15_000);
+    // Cleanup on page unload to prevent memory leaks
+    window.addEventListener('beforeunload', () => {
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    });
+  }
 }
 
 // ─── P2-UXA-007 FIX: SWR Stale Data Visual Indicator ───────────────────────
@@ -93,18 +97,22 @@ const STALE_INDICATOR_ID = 'nm-kpi-stale-dot';
  * Call this from swrFetch's onStaleData callback.
  */
 export function showStaleIndicator(): void {
-    const el = document.getElementById('kpi-last-updated');
-    if (!el) { return; }
+  const el = document.getElementById('kpi-last-updated');
+  if (!el) {
+    return;
+  }
 
-    // Don't duplicate
-    if (document.getElementById(STALE_INDICATOR_ID)) { return; }
+  // Don't duplicate
+  if (document.getElementById(STALE_INDICATOR_ID)) {
+    return;
+  }
 
-    const dot = document.createElement('span');
-    dot.id = STALE_INDICATOR_ID;
-    dot.className = 'nm-stale-dot';
-    dot.setAttribute('aria-label', t('kpi_refreshing', 'Refreshing data...'));
-    dot.title = t('kpi_refreshing', 'Refreshing data...');
-    el.appendChild(dot);
+  const dot = document.createElement('span');
+  dot.id = STALE_INDICATOR_ID;
+  dot.className = 'nm-stale-dot';
+  dot.setAttribute('aria-label', t('kpi_refreshing', 'جاري تحديث البيانات...'));
+  dot.title = t('kpi_refreshing', 'جاري تحديث البيانات...');
+  el.appendChild(dot);
 }
 
 /**
@@ -112,5 +120,5 @@ export function showStaleIndicator(): void {
  * Called automatically by markKPIFetched() when fresh data arrives.
  */
 function hideStaleIndicator(): void {
-    document.getElementById(STALE_INDICATOR_ID)?.remove();
+  document.getElementById(STALE_INDICATOR_ID)?.remove();
 }

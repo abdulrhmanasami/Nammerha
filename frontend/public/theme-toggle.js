@@ -70,7 +70,7 @@
      * @returns {'dark'|'light'}
      */
     function getTheme() {
-        return document.documentElement.getAttribute('data-theme') || 'dark';
+        return document.documentElement.getAttribute('data-theme') || 'light';
     }
 
     /**

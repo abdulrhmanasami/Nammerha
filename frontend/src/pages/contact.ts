@@ -29,62 +29,75 @@ const resultBox = document.getElementById('contact-result') as HTMLElement | nul
 let isSubmitting = false;
 
 form?.addEventListener('submit', async (e: Event) => {
-    e.preventDefault();
-    if (!form || !submitBtn || isSubmitting) { return; }
-    isSubmitting = true;
+  e.preventDefault();
+  if (!form || !submitBtn || isSubmitting) {
+    return;
+  }
+  isSubmitting = true;
 
-    // Gather form values
-    const formData = new FormData(form);
-    const name = (formData.get('name') as string ?? '').trim();
-    const email = (formData.get('email') as string ?? '').trim();
-    const subject = (formData.get('subject') as string ?? '').trim();
-    const message = (formData.get('message') as string ?? '').trim();
-    const category = (formData.get('category') as string ?? 'general');
+  // Gather form values
+  const formData = new FormData(form);
+  const name = ((formData.get('name') as string) ?? '').trim();
+  const email = ((formData.get('email') as string) ?? '').trim();
+  const subject = ((formData.get('subject') as string) ?? '').trim();
+  const message = ((formData.get('message') as string) ?? '').trim();
+  const category = (formData.get('category') as string) ?? 'general';
 
-    // Client-side validation
-    if (!name || !email || !subject || !message) {
-        showResult('error', t('contact_fill_required', 'Please fill in all required fields.'));
-        return;
+  // Client-side validation
+  if (!name || !email || !subject || !message) {
+    showResult('error', t('contact_fill_required', 'يرجى ملء جميع الحقول المطلوبة'));
+    return;
+  }
+
+  // Set loading state
+  submitBtn.disabled = true;
+  const originalText = submitBtn.innerHTML;
+  submitBtn.innerHTML = `<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> ${escapeHtml(t('contact_sending', 'جاري الإرسال...'))}`;
+
+  try {
+    // SEC-003 FIX: Uses centralized API client.
+    // Gains: CSRF token auto-attachment, 30s AbortController timeout,
+    // centralized error reporting via reportError().
+    const data = await contact.submit({ name, email, subject, message, category });
+
+    if (data.success) {
+      showResult(
+        'success',
+        data.data?.message ??
+          data.message ??
+          t('contact_success', 'تم استلام رسالتك. سنرد خلال SLA المنشور.'),
+      );
+      form.reset();
+    } else {
+      showResult('error', data.error ?? t('contact_failed', 'فشل إرسال الرسالة. حاول مرة أخرى.'));
     }
-
-    // Set loading state
-    submitBtn.disabled = true;
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = `<i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> ${escapeHtml(t('contact_sending', 'Sending...'))}`;
-
-    try {
-        // SEC-003 FIX: Uses centralized API client.
-        // Gains: CSRF token auto-attachment, 30s AbortController timeout,
-        // centralized error reporting via reportError().
-        const data = await contact.submit({ name, email, subject, message, category });
-
-        if (data.success) {
-            showResult('success', data.data?.message ?? data.message ?? t('contact_success', 'Your message has been received. We will respond within our published SLA.'));
-            form.reset();
-        } else {
-            showResult('error', data.error ?? t('contact_failed', 'Failed to send message. Please try again.'));
-        }
-    } catch (err) {
-        const msg = err instanceof Error ? err.message : t('contact_network_error', 'Network error. Please check your connection and try again.');
-        showResult('error', msg);
-    } finally {
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-    }
+  } catch (err) {
+    const msg =
+      err instanceof Error
+        ? err.message
+        : t('contact_network_error', 'خطأ في الشبكة. تحقق من اتصالك.');
+    showResult('error', msg);
+  } finally {
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
 });
 
 function showResult(type: 'success' | 'error', message: string): void {
-    if (!resultBox) { return; }
-    resultBox.className = type === 'success'
-        ? 'mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700'
-        : 'mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700';
-    // P1-002 FIX: escapeHtml() prevents XSS from API error messages
-    resultBox.innerHTML = `
+  if (!resultBox) {
+    return;
+  }
+  resultBox.className =
+    type === 'success'
+      ? 'mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700'
+      : 'mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700';
+  // P1-002 FIX: escapeHtml() prevents XSS from API error messages
+  resultBox.innerHTML = `
         <div class="flex items-start gap-3">
             <i class="ph ${type === 'success' ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-red-600'} shrink-0 text-xl" aria-hidden="true"></i>
             <p>${escapeHtml(message)}</p>
         </div>`;
-    // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
-    resultBox.classList.remove('nm-hidden');
+  // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
+  resultBox.classList.remove('nm-hidden');
 }

@@ -1,341 +1,549 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — KYC Verification | التحقق من الهوية</title>
-  <meta name="description" content="Review and verify engineer and supplier identities before granting platform access." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>Nammerha — KYC Verification | التحقق من الهوية</title>
+    <meta
+      name="description"
+      content="Review and verify engineer and supplier identities before granting platform access."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Nammerha — KYC Verification | التحقق من الهوية" />
-  <meta property="og:description" content="Review and verify engineer and supplier identities before granting platform access." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — KYC Verification | التحقق من الهوية" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/admin-kyc.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="dashboard-layout">
-
-  <!-- Sidebar Overlay (mobile) -->
-  <div class="sidebar-overlay" aria-hidden="true"></div>
-
-  <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar">
-    <!-- CONF-ADM-001/002/005 FIX: Standardized sidebar header.
-         Standard: Nielsen #4 (Consistency), WCAG 1.3.1. -->
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
-      <span class="text-xl font-bold tracking-tight">Nammerha</span>
-    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-dashboard.html">
-        <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-revenue.html">
-        <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="rev_dashboard">Revenue</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-fintech.html">
-        <i class="ph ph-bank" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="fintech_title">FinTech</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-oracle.html">
-        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-escrow.html">
-        <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#". -->
-      <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="admin-kyc.html">
-        <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="project-details.html">
-        <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="nav_projects">Projects</span>
-      </a>
-    </nav>
-    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-      <!-- CONF-ADM-006 FIX: Settings disabled + logout button added. -->
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true" title="Coming Soon">
-        <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <div class="mt-4 flex items-center gap-3 px-3 py-2">
-        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="admin_institutional">Institutional Access</p>
-        </div>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Nammerha — KYC Verification | التحقق من الهوية" />
+    <meta
+      property="og:description"
+      content="Review and verify engineer and supplier identities before granting platform access."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Nammerha — KYC Verification | التحقق من الهوية" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/admin-kyc.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
       </div>
-      <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
-      </button>
-    </div>
-  </aside>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="dashboard-layout">
+      <!-- Sidebar Overlay (mobile) -->
+      <div class="sidebar-overlay" aria-hidden="true"></div>
 
-  <!-- CONF-ADM-003 FIX: Unified to single <main> element.
+      <!-- Sidebar Navigation -->
+      <aside class="dashboard-sidebar">
+        <!-- CONF-ADM-001/002/005 FIX: Standardized sidebar header.
+         Standard: Nielsen #4 (Consistency), WCAG 1.3.1. -->
+        <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
+          <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
+          <span class="text-xl font-bold tracking-tight">Nammerha</span>
+        </div>
+        <nav class="flex-1 px-4 space-y-1">
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-dashboard.html"
+          >
+            <i class="ph ph-squares-four" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_dashboard">لوحة الإدارة</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-revenue.html"
+          >
+            <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="rev_dashboard">لوحة الإيرادات</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-fintech.html"
+          >
+            <i class="ph ph-bank" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="fintech_title">البنية المالية التقنية</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-oracle.html"
+          >
+            <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_pricing_oracle">مؤشر الأسعار</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-escrow.html"
+          >
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_escrow_mgmt">إدارة الضمان</span>
+            <span
+              id="sidebar-escrow-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#". -->
+          <a
+            class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
+            href="admin-kyc.html"
+          >
+            <i class="ph ph-identification-card" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_kyc_verify">التحقق من الهوية</span>
+            <span
+              id="sidebar-kyc-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="project-details.html"
+          >
+            <i class="ph ph-package" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="nav_projects">المشاريع</span>
+          </a>
+        </nav>
+        <div class="p-4 border-t border-slate-200 dark:border-dark-border">
+          <!-- CONF-ADM-006 FIX: Settings disabled + logout button added. -->
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+            title="Coming Soon"
+          >
+            <i class="ph ph-gear" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_settings">الإعدادات</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <div class="mt-4 flex items-center gap-3 px-3 py-2">
+            <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+              <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold" data-i18n="admin_portal">بوابة المشرف</p>
+              <p
+                class="text-3xs text-slate-500 dark:text-slate-400"
+                data-i18n="admin_institutional"
+              >
+                مؤسسي
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            id="portal-logout-btn"
+            class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full"
+          >
+            <i class="ph ph-sign-out" aria-hidden="true"></i>
+            <span class="font-medium text-sm" data-i18n="common_logout">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONF-ADM-003 FIX: Unified to single <main> element.
        Standard: WCAG 1.3.1, HTML5 §4.4.1. -->
-  <main id="main-content" class="dashboard-main">
-    <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
+      <main id="main-content" class="dashboard-main">
+        <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
          Previous: px-4 md:px-6 justify-between on header — content stretches on >1920px.
          Now: justify-center + inner max-w-6xl — matches admin-dashboard reference.
          Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
-      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
-      <div class="flex items-center gap-3">
-        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
-        </button>
-        <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
+        <header
+          class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
+        >
+          <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                class="sidebar-toggle"
+                aria-label="Toggle sidebar"
+                data-i18n-aria="aria_toggle_sidebar"
+              >
+                <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
+              </button>
+              <!-- PLAT-P05 FIX: Changed from <h2> to <span>. The sticky header text is a label
              echoing page context, NOT a structural heading. The real <h1> is in content below.
              h2-before-h1 is invalid heading hierarchy for screen readers (WCAG 1.3.1). -->
-        <span class="font-bold text-lg page-header-title" data-i18n="kyc_portal_title">KYC Verification Portal</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled.
+              <span class="font-bold text-lg page-header-title" data-i18n="kyc_portal_title"
+                >التحقق من الهوية</span
+              >
+            </div>
+            <div class="flex items-center gap-4">
+              <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled.
              Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
-        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Search — Coming Soon" title="Coming Soon">
-          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-        </span>
-        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Notifications — Coming Soon" title="Coming Soon">
-          <i class="ph ph-bell" aria-hidden="true"></i>
-        </span>
-      </div>
-      </div>
-    </header>
+              <span
+                class="text-slate-300 cursor-not-allowed opacity-60"
+                aria-disabled="true"
+                aria-label="Search — Coming Soon"
+                title="Coming Soon"
+              >
+                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+              </span>
+              <span
+                class="text-slate-300 cursor-not-allowed opacity-60"
+                aria-disabled="true"
+                aria-label="Notifications — Coming Soon"
+                title="Coming Soon"
+              >
+                <i class="ph ph-bell" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </header>
 
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
-      <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-        <div>
-          <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <!-- Page Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+            <div>
+              <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
                Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-          <h1 class="text-2xl font-bold" data-i18n="identity_verification_queue">Identity Verification Queue</h1>
-          <p class="text-slate-500 text-sm mt-0.5 dark:text-slate-400" data-i18n="kyc_review_subtitle">Review professional licenses and trade registrations before granting verified status.</p>
-        </div>
-        <!-- GAP-P3-003 FIX: Filter & Export had no JS handler — disabled with Coming Soon.
+              <h1 class="text-2xl font-bold" data-i18n="identity_verification_queue">
+                قائمة التحقق من الهوية
+              </h1>
+              <p
+                class="text-slate-500 text-sm mt-0.5 dark:text-slate-400"
+                data-i18n="kyc_review_subtitle"
+              >
+                مراجعة طلبات التحقق
+              </p>
+            </div>
+            <!-- GAP-P3-003 FIX: Filter & Export had no JS handler — disabled with Coming Soon.
              Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
-        <div class="flex gap-2 shrink-0">
-          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border" aria-disabled="true">
-            <i class="ph ph-funnel text-sm" aria-hidden="true"></i> <span data-i18n="kyc_filter">Filter</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-          </span>
-          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border" aria-disabled="true">
-            <i class="ph ph-download text-sm" aria-hidden="true"></i> <span data-i18n="kyc_export">Export</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-          </span>
-        </div>
-      </div>
+            <div class="flex gap-2 shrink-0">
+              <span
+                class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border"
+                aria-disabled="true"
+              >
+                <i class="ph ph-funnel text-sm" aria-hidden="true"></i>
+                <span data-i18n="kyc_filter">تصفية</span>
+                <span
+                  class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500"
+                  data-i18n="coming_soon"
+                  >قريباً</span
+                >
+              </span>
+              <span
+                class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border"
+                aria-disabled="true"
+              >
+                <i class="ph ph-download text-sm" aria-hidden="true"></i>
+                <span data-i18n="kyc_export">تصدير</span>
+                <span
+                  class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500"
+                  data-i18n="coming_soon"
+                  >قريباً</span
+                >
+              </span>
+            </div>
+          </div>
 
-      <!-- INC-P3-003 FIX: KYC stat cards unified to admin-dashboard golden reference.
+          <!-- INC-P3-003 FIX: KYC stat cards unified to admin-dashboard golden reference.
            p-4→p-5, added icon containers, text-xl→text-2xl font-black, hover:shadow-md.
            Standard: Nielsen #4 (Consistency), Gestalt (Similarity). -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-clock-countdown text-warning-yellow text-xl" aria-hidden="true"></i>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div
+                  class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center"
+                >
+                  <i
+                    class="ph ph-clock-countdown text-warning-yellow text-xl"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <span
+                  class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full"
+                  data-i18n="badge_urgent"
+                  >عاجل</span
+                >
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="kyc_pending_review"
+              >
+                بانتظار المراجعة
+              </p>
+              <!-- SWEEP-W5-001: Removed individual aria-live. -->
+              <p class="text-2xl font-black mt-1 text-warning-yellow" id="stat-pending">
+                <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
+              </p>
             </div>
-            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="kyc_pending_review">Pending Review</p>
-          <!-- SWEEP-W5-001: Removed individual aria-live. -->
-          <p class="text-2xl font-black mt-1 text-warning-yellow" id="stat-pending">
-            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-seal-check text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
+                  <i
+                    class="ph ph-seal-check text-smoky-jade text-xl dark:text-emerald-400"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="kyc_verified_mtd"
+              >
+                تم التحقق هذا الشهر
+              </p>
+              <p
+                class="text-2xl font-black text-smoky-jade mt-1 dark:text-emerald-400"
+                id="stat-verified"
+              >
+                <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
+              </p>
+            </div>
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="size-10 rounded-lg bg-rose-50 flex items-center justify-center">
+                  <i class="ph ph-x-circle text-rose-500 text-xl" aria-hidden="true"></i>
+                </div>
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="rejected"
+              >
+                مرفوض
+              </p>
+              <p class="text-2xl font-black text-rose-500 mt-1" id="stat-rejected">
+                <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
+              </p>
+            </div>
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+                  <i class="ph ph-users text-trust-blue text-xl" aria-hidden="true"></i>
+                </div>
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="total_users"
+              >
+                إجمالي المستخدمين
+              </p>
+              <p
+                class="text-2xl font-black text-slate-900 mt-1 dark:text-slate-100"
+                id="stat-total"
+              >
+                <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
+              </p>
             </div>
           </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="kyc_verified_mtd">Verified (MTD)</p>
-          <p class="text-2xl font-black text-smoky-jade mt-1 dark:text-emerald-400" id="stat-verified">
-            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-rose-50 flex items-center justify-center">
-              <i class="ph ph-x-circle text-rose-500 text-xl" aria-hidden="true"></i>
-            </div>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="rejected">Rejected</p>
-          <p class="text-2xl font-black text-rose-500 mt-1" id="stat-rejected">
-            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-users text-trust-blue text-xl" aria-hidden="true"></i>
-            </div>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="total_users">Total Users</p>
-          <p class="text-2xl font-black text-slate-900 mt-1 dark:text-slate-100" id="stat-total">
-            <span class="inline-block h-7 w-10 bg-slate-200 rounded animate-pulse"></span>
-          </p>
-        </div>
-      </div>
 
-      <!-- Queue + Document Viewer -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Left: Review Queue Table -->
-        <div class="col-span-12 lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden dark:bg-dark-surface dark:border-dark-border">
-          <div class="p-4 border-b border-slate-100 dark:border-dark-border">
-            <h3 class="font-bold text-sm" data-i18n="applications_pending_review">Applications Pending Review</h3>
-          </div>
-          <!-- FRIC-P3-003 FIX: Added role="listbox" for keyboard accessibility.
+          <!-- Queue + Document Viewer -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left: Review Queue Table -->
+            <div
+              class="col-span-12 lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="p-4 border-b border-slate-100 dark:border-dark-border">
+                <h3 class="font-bold text-sm" data-i18n="applications_pending_review">
+                  طلبات بانتظار المراجعة
+                </h3>
+              </div>
+              <!-- FRIC-P3-003 FIX: Added role="listbox" for keyboard accessibility.
                Queue rows now have role="option" and tabindex="0" for screen readers.
                Standard: WCAG 2.1.1 (Keyboard), WAI-ARIA Practices. -->
-          <div class="divide-y divide-slate-50" id="kyc-queue-rows" role="listbox" aria-label="KYC applications pending review">
-            <!-- GAP-P3-009 FIX: Queue rows loaded dynamically from admin.getKycQueue() API.
+              <div
+                class="divide-y divide-slate-50"
+                id="kyc-queue-rows"
+                role="listbox"
+                aria-label="KYC applications pending review"
+              >
+                <!-- GAP-P3-009 FIX: Queue rows loaded dynamically from admin.getKycQueue() API.
                  Skeleton placeholders shown during fetch. -->
-            <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
-              <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
-              <div class="flex-1 space-y-2">
-                <div class="h-3 w-32 bg-slate-200 rounded"></div>
-                <div class="h-2 w-24 bg-slate-100 rounded"></div>
+                <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
+                  <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-3 w-32 bg-slate-200 rounded"></div>
+                    <div class="h-2 w-24 bg-slate-100 rounded"></div>
+                  </div>
+                  <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
+                </div>
+                <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
+                  <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-3 w-40 bg-slate-200 rounded"></div>
+                    <div class="h-2 w-20 bg-slate-100 rounded"></div>
+                  </div>
+                  <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
+                </div>
+                <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
+                  <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-3 w-28 bg-slate-200 rounded"></div>
+                    <div class="h-2 w-22 bg-slate-100 rounded"></div>
+                  </div>
+                  <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
+                </div>
               </div>
-              <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
             </div>
-            <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
-              <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
-              <div class="flex-1 space-y-2">
-                <div class="h-3 w-40 bg-slate-200 rounded"></div>
-                <div class="h-2 w-20 bg-slate-100 rounded"></div>
+
+            <!-- Right: Document Viewer -->
+            <div class="col-span-12 lg:col-span-5 space-y-4">
+              <!-- Document Preview -->
+              <div
+                class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden dark:bg-dark-surface dark:border-dark-border"
+                id="doc-viewer"
+              >
+                <div
+                  class="p-4 border-b border-slate-100 flex items-center justify-between dark:border-dark-border"
+                >
+                  <h3 class="font-bold text-sm" id="viewer-title" data-i18n="kyc_select_title">
+                    اختر طلباً للمراجعة
+                  </h3>
+                  <span
+                    class="text-3xs text-slate-400 dark:text-slate-500"
+                    id="viewer-subtitle"
+                    data-i18n="kyc_click_to_review"
+                    >اضغط للمراجعة</span
+                  >
+                </div>
+
+                <!-- Empty State -->
+                <div
+                  class="p-8 flex flex-col items-center justify-center text-center"
+                  id="viewer-empty"
+                >
+                  <div
+                    class="size-16 rounded-full bg-slate-100 flex items-center justify-center mb-4"
+                  >
+                    <i
+                      class="ph ph-identification-card text-slate-300 nm-icon-32"
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+                  <p
+                    class="text-sm font-medium text-slate-400 dark:text-slate-500"
+                    data-i18n="kyc_select_applicant"
+                  >
+                    اختر مقدم طلب
+                  </p>
+                  <p class="text-xs text-slate-300 mt-1" data-i18n="kyc_docs_appear_here">
+                    ستظهر الوثائق هنا
+                  </p>
+                </div>
+
+                <!-- Document Content (hidden by default) -->
+                <div class="p-5 space-y-4 nm-hidden" id="viewer-content">
+                  <!-- Document List -->
+                  <div class="space-y-2" id="doc-list">
+                    <!-- Documents populated by JS -->
+                  </div>
+                </div>
               </div>
-              <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
-            </div>
-            <div class="kyc-skeleton px-4 py-3 flex items-center gap-4 animate-pulse">
-              <div class="size-10 rounded-full bg-slate-200 shrink-0"></div>
-              <div class="flex-1 space-y-2">
-                <div class="h-3 w-28 bg-slate-200 rounded"></div>
-                <div class="h-2 w-22 bg-slate-100 rounded"></div>
+
+              <!-- Action Buttons -->
+              <div class="space-y-2 nm-hidden" id="action-buttons">
+                <button
+                  type="button"
+                  id="verify-btn"
+                  class="w-full bg-smoky-jade text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-smoky-jade/90 transition-colors"
+                >
+                  <i class="ph ph-seal-check text-lg" aria-hidden="true"></i>
+                  <span data-i18n="kyc_grant_verified">منح الاعتماد</span>
+                </button>
+                <button
+                  type="button"
+                  id="reject-btn"
+                  class="w-full bg-white border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-rose-50 transition-colors dark:bg-dark-surface"
+                >
+                  <i class="ph ph-x-circle text-lg" aria-hidden="true"></i>
+                  <span data-i18n="kyc_reject_resubmit">رفض وإعادة تقديم</span>
+                </button>
               </div>
-              <div class="h-4 w-14 bg-slate-200 rounded-full"></div>
             </div>
           </div>
         </div>
-
-        <!-- Right: Document Viewer -->
-        <div class="col-span-12 lg:col-span-5 space-y-4">
-          <!-- Document Preview -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden dark:bg-dark-surface dark:border-dark-border" id="doc-viewer">
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between dark:border-dark-border">
-              <h3 class="font-bold text-sm" id="viewer-title" data-i18n="kyc_select_title">Select an Application</h3>
-              <span class="text-3xs text-slate-400 dark:text-slate-500" id="viewer-subtitle" data-i18n="kyc_click_to_review">Click a row to review</span>
-            </div>
-
-            <!-- Empty State -->
-            <div class="p-8 flex flex-col items-center justify-center text-center" id="viewer-empty">
-              <div class="size-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                <i class="ph ph-identification-card text-slate-300 nm-icon-32" aria-hidden="true"></i>
-              </div>
-              <p class="text-sm font-medium text-slate-400 dark:text-slate-500" data-i18n="kyc_select_applicant">Select an applicant from the queue</p>
-              <p class="text-xs text-slate-300 mt-1" data-i18n="kyc_docs_appear_here">Documents will appear here for review</p>
-            </div>
-
-            <!-- Document Content (hidden by default) -->
-            <div class="p-5 space-y-4 nm-hidden" id="viewer-content">
-              <!-- Document List -->
-              <div class="space-y-2" id="doc-list">
-                <!-- Documents populated by JS -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="space-y-2 nm-hidden" id="action-buttons">
-            <button type="button" id="verify-btn" class="w-full bg-smoky-jade text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm hover:bg-smoky-jade/90 transition-colors">
-              <i class="ph ph-seal-check text-lg" aria-hidden="true"></i>
-              <span data-i18n="kyc_grant_verified">Grant Verified Badge</span>
-            </button>
-            <button type="button" id="reject-btn" class="w-full bg-white border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-rose-50 transition-colors dark:bg-dark-surface">
-              <i class="ph ph-x-circle text-lg" aria-hidden="true"></i>
-              <span data-i18n="kyc_reject_resubmit">Reject & Request Resubmission</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
-  </main>
-</div>
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
+    <template id="tpl-table-empty">
+      <tr>
+        <td colspan="99" class="px-5 py-0">
+          <div class="nm-table-empty">
+            <div class="nm-empty-icon">
+              <i class="ph ph-identification-card" aria-hidden="true"></i>
+            </div>
+            <p class="nm-empty-title" data-i18n="common_no_data">لا توجد بيانات</p>
+            <p class="nm-empty-desc" data-i18n="common_no_data_desc">لا توجد بيانات للعرض حالياً</p>
+          </div>
+        </td>
+      </tr>
+    </template>
 
-<template id="tpl-table-empty">
-  <tr>
-    <td colspan="99" class="px-5 py-0">
-      <div class="nm-table-empty">
-        <div class="nm-empty-icon"><i class="ph ph-identification-card" aria-hidden="true"></i></div>
-        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
-        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
-      </div>
-    </td>
-  </tr>
-</template>
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/admin.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/admin.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-<script src="/sidebar.js?v=1" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+    <script src="/sidebar.js?v=1" defer></script>
+  </body>
 </html>

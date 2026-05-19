@@ -1,0 +1,171 @@
+# Nammerha — Agent Governance Protocol (AGENTS.md)
+
+# ═══════════════════════════════════════════════════════════════════════════
+
+# This file governs ALL AI agent behavior across the Nammerha platform.
+
+# It is the single source of truth for architectural decisions, constraints,
+
+# and safety boundaries. All agents MUST read and comply with this file.
+
+#
+
+# Standard: AGENTS.md (Cross-IDE Agent Governance Standard)
+
+# Last Updated: 2026-05-19
+
+# ═══════════════════════════════════════════════════════════════════════════
+
+## 🏗️ Platform Architecture
+
+### Web Frontend (frontend/)
+
+- **Stack:** Vanilla TypeScript + Vite (NOT React, Vue, or Flutter Web)
+- **CSS:** Tailwind CSS with custom design tokens in `main.css`
+- **Pattern:** Self-Injecting Component modules (see `src/pages/*.ts`)
+- **i18n:** Static dictionary engine in `src/utils/i18n.ts` — zero API calls
+- **State:** Module-scoped variables + DOM Contract (IDs for programmatic refs)
+
+### Backend (backend/)
+
+- **Stack:** Node.js + Express + TypeScript
+- **Database:** PostgreSQL with typed query patterns
+- **Security:** CSRF middleware, idempotency middleware, role-guard middleware
+- **Compliance:** OCDS (Open Contracting Data Standard) — `ocds_release_id` fields
+
+### Mobile App (nammerha_mobile/)
+
+- **Stack:** Flutter/Dart (SDK ^3.10.7, fully null-safe)
+- **State Management:** `flutter_bloc ^9.0.0` — **90 Bloc/Cubit files**
+- **Map:** `flutter_map ^8.0.0` with OpenStreetMap tiles (NOT Google Maps)
+- **Camera:** Native camera with GPS EXIF extraction
+- **Notifications:** Firebase Cloud Messaging
+
+---
+
+## 🚫 ABSOLUTE PROHIBITIONS
+
+### State Management (Flutter)
+
+- **NEVER** suggest switching from BLoC to Riverpod, Provider, or GetX.
+  The app has 90 Bloc/Cubit files — migration would take months.
+- **NEVER** use `setState()` for business logic or API calls.
+  Only allowed for transient UI state (e.g., `_isPressed`, `_isExpanded`).
+- **NEVER** place `Future`, `async`, or API calls inside `build()`.
+  Use `initState()`, BLoC events, or Cubit methods.
+- **NEVER** use `FutureBuilder` for network calls in build() — use BlocBuilder.
+
+### Web Frontend
+
+- **NEVER** introduce React, Vue, Angular, or any SPA framework.
+  The frontend is intentionally Vanilla TS for Syria's low-bandwidth networks.
+- **NEVER** use physical CSS properties: `ml-`, `mr-`, `pl-`, `pr-`, `left-`, `right-`,
+  `border-l`, `border-r`. Use logical equivalents: `ms-`, `me-`, `ps-`, `pe-`,
+  `start-`, `end-`, `border-s`, `border-e`.
+- **NEVER** use inline styles for layout. Use Tailwind utility classes.
+- **NEVER** output unescaped dynamic content. ALL innerHTML MUST use `escapeHtml()`.
+
+### Security (ALL platforms)
+
+- **NEVER** commit API keys, secrets, or credentials to source code.
+- **NEVER** use `any` type in TypeScript without explicit justification comment.
+- **NEVER** use `@ts-ignore` or `// @ts-nocheck`.
+- **NEVER** run `rm -rf` or destructive shell commands without user confirmation.
+- **NEVER** modify escrow/financial logic without explicit user approval.
+
+### Financial Integrity
+
+- **ALL** monetary values are stored and transmitted in **CENTS** (integer).
+  Never use floating-point for money.
+- **ALL** escrow mutations require Redis distributed lock + Serializable transaction.
+- **ALL** POST/PUT financial endpoints require `Idempotency-Key` header.
+- GPS coordinates for delivery verification: Haversine validation (< 150m variance).
+
+---
+
+## ✅ MANDATORY PATTERNS
+
+### Flutter (Dart)
+
+```dart
+// ✅ CORRECT: BLoC event-driven
+context.read<ProjectBloc>().add(LoadProjects());
+
+// ❌ WRONG: setState for async
+setState(() => _projects = await api.getProjects()); // PROHIBITED
+```
+
+### Web (TypeScript)
+
+```typescript
+// ✅ CORRECT: Escaped dynamic content
+card.innerHTML = `<h3>${escapeHtml(project.title)}</h3>`;
+
+// ❌ WRONG: Unescaped XSS vector
+card.innerHTML = `<h3>${project.title}</h3>`; // PROHIBITED
+```
+
+### CSS (RTL)
+
+```css
+/* ✅ CORRECT: Logical properties */
+margin-inline-start: 16px;
+padding-inline-end: 8px;
+inset-inline-start: 0;
+
+/* ❌ WRONG: Physical properties */
+margin-left: 16px; /* PROHIBITED */
+padding-right: 8px; /* PROHIBITED */
+left: 0; /* PROHIBITED */
+```
+
+---
+
+## 🎨 Brand Colors (Exact Hex — No Approximations)
+
+| Token            | Hex       | Usage                                        |
+| ---------------- | --------- | -------------------------------------------- |
+| Trust Blue       | `#1558D6` | Primary CTA, links, active states            |
+| Trust Blue Hover | `#0D47A1` | Hover states                                 |
+| Smoky Jade       | `#109173` | Success, verified, escrow released           |
+| Cloud Dancer     | `#F4F6F8` | Light background                             |
+| Earth Tones      | `#D59F80` | Warm accents, secondary                      |
+| Tech Dark        | `#242424` | Dark mode background                         |
+| Warning Yellow   | `#FCC934` | Snagging/Pins ONLY — never for text on white |
+
+---
+
+## 📋 Pre-Commit Checklist (Agent Self-Check)
+
+Before proposing ANY code change, the agent MUST verify:
+
+1. [ ] TypeScript: `npx tsc --noEmit` passes with 0 errors
+2. [ ] Flutter: `flutter analyze` shows 0 errors, 0 warnings
+3. [ ] No `any` types introduced
+4. [ ] No physical CSS properties introduced
+5. [ ] All dynamic HTML uses `escapeHtml()`
+6. [ ] All new i18n strings use `t()` wrapper with both ar/en values
+7. [ ] Financial logic: cents-based, idempotent, locked
+8. [ ] Dark mode: all new UI has `dark:` Tailwind variants
+
+---
+
+## 🔄 Circuit Breaker Rules
+
+If an agent encounters **3 consecutive failures** (compilation errors, test failures,
+or tool call errors) while attempting to fix the same issue:
+
+1. **STOP** — Do not attempt a 4th fix
+2. **REPORT** — Explain what was attempted and why it failed
+3. **ESCALATE** — Ask the human for architectural guidance
+4. **NEVER** delete files or rewrite large sections as a "nuclear" option
+
+---
+
+## 📚 Knowledge Base References
+
+- Platform architecture: See KI `nammerha_reconstruction_platform`
+- Frontend systems: See KI `nammerha_frontend_systems`
+- Translation engine: See KI `nammerha_translation_engine`
+- Storage (S3/MinIO): See KI `nammerha_storage_infrastructure`
+- Deployment: See workflow `/deploy`

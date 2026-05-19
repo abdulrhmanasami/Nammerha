@@ -1,174 +1,322 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Projects | المشاريع</title>
-  <meta name="description" content="Browse reconstruction projects across Syria. Fund materials directly and track your impact transparently." />
-  <!-- GAP-010: OG/Twitter meta -->
-  <meta property="og:title" content="Browse Projects — Nammerha" />
-  <meta property="og:description" content="Explore Syrian reconstruction projects. Fund materials directly and track your impact transparently." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Nammerha — Projects | المشاريع" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/projects.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- GAP-X07 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — المشاريع | المشاريع</title>
+    <meta
+      name="description"
+      content="Browse reconstruction projects across Syria. Fund materials directly and track your impact transparently."
+    />
+    <!-- GAP-010: OG/Twitter meta -->
+    <meta property="og:title" content="Browse Projects — Nammerha" />
+    <meta
+      property="og:description"
+      content="Explore Syrian reconstruction projects. Fund materials directly and track your impact transparently."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="نعمّرها — المشاريع | المشاريع" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/projects.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- GAP-X07 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
      Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible.
      Standard: Progressive Enhancement — "Content must be accessible without JavaScript." -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="mobile-container min-h-screen flex flex-col">
-
-  <!-- INC-NEW-01 FIX: Unified .page-header component.
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="mobile-container min-h-screen flex flex-col">
+      <!-- INC-NEW-01 FIX: Unified .page-header component.
        Previous: glass-nav sticky + inner div.px-4.h-14.mobile-container.
        Now: Flat .page-header — single source of truth. Back button wired by page-header.ts.
        Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
-  <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
-  <header class="page-header">
-      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
-        <i class="ph ph-arrow-left" aria-hidden="true"></i>
-      </a>
-      <h1 class="text-lg font-bold tracking-tight flex-1 text-center page-header-title" data-i18n="projects_title">Projects</h1>
-      <div class="w-11 h-11 shrink-0"></div>
-  </header>
+      <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
+      <header class="page-header">
+        <a
+          href="index.html"
+          data-back-btn
+          class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+          aria-label="Go back"
+          data-i18n-aria="aria_go_back"
+        >
+          <i class="ph ph-arrow-left" aria-hidden="true"></i>
+        </a>
+        <h1
+          class="text-lg font-bold tracking-tight flex-1 text-center page-header-title"
+          data-i18n="projects_title"
+        >
+          المشاريع
+        </h1>
+        <div class="w-11 h-11 shrink-0"></div>
+      </header>
 
-  <!-- INC-NEW-03 FIX: Filter bar moved inside <main> so keyboard skip-link doesn't bypass it.
+      <!-- INC-NEW-03 FIX: Filter bar moved inside <main> so keyboard skip-link doesn't bypass it.
        Previous: Skip-link targeted #main-content (L90) but filter bar (search, pills, sort)
        was outside <main> — keyboard users skipped past ALL filtering controls.
        Standard: WCAG 2.4.1 (Bypass Blocks), Apple HIG (Keyboard Navigation). -->
-  <!-- Projects Grid + Filters -->
-  <main id="main-content" class="flex-1 px-4 pb-24">
-
-  <!-- Filter Bar -->
-  <div class="pt-4 pb-2 flex flex-col gap-3">
-    <!-- Search -->
-    <div class="relative">
-      <i class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-      <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard -->
-      <input type="search" id="project-search" enterkeyhint="search" class="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white border border-slate-200 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-trust-blue/30 dark:bg-dark-surface dark:border-dark-border" placeholder="Search projects..." data-i18n-placeholder="projects_search_placeholder" />
-    </div>
-    <!-- Filter pills -->
-    <!-- P2-WEB-001 FIX: Added role="radiogroup" + aria-label for screen reader semantics.
+      <!-- Projects Grid + Filters -->
+      <main id="main-content" class="flex-1 px-4 pb-24">
+        <!-- Filter Bar -->
+        <div class="pt-4 pb-2 flex flex-col gap-3">
+          <!-- Search -->
+          <div class="relative">
+            <i
+              class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              aria-hidden="true"
+            ></i>
+            <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard -->
+            <input
+              type="search"
+              id="project-search"
+              enterkeyhint="search"
+              class="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white border border-slate-200 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-trust-blue/30 dark:bg-dark-surface dark:border-dark-border"
+              placeholder="Search projects..."
+              data-i18n-placeholder="projects_search_placeholder"
+            />
+          </div>
+          <!-- Filter pills -->
+          <!-- P2-WEB-001 FIX: Added role="radiogroup" + aria-label for screen reader semantics.
          Previous: filter pills were plain buttons — screen readers couldn't tell which was active.
          Standard: WAI-ARIA 1.2 (Button Patterns), WCAG 4.1.2. -->
-    <div class="flex gap-2 overflow-x-auto w-full max-w-full pb-1 scrollbar-hidden" id="filter-pills" role="radiogroup" aria-label="Project category filter">
-      <button type="button" class="filter-pill filter-pill-active shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors" data-filter="all" data-i18n="projects_filter_all" aria-pressed="true">All</button>
-      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-filter="structural" data-i18n="projects_filter_structural" aria-pressed="false">Structural</button>
-      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-filter="plumbing" data-i18n="projects_filter_plumbing" aria-pressed="false">Plumbing</button>
-      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-filter="electrical" data-i18n="projects_filter_electrical" aria-pressed="false">Electrical</button>
-      <button type="button" class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400" data-filter="mixed" data-i18n="projects_filter_mixed" aria-pressed="false">Mixed</button>
-    </div>
-    <!-- Sort & count -->
-    <!-- Sort & count -->
-    <!-- GAP-NEW-07 FIX: Added structured pagination context (showing X of Y).
+          <div
+            class="flex gap-2 overflow-x-auto w-full max-w-full pb-1 scrollbar-hidden"
+            id="filter-pills"
+            role="radiogroup"
+            aria-label="Project category filter"
+          >
+            <button
+              type="button"
+              class="filter-pill filter-pill-active shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors"
+              data-filter="all"
+              data-i18n="projects_filter_all"
+              aria-pressed="true"
+            >
+              الكل
+            </button>
+            <button
+              type="button"
+              class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400"
+              data-filter="structural"
+              data-i18n="projects_filter_structural"
+              aria-pressed="false"
+            >
+              إنشائي
+            </button>
+            <button
+              type="button"
+              class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400"
+              data-filter="plumbing"
+              data-i18n="projects_filter_plumbing"
+              aria-pressed="false"
+            >
+              سباكة
+            </button>
+            <button
+              type="button"
+              class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400"
+              data-filter="electrical"
+              data-i18n="projects_filter_electrical"
+              aria-pressed="false"
+            >
+              كهربائي
+            </button>
+            <button
+              type="button"
+              class="filter-pill shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors dark:border-dark-border dark:text-slate-400"
+              data-filter="mixed"
+              data-i18n="projects_filter_mixed"
+              aria-pressed="false"
+            >
+              مختلط
+            </button>
+          </div>
+          <!-- Sort & count -->
+          <!-- Sort & count -->
+          <!-- GAP-NEW-07 FIX: Added structured pagination context (showing X of Y).
          Previous: just "Loading..." with no total count indicator.
          Standard: Nielsen #1 (Visibility), Infinite Scroll Best Practices. -->
-    <div class="flex items-center justify-between">
-      <!-- GAP-2026-B06 FIX: Added aria-live="polite" + role="status" for screen reader announcements.
+          <div class="flex items-center justify-between">
+            <!-- GAP-2026-B06 FIX: Added aria-live="polite" + role="status" for screen reader announcements.
            Previous: #project-count updated dynamically but had no ARIA live region —
            screen reader users received no announcement when filter/sort changed results.
            Standard: WCAG 4.1.3 (Status Messages), WCAG 1.3.1 (Info and Relationships). -->
-      <span class="text-xs text-slate-400 dark:text-slate-500" id="project-count" role="status" aria-live="polite" data-i18n="projects_loading">Loading...</span>
-      <select id="project-sort" class="text-xs bg-transparent text-slate-500 font-medium border-none focus:outline-none cursor-pointer dark:text-slate-400">
-        <option value="funded_percentage" data-i18n="projects_sort_funding">Most Funded</option>
-        <option value="published_at" data-i18n="projects_sort_newest">Newest</option>
-      </select>
-    </div>
-  </div>
+            <span
+              class="text-xs text-slate-400 dark:text-slate-500"
+              id="project-count"
+              role="status"
+              aria-live="polite"
+              data-i18n="projects_loading"
+              >جاري تحميل المشاريع...</span
+            >
+            <select
+              id="project-sort"
+              class="text-xs bg-transparent text-slate-500 font-medium border-none focus:outline-none cursor-pointer dark:text-slate-400"
+            >
+              <option value="funded_percentage" data-i18n="projects_sort_funding">
+                نسبة التمويل
+              </option>
+              <option value="published_at" data-i18n="projects_sort_newest">الأحدث</option>
+            </select>
+          </div>
+        </div>
 
-  <!-- Projects Grid -->
-    <!-- Loading skeleton -->
-    <!-- P2-WEB-002 FIX: Added aria-busy for screen reader loading announcements.
+        <!-- Projects Grid -->
+        <!-- Loading skeleton -->
+        <!-- P2-WEB-002 FIX: Added aria-busy for screen reader loading announcements.
          Previous: skeleton divs animated but screen readers had no loading indication.
          Standard: WCAG 4.1.3 (Status Messages). -->
-    <div id="projects-skeleton" class="flex flex-col gap-4" aria-busy="true" role="status" aria-label="Loading projects">
-      <div class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"></div>
-      <div class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"></div>
-      <div class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"></div>
+        <div
+          id="projects-skeleton"
+          class="flex flex-col gap-4"
+          aria-busy="true"
+          role="status"
+          aria-label="Loading projects"
+        >
+          <div
+            class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
+          ></div>
+          <div
+            class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
+          ></div>
+          <div
+            class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
+          ></div>
+        </div>
+        <!-- Project cards rendered here -->
+        <!-- FRC-A01 FIX: animate-fade-in-up for smooth skeleton→content transition -->
+        <div id="projects-grid" class="flex flex-col gap-4 nm-hidden animate-fade-in-up"></div>
+        <!-- Empty state -->
+        <div id="projects-empty" class="text-center py-16 nm-hidden">
+          <div
+            class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4"
+          >
+            <i class="ph ph-buildings text-warm-earth nm-icon-32" aria-hidden="true"></i>
+          </div>
+          <h2
+            class="text-sm font-bold text-slate-700 mb-1 dark:text-slate-300"
+            data-i18n="projects_empty_title"
+          >
+            لا توجد مشاريع
+          </h2>
+          <p
+            class="text-xs text-slate-400 max-w-xs mx-auto dark:text-slate-500"
+            data-i18n="projects_empty_desc"
+          >
+            لا توجد مشاريع تطابق معايير البحث.
+          </p>
+        </div>
+        <!-- Error state -->
+        <div id="projects-error" class="text-center py-16 nm-hidden">
+          <div
+            class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10"
+          >
+            <i class="ph ph-warning-circle text-red-400 nm-icon-32" aria-hidden="true"></i>
+          </div>
+          <h2
+            class="text-sm font-bold text-slate-700 mb-1 dark:text-slate-300"
+            data-i18n="projects_error_title"
+          >
+            خطأ في التحميل
+          </h2>
+          <p
+            class="text-xs text-slate-400 max-w-xs mx-auto mb-4 dark:text-slate-500"
+            data-i18n="projects_error_desc"
+          >
+            تعذر تحميل المشاريع. حاول مرة أخرى.
+          </p>
+          <button
+            type="button"
+            id="projects-retry"
+            class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2"
+          >
+            <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
+            <span data-i18n="projects_retry">إعادة المحاولة</span>
+          </button>
+        </div>
+        <!-- Load more -->
+        <!-- GAP-NEW-07 FIX: Added visible progress indicator above load-more button. -->
+        <div id="load-more-container" class="text-center py-6 nm-hidden">
+          <p class="text-3xs text-slate-400 mb-2 dark:text-slate-500" id="load-more-context"></p>
+          <button
+            type="button"
+            id="load-more-btn"
+            class="text-xs font-semibold text-trust-blue border border-trust-blue/30 px-6 py-2.5 rounded-lg hover:bg-trust-blue/5 transition-colors inline-flex items-center gap-2"
+          >
+            <i class="ph ph-arrow-down" aria-hidden="true"></i>
+            <span data-i18n="projects_load_more">تحميل المزيد</span>
+          </button>
+        </div>
+      </main>
     </div>
-    <!-- Project cards rendered here -->
-    <!-- FRC-A01 FIX: animate-fade-in-up for smooth skeleton→content transition -->
-    <div id="projects-grid" class="flex flex-col gap-4 nm-hidden animate-fade-in-up"></div>
-    <!-- Empty state -->
-    <div id="projects-empty" class="text-center py-16 nm-hidden">
-      <div class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4">
-        <i class="ph ph-buildings text-warm-earth nm-icon-32" aria-hidden="true"></i>
-      </div>
-      <h2 class="text-sm font-bold text-slate-700 mb-1 dark:text-slate-300" data-i18n="projects_empty_title">No projects found</h2>
-      <p class="text-xs text-slate-400 max-w-xs mx-auto dark:text-slate-500" data-i18n="projects_empty_desc">Try adjusting your filters or check back later for new reconstruction projects.</p>
-    </div>
-    <!-- Error state -->
-    <div id="projects-error" class="text-center py-16 nm-hidden">
-      <div class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10">
-        <i class="ph ph-warning-circle text-red-400 nm-icon-32" aria-hidden="true"></i>
-      </div>
-      <h2 class="text-sm font-bold text-slate-700 mb-1 dark:text-slate-300" data-i18n="projects_error_title">Could not load projects</h2>
-      <p class="text-xs text-slate-400 max-w-xs mx-auto mb-4 dark:text-slate-500" data-i18n="projects_error_desc">Please check your connection and try again.</p>
-      <button type="button" id="projects-retry" class="text-xs font-semibold bg-trust-blue text-white px-4 py-2 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2">
-        <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
-        <span data-i18n="projects_retry">Retry</span>
-      </button>
-    </div>
-    <!-- Load more -->
-    <!-- GAP-NEW-07 FIX: Added visible progress indicator above load-more button. -->
-    <div id="load-more-container" class="text-center py-6 nm-hidden">
-      <p class="text-3xs text-slate-400 mb-2 dark:text-slate-500" id="load-more-context"></p>
-      <button type="button" id="load-more-btn" class="text-xs font-semibold text-trust-blue border border-trust-blue/30 px-6 py-2.5 rounded-lg hover:bg-trust-blue/5 transition-colors inline-flex items-center gap-2">
-        <i class="ph ph-arrow-down" aria-hidden="true"></i>
-        <span data-i18n="projects_load_more">Load More</span>
-      </button>
-    </div>
 
-  </main>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-</div>
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-
-  <footer class="nm-legal-footer">
-    <nav aria-label="Legal navigation">
-      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-    </nav>
-    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-  </footer>
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/project.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/project.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

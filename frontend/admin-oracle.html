@@ -1,367 +1,666 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Pricing Oracle | محرك التسعير</title>
-  <meta name="description" content="Institutional pricing analytics with FIDIC 13.8 automated price adjustment protocols." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — محرك التسعير</title>
+    <meta
+      name="description"
+      content="Institutional pricing analytics with FIDIC 13.8 automated price adjustment protocols."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Nammerha — Pricing Oracle | محرك التسعير" />
-  <meta property="og:description" content="Institutional pricing analytics with FIDIC 13.8 automated price adjustment protocols." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Pricing Oracle | محرك التسعير" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/admin-oracle.ts"></script>
-  <style>
-    .ticker-scroll { display: flex; gap: 2rem; }
-  </style>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="dashboard-layout">
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="نعمّرها — محرك التسعير" />
+    <meta
+      property="og:description"
+      content="Institutional pricing analytics with FIDIC 13.8 automated price adjustment protocols."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="نعمّرها — محرك التسعير" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/admin-oracle.ts"></script>
+    <style>
+      .ticker-scroll {
+        display: flex;
+        gap: 2rem;
+      }
+    </style>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="dashboard-layout">
+      <!-- Sidebar Overlay (mobile) -->
+      <div class="sidebar-overlay" aria-hidden="true"></div>
 
-  <!-- Sidebar Overlay (mobile) -->
-  <div class="sidebar-overlay" aria-hidden="true"></div>
-
-  <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar">
-    <!-- CONF-ADM-001/002/005 FIX: Standardized sidebar header.
+      <!-- Sidebar Navigation -->
+      <aside class="dashboard-sidebar">
+        <!-- CONF-ADM-001/002/005 FIX: Standardized sidebar header.
          Standard: Nielsen #4 (Consistency), WCAG 1.3.1. -->
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
-      <span class="text-xl font-bold tracking-tight">Nammerha</span>
-    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-dashboard.html">
-        <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-revenue.html">
-        <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="rev_dashboard">Revenue</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-fintech.html">
-        <i class="ph ph-bank" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="fintech_title">FinTech</span>
-      </a>
-      <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#". -->
-      <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="admin-oracle.html">
-        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-escrow.html">
-        <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-kyc.html">
-        <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="project-details.html">
-        <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="nav_projects">Projects</span>
-      </a>
-    </nav>
-    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-      <!-- CONF-ADM-006 FIX: Settings disabled + logout button added. -->
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true" title="Coming Soon">
-        <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <div class="mt-4 flex items-center gap-3 px-3 py-2">
-        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <!-- INC-ADM-004 FIX: Was ph-gear (settings icon) — now ph-user-circle to match all other admin pages.
+        <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
+          <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
+          <span class="text-xl font-bold tracking-tight">Nammerha</span>
+        </div>
+        <nav class="flex-1 px-4 space-y-1">
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-dashboard.html"
+          >
+            <i class="ph ph-squares-four" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_dashboard">لوحة الإدارة</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-revenue.html"
+          >
+            <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="rev_dashboard">لوحة الإيرادات</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-fintech.html"
+          >
+            <i class="ph ph-bank" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="fintech_title">البنية المالية التقنية</span>
+          </a>
+          <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#". -->
+          <a
+            class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
+            href="admin-oracle.html"
+          >
+            <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_pricing_oracle">مؤشر الأسعار</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-escrow.html"
+          >
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_escrow_mgmt">إدارة الضمان</span>
+            <span
+              id="sidebar-escrow-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-kyc.html"
+          >
+            <i class="ph ph-identification-card" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_kyc_verify">التحقق من الهوية</span>
+            <span
+              id="sidebar-kyc-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="project-details.html"
+          >
+            <i class="ph ph-package" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="nav_projects">المشاريع</span>
+          </a>
+        </nav>
+        <div class="p-4 border-t border-slate-200 dark:border-dark-border">
+          <!-- CONF-ADM-006 FIX: Settings disabled + logout button added. -->
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+            title="Coming Soon"
+          >
+            <i class="ph ph-gear" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_settings">الإعدادات</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <div class="mt-4 flex items-center gap-3 px-3 py-2">
+            <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+              <!-- INC-ADM-004 FIX: Was ph-gear (settings icon) — now ph-user-circle to match all other admin pages.
                Standard: Nielsen #4 (Consistency). -->
-          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="admin_institutional">Institutional Access</p>
-        </div>
-      </div>
-      <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- CONF-ADM-003 FIX: Unified to single <main> element.
-       Standard: WCAG 1.3.1, HTML5 §4.4.1. -->
-  <main id="main-content" class="dashboard-main">
-    <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
-         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
-      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
-      <div class="flex items-center gap-3 md:gap-6 overflow-hidden">
-        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
-        </button>
-        <div class="hidden md:flex items-center gap-2 border-e border-slate-200 pe-6 shrink-0 dark:border-dark-border">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-smoky-jade opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-smoky-jade"></span>
-          </span>
-          <span class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400" data-i18n="live_market">Live Market</span>
-        </div>
-        <div class="ticker-scroll overflow-hidden whitespace-nowrap">
-          <!-- GAP-P3-008 FIX: Dynamic ticker — data loaded from epaOracle.getPrices() API.
-               Skeleton placeholders shown during fetch. -->
-          <div id="ticker-prices" class="flex items-center gap-4 text-sm">
-            <div class="flex items-center gap-4 animate-pulse">
-              <span class="h-3 w-12 bg-slate-200 rounded"></span>
-              <span class="h-3 w-16 bg-slate-200 rounded"></span>
-              <span class="h-3 w-14 bg-slate-200 rounded"></span>
+              <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
             </div>
-            <div class="flex items-center gap-4 animate-pulse">
-              <span class="h-3 w-14 bg-slate-200 rounded"></span>
-              <span class="h-3 w-12 bg-slate-200 rounded"></span>
-              <span class="h-3 w-14 bg-slate-200 rounded"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled.
-             Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
-        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Search — Coming Soon" title="Coming Soon">
-          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-        </span>
-        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Notifications — Coming Soon" title="Coming Soon">
-          <i class="ph ph-bell" aria-hidden="true"></i>
-        </span>
-      </div>
-      </div>
-    </header>
-
-    <!-- Main Content -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-        <div>
-          <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
-               Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-          <h1 class="text-xl md:text-2xl font-bold" data-i18n="pricing_oracle_epa">Pricing Oracle & EPA Engine</h1>
-          <p class="text-slate-500 text-sm dark:text-slate-400" data-i18n="pricing_oracle_desc">Institutional analysis and automated FIDIC price adjustment protocols.</p>
-        </div>
-        <!-- GAP-P3-004 FIX: Export Report & Configure Indices had no JS handler — disabled.
-             Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
-        <div class="flex gap-2 shrink-0 flex-wrap">
-          <span class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border" aria-disabled="true">
-            <i class="ph ph-download ph-sm" aria-hidden="true"></i> <span data-i18n="export_report">Export Report</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-          </span>
-          <span class="bg-slate-200 text-slate-400 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true">
-            <span data-i18n="configure_indices">Configure Indices</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-          </span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-12 gap-6">
-        <!-- Left: Market Trends (60%) -->
-        <section class="col-span-12 xl:col-span-7 space-y-6">
-          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 dark:bg-dark-surface dark:border-dark-border">
-            <div class="flex justify-between items-center mb-6">
-              <h3 class="font-bold text-slate-800 dark:text-slate-200" data-i18n="material_inflation_curves">Material Inflation Curves (30D)</h3>
-              <div class="flex gap-2 bg-slate-50 p-1 rounded-lg dark:bg-dark-elevated">
-                <button type="button" class="px-3 py-1 text-xs font-bold rounded bg-white shadow-sm dark:bg-dark-surface">Index</button>
-                <button type="button" class="px-3 py-1 text-xs font-bold text-slate-500 dark:text-slate-400">Value</button>
-              </div>
-            </div>
-            <!-- Chart Visualization -->
-            <div class="h-64 w-full relative">
-              <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 600 200">
-                <defs>
-                  <linearGradient id="steelGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#1A73E8" stop-opacity="0.1"></stop>
-                    <stop offset="100%" stop-color="#1A73E8" stop-opacity="0"></stop>
-                  </linearGradient>
-                </defs>
-                <line stroke="#e2e8f0" stroke-width="1" x1="0" x2="600" y1="50" y2="50"></line>
-                <line stroke="#e2e8f0" stroke-width="1" x1="0" x2="600" y1="100" y2="100"></line>
-                <line stroke="#e2e8f0" stroke-width="1" x1="0" x2="600" y1="150" y2="150"></line>
-                <path d="M0,160 Q75,150 150,120 T300,80 T450,110 T600,60 L600,200 L0,200 Z" fill="url(#steelGradient)"></path>
-                <path d="M0,160 Q75,150 150,120 T300,80 T450,110 T600,60" fill="none" stroke="#1A73E8" stroke-width="2.5"></path>
-                <path d="M0,180 Q100,170 200,165 T400,150 T600,130" fill="none" stroke="#109173" stroke-dasharray="4" stroke-width="2.5"></path>
-              </svg>
-              <div class="flex justify-between mt-4 text-3xs text-slate-400 font-bold uppercase tracking-wider dark:text-slate-500">
-                <span>May 01</span><span>May 10</span><span>May 20</span><span>May 30</span>
-              </div>
-            </div>
-            <!-- Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-              <div class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border">
-                <p class="text-3xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="steel_index_volatility">Steel Index Volatility</p>
-                <p class="text-lg font-bold mt-1 text-trust-blue">High (8.4)</p>
-              </div>
-              <div class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border">
-                <p class="text-3xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="mean_adjustment">Mean Adjustment</p>
-                <p class="text-lg font-bold mt-1 text-smoky-jade dark:text-emerald-400">+3.15%</p>
-              </div>
-              <div class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border">
-                <p class="text-3xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="confidence_score">Confidence Score</p>
-                <p class="text-lg font-bold mt-1">98.2%</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Regional + Feeds -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-              <h4 class="font-bold text-sm text-slate-800 mb-4 dark:text-slate-200" data-i18n="regional_supply_forecast">Regional Supply Forecast</h4>
-              <div class="space-y-4">
-                <div>
-                  <div class="flex items-center justify-between"><span class="text-sm text-slate-600 dark:text-slate-400">Aleppo Region</span><span class="text-xs font-bold text-smoky-jade dark:text-emerald-400">Stable</span></div>
-                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1"><div class="bg-smoky-jade h-full w-[85%]"></div></div>
-                </div>
-                <div>
-                  <!-- CRIT-001e FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
-                       Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
-                       Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
-                  <div class="flex items-center justify-between"><span class="text-sm text-slate-600 dark:text-slate-400">Latakia Port</span><span class="text-xs font-bold text-warning-yellow">Constraint Risk</span></div>
-                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1"><div class="bg-warning-yellow h-full w-[40%]"></div></div>
-                </div>
-              </div>
-            </div>
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-              <h4 class="font-bold text-sm text-slate-800 mb-4 dark:text-slate-200" data-i18n="oracle_feed_sources">Oracle Feed Sources</h4>
-              <div class="space-y-3">
-                <div class="flex items-center gap-3"><div class="size-6 bg-slate-100 rounded flex items-center justify-center"><i class="ph ph-database text-xs" aria-hidden="true"></i></div><span class="text-sm">LME Real-time API</span><i class="ph ph-check-circle text-smoky-jade ph-sm ms-auto dark:text-emerald-400" aria-hidden="true"></i></div>
-                <div class="flex items-center gap-3"><div class="size-6 bg-slate-100 rounded flex items-center justify-center"><i class="ph ph-buildings text-xs" aria-hidden="true"></i></div><span class="text-sm">Local Mill Invoices</span><i class="ph ph-check-circle text-smoky-jade ph-sm ms-auto dark:text-emerald-400" aria-hidden="true"></i></div>
-                <div class="flex items-center gap-3"><div class="size-6 bg-slate-100 rounded flex items-center justify-center"><i class="ph ph-graph text-xs" aria-hidden="true"></i></div><span class="text-sm">CBS (Central Bureau)</span><i class="ph ph-check-circle text-smoky-jade ph-sm ms-auto dark:text-emerald-400" aria-hidden="true"></i></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Right: EPA Action Panel (40%) -->
-        <section class="col-span-12 xl:col-span-5">
-          <div class="bg-white rounded-xl border-2 border-trust-blue/20 shadow-xl overflow-hidden flex flex-col h-full dark:bg-dark-surface">
-            <div class="bg-trust-blue/5 p-6 border-b border-trust-blue/10">
-              <div class="flex items-center justify-between mb-2">
-                <span class="badge-primary">Action Required</span>
-                <span class="text-xs text-slate-500 dark:text-slate-400">Ref: EPA-2026-0042</span>
-              </div>
-              <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Milestone 2: Concrete Pour</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400">Contract: #CT-8892 — Aleppo Residential Phase 1</p>
-            </div>
-            <div class="p-6 flex-1 space-y-6">
-              <div class="space-y-4">
-                <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
-                  <span class="text-sm font-medium" data-i18n="original_boq_cost">Original BOQ Cost</span>
-                  <span class="font-bold text-slate-900 dark:text-slate-100">$125,000.00</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-slate-600 dark:text-slate-400" data-i18n="price_index_adjustment">Price Index Adjustment</span>
-                    <i class="ph ph-info text-slate-400 text-xs dark:text-slate-500" aria-hidden="true"></i>
-                  </div>
-                  <span class="text-sm font-bold text-smoky-jade dark:text-emerald-400">+4.2%</span>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 dark:bg-dark-elevated dark:border-dark-border">
-                  <p class="text-3xs font-bold text-slate-400 uppercase mb-2 dark:text-slate-500" data-i18n="fidic_formula">FIDIC 13.8 Calculation Formula</p>
-                  <p class="text-3xs font-mono text-slate-600 dark:text-slate-400">Pn = a + b(Ln/Lo) + c(En/Eo) + d(Mn/Mo)</p>
-                </div>
-              </div>
-              <div class="pt-6 border-t border-slate-100 dark:border-dark-border">
-                <p class="text-xs text-slate-500 mb-1 dark:text-slate-400" data-i18n="total_adjusted_cost">Total Adjusted Cost</p>
-                <div class="flex items-baseline gap-2">
-                  <span class="text-3xl font-black text-slate-900 dark:text-slate-100">$130,250.00</span>
-                  <span class="text-sm font-bold text-smoky-jade dark:text-emerald-400">+$5,250.00</span>
-                </div>
-              </div>
-              <div class="space-y-3">
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-sm dark:border-dark-border">
-                  <i class="ph ph-shield-check text-trust-blue" aria-hidden="true"></i>
-                  <span class="text-slate-700 dark:text-slate-300" data-i18n="automated_audit_log">Automated Audit Log Updated</span>
-                </div>
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-sm dark:border-dark-border">
-                  <i class="ph ph-scroll text-trust-blue" aria-hidden="true"></i>
-                  <span class="text-slate-700 dark:text-slate-300" data-i18n="smart_contract_ready">Ready for Smart Contract Execution</span>
-                </div>
-              </div>
-            </div>
-            <div class="p-6 bg-slate-50 border-t border-slate-100 mt-auto dark:bg-dark-elevated dark:border-dark-border">
-              <button type="button" id="approve-btn" class="btn-primary w-full nm-btn-tall">
-                <i class="ph ph-gavel" aria-hidden="true"></i>
-                <span data-i18n="approve_adjustment">Approve Adjustment & Update Contract</span>
-              </button>
-              <p class="text-3xs text-center text-slate-400 mt-4 px-4 leading-relaxed dark:text-slate-500" data-i18n="epa_approval_disclaimer">
-                By approving, you authorize the price adjustment per FIDIC 13.8 guidelines. This generates a formal amendment and notifies all stakeholders.
+            <div>
+              <p class="text-xs font-bold" data-i18n="admin_portal">بوابة المشرف</p>
+              <p
+                class="text-3xs text-slate-500 dark:text-slate-400"
+                data-i18n="admin_institutional"
+              >
+                مؤسسي
               </p>
             </div>
           </div>
-        </section>
-      </div>
+          <button
+            type="button"
+            id="portal-logout-btn"
+            class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full"
+          >
+            <i class="ph ph-sign-out" aria-hidden="true"></i>
+            <span class="font-medium text-sm" data-i18n="common_logout">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONF-ADM-003 FIX: Unified to single <main> element.
+       Standard: WCAG 1.3.1, HTML5 §4.4.1. -->
+      <main id="main-content" class="dashboard-main">
+        <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
+         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
+        <header
+          class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
+        >
+          <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
+            <div class="flex items-center gap-3 md:gap-6 overflow-hidden">
+              <button
+                type="button"
+                class="sidebar-toggle"
+                aria-label="Toggle sidebar"
+                data-i18n-aria="aria_toggle_sidebar"
+              >
+                <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
+              </button>
+              <div
+                class="hidden md:flex items-center gap-2 border-e border-slate-200 pe-6 shrink-0 dark:border-dark-border"
+              >
+                <span class="relative flex h-2 w-2">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-smoky-jade opacity-75"
+                  ></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-smoky-jade"></span>
+                </span>
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400"
+                  data-i18n="live_market"
+                  >السوق المباشر</span
+                >
+              </div>
+              <div class="ticker-scroll overflow-hidden whitespace-nowrap">
+                <!-- GAP-P3-008 FIX: Dynamic ticker — data loaded from epaOracle.getPrices() API.
+               Skeleton placeholders shown during fetch. -->
+                <div id="ticker-prices" class="flex items-center gap-4 text-sm">
+                  <div class="flex items-center gap-4 animate-pulse">
+                    <span class="h-3 w-12 bg-slate-200 rounded"></span>
+                    <span class="h-3 w-16 bg-slate-200 rounded"></span>
+                    <span class="h-3 w-14 bg-slate-200 rounded"></span>
+                  </div>
+                  <div class="flex items-center gap-4 animate-pulse">
+                    <span class="h-3 w-14 bg-slate-200 rounded"></span>
+                    <span class="h-3 w-12 bg-slate-200 rounded"></span>
+                    <span class="h-3 w-14 bg-slate-200 rounded"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled.
+             Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
+              <span
+                class="text-slate-300 cursor-not-allowed opacity-60"
+                aria-disabled="true"
+                aria-label="Search — Coming Soon"
+                title="Coming Soon"
+              >
+                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+              </span>
+              <span
+                class="text-slate-300 cursor-not-allowed opacity-60"
+                aria-disabled="true"
+                aria-label="Notifications — Coming Soon"
+                title="Coming Soon"
+              >
+                <i class="ph ph-bell" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+            <div>
+              <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
+               Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+              <h1 class="text-xl md:text-2xl font-bold" data-i18n="pricing_oracle_epa">مؤشر EPA</h1>
+              <p class="text-slate-500 text-sm dark:text-slate-400" data-i18n="pricing_oracle_desc">
+                أسعار مواد البناء المحدّثة
+              </p>
+            </div>
+            <!-- GAP-P3-004 FIX: Export Report & Configure Indices had no JS handler — disabled.
+             Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
+            <div class="flex gap-2 shrink-0 flex-wrap">
+              <span
+                class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border"
+                aria-disabled="true"
+              >
+                <i class="ph ph-download ph-sm" aria-hidden="true"></i>
+                <span data-i18n="export_report">تصدير التقرير</span>
+                <span
+                  class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500"
+                  data-i18n="coming_soon"
+                  >قريباً</span
+                >
+              </span>
+              <span
+                class="bg-slate-200 text-slate-400 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-not-allowed opacity-60 dark:text-slate-500"
+                aria-disabled="true"
+              >
+                <span data-i18n="configure_indices">تكوين المؤشرات</span>
+                <span
+                  class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500"
+                  data-i18n="coming_soon"
+                  >قريباً</span
+                >
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-12 gap-6">
+            <!-- Left: Market Trends (60%) -->
+            <section class="col-span-12 xl:col-span-7 space-y-6">
+              <div
+                class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 dark:bg-dark-surface dark:border-dark-border"
+              >
+                <div class="flex justify-between items-center mb-6">
+                  <h3
+                    class="font-bold text-slate-800 dark:text-slate-200"
+                    data-i18n="material_inflation_curves"
+                  >
+                    منحنيات تضخم المواد
+                  </h3>
+                  <div class="flex gap-2 bg-slate-50 p-1 rounded-lg dark:bg-dark-elevated">
+                    <button
+                      type="button"
+                      class="px-3 py-1 text-xs font-bold rounded bg-white shadow-sm dark:bg-dark-surface"
+                    >
+                      المؤشر
+                    </button>
+                    <button
+                      type="button"
+                      class="px-3 py-1 text-xs font-bold text-slate-500 dark:text-slate-400"
+                    >
+                      القيمة
+                    </button>
+                  </div>
+                </div>
+                <!-- Chart Visualization -->
+                <div class="h-64 w-full relative">
+                  <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 600 200">
+                    <defs>
+                      <linearGradient id="steelGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#1A73E8" stop-opacity="0.1"></stop>
+                        <stop offset="100%" stop-color="#1A73E8" stop-opacity="0"></stop>
+                      </linearGradient>
+                    </defs>
+                    <line stroke="#e2e8f0" stroke-width="1" x1="0" x2="600" y1="50" y2="50"></line>
+                    <line
+                      stroke="#e2e8f0"
+                      stroke-width="1"
+                      x1="0"
+                      x2="600"
+                      y1="100"
+                      y2="100"
+                    ></line>
+                    <line
+                      stroke="#e2e8f0"
+                      stroke-width="1"
+                      x1="0"
+                      x2="600"
+                      y1="150"
+                      y2="150"
+                    ></line>
+                    <path
+                      d="M0,160 Q75,150 150,120 T300,80 T450,110 T600,60 L600,200 L0,200 Z"
+                      fill="url(#steelGradient)"
+                    ></path>
+                    <path
+                      d="M0,160 Q75,150 150,120 T300,80 T450,110 T600,60"
+                      fill="none"
+                      stroke="#1A73E8"
+                      stroke-width="2.5"
+                    ></path>
+                    <path
+                      d="M0,180 Q100,170 200,165 T400,150 T600,130"
+                      fill="none"
+                      stroke="#109173"
+                      stroke-dasharray="4"
+                      stroke-width="2.5"
+                    ></path>
+                  </svg>
+                  <div
+                    class="flex justify-between mt-4 text-3xs text-slate-400 font-bold uppercase tracking-wider dark:text-slate-500"
+                  >
+                    <span>May 01</span><span>May 10</span><span>May 20</span><span>May 30</span>
+                  </div>
+                </div>
+                <!-- Stats Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+                  <div
+                    class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border"
+                  >
+                    <p
+                      class="text-3xs font-bold text-slate-500 uppercase dark:text-slate-400"
+                      data-i18n="steel_index_volatility"
+                    >
+                      تقلب مؤشر الحديد
+                    </p>
+                    <p class="text-lg font-bold mt-1 text-trust-blue">مرتفع (٨٫٤)</p>
+                  </div>
+                  <div
+                    class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border"
+                  >
+                    <p
+                      class="text-3xs font-bold text-slate-500 uppercase dark:text-slate-400"
+                      data-i18n="mean_adjustment"
+                    >
+                      التعديل المتوسط
+                    </p>
+                    <p class="text-lg font-bold mt-1 text-smoky-jade dark:text-emerald-400">
+                      +3.15%
+                    </p>
+                  </div>
+                  <div
+                    class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border"
+                  >
+                    <p
+                      class="text-3xs font-bold text-slate-500 uppercase dark:text-slate-400"
+                      data-i18n="confidence_score"
+                    >
+                      درجة الثقة
+                    </p>
+                    <p class="text-lg font-bold mt-1">98.2%</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Regional + Feeds -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <h4
+                    class="font-bold text-sm text-slate-800 mb-4 dark:text-slate-200"
+                    data-i18n="regional_supply_forecast"
+                  >
+                    توقعات العرض الإقليمي
+                  </h4>
+                  <div class="space-y-4">
+                    <div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-600 dark:text-slate-400">منطقة حلب</span
+                        ><span class="text-xs font-bold text-smoky-jade dark:text-emerald-400"
+                          >مستقر</span
+                        >
+                      </div>
+                      <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1">
+                        <div class="bg-smoky-jade h-full w-[85%]"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <!-- CRIT-001e FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
+                       Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
+                       Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-600 dark:text-slate-400"
+                          >ميناء اللاذقية</span
+                        ><span class="text-xs font-bold text-warning-yellow">مخاطر القيود</span>
+                      </div>
+                      <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1">
+                        <div class="bg-warning-yellow h-full w-[40%]"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <h4
+                    class="font-bold text-sm text-slate-800 mb-4 dark:text-slate-200"
+                    data-i18n="oracle_feed_sources"
+                  >
+                    مصادر بيانات المؤشر
+                  </h4>
+                  <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                      <div class="size-6 bg-slate-100 rounded flex items-center justify-center">
+                        <i class="ph ph-database text-xs" aria-hidden="true"></i>
+                      </div>
+                      <span class="text-sm">بيانات LME اللحظية</span
+                      ><i
+                        class="ph ph-check-circle text-smoky-jade ph-sm ms-auto dark:text-emerald-400"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="size-6 bg-slate-100 rounded flex items-center justify-center">
+                        <i class="ph ph-buildings text-xs" aria-hidden="true"></i>
+                      </div>
+                      <span class="text-sm">فواتير المصانع المحلية</span
+                      ><i
+                        class="ph ph-check-circle text-smoky-jade ph-sm ms-auto dark:text-emerald-400"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="size-6 bg-slate-100 rounded flex items-center justify-center">
+                        <i class="ph ph-graph text-xs" aria-hidden="true"></i>
+                      </div>
+                      <span class="text-sm">المكتب المركزي للإحصاء</span
+                      ><i
+                        class="ph ph-check-circle text-smoky-jade ph-sm ms-auto dark:text-emerald-400"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Right: EPA Action Panel (40%) -->
+            <section class="col-span-12 xl:col-span-5">
+              <div
+                class="bg-white rounded-xl border-2 border-trust-blue/20 shadow-xl overflow-hidden flex flex-col h-full dark:bg-dark-surface"
+              >
+                <div class="bg-trust-blue/5 p-6 border-b border-trust-blue/10">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="badge-primary">إجراء مطلوب</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400"
+                      >Ref: EPA-2026-0042</span
+                    >
+                  </div>
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">
+                    المرحلة ٢: صب الخرسانة
+                  </h3>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    عقد: #CT-8892 — حلب سكني المرحلة ١
+                  </p>
+                </div>
+                <div class="p-6 flex-1 space-y-6">
+                  <div class="space-y-4">
+                    <div
+                      class="flex justify-between items-center text-slate-600 dark:text-slate-400"
+                    >
+                      <span class="text-sm font-medium" data-i18n="original_boq_cost"
+                        >تكلفة جدول الكميات الأصلي</span
+                      >
+                      <span class="font-bold text-slate-900 dark:text-slate-100">$125,000.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <div class="flex items-center gap-2">
+                        <span
+                          class="text-sm font-medium text-slate-600 dark:text-slate-400"
+                          data-i18n="price_index_adjustment"
+                          >تعديل مؤشر الأسعار</span
+                        >
+                        <i
+                          class="ph ph-info text-slate-400 text-xs dark:text-slate-500"
+                          aria-hidden="true"
+                        ></i>
+                      </div>
+                      <span class="text-sm font-bold text-smoky-jade dark:text-emerald-400"
+                        >+4.2%</span
+                      >
+                    </div>
+                    <div
+                      class="bg-slate-50 p-3 rounded-lg border border-slate-100 dark:bg-dark-elevated dark:border-dark-border"
+                    >
+                      <p
+                        class="text-3xs font-bold text-slate-400 uppercase mb-2 dark:text-slate-500"
+                        data-i18n="fidic_formula"
+                      >
+                        صيغة FIDIC
+                      </p>
+                      <p class="text-3xs font-mono text-slate-600 dark:text-slate-400">
+                        Pn = a + b(Ln/Lo) + c(En/Eo) + d(Mn/Mo)
+                      </p>
+                    </div>
+                  </div>
+                  <div class="pt-6 border-t border-slate-100 dark:border-dark-border">
+                    <p
+                      class="text-xs text-slate-500 mb-1 dark:text-slate-400"
+                      data-i18n="total_adjusted_cost"
+                    >
+                      التكلفة المعدّلة الإجمالية
+                    </p>
+                    <div class="flex items-baseline gap-2">
+                      <span class="text-3xl font-black text-slate-900 dark:text-slate-100"
+                        >$130,250.00</span
+                      >
+                      <span class="text-sm font-bold text-smoky-jade dark:text-emerald-400"
+                        >+$5,250.00</span
+                      >
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-sm dark:border-dark-border"
+                    >
+                      <i class="ph ph-shield-check text-trust-blue" aria-hidden="true"></i>
+                      <span
+                        class="text-slate-700 dark:text-slate-300"
+                        data-i18n="automated_audit_log"
+                        >سجل التدقيق الآلي</span
+                      >
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-sm dark:border-dark-border"
+                    >
+                      <i class="ph ph-scroll text-trust-blue" aria-hidden="true"></i>
+                      <span
+                        class="text-slate-700 dark:text-slate-300"
+                        data-i18n="smart_contract_ready"
+                        >جاهز للعقد الذكي</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="p-6 bg-slate-50 border-t border-slate-100 mt-auto dark:bg-dark-elevated dark:border-dark-border"
+                >
+                  <button type="button" id="approve-btn" class="btn-primary w-full nm-btn-tall">
+                    <i class="ph ph-gavel" aria-hidden="true"></i>
+                    <span data-i18n="approve_adjustment">الموافقة على التعديل</span>
+                  </button>
+                  <p
+                    class="text-3xs text-center text-slate-400 mt-4 px-4 leading-relaxed dark:text-slate-500"
+                    data-i18n="epa_approval_disclaimer"
+                  >
+                    تعديلات الأسعار تخضع لموافقة EPA
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
     </div>
-  </main>
-</div>
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
+    <template id="tpl-table-empty">
+      <tr>
+        <td colspan="99" class="px-5 py-0">
+          <div class="nm-table-empty">
+            <div class="nm-empty-icon"><i class="ph ph-chart-line-up" aria-hidden="true"></i></div>
+            <p class="nm-empty-title" data-i18n="common_no_data">لا توجد بيانات</p>
+            <p class="nm-empty-desc" data-i18n="common_no_data_desc">لا توجد بيانات للعرض حالياً</p>
+          </div>
+        </td>
+      </tr>
+    </template>
 
-<template id="tpl-table-empty">
-  <tr>
-    <td colspan="99" class="px-5 py-0">
-      <div class="nm-table-empty">
-        <div class="nm-empty-icon"><i class="ph ph-chart-line-up" aria-hidden="true"></i></div>
-        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
-        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
-      </div>
-    </td>
-  </tr>
-</template>
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/admin.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/admin.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-<script src="/sidebar.js?v=1" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+    <script src="/sidebar.js?v=1" defer></script>
+  </body>
 </html>

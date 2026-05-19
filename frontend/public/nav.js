@@ -173,7 +173,8 @@
         var nav = document.createElement('nav');
         nav.id = 'nammerha-unified-nav';
         nav.setAttribute('aria-label', 'Main navigation');
-        var isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+        // THEME-SURG-001: Default is light — matches theme-boot.js
+        var isDark = (document.documentElement.getAttribute('data-theme') || 'light') === 'dark';
         // P1-001 FIX: CSS classes replace inline style.cssText
         nav.className = 'nm-bottom-nav';
         nav.setAttribute('data-nav-theme', isDark ? 'dark' : 'light');
@@ -225,43 +226,13 @@
 
         nav.appendChild(wrap);
 
-        // ─── Theme Toggle FAB ─────────────────────────────────────────────
-        // CONF-2026-004 FIX: All theme logic is in theme-toggle.js (Single Source of Truth).
-        // nav.js ONLY creates the FAB button with data attributes — theme-toggle.js
-        // auto-discovers [data-nm-theme-toggle] and wires the click handler + icon sync.
-        // No inline toggle logic, no OS listener, no cross-page icon hacks.
-        var themeBtn = document.createElement('button');
-        themeBtn.id = 'nm-global-theme-toggle';
-        themeBtn.setAttribute('data-nm-theme-toggle', '');
-        // GAP-2026-005 FIX: Haptic feedback on theme toggle
-        themeBtn.setAttribute('data-haptic', 'tap');
-        // P2-AUD-003 FIX: i18n-aware theme toggle title
-        var themeLabel = isDark
-            ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
-            : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-        themeBtn.title = themeLabel;
-        themeBtn.setAttribute('aria-label', themeLabel);
-        themeBtn.className = 'nm-theme-fab';
-
-        var themeBtnIcon = document.createElement('i');
-        themeBtnIcon.setAttribute('data-nm-theme-icon', '');
-        // Initial icon class — theme-toggle.js will sync correctly on init
-        themeBtnIcon.className = isDark ? 'ph ph-sun-dim text-amber-500' : 'ph ph-moon-stars text-indigo-400';
-        themeBtn.appendChild(themeBtnIcon);
-        nav.appendChild(themeBtn);
-
-        // Listen for theme changes dispatched by theme-toggle.js to update nav-level state
+        // ─── THEME-SURG-001: FAB theme toggle REMOVED ──────────────────────
+        // Theme control moved exclusively to Profile → Settings.
+        // Keep listening for theme changes to update nav bar colors.
         document.addEventListener('nm-theme-changed', function(e) {
             var next = e.detail && e.detail.theme;
             if (!next) { return; }
-            // Update nav theme attribute (CSS uses this for nav bar colors)
             nav.setAttribute('data-nav-theme', next);
-            // Update i18n-aware title/aria-label
-            var newLabel = next === 'dark'
-                ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
-                : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-            themeBtn.title = newLabel;
-            themeBtn.setAttribute('aria-label', newLabel);
         });
 
         // Safe area for modern phones
@@ -332,22 +303,9 @@
 
         document.body.appendChild(buildNavBar());
 
-        // CONF-2026-004 FIX: Ensure unified theme engine is loaded.
-        // Pages like auth.html and about.html load theme-toggle.js explicitly.
-        // Dashboard pages only load nav.js — so we inject theme-toggle.js
-        // dynamically to wire the FAB's [data-nm-theme-toggle] button.
-        if (!window.NammerhaTheme) {
-            var themeScript = document.createElement('script');
-            themeScript.src = '/theme-toggle.js?v=2';
-            // No defer — already past DOMContentLoaded. Executes immediately on load.
-            document.head.appendChild(themeScript);
-        } else {
-            // theme-toggle.js already loaded — re-run autoWireAll to discover
-            // the dynamically-created FAB button.
-            if (window.NammerhaTheme.syncAllIcons) {
-                window.NammerhaTheme.syncAllIcons();
-            }
-        }
+        // THEME-SURG-001: theme-toggle.js dynamic injection REMOVED.
+        // No FAB theme button exists anymore — theme-toggle.js is only
+        // loaded explicitly on profile.html (settings page).
 
         // GAP-2026-004 FIX: Load offline indicator for network status detection.
         // Critical for Syrian users with intermittent connectivity.

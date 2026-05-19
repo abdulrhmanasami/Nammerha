@@ -1,367 +1,656 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Admin Dashboard | لوحة التحكم</title>
-  <meta name="description" content="Command center for managing reconstruction projects, escrow verification, and pricing oracle." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — لوحة الإدارة | لوحة التحكم</title>
+    <meta
+      name="description"
+      content="Command center for managing reconstruction projects, escrow verification, and pricing oracle."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Nammerha — Admin Dashboard | لوحة التحكم" />
-  <meta property="og:description" content="Command center for managing reconstruction projects, escrow verification, and pricing oracle." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Admin Dashboard | لوحة التحكم" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/admin-dashboard.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="نعمّرها — لوحة الإدارة | لوحة التحكم" />
+    <meta
+      property="og:description"
+      content="Command center for managing reconstruction projects, escrow verification, and pricing oracle."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="نعمّرها — لوحة الإدارة | لوحة التحكم" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/admin-dashboard.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
      Standard: Progressive Enhancement — "Content must be accessible without JavaScript." -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="dashboard-layout">
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="dashboard-layout">
+      <!-- Sidebar Overlay (mobile) -->
+      <div class="sidebar-overlay" aria-hidden="true"></div>
 
-  <!-- Sidebar Overlay (mobile) -->
-  <div class="sidebar-overlay" aria-hidden="true"></div>
-
-  <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar">
-    <!-- DEFECT-008 FIX: Standardized from p-6 no-border to p-4 border-b.
+      <!-- Sidebar Navigation -->
+      <aside class="dashboard-sidebar">
+        <!-- DEFECT-008 FIX: Standardized from p-6 no-border to p-4 border-b.
          All other portal sidebar headers use this pattern.
          Standard: Nielsen #4 (Consistency). -->
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
-      <!-- DEFECT-005 FIX: Logo text is NOT a structural heading — changed from <h1> to <span>.
+        <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
+          <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
+          <!-- DEFECT-005 FIX: Logo text is NOT a structural heading — changed from <h1> to <span>.
            The real <h1> is in the content area below.
            Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-      <span class="text-xl font-bold tracking-tight">Nammerha</span>
-      <!-- PLT-AUD2-G004 FIX: Role-switcher mount — was missing from admin dashboard.
+          <span class="text-xl font-bold tracking-tight">Nammerha</span>
+          <!-- PLT-AUD2-G004 FIX: Role-switcher mount — was missing from admin dashboard.
            All other 6 portals have this mount point for multi-role users.
            Standard: Nielsen #7 (Flexibility), Multi-Role UX. -->
-    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <!-- DEFECT-007 FIX: Changed from href="#" to self-link.
+        </div>
+        <nav class="flex-1 px-4 space-y-1">
+          <!-- DEFECT-007 FIX: Changed from href="#" to self-link.
            href="#" causes scroll-to-top and browser history pollution.
            Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
-      <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="admin-dashboard.html">
-        <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-revenue.html">
-        <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="rev_dashboard">Revenue</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-fintech.html">
-        <i class="ph ph-bank" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="fintech_title">FinTech</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-oracle.html">
-        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-escrow.html">
-        <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-kyc.html">
-        <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="project-details.html">
-        <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="nav_projects">Projects</span>
-      </a>
-    </nav>
-    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-      <!-- P1-UX-002 FIX: Settings is a future feature — disabled with 'Coming Soon' indicator -->
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true" title="Coming Soon">
-        <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <div class="mt-4 flex items-center gap-3 px-3 py-2">
-        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="admin_institutional">Institutional Access</p>
-        </div>
-      </div>
-      <!-- PLT-AUD2-G002 FIX: Logout button was missing — admin dashboard was the
+          <a
+            class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
+            href="admin-dashboard.html"
+          >
+            <i class="ph ph-squares-four" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_dashboard">لوحة الإدارة</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-revenue.html"
+          >
+            <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="rev_dashboard">لوحة الإيرادات</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-fintech.html"
+          >
+            <i class="ph ph-bank" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="fintech_title">البنية المالية التقنية</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-oracle.html"
+          >
+            <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_pricing_oracle">مؤشر الأسعار</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-escrow.html"
+          >
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_escrow_mgmt">إدارة الضمان</span>
+            <span
+              id="sidebar-escrow-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-kyc.html"
+          >
+            <i class="ph ph-identification-card" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_kyc_verify">التحقق من الهوية</span>
+            <span
+              id="sidebar-kyc-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="project-details.html"
+          >
+            <i class="ph ph-package" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="nav_projects">المشاريع</span>
+          </a>
+        </nav>
+        <div class="p-4 border-t border-slate-200 dark:border-dark-border">
+          <!-- P1-UX-002 FIX: Settings is a future feature — disabled with 'Coming Soon' indicator -->
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+            title="Coming Soon"
+          >
+            <i class="ph ph-gear" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_settings">الإعدادات</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <div class="mt-4 flex items-center gap-3 px-3 py-2">
+            <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+              <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold" data-i18n="admin_portal">بوابة المشرف</p>
+              <p
+                class="text-3xs text-slate-500 dark:text-slate-400"
+                data-i18n="admin_institutional"
+              >
+                مؤسسي
+              </p>
+            </div>
+          </div>
+          <!-- PLT-AUD2-G002 FIX: Logout button was missing — admin dashboard was the
            ONLY portal without a sign-out option in the sidebar. Users had to navigate
            to profile.html to log out. All other 6 portals have this button.
            Standard: Nielsen #3 (User Control & Freedom), WCAG 2.1. -->
-      <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
-      </button>
-    </div>
-  </aside>
+          <button
+            type="button"
+            id="portal-logout-btn"
+            class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full"
+          >
+            <i class="ph ph-sign-out" aria-hidden="true"></i>
+            <span class="font-medium text-sm" data-i18n="common_logout">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
 
-  <!-- DEFECT-001 FIX: Was <div class="dashboard-main"> wrapping a nested <main>.
+      <!-- DEFECT-001 FIX: Was <div class="dashboard-main"> wrapping a nested <main>.
        This created a doubled landmark violation (WCAG 1.3.1). Now unified to a
        single <main> element — matching all other 5 portals.
        Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.1. -->
-  <main id="main-content" class="dashboard-main">
-    <!-- PLT-AUD2-C001 FIX: Wrapped header content in max-w-6xl centered container.
+      <main id="main-content" class="dashboard-main">
+        <!-- PLT-AUD2-C001 FIX: Wrapped header content in max-w-6xl centered container.
          Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
-      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
-      <div class="flex items-center gap-3">
-        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
-        </button>
-        <span class="font-bold text-lg page-header-title" data-i18n="admin_command_center">Command Center</span>
-        <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
-      </div>
-      <div class="flex items-center gap-4">
-        <!-- GAP-ADM-003 FIX: Notification bell was pointing to non-existent "section-projects".
+        <header
+          class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
+        >
+          <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                class="sidebar-toggle"
+                aria-label="Toggle sidebar"
+                data-i18n-aria="aria_toggle_sidebar"
+              >
+                <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
+              </button>
+              <span class="font-bold text-lg page-header-title" data-i18n="admin_command_center"
+                >مركز القيادة</span
+              >
+              <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
+            </div>
+            <div class="flex items-center gap-4">
+              <!-- GAP-ADM-003 FIX: Notification bell was pointing to non-existent "section-projects".
              Repurposed as a quick-jump to audit trail section, which is the last content area.
              Count badge shows pending verification count (updated by TS).
              Standard: Nielsen #4 (Consistency), WCAG 4.1.2. -->
-        <button type="button" class="relative" id="notification-bell" aria-label="Jump to audit trail" data-i18n-aria="aria_jump_audit" data-scroll-target="section-audit-trail" title="Jump to audit trail">
-          <i class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500" aria-hidden="true"></i>
-          <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
-          <span class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden" id="notif-count"></span>
-        </button>
-      </div>
-      </div>
-    </header>
+              <button
+                type="button"
+                class="relative"
+                id="notification-bell"
+                aria-label="Jump to audit trail"
+                data-i18n-aria="aria_jump_audit"
+                data-scroll-target="section-audit-trail"
+                title="Jump to audit trail"
+              >
+                <i
+                  class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
+                  aria-hidden="true"
+                ></i>
+                <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+                <span
+                  class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden"
+                  id="notif-count"
+                ></span>
+              </button>
+            </div>
+          </div>
+        </header>
 
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
-      <!-- DEFECT-003 FIX: Content-level <h1> — was missing entirely.
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <!-- DEFECT-003 FIX: Content-level <h1> — was missing entirely.
            All other portals have a content <h1> for proper heading hierarchy.
            Standard: WCAG 1.3.1 (Heading Hierarchy), TYPE A heading pattern. -->
-      <div>
-        <h1 class="text-xl font-bold" data-i18n="admin_dashboard_heading">Command Center</h1>
-        <p class="text-sm text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="admin_dashboard_desc">Manage reconstruction projects, escrow verification, and pricing oracle</p>
-      </div>
+          <div>
+            <h1 class="text-xl font-bold" data-i18n="admin_dashboard_heading">مركز القيادة</h1>
+            <p
+              class="text-sm text-slate-500 mt-0.5 dark:text-slate-400"
+              data-i18n="admin_dashboard_desc"
+            >
+              نظرة عامة على المنصة
+            </p>
+          </div>
 
-      <!-- KPI Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-currency-dollar text-trust-blue text-xl" aria-hidden="true"></i>
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="size-10 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+                  <i class="ph ph-currency-dollar text-trust-blue text-xl" aria-hidden="true"></i>
+                </div>
+                <span
+                  class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full flex items-center gap-1 dark:text-emerald-400"
+                >
+                  <i class="ph ph-trend-up text-3xs" aria-hidden="true"></i>
+                  <span id="kpi-impact-trend">—</span>
+                </span>
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="total_impact_funded"
+              >
+                إجمالي التأثير المموّل
+              </p>
+              <!-- SWEEP-W5-001: Removed individual aria-live — prevents announcement fatigue. -->
+              <p
+                class="text-2xl font-black mt-1 kpi-skeleton"
+                id="kpi-total-funded"
+                data-kpi="0"
+                data-prefix="$"
+              >
+                <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span>
+              </p>
             </div>
-            <span class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full flex items-center gap-1 dark:text-emerald-400">
-              <i class="ph ph-trend-up text-3xs" aria-hidden="true"></i> <span id="kpi-impact-trend">—</span>
-            </span>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="total_impact_funded">Total Impact Funded</p>
-          <!-- SWEEP-W5-001: Removed individual aria-live — prevents announcement fatigue. -->
-          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-total-funded" data-kpi="0" data-prefix="$"><span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"></span></p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
-              <i class="ph ph-buildings text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center">
+                  <i
+                    class="ph ph-buildings text-smoky-jade text-xl dark:text-emerald-400"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <span
+                  class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full"
+                  data-i18n="badge_active"
+                  >نشط</span
+                >
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="admin_active_projects"
+              >
+                المشاريع النشطة
+              </p>
+              <p
+                class="text-2xl font-black mt-1 kpi-skeleton"
+                id="kpi-active-projects"
+                data-kpi="0"
+              >
+                <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span>
+              </p>
             </div>
-            <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-0.5 rounded-full" data-i18n="badge_active">Active</span>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="admin_active_projects">Active Projects</p>
-          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-active-projects" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
-              <i class="ph ph-hard-hat text-warm-earth text-xl" aria-hidden="true"></i>
-            </div>
-            <!-- FRIC-ADM-007 FIX: KPI #3 was missing a badge/trend indicator.
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
+                  <i class="ph ph-hard-hat text-warm-earth text-xl" aria-hidden="true"></i>
+                </div>
+                <!-- FRIC-ADM-007 FIX: KPI #3 was missing a badge/trend indicator.
                  All other KPI cards (1, 2, 4) have badges. This creates visual asymmetry.
                  Standard: Nielsen #4 (Consistency), Gestalt (Similarity). -->
-            <span class="text-xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-0.5 rounded-full" data-i18n="badge_verified">Verified</span>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="admin_registered_eng">Registered Engineers</p>
-          <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-engineers" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border">
-          <div class="flex items-center justify-between mb-3">
-            <div class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center">
-              <i class="ph ph-clock-countdown text-warning-yellow text-xl" aria-hidden="true"></i>
+                <span
+                  class="text-xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-0.5 rounded-full"
+                  data-i18n="badge_verified"
+                  >معتمد</span
+                >
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="admin_registered_eng"
+              >
+                المهندسون المسجلون
+              </p>
+              <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-engineers" data-kpi="0">
+                <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span>
+              </p>
             </div>
-            <span class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full" data-i18n="badge_urgent">Urgent</span>
-          </div>
-          <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="admin_pending_verify">Pending Verifications</p>
-          <!-- FRIC-ADM-001 FIX: text-warning-yellow (#FCC934) on white is 1.56:1 contrast.
+            <div
+              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div
+                  class="size-10 rounded-lg bg-warning-yellow/10 flex items-center justify-center"
+                >
+                  <i
+                    class="ph ph-clock-countdown text-warning-yellow text-xl"
+                    aria-hidden="true"
+                  ></i>
+                </div>
+                <span
+                  class="text-xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full"
+                  data-i18n="badge_urgent"
+                  >عاجل</span
+                >
+              </div>
+              <p
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="admin_pending_verify"
+              >
+                بانتظار التحقق
+              </p>
+              <!-- FRIC-ADM-001 FIX: text-warning-yellow (#FCC934) on white is 1.56:1 contrast.
                WCAG AA requires 4.5:1. Using CSS variable --warning-yellow-text (#b45309, 4.73:1).
                Standard: WCAG 1.4.3 (Contrast Minimum). -->
-          <p class="text-2xl font-black mt-1 kpi-skeleton text-warning-yellow" id="kpi-pending" data-kpi="0"><span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span></p>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a href="admin-escrow.html" class="group bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-trust-blue/30 transition-all flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border">
-          <div class="size-12 rounded-xl bg-trust-blue/10 flex items-center justify-center group-hover:bg-trust-blue group-hover:text-white transition-colors">
-            <i class="ph ph-shield-check text-trust-blue group-hover:text-white text-2xl" aria-hidden="true"></i>
+              <p
+                class="text-2xl font-black mt-1 kpi-skeleton text-warning-yellow"
+                id="kpi-pending"
+                data-kpi="0"
+              >
+                <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"></span>
+              </p>
+            </div>
           </div>
-          <div class="flex-1">
-            <!-- INC-ADM-001 FIX: h3→h2 for proper heading hierarchy (h1→h2→h3).
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a
+              href="admin-escrow.html"
+              class="group bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-trust-blue/30 transition-all flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div
+                class="size-12 rounded-xl bg-trust-blue/10 flex items-center justify-center group-hover:bg-trust-blue group-hover:text-white transition-colors"
+              >
+                <i
+                  class="ph ph-shield-check text-trust-blue group-hover:text-white text-2xl"
+                  aria-hidden="true"
+                ></i>
+              </div>
+              <div class="flex-1">
+                <!-- INC-ADM-001 FIX: h3→h2 for proper heading hierarchy (h1→h2→h3).
                  Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-            <h2 class="font-bold text-sm" data-i18n="admin_escrow_queue">Escrow Verification Queue</h2>
-            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="admin_escrow_queue_desc">Spatial proofs awaiting admin review and fund release</p>
+                <h2 class="font-bold text-sm" data-i18n="admin_escrow_queue">قائمة الضمان</h2>
+                <p
+                  class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                  data-i18n="admin_escrow_queue_desc"
+                >
+                  معاملات بانتظار الإفراج
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="badge-warning" id="escrow-pending-count">— معلّق</span>
+                <i
+                  class="ph ph-arrow-right text-slate-400 group-hover:text-trust-blue transition-colors dark:text-slate-500"
+                  aria-hidden="true"
+                ></i>
+              </div>
+            </a>
+            <a
+              href="admin-oracle.html"
+              class="group bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-smoky-jade/30 transition-all flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div
+                class="size-12 rounded-xl bg-smoky-jade/10 flex items-center justify-center group-hover:bg-smoky-jade group-hover:text-white transition-colors"
+              >
+                <i
+                  class="ph ph-chart-line-up text-smoky-jade group-hover:text-white text-2xl dark:text-emerald-400"
+                  aria-hidden="true"
+                ></i>
+              </div>
+              <div class="flex-1">
+                <h2 class="font-bold text-sm" data-i18n="admin_pricing_oracle_epa">
+                  مؤشر الأسعار EPA
+                </h2>
+                <p
+                  class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                  data-i18n="admin_pricing_desc"
+                >
+                  ضبط أسعار المواد حسب السوق
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  id="oracle-action-count"
+                  class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full dark:text-emerald-400"
+                  data-i18n="admin_actions_count"
+                  >إجراءات</span
+                >
+                <i
+                  class="ph ph-arrow-right text-slate-400 group-hover:text-smoky-jade transition-colors dark:text-slate-500"
+                  aria-hidden="true"
+                ></i>
+              </div>
+            </a>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="badge-warning" id="escrow-pending-count">— Pending</span>
-            <i class="ph ph-arrow-right text-slate-400 group-hover:text-trust-blue transition-colors dark:text-slate-500" aria-hidden="true"></i>
-          </div>
-        </a>
-        <a href="admin-oracle.html" class="group bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-smoky-jade/30 transition-all flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border">
-          <div class="size-12 rounded-xl bg-smoky-jade/10 flex items-center justify-center group-hover:bg-smoky-jade group-hover:text-white transition-colors">
-            <i class="ph ph-chart-line-up text-smoky-jade group-hover:text-white text-2xl dark:text-emerald-400" aria-hidden="true"></i>
-          </div>
-          <div class="flex-1">
-            <h2 class="font-bold text-sm" data-i18n="admin_pricing_oracle_epa">Pricing Oracle & EPA Engine</h2>
-            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="admin_pricing_desc">FIDIC 13.8 price adjustment pending approval</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <span id="oracle-action-count" class="text-xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full dark:text-emerald-400" data-i18n="admin_actions_count">1 Action</span>
-            <i class="ph ph-arrow-right text-slate-400 group-hover:text-smoky-jade transition-colors dark:text-slate-500" aria-hidden="true"></i>
-          </div>
-        </a>
-      </div>
 
-      <!-- Projects Table -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-        <div class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border">
-          <div>
-            <!-- INC-ADM-001 FIX: h3→h2 for WCAG heading hierarchy -->
-            <h2 class="font-bold" data-i18n="admin_active_projects">Active Projects</h2>
-            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="admin_projects_desc">All reconstruction projects with OCDS-compliant tracking</p>
-          </div>
-          <!-- GAP-ADM-002 FIX: Filter button had no JS handler — was a dead control.
+          <!-- Projects Table -->
+          <div
+            class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border"
+            >
+              <div>
+                <!-- INC-ADM-001 FIX: h3→h2 for WCAG heading hierarchy -->
+                <h2 class="font-bold" data-i18n="admin_active_projects">المشاريع النشطة</h2>
+                <p
+                  class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                  data-i18n="admin_projects_desc"
+                >
+                  نظرة عامة على المشاريع النشطة
+                </p>
+              </div>
+              <!-- GAP-ADM-002 FIX: Filter button had no JS handler — was a dead control.
                Disabled with Coming Soon badge (same pattern as Settings link).
                Standard: Nielsen #2 (No dead controls). -->
-          <span class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border" aria-disabled="true">
-            <i class="ph ph-funnel text-xs" aria-hidden="true"></i> <span data-i18n="common_filter">Filter</span>
-            <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-          </span>
-        </div>
-        <div id="projects-body" class="divide-y divide-slate-100 dark:divide-dark-border-subtle">
-          <div class="p-8 text-center text-slate-400 dark:text-slate-500">
-            <div class="animate-pulse flex flex-col items-center gap-2">
-              <div class="h-4 w-32 bg-slate-200 rounded"></div>
-              <div class="h-3 w-24 bg-slate-100 rounded"></div>
+              <span
+                class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border"
+                aria-disabled="true"
+              >
+                <i class="ph ph-funnel text-xs" aria-hidden="true"></i>
+                <span data-i18n="common_filter">تصفية</span>
+                <span
+                  class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1 py-0.5 rounded-full dark:text-slate-500"
+                  data-i18n="coming_soon"
+                  >قريباً</span
+                >
+              </span>
             </div>
-          </div>
-        </div>
-        <!-- GAP-ADM-004 FIX: Table has max 10 rows but no way to see the rest.
+            <div
+              id="projects-body"
+              class="divide-y divide-slate-100 dark:divide-dark-border-subtle"
+            >
+              <div class="p-8 text-center text-slate-400 dark:text-slate-500">
+                <div class="animate-pulse flex flex-col items-center gap-2">
+                  <div class="h-4 w-32 bg-slate-200 rounded"></div>
+                  <div class="h-3 w-24 bg-slate-100 rounded"></div>
+                </div>
+              </div>
+            </div>
+            <!-- GAP-ADM-004 FIX: Table has max 10 rows but no way to see the rest.
              Added "View All" link to project-details.html.
              Standard: Nielsen #7 (Flexibility and efficiency of use). -->
-        <div class="p-4 border-t border-slate-100 text-center dark:border-dark-border">
-          <a href="project-details.html" class="text-xs font-semibold text-trust-blue hover:underline inline-flex items-center gap-1" data-i18n="admin_view_all_projects">View All Projects <i class="ph ph-arrow-right text-xs" aria-hidden="true"></i></a>
-        </div>
-      </div>
-
-      <!-- Audit Trail -->
-      <!-- GAP-ADM-003 FIX: Added scroll target id for notification bell -->
-      <div id="section-audit-trail" class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border">
-        <div class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border">
-          <div>
-            <!-- INC-ADM-001 FIX: h3→h2 for WCAG heading hierarchy -->
-            <h2 class="font-bold" data-i18n="admin_audit_trail">Recent Audit Trail</h2>
-            <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="admin_audit_desc">Immutable record of all administrative actions</p>
-          </div>
-          <!-- P1-UX-004 FIX: Full log page is a future feature -->
-          <!-- FRIC-ADM-006 FIX: Disabled button with title-only "Coming Soon" is invisible on mobile.
-               Added inline badge + aria-label for accessibility.
-               Standard: Apple HIG (Disabled States), Nielsen #10. -->
-          <button type="button" class="text-xs font-semibold text-slate-300 cursor-not-allowed flex items-center gap-1.5" disabled aria-label="View Full Log — Coming Soon" data-i18n="admin_view_full_log">View Full Log <span class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span></button>
-        </div>
-        <div id="audit-trail" class="divide-y divide-slate-50">
-          <!-- P0-003 FIX: Populated dynamically by admin-dashboard.ts -->
-          <div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">
-            <div class="animate-pulse flex flex-col items-center gap-2">
-              <div class="h-4 w-40 bg-slate-200 rounded"></div>
-              <div class="h-3 w-28 bg-slate-100 rounded"></div>
+            <div class="p-4 border-t border-slate-100 text-center dark:border-dark-border">
+              <a
+                href="project-details.html"
+                class="text-xs font-semibold text-trust-blue hover:underline inline-flex items-center gap-1"
+                data-i18n="admin_view_all_projects"
+                >عرض جميع المشاريع <i class="ph ph-arrow-right text-xs" aria-hidden="true"></i
+              ></a>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- OCDS Compliance Footer -->
-      <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center shrink-0">
-          <i class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
-        </div>
-        <div>
-          <!-- HH-003 FIX: Was <h4> — skipped <h3> after <h2> sections above.
+          <!-- Audit Trail -->
+          <!-- GAP-ADM-003 FIX: Added scroll target id for notification bell -->
+          <div
+            id="section-audit-trail"
+            class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border"
+            >
+              <div>
+                <!-- INC-ADM-001 FIX: h3→h2 for WCAG heading hierarchy -->
+                <h2 class="font-bold" data-i18n="admin_audit_trail">سجل التدقيق</h2>
+                <p
+                  class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                  data-i18n="admin_audit_desc"
+                >
+                  سجل العمليات الأخيرة
+                </p>
+              </div>
+              <!-- P1-UX-004 FIX: Full log page is a future feature -->
+              <!-- FRIC-ADM-006 FIX: Disabled button with title-only "Coming Soon" is invisible on mobile.
+               Added inline badge + aria-label for accessibility.
+               Standard: Apple HIG (Disabled States), Nielsen #10. -->
+              <button
+                type="button"
+                class="text-xs font-semibold text-slate-300 cursor-not-allowed flex items-center gap-1.5"
+                disabled
+                aria-label="View Full Log — Coming Soon"
+                data-i18n="admin_view_full_log"
+              >
+                عرض السجل الكامل
+                <span
+                  class="text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+                  data-i18n="coming_soon"
+                  >قريباً</span
+                >
+              </button>
+            </div>
+            <div id="audit-trail" class="divide-y divide-slate-50">
+              <!-- P0-003 FIX: Populated dynamically by admin-dashboard.ts -->
+              <div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">
+                <div class="animate-pulse flex flex-col items-center gap-2">
+                  <div class="h-4 w-40 bg-slate-200 rounded"></div>
+                  <div class="h-3 w-28 bg-slate-100 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OCDS Compliance Footer -->
+          <div
+            class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 rounded-lg bg-smoky-jade/10 flex items-center justify-center shrink-0"
+            >
+              <i
+                class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <div>
+              <!-- HH-003 FIX: Was <h4> — skipped <h3> after <h2> sections above.
                Sequential hierarchy required for screen reader document outline.
                Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-          <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">OCDS Compliant Infrastructure</h3>
-          <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400" data-i18n="admin_ocds_desc">All financial transactions adhere to Open Contracting Data Standard. Audit trail is immutable (INSERT-only). Escrow release requires spatial proof verification.</p>
+              <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">متوافق مع OCDS</h3>
+              <p
+                class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
+                data-i18n="admin_ocds_desc"
+              >
+                معيار البيانات المفتوحة للعقود
+              </p>
+            </div>
+            <!-- FRIC-ADM-004 FIX: "Verified" text was not i18n-ized. -->
+            <span
+              class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider dark:text-emerald-400"
+              data-i18n="admin_ocds_verified"
+              >معتمد OCDS</span
+            >
+          </div>
         </div>
-        <!-- FRIC-ADM-004 FIX: "Verified" text was not i18n-ized. -->
-        <span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider dark:text-emerald-400" data-i18n="admin_ocds_verified">Verified</span>
-      </div>
+      </main>
     </div>
-  </main>
-</div>
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-
-<!-- DEFECT-006 FIX: Reusable empty state template for data tables.
+    <!-- DEFECT-006 FIX: Reusable empty state template for data tables.
      All other portals have this template. TS modules clone it into empty tbody.
      Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
-<template id="tpl-table-empty">
-  <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
-    <div class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500">
-      <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
-    </div>
-    <p class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300" data-i18n="common_no_data">No data yet</p>
-    <p class="text-xs text-slate-500 mt-1 nm-empty-desc dark:text-slate-400" data-i18n="common_no_data_desc">Data will appear here once available.</p>
-  </div>
-</template>
+    <template id="tpl-table-empty">
+      <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
+        <div
+          class="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 text-slate-400 nm-empty-icon dark:bg-dark-elevated dark:text-slate-500"
+        >
+          <i class="ph ph-buildings nm-icon-32" aria-hidden="true"></i>
+        </div>
+        <p
+          class="font-bold text-slate-700 text-sm mt-2 nm-empty-title dark:text-slate-300"
+          data-i18n="common_no_data"
+        >
+          لا توجد بيانات
+        </p>
+        <p
+          class="text-xs text-slate-500 mt-1 nm-empty-desc dark:text-slate-400"
+          data-i18n="common_no_data_desc"
+        >
+          لا توجد بيانات للعرض حالياً
+        </p>
+      </div>
+    </template>
 
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/admin.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/admin.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-<script src="/sidebar.js?v=1" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+    <script src="/sidebar.js?v=1" defer></script>
+  </body>
 </html>

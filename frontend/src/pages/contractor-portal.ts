@@ -56,30 +56,30 @@ import { staggerDelay } from '../constants/animation';
 
 // ─── Types (local rendering shapes — raw API types are in api.ts) ────────────
 interface Project {
-    project_id: string;
-    title: string;
-    region: string;
-    phase: string;
-    progress: number;
-    engineer_name: string | null;
+  project_id: string;
+  title: string;
+  region: string;
+  phase: string;
+  progress: number;
+  engineer_name: string | null;
 }
 
 interface MarketProject {
-    project_id: string;
-    title: string;
-    region: string;
-    damage_type: string;
-    total_estimated_cost: number;
-    boq_count: number;
-    bid_count: number;
+  project_id: string;
+  title: string;
+  region: string;
+  damage_type: string;
+  total_estimated_cost: number;
+  boq_count: number;
+  bid_count: number;
 }
 
 interface Payment {
-    transaction_id: string;
-    project_title: string;
-    amount: number;
-    transaction_type: string;
-    created_at: string;
+  transaction_id: string;
+  project_title: string;
+  amount: number;
+  transaction_type: string;
+  created_at: string;
 }
 
 // ─── State ──────────────────────────────────────────────────────────────────
@@ -103,156 +103,187 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
 // ─── DOM Init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    // BLOCKER-1 FIX: Guard all protected content behind auth check.
-    if (!requireAuth()) { return; }
-    bootstrapPortal();
-    mountContextSwitcher();
-    initBreadcrumb();
+  // BLOCKER-1 FIX: Guard all protected content behind auth check.
+  if (!requireAuth()) {
+    return;
+  }
+  bootstrapPortal();
+  mountContextSwitcher();
+  initBreadcrumb();
 
-    setupTabs();
-    const initialTab = hashRouter.getInitialTab();
-    switchTab(initialTab);
-    hashRouter.onHashChange(switchTab);
+  setupTabs();
+  const initialTab = hashRouter.getInitialTab();
+  switchTab(initialTab);
+  hashRouter.onHashChange(switchTab);
 
-    // P3-003 FIX: Guard skeleton loaders with timeout fallback
-    guardSkeleton({
-        container: 'main-content',
-        onRetry: () => switchTab(hashRouter.getInitialTab()),
-    });
+  // P3-003 FIX: Guard skeleton loaders with timeout fallback
+  guardSkeleton({
+    container: 'main-content',
+    onRetry: () => switchTab(hashRouter.getInitialTab()),
+  });
 
-    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
-    initSwipeTabs({
-        containerSelector: '.dashboard-main',
-        tabs: ALL_TABS as unknown as readonly string[],
-        onSwitch: switchTab as (tab: string) => void,
-        getCurrentTab: () => hashRouter.getInitialTab(),
-    });
+  // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+  initSwipeTabs({
+    containerSelector: '.dashboard-main',
+    tabs: ALL_TABS as unknown as readonly string[],
+    onSwitch: switchTab as (tab: string) => void,
+    getCurrentTab: () => hashRouter.getInitialTab(),
+  });
 
-
-    // ─── Secure Logout ──────────────────────────────────────────────────
-    document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
-        try { await authApi.logout(); } catch { /* best-effort */ }
-        clearAuth();
-        window.location.href = '/auth.html';
-    });
+  // ─── Secure Logout ──────────────────────────────────────────────────
+  document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      /* best-effort */
+    }
+    clearAuth();
+    window.location.href = '/auth.html';
+  });
 });
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
 function setupTabs(): void {
-    for (const tab of ALL_TABS) {
-        const el = document.getElementById(`tab-${tab}`);
-        if (!el) { continue; }
-
-        el.addEventListener('click', (e) => {
-            e.preventDefault();
-            // F-024 FIX: Haptic feedback on tab switch — parity with homeowner portal.
-            haptic.light();
-            switchTab(tab);
-        });
+  for (const tab of ALL_TABS) {
+    const el = document.getElementById(`tab-${tab}`);
+    if (!el) {
+      continue;
     }
+
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      // F-024 FIX: Haptic feedback on tab switch — parity with homeowner portal.
+      haptic.light();
+      switchTab(tab);
+    });
+  }
 }
 
 function switchTab(tab: TabName): void {
-    // P2-UXA-004 FIX: Save scroll position of the outgoing tab
-    const currentHash = hashRouter.getInitialTab();
-    if (currentHash !== tab) { saveScrollPosition(currentHash); }
-    // P3-UXA-003 FIX: Persist last active tab
-    saveLastTab(tab);
-    // P1-003 FIX: Sync tab to URL hash
-    hashRouter.setActiveTab(tab);
-    // Update sidebar
-    // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
-    // shadowing the imported i18n `t()` function (line 8).
-    for (const tabId of ALL_TABS) {
-        const el = document.getElementById(`tab-${tabId}`);
-        if (!el) { continue; }
-
-        if (tabId === tab) {
-            el.className = 'flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start';
-        } else {
-            el.className = 'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start';
-        }
-        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
-        el.setAttribute('aria-selected', String(tabId === tab));
+  // P2-UXA-004 FIX: Save scroll position of the outgoing tab
+  const currentHash = hashRouter.getInitialTab();
+  if (currentHash !== tab) {
+    saveScrollPosition(currentHash);
+  }
+  // P3-UXA-003 FIX: Persist last active tab
+  saveLastTab(tab);
+  // P1-003 FIX: Sync tab to URL hash
+  hashRouter.setActiveTab(tab);
+  // Update sidebar
+  // P1-FIX-3: Renamed loop variable from `t` to `tabId` to prevent
+  // shadowing the imported i18n `t()` function (line 8).
+  for (const tabId of ALL_TABS) {
+    const el = document.getElementById(`tab-${tabId}`);
+    if (!el) {
+      continue;
     }
 
-    // Show/hide sections
-    // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-    for (const tabId of ALL_TABS) {
-        const section = document.getElementById(`section-${tabId}`);
-        if (section) {
-            section.classList.toggle('nm-hidden', tabId !== tab);
-            // F-016 FIX: Move focus to newly visible section.
-            // Previous: Focus stayed on tab button — screen reader users stranded.
-            // Standard: WCAG 2.4.3 (Focus Order). Parity with homeowner portal.
-            if (tabId === tab) {
-                section.setAttribute('tabindex', '-1');
-                section.focus({ preventScroll: true });
-                // D-F1 FIX: Remove tabindex after focus so Tab continues into children.
-                // PREVIOUS: tabindex="-1" was set but NEVER removed — section permanently
-                // focusable, trapping Tab key users instead of navigating into content.
-                // NOW: Matches homeowner-portal canonical pattern (UX-REM-I010).
-                // Standard: WCAG 2.4.3 (Focus Order), WAI-ARIA 1.2 (Managing Focus).
-                requestAnimationFrame(() => section.removeAttribute('tabindex'));
-            }
-        }
+    if (tabId === tab) {
+      el.className =
+        'flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start';
+    } else {
+      el.className =
+        'flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer w-full text-start';
     }
+    // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+    el.setAttribute('aria-selected', String(tabId === tab));
+  }
 
-    // Load data for tab
-    if (tab === 'dashboard') { loadStats(); loadProjects(); }
-    if (tab === 'marketplace') { loadMarketplace(); }
-    if (tab === 'bids') { loadBids(); }
-    if (tab === 'payments') { loadPayments(); }
+  // Show/hide sections
+  // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+  for (const tabId of ALL_TABS) {
+    const section = document.getElementById(`section-${tabId}`);
+    if (section) {
+      section.classList.toggle('nm-hidden', tabId !== tab);
+      // F-016 FIX: Move focus to newly visible section.
+      // Previous: Focus stayed on tab button — screen reader users stranded.
+      // Standard: WCAG 2.4.3 (Focus Order). Parity with homeowner portal.
+      if (tabId === tab) {
+        section.setAttribute('tabindex', '-1');
+        section.focus({ preventScroll: true });
+        // D-F1 FIX: Remove tabindex after focus so Tab continues into children.
+        // PREVIOUS: tabindex="-1" was set but NEVER removed — section permanently
+        // focusable, trapping Tab key users instead of navigating into content.
+        // NOW: Matches homeowner-portal canonical pattern (UX-REM-I010).
+        // Standard: WCAG 2.4.3 (Focus Order), WAI-ARIA 1.2 (Managing Focus).
+        requestAnimationFrame(() => section.removeAttribute('tabindex'));
+      }
+    }
+  }
 
-    // P2-UXA-004 FIX: Restore scroll position for the incoming tab
-    restoreScrollPosition(tab);
+  // Load data for tab
+  if (tab === 'dashboard') {
+    loadStats();
+    loadProjects();
+  }
+  if (tab === 'marketplace') {
+    loadMarketplace();
+  }
+  if (tab === 'bids') {
+    loadBids();
+  }
+  if (tab === 'payments') {
+    loadPayments();
+  }
+
+  // P2-UXA-004 FIX: Restore scroll position for the incoming tab
+  restoreScrollPosition(tab);
 }
 
 // ─── KPI Cards ──────────────────────────────────────────────────────────────
 async function loadStats(): Promise<void> {
-    try {
-        const res = await swrFetch('ct-stats', () => contractor.getStats(), {
-            maxAge: 120_000, // 2 minutes — KPIs don't change that fast
-            onStaleData: () => { showStaleIndicator(); },
-        });
-        if (!res.data) { return; }
-        const s = res.data;
-
-        // F-019 FIX: Animated KPI count-up (parity with engineer portal).
-        // Previous: Instant setText() — no perceived performance.
-        animateKPI('kpi-active', s.active_projects);
-        animateKPI('kpi-pending', s.pending_bids);
-        animateKPI('kpi-won', s.won_bids);
-        animateKPI('kpi-escrow', s.total_escrow_received, { prefix: '$', isCents: true });
-        setText('pending-bids-count', String(s.pending_bids));
-
-        // P3-UX-001 FIX: "Last updated" temporal context on KPI dashboard.
-        // Previous: "3 Active Projects" — since when? No temporal trust signal.
-        // Standard: Nielsen #1 (System Status), FinTech Data Freshness.
-        // P2-UXA-002 FIX: Live KPI timestamp
-        markKPIFetched();
-    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
-        ['kpi-active', 'kpi-pending', 'kpi-won', 'kpi-escrow'].forEach(id => setText(id, '—'));
+  try {
+    const res = await swrFetch('ct-stats', () => contractor.getStats(), {
+      maxAge: 120_000, // 2 minutes — KPIs don't change that fast
+      onStaleData: () => {
+        showStaleIndicator();
+      },
+    });
+    if (!res.data) {
+      return;
     }
+    const s = res.data;
+
+    // F-019 FIX: Animated KPI count-up (parity with engineer portal).
+    // Previous: Instant setText() — no perceived performance.
+    animateKPI('kpi-active', s.active_projects);
+    animateKPI('kpi-pending', s.pending_bids);
+    animateKPI('kpi-won', s.won_bids);
+    animateKPI('kpi-escrow', s.total_escrow_received, { prefix: '$', isCents: true });
+    setText('pending-bids-count', String(s.pending_bids));
+
+    // P3-UX-001 FIX: "Last updated" temporal context on KPI dashboard.
+    // Previous: "3 Active Projects" — since when? No temporal trust signal.
+    // Standard: Nielsen #1 (System Status), FinTech Data Freshness.
+    // P2-UXA-002 FIX: Live KPI timestamp
+    markKPIFetched();
+  } catch (err) {
+    reportWarning('[ContractorPortal] Operation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    // W8-002 FIX: Show em-dash on KPI failure — visible error signal.
+    ['kpi-active', 'kpi-pending', 'kpi-won', 'kpi-escrow'].forEach((id) => setText(id, '—'));
+  }
 }
 
 // ─── My Projects ────────────────────────────────────────────────────────────
 async function loadProjects(): Promise<void> {
-    const tbody = document.getElementById('projects-body');
-    if (!tbody) { return; }
+  const tbody = document.getElementById('projects-body');
+  if (!tbody) {
+    return;
+  }
 
-    try {
-        const res = await swrFetch('ct-projects', () => contractor.getProjects());
-        const projects = (res.data ?? []) as unknown as Project[];
+  try {
+    const res = await swrFetch('ct-projects', () => contractor.getProjects());
+    const projects = (res.data ?? []) as unknown as Project[];
 
-        // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with large project lists.
-        // P2-UX-003 FIX: Stagger animation — cards cascade in sequentially (50ms delay).
-        renderProgressive({
-            items: projects,
-            containerEl: tbody,
-            pageSize: 20,
-            renderItem: (p, i) => `
+    // P1-UXA-002 FIX: Progressive rendering — prevents DOM jank with large project lists.
+    // P2-UX-003 FIX: Stagger animation — cards cascade in sequentially (50ms delay).
+    renderProgressive({
+      items: projects,
+      containerEl: tbody,
+      pageSize: 20,
+      renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
@@ -276,35 +307,43 @@ async function loadProjects(): Promise<void> {
                     </div>
                 </div>
             </div>`,
-            emptyState: () => renderEmptyState({
-                icon: 'clipboard-text',
-                title: t('ct_no_assigned_projects', 'No assigned projects yet'),
-                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
-            }),
-        });
-    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
-    }
+      emptyState: () =>
+        renderEmptyState({
+          icon: 'clipboard-text',
+          title: t('ct_no_assigned_projects', 'لا توجد مشاريع مسندة بعد'),
+          subtitle: t('ct_browse_marketplace', 'تصفح السوق وقدّم عروضاً'),
+        }),
+    });
+  } catch (err) {
+    reportWarning('[ContractorPortal] Operation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
+  }
 }
 
 // ─── Marketplace ────────────────────────────────────────────────────────────
 async function loadMarketplace(): Promise<void> {
-    const tbody = document.getElementById('marketplace-body');
-    if (!tbody) { return; }
+  const tbody = document.getElementById('marketplace-body');
+  if (!tbody) {
+    return;
+  }
 
-    try {
-        // E3 FIX: SWR cache for marketplace — parity with projects tab.
-        // PREVIOUS: Fresh API call on every tab switch — spinner flash.
-        // NOW: 30s SWR cache for perceived-instant switching.
-        const res = await swrFetch('ct-marketplace', () => contractor.getMarketplace(), { maxAge: 30_000 });
-        const projects = (res.data ?? []) as unknown as MarketProject[];
+  try {
+    // E3 FIX: SWR cache for marketplace — parity with projects tab.
+    // PREVIOUS: Fresh API call on every tab switch — spinner flash.
+    // NOW: 30s SWR cache for perceived-instant switching.
+    const res = await swrFetch('ct-marketplace', () => contractor.getMarketplace(), {
+      maxAge: 30_000,
+    });
+    const projects = (res.data ?? []) as unknown as MarketProject[];
 
-        // P1-UXA-002 FIX: Progressive rendering for marketplace list
-        renderProgressive({
-            items: projects,
-            containerEl: tbody,
-            pageSize: 20,
-            renderItem: (p, i) => `
+    // P1-UXA-002 FIX: Progressive rendering for marketplace list
+    renderProgressive({
+      items: projects,
+      containerEl: tbody,
+      pageSize: 20,
+      renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pe-12 dark:text-slate-100">${esc(p.title)}</h3>
@@ -342,47 +381,55 @@ async function loadMarketplace(): Promise<void> {
                     </button>
                 </div>
             </div>`,
-            emptyState: () => renderEmptyState({
-                icon: 'magnifying-glass',
-                title: t('ct_no_projects_available', 'No projects available'),
-                subtitle: t('ct_new_projects_appear', 'New projects will appear here when published'),
-            }),
-        });
+      emptyState: () =>
+        renderEmptyState({
+          icon: 'magnifying-glass',
+          title: t('ct_no_projects_available', 'لا مشاريع متاحة'),
+          subtitle: t('ct_new_projects_appear', 'ستظهر المشاريع الجديدة هنا عند نشرها'),
+        }),
+    });
 
-        // TICK-006: Event delegation for bid buttons.
-        // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
-        if (!delegationWired.marketplace) {
-            delegationWired.marketplace = true;
-            tbody.addEventListener('click', (e: MouseEvent) => {
-                const btn = (e.target as HTMLElement).closest<HTMLElement>('.bid-btn');
-                if (!btn) { return; }
-                const projectId = btn.dataset['project'];
-                if (projectId) {
-                    haptic.medium(); // TICK-018: Haptic on bid button click
-                    openBidModal(projectId);
-                }
-            });
+    // TICK-006: Event delegation for bid buttons.
+    // PLT-AUD-E001 FIX: Delegation wired ONCE — guard prevents stacking on re-render.
+    if (!delegationWired.marketplace) {
+      delegationWired.marketplace = true;
+      tbody.addEventListener('click', (e: MouseEvent) => {
+        const btn = (e.target as HTMLElement).closest<HTMLElement>('.bid-btn');
+        if (!btn) {
+          return;
         }
-    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadMarketplace, undefined, undefined, err);
+        const projectId = btn.dataset['project'];
+        if (projectId) {
+          haptic.medium(); // TICK-018: Haptic on bid button click
+          openBidModal(projectId);
+        }
+      });
     }
+  } catch (err) {
+    reportWarning('[ContractorPortal] Operation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    renderErrorWithRetry(tbody, loadMarketplace, undefined, undefined, err);
+  }
 }
 
 // ─── My Bids ────────────────────────────────────────────────────────────────
 async function loadBids(): Promise<void> {
-    const tbody = document.getElementById('bids-body');
-    if (!tbody) { return; }
+  const tbody = document.getElementById('bids-body');
+  if (!tbody) {
+    return;
+  }
 
-    try {
-        const res = await contractor.getBids();
-        const bids = res.data ?? [];
+  try {
+    const res = await contractor.getBids();
+    const bids = res.data ?? [];
 
-        // P1-UXA-002 FIX: Progressive rendering for bids list
-        renderProgressive({
-            items: bids,
-            containerEl: tbody,
-            pageSize: 20,
-            renderItem: (b, i) => `
+    // P1-UXA-002 FIX: Progressive rendering for bids list
+    renderProgressive({
+      items: bids,
+      containerEl: tbody,
+      pageSize: 20,
+      renderItem: (b, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
@@ -396,7 +443,7 @@ async function loadBids(): Promise<void> {
                     </div>
                     <div>
                         <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_timeline">Timeline</p>
-                        <p class="text-xs font-bold text-slate-700 text-center dark:text-slate-300">${esc(String(b.estimated_days))} ${esc(t('ct_days_short', 'd'))}</p>
+                        <p class="text-xs font-bold text-slate-700 text-center dark:text-slate-300">${esc(String(b.estimated_days))} ${esc(t('ct_days_short', 'ي'))}</p>
                     </div>
                     <div class="text-end">
                         <p class="text-3xs font-bold text-slate-400 uppercase tracking-wider mb-0.5 dark:text-slate-500" data-i18n="contractor_th_submitted">Submitted</p>
@@ -404,32 +451,38 @@ async function loadBids(): Promise<void> {
                     </div>
                 </div>
             </div>`,
-            emptyState: () => renderEmptyState({
-                icon: 'flag-banner',
-                title: t('ct_no_bids_yet', 'No bids submitted yet'),
-                subtitle: t('ct_browse_marketplace', 'Browse the marketplace and submit bids'),
-            }),
-        });
-    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadBids, undefined, undefined, err);
-    }
+      emptyState: () =>
+        renderEmptyState({
+          icon: 'flag-banner',
+          title: t('ct_no_bids_yet', 'لم يتم تقديم عروض بعد'),
+          subtitle: t('ct_browse_marketplace', 'تصفح السوق وقدّم عروضاً'),
+        }),
+    });
+  } catch (err) {
+    reportWarning('[ContractorPortal] Operation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    renderErrorWithRetry(tbody, loadBids, undefined, undefined, err);
+  }
 }
 
 // ─── Payments ───────────────────────────────────────────────────────────────
 async function loadPayments(): Promise<void> {
-    const tbody = document.getElementById('payments-body');
-    if (!tbody) { return; }
+  const tbody = document.getElementById('payments-body');
+  if (!tbody) {
+    return;
+  }
 
-    try {
-        const res = await contractor.getPayments();
-        const payments = (res.data ?? []) as unknown as Payment[];
+  try {
+    const res = await contractor.getPayments();
+    const payments = (res.data ?? []) as unknown as Payment[];
 
-        // P1-UXA-002 FIX: Progressive rendering for payments list
-        renderProgressive({
-            items: payments,
-            containerEl: tbody,
-            pageSize: 20,
-            renderItem: (p, i) => `
+    // P1-UXA-002 FIX: Progressive rendering for payments list
+    renderProgressive({
+      items: payments,
+      containerEl: tbody,
+      pageSize: 20,
+      renderItem: (p, i) => `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.project_title)}</h3>
@@ -447,14 +500,18 @@ async function loadPayments(): Promise<void> {
                     </div>
                 </div>
             </div>`,
-            emptyState: () => renderEmptyState({
-                icon: 'wallet',
-                title: t('ct_no_payments_yet', 'No payments yet'),
-            }),
-        });
-    } catch (err) { reportWarning('[ContractorPortal] Operation failed', { error: err instanceof Error ? err.message : String(err) });
-        renderErrorWithRetry(tbody, loadPayments, undefined, undefined, err);
-    }
+      emptyState: () =>
+        renderEmptyState({
+          icon: 'wallet',
+          title: t('ct_no_payments_yet', 'لا توجد مدفوعات بعد'),
+        }),
+    });
+  } catch (err) {
+    reportWarning('[ContractorPortal] Operation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    renderErrorWithRetry(tbody, loadPayments, undefined, undefined, err);
+  }
 }
 
 // ─── Bid Modal (Native <dialog>) ────────────────────────────────────────────
@@ -466,34 +523,37 @@ async function loadPayments(): Promise<void> {
 //   2. SUBMIT RACE: Button disabled IMMEDIATELY on click (before validation).
 //   3. CLOSE RACE: Cancel button disabled during in-flight API call.
 function openBidModal(projectId: string): void {
-    // P2-007 FIX (Race Vector 1): Guard against rapid .bid-btn clicks.
-    // PREVIOUS: getElementById('bid-modal')?.remove() was insufficient —
-    // on mobile touch, touchend+click double-fire opened 2 dialogs.
-    if (bidModalOpen) { return; }
-    bidModalOpen = true;
+  // P2-007 FIX (Race Vector 1): Guard against rapid .bid-btn clicks.
+  // PREVIOUS: getElementById('bid-modal')?.remove() was insufficient —
+  // on mobile touch, touchend+click double-fire opened 2 dialogs.
+  if (bidModalOpen) {
+    return;
+  }
+  bidModalOpen = true;
 
-    // Remove any stale modal DOM (defensive — should not exist due to guard)
-    document.getElementById('bid-modal')?.remove();
+  // Remove any stale modal DOM (defensive — should not exist due to guard)
+  document.getElementById('bid-modal')?.remove();
 
-    const dialog = document.createElement('dialog');
-    dialog.id = 'bid-modal';
-    dialog.className = 'nm-dialog p-0 w-[90%] max-w-md rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up';
-    // Native <dialog> provides role="dialog" and aria-modal automatically via showModal()
-    dialog.setAttribute('aria-labelledby', 'bid-modal-title');
-    dialog.innerHTML = `
+  const dialog = document.createElement('dialog');
+  dialog.id = 'bid-modal';
+  dialog.className =
+    'nm-dialog p-0 w-[90%] max-w-md rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up';
+  // Native <dialog> provides role="dialog" and aria-modal automatically via showModal()
+  dialog.setAttribute('aria-labelledby', 'bid-modal-title');
+  dialog.innerHTML = `
         <div class="bg-surface rounded-2xl p-6 w-full space-y-4">
-            <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="submit_bid">${esc(t('ct_submit_bid', 'Submit Bid'))}</h3>
+            <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="submit_bid">${esc(t('ct_submit_bid', 'تقديم عرض'))}</h3>
             <div>
-                <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'Proposed Cost (USD)'))}</label>
+                <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'التكلفة'))}</label>
                 <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base" />
             </div>
             <div>
-                <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'Estimated Days'))}</label>
+                <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'الأيام'))}</label>
                 <input id="bid-days" type="number" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base" />
             </div>
             <div>
-                <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'Cover Letter'))}</label>
-                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', 'Why you\'re the best fit...'))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none"></textarea>
+                <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'خطاب التقديم'))}</label>
+                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', "Why you're the best fit..."))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none"></textarea>
             </div>
             <div class="flex gap-3">
                 <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:text-slate-400" data-i18n="btn_cancel">Cancel</button>
@@ -502,177 +562,212 @@ function openBidModal(projectId: string): void {
             <p id="bid-error" class="text-red-500 text-xs nm-hidden"></p>
         </div>
     `;
-    document.body.appendChild(dialog);
+  document.body.appendChild(dialog);
 
-    // P3-001: Native dialog.showModal() provides focus trapping, Escape, and ::backdrop.
-    const triggerEl = document.activeElement as HTMLElement | null;
+  // P3-001: Native dialog.showModal() provides focus trapping, Escape, and ::backdrop.
+  const triggerEl = document.activeElement as HTMLElement | null;
 
-    // F-021 FIX: Exit animation for bid modal (was instant dialog.close()).
-    // Parity with Hub Sheet which has animate-out before close.
-    function closeModal(): void {
-        // P2-008 FIX: Disable interaction during 200ms close animation.
-        // PREVIOUS: Submit and Cancel buttons remained clickable during the
-        // fade-out. Rapid clicker could fire submitBid() DURING close animation.
-        // NOW: inert + pointer-events:none blocks ALL interaction immediately.
-        // Standard: WCAG 2.1.2 (No Keyboard Trap), Animation Safety.
-        const content = dialog.querySelector('.nm-dialog-inner, [class*="bg-white"]') as HTMLElement | null;
-        if (content) { content.setAttribute('inert', ''); }
-        dialog.style.pointerEvents = 'none';
+  // F-021 FIX: Exit animation for bid modal (was instant dialog.close()).
+  // Parity with Hub Sheet which has animate-out before close.
+  function closeModal(): void {
+    // P2-008 FIX: Disable interaction during 200ms close animation.
+    // PREVIOUS: Submit and Cancel buttons remained clickable during the
+    // fade-out. Rapid clicker could fire submitBid() DURING close animation.
+    // NOW: inert + pointer-events:none blocks ALL interaction immediately.
+    // Standard: WCAG 2.1.2 (No Keyboard Trap), Animation Safety.
+    const content = dialog.querySelector(
+      '.nm-dialog-inner, [class*="bg-white"]',
+    ) as HTMLElement | null;
+    if (content) {
+      content.setAttribute('inert', '');
+    }
+    dialog.style.pointerEvents = 'none';
 
-        dialog.style.opacity = '0';
-        dialog.style.transition = 'opacity 200ms ease-out';
-        setTimeout(() => {
-            dialog.close();
-            triggerEl?.focus();
-        }, 200);
+    dialog.style.opacity = '0';
+    dialog.style.transition = 'opacity 200ms ease-out';
+    setTimeout(() => {
+      dialog.close();
+      triggerEl?.focus();
+    }, 200);
+  }
+
+  // Native dialog auto-closes on Escape; we listen for cleanup + focus restore
+  dialog.addEventListener('close', () => {
+    dialog.remove();
+    // P2-007 FIX: Release guard on ANY close path (Escape, backdrop, cancel, success).
+    bidModalOpen = false;
+    triggerEl?.focus();
+  });
+
+  // Backdrop click closes dialog (click on dialog element itself = backdrop area)
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) {
+      closeModal();
+    }
+  });
+
+  document.getElementById('bid-cancel')?.addEventListener('click', () => {
+    closeModal();
+  });
+
+  document.getElementById('bid-submit')?.addEventListener('click', async () => {
+    const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
+    const cancelBtn = document.getElementById('bid-cancel') as HTMLButtonElement;
+    const errorEl = document.getElementById('bid-error');
+
+    // P2-007 FIX (Race Vector 2): Disable submit IMMEDIATELY — before validation.
+    // PREVIOUS: 30 lines of validation (L508-529) ran BEFORE disable (L531-534).
+    // Rapid clicks during validation window fired multiple contractor.submitBid() calls,
+    // each with a unique Idempotency-Key (crypto.randomUUID() per call in portals.ts).
+    // NOW: Disable is the FIRST action. Re-enable only if validation fails.
+    submitBtn.disabled = true;
+    submitBtn.classList.add('btn-loading', 'cursor-not-allowed');
+
+    const cost = parseInt((document.getElementById('bid-cost') as HTMLInputElement).value, 10);
+    const days = parseInt((document.getElementById('bid-days') as HTMLInputElement).value, 10);
+    const letter = (document.getElementById('bid-letter') as HTMLTextAreaElement).value;
+
+    // Helper: re-enable buttons on validation failure
+    const reEnableButtons = (): void => {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
+    };
+
+    if (!cost || !days || cost <= 0 || days <= 0) {
+      if (errorEl) {
+        errorEl.textContent = t('ct_fill_cost_days', 'يرجى تعبئة التكلفة والأيام');
+        errorEl.classList.remove('nm-hidden');
+      }
+      reEnableButtons();
+      return;
     }
 
-    // Native dialog auto-closes on Escape; we listen for cleanup + focus restore
-    dialog.addEventListener('close', () => {
-        dialog.remove();
-        // P2-007 FIX: Release guard on ANY close path (Escape, backdrop, cancel, success).
-        bidModalOpen = false;
-        triggerEl?.focus();
-    });
+    // P1-006 FIX (Wave 2): Maximum cost/duration validation — FinTech guard.
+    // 10M USD max cost (matches homeowner-portal budget ceiling),
+    // 3650 days max (10 years — reasonable upper bound for reconstruction).
+    // Standard: FinTech Input Validation, OWASP Input Validation Cheat Sheet.
+    const MAX_BID_COST = 10_000_000; // USD
+    const MAX_BID_DAYS = 3650; // ~10 years
+    if (cost > MAX_BID_COST) {
+      if (errorEl) {
+        errorEl.textContent = t(
+          'ct_bid_cost_too_high',
+          `Maximum bid cost is $${MAX_BID_COST.toLocaleString()}`,
+        );
+        errorEl.classList.remove('nm-hidden');
+      }
+      reEnableButtons();
+      return;
+    }
+    if (days > MAX_BID_DAYS) {
+      if (errorEl) {
+        errorEl.textContent = t('ct_bid_days_too_high', `Maximum timeline is ${MAX_BID_DAYS} days`);
+        errorEl.classList.remove('nm-hidden');
+      }
+      reEnableButtons();
+      return;
+    }
 
-    // Backdrop click closes dialog (click on dialog element itself = backdrop area)
-    dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) { closeModal(); }
-    });
+    // P2-007 FIX (Race Vector 3): Disable cancel during in-flight API call.
+    // PREVIOUS: User could click Cancel while submitBid() was mid-flight.
+    // This closed the dialog (removing DOM) while the async handler still
+    // held references to now-removed elements → silent failure or orphan state.
+    cancelBtn.disabled = true;
+    cancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-    document.getElementById('bid-cancel')?.addEventListener('click', () => { closeModal(); });
+    try {
+      const res = await contractor.submitBid({
+        project_id: projectId,
+        proposed_cost: cost * 100, // Convert to cents
+        estimated_days: days,
+        cover_letter: letter || undefined,
+      });
 
-    document.getElementById('bid-submit')?.addEventListener('click', async () => {
-        const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;
-        const cancelBtn = document.getElementById('bid-cancel') as HTMLButtonElement;
-        const errorEl = document.getElementById('bid-error');
+      if (!res.success) {
+        throw new Error(res.error ?? 'Bid failed');
+      }
 
-        // P2-007 FIX (Race Vector 2): Disable submit IMMEDIATELY — before validation.
-        // PREVIOUS: 30 lines of validation (L508-529) ran BEFORE disable (L531-534).
-        // Rapid clicks during validation window fired multiple contractor.submitBid() calls,
-        // each with a unique Idempotency-Key (crypto.randomUUID() per call in portals.ts).
-        // NOW: Disable is the FIRST action. Re-enable only if validation fails.
-        submitBtn.disabled = true;
-        submitBtn.classList.add('btn-loading', 'cursor-not-allowed');
+      dialog.close();
+      dialog.remove();
+      loadStats();
+      loadMarketplace();
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent =
+          err instanceof Error ? err.message : t('ct_submission_failed', 'فشل تقديم العرض');
+        errorEl.classList.remove('nm-hidden');
+      }
+      reEnableButtons();
+      // Re-enable cancel so user can dismiss after error
+      cancelBtn.disabled = false;
+      cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  });
 
-        const cost = parseInt((document.getElementById('bid-cost') as HTMLInputElement).value, 10);
-        const days = parseInt((document.getElementById('bid-days') as HTMLInputElement).value, 10);
-        const letter = (document.getElementById('bid-letter') as HTMLTextAreaElement).value;
-
-        // Helper: re-enable buttons on validation failure
-        const reEnableButtons = (): void => {
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
-        };
-
-        if (!cost || !days || cost <= 0 || days <= 0) {
-            if (errorEl) { errorEl.textContent = t('ct_fill_cost_days', 'Please fill in cost and days'); errorEl.classList.remove('nm-hidden'); }
-            reEnableButtons();
-            return;
-        }
-
-        // P1-006 FIX (Wave 2): Maximum cost/duration validation — FinTech guard.
-        // 10M USD max cost (matches homeowner-portal budget ceiling),
-        // 3650 days max (10 years — reasonable upper bound for reconstruction).
-        // Standard: FinTech Input Validation, OWASP Input Validation Cheat Sheet.
-        const MAX_BID_COST = 10_000_000; // USD
-        const MAX_BID_DAYS = 3650;       // ~10 years
-        if (cost > MAX_BID_COST) {
-            if (errorEl) { errorEl.textContent = t('ct_bid_cost_too_high', `Maximum bid cost is $${MAX_BID_COST.toLocaleString()}`); errorEl.classList.remove('nm-hidden'); }
-            reEnableButtons();
-            return;
-        }
-        if (days > MAX_BID_DAYS) {
-            if (errorEl) { errorEl.textContent = t('ct_bid_days_too_high', `Maximum timeline is ${MAX_BID_DAYS} days`); errorEl.classList.remove('nm-hidden'); }
-            reEnableButtons();
-            return;
-        }
-
-        // P2-007 FIX (Race Vector 3): Disable cancel during in-flight API call.
-        // PREVIOUS: User could click Cancel while submitBid() was mid-flight.
-        // This closed the dialog (removing DOM) while the async handler still
-        // held references to now-removed elements → silent failure or orphan state.
-        cancelBtn.disabled = true;
-        cancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
-        try {
-            const res = await contractor.submitBid({
-                project_id: projectId,
-                proposed_cost: cost * 100, // Convert to cents
-                estimated_days: days,
-                cover_letter: letter || undefined,
-            });
-
-            if (!res.success) {
-                throw new Error(res.error ?? 'Bid failed');
-            }
-
-            dialog.close();
-            dialog.remove();
-            loadStats();
-            loadMarketplace();
-        } catch (err) {
-            if (errorEl) {
-                errorEl.textContent = err instanceof Error ? err.message : t('ct_submission_failed', 'Submission failed');
-                errorEl.classList.remove('nm-hidden');
-            }
-            reEnableButtons();
-            // Re-enable cancel so user can dismiss after error
-            cancelBtn.disabled = false;
-            cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-    });
-
-    // Show dialog — provides native focus trapping + backdrop + escape
-    // SYS-004: Polyfill for older browsers before calling showModal().
-    polyfillDialog(dialog);
-    dialog.showModal();
-    // Auto-focus first input
-    const firstInput = dialog.querySelector<HTMLElement>('input, textarea');
-    firstInput?.focus();
+  // Show dialog — provides native focus trapping + backdrop + escape
+  // SYS-004: Polyfill for older browsers before calling showModal().
+  polyfillDialog(dialog);
+  dialog.showModal();
+  // Auto-focus first input
+  const firstInput = dialog.querySelector<HTMLElement>('input, textarea');
+  firstInput?.focus();
 }
 
 // P4-001 FIX: setText() moved to shared utils/dom.ts
 
-
-
 // ─── Dev-Only Expose (stripped in production builds) ────────────────────────
 if (import.meta.env.DEV) {
-    (window as unknown as Record<string, unknown>)['contractorPortal'] = {
-        switchTab,
-        loadStats,
-        loadMarketplace,
-    };
+  (window as unknown as Record<string, unknown>)['contractorPortal'] = {
+    switchTab,
+    loadStats,
+    loadMarketplace,
+  };
 }
 
 // ─── G8 FIX: Status badge translators (i18n parity) ────────────────────────
 function ctPhaseLabel(phase: string): string {
-    switch (phase?.toLowerCase()) {
-        case 'planning': return t('ct_phase_planning', 'Planning');
-        case 'in_progress': return t('ct_phase_in_progress', 'In Progress');
-        case 'construction': return t('ct_phase_construction', 'Construction');
-        case 'completed': return t('ct_phase_completed', 'Completed');
-        case 'delivered': return t('ct_phase_delivered', 'Delivered');
-        case 'published': return t('ct_phase_published', 'Published');
-        default: return phase;
-    }
+  switch (phase?.toLowerCase()) {
+    case 'planning':
+      return t('ct_phase_planning', 'تخطيط');
+    case 'in_progress':
+      return t('ct_phase_in_progress', 'قيد التنفيذ');
+    case 'construction':
+      return t('ct_phase_construction', 'بناء');
+    case 'completed':
+      return t('ct_phase_completed', 'مكتمل');
+    case 'delivered':
+      return t('ct_phase_delivered', 'تم التسليم');
+    case 'published':
+      return t('ct_phase_published', 'منشور');
+    default:
+      return phase;
+  }
 }
 
 function ctBidStatusLabel(status: string): string {
-    switch (status?.toLowerCase()) {
-        case 'pending': return t('ct_bid_pending', 'Pending');
-        case 'accepted': return t('ct_bid_accepted', 'Accepted');
-        case 'rejected': return t('ct_bid_rejected', 'Rejected');
-        case 'withdrawn': return t('ct_bid_withdrawn', 'Withdrawn');
-        default: return status;
-    }
+  switch (status?.toLowerCase()) {
+    case 'pending':
+      return t('ct_bid_pending', 'قيد المراجعة');
+    case 'accepted':
+      return t('ct_bid_accepted', 'مقبول');
+    case 'rejected':
+      return t('ct_bid_rejected', 'مرفوض');
+    case 'withdrawn':
+      return t('ct_bid_withdrawn', 'تم السحب');
+    default:
+      return status;
+  }
 }
 
 function ctEscrowStatusLabel(status: string): string {
-    switch (status?.toLowerCase()) {
-        case 'locked': return t('ct_escrow_locked', 'Locked');
-        case 'released': return t('ct_escrow_released_label', 'Released');
-        case 'refunded': return t('ct_escrow_refunded', 'Refunded');
-        default: return status;
-    }
+  switch (status?.toLowerCase()) {
+    case 'locked':
+      return t('ct_escrow_locked', 'محجوز');
+    case 'released':
+      return t('ct_escrow_released_label', 'محرر');
+    case 'refunded':
+      return t('ct_escrow_refunded', 'مسترد');
+    default:
+      return status;
+  }
 }

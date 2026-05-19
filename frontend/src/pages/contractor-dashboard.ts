@@ -34,161 +34,193 @@ autoTriggerTour();
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    // W6-001 FIX: Guard all protected content behind auth check.
-    if (!requireAuth()) { return; }
-    initTimestamp();
-    // GAP-2601: Signal hydration after primary data loads
-    Promise.allSettled([loadKPIs(), loadProjectTimeline()]).then(signalHydrated);
-    setupTabs();
+  // W6-001 FIX: Guard all protected content behind auth check.
+  if (!requireAuth()) {
+    return;
+  }
+  initTimestamp();
+  // GAP-2601: Signal hydration after primary data loads
+  Promise.allSettled([loadKPIs(), loadProjectTimeline()]).then(signalHydrated);
+  setupTabs();
 });
-
 
 // ─── Live Timestamp ─────────────────────────────────────────────────────────
 function initTimestamp(): void {
-    const el = document.getElementById('live-timestamp');
-    if (!el) { return; }
+  const el = document.getElementById('live-timestamp');
+  if (!el) {
+    return;
+  }
 
-    const update = (): void => {
-        const now = new Date();
-        // PLAT-AUD-005 FIX: Use centralized getLocale() instead of inline detection.
-        el.textContent = now.toLocaleString(getLocale(), {
-            weekday: 'short', month: 'short', day: 'numeric',
-            year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
-        });
-    };
-    update();
-    // M-002 FIX: Store interval ID and clear on page unload to prevent
-    // ghost intervals from accumulating during SPA-like navigation.
-    const intervalId = setInterval(update, 1000);
-    window.addEventListener('beforeunload', () => clearInterval(intervalId));
+  const update = (): void => {
+    const now = new Date();
+    // PLAT-AUD-005 FIX: Use centralized getLocale() instead of inline detection.
+    el.textContent = now.toLocaleString(getLocale(), {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  };
+  update();
+  // M-002 FIX: Store interval ID and clear on page unload to prevent
+  // ghost intervals from accumulating during SPA-like navigation.
+  const intervalId = setInterval(update, 1000);
+  window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
 // P1-003 FIX: Hash-based tab routing
 const CONTRACTOR_TABS = ['projects', 'bids'] as const;
-type ContractorDashTab = typeof CONTRACTOR_TABS[number];
+type ContractorDashTab = (typeof CONTRACTOR_TABS)[number];
 const ctrHashRouter = createHashRouter(CONTRACTOR_TABS, 'projects');
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
 function setupTabs(): void {
-    const tabProjects = document.getElementById('tab-projects');
-    const tabBids = document.getElementById('tab-bids');
+  const tabProjects = document.getElementById('tab-projects');
+  const tabBids = document.getElementById('tab-bids');
 
-    tabProjects?.addEventListener('click', () => switchDashTab('projects'));
-    tabBids?.addEventListener('click', () => switchDashTab('bids'));
+  tabProjects?.addEventListener('click', () => switchDashTab('projects'));
+  tabBids?.addEventListener('click', () => switchDashTab('bids'));
 
-    // P1-003 FIX: Activate from URL hash
-    const initial = ctrHashRouter.getInitialTab();
-    switchDashTab(initial);
-    ctrHashRouter.onHashChange(switchDashTab);
+  // P1-003 FIX: Activate from URL hash
+  const initial = ctrHashRouter.getInitialTab();
+  switchDashTab(initial);
+  ctrHashRouter.onHashChange(switchDashTab);
 
-    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
-    initSwipeTabs({
-        containerSelector: '.dashboard-main',
-        tabs: CONTRACTOR_TABS as unknown as readonly string[],
-        onSwitch: switchDashTab as (tab: string) => void,
-        getCurrentTab: () => ctrHashRouter.getInitialTab(),
-    });
+  // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+  initSwipeTabs({
+    containerSelector: '.dashboard-main',
+    tabs: CONTRACTOR_TABS as unknown as readonly string[],
+    onSwitch: switchDashTab as (tab: string) => void,
+    getCurrentTab: () => ctrHashRouter.getInitialTab(),
+  });
 }
 
 function switchDashTab(tab: ContractorDashTab): void {
-    ctrHashRouter.setActiveTab(tab);
-    const tabProjects = document.getElementById('tab-projects');
-    const tabBids = document.getElementById('tab-bids');
-    const sectionProjects = document.getElementById('section-projects');
-    const sectionBids = document.getElementById('section-bids');
+  ctrHashRouter.setActiveTab(tab);
+  const tabProjects = document.getElementById('tab-projects');
+  const tabBids = document.getElementById('tab-bids');
+  const sectionProjects = document.getElementById('section-projects');
+  const sectionBids = document.getElementById('section-bids');
 
-    if (tab === 'projects') {
-        tabProjects?.classList.add('bg-trust-blue/10', 'text-trust-blue');
-        tabProjects?.classList.remove('text-slate-600');
-        tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
-        tabBids?.classList.add('text-slate-600');
-        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
-        tabProjects?.setAttribute('aria-selected', 'true');
-        tabBids?.setAttribute('aria-selected', 'false');
-        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-        if (sectionProjects) { sectionProjects.classList.remove('nm-hidden'); }
-        if (sectionBids) { sectionBids.classList.add('nm-hidden'); }
-    } else {
-        tabBids?.classList.add('bg-trust-blue/10', 'text-trust-blue');
-        tabBids?.classList.remove('text-slate-600');
-        tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
-        tabProjects?.classList.add('text-slate-600');
-        // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
-        tabBids?.setAttribute('aria-selected', 'true');
-        tabProjects?.setAttribute('aria-selected', 'false');
-        // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-        if (sectionBids) { sectionBids.classList.remove('nm-hidden'); }
-        if (sectionProjects) { sectionProjects.classList.add('nm-hidden'); }
-        loadBids();
+  if (tab === 'projects') {
+    tabProjects?.classList.add('bg-trust-blue/10', 'text-trust-blue');
+    tabProjects?.classList.remove('text-slate-600');
+    tabBids?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
+    tabBids?.classList.add('text-slate-600');
+    // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+    tabProjects?.setAttribute('aria-selected', 'true');
+    tabBids?.setAttribute('aria-selected', 'false');
+    // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+    if (sectionProjects) {
+      sectionProjects.classList.remove('nm-hidden');
     }
+    if (sectionBids) {
+      sectionBids.classList.add('nm-hidden');
+    }
+  } else {
+    tabBids?.classList.add('bg-trust-blue/10', 'text-trust-blue');
+    tabBids?.classList.remove('text-slate-600');
+    tabProjects?.classList.remove('bg-trust-blue/10', 'text-trust-blue');
+    tabProjects?.classList.add('text-slate-600');
+    // LB-002 FIX: WCAG 4.1.2 — update aria-selected for screen reader parity
+    tabBids?.setAttribute('aria-selected', 'true');
+    tabProjects?.setAttribute('aria-selected', 'false');
+    // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+    if (sectionBids) {
+      sectionBids.classList.remove('nm-hidden');
+    }
+    if (sectionProjects) {
+      sectionProjects.classList.add('nm-hidden');
+    }
+    loadBids();
+  }
 }
 
 // ─── Load KPIs from contractor.getStats() ───────────────────────────────────
 // PLT-2026-CRT-001: Uses contractor stats shape:
 //   { assigned_projects, completed_projects, active_bids, total_earnings }
 async function loadKPIs(): Promise<void> {
-    try {
-        const res = await contractor.getStats();
-        if (!res.data) { return; }
-        const data = res.data;
-
-        setKPI('assigned-projects', data.active_projects ?? 0);
-        setKPI('active-bids', data.pending_bids ?? 0);
-        setKPI('completed-projects', data.won_bids ?? 0);
-        setKPI('total-earnings', data.total_escrow_received ?? 0, '$');
-
-        // Badge counts
-        const projectCount = document.getElementById('project-count');
-        if (projectCount) { projectCount.textContent = String(data.active_projects ?? 0); }
-        const bidCount = document.getElementById('bid-count');
-        if (bidCount) { bidCount.textContent = String(data.pending_bids ?? 0); }
-    } catch (err) {
-        // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
-        reportWarning('[ContractorDashboard] KPI load failed', {
-            component: 'contractor-dashboard', action: 'load_kpis',
-            error: err instanceof Error ? err.message : String(err),
-        });
-        // W7-001 FIX: Show user-facing error state on KPI cards.
-        // Previous: Silent freeze — KPI cards stayed in loading/default state forever.
-        ['assigned-projects', 'active-bids', 'completed-projects', 'total-earnings'].forEach(name => {
-            const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
-            if (el) { el.textContent = '—'; }
-        });
+  try {
+    const res = await contractor.getStats();
+    if (!res.data) {
+      return;
     }
+    const data = res.data;
+
+    setKPI('assigned-projects', data.active_projects ?? 0);
+    setKPI('active-bids', data.pending_bids ?? 0);
+    setKPI('completed-projects', data.won_bids ?? 0);
+    setKPI('total-earnings', data.total_escrow_received ?? 0, '$');
+
+    // Badge counts
+    const projectCount = document.getElementById('project-count');
+    if (projectCount) {
+      projectCount.textContent = String(data.active_projects ?? 0);
+    }
+    const bidCount = document.getElementById('bid-count');
+    if (bidCount) {
+      bidCount.textContent = String(data.pending_bids ?? 0);
+    }
+  } catch (err) {
+    // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
+    reportWarning('[ContractorDashboard] KPI load failed', {
+      component: 'contractor-dashboard',
+      action: 'load_kpis',
+      error: err instanceof Error ? err.message : String(err),
+    });
+    // W7-001 FIX: Show user-facing error state on KPI cards.
+    // Previous: Silent freeze — KPI cards stayed in loading/default state forever.
+    ['assigned-projects', 'active-bids', 'completed-projects', 'total-earnings'].forEach((name) => {
+      const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
+      if (el) {
+        el.textContent = '—';
+      }
+    });
+  }
 }
 
 // ─── Load Project Timeline from contractor.getProjects() ────────────────────
 async function loadProjectTimeline(): Promise<void> {
-    const tbody = document.getElementById('project-timeline-body');
-    if (!tbody) { return; }
+  const tbody = document.getElementById('project-timeline-body');
+  if (!tbody) {
+    return;
+  }
 
-    try {
-        const res = await contractor.getProjects();
-        const projects = (res.data ?? []) as unknown as Array<Record<string, string | number>>;
+  try {
+    const res = await contractor.getProjects();
+    const projects = (res.data ?? []) as unknown as Array<Record<string, string | number>>;
 
-        if (projects.length === 0) {
-            // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
-            const loadingRow = document.getElementById('projects-loading-row');
-            const emptyRow = document.getElementById('projects-empty-row');
-            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
-            if (emptyRow) { emptyRow.classList.remove('nm-hidden'); }
-            return;
-        }
+    if (projects.length === 0) {
+      // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
+      const loadingRow = document.getElementById('projects-loading-row');
+      const emptyRow = document.getElementById('projects-empty-row');
+      // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+      if (loadingRow) {
+        loadingRow.classList.add('nm-hidden');
+      }
+      if (emptyRow) {
+        emptyRow.classList.remove('nm-hidden');
+      }
+      return;
+    }
 
-        // Remove loading and empty state rows before rendering data
-        document.getElementById('projects-loading-row')?.remove();
-        document.getElementById('projects-empty-row')?.remove();
+    // Remove loading and empty state rows before rendering data
+    document.getElementById('projects-loading-row')?.remove();
+    document.getElementById('projects-empty-row')?.remove();
 
-        // P1-UXA-002 FIX: Progressive rendering for contractor project timeline
-        renderProgressive({
-            items: projects,
-            containerEl: tbody,
-            pageSize: 20,
-            renderItem: (p) => {
-                const progress = Number(p['progress'] ?? 0);
-                const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
-                return `
+    // P1-UXA-002 FIX: Progressive rendering for contractor project timeline
+    renderProgressive({
+      items: projects,
+      containerEl: tbody,
+      pageSize: 20,
+      renderItem: (p) => {
+        const progress = Number(p['progress'] ?? 0);
+        const progressColor =
+          progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
+        return `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(p['title'] ?? ''))}</h3>
@@ -217,59 +249,66 @@ async function loadProjectTimeline(): Promise<void> {
                     </a>
                 </div>
             </div>`;
-            },
-        });
+      },
+    });
 
-        applyI18n();
-    } catch (err) {
-        // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
-        reportWarning('[ContractorDashboard] Project timeline load failed', {
-            component: 'contractor-dashboard', action: 'load_timeline',
-            error: err instanceof Error ? err.message : String(err),
-        });
-        // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
-        // Previous: innerHTML += appended error row alongside hidden loading/empty rows.
-        // renderErrorWithRetry provides consistent error display with retry button.
-        // Standard: Design System Component Unity, Nielsen #9 (Error Recovery).
-        renderErrorWithRetry(tbody, loadProjectTimeline, undefined, undefined, err);
-    }
+    applyI18n();
+  } catch (err) {
+    // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
+    reportWarning('[ContractorDashboard] Project timeline load failed', {
+      component: 'contractor-dashboard',
+      action: 'load_timeline',
+      error: err instanceof Error ? err.message : String(err),
+    });
+    // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
+    // Previous: innerHTML += appended error row alongside hidden loading/empty rows.
+    // renderErrorWithRetry provides consistent error display with retry button.
+    // Standard: Design System Component Unity, Nielsen #9 (Error Recovery).
+    renderErrorWithRetry(tbody, loadProjectTimeline, undefined, undefined, err);
+  }
 }
 
 // ─── Load My Bids from contractor.getBids() ─────────────────────────────────
 async function loadBids(): Promise<void> {
-    const container = document.getElementById('bids-body');
-    if (!container) { return; }
+  const container = document.getElementById('bids-body');
+  if (!container) {
+    return;
+  }
 
-    try {
-        const res = await contractor.getBids();
-        const bids = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
+  try {
+    const res = await contractor.getBids();
+    const bids = (res.data ?? []) as unknown as Array<Record<string, string | number | null>>;
 
-        if (bids.length === 0) {
-            // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
-            const loadingRow = document.getElementById('bids-loading-row');
-            const emptyRow = document.getElementById('bids-empty-row');
-            // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
-            if (loadingRow) { loadingRow.classList.add('nm-hidden'); }
-            if (emptyRow) { emptyRow.classList.remove('nm-hidden'); }
-            return;
-        }
+    if (bids.length === 0) {
+      // GAP-02 FIX: Use enriched HTML empty state instead of inline fallback
+      const loadingRow = document.getElementById('bids-loading-row');
+      const emptyRow = document.getElementById('bids-empty-row');
+      // P1-SST-001 FIX: CSS class toggle replaces inline style.display.
+      if (loadingRow) {
+        loadingRow.classList.add('nm-hidden');
+      }
+      if (emptyRow) {
+        emptyRow.classList.remove('nm-hidden');
+      }
+      return;
+    }
 
-        // Remove loading and empty state rows before rendering data
-        document.getElementById('bids-loading-row')?.remove();
-        document.getElementById('bids-empty-row')?.remove();
+    // Remove loading and empty state rows before rendering data
+    document.getElementById('bids-loading-row')?.remove();
+    document.getElementById('bids-empty-row')?.remove();
 
-        // P1-UXA-002 FIX: Progressive rendering for contractor bids
-        renderProgressive({
-            items: bids,
-            containerEl: container,
-            pageSize: 20,
-            renderItem: (b) => {
-                // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
-                const costFormatted = formatCents(Number(b['proposed_cost']) || 0);
-                // PLT-AUD-I004 FIX: Use i18n t() instead of hardcoded lang switch
-                const daysLabel = t('unit_days', 'days');
+    // P1-UXA-002 FIX: Progressive rendering for contractor bids
+    renderProgressive({
+      items: bids,
+      containerEl: container,
+      pageSize: 20,
+      renderItem: (b) => {
+        // PLT-AUD-I005 FIX: Use centralized formatCents (was inline Intl.NumberFormat)
+        const costFormatted = formatCents(Number(b['proposed_cost']) || 0);
+        // PLT-AUD-I004 FIX: Use i18n t() instead of hardcoded lang switch
+        const daysLabel = t('unit_days', 'يوم');
 
-                return `
+        return `
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(b['project_title'] ?? ''))}</h3>
@@ -293,69 +332,88 @@ async function loadBids(): Promise<void> {
                     </div>
                 </div>
             </div>`;
-            },
-        });
+      },
+    });
 
-        applyI18n();
-    } catch (err) {
-        // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
-        reportWarning('[ContractorDashboard] Bids load failed', {
-            component: 'contractor-dashboard', action: 'load_bids',
-            error: err instanceof Error ? err.message : String(err),
-        });
-        // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
-        renderErrorWithRetry(container, loadBids, undefined, undefined, err);
-    }
+    applyI18n();
+  } catch (err) {
+    // P1-PLT-003 FIX: Report post-fetch parsing errors that bypass api.ts reporter
+    reportWarning('[ContractorDashboard] Bids load failed', {
+      component: 'contractor-dashboard',
+      action: 'load_bids',
+      error: err instanceof Error ? err.message : String(err),
+    });
+    // TICK-026: Use shared error-retry utility instead of manual innerHTML +=.
+    renderErrorWithRetry(container, loadBids, undefined, undefined, err);
+  }
 }
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
 function setKPI(name: string, value: number, prefix = ''): void {
-    const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
-    if (!el) { return; }
+  const el = document.querySelector<HTMLElement>(`[data-kpi="${name}"]`);
+  if (!el) {
+    return;
+  }
 
-    const duration = 1200;
-    const start = performance.now();
-    // PLAT-AUD-005 FIX: Use centralized getLocale() instead of inline detection.
-    const locale = getLocale();
+  const duration = 1200;
+  const start = performance.now();
+  // PLAT-AUD-005 FIX: Use centralized getLocale() instead of inline detection.
+  const locale = getLocale();
 
-    const tick = (now: number): void => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        if (prefix === '$') {
-            const current = Math.round((value / 100) * eased);
-            el.textContent = new Intl.NumberFormat(locale, {
-                style: 'currency', currency: 'USD', minimumFractionDigits: 0,
-            }).format(current);
-        } else {
-            const current = Math.round(value * eased);
-            el.textContent = current.toLocaleString(locale);
-        }
-        if (progress < 1) { requestAnimationFrame(tick); }
-    };
-    requestAnimationFrame(tick);
+  const tick = (now: number): void => {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    if (prefix === '$') {
+      const current = Math.round((value / 100) * eased);
+      el.textContent = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+      }).format(current);
+    } else {
+      const current = Math.round(value * eased);
+      el.textContent = current.toLocaleString(locale);
+    }
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    }
+  };
+  requestAnimationFrame(tick);
 }
 
 // PLAT-AUD-005 FIX: formatDate and applyI18n are now imported from utils/locale.
 
 // ─── G8 WEB FIX: Translate phase + bid status badges ────────────────────────
 function ctPhaseLabel(phase: string): string {
-    switch (phase?.toLowerCase()) {
-        case 'planning': return t('ct_phase_planning', 'Planning');
-        case 'in_progress': return t('ct_phase_in_progress', 'In Progress');
-        case 'construction': return t('ct_phase_construction', 'Construction');
-        case 'completed': return t('ct_phase_completed', 'Completed');
-        case 'delivered': return t('ct_phase_delivered', 'Delivered');
-        case 'published': return t('ct_phase_published', 'Published');
-        default: return phase;
-    }
+  switch (phase?.toLowerCase()) {
+    case 'planning':
+      return t('ct_phase_planning', 'تخطيط');
+    case 'in_progress':
+      return t('ct_phase_in_progress', 'قيد التنفيذ');
+    case 'construction':
+      return t('ct_phase_construction', 'بناء');
+    case 'completed':
+      return t('ct_phase_completed', 'مكتمل');
+    case 'delivered':
+      return t('ct_phase_delivered', 'تم التسليم');
+    case 'published':
+      return t('ct_phase_published', 'منشور');
+    default:
+      return phase;
+  }
 }
 
 function ctBidStatusLabel(status: string): string {
-    switch (status?.toLowerCase()) {
-        case 'pending': return t('ct_bid_pending', 'Pending');
-        case 'accepted': return t('ct_bid_accepted', 'Accepted');
-        case 'rejected': return t('ct_bid_rejected', 'Rejected');
-        case 'withdrawn': return t('ct_bid_withdrawn', 'Withdrawn');
-        default: return status;
-    }
+  switch (status?.toLowerCase()) {
+    case 'pending':
+      return t('ct_bid_pending', 'قيد المراجعة');
+    case 'accepted':
+      return t('ct_bid_accepted', 'مقبول');
+    case 'rejected':
+      return t('ct_bid_rejected', 'مرفوض');
+    case 'withdrawn':
+      return t('ct_bid_withdrawn', 'تم السحب');
+    default:
+      return status;
+  }
 }

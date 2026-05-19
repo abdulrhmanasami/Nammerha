@@ -7,8 +7,8 @@
 import { t } from './i18n';
 
 interface StrengthLabel {
-    text: string;
-    i18nKey: string;
+  text: string;
+  i18nKey: string;
 }
 
 /**
@@ -26,49 +26,57 @@ interface StrengthLabel {
  * @returns Score from 0–4
  */
 export function updatePasswordStrength(
-    password: string,
-    strengthBars: HTMLCollection | undefined,
-    strengthLabel: HTMLElement | null,
+  password: string,
+  strengthBars: HTMLCollection | undefined,
+  strengthLabel: HTMLElement | null,
 ): number {
-    let score = 0;
-    if (password.length >= 8) { score++; }
-    if (/[A-Z]/.test(password)) { score++; }
-    if (/[0-9]/.test(password)) { score++; }
-    if (/[^A-Za-z0-9]/.test(password)) { score++; }
+  let score = 0;
+  if (password.length >= 8) {
+    score++;
+  }
+  if (/[A-Z]/.test(password)) {
+    score++;
+  }
+  if (/[0-9]/.test(password)) {
+    score++;
+  }
+  if (/[^A-Za-z0-9]/.test(password)) {
+    score++;
+  }
 
-    const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400'];
+  const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400'];
 
-    const labels: StrengthLabel[] = [
-        { text: t('pw_strength_weak', 'Weak'), i18nKey: 'pw_strength_weak' },
-        { text: t('pw_strength_fair', 'Fair'), i18nKey: 'pw_strength_fair' },
-        { text: t('pw_strength_good', 'Good'), i18nKey: 'pw_strength_good' },
-        { text: t('pw_strength_strong', 'Strong'), i18nKey: 'pw_strength_strong' },
-    ];
+  const labels: StrengthLabel[] = [
+    { text: t('pw_strength_weak', 'ضعيف'), i18nKey: 'pw_strength_weak' },
+    { text: t('pw_strength_fair', 'مقبول'), i18nKey: 'pw_strength_fair' },
+    { text: t('pw_strength_good', 'جيد'), i18nKey: 'pw_strength_good' },
+    { text: t('pw_strength_strong', 'قوي'), i18nKey: 'pw_strength_strong' },
+  ];
 
-    if (strengthBars) {
-        for (let i = 0; i < strengthBars.length; i++) {
-            const bar = strengthBars[i] as HTMLElement;
-            if (i < score) {
-                bar.className = `h-2 flex-1 rounded-full ${colors[score - 1]}`;
-            } else {
-                bar.className = 'h-2 flex-1 rounded-full bg-slate-200';
-            }
-        }
+  if (strengthBars) {
+    for (let i = 0; i < strengthBars.length; i++) {
+      const bar = strengthBars[i] as HTMLElement;
+      if (i < score) {
+        bar.className = `h-2 flex-1 rounded-full ${colors[score - 1]}`;
+      } else {
+        bar.className = 'h-2 flex-1 rounded-full bg-slate-200';
+      }
     }
+  }
 
-    if (strengthLabel && password.length > 0) {
-        const label = labels[score - 1];
-        if (label) {
-            strengthLabel.textContent = label.text;
-            strengthLabel.setAttribute('data-i18n', label.i18nKey);
-        } else {
-            strengthLabel.textContent = t('pw_strength_too_short', 'Too short');
-            strengthLabel.setAttribute('data-i18n', 'pw_strength_too_short');
-        }
-    } else if (strengthLabel) {
-        strengthLabel.textContent = t('pw_requirements', '8+ chars, 1 uppercase, 1 number, 1 special');
-        strengthLabel.setAttribute('data-i18n', 'pw_requirements');
+  if (strengthLabel && password.length > 0) {
+    const label = labels[score - 1];
+    if (label) {
+      strengthLabel.textContent = label.text;
+      strengthLabel.setAttribute('data-i18n', label.i18nKey);
+    } else {
+      strengthLabel.textContent = t('pw_strength_too_short', 'قصير جداً');
+      strengthLabel.setAttribute('data-i18n', 'pw_strength_too_short');
     }
+  } else if (strengthLabel) {
+    strengthLabel.textContent = t('pw_requirements', '+٨ أحرف، حرف كبير، حرف صغير، رقم، رمز');
+    strengthLabel.setAttribute('data-i18n', 'pw_requirements');
+  }
 
-    return score;
+  return score;
 }

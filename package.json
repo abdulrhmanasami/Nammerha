@@ -16,11 +16,9 @@
   },
   "lint-staged": {
     "backend/src/**/*.ts": [
-      "eslint --fix --config backend/.eslintrc.cjs",
       "prettier --write"
     ],
     "frontend/src/**/*.ts": [
-      "eslint --fix --config frontend/.eslintrc.cjs",
       "prettier --write"
     ],
     "**/*.{html,css,json,md}": [

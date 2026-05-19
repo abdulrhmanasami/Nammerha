@@ -1,239 +1,399 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Contact Us | تواصل معنا</title>
-  <meta name="description" content="Get in touch with the Nammerha reconstruction platform team. Institutional contact details, support channels, and inquiry form." />
-  <link rel="canonical" href="https://nammerha.com/contact" />
-  <meta property="og:title" content="Nammerha — Contact Us" />
-  <meta property="og:description" content="Official contact details for the Nammerha platform." />
-  <meta property="og:url" content="https://nammerha.com/contact" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Contact Us" />
-  <!-- Schema.org — ContactPage -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "ContactPage",
-    "name": "Nammerha Contact",
-    "url": "https://nammerha.com/contact",
-    "mainEntity": {
-      "@type": "Organization",
-      "name": "Nammerha",
-      "url": "https://nammerha.com",
-      "email": "support@nammerha.com",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "customer support",
-        "availableLanguage": ["English", "Arabic"]
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
       }
-    }
-  }
-  </script>
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-  <script type="module" src="/src/pages/contact.ts"></script>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="mobile-container min-h-screen flex flex-col">
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — تواصل معنا Us | تواصل معنا</title>
+    <meta
+      name="description"
+      content="Get in touch with the Nammerha reconstruction platform team. Institutional contact details, support channels, and inquiry form."
+    />
+    <link rel="canonical" href="https://nammerha.com/contact" />
+    <meta property="og:title" content="نعمّرها — تواصل معنا Us" />
+    <meta property="og:description" content="Official contact details for the Nammerha platform." />
+    <meta property="og:url" content="https://nammerha.com/contact" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="نعمّرها — تواصل معنا Us" />
+    <!-- Schema.org — ContactPage -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "name": "Nammerha Contact",
+        "url": "https://nammerha.com/contact",
+        "mainEntity": {
+          "@type": "Organization",
+          "name": "Nammerha",
+          "url": "https://nammerha.com",
+          "email": "support@nammerha.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "availableLanguage": ["English", "Arabic"]
+          }
+        }
+      }
+    </script>
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+    <script type="module" src="/src/pages/contact.ts"></script>
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="mobile-container min-h-screen flex flex-col">
+      <!-- Header -->
+      <header class="glass-nav sticky top-0 z-50">
+        <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+          <a
+            href="index.html"
+            class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors"
+          >
+            <i class="ph ph-arrow-left text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
+          </a>
+          <h1 class="text-lg font-bold tracking-tight" data-i18n="contact_title">تواصل معنا</h1>
+          <div class="w-10"></div>
+        </div>
+      </header>
 
-  <!-- Header -->
-  <header class="glass-nav sticky top-0 z-50">
-    <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
-      <a href="index.html" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-trust-blue/5 transition-colors">
-        <i class="ph ph-arrow-left text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
-      </a>
-      <h1 class="text-lg font-bold tracking-tight" data-i18n="contact_title">Contact Us</h1>
-      <div class="w-10"></div>
+      <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto w-full">
+        <!-- Institutional Identity -->
+        <section class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center">
+              <i class="ph ph-buildings text-trust-blue nm-icon-28" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base" data-i18n="contact_org_name">نعمِّرها</h2>
+              <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="contact_org_tagline">
+                المنصة الوطنية لإعادة الإعمار
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contact Details -->
+        <section class="mb-8 space-y-4">
+          <h2 class="text-base font-bold mb-3" data-i18n="contact_details">معلومات التواصل</h2>
+
+          <a
+            href="mailto:support@nammerha.com"
+            class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-trust-blue/30 transition-colors dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-envelope text-trust-blue text-xl" aria-hidden="true"></i>
+            </div>
+            <div>
+              <p
+                class="text-xs text-slate-400 font-semibold uppercase dark:text-slate-500"
+                data-i18n="contact_email_label"
+              >
+                البريد الإلكتروني
+              </p>
+              <p class="text-sm font-medium">support@nammerha.com</p>
+            </div>
+          </a>
+
+          <div
+            class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i
+                class="ph ph-map-pin text-smoky-jade text-xl dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <div>
+              <p
+                class="text-xs text-slate-400 font-semibold uppercase dark:text-slate-500"
+                data-i18n="contact_address_label"
+              >
+                العنوان
+              </p>
+              <p class="text-sm font-medium" data-i18n="contact_address_value">دمشق، سوريا</p>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-clock text-warm-earth text-xl" aria-hidden="true"></i>
+            </div>
+            <div>
+              <p
+                class="text-xs text-slate-400 font-semibold uppercase dark:text-slate-500"
+                data-i18n="contact_hours_label"
+              >
+                ساعات العمل
+              </p>
+              <p class="text-sm font-medium" data-i18n="contact_hours_value">
+                الأحد – الخميس، ٩ ص – ٥ م (توقيت دمشق)
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Response Time SLA -->
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="contact_sla">أوقات الاستجابة</h2>
+          <div class="space-y-2">
+            <div
+              class="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <span class="text-sm" data-i18n="contact_sla_general"
+                >استفسارات عامة: ٤٨ ساعة عمل</span
+              >
+              <span
+                class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-1 rounded-full"
+                >&lt; 24h</span
+              >
+            </div>
+            <div
+              class="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <span class="text-sm" data-i18n="contact_sla_escrow">مسائل الضمان: ٢٤ ساعة عمل</span>
+              <span
+                class="text-xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-1 rounded-full"
+                >&lt; 4h</span
+              >
+            </div>
+            <div
+              class="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <span class="text-sm" data-i18n="contact_sla_security">تنبيهات أمنية: ٤ ساعات</span>
+              <span
+                class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full dark:bg-red-500/10"
+                >&lt; 1h</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- Legal Links -->
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="contact_legal">روابط قانونية</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <a
+              href="terms.html"
+              class="p-4 rounded-xl bg-white border border-slate-200 text-center hover:border-trust-blue/30 transition-colors dark:bg-dark-surface dark:border-dark-border"
+            >
+              <i class="ph ph-file-text text-trust-blue text-2xl" aria-hidden="true"></i>
+              <p class="text-xs font-bold mt-2" data-i18n="contact_link_tos">شروط الخدمة</p>
+            </a>
+            <a
+              href="privacy.html"
+              class="p-4 rounded-xl bg-white border border-slate-200 text-center hover:border-trust-blue/30 transition-colors dark:bg-dark-surface dark:border-dark-border"
+            >
+              <i
+                class="ph ph-shield-check text-smoky-jade text-2xl dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+              <p class="text-xs font-bold mt-2" data-i18n="contact_link_privacy">سياسة الخصوصية</p>
+            </a>
+            <a
+              href="refund-policy.html"
+              class="p-4 rounded-xl bg-white border border-slate-200 text-center hover:border-trust-blue/30 transition-colors col-span-2 dark:bg-dark-surface dark:border-dark-border"
+            >
+              <i
+                class="ph ph-arrow-counter-clockwise text-warm-earth text-2xl"
+                aria-hidden="true"
+              ></i>
+              <p class="text-xs font-bold mt-2" data-i18n="contact_link_refund">سياسة الاسترداد</p>
+            </a>
+          </div>
+        </section>
+
+        <!-- Inquiry Form -->
+        <section class="mb-8">
+          <h2 class="text-base font-bold mb-3" data-i18n="contact_form_title">أرسل لنا رسالة</h2>
+          <form id="contact-form" class="space-y-4" novalidate>
+            <div class="grid grid-cols-1 gap-4">
+              <label class="flex flex-col gap-1.5">
+                <span
+                  class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400"
+                  data-i18n="contact_name"
+                  >الاسم الكامل</span
+                >
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  maxlength="100"
+                  autocomplete="name"
+                  enterkeyhint="next"
+                  class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border"
+                />
+              </label>
+              <label class="flex flex-col gap-1.5">
+                <span
+                  class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400"
+                  data-i18n="contact_email"
+                  >البريد الإلكتروني</span
+                >
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  maxlength="254"
+                  autocomplete="email"
+                  enterkeyhint="next"
+                  class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border"
+                />
+              </label>
+              <label class="flex flex-col gap-1.5">
+                <span
+                  class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400"
+                  data-i18n="contact_category"
+                  >الفئة</span
+                >
+                <select
+                  name="category"
+                  class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <option value="general" data-i18n="contact_cat_general">استفسار عام</option>
+                  <option value="escrow_dispute" data-i18n="contact_cat_escrow">
+                    مسائل الضمان
+                  </option>
+                  <option value="security_report" data-i18n="contact_cat_security">
+                    تنبيه أمني
+                  </option>
+                  <option value="partnership" data-i18n="contact_cat_partnership">شراكة</option>
+                  <option value="media" data-i18n="contact_cat_media">إعلام وصحافة</option>
+                  <option value="other" data-i18n="contact_cat_other">أخرى</option>
+                </select>
+              </label>
+              <label class="flex flex-col gap-1.5">
+                <span
+                  class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400"
+                  data-i18n="contact_subject"
+                  >الموضوع</span
+                >
+                <input
+                  name="subject"
+                  type="text"
+                  required
+                  maxlength="200"
+                  enterkeyhint="next"
+                  class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border"
+                />
+              </label>
+              <label class="flex flex-col gap-1.5">
+                <span
+                  class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400"
+                  data-i18n="contact_message"
+                  >الرسالة</span
+                >
+                <textarea
+                  name="message"
+                  required
+                  maxlength="2000"
+                  rows="4"
+                  enterkeyhint="send"
+                  class="px-4 py-3 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all resize-none dark:bg-dark-surface dark:border-dark-border"
+                ></textarea>
+              </label>
+            </div>
+            <button
+              type="button"
+              id="contact-submit"
+              type="submit"
+              class="btn-primary w-full nm-btn-form"
+            >
+              <i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>
+              <span data-i18n="contact_send">إرسال الرسالة</span>
+            </button>
+          </form>
+          <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
+          <div id="contact-result" class="nm-hidden"></div>
+        </section>
+
+        <!-- Trust Badge -->
+        <div
+          class="flex items-center gap-3 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 mt-4"
+        >
+          <i class="ph ph-shield-check text-trust-blue text-2xl" aria-hidden="true"></i>
+          <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="contact_trust">
+            منصة معتمدة OCDS — الشفافية والمساءلة في كل معاملة.
+          </p>
+        </div>
+      </main>
     </div>
-  </header>
+    <!-- COS-003 FIX: Decorative gradient orbs — visual consistency with consumer pages -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-  <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto w-full">
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-    <!-- Institutional Identity -->
-    <section class="mb-8">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center">
-          <i class="ph ph-buildings text-trust-blue nm-icon-28" aria-hidden="true"></i>
-        </div>
-        <div>
-          <h2 class="font-bold text-base" data-i18n="contact_org_name">Nammerha Platform</h2>
-          <p class="text-xs text-slate-400 dark:text-slate-500" data-i18n="contact_org_tagline">Syria Reconstruction Crowdfunding</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact Details -->
-    <section class="mb-8 space-y-4">
-      <h2 class="text-base font-bold mb-3" data-i18n="contact_details">Contact Details</h2>
-
-      <a href="mailto:support@nammerha.com" class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-trust-blue/30 transition-colors dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-envelope text-trust-blue text-xl" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs text-slate-400 font-semibold uppercase dark:text-slate-500" data-i18n="contact_email_label">Email</p>
-          <p class="text-sm font-medium">support@nammerha.com</p>
-        </div>
-      </a>
-
-      <div class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-map-pin text-smoky-jade text-xl dark:text-emerald-400" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs text-slate-400 font-semibold uppercase dark:text-slate-500" data-i18n="contact_address_label">Registered Address</p>
-          <p class="text-sm font-medium" data-i18n="contact_address_value">Details available upon incorporation</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-clock text-warm-earth text-xl" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs text-slate-400 font-semibold uppercase dark:text-slate-500" data-i18n="contact_hours_label">Support Hours</p>
-          <p class="text-sm font-medium" data-i18n="contact_hours_value">Sun–Thu, 09:00–17:00 (Damascus Time, UTC+3)</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Response Time SLA -->
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="contact_sla">Response Times</h2>
-      <div class="space-y-2">
-        <div class="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-          <span class="text-sm" data-i18n="contact_sla_general">General inquiries</span>
-          <span class="text-xs font-bold text-trust-blue bg-trust-blue/10 px-2 py-1 rounded-full">&lt; 24h</span>
-        </div>
-        <div class="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-          <span class="text-sm" data-i18n="contact_sla_escrow">Escrow disputes</span>
-          <span class="text-xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-1 rounded-full">&lt; 4h</span>
-        </div>
-        <div class="flex justify-between items-center p-3 rounded-lg bg-white border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-          <span class="text-sm" data-i18n="contact_sla_security">Security reports</span>
-          <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full dark:bg-red-500/10">&lt; 1h</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Legal Links -->
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="contact_legal">Legal</h2>
-      <div class="grid grid-cols-2 gap-3">
-        <a href="terms.html" class="p-4 rounded-xl bg-white border border-slate-200 text-center hover:border-trust-blue/30 transition-colors dark:bg-dark-surface dark:border-dark-border">
-          <i class="ph ph-file-text text-trust-blue text-2xl" aria-hidden="true"></i>
-          <p class="text-xs font-bold mt-2" data-i18n="contact_link_tos">Terms of Service</p>
-        </a>
-        <a href="privacy.html" class="p-4 rounded-xl bg-white border border-slate-200 text-center hover:border-trust-blue/30 transition-colors dark:bg-dark-surface dark:border-dark-border">
-          <i class="ph ph-shield-check text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
-          <p class="text-xs font-bold mt-2" data-i18n="contact_link_privacy">Privacy Policy</p>
-        </a>
-        <a href="refund-policy.html" class="p-4 rounded-xl bg-white border border-slate-200 text-center hover:border-trust-blue/30 transition-colors col-span-2 dark:bg-dark-surface dark:border-dark-border">
-          <i class="ph ph-arrow-counter-clockwise text-warm-earth text-2xl" aria-hidden="true"></i>
-          <p class="text-xs font-bold mt-2" data-i18n="contact_link_refund">Refund & Dispute Policy</p>
-        </a>
-      </div>
-    </section>
-
-    <!-- Inquiry Form -->
-    <section class="mb-8">
-      <h2 class="text-base font-bold mb-3" data-i18n="contact_form_title">Send Us a Message</h2>
-      <form id="contact-form" class="space-y-4" novalidate>
-        <div class="grid grid-cols-1 gap-4">
-          <label class="flex flex-col gap-1.5">
-            <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400" data-i18n="contact_name">Full Name</span>
-            <input name="name" type="text" required maxlength="100" autocomplete="name" enterkeyhint="next" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border" />
-          </label>
-          <label class="flex flex-col gap-1.5">
-            <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400" data-i18n="contact_email">Email Address</span>
-            <input name="email" type="email" required maxlength="254" autocomplete="email" enterkeyhint="next" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border" />
-          </label>
-          <label class="flex flex-col gap-1.5">
-            <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400" data-i18n="contact_category">Category</span>
-            <select name="category" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border">
-              <option value="general" data-i18n="contact_cat_general">General Inquiry</option>
-              <option value="escrow_dispute" data-i18n="contact_cat_escrow">Escrow Dispute</option>
-              <option value="security_report" data-i18n="contact_cat_security">Security Report</option>
-              <option value="partnership" data-i18n="contact_cat_partnership">Partnership</option>
-              <option value="media" data-i18n="contact_cat_media">Media / Press</option>
-              <option value="other" data-i18n="contact_cat_other">Other</option>
-            </select>
-          </label>
-          <label class="flex flex-col gap-1.5">
-            <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400" data-i18n="contact_subject">Subject</span>
-            <input name="subject" type="text" required maxlength="200" enterkeyhint="next" class="h-11 px-4 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all dark:bg-dark-surface dark:border-dark-border" />
-          </label>
-          <label class="flex flex-col gap-1.5">
-            <span class="text-xs font-semibold text-slate-500 uppercase dark:text-slate-400" data-i18n="contact_message">Message</span>
-            <textarea name="message" required maxlength="2000" rows="4" enterkeyhint="send" class="px-4 py-3 rounded-xl bg-white border border-slate-200 text-base focus:ring-2 focus:ring-trust-blue/20 focus:border-trust-blue outline-none transition-all resize-none dark:bg-dark-surface dark:border-dark-border"></textarea>
-          </label>
-        </div>
-        <button type="button" id="contact-submit" type="submit" class="btn-primary w-full nm-btn-form">
-          <i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>
-          <span data-i18n="contact_send">Send Message</span>
-        </button>
-      </form>
-      <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
-      <div id="contact-result" class="nm-hidden"></div>
-    </section>
-
-    <!-- Trust Badge -->
-    <div class="flex items-center gap-3 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 mt-4">
-      <i class="ph ph-shield-check text-trust-blue text-2xl" aria-hidden="true"></i>
-      <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="contact_trust">We are committed to transparent communication. Every inquiry receives a tracked response within our published SLA.</p>
-    </div>
-  </main>
-
-</div>
-<!-- COS-003 FIX: Decorative gradient orbs — visual consistency with consumer pages -->
-<div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-<div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/contact.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/contact.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

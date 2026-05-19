@@ -3,7 +3,11 @@ import { auth } from '../api';
 import { reportWarning } from '../error-reporter';
 import { t } from '../utils/i18n';
 import { escapeHtml as esc } from '../utils/xss';
-import { showStructuredBanner, hideStructuredBanner, type StructuredBannerElements } from '../utils/banner';
+import {
+  showStructuredBanner,
+  hideStructuredBanner,
+  type StructuredBannerElements,
+} from '../utils/banner';
 // P0-PLAT-001 FIX: Wire native-app mobile utilities that exist but were never connected to auth.
 // Auth is the FIRST screen every user sees — it MUST feel native.
 import { initSwipeTabs } from '../utils/swipe-tabs';
@@ -26,13 +30,13 @@ import '../utils/required-markers';
 // ============================================================================
 
 interface AuthState {
-    mode: 'login' | 'register';
-    isSubmitting: boolean;
+  mode: 'login' | 'register';
+  isSubmitting: boolean;
 }
 
 const state: AuthState = {
-    mode: 'login',
-    isSubmitting: false,
+  mode: 'login',
+  isSubmitting: false,
 };
 
 // ─── UNIFIED CITIZEN: Post-Login Redirect ─────────────────────────────────────
@@ -76,85 +80,89 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
  * Standard: WCAG 2.1.1 (Keyboard).
  */
 function setFormFocusable(form: HTMLFormElement | null, focusable: boolean): void {
-    if (!form) { return; }
-    const inputs = form.querySelectorAll<HTMLElement>('input, button, a[href], select, textarea, [tabindex]');
-    inputs.forEach(el => {
-        if (focusable) {
-            el.removeAttribute('tabindex');
-        } else {
-            el.setAttribute('tabindex', '-1');
-        }
-    });
+  if (!form) {
+    return;
+  }
+  const inputs = form.querySelectorAll<HTMLElement>(
+    'input, button, a[href], select, textarea, [tabindex]',
+  );
+  inputs.forEach((el) => {
+    if (focusable) {
+      el.removeAttribute('tabindex');
+    } else {
+      el.setAttribute('tabindex', '-1');
+    }
+  });
 }
 
 function switchTab(mode: 'login' | 'register'): void {
-    state.mode = mode;
-    hideBanner();
+  state.mode = mode;
+  hideBanner();
 
-    // P0-PLAT-001 FIX: Haptic feedback on tab switch — native-app tactile response.
-    haptic.light();
+  // P0-PLAT-001 FIX: Haptic feedback on tab switch — native-app tactile response.
+  haptic.light();
 
-    // Determine which panels are entering vs exiting
-    const enteringPanel = mode === 'login' ? formLogin : formRegister;
-    const exitingPanel  = mode === 'login' ? formRegister : formLogin;
+  // Determine which panels are entering vs exiting
+  const enteringPanel = mode === 'login' ? formLogin : formRegister;
+  const exitingPanel = mode === 'login' ? formRegister : formLogin;
 
-    // ── Tab ARIA synchronization (WCAG 4.1.2) ──
-    const activeTab  = mode === 'login' ? tabLogin : tabRegister;
-    const inactiveTab = mode === 'login' ? tabRegister : tabLogin;
-    activeTab?.classList.add('auth-tab-active');
-    activeTab?.classList.remove('text-slate-500');
-    activeTab?.setAttribute('aria-selected', 'true');
-    inactiveTab?.classList.remove('auth-tab-active');
-    inactiveTab?.classList.add('text-slate-500');
-    inactiveTab?.setAttribute('aria-selected', 'false');
+  // ── Tab ARIA synchronization (WCAG 4.1.2) ──
+  const activeTab = mode === 'login' ? tabLogin : tabRegister;
+  const inactiveTab = mode === 'login' ? tabRegister : tabLogin;
+  activeTab?.classList.add('auth-tab-active');
+  activeTab?.classList.remove('text-slate-500');
+  activeTab?.setAttribute('aria-selected', 'true');
+  inactiveTab?.classList.remove('auth-tab-active');
+  inactiveTab?.classList.add('text-slate-500');
+  inactiveTab?.setAttribute('aria-selected', 'false');
 
-    // ── PLAT-P0-001 FIX: aria-hidden sync IMMEDIATELY — before animation delay.
-    // Previous: During 250ms exit animation, both panels were display:flex and
-    // visible to screen readers. Now: exiting panel is instantly marked hidden.
-    // Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2.
-    if (exitingPanel) {
-        exitingPanel.setAttribute('aria-hidden', 'true');
-        setFormFocusable(exitingPanel, false);
-    }
-    if (enteringPanel) {
-        enteringPanel.removeAttribute('aria-hidden');
-        // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
-        enteringPanel.classList.remove('nm-hidden', 'auth-panel-exit');
-        setFormFocusable(enteringPanel, true);
-    }
+  // ── PLAT-P0-001 FIX: aria-hidden sync IMMEDIATELY — before animation delay.
+  // Previous: During 250ms exit animation, both panels were display:flex and
+  // visible to screen readers. Now: exiting panel is instantly marked hidden.
+  // Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2.
+  if (exitingPanel) {
+    exitingPanel.setAttribute('aria-hidden', 'true');
+    setFormFocusable(exitingPanel, false);
+  }
+  if (enteringPanel) {
+    enteringPanel.removeAttribute('aria-hidden');
+    // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+    enteringPanel.classList.remove('nm-hidden', 'auth-panel-exit');
+    setFormFocusable(enteringPanel, true);
+  }
 
-    // ── Panel exit animation ──
-    if (exitingPanel) {
-        if (prefersReducedMotion) {
-            // PLAT-P2-001: Skip animation for reduced-motion users
-            // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
-            exitingPanel.classList.add('nm-hidden');
-            exitingPanel.classList.remove('auth-panel-exit');
-        } else {
-            exitingPanel.classList.add('auth-panel-exit');
-            // SRG-13 FIX: Replaced setTimeout(250) with animationend event.
-            // Previous: Hardcoded 250ms assumed CSS animation-duration wouldn't change.
-            // This is a timing coupling fragility — if CSS duration changes, JS breaks.
-            // Now: JS listens for the actual animation end, with a 400ms safety fallback.
-            // Standard: Event-Driven Animation Lifecycle, Zero Magic Numbers.
-            const onExitEnd = () => {
-                exitingPanel.classList.add('nm-hidden');
-                exitingPanel.classList.remove('auth-panel-exit');
-            };
-            exitingPanel.addEventListener('animationend', onExitEnd, { once: true });
-            // Safety fallback: if animationend never fires (e.g., display:none race)
-            setTimeout(() => {
-                if (exitingPanel.classList.contains('auth-panel-exit')) {
-                    onExitEnd();
-                }
-            }, 400);
+  // ── Panel exit animation ──
+  if (exitingPanel) {
+    if (prefersReducedMotion) {
+      // PLAT-P2-001: Skip animation for reduced-motion users
+      // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+      exitingPanel.classList.add('nm-hidden');
+      exitingPanel.classList.remove('auth-panel-exit');
+    } else {
+      exitingPanel.classList.add('auth-panel-exit');
+      // SRG-13 FIX: Replaced setTimeout(250) with animationend event.
+      // Previous: Hardcoded 250ms assumed CSS animation-duration wouldn't change.
+      // This is a timing coupling fragility — if CSS duration changes, JS breaks.
+      // Now: JS listens for the actual animation end, with a 400ms safety fallback.
+      // Standard: Event-Driven Animation Lifecycle, Zero Magic Numbers.
+      const onExitEnd = () => {
+        exitingPanel.classList.add('nm-hidden');
+        exitingPanel.classList.remove('auth-panel-exit');
+      };
+      exitingPanel.addEventListener('animationend', onExitEnd, { once: true });
+      // Safety fallback: if animationend never fires (e.g., display:none race)
+      setTimeout(() => {
+        if (exitingPanel.classList.contains('auth-panel-exit')) {
+          onExitEnd();
         }
+      }, 400);
     }
+  }
 
-    // P0-UXA-003 FIX: Clear hash when switching to login.
-    if (mode === 'login' && window.location.hash) {
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
+  // P0-UXA-003 FIX: Clear hash when switching to login.
+  if (mode === 'login' && window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
 }
 
 // P2-MED-001 FIX: Removed initial anonymous listeners.
@@ -178,34 +186,46 @@ let currentRegStep = 1;
 const REG_DRAFT_KEY = 'nmh_reg_draft';
 
 function saveRegDraft(): void {
-    try {
-        const name = (document.getElementById('reg-name') as HTMLInputElement)?.value ?? '';
-        const email = (document.getElementById('reg-email') as HTMLInputElement)?.value ?? '';
-        if (name || email) {
-            sessionStorage.setItem(REG_DRAFT_KEY, JSON.stringify({ name, email, step: currentRegStep }));
-        }
-    } catch { /* Safari incognito — degrade gracefully */ }
+  try {
+    const name = (document.getElementById('reg-name') as HTMLInputElement)?.value ?? '';
+    const email = (document.getElementById('reg-email') as HTMLInputElement)?.value ?? '';
+    if (name || email) {
+      sessionStorage.setItem(REG_DRAFT_KEY, JSON.stringify({ name, email, step: currentRegStep }));
+    }
+  } catch {
+    /* Safari incognito — degrade gracefully */
+  }
 }
 
 function restoreRegDraft(): void {
-    try {
-        const raw = sessionStorage.getItem(REG_DRAFT_KEY);
-        if (!raw) return;
-        const draft = JSON.parse(raw) as { name?: string; email?: string; step?: number };
-        const nameEl = document.getElementById('reg-name') as HTMLInputElement | null;
-        const emailEl = document.getElementById('reg-email') as HTMLInputElement | null;
-        if (nameEl && draft.name) { nameEl.value = draft.name; }
-        if (emailEl && draft.email) { emailEl.value = draft.email; }
-        // Restore to the step the user was on (but never beyond step 2 — passwords aren't saved)
-        if (draft.step && draft.step <= 2 && draft.step > 1) {
-            // Use setTimeout to ensure DOM is ready
-            setTimeout(() => goToRegStep(draft.step!), 100);
-        }
-    } catch { /* ignore corrupt/missing data */ }
+  try {
+    const raw = sessionStorage.getItem(REG_DRAFT_KEY);
+    if (!raw) return;
+    const draft = JSON.parse(raw) as { name?: string; email?: string; step?: number };
+    const nameEl = document.getElementById('reg-name') as HTMLInputElement | null;
+    const emailEl = document.getElementById('reg-email') as HTMLInputElement | null;
+    if (nameEl && draft.name) {
+      nameEl.value = draft.name;
+    }
+    if (emailEl && draft.email) {
+      emailEl.value = draft.email;
+    }
+    // Restore to the step the user was on (but never beyond step 2 — passwords aren't saved)
+    if (draft.step && draft.step <= 2 && draft.step > 1) {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => goToRegStep(draft.step!), 100);
+    }
+  } catch {
+    /* ignore corrupt/missing data */
+  }
 }
 
 function clearRegDraft(): void {
-    try { sessionStorage.removeItem(REG_DRAFT_KEY); } catch { /* ignore */ }
+  try {
+    sessionStorage.removeItem(REG_DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 /**
@@ -213,172 +233,184 @@ function clearRegDraft(): void {
  * Validates current step fields before advancing forward.
  */
 function goToRegStep(targetStep: number): void {
-    // ── Forward validation gate ──
-    if (targetStep > currentRegStep) {
-        if (!validateCurrentStep()) { return; }
+  // ── Forward validation gate ──
+  if (targetStep > currentRegStep) {
+    if (!validateCurrentStep()) {
+      return;
+    }
+  }
+
+  // P0-PLAT-001 FIX: Haptic feedback on wizard step navigation.
+  // Standard: Apple HIG ("Haptic for navigation state changes").
+  haptic.light();
+
+  // P2-MOT-001 FIX: Determine animation direction for spatial consistency.
+  // Forward steps slide from right, backward steps slide from left.
+  // Standard: Material Design 3 ("Transitions reinforce spatial model").
+  const isBackward = targetStep < currentRegStep;
+
+  // ── Update panels ──
+  const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
+  panels?.forEach((panel) => {
+    const step = parseInt(panel.dataset.regStep ?? '0', 10);
+    if (step === targetStep) {
+      // P2-MOT-001: Apply directional animation class
+      panel.classList.toggle('nm-step-backward', isBackward);
+      // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+      panel.classList.remove('nm-hidden');
+      // Re-trigger animation
+      // DEF-UX-007 FIX: CSS class toggle replaces inline style.animation.
+      // Previous: panel.style.animation = 'none' / '' — violated P1-SST-001.
+      // Standard: CSS Single Source of Truth, class-driven animation restart.
+      panel.classList.add('nm-anim-reset');
+      // Force reflow
+      void panel.offsetHeight;
+      panel.classList.remove('nm-anim-reset');
+    } else {
+      // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+      panel.classList.add('nm-hidden');
+      panel.classList.remove('nm-step-backward');
+    }
+  });
+
+  // ── Update stepper dots ──
+  const dots = formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]');
+  dots?.forEach((dot) => {
+    const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
+    dot.classList.remove('active', 'completed');
+    // INC-2026-008 FIX: aria-current="step" for screen readers.
+    // Previous: only visual .active class — SR users couldn't identify current step.
+    // Standard: WAI-ARIA Best Practices, WCAG 4.1.2 (Name, Role, Value).
+    dot.removeAttribute('aria-current');
+    if (dotStep === targetStep) {
+      dot.classList.add('active');
+      dot.setAttribute('aria-current', 'step');
+    } else if (dotStep < targetStep) {
+      dot.classList.add('completed');
+    }
+  });
+
+  // ── Update connecting lines ──
+  const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
+  lines?.forEach((line, i) => {
+    // Line i connects step (i+1) to step (i+2)
+    const afterStep = i + 1;
+    // P2-SST-002 FIX: CSS class toggle replaces inline style.background.
+    line.classList.toggle('nm-step-line--completed', afterStep < targetStep);
+  });
+
+  // ── Populate Step 3 review card ──
+  if (targetStep === 3) {
+    const nameVal = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim() ?? '—';
+    const emailVal =
+      (document.getElementById('reg-email') as HTMLInputElement)?.value.trim() ?? '—';
+    const reviewName = document.getElementById('reg-review-name');
+    const reviewEmail = document.getElementById('reg-review-email');
+    if (reviewName) {
+      reviewName.textContent = nameVal;
+    }
+    if (reviewEmail) {
+      reviewEmail.textContent = emailVal;
     }
 
-    // P0-PLAT-001 FIX: Haptic feedback on wizard step navigation.
-    // Standard: Apple HIG ("Haptic for navigation state changes").
-    haptic.light();
-
-    // P2-MOT-001 FIX: Determine animation direction for spatial consistency.
-    // Forward steps slide from right, backward steps slide from left.
-    // Standard: Material Design 3 ("Transitions reinforce spatial model").
-    const isBackward = targetStep < currentRegStep;
-
-    // ── Update panels ──
-    const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
-    panels?.forEach(panel => {
-        const step = parseInt(panel.dataset.regStep ?? '0', 10);
-        if (step === targetStep) {
-            // P2-MOT-001: Apply directional animation class
-            panel.classList.toggle('nm-step-backward', isBackward);
-            // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
-            panel.classList.remove('nm-hidden');
-            // Re-trigger animation
-            // DEF-UX-007 FIX: CSS class toggle replaces inline style.animation.
-            // Previous: panel.style.animation = 'none' / '' — violated P1-SST-001.
-            // Standard: CSS Single Source of Truth, class-driven animation restart.
-            panel.classList.add('nm-anim-reset');
-            // Force reflow
-            void panel.offsetHeight;
-            panel.classList.remove('nm-anim-reset');
-        } else {
-            // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
-            panel.classList.add('nm-hidden');
-            panel.classList.remove('nm-step-backward');
-        }
-    });
-
-    // ── Update stepper dots ──
-    const dots = formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]');
-    dots?.forEach(dot => {
-        const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
-        dot.classList.remove('active', 'completed');
-        // INC-2026-008 FIX: aria-current="step" for screen readers.
-        // Previous: only visual .active class — SR users couldn't identify current step.
-        // Standard: WAI-ARIA Best Practices, WCAG 4.1.2 (Name, Role, Value).
-        dot.removeAttribute('aria-current');
-        if (dotStep === targetStep) {
-            dot.classList.add('active');
-            dot.setAttribute('aria-current', 'step');
-        } else if (dotStep < targetStep) {
-            dot.classList.add('completed');
-        }
-    });
-
-    // ── Update connecting lines ──
-    const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
-    lines?.forEach((line, i) => {
-        // Line i connects step (i+1) to step (i+2)
-        const afterStep = i + 1;
-        // P2-SST-002 FIX: CSS class toggle replaces inline style.background.
-        line.classList.toggle('nm-step-line--completed', afterStep < targetStep);
-    });
-
-    // ── Populate Step 3 review card ──
-    if (targetStep === 3) {
-        const nameVal = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim() ?? '—';
-        const emailVal = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim() ?? '—';
-        const reviewName = document.getElementById('reg-review-name');
-        const reviewEmail = document.getElementById('reg-review-email');
-        if (reviewName) { reviewName.textContent = nameVal; }
-        if (reviewEmail) { reviewEmail.textContent = emailVal; }
-
-        // FRIC-2026-003 FIX: Show password strength status in review card.
-        // Previous: Only name + email shown — no confirmation password met requirements.
-        // Standard: Nielsen #1 (System Status Visibility).
-        const strengthLabel = document.getElementById('pw-strength-label');
-        const reviewPwStrength = document.getElementById('reg-review-pw-strength');
-        if (reviewPwStrength && strengthLabel) {
-            const strengthText = strengthLabel.textContent?.trim() ?? '';
-            if (strengthText) {
-                reviewPwStrength.classList.remove('nm-hidden');
-            }
-        }
+    // FRIC-2026-003 FIX: Show password strength status in review card.
+    // Previous: Only name + email shown — no confirmation password met requirements.
+    // Standard: Nielsen #1 (System Status Visibility).
+    const strengthLabel = document.getElementById('pw-strength-label');
+    const reviewPwStrength = document.getElementById('reg-review-pw-strength');
+    if (reviewPwStrength && strengthLabel) {
+      const strengthText = strengthLabel.textContent?.trim() ?? '';
+      if (strengthText) {
+        reviewPwStrength.classList.remove('nm-hidden');
+      }
     }
+  }
 
-    currentRegStep = targetStep;
+  currentRegStep = targetStep;
 
-    // ── FRIC-003 FIX: Sync URL hash with wizard step ──
-    // Enables browser back-button navigation between wizard steps.
-    // Standard: Nielsen #3 (User Control & Freedom), History API best practices.
-    const newHash = `#register-step-${targetStep}`;
-    if (window.location.hash !== newHash) {
-        history.pushState(null, '', newHash);
-    }
+  // ── FRIC-003 FIX: Sync URL hash with wizard step ──
+  // Enables browser back-button navigation between wizard steps.
+  // Standard: Nielsen #3 (User Control & Freedom), History API best practices.
+  const newHash = `#register-step-${targetStep}`;
+  if (window.location.hash !== newHash) {
+    history.pushState(null, '', newHash);
+  }
 
-    // ── Auto-focus first input in step ──
-    const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(`[data-reg-step="${targetStep}"]`);
-    const firstInput = activePanel?.querySelector<HTMLInputElement>('input:not([type="hidden"]):not([type="checkbox"])');
-    firstInput?.focus();
+  // ── Auto-focus first input in step ──
+  const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(
+    `[data-reg-step="${targetStep}"]`,
+  );
+  const firstInput = activePanel?.querySelector<HTMLInputElement>(
+    'input:not([type="hidden"]):not([type="checkbox"])',
+  );
+  firstInput?.focus();
 }
 
 /**
  * Validate fields in the current step before allowing forward navigation.
  */
 function validateCurrentStep(): boolean {
-    if (currentRegStep === 1) {
-        const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
-        const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
-        if (!name) {
-            showBanner('error', t('auth_name_required', 'Please enter your full name.'));
-            scrollToField(document.getElementById('reg-name'));
-            return false;
-        }
-        if (!email) {
-            showBanner('error', t('auth_email_required', 'Please enter your email address.'));
-            scrollToField(document.getElementById('reg-email'));
-            return false;
-        }
-        // Basic email format check
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showBanner('error', t('auth_email_invalid', 'Please enter a valid email address.'));
-            scrollToField(document.getElementById('reg-email'));
-            return false;
-        }
-        hideBanner();
-        return true;
+  if (currentRegStep === 1) {
+    const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
+    const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
+    if (!name) {
+      showBanner('error', t('auth_name_required', 'الاسم مطلوب'));
+      scrollToField(document.getElementById('reg-name'));
+      return false;
     }
-    if (currentRegStep === 2) {
-        const pw = (document.getElementById('reg-password') as HTMLInputElement)?.value ?? '';
-        const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
-        if (pw.length < 8) {
-            showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
-            scrollToField(document.getElementById('reg-password'));
-            return false;
-        }
-        // H2 FIX: Max length check — mirrors backend SEC-003 (bcrypt DoS prevention).
-        // Without this gate, a user could submit a 1MB password that passes all other
-        // checks but causes CPU starvation during bcrypt hashing on the server.
-        if (pw.length > MAX_PASSWORD_LENGTH) {
-            showBanner('error', t('auth_password_too_long', `Password must not exceed ${MAX_PASSWORD_LENGTH} characters.`));
-            scrollToField(document.getElementById('reg-password'));
-            return false;
-        }
-        if (!/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
-            showBanner('error', t('auth_password_complexity', 'Password must contain uppercase, lowercase, number, and symbol.'));
-            scrollToField(document.getElementById('reg-password'));
-            return false;
-        }
-        if (pw !== confirmPw) {
-            showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
-            scrollToField(document.getElementById('reg-password-confirm'));
-            return false;
-        }
-        hideBanner();
-        return true;
+    if (!email) {
+      showBanner('error', t('auth_email_required', 'البريد الإلكتروني مطلوب'));
+      scrollToField(document.getElementById('reg-email'));
+      return false;
     }
-    return true; // Step 3 validation happens at form submit
+    // Basic email format check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
+      scrollToField(document.getElementById('reg-email'));
+      return false;
+    }
+    hideBanner();
+    return true;
+  }
+  if (currentRegStep === 2) {
+    const pw = (document.getElementById('reg-password') as HTMLInputElement)?.value ?? '';
+    const confirmPw =
+      (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
+    if (pw.length < 8) {
+      showBanner('error', t('auth_password_weak', 'كلمة المرور ضعيفة'));
+      scrollToField(document.getElementById('reg-password'));
+      return false;
+    }
+    // H2 FIX: Max length check — mirrors backend SEC-003 (bcrypt DoS prevention).
+    // Without this gate, a user could submit a 1MB password that passes all other
+    // checks but causes CPU starvation during bcrypt hashing on the server.
+    if (pw.length > MAX_PASSWORD_LENGTH) {
+      showBanner('error', t('auth_password_too_long', 'كلمة المرور طويلة جداً (الحد ١٢٨)'));
+      scrollToField(document.getElementById('reg-password'));
+      return false;
+    }
+    if (!/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
+      showBanner('error', t('auth_password_complexity', 'كلمة المرور لا تستوفي المتطلبات'));
+      scrollToField(document.getElementById('reg-password'));
+      return false;
+    }
+    if (pw !== confirmPw) {
+      showBanner('error', t('pw_mismatch_error', 'كلمتا المرور غير متطابقتين'));
+      scrollToField(document.getElementById('reg-password-confirm'));
+      return false;
+    }
+    hideBanner();
+    return true;
+  }
+  return true; // Step 3 validation happens at form submit
 }
 
 // ─── Wire step navigation buttons ───────────────────────────────────────────
-formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const target = parseInt(btn.dataset.gotoStep ?? '1', 10);
-        goToRegStep(target);
-    });
+formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const target = parseInt(btn.dataset.gotoStep ?? '1', 10);
+    goToRegStep(target);
+  });
 });
 
 // ─── FRIC-2026-006 FIX: Enter/Next Key Handler for Wizard Steps ─────────────
@@ -388,39 +420,45 @@ formRegister?.querySelectorAll<HTMLButtonElement>('[data-goto-step]').forEach(bt
 // Standard: Apple HIG (Keyboard Management), WCAG 2.1.1 (Keyboard Accessible).
 // ─────────────────────────────────────────────────────────────────────────────
 formRegister?.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key !== 'Enter') { return; }
-    const target = e.target as HTMLElement;
-    // Only intercept Enter on text/email/password inputs (not checkboxes, buttons)
-    if (!(target instanceof HTMLInputElement) || target.type === 'checkbox') { return; }
-    e.preventDefault(); // Prevent form submission
-    // Find the visible Next button in the current step
-    const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(
-        `[data-reg-step="${currentRegStep}"]`
-    );
-    if (!activePanel) { return; }
-    // If current step has a "next" button, click it. If Step 3, let form submit handle it.
-    const nextBtn = activePanel.querySelector<HTMLButtonElement>('.nm-step-next[data-goto-step]');
-    if (nextBtn) {
-        nextBtn.click();
-    } else if (currentRegStep === 3) {
-        // Step 3 has no Next — Enter should submit the form
-        formRegister?.requestSubmit();
-    }
+  if (e.key !== 'Enter') {
+    return;
+  }
+  const target = e.target as HTMLElement;
+  // Only intercept Enter on text/email/password inputs (not checkboxes, buttons)
+  if (!(target instanceof HTMLInputElement) || target.type === 'checkbox') {
+    return;
+  }
+  e.preventDefault(); // Prevent form submission
+  // Find the visible Next button in the current step
+  const activePanel = formRegister?.querySelector<HTMLFieldSetElement>(
+    `[data-reg-step="${currentRegStep}"]`,
+  );
+  if (!activePanel) {
+    return;
+  }
+  // If current step has a "next" button, click it. If Step 3, let form submit handle it.
+  const nextBtn = activePanel.querySelector<HTMLButtonElement>('.nm-step-next[data-goto-step]');
+  if (nextBtn) {
+    nextBtn.click();
+  } else if (currentRegStep === 3) {
+    // Step 3 has no Next — Enter should submit the form
+    formRegister?.requestSubmit();
+  }
 });
 
 // P2-MED-001 FIX: Single source of truth for tab click handlers.
 // Reset wizard to Step 1 when switching to Register tab.
 tabLogin?.addEventListener('click', () => {
-    switchTab('login');
-    // P0-UXA-003: Hash clearing now handled inside switchTab() — removed duplicate here.
-    // FRIC-003 original logic preserved in switchTab() for all callers.
+  switchTab('login');
+  // P0-UXA-003: Hash clearing now handled inside switchTab() — removed duplicate here.
+  // FRIC-003 original logic preserved in switchTab() for all callers.
 });
 tabRegister?.addEventListener('click', () => {
-    switchTab('register');
-    goToRegStep(1);
-    // UX-REM-J002 FIX: Restore draft values after tab switch.
-    // restoreRegDraft() fills name + email and optionally advances to saved step.
-    restoreRegDraft();
+  switchTab('register');
+  goToRegStep(1);
+  // UX-REM-J002 FIX: Restore draft values after tab switch.
+  // restoreRegDraft() fills name + email and optionally advances to saved step.
+  restoreRegDraft();
 });
 
 // ─── FRIC-003 FIX: URL Hash State for Registration Wizard ───────────────────
@@ -429,103 +467,116 @@ tabRegister?.addEventListener('click', () => {
 // Standard: Nielsen #3 (User Control & Freedom), WCAG 2.4.5 (Multiple Ways).
 // ─────────────────────────────────────────────────────────────────────────────
 window.addEventListener('hashchange', () => {
-    const match = window.location.hash.match(/^#register-step-(\d+)$/);
-    if (match) {
-        const step = parseInt(match[1]!, 10);
-        if (step >= 1 && step <= 3 && step !== currentRegStep) {
-            // Switch to register mode if not already
-            if (state.mode !== 'register') { switchTab('register'); }
-            // Navigate backward without validation (user chose to go back)
-            // Navigate forward with validation gate (goToRegStep handles this)
-            if (step < currentRegStep) {
-                // Going back — bypass validation
-                currentRegStep = step + 1; // trick: set current to step+1 so goToRegStep treats it as backward
-                goToRegStep(step);
-            } else {
-                goToRegStep(step);
-            }
-        }
-    } else if (!window.location.hash) {
-        // Hash cleared (e.g., back from step-1 to no hash) — return to login
-        if (state.mode === 'register') { switchTab('login'); }
+  const match = window.location.hash.match(/^#register-step-(\d+)$/);
+  if (match) {
+    const step = parseInt(match[1]!, 10);
+    if (step >= 1 && step <= 3 && step !== currentRegStep) {
+      // Switch to register mode if not already
+      if (state.mode !== 'register') {
+        switchTab('register');
+      }
+      // Navigate backward without validation (user chose to go back)
+      // Navigate forward with validation gate (goToRegStep handles this)
+      if (step < currentRegStep) {
+        // Going back — bypass validation
+        currentRegStep = step + 1; // trick: set current to step+1 so goToRegStep treats it as backward
+        goToRegStep(step);
+      } else {
+        goToRegStep(step);
+      }
     }
+  } else if (!window.location.hash) {
+    // Hash cleared (e.g., back from step-1 to no hash) — return to login
+    if (state.mode === 'register') {
+      switchTab('login');
+    }
+  }
 });
 
 // FRIC-003: Restore wizard state from URL hash on page load
 (function restoreHashState(): void {
-    const match = window.location.hash.match(/^#register-step-(\d+)$/);
-    if (match) {
-        const step = parseInt(match[1]!, 10);
-        if (step >= 1 && step <= 3) {
-            switchTab('register');
-            // For step > 1, we skip validation on initial load (user may have refreshed)
-            currentRegStep = 1;
-            if (step > 1) {
-                // Set panels directly without validation
-                const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
-                panels?.forEach(panel => {
-                    const s = parseInt(panel.dataset.regStep ?? '0', 10);
-                    // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
-                    panel.classList.toggle('nm-hidden', s !== step);
-                });
-                currentRegStep = step;
-                // Update stepper UI
-                const dots = formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]');
-                dots?.forEach(dot => {
-                    const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
-                    dot.classList.remove('active', 'completed');
-                    if (dotStep === step) {
-                        dot.classList.add('active');
-                    } else if (dotStep < step) {
-                        dot.classList.add('completed');
-                    }
-                });
-                const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
-                lines?.forEach((line, i) => {
-                    // P2-SST-002 FIX: CSS class toggle replaces inline style.background.
-                    line.classList.toggle('nm-step-line--completed', (i + 1) < step);
-                });
-            }
-        }
+  const match = window.location.hash.match(/^#register-step-(\d+)$/);
+  if (match) {
+    const step = parseInt(match[1]!, 10);
+    if (step >= 1 && step <= 3) {
+      switchTab('register');
+      // For step > 1, we skip validation on initial load (user may have refreshed)
+      currentRegStep = 1;
+      if (step > 1) {
+        // Set panels directly without validation
+        const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
+        panels?.forEach((panel) => {
+          const s = parseInt(panel.dataset.regStep ?? '0', 10);
+          // P2-SST-002 FIX: CSS class toggle replaces inline style.display.
+          panel.classList.toggle('nm-hidden', s !== step);
+        });
+        currentRegStep = step;
+        // Update stepper UI
+        const dots = formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]');
+        dots?.forEach((dot) => {
+          const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
+          dot.classList.remove('active', 'completed');
+          if (dotStep === step) {
+            dot.classList.add('active');
+          } else if (dotStep < step) {
+            dot.classList.add('completed');
+          }
+        });
+        const lines = formRegister?.querySelectorAll<HTMLElement>('.nm-step-line');
+        lines?.forEach((line, i) => {
+          // P2-SST-002 FIX: CSS class toggle replaces inline style.background.
+          line.classList.toggle('nm-step-line--completed', i + 1 < step);
+        });
+      }
     }
-    // UX-REM-J002 FIX: Restore draft values after hash state restoration.
-    restoreRegDraft();
+  }
+  // UX-REM-J002 FIX: Restore draft values after hash state restoration.
+  restoreRegDraft();
 })();
 
 // ─── Banner / Feedback ──────────────────────────────────────────────────────
 // P2-AUD-002 FIX: Shared banner utility replaces local duplicate
 const bannerElements: StructuredBannerElements = {
-    banner, inner: bannerInner, icon: bannerIcon, text: bannerText,
+  banner,
+  inner: bannerInner,
+  icon: bannerIcon,
+  text: bannerText,
 };
 
 function showBanner(type: 'error' | 'success' | 'info', message: string): void {
-    showStructuredBanner(bannerElements, type, message);
-    // P0-PLAT-001 FIX: Haptic feedback on banner display — tactile reinforcement.
-    // Error → heavy (alert), success → success pattern, info → light.
-    // Standard: Apple HIG ("Use haptics to reinforce feedback").
-    if (type === 'error') { haptic.heavy(); }
-    else if (type === 'success') { haptic.success(); }
-    else { haptic.light(); }
+  showStructuredBanner(bannerElements, type, message);
+  // P0-PLAT-001 FIX: Haptic feedback on banner display — tactile reinforcement.
+  // Error → heavy (alert), success → success pattern, info → light.
+  // Standard: Apple HIG ("Use haptics to reinforce feedback").
+  if (type === 'error') {
+    haptic.heavy();
+  } else if (type === 'success') {
+    haptic.success();
+  } else {
+    haptic.light();
+  }
 }
 
 function hideBanner(): void {
-    hideStructuredBanner(banner);
+  hideStructuredBanner(banner);
 }
 
 // ─── Password Toggle ────────────────────────────────────────────────────────
 function setupPasswordToggle(toggleId: string, inputId: string): void {
-    const toggle = document.getElementById(toggleId);
-    const input = document.getElementById(inputId) as HTMLInputElement | null;
-    if (!toggle || !input) { return; }
+  const toggle = document.getElementById(toggleId);
+  const input = document.getElementById(inputId) as HTMLInputElement | null;
+  if (!toggle || !input) {
+    return;
+  }
 
-    toggle.addEventListener('click', () => {
-        const isPassword = input.type === 'password';
-        input.type = isPassword ? 'text' : 'password';
-        const icon = toggle.querySelector('.ph');
-        if (icon) {
-            icon.className = isPassword ? 'ph ph-eye-slash' : 'ph ph-eye';
-        }
-    });
+  toggle.addEventListener('click', () => {
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    const icon = toggle.querySelector('.ph');
+    if (icon) {
+      icon.className = isPassword ? 'ph ph-eye-slash' : 'ph ph-eye';
+    }
+  });
 }
 
 setupPasswordToggle('login-toggle-pw', 'login-password');
@@ -544,8 +595,8 @@ const strengthBars = document.getElementById('pw-strength-bars')?.children;
 const strengthLabel = document.getElementById('pw-strength-label');
 
 regPassword?.addEventListener('input', () => {
-    updatePasswordStrength(regPassword.value, strengthBars, strengthLabel);
-    updateRegisterButton();
+  updatePasswordStrength(regPassword.value, strengthBars, strengthLabel);
+  updateRegisterButton();
 });
 
 // P0-CRIT-001 FIX: Intent Selection Cards REMOVED.
@@ -558,32 +609,35 @@ regPassword?.addEventListener('input', () => {
 const regSubmit = document.getElementById('reg-submit') as HTMLButtonElement | null;
 
 function updateRegisterButton(): void {
-    if (!regSubmit) { return; }
-    const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
-    const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
-    const password = regPassword?.value ?? '';
-    const confirmPw = (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
+  if (!regSubmit) {
+    return;
+  }
+  const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
+  const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
+  const password = regPassword?.value ?? '';
+  const confirmPw =
+    (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
 
-    // FRC-002 FIX: Include password confirmation match check
-    // P0-CRIT-001 FIX: Removed Boolean(state.selectedIntent) — intent cards no longer exist.
-    const valid = Boolean(name) && Boolean(email) && password.length >= 8 && password === confirmPw;
-    // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
-    // The button is ALWAYS clickable so the submit handler can show validation feedback.
-    // P1-AUD4-003 FIX: Replaced inline style.opacity with CSS class toggle.
-    // Previous: regSubmit.style.opacity = valid ? '1' : '0.6' — violated P1-001.
-    // Standard: CSS Single Source of Truth.
-    regSubmit.classList.toggle('nm-btn-disabled-soft', !valid);
+  // FRC-002 FIX: Include password confirmation match check
+  // P0-CRIT-001 FIX: Removed Boolean(state.selectedIntent) — intent cards no longer exist.
+  const valid = Boolean(name) && Boolean(email) && password.length >= 8 && password === confirmPw;
+  // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
+  // The button is ALWAYS clickable so the submit handler can show validation feedback.
+  // P1-AUD4-003 FIX: Replaced inline style.opacity with CSS class toggle.
+  // Previous: regSubmit.style.opacity = valid ? '1' : '0.6' — violated P1-001.
+  // Standard: CSS Single Source of Truth.
+  regSubmit.classList.toggle('nm-btn-disabled-soft', !valid);
 
-    // FRC-002: Show/hide real-time mismatch error
-    const mismatchEl = document.getElementById('pw-mismatch-error');
-    if (mismatchEl && confirmPw.length > 0) {
-        mismatchEl.classList.toggle('nm-hidden', password === confirmPw);
-    }
+  // FRC-002: Show/hide real-time mismatch error
+  const mismatchEl = document.getElementById('pw-mismatch-error');
+  if (mismatchEl && confirmPw.length > 0) {
+    mismatchEl.classList.toggle('nm-hidden', password === confirmPw);
+  }
 }
 
 // Listen for all register form inputs
 ['reg-name', 'reg-email', 'reg-password-confirm'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('input', updateRegisterButton);
+  document.getElementById(id)?.addEventListener('input', updateRegisterButton);
 });
 
 // ─── GAP-2026-009 FIX: Auto-Clear Banner Errors on User Input ───────────────
@@ -591,18 +645,25 @@ function updateRegisterButton(): void {
 // Only hideBanner() called on successful validateCurrentStep() — stale errors stayed.
 // Standard: Nielsen #9 (Error Recovery), Material Design 3 (Form Validation).
 // ─────────────────────────────────────────────────────────────────────────────
-['reg-name', 'reg-email', 'reg-password', 'reg-password-confirm', 'login-email', 'login-password'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('input', () => {
-        // Only hide if banner is currently showing an error (not success/info)
-        if (bannerInner?.classList.contains('bg-red-50')) {
-            hideBanner();
-        }
-        // UX-REM-J002 FIX: Auto-save registration draft on input.
-        // Only saves name + email — passwords are NEVER persisted.
-        if (id === 'reg-name' || id === 'reg-email') {
-            saveRegDraft();
-        }
-    });
+[
+  'reg-name',
+  'reg-email',
+  'reg-password',
+  'reg-password-confirm',
+  'login-email',
+  'login-password',
+].forEach((id) => {
+  document.getElementById(id)?.addEventListener('input', () => {
+    // Only hide if banner is currently showing an error (not success/info)
+    if (bannerInner?.classList.contains('bg-red-50')) {
+      hideBanner();
+    }
+    // UX-REM-J002 FIX: Auto-save registration draft on input.
+    // Only saves name + email — passwords are NEVER persisted.
+    if (id === 'reg-name' || id === 'reg-email') {
+      saveRegDraft();
+    }
+  });
 });
 
 // Initialize button opacity
@@ -617,132 +678,156 @@ updateRegisterButton();
  * Returns true if all fields are valid, false otherwise.
  */
 function validateRegisterForm(): boolean {
-    const nameInput = document.getElementById('reg-name') as HTMLInputElement | null;
-    const emailInput = document.getElementById('reg-email') as HTMLInputElement | null;
-    const passwordInput = document.getElementById('reg-password') as HTMLInputElement | null;
+  const nameInput = document.getElementById('reg-name') as HTMLInputElement | null;
+  const emailInput = document.getElementById('reg-email') as HTMLInputElement | null;
+  const passwordInput = document.getElementById('reg-password') as HTMLInputElement | null;
 
-    // ── Step 1 fields (Identity) ──
-    // Check name
-    if (!nameInput?.value.trim()) {
-        goToRegStep(1); // PLAT-C01: Navigate to failing step
-        showBanner('error', t('auth_name_required', 'Please enter your full name.'));
-        scrollToField(nameInput);
-        return false;
+  // ── Step 1 fields (Identity) ──
+  // Check name
+  if (!nameInput?.value.trim()) {
+    goToRegStep(1); // PLAT-C01: Navigate to failing step
+    showBanner('error', t('auth_name_required', 'الاسم مطلوب'));
+    scrollToField(nameInput);
+    return false;
+  }
+
+  // Check email
+  if (!emailInput?.value.trim()) {
+    goToRegStep(1); // PLAT-C01: Navigate to failing step
+    showBanner('error', t('auth_email_required', 'البريد الإلكتروني مطلوب'));
+    scrollToField(emailInput);
+    return false;
+  }
+
+  // ── Step 2 fields (Security) ──
+  // Check password length
+  const password = passwordInput?.value ?? '';
+  if (password.length < 8) {
+    goToRegStep(2); // PLAT-C01: Navigate to failing step
+    showBanner('error', t('auth_password_weak', 'كلمة المرور ضعيفة'));
+    scrollToField(passwordInput);
+    return false;
+  }
+
+  // H2 FIX: Max length check — mirrors backend SEC-003.
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    goToRegStep(2);
+    showBanner('error', t('auth_password_too_long', 'كلمة المرور طويلة جداً (الحد ١٢٨)'));
+    scrollToField(passwordInput);
+    return false;
+  }
+
+  // Check password complexity
+  if (
+    !/[A-Z]/.test(password) ||
+    !/[a-z]/.test(password) ||
+    !/[0-9]/.test(password) ||
+    !/[^A-Za-z0-9]/.test(password)
+  ) {
+    goToRegStep(2); // PLAT-C01: Navigate to failing step
+    showBanner('error', t('auth_password_complexity', 'كلمة المرور لا تستوفي المتطلبات'));
+    scrollToField(passwordInput);
+    return false;
+  }
+
+  // FRC-002 FIX: Validate password confirmation match
+  const confirmInput = document.getElementById('reg-password-confirm') as HTMLInputElement | null;
+  const confirmPw = confirmInput?.value ?? '';
+  if (password !== confirmPw) {
+    goToRegStep(2); // PLAT-C01: Navigate to failing step
+    showBanner('error', t('pw_mismatch_error', 'كلمتا المرور غير متطابقتين'));
+    scrollToField(confirmInput);
+    return false;
+  }
+
+  // ── Step 3 fields (Consent) ──
+  // P1-CRIT-006 FIX: Validate terms & privacy checkbox acceptance.
+  // GDPR Art. 7 — consent must be demonstrably obtained before registration.
+  // HTML has `required` on #reg-terms, but `novalidate` on the form disables native checks.
+  const termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
+  if (!termsCheckbox?.checked) {
+    const termsError = document.getElementById('reg-terms-error');
+    if (termsError) {
+      termsError.classList.remove('nm-hidden');
     }
+    showBanner('error', t('auth_terms_required', 'يجب الموافقة على الشروط'));
+    return false;
+  }
+  // P0-UXA-004: Hide terms error if it was previously shown
+  const termsErrorEl = document.getElementById('reg-terms-error');
+  if (termsErrorEl) {
+    termsErrorEl.classList.add('nm-hidden');
+  }
 
-    // Check email
-    if (!emailInput?.value.trim()) {
-        goToRegStep(1); // PLAT-C01: Navigate to failing step
-        showBanner('error', t('auth_email_required', 'Please enter your email address.'));
-        scrollToField(emailInput);
-        return false;
-    }
-
-    // ── Step 2 fields (Security) ──
-    // Check password length
-    const password = passwordInput?.value ?? '';
-    if (password.length < 8) {
-        goToRegStep(2); // PLAT-C01: Navigate to failing step
-        showBanner('error', t('auth_password_weak', 'Password must be at least 8 characters.'));
-        scrollToField(passwordInput);
-        return false;
-    }
-
-    // H2 FIX: Max length check — mirrors backend SEC-003.
-    if (password.length > MAX_PASSWORD_LENGTH) {
-        goToRegStep(2);
-        showBanner('error', t('auth_password_too_long', `Password must not exceed ${MAX_PASSWORD_LENGTH} characters.`));
-        scrollToField(passwordInput);
-        return false;
-    }
-
-    // Check password complexity
-    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-        goToRegStep(2); // PLAT-C01: Navigate to failing step
-        showBanner('error', t('auth_password_complexity', 'Password must contain at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.'));
-        scrollToField(passwordInput);
-        return false;
-    }
-
-    // FRC-002 FIX: Validate password confirmation match
-    const confirmInput = document.getElementById('reg-password-confirm') as HTMLInputElement | null;
-    const confirmPw = confirmInput?.value ?? '';
-    if (password !== confirmPw) {
-        goToRegStep(2); // PLAT-C01: Navigate to failing step
-        showBanner('error', t('pw_mismatch_error', 'Passwords do not match.'));
-        scrollToField(confirmInput);
-        return false;
-    }
-
-    // ── Step 3 fields (Consent) ──
-    // P1-CRIT-006 FIX: Validate terms & privacy checkbox acceptance.
-    // GDPR Art. 7 — consent must be demonstrably obtained before registration.
-    // HTML has `required` on #reg-terms, but `novalidate` on the form disables native checks.
-    const termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
-    if (!termsCheckbox?.checked) {
-        const termsError = document.getElementById('reg-terms-error');
-        if (termsError) { termsError.classList.remove('nm-hidden'); }
-        showBanner('error', t('auth_terms_required', 'Please accept the Terms and Privacy Policy.'));
-        return false;
-    }
-    // P0-UXA-004: Hide terms error if it was previously shown
-    const termsErrorEl = document.getElementById('reg-terms-error');
-    if (termsErrorEl) { termsErrorEl.classList.add('nm-hidden'); }
-
-    return true;
+  return true;
 }
 
 // ─── Form Submission: LOGIN ─────────────────────────────────────────────────
 formLogin?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (state.isSubmitting) { return; }
+  e.preventDefault();
+  if (state.isSubmitting) {
+    return;
+  }
 
-    // P0-UXA-005 FIX: Add .submitted class for CSS validation highlighting.
-    // main.css L1646-1652 defines form[novalidate].submitted styles that highlight
-    // all empty required fields on first submit attempt.
-    // Standard: Nielsen #9 (Error Recognition), CSS-Driven Validation.
-    formLogin.classList.add('submitted');
+  // P0-UXA-005 FIX: Add .submitted class for CSS validation highlighting.
+  // main.css L1646-1652 defines form[novalidate].submitted styles that highlight
+  // all empty required fields on first submit attempt.
+  // Standard: Nielsen #9 (Error Recognition), CSS-Driven Validation.
+  formLogin.classList.add('submitted');
 
-    const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
-    const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
+  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
+  const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
 
-    if (!email || !password) {
-        showBanner('error', t('auth_enter_email_password', 'Please enter your email and password.'));
-        return;
+  if (!email || !password) {
+    showBanner('error', t('auth_enter_email_password', 'أدخل البريد الإلكتروني وكلمة المرور'));
+    return;
+  }
+
+  state.isSubmitting = true;
+  // P0-PLAT-001 FIX: Haptic on submission start.
+  haptic.medium();
+  const submitBtn = document.getElementById('login-submit') as HTMLButtonElement | null;
+  const submitText = document.getElementById('login-submit-text');
+  // DEF-A08 FIX: Use canonical .btn-loading class instead of disabled attribute.
+  // Previous: submitBtn.disabled = true → removes button from tab order (WCAG 2.1.1 violation).
+  // .btn-loading: pointer-events:none + spinner animation + consistent opacity.
+  // Standard: Design System Governance, WCAG 2.1.1 (Keyboard).
+  if (submitBtn) {
+    submitBtn.classList.add('btn-loading');
+  }
+  if (submitText) {
+    submitText.textContent = t('auth_signing_in', 'جاري تسجيل الدخول…');
+  }
+
+  try {
+    const response = await auth.login({
+      email,
+      password,
+      remember: (document.getElementById('remember-me') as HTMLInputElement)?.checked ?? false,
+    });
+    if (response.success && response.data) {
+      // UNIFIED CITIZEN: Uses shared handleLoginRedirect — single source of truth
+      // for user context setting, redirect params, and onboarding detection.
+      await handleLoginRedirect(
+        response.data.user as Record<string, unknown>,
+        t('auth_welcome_back', 'أهلاً بعودتك!'),
+      );
+    } else {
+      showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     }
-
-    state.isSubmitting = true;
-    // P0-PLAT-001 FIX: Haptic on submission start.
-    haptic.medium();
-    const submitBtn = document.getElementById('login-submit') as HTMLButtonElement | null;
-    const submitText = document.getElementById('login-submit-text');
-    // DEF-A08 FIX: Use canonical .btn-loading class instead of disabled attribute.
-    // Previous: submitBtn.disabled = true → removes button from tab order (WCAG 2.1.1 violation).
-    // .btn-loading: pointer-events:none + spinner animation + consistent opacity.
-    // Standard: Design System Governance, WCAG 2.1.1 (Keyboard).
-    if (submitBtn) { submitBtn.classList.add('btn-loading'); }
-    if (submitText) { submitText.textContent = t('auth_signing_in', 'Signing in...'); }
-
-    try {
-        const response = await auth.login({ email, password, remember: (document.getElementById('remember-me') as HTMLInputElement)?.checked ?? false });
-        if (response.success && response.data) {
-            // UNIFIED CITIZEN: Uses shared handleLoginRedirect — single source of truth
-            // for user context setting, redirect params, and onboarding detection.
-            await handleLoginRedirect(
-                response.data.user as Record<string, unknown>,
-                t('auth_welcome_back', 'Welcome back! Redirecting...'),
-            );
-        } else {
-            showBanner('error', response.error ?? t('auth_login_failed', 'Invalid credentials. Please try again.'));
-        }
-    } catch (err) {
-        const message = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-        showBanner('error', message);
-    } finally {
-        state.isSubmitting = false;
-        if (submitBtn) { submitBtn.classList.remove('btn-loading'); }
-        if (submitText) { submitText.textContent = t('sign_in_btn', 'Sign In'); }
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+    showBanner('error', message);
+  } finally {
+    state.isSubmitting = false;
+    if (submitBtn) {
+      submitBtn.classList.remove('btn-loading');
     }
+    if (submitText) {
+      submitText.textContent = t('sign_in_btn', 'تسجيل الدخول');
+    }
+  }
 });
 
 // P0-UXA-004 FIX: Live listener — auto-hide terms error when user checks the box.
@@ -750,94 +835,107 @@ formLogin?.addEventListener('submit', async (e) => {
 // Standard: Immediate Error Clearance, Material Design 3 (Form Validation).
 const _termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
 _termsCheckbox?.addEventListener('change', () => {
-    const termsErr = document.getElementById('reg-terms-error');
-    if (_termsCheckbox.checked && termsErr) {
-        termsErr.classList.add('nm-hidden');
-    }
+  const termsErr = document.getElementById('reg-terms-error');
+  if (_termsCheckbox.checked && termsErr) {
+    termsErr.classList.add('nm-hidden');
+  }
 });
 
 // ─── Form Submission: REGISTER ──────────────────────────────────────────────
 formRegister?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (state.isSubmitting) { return; }
+  e.preventDefault();
+  if (state.isSubmitting) {
+    return;
+  }
 
-    // P0-UXA-005 FIX: Add .submitted class for CSS validation highlighting.
-    formRegister.classList.add('submitted');
+  // P0-UXA-005 FIX: Add .submitted class for CSS validation highlighting.
+  formRegister.classList.add('submitted');
 
-    // FIX-REG-003: Comprehensive validation with clear per-field feedback
-    if (!validateRegisterForm()) { return; }
+  // FIX-REG-003: Comprehensive validation with clear per-field feedback
+  if (!validateRegisterForm()) {
+    return;
+  }
 
-    const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
-    const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
-    const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
+  const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
+  const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
+  const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
 
-    if (!full_name || !email || !password) {
-        showBanner('error', t('auth_fill_all_fields', 'Please fill in all required fields.'));
-        return;
+  if (!full_name || !email || !password) {
+    showBanner('error', t('auth_fill_all_fields', 'يرجى ملء جميع الحقول'));
+    return;
+  }
+
+  // FIX-REG-006: MASTER try/catch wraps EVERYTHING after this point.
+  // Previous bug: code between isSubmitting=true and the inner try{} was
+  // unprotected — if t() or any DOM operation threw, the async handler
+  // silently died as an unhandled rejection with no error banner and
+  // the button stuck in loading state forever.
+  state.isSubmitting = true;
+  // P0-PLAT-001 FIX: Haptic on submission start.
+  haptic.medium();
+  const submitText = document.getElementById('reg-submit-text');
+
+  try {
+    // DEF-A07 FIX: Use canonical .btn-loading class.
+    // Previous: inline style.pointerEvents + style.opacity — no spinner, inconsistent with login.
+    // .btn-loading: spinner animation + pointer-events:none + opacity:0.7.
+    // Standard: Design System Governance (main.css L1491), DRY Principle.
+    if (regSubmit) {
+      regSubmit.classList.add('btn-loading');
+    }
+    if (submitText) {
+      submitText.textContent = t('auth_creating_account', 'جاري إنشاء الحساب…');
     }
 
-    // FIX-REG-006: MASTER try/catch wraps EVERYTHING after this point.
-    // Previous bug: code between isSubmitting=true and the inner try{} was
-    // unprotected — if t() or any DOM operation threw, the async handler
-    // silently died as an unhandled rejection with no error banner and
-    // the button stuck in loading state forever.
-    state.isSubmitting = true;
-    // P0-PLAT-001 FIX: Haptic on submission start.
-    haptic.medium();
-    const submitText = document.getElementById('reg-submit-text');
+    // ARCH-001 FIX: FIX-REG-005 workaround (inline fetch) removed.
+    // The root cause was an indefinite hang without AbortController timeout.
+    // api.ts request() now has a 30s AbortController (MED-AUD-009), resolving the hang.
+    // Using centralized auth.register() gains: CSRF, timeout, and error reporting.
+    // P0-CRIT-001 FIX: intent field removed — no longer collected in the wizard flow.
+    const response = await auth.register({ email, password, full_name });
 
-    try {
-        // DEF-A07 FIX: Use canonical .btn-loading class.
-        // Previous: inline style.pointerEvents + style.opacity — no spinner, inconsistent with login.
-        // .btn-loading: spinner animation + pointer-events:none + opacity:0.7.
-        // Standard: Design System Governance (main.css L1491), DRY Principle.
-        if (regSubmit) {
-            regSubmit.classList.add('btn-loading');
+    // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
+    // The user must verify their email first, then log in.
+    if (response.success) {
+      // UX-REM-J002 FIX: Clear registration draft on successful registration.
+      clearRegDraft();
+      // GAP-002 FIX: Set onboarding flag for first-login guided tour
+      try {
+        localStorage.setItem('nmh_onboarding_pending', '1');
+      } catch {
+        /* Safari private mode */
+      }
+      // M-AUD-010 FIX: Show transition feedback before switching tabs.
+      // Previous: 2-second blank stare at Step 3 consent form with no indication.
+      // Now: Banner includes countdown hint so user knows what's happening next.
+      // Standard: Material Design 3 (State Transitions), Nielsen #1.
+      showBanner('success', response.message ?? t('auth_reg_success', 'تم إنشاء حسابك بنجاح!'));
+      // Switch to login tab after successful registration
+      setTimeout(() => {
+        switchTab('login');
+        // Pre-fill email
+        const loginEmail = document.getElementById('login-email') as HTMLInputElement | null;
+        if (loginEmail) {
+          loginEmail.value = email;
+          loginEmail.focus();
         }
-        if (submitText) { submitText.textContent = t('auth_creating_account', 'Creating account...'); }
-
-        // ARCH-001 FIX: FIX-REG-005 workaround (inline fetch) removed.
-        // The root cause was an indefinite hang without AbortController timeout.
-        // api.ts request() now has a 30s AbortController (MED-AUD-009), resolving the hang.
-        // Using centralized auth.register() gains: CSRF, timeout, and error reporting.
-        // P0-CRIT-001 FIX: intent field removed — no longer collected in the wizard flow.
-        const response = await auth.register({ email, password, full_name });
-
-        // PLT-AUD-001 FIX: Backend no longer returns a token at registration.
-        // The user must verify their email first, then log in.
-        if (response.success) {
-            // UX-REM-J002 FIX: Clear registration draft on successful registration.
-            clearRegDraft();
-            // GAP-002 FIX: Set onboarding flag for first-login guided tour
-            try { localStorage.setItem('nmh_onboarding_pending', '1'); } catch { /* Safari private mode */ }
-            // M-AUD-010 FIX: Show transition feedback before switching tabs.
-            // Previous: 2-second blank stare at Step 3 consent form with no indication.
-            // Now: Banner includes countdown hint so user knows what's happening next.
-            // Standard: Material Design 3 (State Transitions), Nielsen #1.
-            showBanner('success', response.message ?? t('auth_reg_success', 'Registration successful! Redirecting to login...'));
-            // Switch to login tab after successful registration
-            setTimeout(() => {
-                switchTab('login');
-                // Pre-fill email
-                const loginEmail = document.getElementById('login-email') as HTMLInputElement | null;
-                if (loginEmail) {
-                    loginEmail.value = email;
-                    loginEmail.focus();
-                }
-            }, 1200); // M4 FIX: Reduced from 2000ms → 1200ms (MD3 transition standard)
-        } else {
-            showBanner('error', response.error ?? t('auth_reg_failed', 'Registration failed. Please try again.'));
-        }
-    } catch (err) {
-        const message = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-        showBanner('error', message);
-    } finally {
-        state.isSubmitting = false;
-        if (regSubmit) {
-            regSubmit.classList.remove('btn-loading');
-        }
-        if (submitText) { submitText.textContent = t('create_account_btn', 'Create Account'); }
+      }, 1200); // M4 FIX: Reduced from 2000ms → 1200ms (MD3 transition standard)
+    } else {
+      showBanner('error', response.error ?? t('auth_reg_failed', 'فشل إنشاء الحساب'));
     }
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+    showBanner('error', message);
+  } finally {
+    state.isSubmitting = false;
+    if (regSubmit) {
+      regSubmit.classList.remove('btn-loading');
+    }
+    if (submitText) {
+      submitText.textContent = t('create_account_btn', 'إنشاء حساب');
+    }
+  }
 });
 
 // P2-MED-004 FIX: .auth-tab-active CSS moved to main.css (single source of truth).
@@ -850,59 +948,66 @@ formRegister?.addEventListener('submit', async (e) => {
 // Standard: TypeScript Type Safety, Nielsen #5 (Error Prevention).
 const forgotBtn = document.getElementById('forgot-password-btn') as HTMLAnchorElement | null;
 forgotBtn?.addEventListener('click', async (e) => {
-    e.preventDefault(); // Prevent mailto fallback when JS is available
-    const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
-    if (!email) {
-        // M-AUD-003 FIX: Focus the email field with guiding instruction.
-        const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
-        if (loginEmailInput) {
-            loginEmailInput.focus();
-            // DEF-FLASH-001 FIX: Replaced setTimeout + 3 Tailwind classes with CSS animation.
-            // Previous: add('ring-2', 'ring-trust-blue/50', 'border-trust-blue')
-            //   + setTimeout(remove, 3000) — 4 classes + timing hack.
-            // Standard: P1-SST-001 governance, CSS-driven animation, zero setTimeout.
-            loginEmailInput.classList.add('nm-input-flash-focus');
-            loginEmailInput.addEventListener('animationend', () => {
-                loginEmailInput.classList.remove('nm-input-flash-focus');
-            }, { once: true });
-        }
-        showBanner('error', t('auth_forgot_enter_email', 'Enter your email above, then tap "Forgot your password?" again.'));
-        return;
+  e.preventDefault(); // Prevent mailto fallback when JS is available
+  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
+  if (!email) {
+    // M-AUD-003 FIX: Focus the email field with guiding instruction.
+    const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
+    if (loginEmailInput) {
+      loginEmailInput.focus();
+      // DEF-FLASH-001 FIX: Replaced setTimeout + 3 Tailwind classes with CSS animation.
+      // Previous: add('ring-2', 'ring-trust-blue/50', 'border-trust-blue')
+      //   + setTimeout(remove, 3000) — 4 classes + timing hack.
+      // Standard: P1-SST-001 governance, CSS-driven animation, zero setTimeout.
+      loginEmailInput.classList.add('nm-input-flash-focus');
+      loginEmailInput.addEventListener(
+        'animationend',
+        () => {
+          loginEmailInput.classList.remove('nm-input-flash-focus');
+        },
+        { once: true },
+      );
     }
+    showBanner('error', t('auth_forgot_enter_email', 'أدخل بريدك الإلكتروني'));
+    return;
+  }
 
+  if (forgotBtn) {
+    // GAP-2026-001 FIX: Added spinner icon for visual loading consistency.
+    // Previous: text-only change "Sending..." — no visual loading indicator.
+    // Standard: Design System Governance (all loading states must show spinners).
+    forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-sm" aria-hidden="true"></i> ${esc(t('auth_forgot_sending', 'جاري الإرسال…'))}`;
+    forgotBtn.setAttribute('aria-disabled', 'true');
+    // P1-AUD4-002 FIX: Replaced inline style.pointerEvents + style.opacity with CSS class.
+    // Previous: forgotBtn.style.pointerEvents = 'none'; forgotBtn.style.opacity = '0.5'
+    // Standard: P1-001 precedent — CSS Single Source of Truth.
+    forgotBtn.classList.add('nm-btn-cooldown');
+  }
+
+  try {
+    const data = await auth.forgotPassword({ email });
+    if (data.success) {
+      showBanner('success', data.message ?? t('auth_forgot_sent', 'تم إرسال رابط إعادة التعيين!'));
+    } else {
+      showBanner('error', data.error ?? t('auth_forgot_error', 'فشل الإرسال. حاول مرة أخرى.'));
+    }
+  } catch (err) {
+    showBanner(
+      'error',
+      err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+    );
+  } finally {
     if (forgotBtn) {
-        // GAP-2026-001 FIX: Added spinner icon for visual loading consistency.
-        // Previous: text-only change "Sending..." — no visual loading indicator.
-        // Standard: Design System Governance (all loading states must show spinners).
-        forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-sm" aria-hidden="true"></i> ${esc(t('auth_forgot_sending', 'Sending...'))}`;
-        forgotBtn.setAttribute('aria-disabled', 'true');
-        // P1-AUD4-002 FIX: Replaced inline style.pointerEvents + style.opacity with CSS class.
-        // Previous: forgotBtn.style.pointerEvents = 'none'; forgotBtn.style.opacity = '0.5'
-        // Standard: P1-001 precedent — CSS Single Source of Truth.
-        forgotBtn.classList.add('nm-btn-cooldown');
+      // GAP-2026-001 FIX: Restore original content with i18n data attribute.
+      // Previous: text-only "Sending..." with no spinner — inconsistent with btn-loading pattern.
+      // Now: uses data-i18n attribute for proper i18n restoration.
+      // Standard: Design System Governance (consistent loading states).
+      forgotBtn.innerHTML = `<span data-i18n="forgot_password">${esc(t('auth_forgot_link_text', 'إرسال رابط إعادة التعيين'))}</span>`;
+      forgotBtn.removeAttribute('aria-disabled');
+      // P1-AUD4-002 FIX: Remove CSS cooldown class (replaces inline style reset).
+      forgotBtn.classList.remove('nm-btn-cooldown');
     }
-
-    try {
-        const data = await auth.forgotPassword({ email });
-        if (data.success) {
-            showBanner('success', data.message ?? t('auth_forgot_sent', 'If an account with that email exists, a password reset link has been sent.'));
-        } else {
-            showBanner('error', data.error ?? t('auth_forgot_error', 'Something went wrong. Please try again.'));
-        }
-    } catch (err) {
-        showBanner('error', err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.'));
-    } finally {
-        if (forgotBtn) {
-            // GAP-2026-001 FIX: Restore original content with i18n data attribute.
-            // Previous: text-only "Sending..." with no spinner — inconsistent with btn-loading pattern.
-            // Now: uses data-i18n attribute for proper i18n restoration.
-            // Standard: Design System Governance (consistent loading states).
-            forgotBtn.innerHTML = `<span data-i18n="forgot_password">${esc(t('auth_forgot_link_text', 'Forgot your password?'))}</span>`;
-            forgotBtn.removeAttribute('aria-disabled');
-            // P1-AUD4-002 FIX: Remove CSS cooldown class (replaces inline style reset).
-            forgotBtn.classList.remove('nm-btn-cooldown');
-        }
-    }
+  }
 });
 
 // ─── OAuth-001: Social Login Integration ──────────────────────────────────────
@@ -919,77 +1024,81 @@ forgotBtn?.addEventListener('click', async (e) => {
 // Now a single function governs all post-authentication redirects.
 // ─────────────────────────────────────────────────────────────────────────────
 async function handleLoginRedirect(
-    rawUserData: Record<string, unknown>,
-    successMessage: string,
+  rawUserData: Record<string, unknown>,
+  successMessage: string,
 ): Promise<void> {
-    const userData = rawUserData as {
-        user_id: string;
-        full_name: string;
-        role: string;
-        roles?: string[];
-        email: string;
-        is_active: boolean;
-    };
+  const userData = rawUserData as {
+    user_id: string;
+    full_name: string;
+    role: string;
+    roles?: string[];
+    email: string;
+    is_active: boolean;
+  };
 
-    const { setCurrentUser } = await import('../auth');
-    const userRole = userData.role as import('../auth').UserRole;
-    setCurrentUser({
-        user_id: userData.user_id,
-        full_name: userData.full_name,
-        role: userRole,
-        roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
-        email: userData.email,
-        kyc_verified: userData.is_active,
-    });
+  const { setCurrentUser } = await import('../auth');
+  const userRole = userData.role as import('../auth').UserRole;
+  setCurrentUser({
+    user_id: userData.user_id,
+    full_name: userData.full_name,
+    role: userRole,
+    roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
+    email: userData.email,
+    kyc_verified: userData.is_active,
+  });
 
-    showBanner('success', successMessage);
+  showBanner('success', successMessage);
 
-    // UNIFIED CITIZEN: All users go to homepage. ?redirect= param from auth-guard
-    // takes priority for deep-link scenarios (e.g. /project-details?id=X).
-    const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-    let finalTarget = redirectParam
-        ? decodeURIComponent(redirectParam)
-        : POST_LOGIN_REDIRECT;
+  // UNIFIED CITIZEN: All users go to homepage. ?redirect= param from auth-guard
+  // takes priority for deep-link scenarios (e.g. /project-details?id=X).
+  const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+  let finalTarget = redirectParam ? decodeURIComponent(redirectParam) : POST_LOGIN_REDIRECT;
 
-    // Security: Only allow relative paths (prevent open redirect vulnerability)
-    if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
-        finalTarget = POST_LOGIN_REDIRECT;
+  // Security: Only allow relative paths (prevent open redirect vulnerability)
+  if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
+    finalTarget = POST_LOGIN_REDIRECT;
+  }
+
+  // GAP-002 FIX: Detect first login after registration → append onboarding param.
+  try {
+    if (localStorage.getItem('nmh_onboarding_pending') === '1') {
+      localStorage.removeItem('nmh_onboarding_pending');
+      finalTarget += (finalTarget.includes('?') ? '&' : '?') + 'onboarding=1';
     }
+  } catch {
+    /* Safari private mode */
+  }
 
-    // GAP-002 FIX: Detect first login after registration → append onboarding param.
+  // ─── P1-001 FIX: Workspace-Aware Post-Login Redirect ────────────────
+  // Returning users who previously selected a workspace (via Welcome Chooser
+  // or by clicking a portal card) are redirected directly to their preferred
+  // portal instead of the generic homepage.
+  //
+  // Priority chain (highest → lowest):
+  //   1. ?redirect= param (deep link from auth-guard — e.g. /project-details?id=X)
+  //   2. nmh_onboarding_pending (first login → homepage + welcome chooser)
+  //   3. nm_preferred_workspace (returning user → portal shortcut)
+  //   4. POST_LOGIN_REDIRECT / (default homepage)
+  //
+  // Security: resolveWorkspaceUrl() is a whitelist lookup — returns null for
+  // unknown IDs, preventing open redirect via tampered localStorage.
+  // ─────────────────────────────────────────────────────────────────────
+  if (!redirectParam && !finalTarget.includes('onboarding=1')) {
     try {
-        if (localStorage.getItem('nmh_onboarding_pending') === '1') {
-            localStorage.removeItem('nmh_onboarding_pending');
-            finalTarget += (finalTarget.includes('?') ? '&' : '?') + 'onboarding=1';
-        }
-    } catch { /* Safari private mode */ }
-
-    // ─── P1-001 FIX: Workspace-Aware Post-Login Redirect ────────────────
-    // Returning users who previously selected a workspace (via Welcome Chooser
-    // or by clicking a portal card) are redirected directly to their preferred
-    // portal instead of the generic homepage.
-    //
-    // Priority chain (highest → lowest):
-    //   1. ?redirect= param (deep link from auth-guard — e.g. /project-details?id=X)
-    //   2. nmh_onboarding_pending (first login → homepage + welcome chooser)
-    //   3. nm_preferred_workspace (returning user → portal shortcut)
-    //   4. POST_LOGIN_REDIRECT / (default homepage)
-    //
-    // Security: resolveWorkspaceUrl() is a whitelist lookup — returns null for
-    // unknown IDs, preventing open redirect via tampered localStorage.
-    // ─────────────────────────────────────────────────────────────────────
-    if (!redirectParam && !finalTarget.includes('onboarding=1')) {
-        try {
-            const { resolveWorkspaceUrl, WS_STORAGE_KEY } = await import('../utils/workspace-map');
-            const preferredWs = localStorage.getItem(WS_STORAGE_KEY);
-            const wsUrl = resolveWorkspaceUrl(preferredWs);
-            if (wsUrl) {
-                finalTarget = wsUrl;
-            }
-        } catch { /* Module load failure — fall through to default homepage */ }
+      const { resolveWorkspaceUrl, WS_STORAGE_KEY } = await import('../utils/workspace-map');
+      const preferredWs = localStorage.getItem(WS_STORAGE_KEY);
+      const wsUrl = resolveWorkspaceUrl(preferredWs);
+      if (wsUrl) {
+        finalTarget = wsUrl;
+      }
+    } catch {
+      /* Module load failure — fall through to default homepage */
     }
+  }
 
-    setTimeout(() => { window.location.href = finalTarget; }, 800);
+  setTimeout(() => {
+    window.location.href = finalTarget;
+  }, 800);
 }
 
 /**
@@ -998,31 +1107,28 @@ async function handleLoginRedirect(
  * C2 FIX: No longer duplicates the entire redirect logic.
  */
 async function handleSocialLoginSuccess(
-    response: { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-    provider: string,
+  response: { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
+  _provider: string,
 ): Promise<void> {
-    if (!response.success || !response.data?.user) {
-        showBanner('error', response.error ?? t('auth_login_failed', 'Authentication failed. Please try again.'));
-        return;
-    }
+  if (!response.success || !response.data?.user) {
+    showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
+    return;
+  }
 
-    await handleLoginRedirect(
-        response.data.user,
-        t('auth_welcome_social', `Welcome! Signed in with ${provider}. Redirecting...`),
-    );
+  await handleLoginRedirect(response.data.user, t('auth_welcome_social', 'مرحباً! تم تسجيل دخولك'));
 }
 
 /**
  * Set loading state on a social button.
  */
 function setSocialBtnLoading(btn: HTMLButtonElement, loading: boolean): void {
-    if (loading) {
-        btn.classList.add('btn-loading');
-        state.isSubmitting = true;
-    } else {
-        btn.classList.remove('btn-loading');
-        state.isSubmitting = false;
-    }
+  if (loading) {
+    btn.classList.add('btn-loading');
+    state.isSubmitting = true;
+  } else {
+    btn.classList.remove('btn-loading');
+    state.isSubmitting = false;
+  }
 }
 // ─── UX-F019 FIX: Lazy SDK Loader ────────────────────────────────────────────
 // PREVIOUS: 3 OAuth SDK <script> tags loaded eagerly on auth.html (~450KB).
@@ -1033,25 +1139,30 @@ function setSocialBtnLoading(btn: HTMLButtonElement, loading: boolean): void {
 const _loadedSdks = new Map<string, Promise<void>>();
 
 function loadSdkOnDemand(src: string, id: string): Promise<void> {
-    const existing = _loadedSdks.get(id);
-    if (existing) { return existing; }
+  const existing = _loadedSdks.get(id);
+  if (existing) {
+    return existing;
+  }
 
-    const promise = new Promise<void>((resolve, reject) => {
-        // Check if already in DOM (e.g., loaded by another code path)
-        if (document.getElementById(id)) { resolve(); return; }
+  const promise = new Promise<void>((resolve, reject) => {
+    // Check if already in DOM (e.g., loaded by another code path)
+    if (document.getElementById(id)) {
+      resolve();
+      return;
+    }
 
-        const script = document.createElement('script');
-        script.id = id;
-        script.src = src;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`Failed to load SDK: ${id}`));
-        document.head.appendChild(script);
-    });
+    const script = document.createElement('script');
+    script.id = id;
+    script.src = src;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load SDK: ${id}`));
+    document.head.appendChild(script);
+  });
 
-    _loadedSdks.set(id, promise);
-    return promise;
+  _loadedSdks.set(id, promise);
+  return promise;
 }
 
 // ─── Google Sign-In (GSI) ───────────────────────────────────────────────────
@@ -1062,80 +1173,121 @@ function loadSdkOnDemand(src: string, id: string): Promise<void> {
 
 // Declare GSI types
 declare const google: {
-    accounts: {
-        id: {
-            initialize: (config: { client_id: string; callback: (response: { credential: string }) => void; auto_select?: boolean }) => void;
-            prompt: (notification?: (status: { isNotDisplayed: () => boolean; isSkippedMoment: () => boolean }) => void) => void;
-            renderButton: (element: HTMLElement, config: { type: string; theme: string; size: string; logo_alignment: string; width?: number }) => void;
-        };
-        oauth2: {
-            initCodeClient: (config: { client_id: string; scope: string; ux_mode: string; callback: (response: { code: string }) => void }) => { requestCode: () => void };
-        };
+  accounts: {
+    id: {
+      initialize: (config: {
+        client_id: string;
+        callback: (response: { credential: string }) => void;
+        auto_select?: boolean;
+      }) => void;
+      prompt: (
+        notification?: (status: {
+          isNotDisplayed: () => boolean;
+          isSkippedMoment: () => boolean;
+        }) => void,
+      ) => void;
+      renderButton: (
+        element: HTMLElement,
+        config: {
+          type: string;
+          theme: string;
+          size: string;
+          logo_alignment: string;
+          width?: number;
+        },
+      ) => void;
     };
+    oauth2: {
+      initCodeClient: (config: {
+        client_id: string;
+        scope: string;
+        ux_mode: string;
+        callback: (response: { code: string }) => void;
+      }) => { requestCode: () => void };
+    };
+  };
 };
 
 function initGoogleSignIn(): void {
-    const googleClientId = (window as unknown as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as string | undefined;
-    if (!googleClientId) {
-        reportWarning('[OAuth] Google Client ID not configured.', { component: 'auth', action: 'init_google' });
-    }
-
-    document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="google"]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (state.isSubmitting) {return;}
-            haptic.light();
-
-            // UX-F019 FIX: Lazy-load Google GSI SDK on first click.
-            try { await loadSdkOnDemand('https://accounts.google.com/gsi/client', 'gsi-sdk'); } catch { /* fallback below */ }
-
-            // PLATINUM-001: Clean two-strategy flow (dead renderButton hack removed).
-            // Strategy 1: GSI SDK loaded → use prompt() for native One Tap UX.
-            // If prompt fails (incognito, ad blockers, cookies) → immediate manual popup fallback.
-            if (typeof google !== 'undefined' && google?.accounts?.id) {
-                setSocialBtnLoading(btn, true);
-                try {
-                    google.accounts.id.initialize({
-                        client_id: googleClientId ?? '',
-                        callback: async (credentialResponse) => {
-                            try {
-                                const response = await auth.socialLogin({
-                                    provider: 'google',
-                                    id_token: credentialResponse.credential,
-                                });
-                                await handleSocialLoginSuccess(
-                                    response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-                                    'Google',
-                                );
-                            } catch (err) {
-                                const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-                                showBanner('error', msg);
-                            } finally {
-                                setSocialBtnLoading(btn, false);
-                            }
-                        },
-                    });
-
-                    // Trigger Google One Tap prompt — best UX when it works.
-                    // On failure (incognito, ad blockers, 3rd-party cookies blocked),
-                    // immediately fall back to manual OAuth popup.
-                    google.accounts.id.prompt((notification) => {
-                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                            setSocialBtnLoading(btn, false);
-                            openGoogleOAuthPopup(googleClientId ?? '');
-                        }
-                    });
-                } catch {
-                    setSocialBtnLoading(btn, false);
-                    // GSI SDK threw — fall back to manual popup
-                    openGoogleOAuthPopup(googleClientId ?? '');
-                }
-                return;
-            }
-
-            // Strategy 2: GSI SDK not loaded (blocked by ad blocker/network) — manual popup
-            openGoogleOAuthPopup(googleClientId ?? '');
-        });
+  const googleClientId = (window as unknown as Record<string, unknown>).__GOOGLE_CLIENT_ID__ as
+    | string
+    | undefined;
+  if (!googleClientId) {
+    reportWarning('[OAuth] Google Client ID not configured.', {
+      component: 'auth',
+      action: 'init_google',
     });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="google"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (state.isSubmitting) {
+        return;
+      }
+      haptic.light();
+
+      // UX-F019 FIX: Lazy-load Google GSI SDK on first click.
+      try {
+        await loadSdkOnDemand('https://accounts.google.com/gsi/client', 'gsi-sdk');
+      } catch {
+        /* fallback below */
+      }
+
+      // PLATINUM-001: Clean two-strategy flow (dead renderButton hack removed).
+      // Strategy 1: GSI SDK loaded → use prompt() for native One Tap UX.
+      // If prompt fails (incognito, ad blockers, cookies) → immediate manual popup fallback.
+      if (typeof google !== 'undefined' && google?.accounts?.id) {
+        setSocialBtnLoading(btn, true);
+        try {
+          google.accounts.id.initialize({
+            client_id: googleClientId ?? '',
+            callback: async (credentialResponse) => {
+              try {
+                const response = await auth.socialLogin({
+                  provider: 'google',
+                  id_token: credentialResponse.credential,
+                });
+                await handleSocialLoginSuccess(
+                  response as {
+                    success: boolean;
+                    data?: { user?: Record<string, unknown> };
+                    error?: string;
+                  },
+                  'Google',
+                );
+              } catch (err) {
+                const msg =
+                  err instanceof Error
+                    ? err.message
+                    : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+                showBanner('error', msg);
+              } finally {
+                setSocialBtnLoading(btn, false);
+              }
+            },
+          });
+
+          // Trigger Google One Tap prompt — best UX when it works.
+          // On failure (incognito, ad blockers, 3rd-party cookies blocked),
+          // immediately fall back to manual OAuth popup.
+          google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              setSocialBtnLoading(btn, false);
+              openGoogleOAuthPopup(googleClientId ?? '');
+            }
+          });
+        } catch {
+          setSocialBtnLoading(btn, false);
+          // GSI SDK threw — fall back to manual popup
+          openGoogleOAuthPopup(googleClientId ?? '');
+        }
+        return;
+      }
+
+      // Strategy 2: GSI SDK not loaded (blocked by ad blocker/network) — manual popup
+      openGoogleOAuthPopup(googleClientId ?? '');
+    });
+  });
 }
 
 /**
@@ -1146,103 +1298,143 @@ function initGoogleSignIn(): void {
  * PLATINUM-002: Full CSRF protection via one-time-use state parameter.
  */
 function openGoogleOAuthPopup(clientId: string): void {
-    if (!clientId) {
-        showBanner('error', t('auth_sso_unavailable', 'Google Sign-In is not configured yet. Please use email.'));
-        return;
-    }
+  if (!clientId) {
+    showBanner('error', t('auth_sso_unavailable', 'تسجيل الدخول الاجتماعي غير متاح حالياً'));
+    return;
+  }
 
-    const redirectUri = `${window.location.origin}/auth.html`;
-    const scope = 'openid email profile';
+  const redirectUri = `${window.location.origin}/auth.html`;
+  const scope = 'openid email profile';
 
-    // PLATINUM-002: Cryptographically random state for CSRF protection.
-    // Uses crypto.getRandomValues for unpredictability (not Math.random).
-    const stateArray = new Uint8Array(16);
-    crypto.getRandomValues(stateArray);
-    const oauthState = Array.from(stateArray, b => b.toString(16).padStart(2, '0')).join('');
+  // PLATINUM-002: Cryptographically random state for CSRF protection.
+  // Uses crypto.getRandomValues for unpredictability (not Math.random).
+  const stateArray = new Uint8Array(16);
+  crypto.getRandomValues(stateArray);
+  const oauthState = Array.from(stateArray, (b) => b.toString(16).padStart(2, '0')).join('');
 
-    // Store state for validation in the polling callback (one-time use).
-    try { sessionStorage.setItem('__google_oauth_state', oauthState); } catch { /* incognito — degrade gracefully */ }
+  // Store state for validation in the polling callback (one-time use).
+  try {
+    sessionStorage.setItem('__google_oauth_state', oauthState);
+  } catch {
+    /* incognito — degrade gracefully */
+  }
 
-    const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+  const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
+    b.toString(16).padStart(2, '0'),
+  ).join('');
 
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${encodeURIComponent(clientId)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&response_type=id_token` +
-        `&scope=${encodeURIComponent(scope)}` +
-        `&state=${encodeURIComponent(oauthState)}` +
-        `&nonce=${encodeURIComponent(nonce)}` +
-        `&prompt=select_account`;
+  const authUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&response_type=id_token` +
+    `&scope=${encodeURIComponent(scope)}` +
+    `&state=${encodeURIComponent(oauthState)}` +
+    `&nonce=${encodeURIComponent(nonce)}` +
+    `&prompt=select_account`;
 
-    const width = 500, height = 600;
-    const left = (screen.width - width) / 2;
-    const top = (screen.height - height) / 2;
-    const popup = window.open(authUrl, 'google_oauth', `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no`);
+  const width = 500,
+    height = 600;
+  const left = (screen.width - width) / 2;
+  const top = (screen.height - height) / 2;
+  const popup = window.open(
+    authUrl,
+    'google_oauth',
+    `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no`,
+  );
 
-    if (!popup) {
-        showBanner('error', t('auth_google_popup_blocked', 'Popup was blocked. Please allow popups and try again.'));
-        return;
-    }
+  if (!popup) {
+    showBanner('error', t('auth_google_popup_blocked', 'نافذة Google المنبثقة محظورة'));
+    return;
+  }
 
-    // Poll for the popup redirect (hash fragment contains id_token)
-    const pollTimer = setInterval(async () => {
-        try {
-            if (popup.closed) {
-                clearInterval(pollTimer);
-                return;
-            }
-            // Check if the popup has navigated back to our origin
-            if (popup.location.origin === window.location.origin) {
-                clearInterval(pollTimer);
-                const hash = popup.location.hash.substring(1);
-                popup.close();
-
-                const params = new URLSearchParams(hash);
-                const idToken = params.get('id_token');
-                const returnedState = params.get('state');
-
-                // PLATINUM-002: CSRF state validation — reject mismatched tokens.
-                let storedState: string | null = null;
-                try { storedState = sessionStorage.getItem('__google_oauth_state'); } catch { /* ignore */ }
-
-                if (storedState && returnedState !== storedState) {
-                    console.error('[OAuth] CSRF state mismatch — rejecting token. Expected:', storedState, 'Got:', returnedState);
-                    showBanner('error', t('auth_csrf_error', 'Security validation failed. Please try again.'));
-                    // Clear one-time state
-                    try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
-                    return;
-                }
-
-                // Clear one-time state after successful validation
-                try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
-
-                if (idToken) {
-                    try {
-                        const response = await auth.socialLogin({
-                            provider: 'google',
-                            id_token: idToken,
-                        });
-                        await handleSocialLoginSuccess(
-                            response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-                            'Google',
-                        );
-                    } catch (err) {
-                        const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-                        showBanner('error', msg);
-                    }
-                }
-            }
-        } catch {
-            // Cross-origin — popup hasn't redirected yet, keep polling
-        }
-    }, 500);
-
-    // Safety timeout: stop polling after 5 minutes
-    setTimeout(() => {
+  // Poll for the popup redirect (hash fragment contains id_token)
+  const pollTimer = setInterval(async () => {
+    try {
+      if (popup.closed) {
         clearInterval(pollTimer);
-        // Clean up stale state if popup was abandoned
-        try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
-    }, 300000);
+        return;
+      }
+      // Check if the popup has navigated back to our origin
+      if (popup.location.origin === window.location.origin) {
+        clearInterval(pollTimer);
+        const hash = popup.location.hash.substring(1);
+        popup.close();
+
+        const params = new URLSearchParams(hash);
+        const idToken = params.get('id_token');
+        const returnedState = params.get('state');
+
+        // PLATINUM-002: CSRF state validation — reject mismatched tokens.
+        let storedState: string | null = null;
+        try {
+          storedState = sessionStorage.getItem('__google_oauth_state');
+        } catch {
+          /* ignore */
+        }
+
+        if (storedState && returnedState !== storedState) {
+          console.error(
+            '[OAuth] CSRF state mismatch — rejecting token. Expected:',
+            storedState,
+            'Got:',
+            returnedState,
+          );
+          showBanner('error', t('auth_csrf_error', 'خطأ أمني — يرجى تحديث الصفحة'));
+          // Clear one-time state
+          try {
+            sessionStorage.removeItem('__google_oauth_state');
+          } catch {
+            /* ignore */
+          }
+          return;
+        }
+
+        // Clear one-time state after successful validation
+        try {
+          sessionStorage.removeItem('__google_oauth_state');
+        } catch {
+          /* ignore */
+        }
+
+        if (idToken) {
+          try {
+            const response = await auth.socialLogin({
+              provider: 'google',
+              id_token: idToken,
+            });
+            await handleSocialLoginSuccess(
+              response as {
+                success: boolean;
+                data?: { user?: Record<string, unknown> };
+                error?: string;
+              },
+              'Google',
+            );
+          } catch (err) {
+            const msg =
+              err instanceof Error
+                ? err.message
+                : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+            showBanner('error', msg);
+          }
+        }
+      }
+    } catch {
+      // Cross-origin — popup hasn't redirected yet, keep polling
+    }
+  }, 500);
+
+  // Safety timeout: stop polling after 5 minutes
+  setTimeout(() => {
+    clearInterval(pollTimer);
+    // Clean up stale state if popup was abandoned
+    try {
+      sessionStorage.removeItem('__google_oauth_state');
+    } catch {
+      /* ignore */
+    }
+  }, 300000);
 }
 
 // ─── Apple Sign-In ──────────────────────────────────────────────────────────
@@ -1250,75 +1442,100 @@ function openGoogleOAuthPopup(clientId: string): void {
 // Docs: https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js
 
 function initAppleSignIn(): void {
-    document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="apple"]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (state.isSubmitting) {return;}
-            haptic.light();
-            setSocialBtnLoading(btn, true);
+  document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="apple"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (state.isSubmitting) {
+        return;
+      }
+      haptic.light();
+      setSocialBtnLoading(btn, true);
 
-            try {
-                // UX-F019 FIX: Lazy-load Apple Sign-In SDK on first click.
-                try { await loadSdkOnDemand('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js', 'apple-sdk'); } catch { /* poll below */ }
+      try {
+        // UX-F019 FIX: Lazy-load Apple Sign-In SDK on first click.
+        try {
+          await loadSdkOnDemand(
+            'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js',
+            'apple-sdk',
+          );
+        } catch {
+          /* poll below */
+        }
 
-                // Apple Sign In JS SDK check — poll briefly for async load
-                let AppleID = (window as unknown as Record<string, unknown>).AppleID as {
-                    auth: {
-                        init: (config: Record<string, unknown>) => void;
-                        signIn: () => Promise<{ authorization: { id_token: string; code: string }; user?: { name?: { firstName?: string; lastName?: string }; email?: string } }>;
-                    };
-                } | undefined;
-
-                // Wait up to 2s for Apple SDK to load
-                if (!AppleID?.auth) {
-                    for (let i = 0; i < 10; i++) {
-                        await new Promise(r => setTimeout(r, 200));
-                        AppleID = (window as unknown as Record<string, unknown>).AppleID as typeof AppleID;
-                        if (AppleID?.auth) {break;}
-                    }
-                }
-
-                if (!AppleID?.auth) {
-                    showBanner('info', t('auth_apple_not_configured', 'Apple Sign-In is being set up. Please use email for now.'));
-                    setSocialBtnLoading(btn, false);
-                    return;
-                }
-
-                const appleClientId = (window as unknown as Record<string, unknown>).__APPLE_CLIENT_ID__ as string | undefined;
-                AppleID.auth.init({
-                    clientId: appleClientId ?? '',
-                    scope: 'name email',
-                    redirectURI: `${window.location.origin}/auth.html`,
-                    usePopup: true,
-                });
-
-                const appleResponse = await AppleID.auth.signIn();
-                const fullName = appleResponse.user?.name
-                    ? `${appleResponse.user.name.firstName ?? ''} ${appleResponse.user.name.lastName ?? ''}`.trim()
-                    : undefined;
-
-                const response = await auth.socialLogin({
-                    provider: 'apple',
-                    id_token: appleResponse.authorization.id_token,
-                    full_name: fullName || undefined,
-                });
-
-                await handleSocialLoginSuccess(
-                    response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-                    'Apple',
-                );
-            } catch (err) {
-                // User cancelled Apple popup — not an error
-                if (err instanceof Error && err.message.includes('popup_closed')) {
-                    // Silent — user just closed the popup
-                } else {
-                    const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-                    showBanner('error', msg);
-                }
-            } finally {
-                setSocialBtnLoading(btn, false);
+        // Apple Sign In JS SDK check — poll briefly for async load
+        let AppleID = (window as unknown as Record<string, unknown>).AppleID as
+          | {
+              auth: {
+                init: (config: Record<string, unknown>) => void;
+                signIn: () => Promise<{
+                  authorization: { id_token: string; code: string };
+                  user?: { name?: { firstName?: string; lastName?: string }; email?: string };
+                }>;
+              };
             }
+          | undefined;
+
+        // Wait up to 2s for Apple SDK to load
+        if (!AppleID?.auth) {
+          for (let i = 0; i < 10; i++) {
+            await new Promise((r) => setTimeout(r, 200));
+            AppleID = (window as unknown as Record<string, unknown>).AppleID as typeof AppleID;
+            if (AppleID?.auth) {
+              break;
+            }
+          }
+        }
+
+        if (!AppleID?.auth) {
+          showBanner('info', t('auth_apple_not_configured', 'تسجيل Apple غير مهيأ بعد'));
+          setSocialBtnLoading(btn, false);
+          return;
+        }
+
+        const appleClientId = (window as unknown as Record<string, unknown>).__APPLE_CLIENT_ID__ as
+          | string
+          | undefined;
+        AppleID.auth.init({
+          clientId: appleClientId ?? '',
+          scope: 'name email',
+          redirectURI: `${window.location.origin}/auth.html`,
+          usePopup: true,
         });
+
+        const appleResponse = await AppleID.auth.signIn();
+        const fullName = appleResponse.user?.name
+          ? `${appleResponse.user.name.firstName ?? ''} ${appleResponse.user.name.lastName ?? ''}`.trim()
+          : undefined;
+
+        const response = await auth.socialLogin({
+          provider: 'apple',
+          id_token: appleResponse.authorization.id_token,
+          full_name: fullName || undefined,
+        });
+
+        await handleSocialLoginSuccess(
+          response as {
+            success: boolean;
+            data?: { user?: Record<string, unknown> };
+            error?: string;
+          },
+          'Apple',
+        );
+      } catch (err) {
+        // User cancelled Apple popup — not an error
+        if (err instanceof Error && err.message.includes('popup_closed')) {
+          // Silent — user just closed the popup
+        } else {
+          const msg =
+            err instanceof Error
+              ? err.message
+              : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+          showBanner('error', msg);
+        }
+      } finally {
+        setSocialBtnLoading(btn, false);
+      }
     });
+  });
 }
 
 // ─── Facebook Login ─────────────────────────────────────────────────────────
@@ -1329,92 +1546,124 @@ function initAppleSignIn(): void {
 
 // Initialize Facebook SDK
 (function initFBSDK() {
-    const fbAppId = (window as unknown as Record<string, unknown>).__FACEBOOK_APP_ID__ as string | undefined;
-    if (!fbAppId) {return;}
+  const fbAppId = (window as unknown as Record<string, unknown>).__FACEBOOK_APP_ID__ as
+    | string
+    | undefined;
+  if (!fbAppId) {
+    return;
+  }
 
-    // fbAsyncInit is called by the Facebook SDK when it finishes loading
-    (window as unknown as Record<string, unknown>).fbAsyncInit = function() {
-        const FB = (window as unknown as Record<string, unknown>).FB as {
-            init: (config: Record<string, unknown>) => void;
-        } | undefined;
-        FB?.init({
-            appId: fbAppId,
-            cookie: true,
-            xfbml: false,
-            version: 'v19.0',
-        });
-    };
+  // fbAsyncInit is called by the Facebook SDK when it finishes loading
+  (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
+    const FB = (window as unknown as Record<string, unknown>).FB as
+      | {
+          init: (config: Record<string, unknown>) => void;
+        }
+      | undefined;
+    FB?.init({
+      appId: fbAppId,
+      cookie: true,
+      xfbml: false,
+      version: 'v19.0',
+    });
+  };
 
-    // If FB SDK already loaded before this code ran
-    const FB = (window as unknown as Record<string, unknown>).FB as {
+  // If FB SDK already loaded before this code ran
+  const FB = (window as unknown as Record<string, unknown>).FB as
+    | {
         init: (config: Record<string, unknown>) => void;
-    } | undefined;
-    if (FB?.init) {
-        FB.init({
-            appId: fbAppId,
-            cookie: true,
-            xfbml: false,
-            version: 'v19.0',
-        });
-    }
+      }
+    | undefined;
+  if (FB?.init) {
+    FB.init({
+      appId: fbAppId,
+      cookie: true,
+      xfbml: false,
+      version: 'v19.0',
+    });
+  }
 })();
 
 function initFacebookLogin(): void {
-    document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="facebook"]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (state.isSubmitting) {return;}
-            haptic.light();
-            setSocialBtnLoading(btn, true);
+  document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="facebook"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (state.isSubmitting) {
+        return;
+      }
+      haptic.light();
+      setSocialBtnLoading(btn, true);
+
+      try {
+        // Wait up to 2s for FB SDK to initialize
+        let FB = (window as unknown as Record<string, unknown>).FB as
+          | {
+              login: (
+                callback: (response: { authResponse?: { accessToken: string } }) => void,
+                options: { scope: string },
+              ) => void;
+              getLoginStatus: (
+                callback: (response: {
+                  status: string;
+                  authResponse?: { accessToken: string };
+                }) => void,
+              ) => void;
+            }
+          | undefined;
+
+        if (!FB?.login) {
+          for (let i = 0; i < 10; i++) {
+            await new Promise((r) => setTimeout(r, 200));
+            FB = (window as unknown as Record<string, unknown>).FB as typeof FB;
+            if (FB?.login) {
+              break;
+            }
+          }
+        }
+
+        if (!FB?.login) {
+          showBanner('info', t('auth_facebook_not_configured', 'تسجيل Facebook غير مهيأ بعد'));
+          setSocialBtnLoading(btn, false);
+          return;
+        }
+
+        FB.login(
+          async (fbResponse) => {
+            if (!fbResponse.authResponse?.accessToken) {
+              setSocialBtnLoading(btn, false);
+              return; // User cancelled
+            }
 
             try {
-                // Wait up to 2s for FB SDK to initialize
-                let FB = (window as unknown as Record<string, unknown>).FB as {
-                    login: (callback: (response: { authResponse?: { accessToken: string } }) => void, options: { scope: string }) => void;
-                    getLoginStatus: (callback: (response: { status: string; authResponse?: { accessToken: string } }) => void) => void;
-                } | undefined;
-
-                if (!FB?.login) {
-                    for (let i = 0; i < 10; i++) {
-                        await new Promise(r => setTimeout(r, 200));
-                        FB = (window as unknown as Record<string, unknown>).FB as typeof FB;
-                        if (FB?.login) {break;}
-                    }
-                }
-
-                if (!FB?.login) {
-                    showBanner('info', t('auth_facebook_not_configured', 'Facebook Login is being set up. Please use email for now.'));
-                    setSocialBtnLoading(btn, false);
-                    return;
-                }
-
-                FB.login(async (fbResponse) => {
-                    if (!fbResponse.authResponse?.accessToken) {
-                        setSocialBtnLoading(btn, false);
-                        return; // User cancelled
-                    }
-
-                    try {
-                        const response = await auth.socialLogin({
-                            provider: 'facebook',
-                            id_token: fbResponse.authResponse.accessToken,
-                        });
-                        await handleSocialLoginSuccess(
-                            response as { success: boolean; data?: { user?: Record<string, unknown> }; error?: string },
-                            'Facebook',
-                        );
-                    } catch (err) {
-                        const msg = err instanceof Error ? err.message : t('auth_network_error', 'Network error. Please try again.');
-                        showBanner('error', msg);
-                    } finally {
-                        setSocialBtnLoading(btn, false);
-                    }
-                }, { scope: 'email,public_profile' });
-            } catch {
-                setSocialBtnLoading(btn, false);
-                showBanner('error', t('auth_sso_unavailable', 'Facebook Login is temporarily unavailable. Please use email.'));
+              const response = await auth.socialLogin({
+                provider: 'facebook',
+                id_token: fbResponse.authResponse.accessToken,
+              });
+              await handleSocialLoginSuccess(
+                response as {
+                  success: boolean;
+                  data?: { user?: Record<string, unknown> };
+                  error?: string;
+                },
+                'Facebook',
+              );
+            } catch (err) {
+              const msg =
+                err instanceof Error
+                  ? err.message
+                  : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+              showBanner('error', msg);
+            } finally {
+              setSocialBtnLoading(btn, false);
             }
-        });
+          },
+          { scope: 'email,public_profile' },
+        );
+      } catch {
+        setSocialBtnLoading(btn, false);
+        showBanner('error', t('auth_sso_unavailable', 'تسجيل الدخول الاجتماعي غير متاح حالياً'));
+      }
     });
+  });
 }
 
 // Initialize all social providers
@@ -1431,15 +1680,17 @@ initFacebookLogin();
 // FIX-1: Horizontal swipe gesture between Login ↔ Register tabs.
 // swipe-tabs.ts handles RTL direction, threshold, and vertical scroll rejection.
 initSwipeTabs({
-    containerSelector: '#main-content',
-    tabs: ['login', 'register'] as const,
-    onSwitch: (tab) => {
-        switchTab(tab);
-        if (tab === 'register') { goToRegStep(1); }
-    },
-    getCurrentTab: () => state.mode,
-    threshold: 60,   // Slightly higher than default (50) to avoid accidental triggers
-    maxVertical: 80,
+  containerSelector: '#main-content',
+  tabs: ['login', 'register'] as const,
+  onSwitch: (tab) => {
+    switchTab(tab);
+    if (tab === 'register') {
+      goToRegStep(1);
+    }
+  },
+  getCurrentTab: () => state.mode,
+  threshold: 60, // Slightly higher than default (50) to avoid accidental triggers
+  maxVertical: 80,
 });
 
 // FIX-3: Pull-to-refresh gesture.
@@ -1455,12 +1706,12 @@ initPullToRefresh();
 // ─────────────────────────────────────────────────────────────────────────────
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('reason') === 'session_expired') {
-    showBanner('info', t('session_expired', 'Your session has expired. Please sign in again.'));
-    // Clean the URL to prevent showing the banner on refresh
-    urlParams.delete('reason');
-    const cleanSearch = urlParams.toString();
-    const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '');
-    history.replaceState(null, '', cleanUrl);
+  showBanner('info', t('session_expired', 'انتهت جلستك. يرجى تسجيل الدخول مجدداً.'));
+  // Clean the URL to prevent showing the banner on refresh
+  urlParams.delete('reason');
+  const cleanSearch = urlParams.toString();
+  const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '');
+  history.replaceState(null, '', cleanUrl);
 }
 
 // ─── FRIC-2026-004 FIX: Autofocus Login Email on Page Load ──────────────────
@@ -1470,10 +1721,10 @@ if (urlParams.get('reason') === 'session_expired') {
 // Only focus if user is on login mode AND not restoring a hash state (register wizard).
 // ─────────────────────────────────────────────────────────────────────────────
 if (state.mode === 'login') {
-    // Delay to avoid competing with theme-boot.js visibility restore
-    requestAnimationFrame(() => {
-        document.getElementById('login-email')?.focus();
-    });
+  // Delay to avoid competing with theme-boot.js visibility restore
+  requestAnimationFrame(() => {
+    document.getElementById('login-email')?.focus();
+  });
 }
 
 // ─── GAP-2026-008 FIX: Clickable Stepper Dots (Completed Steps) ─────────────
@@ -1481,12 +1732,12 @@ if (state.mode === 'login') {
 // Now: Completed step dots are clickable (not active or future steps).
 // Standard: Material Design 3 (Stepper Interaction), Nielsen #3 (User Control).
 // ─────────────────────────────────────────────────────────────────────────────
-formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]').forEach(dot => {
-    dot.addEventListener('click', () => {
-        const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
-        // Allow navigation to completed steps only (not forward from current)
-        if (dot.classList.contains('completed')) {
-            goToRegStep(dotStep);
-        }
-    });
+formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]').forEach((dot) => {
+  dot.addEventListener('click', () => {
+    const dotStep = parseInt(dot.dataset.stepDot ?? '0', 10);
+    // Allow navigation to completed steps only (not forward from current)
+    if (dot.classList.contains('completed')) {
+      goToRegStep(dotStep);
+    }
+  });
 });

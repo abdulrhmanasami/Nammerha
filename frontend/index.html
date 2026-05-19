@@ -4,27 +4,65 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <!-- PWA-003 FIX: iOS requires PNG apple-touch-icon (ignores SVG). 192px downscaled to 180×180. -->
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <!-- PWA-003 FIX: iOS requires PNG apple-touch-icon (ignores SVG). 192px downscaled to 180×180. -->
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
     <!-- F-002 FIX: Preload self-hosted font instead of Google CDN (PLT-OPT-002).
          Previous: fonts.googleapis.com preload contradicted zero-CDN strategy. -->
     <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-    <link rel="preload" href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-regular.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-bold.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <link rel="preload" href="/fonts/phosphor/phosphor.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <link
+      rel="preload"
+      href="/fonts/phosphor/phosphor.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
     <noscript>
       <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
       <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
@@ -37,14 +75,20 @@
       name="description"
       content="OCDS-compliant reconstruction management platform with radical transparency, spatial GPS verification, and escrow-protected financial tracking for Syria rebuilding."
     />
-    <meta name="keywords" content="Syria reconstruction, إعادة إعمار سوريا, reconstruction management, OCDS, transparent escrow, Nammerha" />
+    <meta
+      name="keywords"
+      content="Syria reconstruction, إعادة إعمار سوريا, reconstruction management, OCDS, transparent escrow, Nammerha"
+    />
     <link rel="canonical" href="https://nammerha.com/" />
 
     <!-- OpenGraph (Facebook, LinkedIn, WhatsApp) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Nammerha" />
     <meta property="og:title" content="Nammerha — Rebuild Syria Together" />
-    <meta property="og:description" content="OCDS-compliant reconstruction management platform with radical transparency and spatial verification." />
+    <meta
+      property="og:description"
+      content="OCDS-compliant reconstruction management platform with radical transparency and spatial verification."
+    />
     <meta property="og:url" content="https://nammerha.com/" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="ar_SY" />
@@ -59,81 +103,90 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Nammerha — Rebuild Syria Together" />
-    <meta name="twitter:description" content="Transparent reconstruction management for Syria with GPS-verified spatial proofs and escrow-protected financing." />
+    <meta
+      name="twitter:description"
+      content="Transparent reconstruction management for Syria with GPS-verified spatial proofs and escrow-protected financing."
+    />
     <meta name="twitter:image" content="https://nammerha.com/brand/og-cover.png" />
     <meta name="twitter:image:alt" content="نعمّرها — منصة إعادة إعمار سوريا" />
 
     <!-- Schema.org JSON-LD: Semantic Identity (Report §2-§3 — Dislodge from military/automotive SEO) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": "https://nammerha.com/#website",
-          "url": "https://nammerha.com",
-          "name": "Nammerha",
-          "alternateName": ["نعمِّرها", "Nammerha Platform"],
-          "description": "Syria Reconstruction Management Platform — OCDS-compliant with radical transparency",
-          "inLanguage": ["en", "ar"],
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://nammerha.com/project-details?q={search_term_string}",
-            "query-input": "required name=search_term_string"
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://nammerha.com/#website",
+            "url": "https://nammerha.com",
+            "name": "Nammerha",
+            "alternateName": ["نعمِّرها", "Nammerha Platform"],
+            "description": "Syria Reconstruction Management Platform — OCDS-compliant with radical transparency",
+            "inLanguage": ["en", "ar"],
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://nammerha.com/project-details?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://nammerha.com/#organization",
+            "name": "Nammerha",
+            "url": "https://nammerha.com",
+            "description": "Non-profit technology platform for transparent reconstruction management in Syria",
+            "foundingDate": "2025",
+            "areaServed": {
+              "@type": "Country",
+              "name": "Syria"
+            },
+            "knowsAbout": [
+              "Reconstruction",
+              "Crowdfunding",
+              "Open Contracting Data Standard",
+              "Syria rebuilding",
+              "Transparent donations"
+            ]
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://nammerha.com/#app",
+            "name": "Nammerha",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "Reconstruction management platform for Syria with escrow-protected financing, GPS-verified spatial proofs, and OCDS-compliant financial reporting"
           }
-        },
-        {
-          "@type": "Organization",
-          "@id": "https://nammerha.com/#organization",
-          "name": "Nammerha",
-          "url": "https://nammerha.com",
-          "description": "Non-profit technology platform for transparent reconstruction management in Syria",
-          "foundingDate": "2025",
-          "areaServed": {
-            "@type": "Country",
-            "name": "Syria"
-          },
-          "knowsAbout": [
-            "Reconstruction",
-            "Crowdfunding",
-            "Open Contracting Data Standard",
-            "Syria rebuilding",
-            "Transparent donations"
-          ]
-        },
-        {
-          "@type": "WebApplication",
-          "@id": "https://nammerha.com/#app",
-          "name": "Nammerha",
-          "applicationCategory": "FinanceApplication",
-          "operatingSystem": "Web",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          },
-          "description": "Reconstruction management platform for Syria with escrow-protected financing, GPS-verified spatial proofs, and OCDS-compliant financial reporting"
-        }
-      ]
-    }
+        ]
+      }
     </script>
 
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/main.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-  <body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- GAP-010 FIX: Noscript fallback overrides FOUC guard when JS disabled.
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- GAP-010 FIX: Noscript fallback overrides FOUC guard when JS disabled.
      Standard: Progressive Enhancement — "Core information must be accessible without JS." -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
     <!-- P0-A1 FIX: Skip-to-content link for keyboard accessibility (WCAG 2.4.1) -->
-    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <!-- ─── Top Navbar (Glassmorphism) ──────────────────────────────────────── -->
     <!-- C-001 FIX: Hidden on mobile (< 768px) — bottom nav handles navigation.
          On md+, full navbar with search, cart, and profile. Native-app feel on mobile.
@@ -156,27 +209,42 @@
           type="search"
           enterkeyhint="search"
           class="w-full bg-slate-200/50 border-none rounded-full py-2 ps-10 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 transition-all outline-none dark:bg-white/5"
-          placeholder="Search reconstruction projects..." data-i18n-placeholder="search_placeholder"
+          placeholder="Search reconstruction projects..."
+          data-i18n-placeholder="search_placeholder"
         />
       </div>
       <!-- PLT-UX-AUD P0-GHOST-001 FIX: Cart icon replaced with Wallet link.
            Previous: Linked to donor-basket.html — a dead page (donations suspended).
            Wallet is a universal financial page that works for all users.
            Standard: Nielsen #1 (System Status), Honest Affordances. -->
-      <a href="wallet.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-wallet-btn" aria-label="Wallet" data-i18n-aria="aria_wallet">
+      <a
+        href="wallet.html"
+        class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+        id="nav-wallet-btn"
+        aria-label="Wallet"
+        data-i18n-aria="aria_wallet"
+      >
         <i class="ph ph-wallet text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
       </a>
       <!-- FRIC-2026-D05 FIX: Notification bell — parity with dashboard portals (MED-008).
            Previous: Homepage navbar had no notification bell — users received notifications
            but couldn't see them from the main consumer surface.
            Standard: Nielsen #1 (Visibility of System Status), Apple HIG (Navigation Bar). -->
-      <button type="button" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="nav-notification-btn" aria-label="Notifications" data-i18n-aria="aria_notifications">
+      <button
+        type="button"
+        class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+        id="nav-notification-btn"
+        aria-label="Notifications"
+        data-i18n-aria="aria_notifications"
+      >
         <i class="ph ph-bell text-slate-700 text-xl dark:text-slate-300" aria-hidden="true"></i>
         <span class="cart-badge nm-hidden" id="nav-notif-badge"></span>
       </button>
-      <a href="profile.html"
+      <a
+        href="profile.html"
         class="w-11 h-11 rounded-full border-2 border-trust-blue/20 overflow-hidden shrink-0 bg-trust-blue/10 flex items-center justify-center"
-        aria-label="Profile" data-i18n-aria="aria_profile"
+        aria-label="Profile"
+        data-i18n-aria="aria_profile"
       >
         <i class="ph ph-user text-trust-blue text-lg" aria-hidden="true"></i>
       </a>
@@ -185,19 +253,36 @@
     <!-- CONF-N03 FIX: Mobile search trigger (hidden on sm+ where full nav has inline search). -->
     <!-- CONF-P04 FIX: Was <div> — mobile header must be <header> element (HTML5 §4.4.1) -->
     <!-- UXD-001 FIX: Raised from sm:hidden to md:hidden to match desktop nav breakpoint -->
-    <header class="md:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14">
+    <header
+      class="md:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14"
+    >
       <a href="/" class="flex items-center gap-2">
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       </a>
       <div class="flex items-center gap-1">
-        <button type="button" data-search-trigger class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Search projects" data-i18n-aria="aria_search_projects">
-          <i class="ph ph-magnifying-glass text-slate-700 text-xl dark:text-slate-300" aria-hidden="true"></i>
+        <button
+          type="button"
+          data-search-trigger
+          class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+          aria-label="Search projects"
+          data-i18n-aria="aria_search_projects"
+        >
+          <i
+            class="ph ph-magnifying-glass text-slate-700 text-xl dark:text-slate-300"
+            aria-hidden="true"
+          ></i>
         </button>
         <!-- C-AUD-005 FIX: Notification bell added for mobile parity with desktop nav.
              Previous: Desktop nav had bell (L157-160) but mobile header did not.
              Syrian mobile-first users had no notification access from homepage.
              Standard: Nielsen #4 (Consistency), Feature Parity, Apple HIG. -->
-        <button type="button" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" id="mobile-notif-bell" aria-label="Notifications" data-i18n-aria="aria_notifications">
+        <button
+          type="button"
+          class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+          id="mobile-notif-bell"
+          aria-label="Notifications"
+          data-i18n-aria="aria_notifications"
+        >
           <i class="ph ph-bell text-slate-700 text-xl dark:text-slate-300" aria-hidden="true"></i>
           <!-- UXD-004 FIX: Removed misleading '0' — numeric count implies functional notification
                system. Empty badge with hidden class is honest. -->
@@ -211,7 +296,12 @@
         <!-- PLT-UX-AUD P0-GHOST-001 FIX: Cart icon replaced with Wallet link.
              Previous: Linked to donor-basket.html — dead page (donations suspended).
              Standard: Honest Affordances, Nielsen #1 (System Status). -->
-        <a href="wallet.html" class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Wallet" data-i18n-aria="aria_wallet">
+        <a
+          href="wallet.html"
+          class="relative w-11 h-11 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+          aria-label="Wallet"
+          data-i18n-aria="aria_wallet"
+        >
           <i class="ph ph-wallet text-slate-700 dark:text-slate-300" aria-hidden="true"></i>
         </a>
       </div>
@@ -226,7 +316,7 @@
            Search engines weight h1 heavily for topic relevance. Screen readers had no primary heading.
            Visually hidden because the map hero is the visual anchor, not a text heading.
            Standard: WCAG 2.2 SC 1.3.1, Google SEO (h1 required), Apple HIG (Accessibility). -->
-      <h1 class="sr-only" data-i18n="homepage_heading">Nammerha — Rebuild Syria Together</h1>
+      <h1 class="sr-only" data-i18n="homepage_heading">نعمِّرها — نعيد بناء سوريا معاً</h1>
       <!-- Hero: Interactive Reconstruction Map (MapLibre GL JS) -->
       <section class="px-4 mb-8">
         <!-- M-AUD-004 FIX: Reduced from aspect-[4/3] to aspect-[16/9] on mobile.
@@ -243,15 +333,43 @@
           <!-- P2-MAP-001 FIX: Screen readers encountered a silent empty region where the map canvas renders.
                Added role="img" (map is non-interactive presentation) and aria-label for context.
                Standard: WCAG 1.1.1 (Non-text Content), 4.1.2 (Name, Role, Value). -->
-          <div id="main-map" class="absolute inset-0" role="img" aria-label="Interactive reconstruction map of Syria showing active project locations"></div>
+          <div
+            id="main-map"
+            class="absolute inset-0"
+            role="img"
+            aria-label="Interactive reconstruction map of Syria showing active project locations"
+          ></div>
 
           <!-- GAP-001 FIX: Fallback state when MapLibre GL JS fails to load (Syrian 2G/3G) -->
           <!-- A11Y-003 FIX: Descriptive fallback content for screen readers (WCAG 1.1.1) -->
-          <div id="map-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl" role="img" aria-label="Interactive map showing reconstruction project locations across Syria" data-i18n-aria="aria_map_fallback">
-            <i class="ph ph-map-trifold text-slate-300 dark:text-slate-500 nm-icon-48" aria-hidden="true"></i>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-3" data-i18n="map_load_failed">Map unavailable</p>
-            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px] text-center" data-i18n="map_fallback_desc">Interactive map of reconstruction projects across regions</p>
-            <button type="button" id="map-retry-btn" class="btn-secondary nm-btn-compact mt-2" data-i18n="retry">Retry</button>
+          <div
+            id="map-fallback"
+            class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl"
+            role="img"
+            aria-label="Interactive map showing reconstruction project locations across Syria"
+            data-i18n-aria="aria_map_fallback"
+          >
+            <i
+              class="ph ph-map-trifold text-slate-300 dark:text-slate-500 nm-icon-48"
+              aria-hidden="true"
+            ></i>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-3" data-i18n="map_load_failed">
+              فشل تحميل الخريطة
+            </p>
+            <p
+              class="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px] text-center"
+              data-i18n="map_fallback_desc"
+            >
+              يتم تحميل الخريطة...
+            </p>
+            <button
+              type="button"
+              id="map-retry-btn"
+              class="btn-secondary nm-btn-compact mt-2"
+              data-i18n="retry"
+            >
+              إعادة المحاولة
+            </button>
           </div>
 
           <!-- Map UI Overlay: Active Region Info -->
@@ -263,27 +381,37 @@
                 class="text-3xs uppercase font-bold text-smoky-jade mb-1 tracking-wider dark:text-emerald-400"
                 data-i18n="active_region"
               >
-                Active Region
+                المنطقة النشطة
               </p>
               <!-- FRC-008 FIX: Contextual loading text sets user expectations (Nielsen #1).
                    Previous: generic "Loading..." — no indication of what's loading. -->
               <!-- GAP-X04 FIX: aria-live='polite' announces dynamic region changes to screen readers.
                    Previous: text updated via JS but assistive tech never notified.
                    Standard: WCAG 4.1.3 (Status Messages), iOS VoiceOver. -->
-              <h2 id="map-active-region" class="font-bold text-sm text-slate-900 dark:text-slate-100" data-i18n="detecting_region" aria-live="polite">
-                Detecting active region…
+              <h2
+                id="map-active-region"
+                class="font-bold text-sm text-slate-900 dark:text-slate-100"
+                data-i18n="detecting_region"
+                aria-live="polite"
+              >
+                جاري كشف المنطقة...
               </h2>
               <!-- DEF-010 FIX: Map context for first-time visitors.
                    Previous: no explanation of what the map represents.
                    Standard: Nielsen #6 (Recognition over Recall), First-Impression UX. -->
               <!-- PLT-AUD-T9 FIX: text-[9px] → text-3xs — INC-002 governance (min 10px). -->
-              <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="hero_map_context">Live reconstruction activity</p>
+              <p
+                class="text-3xs text-slate-400 mt-1 dark:text-slate-500"
+                data-i18n="hero_map_context"
+              >
+                خريطة حية لمناطق إعادة الإعمار
+              </p>
               <div class="flex items-center gap-1 mt-1">
-                <span
-                  class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"
-                ></span>
+                <span class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"></span>
                 <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (map overlay metadata). -->
-                <span id="map-active-count" class="text-3xs opacity-70" data-i18n="active_projects">— Active Projects</span>
+                <span id="map-active-count" class="text-3xs opacity-70" data-i18n="active_projects"
+                  >— مشروع نشط</span
+                >
               </div>
             </div>
           </div>
@@ -298,24 +426,39 @@
                Now: Translucent glassmorphism overlay with 1-line mission + primary CTA.
                Dismissed on click → localStorage flag → never shows again.
                Standard: Nielsen #10 (Help), First-Impression UX, 3-Second Rule. -->
-          <div id="nm-ftv-overlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-500 nm-hidden">
+          <div
+            id="nm-ftv-overlay"
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-500 nm-hidden"
+          >
             <div class="text-center px-6 max-w-xs">
-              <div class="size-14 mx-auto bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-3 border border-white/10">
+              <div
+                class="size-14 mx-auto bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-3 border border-white/10"
+              >
                 <i class="ph ph-buildings text-white nm-icon-28" aria-hidden="true"></i>
               </div>
-              <h2 class="text-white font-bold text-lg mb-1" data-i18n="ftv_headline">Rebuild Syria, Together</h2>
+              <h2 class="text-white font-bold text-lg mb-1" data-i18n="ftv_headline">
+                نعمّرها سوا
+              </h2>
               <p class="text-white/70 text-xs leading-relaxed mb-4" data-i18n="ftv_subline">
-                Nammerha connects homeowners, engineers, and contractors through transparent reconstruction — powered by open data.
+                نعمّرها تربط أصحاب المنازل والمهندسين والمقاولين عبر إعمار شفاف — مدعوم ببيانات
+                مفتوحة.
               </p>
-              <a href="#quick-actions-section"
-                 id="ftv-explore-btn"
-                 class="inline-flex items-center gap-2 bg-trust-blue text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all">
-                <span data-i18n="ftv_explore">Explore the Platform</span>
+              <a
+                href="#quick-actions-section"
+                id="ftv-explore-btn"
+                class="inline-flex items-center gap-2 bg-trust-blue text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all"
+              >
+                <span data-i18n="ftv_explore">استكشف المنصة</span>
                 <i class="ph ph-arrow-down text-base" aria-hidden="true"></i>
               </a>
-              <button type="button" id="ftv-dismiss-btn"
-                      class="block mx-auto mt-3 text-3xs text-white/40 hover:text-white/70 transition-colors"
-                      data-i18n="ftv_dismiss">I know Nammerha already</button>
+              <button
+                type="button"
+                id="ftv-dismiss-btn"
+                class="block mx-auto mt-3 text-3xs text-white/40 hover:text-white/70 transition-colors"
+                data-i18n="ftv_dismiss"
+              >
+                أعرف نعمّرها من قبل
+              </button>
             </div>
           </div>
         </div>
@@ -324,7 +467,7 @@
       <!-- Featured Projects (Horizontal Scroll) -->
       <section class="mb-8 scroll-reveal">
         <div class="flex items-center justify-between px-4 mb-4">
-          <h2 class="text-lg font-bold" data-i18n="featured_projects">Featured Projects</h2>
+          <h2 class="text-lg font-bold" data-i18n="featured_projects">مشاريع مميزة</h2>
           <!-- GAP-N01 FIX: Was href="donor-portal.html" — role-gated page, dead-end for unauthenticated.
                Now links to projects.html (public listing). Standard: Nielsen Heuristic #3 — User Control. -->
           <!-- CONF-N06 FIX: ph-caret-right auto-flips in RTL via [dir=rtl] scaleX(-1) in main.css breadcrumb rules. -->
@@ -332,7 +475,7 @@
             class="text-sm text-trust-blue font-semibold flex items-center gap-1"
             href="projects.html"
           >
-            <span data-i18n="view_all">View all</span>
+            <span data-i18n="view_all">عرض الكل</span>
             <i class="ph ph-caret-right text-lg" aria-hidden="true"></i>
           </a>
         </div>
@@ -340,11 +483,20 @@
              snap-x: horizontal snap axis. snap-mandatory: always snap to nearest card.
              Child cards use snap-start + snap-always for predictable paging. -->
         <!-- FIX: w-full max-w-full applied to strictly bound horizontal scrolling container -->
-        <div id="projects-carousel" class="flex overflow-x-auto w-full max-w-full gap-4 px-4 pb-4 no-scrollbar snap-x snap-mandatory" tabindex="0" role="region" aria-label="Featured projects" data-i18n-aria="aria_featured_projects">
+        <div
+          id="projects-carousel"
+          class="flex overflow-x-auto w-full max-w-full gap-4 px-4 pb-4 no-scrollbar snap-x snap-mandatory"
+          tabindex="0"
+          role="region"
+          aria-label="Featured projects"
+          data-i18n-aria="aria_featured_projects"
+        >
           <!-- HGH-AUD-001 FIX: Project cards are now rendered dynamically from API -->
           <!-- Skeleton loading state -->
           <div id="projects-skeleton" class="flex gap-4">
-            <div class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always">
+            <div
+              class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
+            >
               <div class="h-44 bg-slate-200"></div>
               <div class="p-4 space-y-3">
                 <div class="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -353,7 +505,9 @@
                 <div class="h-10 bg-slate-200 rounded-xl mt-4"></div>
               </div>
             </div>
-            <div class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always">
+            <div
+              class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
+            >
               <div class="h-44 bg-slate-200"></div>
               <div class="p-4 space-y-3">
                 <div class="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -366,7 +520,9 @@
           <!-- Empty state (shown when no projects) -->
           <div id="projects-empty" class="hidden w-full py-8 text-center">
             <i class="ph ph-buildings text-slate-300 nm-icon-48" aria-hidden="true"></i>
-            <p class="text-slate-400 text-sm mt-2 dark:text-slate-500" data-i18n="no_projects_yet">No projects published yet</p>
+            <p class="text-slate-400 text-sm mt-2 dark:text-slate-500" data-i18n="no_projects_yet">
+              لا توجد مشاريع بعد
+            </p>
           </div>
         </div>
       </section>
@@ -382,7 +538,7 @@
               class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 dark:text-slate-500"
               data-i18n="total_impact_funded"
             >
-              Total Impact Funded
+              إجمالي التأثير المموّل
             </p>
             <!-- UXA-022 FIX: Was <h2> — numeric values are not headings (WCAG 1.3.1). -->
             <p id="total-impact-value" class="text-2xl font-bold">—</p>
@@ -394,9 +550,13 @@
                 <!-- PLAT-UX-013 FIX: Skeleton bar replaces ambiguous em-dash.
                      Previous: '—' was indistinguishable from zero/error/loading.
                      Standard: Nielsen #1 (System Status), FinTech UX (Financial Data Clarity). -->
-                <span id="impact-trend" class="animate-pulse"><span class="inline-block h-3 w-8 bg-smoky-jade/30 rounded"></span></span>
+                <span id="impact-trend" class="animate-pulse"
+                  ><span class="inline-block h-3 w-8 bg-smoky-jade/30 rounded"></span
+                ></span>
               </span>
-              <span class="text-slate-400 text-3xs dark:text-slate-500" data-i18n="vs_quarter">vs last quarter</span>
+              <span class="text-slate-400 text-3xs dark:text-slate-500" data-i18n="vs_quarter"
+                >مقارنة بالربع السابق</span
+              >
             </div>
           </div>
           <div
@@ -417,8 +577,12 @@
             class="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-trust-blue/80 p-6 text-white shadow-xl"
           >
             <!-- Background decorative elements -->
-            <div class="absolute -top-6 -end-6 size-32 bg-trust-blue/20 rounded-full blur-2xl"></div>
-            <div class="absolute -bottom-8 -start-8 size-40 bg-smoky-jade/15 rounded-full blur-3xl"></div>
+            <div
+              class="absolute -top-6 -end-6 size-32 bg-trust-blue/20 rounded-full blur-2xl"
+            ></div>
+            <div
+              class="absolute -bottom-8 -start-8 size-40 bg-smoky-jade/15 rounded-full blur-3xl"
+            ></div>
 
             <div class="relative z-10 flex items-start gap-4">
               <div
@@ -427,29 +591,38 @@
                 <i class="ph ph-buildings text-white nm-icon-28" aria-hidden="true"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <h2 class="font-bold text-base mb-1" data-i18n="about_nammerha">About Nammerha</h2>
+                <h2 class="font-bold text-base mb-1" data-i18n="about_nammerha">من نحن</h2>
                 <p class="text-xs text-white/70 leading-relaxed" data-i18n="transparency_body">
-                  Nammerha uses the Open Contracting Data Standard (OCDS) for all
-                  financial reporting. Every dollar invested is tracked and audited
-                  in real-time.
+                  كل تبرع مُتتبّع ومُوثّق بشفافية كاملة
                 </p>
                 <div class="flex flex-wrap items-center gap-2 mt-3 w-full overflow-hidden">
-                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0">
+                  <span
+                    class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0"
+                  >
                     <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                     OCDS
                   </span>
-                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0">
+                  <span
+                    class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0"
+                  >
                     <i class="ph ph-map-pin text-xs" aria-hidden="true"></i>
                     GPS
                   </span>
-                  <span class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0">
+                  <span
+                    class="px-2.5 py-1 bg-white/10 backdrop-blur-sm rounded-full text-3xs font-bold uppercase tracking-wider border border-white/10 flex items-center gap-1 shrink-0"
+                  >
                     <i class="ph ph-lock-key text-xs" aria-hidden="true"></i>
                     Escrow
                   </span>
                 </div>
-                <div class="flex items-center gap-1.5 mt-4 text-xs font-bold text-smoky-jade group-hover:text-white transition-colors dark:text-emerald-400">
-                  <span data-i18n="about_learn_more">Learn more about us</span>
-                  <i class="ph ph-arrow-right transition-transform group-hover:translate-x-1 text-sm" aria-hidden="true"></i>
+                <div
+                  class="flex items-center gap-1.5 mt-4 text-xs font-bold text-smoky-jade group-hover:text-white transition-colors dark:text-emerald-400"
+                >
+                  <span data-i18n="about_learn_more">تعرّف علينا أكثر</span>
+                  <i
+                    class="ph ph-arrow-right transition-transform group-hover:translate-x-1 text-sm"
+                    aria-hidden="true"
+                  ></i>
                 </div>
               </div>
             </div>
@@ -469,69 +642,119 @@
            Standard: Airbnb/Fiverr pattern — task facade, portal backend.
            ═══════════════════════════════════════════════════════════════════════ -->
       <section id="workspace-discovery" class="px-4 mt-8 scroll-reveal nm-hidden">
-        <h2 class="text-lg font-bold mb-2" data-i18n="ws_what_do_you_need">What do you need?</h2>
-        <p class="text-xs text-slate-400 mb-4 dark:text-slate-500" data-i18n="ws_all_tools_available">All tools are available to every user — pick what you need right now.</p>
+        <h2 class="text-lg font-bold mb-2" data-i18n="ws_what_do_you_need">شو بدك تعمل؟</h2>
+        <p
+          class="text-xs text-slate-400 mb-4 dark:text-slate-500"
+          data-i18n="ws_all_tools_available"
+        >
+          كل الأدوات متاحة لكل مستخدم — اختر ما تحتاجه الآن.
+        </p>
 
         <!-- Continue banner slot — injected dynamically by main.ts when preference exists -->
         <div id="ws-continue-slot"></div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="workspace-grid">
           <!-- Task 1: Fix My Home → Homeowner Portal -->
-          <a href="homeowner-portal.html"
-             data-workspace-id="homeowner"
-             data-workspace-label-key="task_fix_home"
-             class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group">
+          <a
+            href="homeowner-portal.html"
+            data-workspace-id="homeowner"
+            data-workspace-label-key="task_fix_home"
+            class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group"
+          >
             <div class="flex items-center gap-3">
-              <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+              <div
+                class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"
+              >
                 <i class="ph ph-house text-trust-blue text-2xl" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
-                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 block" data-i18n="task_fix_home">Fix My Home</span>
-                <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="task_fix_home_desc">Report damage, track repairs</span>
+                <span
+                  class="text-sm font-bold text-slate-800 dark:text-slate-200 block"
+                  data-i18n="task_fix_home"
+                  >صلّح بيتي</span
+                >
+                <span
+                  class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+                  data-i18n="task_fix_home_desc"
+                  >أبلغ عن أضرار، تابع الترميم</span
+                >
               </div>
             </div>
-            <div class="flex items-center gap-1.5 text-3xs font-bold text-trust-blue opacity-0 group-hover:opacity-100 transition-opacity">
-              <span data-i18n="ws_go_to_workspace">Go to workspace</span>
+            <div
+              class="flex items-center gap-1.5 text-3xs font-bold text-trust-blue opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <span data-i18n="ws_go_to_workspace">انتقل للمساحة</span>
               <i class="ph ph-caret-right text-xs" aria-hidden="true"></i>
             </div>
           </a>
 
           <!-- Task 2: Find Work → Contractor Portal (covers Contractor + Engineer + Tradesperson) -->
-          <a href="contractor-portal.html"
-             data-workspace-id="contractor"
-             data-workspace-label-key="task_find_work"
-             class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group">
+          <a
+            href="contractor-portal.html"
+            data-workspace-id="contractor"
+            data-workspace-label-key="task_find_work"
+            class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group"
+          >
             <div class="flex items-center gap-3">
-              <div class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+              <div
+                class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"
+              >
                 <i class="ph ph-briefcase text-warm-earth text-2xl" aria-hidden="true"></i>
               </div>
               <div class="min-w-0">
-                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 block" data-i18n="task_find_work">Find Work</span>
-                <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="task_find_work_desc">Bid on tenders, manage projects</span>
+                <span
+                  class="text-sm font-bold text-slate-800 dark:text-slate-200 block"
+                  data-i18n="task_find_work"
+                  >لاقي شغل</span
+                >
+                <span
+                  class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+                  data-i18n="task_find_work_desc"
+                  >تقدّم لعطاءات، نفّذ مشاريع</span
+                >
               </div>
             </div>
-            <div class="flex items-center gap-1.5 text-3xs font-bold text-warm-earth opacity-0 group-hover:opacity-100 transition-opacity">
-              <span data-i18n="ws_go_to_workspace">Go to workspace</span>
+            <div
+              class="flex items-center gap-1.5 text-3xs font-bold text-warm-earth opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <span data-i18n="ws_go_to_workspace">انتقل للمساحة</span>
               <i class="ph ph-caret-right text-xs" aria-hidden="true"></i>
             </div>
           </a>
 
           <!-- Task 3: Sell Materials → Supplier Dashboard -->
-          <a href="supplier-dashboard.html"
-             data-workspace-id="supplier"
-             data-workspace-label-key="task_sell_materials"
-             class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group">
+          <a
+            href="supplier-dashboard.html"
+            data-workspace-id="supplier"
+            data-workspace-label-key="task_sell_materials"
+            class="nm-ws-card glass-card p-5 rounded-2xl flex flex-col gap-3 hover:shadow-lg transition-all group"
+          >
             <div class="flex items-center gap-3">
-              <div class="size-12 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                <i class="ph ph-storefront text-purple-600 text-2xl dark:text-purple-400" aria-hidden="true"></i>
+              <div
+                class="size-12 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shrink-0"
+              >
+                <i
+                  class="ph ph-storefront text-purple-600 text-2xl dark:text-purple-400"
+                  aria-hidden="true"
+                ></i>
               </div>
               <div class="min-w-0">
-                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 block" data-i18n="task_sell_materials">Sell Materials</span>
-                <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="task_sell_materials_desc">List products, fulfill orders</span>
+                <span
+                  class="text-sm font-bold text-slate-800 dark:text-slate-200 block"
+                  data-i18n="task_sell_materials"
+                  >بيع مواد</span
+                >
+                <span
+                  class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+                  data-i18n="task_sell_materials_desc"
+                  >أعرض منتجاتك، تابع الطلبيات</span
+                >
               </div>
             </div>
-            <div class="flex items-center gap-1.5 text-3xs font-bold text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity">
-              <span data-i18n="ws_go_to_workspace">Go to workspace</span>
+            <div
+              class="flex items-center gap-1.5 text-3xs font-bold text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <span data-i18n="ws_go_to_workspace">انتقل للمساحة</span>
               <i class="ph ph-caret-right text-xs" aria-hidden="true"></i>
             </div>
           </a>
@@ -539,22 +762,41 @@
 
         <!-- Profile card — always visible, separate row -->
         <div class="mt-3">
-          <a href="profile.html" class="glass-card p-4 rounded-xl flex items-center gap-3 hover:shadow-lg transition-shadow border border-dashed border-slate-200 dark:border-dark-border group">
-            <div class="size-10 bg-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform dark:bg-dark-elevated shrink-0">
-              <i class="ph ph-user-circle-gear text-slate-500 text-xl dark:text-slate-400" aria-hidden="true"></i>
+          <a
+            href="profile.html"
+            class="glass-card p-4 rounded-xl flex items-center gap-3 hover:shadow-lg transition-shadow border border-dashed border-slate-200 dark:border-dark-border group"
+          >
+            <div
+              class="size-10 bg-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform dark:bg-dark-elevated shrink-0"
+            >
+              <i
+                class="ph ph-user-circle-gear text-slate-500 text-xl dark:text-slate-400"
+                aria-hidden="true"
+              ></i>
             </div>
             <div class="min-w-0">
-              <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="ws_profile">Profile</span>
-              <span class="text-3xs text-slate-400 ms-2 dark:text-slate-500" data-i18n="ws_profile_desc">Settings & preferences</span>
+              <span
+                class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                data-i18n="ws_profile"
+                >الملف الشخصي</span
+              >
+              <span
+                class="text-3xs text-slate-400 ms-2 dark:text-slate-500"
+                data-i18n="ws_profile_desc"
+                >الإعدادات والتفضيلات</span
+              >
             </div>
-            <i class="ph ph-caret-right text-slate-300 ms-auto dark:text-slate-600" aria-hidden="true"></i>
+            <i
+              class="ph ph-caret-right text-slate-300 ms-auto dark:text-slate-600"
+              aria-hidden="true"
+            ></i>
           </a>
         </div>
       </section>
 
       <!-- Role-Based Quick Actions -->
       <section id="quick-actions-section" class="px-4 mt-8 scroll-reveal">
-        <h2 class="text-lg font-bold mb-4" data-i18n="quick_actions">Quick Actions</h2>
+        <h2 class="text-lg font-bold mb-4" data-i18n="quick_actions">إجراءات سريعة</h2>
         <!-- FRC-N01 FIX: Quick Action section with subtitles & default-hidden role-gated items.
              Previous: all 4 actions shown to all users with no descriptions — "Build BOQ" meaningless to donors.
              Now: role-gated items hidden by default (main.ts unhides for authenticated users).
@@ -569,26 +811,39 @@
             href="homeowner-report.html"
             class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow"
           >
-            <div
-              class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center"
-            >
+            <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center">
               <i class="ph ph-wrench text-trust-blue text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="report_damage">Report Damage</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="report_damage_desc">Submit your property for assessment</span>
+            <span
+              class="text-xs font-bold text-slate-700 dark:text-slate-300"
+              data-i18n="report_damage"
+              >الإبلاغ عن أضرار</span
+            >
+            <span
+              class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+              data-i18n="report_damage_desc"
+              >أبلغ عن أضرار في منطقتك</span
+            >
           </a>
           <a
             href="engineer-boq.html"
             class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow hidden"
             data-roles="engineer,admin"
           >
-            <div
-              class="size-12 bg-smoky-jade/10 rounded-xl flex items-center justify-center"
-            >
-              <i class="ph ph-clipboard-text text-smoky-jade text-2xl dark:text-emerald-400" aria-hidden="true"></i>
+            <div class="size-12 bg-smoky-jade/10 rounded-xl flex items-center justify-center">
+              <i
+                class="ph ph-clipboard-text text-smoky-jade text-2xl dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="build_boq">Build BOQ</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="build_boq_desc">Create a bill of quantities estimate</span>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="build_boq"
+              >إنشاء جدول كميات</span
+            >
+            <span
+              class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+              data-i18n="build_boq_desc"
+              >أنشئ جدول كميات تفصيلي</span
+            >
           </a>
           <!-- PLT-UX-AUD P2-HOMEPAGE-005 FIX: Removed donation language.
                Previous: "Fund Materials" / "Browse projects and donate" — misleading with donations suspended.
@@ -598,26 +853,38 @@
             href="projects.html"
             class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow"
           >
-            <div
-              class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center"
-            >
+            <div class="size-12 bg-warm-earth/10 rounded-xl flex items-center justify-center">
               <i class="ph ph-buildings text-warm-earth text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="browse_projects">Browse Projects</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="browse_projects_desc">Explore reconstruction projects</span>
+            <span
+              class="text-xs font-bold text-slate-700 dark:text-slate-300"
+              data-i18n="browse_projects"
+              >تصفّح المشاريع</span
+            >
+            <span
+              class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+              data-i18n="browse_projects_desc"
+              >استكشف مشاريع إعادة الإعمار</span
+            >
           </a>
           <a
             href="admin-oracle.html"
             class="glass-card p-4 rounded-xl flex flex-col items-center text-center gap-2 hover:shadow-lg transition-shadow hidden"
             data-roles="admin"
           >
-            <div
-              class="size-12 bg-warning-yellow/10 rounded-xl flex items-center justify-center"
-            >
+            <div class="size-12 bg-warning-yellow/10 rounded-xl flex items-center justify-center">
               <i class="ph ph-chart-line-up text-warning-yellow text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="price_oracle">Price Oracle</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="price_oracle_desc">Real-time market price analytics</span>
+            <span
+              class="text-xs font-bold text-slate-700 dark:text-slate-300"
+              data-i18n="price_oracle"
+              >مؤشر الأسعار</span
+            >
+            <span
+              class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+              data-i18n="price_oracle_desc"
+              >أسعار مواد البناء المحدّثة</span
+            >
           </a>
           <!-- FRC-NEW-05 FIX: Guest-only CTA card fills the visual gap.
                Unauthenticated users see 3 items instead of 2 (abundance UX).
@@ -634,12 +901,17 @@
             >
               <i class="ph ph-user-plus text-trust-blue text-2xl" aria-hidden="true"></i>
             </div>
-            <span class="text-xs font-bold text-trust-blue" data-i18n="join_community">Join Us</span>
-            <span class="text-3xs text-slate-400 leading-tight dark:text-slate-500" data-i18n="join_community_desc">Create an account to access all features</span>
+            <span class="text-xs font-bold text-trust-blue" data-i18n="join_community"
+              >انضم للمجتمع</span
+            >
+            <span
+              class="text-3xs text-slate-400 leading-tight dark:text-slate-500"
+              data-i18n="join_community_desc"
+              >كن جزءاً من حركة إعادة الإعمار</span
+            >
           </a>
         </div>
       </section>
-
     </main>
 
     <!-- P1-004 FIX: Decorative orbs placed BEFORE footer landmark.
@@ -650,21 +922,20 @@
     <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> for correct WCAG 1.3.1 landmark semantics. -->
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
-        <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-        <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-        <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
       </nav>
-      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
     <!-- Bottom Navigation: injected by nav.js (canonical source) -->
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/index.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/index.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

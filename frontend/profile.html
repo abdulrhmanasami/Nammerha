@@ -1,416 +1,786 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Profile | الملف الشخصي</title>
-  <meta name="description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — الملف الشخصي | الملف الشخصي</title>
+    <meta
+      name="description"
+      content="Manage your Nammerha account settings, KYC verification, and notification preferences."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <meta property="og:title" content="Profile — Nammerha" />
-  <meta property="og:description" content="Manage your Nammerha account settings, KYC verification, and notification preferences." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <!-- INC-2026-003 FIX: Standardized format (was bilingual — all other pages use English-only pattern) -->
-  <meta name="twitter:title" content="Profile — Nammerha" />
-  <script type="module" src="/src/pages/profile.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- GAP-010 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<!-- PLT-AUD-PAD FIX: Removed pb-28 — SST-002 main.css L3332 handles via --nm-nav-padding. -->
-<main id="main-content" class="mobile-container min-h-screen flex flex-col">
-
-  <!-- INC-NEW-01 FIX: Unified .page-header component.
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <meta property="og:title" content="Profile — Nammerha" />
+    <meta
+      property="og:description"
+      content="Manage your Nammerha account settings, KYC verification, and notification preferences."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <!-- INC-2026-003 FIX: Standardized format (was bilingual — all other pages use English-only pattern) -->
+    <meta name="twitter:title" content="Profile — Nammerha" />
+    <script type="module" src="/src/pages/profile.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- GAP-010 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <!-- PLT-AUD-PAD FIX: Removed pb-28 — SST-002 main.css L3332 handles via --nm-nav-padding. -->
+    <main id="main-content" class="mobile-container min-h-screen flex flex-col">
+      <!-- INC-NEW-01 FIX: Unified .page-header component.
        Previous: glass-nav sticky + inner div.px-4.h-14.mobile-container — ad-hoc nesting.
        Now: Flat .page-header — single source of truth. Back button wired by page-header.ts.
        Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
-  <!-- CON-002 FIX: Removed redundant border-b border-slate-200.
+      <!-- CON-002 FIX: Removed redundant border-b border-slate-200.
        .page-header CSS (main.css L1806) already defines border-bottom: 1px solid.
        The Tailwind override broke dark mode border-color theming.
        Standard: Design System Single Source of Truth. -->
-  <header class="page-header">
-      <!-- PLT-I002 FIX: Standardized back button to canonical Pattern B (flex w-11 h-11 shrink-0).
+      <header class="page-header">
+        <!-- PLT-I002 FIX: Standardized back button to canonical Pattern B (flex w-11 h-11 shrink-0).
            Previous: w-11 h-11 flex (missing shrink-0) — button collapses under RTL long-title flex pressure.
            Standard: Design System Component Unity, Apple HIG 44pt touch targets. -->
-      <a href="index.html" data-back-btn class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors" aria-label="Go back" data-i18n-aria="aria_go_back">
-        <i class="ph ph-arrow-left" aria-hidden="true"></i>
-      </a>
-      <h1 class="text-lg font-bold tracking-tight flex-1 text-center page-header-title" data-i18n="profile_title">Profile</h1>
-      <div class="w-11 h-11 shrink-0"></div>
-  </header>
+        <a
+          href="index.html"
+          data-back-btn
+          class="flex w-11 h-11 shrink-0 items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
+          aria-label="Go back"
+          data-i18n-aria="aria_go_back"
+        >
+          <i class="ph ph-arrow-left" aria-hidden="true"></i>
+        </a>
+        <h1
+          class="text-lg font-bold tracking-tight flex-1 text-center page-header-title"
+          data-i18n="profile_title"
+        >
+          الملف الشخصي
+        </h1>
+        <div class="w-11 h-11 shrink-0"></div>
+      </header>
 
-  <!-- Profile Card -->
-  <section class="px-4 pt-6 animate-fade-in-up">
-    <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
-      <div id="profile-avatar" class="size-20 bg-trust-blue rounded-full flex items-center justify-center mb-3">
-        <i class="ph ph-user text-white nm-icon-36" aria-hidden="true"></i>
-      </div>
-      <!-- GAP-003: Display mode -->
-      <div id="profile-display-mode">
-        <h2 id="user-name" class="text-xl font-bold">—</h2>
-        <p id="user-email" class="text-sm text-slate-500 mt-0.5 dark:text-slate-400">—</p>
-        <div class="flex items-center gap-2 mt-3">
-          <span id="user-role" class="badge-primary">—</span>
-          <span id="kyc-status" class="badge-verified">
-            <i class="ph ph-shield-check ph-xs" aria-hidden="true"></i>
-            <span data-i18n="kyc_pending">Pending KYC</span>
-          </span>
-        </div>
-        <button type="button" id="edit-profile-btn" class="mt-4 px-5 py-2 text-xs font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center gap-2 mx-auto">
-          <i class="ph ph-pencil-simple text-sm" aria-hidden="true"></i>
-          <span data-i18n="edit_profile">Edit Profile</span>
-        </button>
-      </div>
-      <!-- GAP-003: Edit mode (hidden by default) -->
-      <form id="profile-edit-form" class="nm-hidden w-full mt-2 space-y-3 text-start" novalidate>
-        <div>
-          <!-- PLAT-M03 FIX: Standardized label from text-3xs text-slate-400 mb-1 to
+      <!-- Profile Card -->
+      <section class="px-4 pt-6 animate-fade-in-up">
+        <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
+          <div
+            id="profile-avatar"
+            class="size-20 bg-trust-blue rounded-full flex items-center justify-center mb-3"
+          >
+            <i class="ph ph-user text-white nm-icon-36" aria-hidden="true"></i>
+          </div>
+          <!-- GAP-003: Display mode -->
+          <div id="profile-display-mode">
+            <h2 id="user-name" class="text-xl font-bold">—</h2>
+            <p id="user-email" class="text-sm text-slate-500 mt-0.5 dark:text-slate-400">—</p>
+            <div class="flex items-center gap-2 mt-3">
+              <span id="user-role" class="badge-primary">—</span>
+              <span id="kyc-status" class="badge-verified">
+                <i class="ph ph-shield-check ph-xs" aria-hidden="true"></i>
+                <span data-i18n="kyc_pending">بانتظار التحقق</span>
+              </span>
+            </div>
+            <button
+              type="button"
+              id="edit-profile-btn"
+              class="mt-4 px-5 py-2 text-xs font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center gap-2 mx-auto"
+            >
+              <i class="ph ph-pencil-simple text-sm" aria-hidden="true"></i>
+              <span data-i18n="edit_profile">تعديل الملف الشخصي</span>
+            </button>
+          </div>
+          <!-- GAP-003: Edit mode (hidden by default) -->
+          <form
+            id="profile-edit-form"
+            class="nm-hidden w-full mt-2 space-y-3 text-start"
+            novalidate
+          >
+            <div>
+              <!-- PLAT-M03 FIX: Standardized label from text-3xs text-slate-400 mb-1 to
                text-xs text-slate-500 mb-2 — matches auth.html design system pattern.
                Root cause: Two engineers styled forms independently with no shared component.
                Standard: Nielsen #4 (Consistency), Design System Typography Scale. -->
-          <label for="edit-name" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="full_name">Full Name</label>
-          <!-- P2-AUD2-001 FIX: Migrated from inline Tailwind to canonical .nm-input class.
+              <label
+                for="edit-name"
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                data-i18n="full_name"
+                >الاسم الكامل</label
+              >
+              <!-- P2-AUD2-001 FIX: Migrated from inline Tailwind to canonical .nm-input class.
                Previous: 87-char ad-hoc class string duplicating .nm-input definition.
                Standard: Design System Single Source of Truth, DRY. -->
-          <!-- PROFILE-FORM-001 FIX: Added autocomplete + enterkeyhint for mobile keyboard optimization.
+              <!-- PROFILE-FORM-001 FIX: Added autocomplete + enterkeyhint for mobile keyboard optimization.
                Standard: Apple HIG (Keyboard Management), WCAG 1.3.5, parity with auth.html. -->
-          <input id="edit-name" type="text" autocomplete="name" enterkeyhint="next" class="nm-input" />
-        </div>
-        <div>
-          <label for="edit-email" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="email_label">Email</label>
-          <input id="edit-email" type="email" inputmode="email" enterkeyhint="next" autocomplete="email" class="nm-input" />
-        </div>
-        <!-- GAP-005 FIX: Phone number field — fulfills completion checklist data-completion="phone".
+              <input
+                id="edit-name"
+                type="text"
+                autocomplete="name"
+                enterkeyhint="next"
+                class="nm-input"
+              />
+            </div>
+            <div>
+              <label
+                for="edit-email"
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                data-i18n="email_label"
+                >البريد الإلكتروني</label
+              >
+              <input
+                id="edit-email"
+                type="email"
+                inputmode="email"
+                enterkeyhint="next"
+                autocomplete="email"
+                class="nm-input"
+              />
+            </div>
+            <!-- GAP-005 FIX: Phone number field — fulfills completion checklist data-completion="phone".
              Standard: Apple HIG — "Use appropriate keyboard types for input fields."
              type="tel" triggers numeric dialpad on mobile. -->
-        <div>
-          <label for="edit-phone" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="phone_label">Phone Number</label>
-          <div class="relative">
-            <i class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-base dark:text-slate-500" aria-hidden="true"></i>
-            <input id="edit-phone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done" placeholder="+963 XXX XXX XXXX" data-i18n-placeholder="phone_placeholder" class="nm-input nm-input-icon" />
-          </div>
-        </div>
-        <!-- GAP-005 FIX: Profile photo upload — fulfills completion checklist data-completion="photo".
+            <div>
+              <label
+                for="edit-phone"
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                data-i18n="phone_label"
+                >رقم الهاتف</label
+              >
+              <div class="relative">
+                <i
+                  class="ph ph-phone absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-base dark:text-slate-500"
+                  aria-hidden="true"
+                ></i>
+                <input
+                  id="edit-phone"
+                  type="tel"
+                  autocomplete="tel"
+                  inputmode="tel"
+                  enterkeyhint="done"
+                  placeholder="+963 XXX XXX XXXX"
+                  data-i18n-placeholder="phone_placeholder"
+                  class="nm-input nm-input-icon"
+                />
+              </div>
+            </div>
+            <!-- GAP-005 FIX: Profile photo upload — fulfills completion checklist data-completion="photo".
              Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
-        <div>
-          <label for="edit-photo" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="profile_photo_label">Profile Photo</label>
-          <label for="edit-photo" class="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-dashed border-slate-300 bg-surface text-sm cursor-pointer hover:border-trust-blue/50 hover:bg-trust-blue/5 transition-colors">
-            <i class="ph ph-camera text-slate-400 text-xl dark:text-slate-500" aria-hidden="true"></i>
-            <span id="photo-filename" class="text-slate-400 font-medium truncate dark:text-slate-500" data-i18n="choose_photo">Choose a photo...</span>
-          </label>
-          <input id="edit-photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />
-          <!-- GAP-X02 FIX: Live photo preview after file selection.
+            <div>
+              <label
+                for="edit-photo"
+                class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                data-i18n="profile_photo_label"
+                >الصورة الشخصية</label
+              >
+              <label
+                for="edit-photo"
+                class="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl border border-dashed border-slate-300 bg-surface text-sm cursor-pointer hover:border-trust-blue/50 hover:bg-trust-blue/5 transition-colors"
+              >
+                <i
+                  class="ph ph-camera text-slate-400 text-xl dark:text-slate-500"
+                  aria-hidden="true"
+                ></i>
+                <span
+                  id="photo-filename"
+                  class="text-slate-400 font-medium truncate dark:text-slate-500"
+                  data-i18n="choose_photo"
+                  >اختر صورة</span
+                >
+              </label>
+              <input
+                id="edit-photo"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="sr-only"
+              />
+              <!-- GAP-X02 FIX: Live photo preview after file selection.
                Previous: user selects file → sees only filename text → no visual feedback.
                Now: circular preview + remove button shown immediately via FileReader.
                Standard: Material Design 3 (Immediate Feedback), Trust UX (visual verification). -->
-          <div id="photo-preview-wrap" class="nm-hidden mt-2 flex items-center gap-3">
-            <div class="relative">
-              <img id="photo-preview-img" class="w-16 h-16 rounded-full object-cover border-2 border-trust-blue shadow-sm" alt="Selected photo preview" loading="lazy" />
-              <button type="button" id="photo-preview-remove" class="absolute -top-1 -end-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 transition-colors" aria-label="Remove selected photo">
-                <i class="ph ph-x text-3xs" aria-hidden="true"></i>
+              <div id="photo-preview-wrap" class="nm-hidden mt-2 flex items-center gap-3">
+                <div class="relative">
+                  <img
+                    id="photo-preview-img"
+                    class="w-16 h-16 rounded-full object-cover border-2 border-trust-blue shadow-sm"
+                    alt="Selected photo preview"
+                    loading="lazy"
+                  />
+                  <button
+                    type="button"
+                    id="photo-preview-remove"
+                    class="absolute -top-1 -end-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 transition-colors"
+                    aria-label="Remove selected photo"
+                  >
+                    <i class="ph ph-x text-3xs" aria-hidden="true"></i>
+                  </button>
+                </div>
+                <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-3xs (hints) + text-xs (labels/status). -->
+                <span
+                  class="text-xs text-smoky-jade font-semibold dark:text-emerald-400"
+                  data-i18n="photo_selected"
+                  >تم اختيار صورة</span
+                >
+              </div>
+              <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="photo_hint">
+                PNG أو JPG، حد أقصى ٢ ميغابايت
+              </p>
+            </div>
+            <div id="profile-edit-banner" class="nm-hidden text-xs font-bold p-3 rounded-xl"></div>
+            <div class="flex gap-2 pt-1">
+              <button
+                type="submit"
+                id="save-profile-btn"
+                class="flex-1 py-2.5 text-sm font-bold text-white bg-trust-blue rounded-xl hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2"
+              >
+                <i class="ph ph-check" aria-hidden="true"></i>
+                <span data-i18n="save_changes">حفظ التغييرات</span>
+              </button>
+              <button
+                type="button"
+                id="cancel-edit-btn"
+                class="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors dark:text-slate-400"
+              >
+                <span data-i18n="cancel">إلغاء</span>
               </button>
             </div>
-            <!-- INC-004 FIX: Was text-[11px] — eliminated 3rd micro-size. Two sizes only: text-3xs (hints) + text-xs (labels/status). -->
-            <span class="text-xs text-smoky-jade font-semibold dark:text-emerald-400" data-i18n="photo_selected">Photo selected ✓</span>
-          </div>
-          <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" data-i18n="photo_hint">JPEG, PNG, or WebP. Max 5 MB.</p>
-        </div>
-        <div id="profile-edit-banner" class="nm-hidden text-xs font-bold p-3 rounded-xl"></div>
-        <div class="flex gap-2 pt-1">
-          <button type="submit" id="save-profile-btn" class="flex-1 py-2.5 text-sm font-bold text-white bg-trust-blue rounded-xl hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
-            <i class="ph ph-check" aria-hidden="true"></i>
-            <span data-i18n="save_changes">Save Changes</span>
-          </button>
-          <button type="button" id="cancel-edit-btn" class="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors dark:text-slate-400">
-            <span data-i18n="cancel">Cancel</span>
-          </button>
-        </div>
-      </form>
-      <!-- GAP-N02 FIX: Password Change Section (collapsible progressive disclosure).
+          </form>
+          <!-- GAP-N02 FIX: Password Change Section (collapsible progressive disclosure).
            Previous: users had to log out → Forgot Password to change their password.
            Standard: Nielsen #7 — "Flexibility and efficiency of use." -->
-      <div class="mt-4 border-t border-slate-100 pt-4 dark:border-dark-border">
-        <button type="button" id="toggle-password-change" class="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-600 hover:text-trust-blue transition-colors dark:text-slate-400">
-          <span class="flex items-center gap-2">
-            <i class="ph ph-lock-key text-base" aria-hidden="true"></i>
-            <span data-i18n="change_password">Change Password</span>
-          </span>
-          <i class="ph ph-caret-down text-slate-400 transition-transform dark:text-slate-500" id="password-caret" aria-hidden="true"></i>
-        </button>
-        <div id="password-change-form" class="nm-hidden mt-3 space-y-3">
-          <div>
-            <label for="current-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="current_password">Current Password</label>
-            <input id="current-password" type="password" autocomplete="current-password" enterkeyhint="next" class="nm-input mt-1" />
-          </div>
-          <div>
-            <label for="new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="new_password">New Password</label>
-            <input id="new-password" type="password" autocomplete="new-password" enterkeyhint="next" class="nm-input mt-1" />
-            <!-- FRC-NEW-03 FIX: Password strength indicator — was missing from profile change form.
+          <div class="mt-4 border-t border-slate-100 pt-4 dark:border-dark-border">
+            <button
+              type="button"
+              id="toggle-password-change"
+              class="w-full flex items-center justify-between py-2 text-sm font-bold text-slate-600 hover:text-trust-blue transition-colors dark:text-slate-400"
+            >
+              <span class="flex items-center gap-2">
+                <i class="ph ph-lock-key text-base" aria-hidden="true"></i>
+                <span data-i18n="change_password">تغيير كلمة المرور</span>
+              </span>
+              <i
+                class="ph ph-caret-down text-slate-400 transition-transform dark:text-slate-500"
+                id="password-caret"
+                aria-hidden="true"
+              ></i>
+            </button>
+            <div id="password-change-form" class="nm-hidden mt-3 space-y-3">
+              <div>
+                <label
+                  for="current-password"
+                  class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                  data-i18n="current_password"
+                  >كلمة المرور الحالية</label
+                >
+                <input
+                  id="current-password"
+                  type="password"
+                  autocomplete="current-password"
+                  enterkeyhint="next"
+                  class="nm-input mt-1"
+                />
+              </div>
+              <div>
+                <label
+                  for="new-password"
+                  class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                  data-i18n="new_password"
+                  >كلمة المرور الجديدة</label
+                >
+                <input
+                  id="new-password"
+                  type="password"
+                  autocomplete="new-password"
+                  enterkeyhint="next"
+                  class="nm-input mt-1"
+                />
+                <!-- FRC-NEW-03 FIX: Password strength indicator — was missing from profile change form.
                  Auth registration has this (#pw-strength-bars) but password changes had no feedback.
                  Standard: Security UX Best Practices, Parity with Registration UX. -->
-            <!-- P2-MED-005 FIX: Standardized from h-1 (4px) to h-2 (8px) — matches auth.html and reset-password.html.
+                <!-- P2-MED-005 FIX: Standardized from h-1 (4px) to h-2 (8px) — matches auth.html and reset-password.html.
                  Standard: Visual consistency (same component, same dimensions). -->
-            <div class="flex gap-1 mt-2" id="pw-change-strength-bars">
-              <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
-              <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
-              <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
-              <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
-            </div>
-            <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (password guidance).
+                <div class="flex gap-1 mt-2" id="pw-change-strength-bars">
+                  <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
+                  <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
+                  <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
+                  <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
+                </div>
+                <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (password guidance).
                  Standard: Design System Typography Scale Governance. -->
-            <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" id="pw-change-strength-text" data-i18n="password_strength_hint">Min 8 characters, uppercase, lowercase, number, symbol</p>
+                <p
+                  class="text-3xs text-slate-400 mt-1 dark:text-slate-500"
+                  id="pw-change-strength-text"
+                  data-i18n="password_strength_hint"
+                >
+                  +٨ أحرف، حرف كبير، رقم
+                </p>
+              </div>
+              <div>
+                <label
+                  for="confirm-new-password"
+                  class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
+                  data-i18n="confirm_new_password"
+                  >تأكيد كلمة المرور الجديدة</label
+                >
+                <input
+                  id="confirm-new-password"
+                  type="password"
+                  autocomplete="new-password"
+                  enterkeyhint="done"
+                  class="nm-input mt-1"
+                />
+              </div>
+              <div
+                id="password-change-banner"
+                class="nm-hidden text-xs font-bold p-3 rounded-xl"
+              ></div>
+              <button
+                type="button"
+                id="save-password-btn"
+                class="w-full py-2.5 text-sm font-bold text-white bg-trust-blue rounded-xl hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2"
+              >
+                <i class="ph ph-shield-check" aria-hidden="true"></i>
+                <span data-i18n="update_password">تحديث كلمة المرور</span>
+              </button>
+            </div>
           </div>
-          <div>
-            <label for="confirm-new-password" class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400" data-i18n="confirm_new_password">Confirm New Password</label>
-            <input id="confirm-new-password" type="password" autocomplete="new-password" enterkeyhint="done" class="nm-input mt-1" />
-          </div>
-          <div id="password-change-banner" class="nm-hidden text-xs font-bold p-3 rounded-xl"></div>
-          <button type="button" id="save-password-btn" class="w-full py-2.5 text-sm font-bold text-white bg-trust-blue rounded-xl hover:bg-trust-blue/90 transition-colors flex items-center justify-center gap-2">
-            <i class="ph ph-shield-check" aria-hidden="true"></i>
-            <span data-i18n="update_password">Update Password</span>
-          </button>
-        </div>
-      </div>
-      <!-- Profile Completion Progress -->
-      <!-- M-AUD-006 FIX: Unified skeleton for progress bar + percentage.
+          <!-- Profile Completion Progress -->
+          <!-- M-AUD-006 FIX: Unified skeleton for progress bar + percentage.
            Previous: Progress bar started at width:0% (a real value) while percentage text
            showed a skeleton pulse — contradictory signals (real data + loading state).
            Now: Both bar and text are skeleton-only until JS hydrates.
            Standard: Nielsen #1 (System Status Visibility), Consistent Loading States. -->
-      <div class="w-full mt-4" id="profile-completion-container">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="profile_completion">Profile Completion</span>
-          <!-- FRIC-2604 FIX: Skeleton loader replaces hardcoded "0%" before API data loads.
+          <div class="w-full mt-4" id="profile-completion-container">
+            <div class="flex items-center justify-between mb-1">
+              <span
+                class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="profile_completion"
+                >اكتمال الملف الشخصي</span
+              >
+              <!-- FRIC-2604 FIX: Skeleton loader replaces hardcoded "0%" before API data loads.
                Previous: showed "0%" → misleading flash for users who may have 60% completion.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
-          <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">
-            <span class="inline-block h-3 w-8 bg-slate-200 rounded animate-pulse" data-skeleton></span>
-          </span>
-        </div>
-        <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar. -->
-        <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Profile completion" aria-describedby="profile-completion-pct">
-          <div id="profile-completion-bar" class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700 nm-progress-init"></div>
-        </div>
-        <!-- FRC-004 FIX: Actionable completion checklist — shows what's left to complete.
+              <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">
+                <span
+                  class="inline-block h-3 w-8 bg-slate-200 rounded animate-pulse"
+                  data-skeleton
+                ></span>
+              </span>
+            </div>
+            <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar. -->
+            <div
+              class="w-full h-2 bg-slate-200 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow="0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label="Profile completion"
+              aria-describedby="profile-completion-pct"
+            >
+              <div
+                id="profile-completion-bar"
+                class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700 nm-progress-init"
+              ></div>
+            </div>
+            <!-- FRC-004 FIX: Actionable completion checklist — shows what's left to complete.
              Without this, users see a progress metric but can't act on it.
              Standard: Nielsen #10 — Help and documentation. Gamification — Actionable progress. -->
-        <details id="completion-checklist" class="mt-2">
-          <summary class="text-3xs text-trust-blue font-semibold cursor-pointer hover:underline" data-i18n="profile_whats_missing">What's missing?</summary>
-          <!-- GAP-N04 FIX: Checklist items are now interactive buttons with data-focus-target.
+            <details id="completion-checklist" class="mt-2">
+              <summary
+                class="text-3xs text-trust-blue font-semibold cursor-pointer hover:underline"
+                data-i18n="profile_whats_missing"
+              >
+                ما الذي ينقصك؟
+              </summary>
+              <!-- GAP-N04 FIX: Checklist items are now interactive buttons with data-focus-target.
                Previous: static text — users saw what was missing but couldn't act.
                Now: tapping an item scrolls to and focuses the relevant form field.
                Standard: Nielsen Heuristic #10 — Help & Documentation, Gamification. -->
-          <!-- INC-NEW-04 FIX: data-focus-target IDs corrected to match actual form field IDs.
+              <!-- INC-NEW-04 FIX: data-focus-target IDs corrected to match actual form field IDs.
                Previous: profile-name, profile-email, profile-phone, profile-photo-btn — none existed.
                Now: edit-name, edit-email, edit-phone, edit-photo — actual input IDs.
                Standard: Functional correctness, WCAG 2.4.3 (Focus Order). -->
-          <!-- INC-002 FIX: text-[11px] → text-xs — label tier (interactive checklist buttons).
+              <!-- INC-002 FIX: text-[11px] → text-xs — label tier (interactive checklist buttons).
                Standard: Design System Typography Scale Governance. -->
-          <ul id="completion-items" class="mt-1.5 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-            <li class="flex items-center gap-1.5" data-completion="name">
-              <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
-              <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-name" data-i18n="profile_add_name">Add your full name</button>
-            </li>
-            <li class="flex items-center gap-1.5" data-completion="email">
-              <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
-              <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-email" data-i18n="profile_verify_email">Verify your email</button>
-            </li>
-            <li class="flex items-center gap-1.5" data-completion="phone">
-              <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
-              <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-phone" data-i18n="profile_add_phone">Add phone number</button>
-            </li>
-            <li class="flex items-center gap-1.5" data-completion="photo">
-              <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
-              <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="edit-photo" data-i18n="profile_add_photo">Upload profile photo</button>
-            </li>
-            <li class="flex items-center gap-1.5" data-completion="kyc">
-              <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
-              <button type="button" class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors" data-focus-target="kyc-section" data-i18n="profile_complete_kyc">Complete identity verification</button>
-            </li>
-          </ul>
-        </details>
-      </div>
-    </div>
-  </section>
+              <ul
+                id="completion-items"
+                class="mt-1.5 space-y-1 text-xs text-slate-500 dark:text-slate-400"
+              >
+                <li class="flex items-center gap-1.5" data-completion="name">
+                  <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
+                  <button
+                    type="button"
+                    class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors"
+                    data-focus-target="edit-name"
+                    data-i18n="profile_add_name"
+                  >
+                    أضف اسمك
+                  </button>
+                </li>
+                <li class="flex items-center gap-1.5" data-completion="email">
+                  <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
+                  <button
+                    type="button"
+                    class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors"
+                    data-focus-target="edit-email"
+                    data-i18n="profile_verify_email"
+                  >
+                    تحقق من البريد الإلكتروني
+                  </button>
+                </li>
+                <li class="flex items-center gap-1.5" data-completion="phone">
+                  <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
+                  <button
+                    type="button"
+                    class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors"
+                    data-focus-target="edit-phone"
+                    data-i18n="profile_add_phone"
+                  >
+                    أضف رقم الهاتف
+                  </button>
+                </li>
+                <li class="flex items-center gap-1.5" data-completion="photo">
+                  <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
+                  <button
+                    type="button"
+                    class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors"
+                    data-focus-target="edit-photo"
+                    data-i18n="profile_add_photo"
+                  >
+                    أضف صورة شخصية
+                  </button>
+                </li>
+                <li class="flex items-center gap-1.5" data-completion="kyc">
+                  <i class="ph ph-circle text-slate-300 text-xs" aria-hidden="true"></i>
+                  <button
+                    type="button"
+                    class="completion-action text-start underline decoration-dotted hover:text-trust-blue transition-colors"
+                    data-focus-target="kyc-section"
+                    data-i18n="profile_complete_kyc"
+                  >
+                    أكمل التحقق من الهوية
+                  </button>
+                </li>
+              </ul>
+            </details>
+          </div>
+        </div>
+      </section>
 
-  <!-- FRIC-2026-D01 FIX: Visual section divider — separates Profile Card from My Roles.
+      <!-- FRIC-2026-D01 FIX: Visual section divider — separates Profile Card from My Roles.
        Previous: 4 sections stacked without visual breaks → cognitive fatigue on mobile.
        Now: subtle divider + section heading provides clear visual grouping.
        Standard: Gestalt (Proximity), Nielsen #6 (Recognition over Recall). -->
-  <!-- My Roles Section -->
-  <section class="px-4 pt-6 animate-fade-in-up" style="--anim-delay:0.1s">
-    <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
-    <!-- INC-2026-C01 FIX: h3→h2 — proper heading hierarchy after h1. -->
-    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100" data-i18n="my_roles">My Roles</h2>
-    <div id="roles-list" class="flex flex-col gap-2">
-      <!-- Roles rendered dynamically by profile.ts -->
-      <div class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-        <i class="ph ph-spinner-gap ph-spin text-slate-300 text-xl" aria-hidden="true"></i>
-      </div>
-    </div>
-    <!-- Add New Role Button -->
-    <button type="button" id="add-role-btn" class="w-full mt-3 py-3 text-sm font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center justify-center gap-2">
-      <i class="ph ph-plus-circle text-lg" aria-hidden="true"></i>
-      <span data-i18n="add_new_role">Activate a New Role</span>
-    </button>
-    <!-- INC-002/GAP-006 FIX: Migrated from <div role="dialog"> to native <dialog>.
+      <!-- My Roles Section -->
+      <section class="px-4 pt-6 animate-fade-in-up" style="--anim-delay: 0.1s">
+        <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
+        <!-- INC-2026-C01 FIX: h3→h2 — proper heading hierarchy after h1. -->
+        <h2
+          class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100"
+          data-i18n="my_roles"
+        >
+          أدواري
+        </h2>
+        <div id="roles-list" class="flex flex-col gap-2">
+          <!-- Roles rendered dynamically by profile.ts -->
+          <div
+            class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+          >
+            <i class="ph ph-spinner-gap ph-spin text-slate-300 text-xl" aria-hidden="true"></i>
+          </div>
+        </div>
+        <!-- Add New Role Button -->
+        <button
+          type="button"
+          id="add-role-btn"
+          class="w-full mt-3 py-3 text-sm font-bold text-trust-blue bg-trust-blue/5 rounded-xl border border-trust-blue/10 hover:bg-trust-blue/10 transition-colors flex items-center justify-center gap-2"
+        >
+          <i class="ph ph-plus-circle text-lg" aria-hidden="true"></i>
+          <span data-i18n="add_new_role">إضافة دور جديد</span>
+        </button>
+        <!-- INC-002/GAP-006 FIX: Migrated from <div role="dialog"> to native <dialog>.
          Benefits: native ::backdrop, focus trapping, Escape key, WCAG 4.1.2 compliance.
          Standard: WAI-ARIA Authoring Practices — "Prefer native <dialog> over role='dialog'." -->
-    <dialog id="role-activation-modal" class="nm-confirm-dialog nm-role-dialog" aria-label="Activate a new role" data-i18n-aria="activate_role">
-      <div class="nm-confirm-body nm-role-dialog-body">
-        <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">Choose a role to activate</h4>
-        <div id="available-roles-grid" class="grid grid-cols-2 gap-2">
-          <!-- Available roles rendered dynamically -->
-        </div>
-      </div>
-      <div class="nm-confirm-actions">
-        <button type="button" id="cancel-role-activation" class="nm-confirm-cancel" data-i18n="cancel">Cancel</button>
-      </div>
-    </dialog>
-  </section>
+        <dialog
+          id="role-activation-modal"
+          class="nm-confirm-dialog nm-role-dialog"
+          aria-label="Activate a new role"
+          data-i18n-aria="activate_role"
+        >
+          <div class="nm-confirm-body nm-role-dialog-body">
+            <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">
+              اختر دوراً لتفعيله
+            </h4>
+            <div id="available-roles-grid" class="grid grid-cols-2 gap-2">
+              <!-- Available roles rendered dynamically -->
+            </div>
+          </div>
+          <div class="nm-confirm-actions">
+            <button
+              type="button"
+              id="cancel-role-activation"
+              class="nm-confirm-cancel"
+              data-i18n="cancel"
+            >
+              إلغاء
+            </button>
+          </div>
+        </dialog>
+      </section>
 
-  <!-- Settings Menu -->
-  <section class="px-4 pt-6">
-    <!-- FRIC-2026-D01 FIX: Visual divider between My Roles and Settings -->
-    <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
-    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100" data-i18n="settings">Settings</h2>
-    <div class="flex flex-col gap-2">
-      <!-- Notifications -->
-      <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-bell text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold" data-i18n="notification_setting">Notifications</p>
-          <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="notification_desc">Push and email alerts</p>
-        </div>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="notif-toggle" class="sr-only peer">
-          <!-- P2-RTL-001 FIX: Uses logical after:start-0.5 and RTL-aware translate direction -->
-          <div class="w-9 h-5 bg-slate-300 peer-checked:bg-smoky-jade rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:size-4 after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"></div>
-        </label>
-      </div>
-      <!-- KYC Verification -->
-      <!-- INC-NEW-04 FIX: Added id="kyc-section" so completion checklist data-focus-target works. -->
-      <!-- PLATINUM FIX: Upgraded from static <div> to actionable <button> to resolve UX Dead End -->
-      <button type="button" id="kyc-section" class="w-full bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors text-start dark:bg-dark-surface dark:border-dark-border dark:hover:bg-dark-elevated">
-        <div class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-identification-card text-warm-earth" aria-hidden="true"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold" data-i18n="kyc_verification">KYC Verification</p>
-          <p id="kyc-detail" class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="kyc_detail">Verify your identity</p>
-        </div>
-        <i id="kyc-status-icon" class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-      </button>
-      <!-- GAP-007 FIX: Wallet shortcut in profile settings.
+      <!-- Settings Menu -->
+      <section class="px-4 pt-6">
+        <!-- FRIC-2026-D01 FIX: Visual divider between My Roles and Settings -->
+        <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
+        <h2
+          class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100"
+          data-i18n="settings"
+        >
+          الإعدادات
+        </h2>
+        <div class="flex flex-col gap-2">
+          <!-- Notifications -->
+          <div
+            class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-bell text-smoky-jade dark:text-emerald-400" aria-hidden="true"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold" data-i18n="notification_setting">الإشعارات</p>
+              <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="notification_desc">
+                تنبيهات الدفع والبريد
+              </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="notif-toggle" class="sr-only peer" />
+              <!-- P2-RTL-001 FIX: Uses logical after:start-0.5 and RTL-aware translate direction -->
+              <div
+                class="w-9 h-5 bg-slate-300 peer-checked:bg-smoky-jade rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:size-4 after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"
+              ></div>
+            </label>
+          </div>
+          <!-- THEME-SURG-001: Platform Theme Toggle — moved from floating FAB to Settings -->
+          <div
+            class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0 dark:bg-indigo-500/10"
+            >
+              <i
+                id="theme-setting-icon"
+                class="ph ph-moon-stars text-indigo-500 dark:text-indigo-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold" data-i18n="theme_setting">سمة المنصة</p>
+              <p
+                id="theme-setting-label"
+                class="text-3xs text-slate-400 dark:text-slate-500"
+                data-i18n="theme_light"
+              >
+                الوضع الفاتح
+              </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="theme-mode-toggle" class="sr-only peer" />
+              <!-- P2-RTL-001 FIX: Uses logical after:start-0.5 and RTL-aware translate direction -->
+              <div
+                class="w-9 h-5 bg-slate-300 peer-checked:bg-indigo-500 rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:size-4 after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"
+              ></div>
+            </label>
+          </div>
+          <!-- KYC Verification -->
+          <!-- INC-NEW-04 FIX: Added id="kyc-section" so completion checklist data-focus-target works. -->
+          <!-- PLATINUM FIX: Upgraded from static <div> to actionable <button> to resolve UX Dead End -->
+          <button
+            type="button"
+            id="kyc-section"
+            class="w-full bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors text-start dark:bg-dark-surface dark:border-dark-border dark:hover:bg-dark-elevated"
+          >
+            <div
+              class="size-10 bg-warm-earth/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-identification-card text-warm-earth" aria-hidden="true"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold" data-i18n="kyc_verification">التحقق من الهوية</p>
+              <p
+                id="kyc-detail"
+                class="text-3xs text-slate-400 dark:text-slate-500"
+                data-i18n="kyc_detail"
+              >
+                تحقق من هويتك
+              </p>
+            </div>
+            <i
+              id="kyc-status-icon"
+              class="ph ph-caret-right text-slate-400 dark:text-slate-500"
+              aria-hidden="true"
+            ></i>
+          </button>
+          <!-- GAP-007 FIX: Wallet shortcut in profile settings.
            Standard: FinTech UX — "Financial info must be ≤1 tap from profile." -->
-      <a href="wallet.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-wallet text-trust-blue" aria-hidden="true"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold" data-i18n="my_wallet">My Wallet</p>
-          <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="wallet_desc">Balance, transactions & deposits</p>
-        </div>
-        <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-      </a>
-      <!-- GAP-008 FIX: Admin Portal link — visible only for admin-role users.
+          <a
+            href="wallet.html"
+            class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-trust-blue/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-wallet text-trust-blue" aria-hidden="true"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold" data-i18n="my_wallet">محفظتي</p>
+              <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="wallet_desc">
+                إدارة رصيدك ومعاملاتك
+              </p>
+            </div>
+            <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+          </a>
+          <!-- GAP-008 FIX: Admin Portal link — visible only for admin-role users.
            Standard: Nielsen Heuristic #7 — "Flexibility and efficiency of use." -->
-      <a href="admin-dashboard.html" data-requires-role="admin" class="nm-hidden bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-shield-check text-warning-yellow" aria-hidden="true"></i>
+          <a
+            href="admin-dashboard.html"
+            data-requires-role="admin"
+            class="nm-hidden bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div
+              class="size-10 bg-warning-yellow/10 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <i class="ph ph-shield-check text-warning-yellow" aria-hidden="true"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold" data-i18n="admin_portal">بوابة المشرف</p>
+              <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="admin_portal_desc">
+                إدارة المنصة
+              </p>
+            </div>
+            <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+          </a>
+          <a
+            href="about.html"
+            class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border"
+          >
+            <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
+              <i class="ph ph-info text-slate-500 dark:text-slate-400" aria-hidden="true"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold" data-i18n="about_nammerha">من نحن</p>
+              <p class="text-3xs text-slate-400 dark:text-slate-500">
+                v1.0.0 — <span data-i18n="ocds_certified">معتمد OCDS</span>
+              </p>
+            </div>
+            <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+          </a>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="admin_portal_desc">Dashboard & management</p>
+      </section>
+
+      <!-- Danger Zone -->
+      <!-- FRIC-2026-D01 FIX: Visual divider before Danger Zone -->
+      <section class="px-4 pt-8 mt-auto">
+        <div class="border-t border-red-100 pt-5 mt-1"></div>
+        <button
+          type="button"
+          id="logout-action"
+          class="w-full py-3 text-sm font-bold text-red-500 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition-colors dark:bg-red-500/10"
+        >
+          <i class="ph ph-sign-out text-base" aria-hidden="true"></i>
+          <span data-i18n="sign_out">تسجيل خروج</span>
+        </button>
+      </section>
+
+      <!-- GAP-P04 FIX: Confirmation dialog for destructive 'Sign Out' action (Nielsen Heuristic #5) -->
+      <dialog id="confirm-logout" class="nm-confirm-dialog">
+        <div class="nm-confirm-body">
+          <h3 data-i18n="confirm_logout_title">تسجيل الخروج</h3>
+          <p data-i18n="confirm_logout_desc">هل تريد تسجيل الخروج من حسابك؟</p>
         </div>
-        <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-      </a>
-      <a href="about.html" class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border">
-        <div class="size-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
-          <i class="ph ph-info text-slate-500 dark:text-slate-400" aria-hidden="true"></i>
+        <div class="nm-confirm-actions">
+          <button type="button" class="nm-confirm-cancel" data-action="cancel" data-i18n="cancel">
+            إلغاء
+          </button>
+          <button
+            type="button"
+            class="nm-confirm-destructive"
+            data-action="confirm"
+            data-i18n="sign_out"
+          >
+            تسجيل خروج
+          </button>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold" data-i18n="about_nammerha">About Nammerha</p>
-          <p class="text-3xs text-slate-400 dark:text-slate-500">v1.0.0 — <span data-i18n="ocds_certified">OCDS Certified</span></p>
-        </div>
-        <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-      </a>
-    </div>
-  </section>
+      </dialog>
+    </main>
 
-  <!-- Danger Zone -->
-  <!-- FRIC-2026-D01 FIX: Visual divider before Danger Zone -->
-  <section class="px-4 pt-8 mt-auto">
-    <div class="border-t border-red-100 pt-5 mt-1"></div>
-    <button type="button" id="logout-action" class="w-full py-3 text-sm font-bold text-red-500 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition-colors dark:bg-red-500/10">
-      <i class="ph ph-sign-out text-base" aria-hidden="true"></i>
-      <span data-i18n="sign_out">Sign Out</span>
-    </button>
-  </section>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-  <!-- GAP-P04 FIX: Confirmation dialog for destructive 'Sign Out' action (Nielsen Heuristic #5) -->
-  <dialog id="confirm-logout" class="nm-confirm-dialog">
-    <div class="nm-confirm-body">
-      <h3 data-i18n="confirm_logout_title">Sign Out?</h3>
-      <p data-i18n="confirm_logout_desc">You'll need to sign in again to access your account.</p>
-    </div>
-    <div class="nm-confirm-actions">
-      <button type="button" class="nm-confirm-cancel" data-action="cancel" data-i18n="cancel">Cancel</button>
-      <button type="button" class="nm-confirm-destructive" data-action="confirm" data-i18n="sign_out">Sign Out</button>
-    </div>
-  </dialog>
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-</main>
-
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-
-  <footer class="nm-legal-footer">
-    <nav aria-label="Legal navigation">
-      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-    </nav>
-    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-  </footer>
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/profile.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/profile.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <!-- THEME-SURG-001: Theme toggle engine — wires the settings toggle via NammerhaTheme API -->
+    <script src="/theme-toggle.js?v=3" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+  </body>
 </html>

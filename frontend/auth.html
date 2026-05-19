@@ -1,65 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-007 FIX: Inline Locale Boot (Synchronous) — Zero FOUC for i18n -->
-  <script>(function(){try{var l=localStorage.getItem('nm-locale');if(l){document.documentElement.setAttribute('lang',l);document.documentElement.setAttribute('dir',l==='ar'?'rtl':'ltr')}}catch(e){}})();</script>
-  <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
-  <script>(function(){var m=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';try{m=localStorage.getItem('nm-theme')||m}catch(e){}document.documentElement.setAttribute('data-theme',m)})();</script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Sign In | تسجيل الدخول</title>
-  <meta name="description" content="Sign in to Nammerha — the OCDS-compliant reconstruction platform rebuilding Syria with transparency." />
-  <!-- I-004 FIX: OpenGraph & Twitter Card meta tags for social sharing -->
-  <meta property="og:title" content="Sign In — Nammerha" />
-  <meta property="og:description" content="Sign in to Nammerha — the OCDS-compliant reconstruction platform rebuilding Syria with transparency." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Sign In — Nammerha" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <!-- P1-WEB-003 FIX: Phosphor CSS was loaded synchronously — render-blocking.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-007 FIX: Inline Locale Boot (Synchronous) — Zero FOUC for i18n -->
+    <script>
+      (function () {
+        try {
+          var l = localStorage.getItem('nm-locale');
+          if (l) {
+            document.documentElement.setAttribute('lang', l);
+            document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
+    <script>
+      (function () {
+        var m =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+        try {
+          m = localStorage.getItem('nm-theme') || m;
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', m);
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>نعمّرها — تسجيل الدخول | تسجيل الدخول</title>
+    <meta
+      name="description"
+      content="Sign in to Nammerha — the OCDS-compliant reconstruction platform rebuilding Syria with transparency."
+    />
+    <!-- I-004 FIX: OpenGraph & Twitter Card meta tags for social sharing -->
+    <meta property="og:title" content="Sign In — Nammerha" />
+    <meta
+      property="og:description"
+      content="Sign in to Nammerha — the OCDS-compliant reconstruction platform rebuilding Syria with transparency."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Sign In — Nammerha" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <!-- P1-WEB-003 FIX: Phosphor CSS was loaded synchronously — render-blocking.
        All other pages use async preload. Auth was the sole outlier (~200KB blocking).
        Standard: Web Vitals (LCP), PRPL Pattern, Platform Consistency. -->
-  <link rel="preload" href="/fonts/phosphor/phosphor.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/phosphor/phosphor.css" /></noscript>
-  <!-- UX-F019 FIX: OAuth SDKs LAZY-LOADED on first social button click.
+    <link
+      rel="preload"
+      href="/fonts/phosphor/phosphor.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/phosphor/phosphor.css" /></noscript>
+    <!-- UX-F019 FIX: OAuth SDKs LAZY-LOADED on first social button click.
        PREVIOUS: 3 eager <script> tags (~450KB total) — added 7+s to page load on Syria 2G.
        NOW: SDKs dynamically injected in auth.ts on first click. The code already handles
        missing SDKs gracefully (Google: falls back to popup; Apple: waits 3s then errors;
        Facebook: shows 'coming soon'). Zero UX degradation, massive speed gain.
        Standard: Web Vitals (LCP/TBT), Core Web Vitals 3.0, PRPL Pattern. -->
-  <!-- OAuth-001: Social Client IDs injection (public, not secrets — validated server-side) -->
-  <script>
-    window.__GOOGLE_CLIENT_ID__='411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';
-    window.__APPLE_CLIENT_ID__='com.nammerha.web';
-    window.__FACEBOOK_APP_ID__='999263322577820';
-  </script>
-  <script type="module" src="/src/pages/auth.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- GAP-010 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-  <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-  <a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-  <!-- CONF-N05 FIX: Removed mobile-container (max-width: 448px) — breaks immersive auth on tablets.
+    <!-- OAuth-001: Social Client IDs injection (public, not secrets — validated server-side) -->
+    <script>
+      window.__GOOGLE_CLIENT_ID__ =
+        '411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';
+      window.__APPLE_CLIENT_ID__ = 'com.nammerha.web';
+      window.__FACEBOOK_APP_ID__ = '999263322577820';
+    </script>
+    <script type="module" src="/src/pages/auth.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- GAP-010 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <!-- CONF-N05 FIX: Removed mobile-container (max-width: 448px) — breaks immersive auth on tablets.
        Auth page has full-viewport gradient orbs and centered brand header that need edge-to-edge presentation.
        Now uses max-w-lg (512px) for the content area via CSS, with full-width background.
        Standard: Apple HIG — Full-screen immersive experiences should not be artificially constrained. -->
@@ -67,465 +117,787 @@
        Previous: Auth was 512px fixed width. All other consumer pages use .mobile-container
        (448px → 640px → 768px → 960px responsively). At every breakpoint, auth looked different.
        Standard: Design System Layout Consistency, Single Source of Truth. -->
-  <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
-    <!-- DEFER-P0-001 FIX: Was ZERO h1 headings on the entire page.
+    <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
+      <!-- DEFER-P0-001 FIX: Was ZERO h1 headings on the entire page.
          Brand logo image and tab labels (Sign In / Create Account) are NOT structural headings.
          Screen readers had no page topic announcement.
          Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy), SEO (h1 required). -->
-    <h1 class="sr-only" data-i18n="auth_page_heading">Sign In or Create Account</h1>
+      <h1 class="sr-only" data-i18n="auth_page_heading">تسجيل الدخول أو إنشاء حساب</h1>
 
-    <!-- Brand Header -->
-    <header class="px-6 pt-12 pb-6 text-center relative z-10">
-      <!-- CONF-2026-005 FIX: Responsive logo — h-20 (80px) on mobile, h-28 (112px) on sm+.
+      <!-- Brand Header -->
+      <header class="px-6 pt-12 pb-6 text-center relative z-10">
+        <!-- CONF-2026-005 FIX: Responsive logo — h-20 (80px) on mobile, h-28 (112px) on sm+.
            Previous: Fixed h-28 (112px) at ALL sizes — on 320px screens, logo + pt-12 padding
            pushed the form below the fold, increasing scroll-to-interact friction.
            Standard: Apple HIG ("Adapt to device size"), Responsive Design. -->
-      <img src="/brand/Nammerha_logo_Full.svg" alt="Nammerha — نعمّرها" class="h-20 sm:h-28 w-auto mx-auto mb-2" />
-      <p class="text-sm text-slate-500 mt-1 dark:text-slate-400" data-i18n="auth_subtitle">Rebuild Syria Together</p>
-      <!-- C-AUD-006 FIX: Language switcher mount point for i18n.js.
+        <img
+          src="/brand/Nammerha_logo_Full.svg"
+          alt="Nammerha — نعمّرها"
+          class="h-20 sm:h-28 w-auto mx-auto mb-2"
+        />
+        <p class="text-sm text-slate-500 mt-1 dark:text-slate-400" data-i18n="auth_subtitle">
+          منصة إعادة الإعمار
+        </p>
+        <!-- C-AUD-006 FIX: Language switcher mount point for i18n.js.
            Previous: No visible language toggle on auth page. Non-Arabic-speaking users
            (international donors, NGO partners, diaspora) were locked out of the registration flow.
            The i18n.js engine's final fallback (fixed position) collides with theme toggle.
            This mount point is detected by i18n.js BEFORE the fallback.
            Standard: WCAG 3.1.2 (Language of Parts), Internationalization. -->
-      <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
-      <!-- CONF-NEW-05 FIX: Escape hatch visibility dramatically improved.
+        <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
+        <!-- CONF-NEW-05 FIX: Escape hatch visibility dramatically improved.
            Previous: 12px text-slate-400 — nearly invisible on the page.
            Now: 13px, text-slate-500, underline, icon enlarged — obvious exit path.
            Standard: Nielsen #3 (User Control), Apple HIG (Clear Escape Routes). -->
-      <!-- P3-PLT-005 FIX: Improved contrast from text-slate-500 to text-slate-600.
+        <!-- P3-PLT-005 FIX: Improved contrast from text-slate-500 to text-slate-600.
            Previous: nearly invisible on light backgrounds, especially under sunlight.
            Standard: WCAG 1.4.3 (Minimum Contrast), Apple HIG. -->
-      <a href="/" class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400" data-i18n="auth_back_home">
-        <!-- UX-F017 FIX: ph-arrow-left → ph-caret-left for RTL correctness.
+        <a
+          href="/"
+          class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400"
+          data-i18n="auth_back_home"
+        >
+          <!-- UX-F017 FIX: ph-arrow-left → ph-caret-left for RTL correctness.
              'Back' in RTL should point right (→). Carets are logical-direction-aware.
              Standard: WCAG 1.3.2 (Meaningful Sequence), CSS Logical Properties. -->
-        <i class="ph ph-caret-left text-sm" aria-hidden="true"></i> Back to Home
-      </a>
-    </header>
+          <i class="ph ph-caret-left text-sm" aria-hidden="true"></i> Back to Home
+        </a>
+      </header>
 
-    <!-- INC-P04 FIX: WAI-ARIA Tabs pattern for screen reader accessibility (WCAG 4.1.2) -->
-    <div class="px-6 mb-6 relative z-10">
-      <div class="flex bg-slate-200/60 rounded-full p-1 dark:bg-dark-border-subtle" role="tablist" aria-label="Authentication method">
-        <button type="button" id="tab-login" role="tab" aria-selected="true" aria-controls="form-login" class="auth-tab auth-tab-active flex-1 py-2.5 rounded-full text-sm font-bold transition-all" data-i18n="sign_in">Sign In</button>
-        <button type="button" id="tab-register" role="tab" aria-selected="false" aria-controls="form-register" class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500 dark:text-slate-400" data-i18n="create_account">Create Account</button>
-      </div>
-    </div>
-    <!-- PLT-AUD-C005 FIX: Theme toggle — fixed position to avoid landscape overlap with tab container -->
-    <!-- CONF-005 FIX: On landscape phones (<500px height), repositioned to avoid tab switcher overlap.
-         Standard: Apple HIG — Controls must not obscure actionable content. -->
-    <!-- P3-PLT-002 FIX: Landscape media query moved to main.css (single source of truth).
-         Standard: CSS Architecture — no inline <style> blocks for reusable rules. -->
-    <!-- CONF-2026-004 FIX: data-nm-theme-toggle + data-nm-theme-icon for canonical engine auto-wiring -->
-    <!-- DEF-THEME-001 FIX: Replaced inline `style="inset-block-start:...; inset-inline-end:..."` with CSS class.
-         Standard: P1-001 CSS Single Source of Truth. -->
-    <button type="button" id="nm-theme-toggle" data-nm-theme-toggle class="nm-theme-toggle-pos fixed z-50 w-9 h-9 rounded-full border border-slate-200 bg-white/90 backdrop-blur flex items-center justify-center cursor-pointer shadow-sm transition-all touch-safe dark:border-dark-border dark:bg-[#1e1e1e]/90" aria-label="Toggle theme" data-i18n-aria="aria_toggle_theme">
-      <i id="nm-theme-toggle-icon" class="text-lg" data-nm-theme-icon aria-hidden="true"></i>
-    </button>
-
-    <!-- Error/Success Banner -->
-    <!-- P0-A2 FIX: aria-live region for screen reader announcement of status changes (WCAG 4.1.3) -->
-    <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
-         banner.ts now uses classList.add/remove('hidden') for show/hide.
-         Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
-    <div class="px-6 mb-4 relative z-10 nm-hidden" id="auth-banner" role="alert" aria-live="assertive">
-      <div class="rounded-xl p-3 text-sm font-medium flex items-center gap-2" id="auth-banner-inner">
-        <i class="ph" id="auth-banner-icon" aria-hidden="true"></i>
-        <span id="auth-banner-text"></span>
-      </div>
-    </div>
-
-    <!-- LOGIN FORM -->
-    <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-    <!-- C-AUD-007 FIX: Added role="tabpanel" + aria-labelledby to complete WAI-ARIA Tabs pattern.
-         Previous: Tabs declared aria-controls but forms lacked tabpanel role.
-         Now: Matches donor-portal.html and homeowner-portal.html tab patterns.
-         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
-    <form id="form-login" role="tabpanel" aria-labelledby="tab-login" class="auth-panel px-6 flex flex-col gap-4 relative z-10" novalidate>
-      <!-- Email -->
-      <div>
-        <label for="login-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="email_label">Email Address</label>
-        <div class="relative">
-          <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-          <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard context -->
-          <!-- AUD-P0-002 FIX: Migrated to .nm-input design system class.
-               Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
-               Now: Inherits dark mode, focus ring, and token updates from design system.
-               Standard: Design System Governance, DEF-004. -->
-          <input id="login-email" name="email" type="email" required autocomplete="email" inputmode="email" enterkeyhint="next"
-            class="nm-input ps-12"
-            placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
-        </div>
-      </div>
-      <!-- Password -->
-      <div>
-        <label for="login-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="password_label">Password</label>
-        <div class="relative">
-          <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-          <input id="login-password" name="password" type="password" required autocomplete="current-password" minlength="8" enterkeyhint="go"
-            class="nm-input ps-12 pe-12"
-            placeholder="••••••••" data-i18n-placeholder="auth_pw_dots" />
-          <button type="button" id="login-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-            <i class="ph ph-eye text-xl" aria-hidden="true"></i>
+      <!-- INC-P04 FIX: WAI-ARIA Tabs pattern for screen reader accessibility (WCAG 4.1.2) -->
+      <div class="px-6 mb-6 relative z-10">
+        <div
+          class="flex bg-slate-200/60 rounded-full p-1 dark:bg-dark-border-subtle"
+          role="tablist"
+          aria-label="Authentication method"
+        >
+          <button
+            type="button"
+            id="tab-login"
+            role="tab"
+            aria-selected="true"
+            aria-controls="form-login"
+            class="auth-tab auth-tab-active flex-1 py-2.5 rounded-full text-sm font-bold transition-all"
+            data-i18n="sign_in"
+          >
+            تسجيل الدخول
+          </button>
+          <button
+            type="button"
+            id="tab-register"
+            role="tab"
+            aria-selected="false"
+            aria-controls="form-register"
+            class="auth-tab flex-1 py-2.5 rounded-full text-sm font-bold transition-all text-slate-500 dark:text-slate-400"
+            data-i18n="create_account"
+          >
+            إنشاء حساب
           </button>
         </div>
       </div>
-      <!-- M-AUD-005 FIX: "Remember Me" checkbox for session persistence.
+      <!-- Error/Success Banner -->
+      <!-- P0-A2 FIX: aria-live region for screen reader announcement of status changes (WCAG 4.1.3) -->
+      <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
+         banner.ts now uses classList.add/remove('hidden') for show/hide.
+         Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
+      <div
+        class="px-6 mb-4 relative z-10 nm-hidden"
+        id="auth-banner"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div
+          class="rounded-xl p-3 text-sm font-medium flex items-center gap-2"
+          id="auth-banner-inner"
+        >
+          <i class="ph" id="auth-banner-icon" aria-hidden="true"></i>
+          <span id="auth-banner-text"></span>
+        </div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
+      <!-- C-AUD-007 FIX: Added role="tabpanel" + aria-labelledby to complete WAI-ARIA Tabs pattern.
+         Previous: Tabs declared aria-controls but forms lacked tabpanel role.
+         Now: Matches donor-portal.html and homeowner-portal.html tab patterns.
+         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+      <form
+        id="form-login"
+        role="tabpanel"
+        aria-labelledby="tab-login"
+        class="auth-panel px-6 flex flex-col gap-4 relative z-10"
+        novalidate
+      >
+        <!-- Email -->
+        <div>
+          <label
+            for="login-email"
+            class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+            data-i18n="email_label"
+            >البريد الإلكتروني</label
+          >
+          <div class="relative">
+            <i
+              class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              aria-hidden="true"
+            ></i>
+            <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard context -->
+            <!-- AUD-P0-002 FIX: Migrated to .nm-input design system class.
+               Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
+               Now: Inherits dark mode, focus ring, and token updates from design system.
+               Standard: Design System Governance, DEF-004. -->
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              required
+              autocomplete="email"
+              inputmode="email"
+              enterkeyhint="next"
+              class="nm-input ps-12"
+              placeholder="you@example.com"
+              data-i18n-placeholder="auth_email_placeholder"
+            />
+          </div>
+        </div>
+        <!-- Password -->
+        <div>
+          <label
+            for="login-password"
+            class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+            data-i18n="password_label"
+            >كلمة المرور</label
+          >
+          <div class="relative">
+            <i
+              class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              aria-hidden="true"
+            ></i>
+            <input
+              id="login-password"
+              name="password"
+              type="password"
+              required
+              autocomplete="current-password"
+              minlength="8"
+              enterkeyhint="go"
+              class="nm-input ps-12 pe-12"
+              placeholder="••••••••"
+              data-i18n-placeholder="auth_pw_dots"
+            />
+            <button
+              type="button"
+              id="login-toggle-pw"
+              class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500"
+              aria-label="Toggle password visibility"
+              data-i18n-aria="aria_toggle_password"
+            >
+              <i class="ph ph-eye text-xl" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <!-- M-AUD-005 FIX: "Remember Me" checkbox for session persistence.
            Previous: No remember-me option. Mobile users re-entered credentials every session.
            Standard: FinTech UX (Session Persistence), WCAG 3.3.7 (Accessible Authentication). -->
-      <div class="flex items-center justify-between">
-        <label for="remember-me" class="flex items-center gap-2 cursor-pointer select-none">
-          <input id="remember-me" name="remember" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-trust-blue focus:ring-trust-blue/50 cursor-pointer" />
-          <span class="text-sm text-slate-500 dark:text-slate-400" data-i18n="remember_me">Remember me</span>
-        </label>
-        <!-- PLT-F005 FIX: Session duration context — users didn't know what "Remember me" meant.
+        <div class="flex items-center justify-between">
+          <label for="remember-me" class="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              id="remember-me"
+              name="remember"
+              type="checkbox"
+              class="w-4 h-4 rounded border-slate-300 text-trust-blue focus:ring-trust-blue/50 cursor-pointer"
+            />
+            <span class="text-sm text-slate-500 dark:text-slate-400" data-i18n="remember_me"
+              >تذكرني</span
+            >
+          </label>
+          <!-- PLT-F005 FIX: Session duration context — users didn't know what "Remember me" meant.
              Standard: Security UX Best Practices, WCAG 3.3.2 (Labels or Instructions). -->
-        <span class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="remember_me_duration">30 days</span>
-      </div>
-      <!-- Submit -->
-      <button type="submit" id="login-submit" class="btn-primary mt-2">
-        <i class="ph ph-sign-in" aria-hidden="true"></i>
-        <span id="login-submit-text" data-i18n="sign_in_btn">Sign In</span>
-      </button>
-      <!-- PLT-AUD-002: Forgot Password Link -->
-      <!-- GAP-002 FIX: href changed from mailto: to /reset-password.html.
+          <span class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="remember_me_duration"
+            >٣٠ يوم</span
+          >
+        </div>
+        <!-- Submit -->
+        <button type="submit" id="login-submit" class="btn-primary mt-2">
+          <i class="ph ph-sign-in" aria-hidden="true"></i>
+          <span id="login-submit-text" data-i18n="sign_in_btn">تسجيل الدخول</span>
+        </button>
+        <!-- PLT-AUD-002: Forgot Password Link -->
+        <!-- GAP-002 FIX: href changed from mailto: to /reset-password.html.
            Previous: mailto:support@nammerha.com — opened email client, not password reset.
            The platform HAS a dedicated reset-password.html with proper password change flow.
            If auth.ts loads, JS can still intercept for inline UX.
            If JS fails (common on Syrian mobile networks), users navigate to the real reset page.
            Standard: Progressive Enhancement, Security UX Best Practices. -->
-      <div class="text-center mt-3">
-        <a href="/reset-password.html" id="forgot-password-btn" class="text-sm text-trust-blue font-medium hover:underline" data-i18n="forgot_password">Forgot your password?</a>
-      </div>
+        <div class="text-center mt-3">
+          <a
+            href="/reset-password.html"
+            id="forgot-password-btn"
+            class="text-sm text-trust-blue font-medium hover:underline"
+            data-i18n="forgot_password"
+            >نسيت كلمة المرور؟</a
+          >
+        </div>
 
-      <!-- ═══ Social OAuth Login Buttons ═══════════════════════════════ -->
-      <!-- OAuth-001: Divider + branded social buttons per Google, Apple, Meta guidelines.
+        <!-- ═══ Social OAuth Login Buttons ═══════════════════════════════ -->
+        <!-- OAuth-001: Divider + branded social buttons per Google, Apple, Meta guidelines.
            Standard: OAuth 2.0 Best Practices, WCAG 4.1.2 (Name, Role, Value). -->
-      <div class="nm-social-divider" aria-hidden="true">
-        <span data-i18n="auth_or_continue_with">or continue with</span>
-      </div>
+        <div class="nm-social-divider" aria-hidden="true">
+          <span data-i18n="auth_or_continue_with">أو تابع بحساب</span>
+        </div>
 
-      <div class="nm-social-buttons">
-        <!-- Google Sign-In (GSI button) -->
-        <button type="button" id="btn-google-login" data-sso-provider="google" class="nm-social-btn nm-social-btn--google" aria-label="Sign in with Google">
-          <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          <span data-i18n="auth_google">Google</span>
-        </button>
+        <div class="nm-social-buttons">
+          <!-- Google Sign-In (GSI button) -->
+          <button
+            type="button"
+            id="btn-google-login"
+            data-sso-provider="google"
+            class="nm-social-btn nm-social-btn--google"
+            aria-label="Sign in with Google"
+          >
+            <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                fill="#4285F4"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                fill="#EA4335"
+              />
+            </svg>
+            <span data-i18n="auth_google">Google</span>
+          </button>
 
-        <!-- Apple Sign-In -->
-        <button type="button" id="btn-apple-login" data-sso-provider="apple" class="nm-social-btn nm-social-btn--apple" aria-label="Sign in with Apple">
-          <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" fill="currentColor"/>
-          </svg>
-          <span data-i18n="auth_apple">Apple</span>
-        </button>
+          <!-- Apple Sign-In -->
+          <button
+            type="button"
+            id="btn-apple-login"
+            data-sso-provider="apple"
+            class="nm-social-btn nm-social-btn--apple"
+            aria-label="Sign in with Apple"
+          >
+            <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+                fill="currentColor"
+              />
+            </svg>
+            <span data-i18n="auth_apple">Apple</span>
+          </button>
 
-        <!-- Facebook Login -->
-        <button type="button" id="btn-facebook-login" data-sso-provider="facebook" class="nm-social-btn nm-social-btn--facebook" aria-label="Sign in with Facebook">
-          <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="currentColor"/>
-          </svg>
-          <span data-i18n="auth_facebook">Facebook</span>
-        </button>
-      </div>
+          <!-- Facebook Login -->
+          <button
+            type="button"
+            id="btn-facebook-login"
+            data-sso-provider="facebook"
+            class="nm-social-btn nm-social-btn--facebook"
+            aria-label="Sign in with Facebook"
+          >
+            <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                fill="currentColor"
+              />
+            </svg>
+            <span data-i18n="auth_facebook">Facebook</span>
+          </button>
+        </div>
+      </form>
 
-
-    </form>
-
-    <!-- REGISTER FORM (hidden by default)
+      <!-- REGISTER FORM (hidden by default)
          C-AUD-007 FIX: role="tabpanel" + aria-labelledby completes WAI-ARIA Tabs pattern. -->
-    <!-- FRIC-2026-D03 FIX: Multi-Step Registration Wizard
+      <!-- FRIC-2026-D03 FIX: Multi-Step Registration Wizard
          Previous: All 7 fields visible at once → cognitive overload on mobile,
          scrolling past the fold, high abandonment risk.
          Now: 3-step progressive disclosure wizard. Step validation before advancing.
          All existing field IDs preserved — auth.ts works without modification.
          Standard: Miller's Law (7±2), Progressive Disclosure, Material Design 3,
          Nielsen #6 (Recognition over Recall), Apple HIG (Multi-Step Forms). -->
-    <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-    <form id="form-register" role="tabpanel" aria-labelledby="tab-register" class="auth-panel px-6 flex flex-col gap-4 relative z-10 nm-hidden" novalidate>
-
-      <!-- ─── Stepper Indicator ─────────────────────────── -->
-      <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
+      <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
+      <form
+        id="form-register"
+        role="tabpanel"
+        aria-labelledby="tab-register"
+        class="auth-panel px-6 flex flex-col gap-4 relative z-10 nm-hidden"
+        novalidate
+      >
+        <!-- ─── Stepper Indicator ─────────────────────────── -->
+        <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
            not page navigation targets. aria-label describes the group purpose.
            Standard: WAI-ARIA Best Practices, WCAG 1.3.1 (Info & Relationships). -->
-      <!-- BUG-004 FIX: Added nm-step-track class — was raw Tailwind flex/gap utilities
+        <!-- BUG-004 FIX: Added nm-step-track class — was raw Tailwind flex/gap utilities
            without the nm-step-indicator/nm-step-num/nm-step-label CSS system defined.
            Result was all text rendered inline: "Confirm 3Security 2Identity 1". -->
-      <div class="nm-step-track" role="group" aria-label="Registration progress">
-        <!-- INC-2026-008 FIX: aria-current="step" for screen reader step identification.
+        <div class="nm-step-track" role="group" aria-label="Registration progress">
+          <!-- INC-2026-008 FIX: aria-current="step" for screen reader step identification.
              Standard: WAI-ARIA Best Practices, WCAG 4.1.2 (Name, Role, Value). -->
-        <div class="nm-step-indicator active" data-step-dot="1" aria-current="step">
-          <span class="nm-step-num">1</span>
-          <span class="nm-step-label" data-i18n="reg_step_identity">Identity</span>
+          <div class="nm-step-indicator active" data-step-dot="1" aria-current="step">
+            <span class="nm-step-num">1</span>
+            <span class="nm-step-label" data-i18n="reg_step_identity">الهوية</span>
+          </div>
+          <div class="nm-step-line"></div>
+          <div class="nm-step-indicator" data-step-dot="2">
+            <span class="nm-step-num">2</span>
+            <span class="nm-step-label" data-i18n="reg_step_security">الأمان</span>
+          </div>
+          <div class="nm-step-line"></div>
+          <div class="nm-step-indicator" data-step-dot="3">
+            <span class="nm-step-num">3</span>
+            <span class="nm-step-label" data-i18n="reg_step_consent">الموافقة</span>
+          </div>
         </div>
-        <div class="nm-step-line"></div>
-        <div class="nm-step-indicator" data-step-dot="2">
-          <span class="nm-step-num">2</span>
-          <span class="nm-step-label" data-i18n="reg_step_security">Security</span>
-        </div>
-        <div class="nm-step-line"></div>
-        <div class="nm-step-indicator" data-step-dot="3">
-          <span class="nm-step-num">3</span>
-          <span class="nm-step-label" data-i18n="reg_step_consent">Confirm</span>
-        </div>
-      </div>
 
-      <!-- ─── STEP 1: Identity ─────────────────────────── -->
-      <fieldset class="nm-step-panel" data-reg-step="1">
-        <legend class="sr-only" data-i18n="reg_legend_identity">Step 1: Your Identity</legend>
+        <!-- ─── STEP 1: Identity ─────────────────────────── -->
+        <fieldset class="nm-step-panel" data-reg-step="1">
+          <legend class="sr-only" data-i18n="reg_legend_identity">الخطوة ١: هويتك</legend>
 
-        <!-- ═══ Social Quick-Register ═════════════════════ -->
-        <!-- OAuth-002: Social buttons in register flow for one-click registration.
+          <!-- ═══ Social Quick-Register ═════════════════════ -->
+          <!-- OAuth-002: Social buttons in register flow for one-click registration.
              Users skip the entire wizard — backend creates account from provider data.
              Standard: Conversion Optimization, Miller's Law (reduce cognitive load). -->
-        <div class="nm-social-buttons nm-social-buttons--compact mb-4">
-          <button type="button" data-sso-provider="google" class="nm-social-btn nm-social-btn--google" aria-label="Sign up with Google">
-            <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            <span data-i18n="auth_google">Google</span>
-          </button>
-          <button type="button" data-sso-provider="apple" class="nm-social-btn nm-social-btn--apple" aria-label="Sign up with Apple">
-            <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" fill="currentColor"/></svg>
-            <span data-i18n="auth_apple">Apple</span>
-          </button>
-          <button type="button" data-sso-provider="facebook" class="nm-social-btn nm-social-btn--facebook" aria-label="Sign up with Facebook">
-            <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="currentColor"/></svg>
-            <span data-i18n="auth_facebook">Facebook</span>
-          </button>
-        </div>
-
-        <div class="nm-social-divider nm-social-divider--compact" aria-hidden="true">
-          <span data-i18n="auth_or_email">or use email</span>
-        </div>
-
-        <!-- Full Name -->
-        <div class="mb-4">
-          <label for="reg-name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="full_name_label">Full Name</label>
-          <div class="relative">
-            <i class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-            <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
-                 Standard: Apple HIG (Keyboard Management), Android Material Design. -->
-            <input id="reg-name" name="full_name" type="text" required autocomplete="name" enterkeyhint="next"
-              class="nm-input ps-12"
-              placeholder="Full Name" data-i18n-placeholder="auth_name_placeholder" />
-          </div>
-        </div>
-        <!-- Email -->
-        <div class="mb-4">
-          <label for="reg-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="email_label">Email Address</label>
-          <div class="relative">
-            <i class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-            <input id="reg-email" name="email" type="email" required autocomplete="email" inputmode="email" enterkeyhint="next"
-              class="nm-input ps-12"
-              placeholder="you@example.com" data-i18n-placeholder="auth_email_placeholder" />
-          </div>
-        </div>
-        <!-- Next button -->
-        <button type="button" class="nm-step-next btn-primary w-full" data-goto-step="2">
-          <span data-i18n="reg_next">Next</span>
-          <i class="ph ph-arrow-right" aria-hidden="true"></i>
-        </button>
-      </fieldset>
-
-      <!-- ─── STEP 2: Security ─────────────────────────── -->
-      <fieldset class="nm-step-panel nm-hidden" data-reg-step="2">
-        <legend class="sr-only" data-i18n="reg_legend_security">Step 2: Create a Password</legend>
-        <!-- Password -->
-        <div class="mb-4">
-          <label for="reg-password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="password_label">Password</label>
-          <div class="relative">
-            <i class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-            <input id="reg-password" name="password" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="next"
-              class="nm-input ps-12 pe-12"
-              placeholder="Min 8 chars: upper, lower, number & symbol" data-i18n-placeholder="auth_pw_placeholder" />
-            <button type="button" id="reg-toggle-pw" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-              <i class="ph ph-eye text-xl" aria-hidden="true"></i>
+          <div class="nm-social-buttons nm-social-buttons--compact mb-4">
+            <button
+              type="button"
+              data-sso-provider="google"
+              class="nm-social-btn nm-social-btn--google"
+              aria-label="Sign up with Google"
+            >
+              <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span data-i18n="auth_google">Google</span>
+            </button>
+            <button
+              type="button"
+              data-sso-provider="apple"
+              class="nm-social-btn nm-social-btn--apple"
+              aria-label="Sign up with Apple"
+            >
+              <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span data-i18n="auth_apple">Apple</span>
+            </button>
+            <button
+              type="button"
+              data-sso-provider="facebook"
+              class="nm-social-btn nm-social-btn--facebook"
+              aria-label="Sign up with Facebook"
+            >
+              <svg class="nm-social-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span data-i18n="auth_facebook">Facebook</span>
             </button>
           </div>
-          <!-- Password Strength -->
-          <div class="mt-2 flex gap-1" id="pw-strength-bars">
-            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
-            <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+
+          <div class="nm-social-divider nm-social-divider--compact" aria-hidden="true">
+            <span data-i18n="auth_or_email">أو بالبريد الإلكتروني</span>
           </div>
-          <!-- INC-002 FIX: Governed micro-hint tier (10px). Complies with text-size governance.
+
+          <!-- Full Name -->
+          <div class="mb-4">
+            <label
+              for="reg-name"
+              class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+              data-i18n="full_name_label"
+              >الاسم الكامل</label
+            >
+            <div class="relative">
+              <i
+                class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                aria-hidden="true"
+              ></i>
+              <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
+                 Standard: Apple HIG (Keyboard Management), Android Material Design. -->
+              <input
+                id="reg-name"
+                name="full_name"
+                type="text"
+                required
+                autocomplete="name"
+                enterkeyhint="next"
+                class="nm-input ps-12"
+                placeholder="الاسم الكامل"
+                data-i18n-placeholder="auth_name_placeholder"
+              />
+            </div>
+          </div>
+          <!-- Email -->
+          <div class="mb-4">
+            <label
+              for="reg-email"
+              class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+              data-i18n="email_label"
+              >البريد الإلكتروني</label
+            >
+            <div class="relative">
+              <i
+                class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                aria-hidden="true"
+              ></i>
+              <input
+                id="reg-email"
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                inputmode="email"
+                enterkeyhint="next"
+                class="nm-input ps-12"
+                placeholder="you@example.com"
+                data-i18n-placeholder="auth_email_placeholder"
+              />
+            </div>
+          </div>
+          <!-- Next button -->
+          <button type="button" class="nm-step-next btn-primary w-full" data-goto-step="2">
+            <span data-i18n="reg_next">التالي</span>
+            <i class="ph ph-arrow-right" aria-hidden="true"></i>
+          </button>
+        </fieldset>
+
+        <!-- ─── STEP 2: Security ─────────────────────────── -->
+        <fieldset class="nm-step-panel nm-hidden" data-reg-step="2">
+          <legend class="sr-only" data-i18n="reg_legend_security">الخطوة ٢: إنشاء كلمة مرور</legend>
+          <!-- Password -->
+          <div class="mb-4">
+            <label
+              for="reg-password"
+              class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+              data-i18n="password_label"
+              >كلمة المرور</label
+            >
+            <div class="relative">
+              <i
+                class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                aria-hidden="true"
+              ></i>
+              <input
+                id="reg-password"
+                name="password"
+                type="password"
+                required
+                autocomplete="new-password"
+                minlength="8"
+                enterkeyhint="next"
+                class="nm-input ps-12 pe-12"
+                placeholder="حد أدنى ٨ أحرف، حرف كبير، رقم"
+                data-i18n-placeholder="auth_pw_placeholder"
+              />
+              <button
+                type="button"
+                id="reg-toggle-pw"
+                class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500"
+                aria-label="Toggle password visibility"
+                data-i18n-aria="aria_toggle_password"
+              >
+                <i class="ph ph-eye text-xl" aria-hidden="true"></i>
+              </button>
+            </div>
+            <!-- Password Strength -->
+            <div class="mt-2 flex gap-1" id="pw-strength-bars">
+              <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+              <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+              <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+              <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
+            </div>
+            <!-- INC-002 FIX: Governed micro-hint tier (10px). Complies with text-size governance.
                Standard: INC-002 Micro-Text Governance, WCAG 1.4.4 (Resize Text). -->
-          <!-- C-AUD-001 FIX: Corrected to match actual auth.ts validation requirements (L175-178).
+            <!-- C-AUD-001 FIX: Corrected to match actual auth.ts validation requirements (L175-178).
                Previous: "8+ chars, 1 uppercase, 1 number" — omitted lowercase and symbol requirements.
                Users crafted compliant-looking passwords that were rejected, destroying trust.
                Standard: Nielsen #2 (Match System ↔ Real World), WCAG 3.3.2. -->
-          <p class="text-3xs text-slate-400 mt-1 dark:text-slate-500" id="pw-strength-label" data-i18n="pw_requirements">8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol</p>
-        </div>
-        <!-- FRC-002 FIX: Confirm Password field -->
-        <div class="mb-4">
-          <label for="reg-password-confirm" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400" data-i18n="confirm_password_label">Confirm Password</label>
-          <div class="relative">
-            <i class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
-            <!-- P1-UXA-008 FIX: enterkeyhint="next" — Step 3 follows, not end of form.
+            <p
+              class="text-3xs text-slate-400 mt-1 dark:text-slate-500"
+              id="pw-strength-label"
+              data-i18n="pw_requirements"
+            >
+              +٨ أحرف، حرف كبير، حرف صغير، رقم، رمز
+            </p>
+          </div>
+          <!-- FRC-002 FIX: Confirm Password field -->
+          <div class="mb-4">
+            <label
+              for="reg-password-confirm"
+              class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+              data-i18n="confirm_password_label"
+              >تأكيد كلمة المرور</label
+            >
+            <div class="relative">
+              <i
+                class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                aria-hidden="true"
+              ></i>
+              <!-- P1-UXA-008 FIX: enterkeyhint="next" — Step 3 follows, not end of form.
                  Previous: "done" dismissed keyboard, requiring manual tap on Next.
                  Standard: Apple HIG (Custom Keyboard Actions). -->
-            <input id="reg-password-confirm" name="password_confirm" type="password" required autocomplete="new-password" minlength="8" enterkeyhint="next"
-              class="nm-input ps-12 pe-12"
-              placeholder="Re-enter your password" data-i18n-placeholder="auth_pw_confirm_placeholder" />
-            <!-- P0-UXA-002 FIX: Toggle button for confirm password field.
+              <input
+                id="reg-password-confirm"
+                name="password_confirm"
+                type="password"
+                required
+                autocomplete="new-password"
+                minlength="8"
+                enterkeyhint="next"
+                class="nm-input ps-12 pe-12"
+                placeholder="أعد إدخال كلمة المرور"
+                data-i18n-placeholder="auth_pw_confirm_placeholder"
+              />
+              <!-- P0-UXA-002 FIX: Toggle button for confirm password field.
                  Previous: reg-password had toggle (L275) but confirm did NOT.
                  Users typing complex passwords could not verify their confirm input.
                  Standard: Password UX Best Practices, WCAG 1.3.1. -->
-            <button type="button" id="reg-toggle-pw-confirm" class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500" aria-label="Toggle password visibility" data-i18n-aria="aria_toggle_password">
-              <i class="ph ph-eye text-xl" aria-hidden="true"></i>
-            </button>
-          </div>
-          <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs (10px) to text-xs (12px).
+              <button
+                type="button"
+                id="reg-toggle-pw-confirm"
+                class="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500"
+                aria-label="Toggle password visibility"
+                data-i18n-aria="aria_toggle_password"
+              >
+                <i class="ph ph-eye text-xl" aria-hidden="true"></i>
+              </button>
+            </div>
+            <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs (10px) to text-xs (12px).
                At 10px on 375px mobile at 2x DPI, error text was ~5pt physical — below readable threshold.
                Errors must be the ONE thing that is clearly readable.
                Standard: Mobile Typography, WCAG 1.4.4 (Resize Text). -->
-          <p class="text-xs text-red-500 mt-1 nm-hidden" id="pw-mismatch-error" data-i18n="pw_mismatch_error">Passwords do not match</p>
-        </div>
-        <!-- Navigation -->
-        <div class="flex gap-3">
-          <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.
+            <p
+              class="text-xs text-red-500 mt-1 nm-hidden"
+              id="pw-mismatch-error"
+              data-i18n="pw_mismatch_error"
+            >
+              كلمتا المرور غير متطابقتين
+            </p>
+          </div>
+          <!-- Navigation -->
+          <div class="flex gap-3">
+            <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.
                Standard: Design System Governance (DRY, Single Source of Truth). -->
-          <button type="button" class="nm-step-back" data-goto-step="1">
-            <i class="ph ph-caret-left" aria-hidden="true"></i>
-            <span data-i18n="reg_back">Back</span>
-          </button>
-          <button type="button" class="nm-step-next btn-primary flex-[2]" data-goto-step="3">
-            <span data-i18n="reg_next">Next</span>
-            <i class="ph ph-caret-right" aria-hidden="true"></i>
-          </button>
-        </div>
-      </fieldset>
-
-      <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
-      <fieldset class="nm-step-panel nm-hidden" data-reg-step="3">
-        <legend class="sr-only" data-i18n="reg_legend_consent">Step 3: Review and Agree</legend>
-        <!-- Multi-Role Architecture note -->
-        <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
-
-        <!-- Summary card: show what user entered -->
-        <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200 dark:bg-dark-elevated dark:border-dark-border">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500" data-i18n="reg_review_info">Review Your Info</p>
-            <!-- DEF-008 FIX: Direct edit shortcut from review card.
-                 Previous: Users had to click "Back" twice to edit name/email.
-                 Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
-            <button type="button" class="text-xs font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors min-h-[44px] min-w-[44px] justify-center" data-goto-step="1">
-              <i class="ph ph-pencil-simple text-xs" aria-hidden="true"></i>
-              <span data-i18n="common_edit">Edit</span>
+            <button type="button" class="nm-step-back" data-goto-step="1">
+              <i class="ph ph-caret-left" aria-hidden="true"></i>
+              <span data-i18n="reg_back">رجوع</span>
+            </button>
+            <button type="button" class="nm-step-next btn-primary flex-[2]" data-goto-step="3">
+              <span data-i18n="reg_next">التالي</span>
+              <i class="ph ph-caret-right" aria-hidden="true"></i>
             </button>
           </div>
-          <div class="flex items-center gap-3">
-            <div class="size-10 bg-trust-blue/10 rounded-full flex items-center justify-center shrink-0">
-              <i class="ph ph-user text-trust-blue text-lg" aria-hidden="true"></i>
+        </fieldset>
+
+        <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
+        <fieldset class="nm-step-panel nm-hidden" data-reg-step="3">
+          <legend class="sr-only" data-i18n="reg_legend_consent">
+            الخطوة ٣: المراجعة والموافقة
+          </legend>
+          <!-- Multi-Role Architecture note -->
+          <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
+
+          <!-- Summary card: show what user entered -->
+          <div
+            class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200 dark:bg-dark-elevated dark:border-dark-border"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <p
+                class="text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
+                data-i18n="reg_review_info"
+              >
+                راجع معلوماتك قبل إنشاء الحساب
+              </p>
+              <!-- DEF-008 FIX: Direct edit shortcut from review card.
+                 Previous: Users had to click "Back" twice to edit name/email.
+                 Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
+              <button
+                type="button"
+                class="text-xs font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors min-h-[44px] min-w-[44px] justify-center"
+                data-goto-step="1"
+              >
+                <i class="ph ph-pencil-simple text-xs" aria-hidden="true"></i>
+                <span data-i18n="common_edit">تعديل</span>
+              </button>
             </div>
-            <div class="min-w-0">
-              <p id="reg-review-name" class="text-sm font-bold truncate">—</p>
-              <p id="reg-review-email" class="text-xs text-slate-500 truncate dark:text-slate-400">—</p>
-              <!-- FRIC-2026-003 FIX: Password strength indicator in review card.
+            <div class="flex items-center gap-3">
+              <div
+                class="size-10 bg-trust-blue/10 rounded-full flex items-center justify-center shrink-0"
+              >
+                <i class="ph ph-user text-trust-blue text-lg" aria-hidden="true"></i>
+              </div>
+              <div class="min-w-0">
+                <p id="reg-review-name" class="text-sm font-bold truncate">—</p>
+                <p
+                  id="reg-review-email"
+                  class="text-xs text-slate-500 truncate dark:text-slate-400"
+                >
+                  —
+                </p>
+                <!-- FRIC-2026-003 FIX: Password strength indicator in review card.
                    Previous: Only name + email shown — no confirmation that password met requirements.
                    Reduces user anxiety about password acceptance at final step.
                    Standard: Nielsen #1 (System Status Visibility), Material Design 3. -->
-              <p id="reg-review-pw-strength" class="text-xs text-smoky-jade font-semibold mt-0.5 nm-hidden dark:text-emerald-400">
-                <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
-                <span data-i18n="pw_strength_strong">Strong</span> ✓
-              </p>
+                <p
+                  id="reg-review-pw-strength"
+                  class="text-xs text-smoky-jade font-semibold mt-0.5 nm-hidden dark:text-emerald-400"
+                >
+                  <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
+                  <span data-i18n="pw_strength_strong">قوي</span> ✓
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- GAP-X05 FIX: Active consent checkbox — GDPR Art. 7 -->
-        <div class="flex items-start gap-3 mt-1">
-          <!-- GAP-2026-B07 FIX: aria-describedby links checkbox to validation error. -->
-          <input id="reg-terms" name="terms" type="checkbox" required
-            aria-describedby="reg-terms-error"
-            class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0" />
-          <label for="reg-terms" class="text-xs text-slate-500 leading-relaxed cursor-pointer dark:text-slate-400">
-            <!-- SEC-W11-001 FIX: Added rel="noopener noreferrer" to prevent reverse tabnapping.
+          <!-- GAP-X05 FIX: Active consent checkbox — GDPR Art. 7 -->
+          <div class="flex items-start gap-3 mt-1">
+            <!-- GAP-2026-B07 FIX: aria-describedby links checkbox to validation error. -->
+            <input
+              id="reg-terms"
+              name="terms"
+              type="checkbox"
+              required
+              aria-describedby="reg-terms-error"
+              class="mt-1 w-4 h-4 accent-trust-blue rounded cursor-pointer shrink-0"
+            />
+            <label
+              for="reg-terms"
+              class="text-xs text-slate-500 leading-relaxed cursor-pointer dark:text-slate-400"
+            >
+              <!-- SEC-W11-001 FIX: Added rel="noopener noreferrer" to prevent reverse tabnapping.
                  Standard: OWASP Reverse Tabnapping, Security Best Practices. -->
-            <span data-i18n-html="auth_terms_agree">I agree to the <a href="/terms.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy.html" class="text-trust-blue underline hover:text-trust-blue/80 transition-colors" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
-          </label>
-        </div>
-        <!-- GAP-2026-B07 FIX: Custom validation error -->
-        <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs to text-xs for readability -->
-        <p id="reg-terms-error" class="text-xs text-red-500 font-semibold mt-1 nm-hidden" role="alert" data-i18n="auth_terms_required">Please accept the Terms and Privacy Policy to continue.</p>
+              <span data-i18n-html="auth_terms_agree"
+                >أوافق على
+                <a
+                  href="/terms.html"
+                  class="text-trust-blue underline hover:text-trust-blue/80 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >الشروط والأحكام</a
+                >
+                و
+                <a
+                  href="/privacy.html"
+                  class="text-trust-blue underline hover:text-trust-blue/80 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >سياسة الخصوصية</a
+                ></span
+              >
+            </label>
+          </div>
+          <!-- GAP-2026-B07 FIX: Custom validation error -->
+          <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs to text-xs for readability -->
+          <p
+            id="reg-terms-error"
+            class="text-xs text-red-500 font-semibold mt-1 nm-hidden"
+            role="alert"
+            data-i18n="auth_terms_required"
+          >
+            يجب الموافقة على الشروط
+          </p>
 
-        <!-- Navigation -->
-        <div class="flex gap-3 mt-4">
-          <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.
+          <!-- Navigation -->
+          <div class="flex gap-3 mt-4">
+            <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.
                Standard: Design System Governance (DRY, Single Source of Truth). -->
-          <button type="button" class="nm-step-back" data-goto-step="2">
-            <i class="ph ph-caret-left" aria-hidden="true"></i>
-            <span data-i18n="reg_back">Back</span>
-          </button>
-          <!-- Submit (existing ID preserved for auth.ts) -->
-          <button type="submit" id="reg-submit" class="btn-primary flex-[2]">
-            <i class="ph ph-user-plus" aria-hidden="true"></i>
-            <span id="reg-submit-text" data-i18n="create_account_btn">Create Account</span>
-          </button>
-        </div>
+            <button type="button" class="nm-step-back" data-goto-step="2">
+              <i class="ph ph-caret-left" aria-hidden="true"></i>
+              <span data-i18n="reg_back">رجوع</span>
+            </button>
+            <!-- Submit (existing ID preserved for auth.ts) -->
+            <button type="submit" id="reg-submit" class="btn-primary flex-[2]">
+              <i class="ph ph-user-plus" aria-hidden="true"></i>
+              <span id="reg-submit-text" data-i18n="create_account_btn">إنشاء حساب</span>
+            </button>
+          </div>
+        </fieldset>
+      </form>
 
-      </fieldset>
-    </form>
-
-    <!-- Trust Footer -->
-    <!-- FRC-N03 FIX: Progressive disclosure for trust signals.
+      <!-- Trust Footer -->
+      <!-- FRC-N03 FIX: Progressive disclosure for trust signals.
          Previous: OCDS/Encryption badges shown alongside login form — cognitive overload.
          Now: collapsed into a "Security Details" drawer. Legal text always visible.
          Standard: Nielsen #8 — "Aesthetic and minimalist design." -->
-    <div class="mt-auto px-6 py-8 text-center relative z-10">
-      <details class="mb-3">
-        <summary class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px] dark:text-slate-500">
-          <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
-          <span data-i18n="auth_security_details">Security Details</span>
-        </summary>
-        <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
-          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500">
-            <i class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
-            <span data-i18n="auth_trust_1">OCDS Verified</span>
+      <div class="mt-auto px-6 py-8 text-center relative z-10">
+        <details class="mb-3">
+          <summary
+            class="text-3xs text-slate-400 font-bold uppercase tracking-wider cursor-pointer hover:text-trust-blue transition-colors inline-flex items-center gap-1 min-h-[44px] dark:text-slate-500"
+          >
+            <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
+            <span data-i18n="auth_security_details">تفاصيل الأمان</span>
+          </summary>
+          <div class="flex items-center justify-center gap-4 mt-2 animate-fade-in-up">
+            <div
+              class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500"
+            >
+              <i
+                class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400"
+                aria-hidden="true"
+              ></i>
+              <span data-i18n="auth_trust_1">معتمد OCDS</span>
+            </div>
+            <div
+              class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500"
+            >
+              <i class="ph ph-lock text-trust-blue text-sm" aria-hidden="true"></i>
+              <span data-i18n="auth_trust_2">تشفير 256-بت</span>
+            </div>
           </div>
-          <div class="flex items-center gap-1 text-3xs text-slate-400 font-medium dark:text-slate-500">
-            <i class="ph ph-lock text-trust-blue text-sm" aria-hidden="true"></i>
-            <span data-i18n="auth_trust_2">256-bit Encrypted</span>
-          </div>
-        </div>
-      </details>
-      <!-- CONF-N02 FIX: Removed passive footer text "By continuing, you agree..."
+        </details>
+        <!-- CONF-N02 FIX: Removed passive footer text "By continuing, you agree..."
            The explicit checkbox consent (L221-227) is the binding legal mechanism per GDPR Art. 7.
            Having both created dual consent ambiguity — one demonstrable act is required.
            Standard: GDPR Art. 7, ePrivacy Directive, Nielsen Heuristic #8 (Minimalist Design). -->
-    </div>
+      </div>
+    </main>
 
-  </main>
-
-  <!-- PLT-I004 FIX: Standardized DOM order to: </main> → orbs → <footer> → scripts.
+    <!-- PLT-I004 FIX: Standardized DOM order to: </main> → orbs → <footer> → scripts.
        Orbs (decorative, aria-hidden) precede <footer> landmark per WCAG 1.3.1.
        Standard: DOM Consistency, WCAG 1.3.1 (Landmark Order). -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-  <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-  <footer class="nm-legal-footer">
-    <nav aria-label="Legal navigation">
-      <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-      <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-      <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-    </nav>
-    <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-  </footer>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/auth.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/auth.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<!-- CONF-2026-004 FIX: Unified theme engine v2 -->
-<script src="/theme-toggle.js?v=2" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+  </body>
 </html>

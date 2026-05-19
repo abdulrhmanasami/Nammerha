@@ -1,374 +1,619 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
-  <style>@keyframes _f{to{visibility:visible}}html:not([data-theme]){visibility:hidden;animation:_f 0s 1.5s forwards}</style>
-  <script src="/theme-boot.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CONF-P01 FIX: Enforceable CSP directives -->
-  <!-- P0-MOB-001 FIX: PWA installability -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)">
-  <title>Nammerha — Escrow Verification | التحقق من الضمان</title>
-  <meta name="description" content="Concierge escrow verification: match financial documents with spatial field proofs before releasing funds." />
-  <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
+  <head>
+    <meta charset="utf-8" />
+    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    <style>
+      @keyframes _f {
+        to {
+          visibility: visible;
+        }
+      }
+      html:not([data-theme]) {
+        visibility: hidden;
+        animation: _f 0s 1.5s forwards;
+      }
+    </style>
+    <script src="/theme-boot.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- CONF-P01 FIX: Enforceable CSP directives -->
+    <!-- P0-MOB-001 FIX: PWA installability -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
+    <title>Nammerha — Escrow Verification | التحقق من الضمان</title>
+    <meta
+      name="description"
+      content="Concierge escrow verification: match financial documents with spatial field proofs before releasing funds."
+    />
+    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <meta property="og:title" content="Nammerha — Escrow Verification | التحقق من الضمان" />
-  <meta property="og:description" content="Concierge escrow verification: match financial documents with spatial field proofs before releasing funds." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Nammerha — Escrow Verification | التحقق من الضمان" />
-  <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
-  <link rel="preload" href="/fonts/ibm-plex-sans-arabic.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-  <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-  <script type="module" src="/src/pages/admin-escrow.ts"></script>
-  <link href="/i18n.css?v=7" rel="stylesheet"/>
-</head>
-<body class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100">
-<!-- PE-001 FIX: Noscript fallback -->
-<noscript>
-  <style>html:not([data-theme]){visibility:visible!important}</style>
-  <div class="nm-noscript">
-    <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-    <p class="nm-noscript-desc">Nammerha requires JavaScript. Please enable it in your browser settings.</p>
-  </div>
-</noscript>
-<!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
-<a href="#main-content" class="skip-link" data-i18n="skip_to_content">Skip to content</a>
-<div class="dashboard-layout">
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Nammerha — Escrow Verification | التحقق من الضمان" />
+    <meta
+      property="og:description"
+      content="Concierge escrow verification: match financial documents with spatial field proofs before releasing funds."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Nammerha — Escrow Verification | التحقق من الضمان" />
+    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-arabic.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
+    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <script type="module" src="/src/pages/admin-escrow.ts"></script>
+    <link href="/i18n.css?v=7" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
+  >
+    <!-- PE-001 FIX: Noscript fallback -->
+    <noscript>
+      <style>
+        html:not([data-theme]) {
+          visibility: visible !important;
+        }
+      </style>
+      <div class="nm-noscript">
+        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+      </div>
+    </noscript>
+    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+    <div class="dashboard-layout">
+      <!-- Sidebar Overlay (mobile) -->
+      <div class="sidebar-overlay" aria-hidden="true"></div>
 
-  <!-- Sidebar Overlay (mobile) -->
-  <div class="sidebar-overlay" aria-hidden="true"></div>
-
-  <!-- Sidebar Navigation -->
-  <aside class="dashboard-sidebar">
-    <!-- CONF-ADM-001 FIX: Standardized from p-6 no-border to p-4 border-b.
+      <!-- Sidebar Navigation -->
+      <aside class="dashboard-sidebar">
+        <!-- CONF-ADM-001 FIX: Standardized from p-6 no-border to p-4 border-b.
          CONF-ADM-002 FIX: Logo text changed from <h1> to <span> — real <h1> is in content.
          CONF-ADM-005 FIX: Role-switcher mount added.
          Standard: Nielsen #4 (Consistency), WCAG 1.3.1 (Heading Hierarchy). -->
-    <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
-      <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
-      <span class="text-xl font-bold tracking-tight">Nammerha</span>
-    </div>
-    <nav class="flex-1 px-4 space-y-1">
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-dashboard.html">
-        <i class="ph ph-squares-four" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_dashboard">Dashboard</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-revenue.html">
-        <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="rev_dashboard">Revenue</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-fintech.html">
-        <i class="ph ph-bank" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="fintech_title">FinTech</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-oracle.html">
-        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_pricing_oracle">Pricing Oracle</span>
-      </a>
-      <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#".
+        <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
+          <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
+          <span class="text-xl font-bold tracking-tight">Nammerha</span>
+        </div>
+        <nav class="flex-1 px-4 space-y-1">
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-dashboard.html"
+          >
+            <i class="ph ph-squares-four" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_dashboard">لوحة الإدارة</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-revenue.html"
+          >
+            <i class="ph ph-currency-circle-dollar" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="rev_dashboard">لوحة الإيرادات</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-fintech.html"
+          >
+            <i class="ph ph-bank" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="fintech_title">البنية المالية التقنية</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-oracle.html"
+          >
+            <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_pricing_oracle">مؤشر الأسعار</span>
+          </a>
+          <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#".
            href="#" causes scroll-to-top and browser history pollution.
            Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
-      <a class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg" href="admin-escrow.html">
-        <i class="ph ph-shield-check" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_escrow_mgmt">Escrow Management</span>
-        <span id="sidebar-escrow-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="admin-kyc.html">
-        <i class="ph ph-identification-card" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_kyc_verify">KYC Verification</span>
-        <span id="sidebar-kyc-count" class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full">—</span>
-      </a>
-      <a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400" href="project-details.html">
-        <i class="ph ph-package" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="nav_projects">Projects</span>
-      </a>
-    </nav>
-    <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-      <!-- CONF-ADM-006 FIX: Settings disabled with 'Coming Soon' indicator.
+          <a
+            class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
+            href="admin-escrow.html"
+          >
+            <i class="ph ph-shield-check" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_escrow_mgmt">إدارة الضمان</span>
+            <span
+              id="sidebar-escrow-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="admin-kyc.html"
+          >
+            <i class="ph ph-identification-card" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_kyc_verify">التحقق من الهوية</span>
+            <span
+              id="sidebar-kyc-count"
+              class="ms-auto bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-1.5 py-0.5 rounded-full"
+              >—</span
+            >
+          </a>
+          <a
+            class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
+            href="project-details.html"
+          >
+            <i class="ph ph-package" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="nav_projects">المشاريع</span>
+          </a>
+        </nav>
+        <div class="p-4 border-t border-slate-200 dark:border-dark-border">
+          <!-- CONF-ADM-006 FIX: Settings disabled with 'Coming Soon' indicator.
            Was a clickable <a href="#"> — dead link.
            Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
-      <span class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500" aria-disabled="true" title="Coming Soon">
-        <i class="ph ph-gear" aria-hidden="true"></i>
-        <span class="font-medium" data-i18n="admin_settings">Settings</span>
-        <span class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500" data-i18n="coming_soon">Soon</span>
-      </span>
-      <div class="mt-4 flex items-center gap-3 px-3 py-2">
-        <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-          <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
-        </div>
-        <div>
-          <p class="text-xs font-bold" data-i18n="admin_portal">Admin Portal</p>
-          <p class="text-3xs text-slate-500 dark:text-slate-400" data-i18n="admin_institutional">Institutional Access</p>
-        </div>
-      </div>
-      <!-- CONF-ADM-006 FIX: Logout button was missing.
+          <span
+            class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
+            aria-disabled="true"
+            title="Coming Soon"
+          >
+            <i class="ph ph-gear" aria-hidden="true"></i>
+            <span class="font-medium" data-i18n="admin_settings">الإعدادات</span>
+            <span
+              class="ms-auto text-3xs font-bold uppercase tracking-wider bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full dark:text-slate-500"
+              data-i18n="coming_soon"
+              >قريباً</span
+            >
+          </span>
+          <div class="mt-4 flex items-center gap-3 px-3 py-2">
+            <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
+              <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold" data-i18n="admin_portal">بوابة المشرف</p>
+              <p
+                class="text-3xs text-slate-500 dark:text-slate-400"
+                data-i18n="admin_institutional"
+              >
+                مؤسسي
+              </p>
+            </div>
+          </div>
+          <!-- CONF-ADM-006 FIX: Logout button was missing.
            Standard: Nielsen #3 (User Control & Freedom), WCAG 2.1. -->
-      <button type="button" id="portal-logout-btn" class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        <span class="font-medium text-sm" data-i18n="common_logout">Logout</span>
-      </button>
-    </div>
-  </aside>
+          <button
+            type="button"
+            id="portal-logout-btn"
+            class="mt-2 flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors w-full"
+          >
+            <i class="ph ph-sign-out" aria-hidden="true"></i>
+            <span class="font-medium text-sm" data-i18n="common_logout">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
 
-  <!-- CONF-ADM-003 FIX: Unified to single <main> element — was <div class="dashboard-main">
+      <!-- CONF-ADM-003 FIX: Unified to single <main> element — was <div class="dashboard-main">
        wrapping a nested <main>, creating doubled landmark violation.
        Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.1. -->
-  <main id="main-content" class="dashboard-main">
-    <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
+      <main id="main-content" class="dashboard-main">
+        <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
          Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
-    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border">
-      <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
-      <div class="flex items-center gap-2">
-        <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" data-i18n-aria="aria_toggle_sidebar">
-          <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
-        </button>
-        <span class="text-xs text-slate-400 font-medium uppercase tracking-wider dark:text-slate-500" data-i18n="escrow_breadcrumb">Escrow</span>
-        <span class="text-slate-300">/</span>
-        <span class="text-xs text-trust-blue font-bold uppercase tracking-wider" data-i18n="verification_breadcrumb">Verification</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <!-- Case Navigator -->
-        <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 dark:bg-dark-elevated dark:border-dark-border">
-          <button type="button" id="prev-case" class="text-slate-400 hover:text-trust-blue transition-colors disabled:opacity-30 dark:text-slate-500" disabled>
-            <i class="ph ph-caret-left text-sm" aria-hidden="true"></i>
-          </button>
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Case <span aria-live="polite" id="current-case">1</span> of <span aria-live="polite" id="total-cases">3</span></span>
-          <button type="button" id="next-case" class="text-slate-400 hover:text-trust-blue transition-colors dark:text-slate-500">
-            <i class="ph ph-caret-right text-sm" aria-hidden="true"></i>
-          </button>
-        </div>
-        <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled with accessible label.
+        <header
+          class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
+        >
+          <div class="flex items-center justify-between w-full max-w-6xl px-4 md:px-6">
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="sidebar-toggle"
+                aria-label="Toggle sidebar"
+                data-i18n-aria="aria_toggle_sidebar"
+              >
+                <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
+              </button>
+              <span
+                class="text-xs text-slate-400 font-medium uppercase tracking-wider dark:text-slate-500"
+                data-i18n="escrow_breadcrumb"
+                >الأمانات</span
+              >
+              <span class="text-slate-300">/</span>
+              <span
+                class="text-xs text-trust-blue font-bold uppercase tracking-wider"
+                data-i18n="verification_breadcrumb"
+                >التحقق</span
+              >
+            </div>
+            <div class="flex items-center gap-4">
+              <!-- Case Navigator -->
+              <div
+                class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 dark:bg-dark-elevated dark:border-dark-border"
+              >
+                <button
+                  type="button"
+                  id="prev-case"
+                  class="text-slate-400 hover:text-trust-blue transition-colors disabled:opacity-30 dark:text-slate-500"
+                  disabled
+                >
+                  <i class="ph ph-caret-left text-sm" aria-hidden="true"></i>
+                </button>
+                <span class="text-xs font-bold text-slate-600 dark:text-slate-400"
+                  >الحالة <span aria-live="polite" id="current-case">1</span> من
+                  <span aria-live="polite" id="total-cases">3</span></span
+                >
+                <button
+                  type="button"
+                  id="next-case"
+                  class="text-slate-400 hover:text-trust-blue transition-colors dark:text-slate-500"
+                >
+                  <i class="ph ph-caret-right text-sm" aria-hidden="true"></i>
+                </button>
+              </div>
+              <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled with accessible label.
              Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
-        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Search — Coming Soon" title="Coming Soon">
-          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-        </span>
-        <span class="text-slate-300 cursor-not-allowed opacity-60" aria-disabled="true" aria-label="Notifications — Coming Soon" title="Coming Soon">
-          <i class="ph ph-bell" aria-hidden="true"></i>
-        </span>
-      </div>
-      </div>
-    </header>
-
-    <!-- Page Title -->
-    <div class="px-6 pt-5 pb-4">
-      <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
-           Standard: WCAG 1.3.1 (Heading Hierarchy). -->
-      <h1 class="text-2xl font-bold" data-i18n="escrow_release_verification">Escrow Release Verification</h1>
-      <p class="text-slate-500 text-sm mt-0.5 dark:text-slate-400" data-i18n="escrow_release_desc">Review financial documents against spatial field proofs before authorizing fund release.</p>
-    </div>
-
-    <!-- Split Screen Content -->
-    <div class="flex-1 overflow-y-auto px-6 pb-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full" id="verification-panel">
-
-        <!-- LEFT: Financial Audit Documents -->
-        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col dark:bg-dark-surface dark:border-dark-border">
-          <div class="p-5 border-b border-slate-100 flex items-center justify-between dark:border-dark-border">
-            <div class="flex items-center gap-3">
-              <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <i class="ph ph-file-text text-slate-500 text-base dark:text-slate-400" aria-hidden="true"></i>
-              </div>
-              <h3 class="font-bold" data-i18n="financial_audit_docs">Financial Audit Documents</h3>
+              <span
+                class="text-slate-300 cursor-not-allowed opacity-60"
+                aria-disabled="true"
+                aria-label="Search — Coming Soon"
+                title="Coming Soon"
+              >
+                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+              </span>
+              <span
+                class="text-slate-300 cursor-not-allowed opacity-60"
+                aria-disabled="true"
+                aria-label="Notifications — Coming Soon"
+                title="Coming Soon"
+              >
+                <i class="ph ph-bell" aria-hidden="true"></i>
+              </span>
             </div>
-            <span class="bg-trust-blue text-white text-3xs font-bold px-2.5 py-1 rounded uppercase tracking-wider" data-i18n="funds_locked_escrow">Funds Locked in Escrow</span>
           </div>
+        </header>
 
-          <div class="p-5 flex-1 space-y-5">
-            <!-- Purchase Order -->
-            <div class="bg-slate-50 rounded-lg border border-slate-100 p-4 space-y-3 dark:bg-dark-elevated dark:border-dark-border">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-3xs font-bold text-trust-blue uppercase tracking-wider" data-i18n="purchase_order">Purchase Order</p>
-                  <p class="text-lg font-black mt-0.5" id="po-number">PO #PO-8821</p>
-                </div>
-                <div class="text-end">
-                  <p class="text-2xl font-black text-slate-900 dark:text-slate-100" id="po-amount">$500.00</p>
-                  <p class="text-3xs text-smoky-jade font-bold dark:text-emerald-400" data-i18n="verified_by_oracle">Verified by Oracle</p>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200 dark:border-dark-border">
-                <div>
-                  <p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="item_description">Item Description</p>
-                  <p class="text-sm font-medium mt-0.5" id="item-desc">50 Bags of Cement (Portland Type I)</p>
-                </div>
-                <div>
-                  <p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500" data-i18n="vendor_id">Vendor ID</p>
-                  <p class="text-sm font-medium font-mono mt-0.5" id="vendor-id">ALM-MAJID-CON-99</p>
-                </div>
-              </div>
-            </div>
+        <!-- Page Title -->
+        <div class="px-6 pt-5 pb-4">
+          <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
+           Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+          <h1 class="text-2xl font-bold" data-i18n="escrow_release_verification">
+            التحقق من تحرير الأمانة
+          </h1>
+          <p
+            class="text-slate-500 text-sm mt-0.5 dark:text-slate-400"
+            data-i18n="escrow_release_desc"
+          >
+            الموافقة على تحرير الأموال بعد التحقق
+          </p>
+        </div>
 
-            <!-- Invoice Document -->
-            <div class="bg-white rounded-lg border-2 border-slate-200 p-5 flex-1 flex flex-col dark:bg-dark-surface dark:border-dark-border">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <p class="text-sm font-bold" id="vendor-name">Al-Majid Construction Materials</p>
-                  <p class="text-3xs text-slate-400 dark:text-slate-500" id="vendor-address">Street 12, Industrial Area, Aleppo</p>
+        <!-- Split Screen Content -->
+        <div class="flex-1 overflow-y-auto px-6 pb-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full" id="verification-panel">
+            <!-- LEFT: Financial Audit Documents -->
+            <section
+              class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div
+                class="p-5 border-b border-slate-100 flex items-center justify-between dark:border-dark-border"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <i
+                      class="ph ph-file-text text-slate-500 text-base dark:text-slate-400"
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+                  <h3 class="font-bold" data-i18n="financial_audit_docs">وثائق التدقيق المالي</h3>
                 </div>
-                <div class="text-end">
-                  <p class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400" data-i18n="invoice_label">Invoice</p>
-                  <p class="text-3xs text-slate-400 font-mono dark:text-slate-500" id="invoice-number">#INV-99022-A</p>
-                </div>
-              </div>
-
-              <div class="border-t-2 border-b-2 border-slate-200 py-3 my-2 space-y-1.5 dark:border-dark-border">
-                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span class="w-1/2 bg-slate-100 h-2 rounded"></span>
-                  <span class="w-1/4 bg-slate-100 h-2 rounded"></span>
-                </div>
-                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span class="w-2/3 bg-slate-100 h-2 rounded"></span>
-                  <span class="w-1/5 bg-slate-100 h-2 rounded"></span>
-                </div>
-                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span class="w-1/3 bg-slate-100 h-2 rounded"></span>
-                  <span class="w-1/6 bg-slate-100 h-2 rounded"></span>
-                </div>
+                <span
+                  class="bg-trust-blue text-white text-3xs font-bold px-2.5 py-1 rounded uppercase tracking-wider"
+                  data-i18n="funds_locked_escrow"
+                  >أموال محجوزة في الأمانة</span
+                >
               </div>
 
-              <!-- Invoice Zone -->
-              <div class="flex-1 min-h-[120px] border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center my-3 dark:border-dark-border">
-                <div class="text-center text-slate-400 dark:text-slate-500">
-                  <i class="ph ph-file-pdf nm-icon-32" aria-hidden="true"></i>
-                  <p class="text-3xs mt-1 font-medium" data-i18n="invoice_preview">Invoice Document Preview</p>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-200 dark:border-dark-border">
-                <div class="flex items-center gap-2">
-                  <div class="w-16 h-6 border border-slate-200 rounded flex items-center justify-center dark:border-dark-border">
-                    <span class="text-3xs text-slate-400 italic dark:text-slate-500" data-i18n="signature_label">Signature</span>
+              <div class="p-5 flex-1 space-y-5">
+                <!-- Purchase Order -->
+                <div
+                  class="bg-slate-50 rounded-lg border border-slate-100 p-4 space-y-3 dark:bg-dark-elevated dark:border-dark-border"
+                >
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <p
+                        class="text-3xs font-bold text-trust-blue uppercase tracking-wider"
+                        data-i18n="purchase_order"
+                      >
+                        أمر الشراء
+                      </p>
+                      <p class="text-lg font-black mt-0.5" id="po-number">PO #PO-8821</p>
+                    </div>
+                    <div class="text-end">
+                      <p
+                        class="text-2xl font-black text-slate-900 dark:text-slate-100"
+                        id="po-amount"
+                      >
+                        $500.00
+                      </p>
+                      <p
+                        class="text-3xs text-smoky-jade font-bold dark:text-emerald-400"
+                        data-i18n="verified_by_oracle"
+                      >
+                        معتمد من المؤشر
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200 dark:border-dark-border"
+                  >
+                    <div>
+                      <p
+                        class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500"
+                        data-i18n="item_description"
+                      >
+                        وصف البند
+                      </p>
+                      <p class="text-sm font-medium mt-0.5" id="item-desc">
+                        ٥٠ كيس إسمنت (بورتلاندي نوع أول)
+                      </p>
+                    </div>
+                    <div>
+                      <p
+                        class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500"
+                        data-i18n="vendor_id"
+                      >
+                        معرّف المورّد
+                      </p>
+                      <p class="text-sm font-medium font-mono mt-0.5" id="vendor-id">
+                        ALM-MAJID-CON-99
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <p class="text-sm font-bold" id="invoice-total">Total: $500.00</p>
+
+                <!-- Invoice Document -->
+                <div
+                  class="bg-white rounded-lg border-2 border-slate-200 p-5 flex-1 flex flex-col dark:bg-dark-surface dark:border-dark-border"
+                >
+                  <div class="flex items-center justify-between mb-4">
+                    <div>
+                      <p class="text-sm font-bold" id="vendor-name">المجيد لمواد البناء</p>
+                      <p class="text-3xs text-slate-400 dark:text-slate-500" id="vendor-address">
+                        شارع ١٢، المنطقة الصناعية، حلب
+                      </p>
+                    </div>
+                    <div class="text-end">
+                      <p
+                        class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400"
+                        data-i18n="invoice_label"
+                      >
+                        الفاتورة
+                      </p>
+                      <p
+                        class="text-3xs text-slate-400 font-mono dark:text-slate-500"
+                        id="invoice-number"
+                      >
+                        #INV-99022-A
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="border-t-2 border-b-2 border-slate-200 py-3 my-2 space-y-1.5 dark:border-dark-border"
+                  >
+                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span class="w-1/2 bg-slate-100 h-2 rounded"></span>
+                      <span class="w-1/4 bg-slate-100 h-2 rounded"></span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span class="w-2/3 bg-slate-100 h-2 rounded"></span>
+                      <span class="w-1/5 bg-slate-100 h-2 rounded"></span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span class="w-1/3 bg-slate-100 h-2 rounded"></span>
+                      <span class="w-1/6 bg-slate-100 h-2 rounded"></span>
+                    </div>
+                  </div>
+
+                  <!-- Invoice Zone -->
+                  <div
+                    class="flex-1 min-h-[120px] border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center my-3 dark:border-dark-border"
+                  >
+                    <div class="text-center text-slate-400 dark:text-slate-500">
+                      <i class="ph ph-file-pdf nm-icon-32" aria-hidden="true"></i>
+                      <p class="text-3xs mt-1 font-medium" data-i18n="invoice_preview">
+                        معاينة الفاتورة
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between mt-auto pt-3 border-t border-slate-200 dark:border-dark-border"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="w-16 h-6 border border-slate-200 rounded flex items-center justify-center dark:border-dark-border"
+                      >
+                        <span
+                          class="text-3xs text-slate-400 italic dark:text-slate-500"
+                          data-i18n="signature_label"
+                          >التوقيع</span
+                        >
+                      </div>
+                    </div>
+                    <p class="text-sm font-bold" id="invoice-total">الإجمالي: ٥٠٠٫٠٠$</p>
+                  </div>
+                </div>
               </div>
-            </div>
+            </section>
+
+            <!-- RIGHT: Site Validation & Proof of Work -->
+            <section
+              class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col dark:bg-dark-surface dark:border-dark-border"
+            >
+              <div
+                class="p-5 border-b border-slate-100 flex items-center gap-3 dark:border-dark-border"
+              >
+                <div class="size-8 rounded-lg bg-trust-blue/10 flex items-center justify-center">
+                  <i class="ph ph-map-trifold text-trust-blue text-base" aria-hidden="true"></i>
+                </div>
+                <h3 class="font-bold" data-i18n="site_validation">التحقق الميداني</h3>
+              </div>
+
+              <div class="flex-1 relative">
+                <!-- Field Photo Placeholder -->
+                <div
+                  class="absolute inset-0 bg-gradient-to-br from-sky-200 via-sky-300 to-emerald-200 flex items-center justify-center"
+                >
+                  <div class="text-center text-white/60">
+                    <i class="ph ph-camera nm-icon-64" aria-hidden="true"></i>
+                    <p class="text-sm font-bold mt-2" data-i18n="field_photo_proof">
+                      إثبات الصور الميدانية
+                    </p>
+                    <p class="text-xs mt-0.5" data-i18n="gps_stamped_delivery">
+                      تحقق التسليم بطابع GPS
+                    </p>
+                  </div>
+                </div>
+
+                <!-- GPS Coordinates Overlay -->
+                <div
+                  class="absolute top-4 start-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg"
+                >
+                  <p
+                    class="text-3xs font-bold uppercase tracking-wider opacity-80 mb-1"
+                    data-i18n="gps_coordinates"
+                  >
+                    إحداثيات GPS
+                  </p>
+                  <p class="text-sm font-mono font-bold" id="gps-coords">33.8938° N, 35.5018° E</p>
+                  <div class="flex items-center gap-1.5 mt-1.5">
+                    <span class="size-2 rounded-full bg-smoky-jade"></span>
+                    <span class="text-3xs opacity-90" id="gps-accuracy"
+                      >قوة الإشارة: مرتفعة (الدقة ١٫٢م)</span
+                    >
+                  </div>
+                </div>
+
+                <!-- Timestamp Overlay -->
+                <div
+                  class="absolute top-4 end-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg text-end"
+                >
+                  <p
+                    class="text-3xs font-bold uppercase tracking-wider opacity-80 mb-1"
+                    data-i18n="timestamp_label"
+                  >
+                    الطابع الزمني
+                  </p>
+                  <p class="text-sm font-bold" id="timestamp">٨ آذار ٢٠٢٦ — ١٠:٤٥ ص</p>
+                </div>
+
+                <!-- Engineer Identity Card -->
+                <div
+                  class="absolute bottom-4 end-4 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200 dark:border-dark-border"
+                >
+                  <p
+                    class="text-3xs font-bold text-trust-blue uppercase tracking-wider"
+                    data-i18n="verified_field_engineer"
+                  >
+                    مهندس ميداني معتمد
+                  </p>
+                  <p class="text-base font-bold mt-0.5" id="engineer-name">خالد الأحمد</p>
+                  <p class="text-3xs text-slate-500 dark:text-slate-400" id="engineer-license">
+                    الرخصة: SYR-ENG-88221
+                  </p>
+                </div>
+
+                <!-- Photo Thumbnail Placeholder (bottom-left) -->
+                <div class="absolute bottom-4 start-4">
+                  <div
+                    class="size-20 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200 shadow-lg flex items-center justify-center dark:bg-[#1e1e1e]/90 dark:border-dark-border"
+                  >
+                    <i
+                      class="ph ph-images text-slate-400 nm-icon-28 dark:text-slate-500"
+                      aria-hidden="true"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
 
-        <!-- RIGHT: Site Validation & Proof of Work -->
-        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col dark:bg-dark-surface dark:border-dark-border">
-          <div class="p-5 border-b border-slate-100 flex items-center gap-3 dark:border-dark-border">
-            <div class="size-8 rounded-lg bg-trust-blue/10 flex items-center justify-center">
-              <i class="ph ph-map-trifold text-trust-blue text-base" aria-hidden="true"></i>
-            </div>
-            <h3 class="font-bold" data-i18n="site_validation">Site Validation & Proof of Work</h3>
-          </div>
-
-          <div class="flex-1 relative">
-            <!-- Field Photo Placeholder -->
-            <div class="absolute inset-0 bg-gradient-to-br from-sky-200 via-sky-300 to-emerald-200 flex items-center justify-center">
-              <div class="text-center text-white/60">
-                <i class="ph ph-camera nm-icon-64" aria-hidden="true"></i>
-                <p class="text-sm font-bold mt-2" data-i18n="field_photo_proof">Field Photo Proof</p>
-                <p class="text-xs mt-0.5" data-i18n="gps_stamped_delivery">GPS-stamped delivery verification</p>
-              </div>
-            </div>
-
-            <!-- GPS Coordinates Overlay -->
-            <div class="absolute top-4 start-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg">
-              <p class="text-3xs font-bold uppercase tracking-wider opacity-80 mb-1" data-i18n="gps_coordinates">GPS Coordinates</p>
-              <p class="text-sm font-mono font-bold" id="gps-coords">33.8938° N, 35.5018° E</p>
-              <div class="flex items-center gap-1.5 mt-1.5">
-                <span class="size-2 rounded-full bg-smoky-jade"></span>
-                <span class="text-3xs opacity-90" id="gps-accuracy">Signal strength: High (Accuracy 1.2m)</span>
-              </div>
-            </div>
-
-            <!-- Timestamp Overlay -->
-            <div class="absolute top-4 end-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg text-end">
-              <p class="text-3xs font-bold uppercase tracking-wider opacity-80 mb-1" data-i18n="timestamp_label">Timestamp</p>
-              <p class="text-sm font-bold" id="timestamp">March 8, 2026 — 10:45 AST</p>
-            </div>
-
-            <!-- Engineer Identity Card -->
-            <div class="absolute bottom-4 end-4 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200 dark:border-dark-border">
-              <p class="text-3xs font-bold text-trust-blue uppercase tracking-wider" data-i18n="verified_field_engineer">Verified Field Engineer</p>
-              <p class="text-base font-bold mt-0.5" id="engineer-name">خالد الأحمد</p>
-              <p class="text-3xs text-slate-500 dark:text-slate-400" id="engineer-license">الرخصة: SYR-ENG-88221</p>
-            </div>
-
-            <!-- Photo Thumbnail Placeholder (bottom-left) -->
-            <div class="absolute bottom-4 start-4">
-              <div class="size-20 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200 shadow-lg flex items-center justify-center dark:bg-[#1e1e1e]/90 dark:border-dark-border">
-                <i class="ph ph-images text-slate-400 nm-icon-28 dark:text-slate-500" aria-hidden="true"></i>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- Action Bar -->
-      <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <!-- GAP-P3-006 FIX: Button text was hardcoded English. Now uses data-i18n.
+          <!-- Action Bar -->
+          <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <!-- GAP-P3-006 FIX: Button text was hardcoded English. Now uses data-i18n.
              Standard: i18n Completeness, WCAG 3.1.1. -->
-        <button type="button" id="flag-btn" class="flex-[2] bg-white border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-warning-yellow transition-all dark:bg-dark-surface dark:border-dark-border dark:text-slate-300">
-          <i class="ph ph-warning-diamond text-lg" aria-hidden="true"></i>
-          <span data-i18n="esc_flag_discrepancy">Flag Discrepancy</span>
-        </button>
-        <button type="button" id="release-btn" class="flex-[5] bg-trust-blue text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-cta hover:bg-primary-hover transition-all">
-          <i class="ph ph-check-circle text-lg" aria-hidden="true"></i>
-          <span data-i18n="esc_release_funds">Match Verified: Release Funds to Vendor</span>
-        </button>
-      </div>
+            <button
+              type="button"
+              id="flag-btn"
+              class="flex-[2] bg-white border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-warning-yellow transition-all dark:bg-dark-surface dark:border-dark-border dark:text-slate-300"
+            >
+              <i class="ph ph-warning-diamond text-lg" aria-hidden="true"></i>
+              <span data-i18n="esc_flag_discrepancy">الإبلاغ عن تناقض</span>
+            </button>
+            <button
+              type="button"
+              id="release-btn"
+              class="flex-[5] bg-trust-blue text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-cta hover:bg-primary-hover transition-all"
+            >
+              <i class="ph ph-check-circle text-lg" aria-hidden="true"></i>
+              <span data-i18n="esc_release_funds">تم التحقق: تحرير الأموال للمورد</span>
+            </button>
+          </div>
 
-      <!-- Compliance Footer -->
-      <div class="flex items-center justify-center gap-2 mt-4 mb-2">
-        <i class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
-        <p class="text-3xs text-slate-400 text-center dark:text-slate-500" data-i18n="escrow_compliance_footer">
-          Releasing funds will execute an immutable audit trail entry. All transactions are OCDS-compliant and subject to third-party auditing.
-        </p>
-      </div>
+          <!-- Compliance Footer -->
+          <div class="flex items-center justify-center gap-2 mt-4 mb-2">
+            <i
+              class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400"
+              aria-hidden="true"
+            ></i>
+            <p
+              class="text-3xs text-slate-400 text-center dark:text-slate-500"
+              data-i18n="escrow_compliance_footer"
+            >
+              متوافق مع OCDS — تدقيق شفاف
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
-  </main>
-</div>
-  <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
-  <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
-  <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
+    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
+    <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-<!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
-<footer class="nm-legal-footer">
-  <nav aria-label="Legal navigation">
-    <a href="/terms.html" data-i18n="footer_terms">Terms</a>
-    <a href="/privacy.html" data-i18n="footer_privacy">Privacy</a>
-    <a href="/refund-policy.html" data-i18n="footer_refund">Refund Policy</a>
-  </nav>
-  <p class="nm-copyright" data-i18n="footer_copyright">© 2026 Nammerha. All rights reserved.</p>
-</footer>
+    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    <footer class="nm-legal-footer">
+      <nav aria-label="Legal navigation">
+        <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
+        <a href="/privacy.html" data-i18n="footer_privacy">سياسة الخصوصية</a>
+        <a href="/refund-policy.html" data-i18n="footer_refund">سياسة الاسترداد</a>
+      </nav>
+      <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
+    </footer>
 
-
-<!-- CONF-ADM-007 FIX: Reusable empty state template for data tables.
+    <!-- CONF-ADM-007 FIX: Reusable empty state template for data tables.
      Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
-<template id="tpl-table-empty">
-  <tr>
-    <td colspan="99" class="px-5 py-0">
-      <div class="nm-table-empty">
-        <div class="nm-empty-icon"><i class="ph ph-shield-check" aria-hidden="true"></i></div>
-        <p class="nm-empty-title" data-i18n="common_no_data">No data yet</p>
-        <p class="nm-empty-desc" data-i18n="common_no_data_desc">Data will appear here once available.</p>
-      </div>
-    </td>
-  </tr>
-</template>
+    <template id="tpl-table-empty">
+      <tr>
+        <td colspan="99" class="px-5 py-0">
+          <div class="nm-table-empty">
+            <div class="nm-empty-icon"><i class="ph ph-shield-check" aria-hidden="true"></i></div>
+            <p class="nm-empty-title" data-i18n="common_no_data">لا توجد بيانات</p>
+            <p class="nm-empty-desc" data-i18n="common_no_data_desc">لا توجد بيانات للعرض حالياً</p>
+          </div>
+        </td>
+      </tr>
+    </template>
 
-<script src="/i18n.js?v=7" defer></script>
-<script src="/i18n/common.js" defer></script>
-<script src="/i18n/admin.js" defer></script>
-<!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
+    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n/common.js" defer></script>
+    <script src="/i18n/admin.js" defer></script>
+    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
-<script src="/load-guard.js" defer></script>
-<script src="/nav.js?v=7" defer></script>
-<script src="/sidebar.js?v=1" defer></script>
-</body>
+    <script src="/load-guard.js" defer></script>
+    <script src="/nav.js?v=7" defer></script>
+    <script src="/sidebar.js?v=1" defer></script>
+  </body>
 </html>
