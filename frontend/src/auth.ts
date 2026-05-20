@@ -6,6 +6,10 @@ import { reportError } from './error-reporter';
 // P2-AUTH-002 FIX: Import i18n for cross-tab logout banner localization.
 // Uses a safe import — t() may not be available in all module contexts.
 import { t } from './utils/i18n';
+// W3-P1-005 FIX: Import escapeHtml for cross-tab logout banner innerHTML.
+// Previous: Raw i18n strings used in innerHTML — XSS vector via localStorage injection.
+// Standard: AGENTS.md mandatory pattern, OWASP XSS Prevention.
+import { escapeHtml } from './utils/xss';
 
 export type UserRole =
   | 'homeowner'
@@ -123,13 +127,16 @@ if (typeof window !== 'undefined') {
           : 'تم تسجيل خروجك من تبويب آخر';
       const signInText =
         typeof t === 'function' ? t('sign_in_btn', 'تسجيل الدخول') : 'تسجيل الدخول';
+      // W3-P1-005 FIX: Wrap i18n strings with escapeHtml() to prevent XSS.
+      // Previous: Raw logoutMsg/signInText from t() used in innerHTML.
+      // Standard: AGENTS.md mandatory escapeHtml() pattern for all innerHTML.
       banner.innerHTML = `
                 <div class="flex items-center gap-2 min-w-0">
                     <i class="ph ph-warning-circle shrink-0 text-lg" aria-hidden="true"></i>
-                    <span class="text-sm font-medium truncate">${logoutMsg}</span>
+                    <span class="text-sm font-medium truncate">${escapeHtml(logoutMsg)}</span>
                 </div>
                 <a href="/auth.html" class="shrink-0 bg-white text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors no-underline">
-                    ${signInText}
+                    ${escapeHtml(signInText)}
                 </a>
             `;
       document.body.appendChild(banner);

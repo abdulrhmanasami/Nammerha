@@ -14,6 +14,17 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { query } from '../config/database';
+
+/**
+ * SEC-PLAT-001: Hash tokens with SHA-256 before storing in DB.
+ * Plaintext tokens in DB mean a SQL injection or DB dump exposes every user's
+ * password reset capability. By storing only the hash, even a full DB leak
+ * cannot be used to reset any account.
+ * Standard: OWASP Token Storage, CWE-312 (Cleartext Storage of Sensitive Information).
+ */
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 import { generateToken, authMiddleware } from '../middleware/auth.middleware';
 import {
   sendVerificationEmail,
@@ -262,7 +273,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 
           await query(
             `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW() WHERE user_id = $3`,
-            [verificationToken, tokenExpiry, existingUser.user_id],
+            [hashToken(verificationToken), tokenExpiry, existingUser.user_id],
           );
 
           const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
@@ -303,7 +314,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
         full_name.trim(),
         role,
         phone ?? null,
-        verificationToken,
+        hashToken(verificationToken),
         tokenExpiry,
       ],
     );
@@ -666,7 +677,8 @@ router.get(
   verifyEmailLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { token } = req.params;
+      const { token: rawToken } = req.params;
+      const token = String(rawToken);
       if (!token || token.length < 10) {
         res.status(400).json({
           success: false,
@@ -676,12 +688,13 @@ router.get(
       }
 
       // Find user by token and check expiry
+      // SEC-PLAT-001: Hash the incoming URL token before DB lookup
       const result = await query<
         Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'email_token_expires_at'>
       >(
         `SELECT user_id, email, is_email_verified, email_token_expires_at
              FROM users WHERE email_verification_token = $1`,
-        [token],
+        [hashToken(token)],
       );
 
       const user = result.rows[0];
@@ -810,7 +823,7 @@ router.post(
       await query(
         `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW()
                  WHERE user_id = $3`,
-        [newToken, tokenExpiry, user.user_id],
+        [hashToken(newToken), tokenExpiry, user.user_id],
       );
 
       // Send verification email
@@ -860,14 +873,47 @@ router.post(
         return;
       }
 
-      const result = await query<Pick<User, 'user_id' | 'email'>>(
-        'SELECT user_id, email FROM users WHERE email = $1',
+      // W3-P1-007 FIX: Also select is_email_verified so we can redirect
+      // unverified users to the verification flow instead of password reset.
+      const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified'>>(
+        'SELECT user_id, email, is_email_verified FROM users WHERE email = $1',
         [normalizedEmail],
       );
 
       const user = result.rows[0];
       if (!user) {
         // Return same success response to prevent enumeration
+        res.json(successResponse);
+        return;
+      }
+
+      // W3-P1-007 FIX: If the user hasn't verified their email, sending a
+      // password reset link is misleading — they'd reset their password but
+      // still be blocked by the is_email_verified gate at login (L583).
+      // Instead, send them a fresh verification email. The response stays
+      // identical (anti-enumeration).
+      if (!user.is_email_verified) {
+        const verificationToken = crypto.randomUUID();
+        const tokenExpiry = new Date();
+        tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+
+        await query(
+          `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW()
+               WHERE user_id = $3`,
+          [hashToken(verificationToken), tokenExpiry, user.user_id],
+        );
+
+        const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+        sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
+          logger.error('Auth: Verification email dispatch failed (forgot-password redirect)', {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+
+        logger.info('Auth: Unverified user hit forgot-password, sent verification instead', {
+          email: normalizedEmail,
+        });
         res.json(successResponse);
         return;
       }
@@ -880,7 +926,7 @@ router.post(
       await query(
         `UPDATE users SET password_reset_token = $1, reset_token_expires_at = $2, updated_at = NOW()
              WHERE user_id = $3`,
-        [resetToken, tokenExpiry, user.user_id],
+        [hashToken(resetToken), tokenExpiry, user.user_id],
       );
 
       // Send reset email
@@ -944,7 +990,7 @@ router.post(
       const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at'>>(
         `SELECT user_id, email, reset_token_expires_at
              FROM users WHERE password_reset_token = $1`,
-        [token],
+        [hashToken(token)],
       );
 
       const user = result.rows[0];
@@ -1024,39 +1070,44 @@ router.post(
 // cleared — trapping the user in a logout loop. Instead, we use "soft auth":
 // attempt to extract the user_id from the token, but always clear the cookie
 // regardless of whether the token is valid.
-router.post('/logout', async (req: Request, res: Response): Promise<void> => {
-  // NMR-AUD-M004 FIX: Soft-auth token invalidation.
-  // Try to decode the JWT to get the user_id and invalidate all their tokens.
-  // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
-  try {
-    const token = req.cookies?.['nammerha_jwt'] as string | undefined;
-    if (token) {
-      // Decode WITHOUT verification — we only need the user_id.
-      // The token is about to be invalidated anyway; verifying it first
-      // would just block logout for users with expired tokens.
-      const decoded = jwt.decode(token) as { sub?: string; user_id?: string } | null;
-      const userId = decoded?.sub ?? decoded?.user_id;
-      if (userId) {
-        await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [userId]);
-        logger.info('Auth: Token invalidated on logout', { userId });
+// W3-P3-003 FIX: Rate-limit logout to prevent token-invalidation DoS.
+router.post(
+  '/logout',
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    // NMR-AUD-M004 FIX: Soft-auth token invalidation.
+    // Try to decode the JWT to get the user_id and invalidate all their tokens.
+    // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
+    try {
+      const token = req.cookies?.['nammerha_jwt'] as string | undefined;
+      if (token) {
+        // Decode WITHOUT verification — we only need the user_id.
+        // The token is about to be invalidated anyway; verifying it first
+        // would just block logout for users with expired tokens.
+        const decoded = jwt.decode(token) as { sub?: string; user_id?: string } | null;
+        const userId = decoded?.sub ?? decoded?.user_id;
+        if (userId) {
+          await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [userId]);
+          logger.info('Auth: Token invalidated on logout', { userId });
+        }
       }
+    } catch (err) {
+      // Non-fatal: cookie will still be cleared below.
+      // The token will expire naturally within 24h even if invalidation fails.
+      logger.error('Auth: Failed to invalidate token on logout', {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
-  } catch (err) {
-    // Non-fatal: cookie will still be cleared below.
-    // The token will expire naturally within 24h even if invalidation fails.
-    logger.error('Auth: Failed to invalidate token on logout', {
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
 
-  res.clearCookie('nammerha_jwt', {
-    httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'strict',
-    path: '/',
-  });
-  res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
-});
+    res.clearCookie('nammerha_jwt', {
+      httpOnly: true,
+      secure: process.env['NODE_ENV'] === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+    res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
+  },
+);
 
 // ─── POST /api/auth/change-password ─────────────────────────────────────────
 // Authenticated endpoint: requires valid JWT + current password verification.
@@ -1072,9 +1123,12 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = getAuthUser(req).user_id;
-      const { current_password, new_password } = req.body as {
+      // W3-P3-001 FIX: Accept optional `remember` field so the reissued JWT
+      // after password change respects the user's session preference.
+      const { current_password, new_password, remember } = req.body as {
         current_password?: string;
         new_password?: string;
+        remember?: boolean;
       };
 
       // ── Validation: Required fields ────────────────────────────
@@ -1179,12 +1233,16 @@ router.post(
       );
       const allRoles = rolesResult.rows.map((r) => r.role_name);
 
-      const token = generateToken(userId, user.role, allRoles);
+      // W3-P3-001 FIX: Use 30-day expiry when `remember` is true,
+      // matching the login route's P0-AUTH-001 behavior.
+      const jwtExpiry = remember ? '30d' : undefined;
+      const token = generateToken(userId, user.role, allRoles, jwtExpiry);
       res.cookie('nammerha_jwt', token, {
         httpOnly: true,
         secure: process.env['NODE_ENV'] === 'production',
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000,
+        // W3-P3-001 FIX: 30-day cookie when remember is true, else 24h default.
+        maxAge: remember ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
         path: '/',
       });
 

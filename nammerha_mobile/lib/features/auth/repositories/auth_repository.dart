@@ -79,9 +79,11 @@ class AuthRepository {
 
   /// POST /api/auth/login
   /// Returns user + JWT token (MOB-AUTH-001: token in body for mobile)
+  /// W3-P0-001: `remember` controls session duration (short vs long-lived JWT).
   Future<NammerhaUser> login({
     required String email,
     required String password,
+    bool remember = false,
   }) async {
     final response = await _api.request<Map<String, dynamic>>(
       '/auth/login',
@@ -89,6 +91,7 @@ class AuthRepository {
       body: {
         'email': email.toLowerCase().trim(),
         'password': password,
+        'remember': remember,
       },
       fromData: (data) => data as Map<String, dynamic>,
     );
@@ -112,10 +115,12 @@ class AuthRepository {
   /// POST /api/auth/social
   /// Universal social login — works for Google, Apple, Facebook.
   /// Backend verifies ID token server-side, creates/links user, returns JWT.
+  /// W3-P2-009: `remember` controls session duration (consistent with email login).
   Future<NammerhaUser> loginWithSocial({
     required String provider, // 'google' | 'apple' | 'facebook'
     required String idToken,
     String? fullName, // Apple first-login only
+    bool remember = false,
   }) async {
     final response = await _api.request<Map<String, dynamic>>(
       '/auth/social',
@@ -124,6 +129,7 @@ class AuthRepository {
         'provider': provider,
         'id_token': idToken,
         if (fullName != null) 'full_name': fullName,
+        'remember': remember,
       },
       fromData: (data) => data as Map<String, dynamic>,
     );

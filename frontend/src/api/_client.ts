@@ -53,11 +53,50 @@ async function ensureCsrfToken(): Promise<string> {
   }
 }
 
+// ─── W3-P2-002 FIX: CSRF Pre-Warm ──────────────────────────────────────────
+// Auth page calls this on load (before user interaction) to pre-fetch the CSRF
+// token. On Syria 2G, the first POST without this adds 2-5s invisible delay
+// between clicking "Sign In" and the actual API call.
+// Fire-and-forget — failures are non-fatal (CSRF is retried on actual request).
+// Standard: Web Vitals (TBT), PRPL Pattern, Proactive Resource Loading.
+// ────────────────────────────────────────────────────────────────────────────
+export function warmCsrf(): void {
+  ensureCsrfToken().catch(() => {
+    /* Non-fatal: CSRF will be retried on first POST request */
+  });
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
+}
+
+// ─── P0-002 FIX (Wave 2): Structured API Error ──────────────────────────────
+// ROOT CAUSE: The previous `throw new Error(body.error)` at L190 discarded the
+// entire response body — including the `code` field that the backend sends for
+// recoverable error states (EMAIL_NOT_VERIFIED, SOCIAL_ONLY_ACCOUNT, ACCOUNT_LOCKED).
+// Frontend catch blocks received only a string message and could never detect
+// the specific error condition. This rendered ALL error-code-specific UX
+// (e.g., showInlineResendVerification) as unreachable dead code.
+//
+// FIX: ApiError extends Error and preserves `status`, `code`, and the full
+// `ApiResponse` body. Frontend catch blocks can now `instanceof ApiError`
+// and inspect `error.code` for conditional UX rendering.
+// Standard: Structured Error Handling, Zero Information Loss.
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code: string | undefined;
+  readonly response: ApiResponse;
+
+  constructor(message: string, status: number, response: ApiResponse) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = (response as unknown as Record<string, unknown>).code as string | undefined;
+    this.response = response;
+  }
 }
 
 interface RequestOptions extends RequestInit {
@@ -176,7 +215,13 @@ export async function request<T>(
           // PLT-UX-AUD P0-SESSION-003 FIX: Added &reason=session_expired as URL fallback.
           // On Syria 2G, the dynamic toast import above may fail silently. The auth page
           // reads this parameter to display a persistent banner — independent of any import.
-          const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
+          // W3-P3-002 FIX: Include hash in returnPath to preserve tab context.
+          // Previous: Only pathname + search saved — hash (#projects, #wallet) lost.
+          // After re-login, user landed on portal's default tab instead of where they were.
+          // Standard: Nielsen #3 (User Control), Principle of Least Surprise.
+          const returnPath = encodeURIComponent(
+            window.location.pathname + window.location.search + window.location.hash,
+          );
           setTimeout(() => {
             window.location.href = `/auth.html?redirect=${returnPath}&reason=session_expired`;
           }, 1500);
@@ -187,8 +232,11 @@ export async function request<T>(
 
       const body = (await res.json()) as ApiResponse<T>;
 
+      // P0-002 FIX (Wave 2): Throw ApiError instead of Error.
+      // Previous: throw new Error(body.error) — discarded status, code, and full body.
+      // Now: ApiError preserves everything for structured catch-block handling.
       if (!res.ok) {
-        throw new Error(body.error ?? `Request failed: ${res.status}`);
+        throw new ApiError(body.error ?? `Request failed: ${res.status}`, res.status, body);
       }
 
       // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)

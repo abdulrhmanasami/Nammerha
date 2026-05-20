@@ -82,11 +82,12 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
     }
 
     try {
+      // W3-P0-002 FIX: Backend is GET /api/auth/verify-email/:token
+      // (token in URL path, not POST body).
       final api = NammerhaApiClient.instance;
       await api.request(
-        '/auth/verify-email',
-        method: 'POST',
-        body: {'token': event.token},
+        '/auth/verify-email/${event.token}',
+        method: 'GET',
       );
 
       emit(const VerifyEmailSuccess('تم تأكيد بريدك الإلكتروني بنجاح!'));

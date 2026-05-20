@@ -57,12 +57,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   /// AUD-001 FIX: Login-only submit. Registration path removed — handled
   /// exclusively by RegisterWizardScreen (3-step wizard).
+  /// W3-P1-008: Reads `rememberMe` from LoginFormCubit and passes to AuthBloc.
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
+    final rememberMe = context.read<LoginFormCubit>().state.rememberMe;
     context.read<AuthBloc>().add(AuthLoginRequested(
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      remember: rememberMe,
     ));
   }
 
@@ -155,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return context.tr('auth_email_required');
-                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
+                              if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
                                 return context.tr('auth_email_invalid');
                               }
                               return null;
@@ -180,6 +183,39 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               if (v == null || v.isEmpty) return context.tr('auth_password_required');
                               return null;
                             },
+                          ),
+
+                          // W3-P1-008: Remember Me checkbox
+                          // Managed via LoginFormCubit (zero setState).
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: formState.rememberMe,
+                                  onChanged: (_) => context.read<LoginFormCubit>().toggleRememberMe(),
+                                  activeColor: colors.primaryBrand,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  side: BorderSide(color: colors.strokeBorder),
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => context.read<LoginFormCubit>().toggleRememberMe(),
+                                child: Text(
+                                  context.tr('remember_me'),
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
 
                           // Forgot Password
@@ -445,7 +481,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       if (v == null || v.trim().isEmpty) {
                         return context.tr('auth_email_required');
                       }
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
+                      if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
                         return context.tr('auth_email_invalid');
                       }
                       return null;
@@ -635,36 +671,85 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final colors = context.colors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          // P0-UX-003 FIX: Dark mode contrast failure.
-          // PREVIOUS: Colors.white — jarring white island in dark mode.
-          // NOW: Themed surface with proper border contrast in both modes.
-          // Standard: WCAG 1.4.11 (Non-text Contrast 3:1 min).
-          child: _buildSocialButton(
-            label: 'Google',
-            icon: PhosphorIconsRegular.googleLogo,
-            backgroundColor: isDark ? colors.surfaceElevated : Colors.white,
-            foregroundColor: isDark ? colors.textPrimary : const Color(0xFF3C4043),
-            borderColor: colors.strokeBorder,
-            onPressed: _isSocialLoading ? null : () => _handleSocialLogin('google'),
-            isLoading: _isSocialLoading,
-          ),
+        // ─── Google + Apple (functional) ───────────────────────────
+        Row(
+          children: [
+            Expanded(
+              // P0-UX-003 FIX: Dark mode contrast failure.
+              // PREVIOUS: Colors.white — jarring white island in dark mode.
+              // NOW: Themed surface with proper border contrast in both modes.
+              // Standard: WCAG 1.4.11 (Non-text Contrast 3:1 min).
+              child: _buildSocialButton(
+                label: 'Google',
+                icon: PhosphorIconsRegular.googleLogo,
+                backgroundColor: isDark ? colors.surfaceElevated : Colors.white,
+                foregroundColor: isDark ? colors.textPrimary : const Color(0xFF3C4043),
+                borderColor: colors.strokeBorder,
+                onPressed: _isSocialLoading ? null : () => _handleSocialLogin('google'),
+                isLoading: _isSocialLoading,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              // P0-UX-003 FIX: Dark mode — Apple black was invisible.
+              // NOW: Uses high-contrast surface in dark, black in light.
+              child: _buildSocialButton(
+                label: 'Apple',
+                icon: PhosphorIconsRegular.appleLogo,
+                backgroundColor: isDark ? colors.surfaceElevated : Colors.black,
+                foregroundColor: isDark ? colors.textPrimary : Colors.white,
+                borderColor: isDark ? colors.strokeBorder : Colors.black,
+                onPressed: _isSocialLoading ? null : () => _handleSocialLogin('apple'),
+                isLoading: _isSocialLoading,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          // P0-UX-003 FIX: Dark mode — Apple black was invisible.
-          // NOW: Uses high-contrast surface in dark, black in light.
-          child: _buildSocialButton(
-            label: 'Apple',
-            icon: PhosphorIconsRegular.appleLogo,
-            backgroundColor: isDark ? colors.surfaceElevated : Colors.black,
-            foregroundColor: isDark ? colors.textPrimary : Colors.white,
-            borderColor: isDark ? colors.strokeBorder : Colors.black,
-            onPressed: _isSocialLoading ? null : () => _handleSocialLogin('apple'),
-            isLoading: _isSocialLoading,
-          ),
+        const SizedBox(height: 10),
+
+        // ─── Facebook (Coming Soon — W3-P3-005) ──────────────────
+        // Disabled with opacity + 'قريباً' badge overlay.
+        // Requires Meta App Review before activation.
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Opacity(
+              opacity: 0.5,
+              child: _buildSocialButton(
+                label: 'Facebook',
+                icon: PhosphorIconsRegular.facebookLogo,
+                backgroundColor: const Color(0xFF1877F2),
+                foregroundColor: Colors.white,
+                borderColor: const Color(0xFF1877F2),
+                onPressed: null,
+              ),
+            ),
+            // 'قريباً' (Coming Soon) badge — top-end corner
+            PositionedDirectional(
+              top: -6,
+              end: -4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.textSecondary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'قريباً',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -739,11 +824,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       final result = await SocialAuthService.instance.signIn(provider);
 
       // Dispatch to AuthBloc — backend verifies the ID token server-side
+      // W3-P1-008: Pass rememberMe from LoginFormCubit to social login event.
       if (mounted) {
+        final rememberMe = context.read<LoginFormCubit>().state.rememberMe;
         context.read<AuthBloc>().add(AuthSocialLoginRequested(
           provider: result.provider,
           idToken: result.idToken,
           fullName: result.fullName,
+          remember: rememberMe,
         ));
       }
     } on SocialAuthCancelledException {

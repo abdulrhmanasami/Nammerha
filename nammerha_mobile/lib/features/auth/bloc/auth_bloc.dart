@@ -19,12 +19,18 @@ abstract class AuthEvent extends Equatable {
 class AuthCheckSession extends AuthEvent {}
 
 /// Login with email + password
+/// W3-P1-008: `remember` controls persistent session via backend JWT duration.
 class AuthLoginRequested extends AuthEvent {
   final String email;
   final String password;
-  const AuthLoginRequested({required this.email, required this.password});
+  final bool remember;
+  const AuthLoginRequested({
+    required this.email,
+    required this.password,
+    this.remember = false,
+  });
   @override
-  List<Object?> get props => [email, password];
+  List<Object?> get props => [email, password, remember];
 }
 
 /// Register new account
@@ -75,17 +81,20 @@ class AuthResetPassword extends AuthEvent {
 }
 
 /// Social login (Google, Apple, Facebook)
+/// W3-P1-008: `remember` flows through to repository for session persistence.
 class AuthSocialLoginRequested extends AuthEvent {
   final String provider; // 'google' | 'apple' | 'facebook'
   final String idToken;
   final String? fullName; // Apple first-login only
+  final bool remember;
   const AuthSocialLoginRequested({
     required this.provider,
     required this.idToken,
     this.fullName,
+    this.remember = false,
   });
   @override
-  List<Object?> get props => [provider, idToken, fullName];
+  List<Object?> get props => [provider, idToken, fullName, remember];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -210,6 +219,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         provider: event.provider,
         idToken: event.idToken,
         fullName: event.fullName,
+        remember: event.remember,
       );
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
@@ -288,6 +298,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await _authRepository.login(
         email: event.email,
         password: event.password,
+        remember: event.remember,
       );
 
       if (!user.isEmailVerified) {

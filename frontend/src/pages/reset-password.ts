@@ -39,9 +39,17 @@ const resetToken = urlParams.get('token');
 // reset form would cause CPU starvation on the backend.
 const MAX_PASSWORD_LENGTH = 128;
 
-// If no token, show error immediately
+// If no token, show guidance instead of error.
+// W3-P0-004 FIX: Changed from error banner to info banner with helpful guidance.
+// Previous: "الرمز غير صالح أو منتهٍ" (Token invalid) — confusing for users
+// arriving from "Forgot Password?" link when JS failed to load on auth page.
+// Now: Shows clear guidance to request a reset link, with the form as primary CTA.
+// Standard: Nielsen #9 (Error Recovery), Apple HIG (Clear Escape Routes).
 if (!resetToken) {
-  showBanner('error', t('reset_invalid_token', 'الرمز غير صالح أو منتهٍ'));
+  showBanner(
+    'error',
+    t('reset_no_token', 'أدخل بريدك الإلكتروني لاستلام رابط إعادة تعيين كلمة المرور'),
+  );
   // DEF-RESET-002 FIX: Replaced form.style.display = 'none' with class toggle.
   // Standard: DEF-VIS-001 precedent — CSS Single Source of Truth.
   if (form) {
@@ -50,6 +58,9 @@ if (!resetToken) {
 }
 
 // ─── Form Validation ────────────────────────────────────────────────────────
+// W3-P2-003 FIX: Match indicator element for real-time confirm feedback.
+const matchEl = document.getElementById('reset-pw-match');
+
 function updateSubmitButton(): void {
   if (!submitBtn || !newPasswordInput || !confirmPasswordInput) {
     return;
@@ -71,6 +82,23 @@ function updateSubmitButton(): void {
   // prevents users from understanding WHY it's disabled.
   // Standard: Parity with auth.ts L629 pattern.
   submitBtn.classList.toggle('nm-btn-disabled-soft', !isValid);
+
+  // W3-P2-003 FIX: Real-time password match/mismatch indicator.
+  // Previous: Zero feedback until form submit — user typed blindly in confirm field.
+  // Now: Immediate ✓/✗ indicator below confirm field with color-coded status.
+  // Standard: Nielsen #1 (Visibility of System Status), auth.ts pw-mismatch-error parity.
+  if (matchEl && confirm.length > 0) {
+    matchEl.classList.remove('nm-hidden');
+    if (pw === confirm) {
+      matchEl.textContent = t('pw_match_ok', '✓ كلمتا المرور متطابقتان');
+      matchEl.className = 'text-xs mt-1.5 font-medium text-emerald-600 dark:text-emerald-400';
+    } else {
+      matchEl.textContent = t('pw_match_fail', '✗ كلمتا المرور غير متطابقتين');
+      matchEl.className = 'text-xs mt-1.5 font-medium text-red-600 dark:text-red-400';
+    }
+  } else if (matchEl) {
+    matchEl.classList.add('nm-hidden');
+  }
 }
 
 newPasswordInput?.addEventListener('input', () => {
@@ -179,10 +207,13 @@ function showRequestFeedback(type: 'success' | 'error', message: string): void {
     return;
   }
   requestFeedback.classList.remove('nm-hidden');
+  // BUG-F08 FIX: Added dark: variants for dark mode parity.
+  // PREVIOUS: bg-emerald-50/bg-red-50 only — light backgrounds clashed in dark mode.
+  // Standard: Dark Mode Parity, Nammerha Design System.
   requestFeedback.className = `mt-2 rounded-lg p-2 text-xs font-medium ${
     type === 'success'
-      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-      : 'bg-red-50 text-red-700 border border-red-200'
+      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800'
+      : 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800'
   }`;
   requestFeedback.textContent = message;
 }
@@ -193,6 +224,12 @@ form?.addEventListener('submit', async (e) => {
   if (isSubmitting || !resetToken) {
     return;
   }
+
+  // BUG-F10 FIX: Add .submitted class for CSS validation highlighting.
+  // PREVIOUS: auth.ts added this at L786/L887 but reset-password.ts did NOT.
+  // CSS validation indicators (main.css L1646-1652) require this class.
+  // Standard: CSS-Driven Validation Parity, Nielsen #9 (Error Recognition).
+  form.classList.add('submitted');
 
   const newPassword = newPasswordInput?.value ?? '';
   const confirmPassword = confirmPasswordInput?.value ?? '';

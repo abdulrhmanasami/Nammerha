@@ -9,10 +9,12 @@ import 'package:equatable/equatable.dart';
 //   - obscurePassword (password visibility toggle)
 //   - obscureConfirmPassword (confirm password visibility toggle) [C4 FIX]
 //   - termsAccepted (GDPR consent checkbox) [C5 FIX]
+//   - rememberMe (W3-P1-008: persistent session toggle)
 //
 // UNIFIED CITIZEN: selectedRole removed — no role selection during registration.
 // C4 FIX: Added confirm password visibility toggle for registration parity.
 // C5 FIX: Added termsAccepted state for GDPR Art. 7 compliance.
+// W3-P1-008: Added rememberMe for login session persistence.
 // ═══════════════════════════════════════════════════════════════════════════
 
 class LoginFormState extends Equatable {
@@ -20,12 +22,14 @@ class LoginFormState extends Equatable {
   final bool obscurePassword;
   final bool obscureConfirmPassword;
   final bool termsAccepted;
+  final bool rememberMe;
 
   const LoginFormState({
     this.isLoginMode = true,
     this.obscurePassword = true,
     this.obscureConfirmPassword = true,
     this.termsAccepted = false,
+    this.rememberMe = false,
   });
 
   LoginFormState copyWith({
@@ -33,12 +37,14 @@ class LoginFormState extends Equatable {
     bool? obscurePassword,
     bool? obscureConfirmPassword,
     bool? termsAccepted,
+    bool? rememberMe,
   }) {
     return LoginFormState(
       isLoginMode: isLoginMode ?? this.isLoginMode,
       obscurePassword: obscurePassword ?? this.obscurePassword,
       obscureConfirmPassword: obscureConfirmPassword ?? this.obscureConfirmPassword,
       termsAccepted: termsAccepted ?? this.termsAccepted,
+      rememberMe: rememberMe ?? this.rememberMe,
     );
   }
 
@@ -48,6 +54,7 @@ class LoginFormState extends Equatable {
         obscurePassword,
         obscureConfirmPassword,
         termsAccepted,
+        rememberMe,
       ];
 }
 
@@ -74,4 +81,7 @@ class LoginFormCubit extends Cubit<LoginFormState> {
 
   /// C5 FIX: Toggle terms & privacy acceptance (GDPR Art. 7).
   void toggleTerms() => emit(state.copyWith(termsAccepted: !state.termsAccepted));
+
+  /// W3-P1-008: Toggle "Remember Me" for persistent sessions.
+  void toggleRememberMe() => emit(state.copyWith(rememberMe: !state.rememberMe));
 }

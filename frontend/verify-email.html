@@ -47,7 +47,19 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-    <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
+    <!-- BUG-F14 FIX: Phosphor CSS async preload — was synchronous (render-blocking).
+       Parity with auth.html and reset-password.html async preload pattern.
+       Standard: Web Vitals (LCP), PRPL Pattern, Platform Consistency. -->
+    <link
+      rel="preload"
+      href="/fonts/phosphor/phosphor.css"
+      as="style"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript><link rel="stylesheet" href="/fonts/phosphor/phosphor.css" /></noscript>
     <script type="module" src="/src/pages/verify-email.ts"></script>
     <link href="/i18n.css?v=7" rel="stylesheet" />
   </head>

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Register Wizard Cubit — Platinum Standard (setState → Cubit migration)
@@ -23,7 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/// SharedPreferences key for registration draft.
+/// FlutterSecureStorage key for registration draft.
 /// Matches web's `nmh_reg_draft` key for cross-platform parity.
 const String _kRegDraftKey = 'nmh_reg_draft';
 
@@ -40,7 +40,7 @@ class RegisterWizardState extends Equatable {
   final String draftName;
   final String draftEmail;
 
-  /// AUD-003: True when a draft was restored from SharedPreferences.
+  /// AUD-003: True when a draft was restored from secure storage.
   /// Used to show a one-time "Draft restored" notification.
   final bool draftRestored;
 
@@ -93,6 +93,11 @@ class RegisterWizardState extends Equatable {
 // ─── Cubit ───────────────────────────────────────────────────────────────────
 
 class RegisterWizardCubit extends Cubit<RegisterWizardState> {
+  /// W3-P2-004: AES-encrypted storage for draft PII (name + email).
+  /// Replaces SharedPreferences (plaintext on disk) with platform-native
+  /// encryption: iOS Keychain / Android EncryptedSharedPreferences.
+  static const _storage = FlutterSecureStorage();
+
   RegisterWizardCubit() : super(const RegisterWizardState());
 
   /// Called by PageView.onPageChanged — tracks current step.
@@ -128,39 +133,38 @@ class RegisterWizardCubit extends Cubit<RegisterWizardState> {
   // ═══════════════════════════════════════════════════════════════════════════
   // AUD-003: Draft Persistence (Nielsen #5 — Error Prevention)
   // ═══════════════════════════════════════════════════════════════════════════
-  // Saves non-sensitive fields (name + email + step) to SharedPreferences.
-  // Restores on next mount. Clears on successful registration.
+  // W3-P2-004: Saves non-sensitive fields (name + email + step) to
+  // FlutterSecureStorage (AES-encrypted). Restores on next mount.
+  // Clears on successful registration.
   //
   // SECURITY: Passwords are NEVER persisted. Only name and email are saved.
   // This mirrors web's sessionStorage pattern (auth.ts L168-L204).
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Persist name + email + current step to SharedPreferences.
+  /// Persist name + email + current step to encrypted secure storage.
   /// Called on step advance (`_nextPage`) and screen dispose.
   Future<void> saveDraft({required String name, required String email}) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final draft = <String, dynamic>{
         'name': name,
         'email': email,
         'step': state.currentPage,
         'ts': DateTime.now().millisecondsSinceEpoch,
       };
-      await prefs.setString(_kRegDraftKey, jsonEncode(draft));
+      await _storage.write(key: _kRegDraftKey, value: jsonEncode(draft));
     } catch (e) {
       debugPrint('[Nammerha] bloc/register_wizard_cubit: $e');
       // Degrade gracefully — draft persistence is best-effort.
-      // SharedPreferences may fail on restricted storage environments.
+      // Secure storage may fail on restricted/rooted environments.
     }
   }
 
-  /// Restore draft from SharedPreferences.
+  /// Restore draft from encrypted secure storage.
   /// Called once on Cubit creation (screen mount).
   /// Returns true if a draft was restored (for controller pre-fill).
   Future<void> restoreDraft() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_kRegDraftKey);
+      final raw = await _storage.read(key: _kRegDraftKey);
       if (raw == null || raw.isEmpty) return;
 
       final draft = jsonDecode(raw) as Map<String, dynamic>;
@@ -196,12 +200,11 @@ class RegisterWizardCubit extends Cubit<RegisterWizardState> {
     }
   }
 
-  /// Clear the draft from SharedPreferences.
+  /// Clear the draft from encrypted secure storage.
   /// Called on successful registration.
   Future<void> clearDraft() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_kRegDraftKey);
+      await _storage.delete(key: _kRegDraftKey);
     } catch (e) {
       debugPrint('[Nammerha] bloc/register_wizard_cubit: $e');
       // Best-effort cleanup.

@@ -20,6 +20,17 @@ import { updatePasswordStrength } from '../utils/password-strength';
 import { scrollToField } from '../utils/scroll-to-field';
 // P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
 import '../utils/required-markers';
+// P0-002 FIX (Wave 2): Import ApiError for structured error code detection.
+import { ApiError } from '../api/_client';
+// W3-P2-002 FIX: Import CSRF pre-warm for eager loading before user interaction.
+// On Syria 2G, the first POST without pre-warm adds 2-5s invisible delay.
+import { warmCsrf } from '../api/_client';
+
+// W3-P2-002 FIX: Pre-fetch CSRF token on page load (fire-and-forget).
+// Previous: CSRF fetched on first form submit — added invisible 2-5s delay on Syria 2G.
+// Now: Token pre-fetched while user is still reading the page.
+// Standard: Web Vitals (TBT), PRPL Pattern, Proactive Resource Loading.
+warmCsrf();
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
@@ -58,6 +69,14 @@ const POST_LOGIN_REDIRECT = '/';
 // processes the full input. Without this check, a 1MB password from the
 // frontend would cause CPU starvation on the backend.
 const MAX_PASSWORD_LENGTH = 128;
+
+// P1-001 FIX (Wave 2): Shared helper to read Remember Me checkbox value.
+// Social login buttons exist on both login and register forms.
+// The checkbox is on the login form — always read from there.
+// Returns false if checkbox not found (register tab active).
+function getRememberMe(): boolean {
+  return (document.getElementById('remember-me') as HTMLInputElement | null)?.checked ?? false;
+}
 
 // ─── DOM References ─────────────────────────────────────────────────────────
 const tabLogin = document.getElementById('tab-login') as HTMLButtonElement | null;
@@ -313,15 +332,49 @@ function goToRegStep(targetStep: number): void {
       reviewEmail.textContent = emailVal;
     }
 
-    // FRIC-2026-003 FIX: Show password strength status in review card.
-    // Previous: Only name + email shown — no confirmation password met requirements.
-    // Standard: Nielsen #1 (System Status Visibility).
+    // BUG-F01 FIX: Dynamically populate password strength text + color in review card.
+    // PREVIOUS: auth.html hardcoded "قوي ✓" — always showed "Strong ✓" regardless of score.
+    // NOW: Copy the actual strength label text and apply appropriate color.
+    // Standard: Nielsen #1 (System Status Visibility), Zero False Confidence.
     const strengthLabel = document.getElementById('pw-strength-label');
     const reviewPwStrength = document.getElementById('reg-review-pw-strength');
-    if (reviewPwStrength && strengthLabel) {
+    const reviewPwStrengthText = document.getElementById('reg-review-pw-strength-text');
+    if (reviewPwStrength && strengthLabel && reviewPwStrengthText) {
       const strengthText = strengthLabel.textContent?.trim() ?? '';
       if (strengthText) {
         reviewPwStrength.classList.remove('nm-hidden');
+        reviewPwStrengthText.textContent = `${strengthText} ✓`;
+        // Apply color based on current strength bar state
+        // Remove any previous color classes
+        reviewPwStrength.classList.remove(
+          'text-red-500',
+          'text-orange-500',
+          'text-yellow-600',
+          'text-emerald-600',
+          'text-smoky-jade',
+          'dark:text-red-400',
+          'dark:text-orange-400',
+          'dark:text-yellow-400',
+          'dark:text-emerald-400',
+        );
+        const pw = (document.getElementById('reg-password') as HTMLInputElement)?.value ?? '';
+        const score = [
+          pw.length >= 8,
+          /[A-Z]/.test(pw),
+          /[a-z]/.test(pw),
+          /[0-9]/.test(pw),
+          /[^A-Za-z0-9]/.test(pw),
+        ].filter(Boolean).length;
+        const colorMap: [string, string][] = [
+          ['text-red-500', 'dark:text-red-400'], // 0-1
+          ['text-red-500', 'dark:text-red-400'], // 1
+          ['text-orange-500', 'dark:text-orange-400'], // 2
+          ['text-yellow-600', 'dark:text-yellow-400'], // 3
+          ['text-emerald-600', 'dark:text-emerald-400'], // 4
+          ['text-smoky-jade', 'dark:text-emerald-400'], // 5
+        ];
+        const [light, dark] = colorMap[Math.min(score, 5)] ?? colorMap[0]!;
+        reviewPwStrength.classList.add(light, dark);
       }
     }
   }
@@ -654,8 +707,12 @@ function updateRegisterButton(): void {
   'login-password',
 ].forEach((id) => {
   document.getElementById(id)?.addEventListener('input', () => {
-    // Only hide if banner is currently showing an error (not success/info)
-    if (bannerInner?.classList.contains('bg-red-50')) {
+    // BUG-F02 FIX: Auto-clear ANY visible banner on user input, not just errors.
+    // PREVIOUS: Only checked `bg-red-50` — info banners (bg-blue-50) from
+    // EMAIL_NOT_VERIFIED persisted while user typed corrections.
+    // NOW: Check if banner is visible (not hidden) to clear all types.
+    // Standard: Nielsen #9 (Error Recovery), Material Design 3 (Form Validation).
+    if (banner && !banner.classList.contains('nm-hidden')) {
       hideBanner();
     }
     // UX-REM-J002 FIX: Auto-save registration draft on input.
@@ -813,26 +870,71 @@ formLogin?.addEventListener('submit', async (e) => {
         t('auth_welcome_back', 'أهلاً بعودتك!'),
       );
     } else {
-      // P1-AUTH-001 FIX: Detect EMAIL_NOT_VERIFIED error code from backend.
-      // Backend returns code: 'EMAIL_NOT_VERIFIED' when user credentials are
-      // correct but email isn't verified. Show a resend verification option
-      // instead of a dead-end error message.
-      const errorCode = (response as unknown as Record<string, unknown>).code as string | undefined;
-      if (errorCode === 'EMAIL_NOT_VERIFIED') {
-        showBanner(
-          'info',
-          response.error ?? t('auth_email_not_verified', 'يرجى تأكيد بريدك الإلكتروني أولاً'),
-        );
-        // Show inline resend verification button
-        showInlineResendVerification(email);
-      } else {
-        showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
-      }
+      // P0-002 FIX (Wave 2): This else branch only executes for responses where
+      // res.ok was TRUE but success was false (e.g., anti-enumeration 200s).
+      // Error codes like EMAIL_NOT_VERIFIED come with non-OK statuses (403),
+      // which are now thrown as ApiError and caught in the catch block below.
+      showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     }
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-    showBanner('error', message);
+    // P0-002 FIX (Wave 2): Detect structured ApiError codes from _client.ts.
+    // Previous: `err instanceof Error` only — message string available, code LOST.
+    // _client.ts now throws ApiError for non-OK responses, preserving the
+    // backend's `code` field (EMAIL_NOT_VERIFIED, SOCIAL_ONLY_ACCOUNT, etc.).
+    // This makes showInlineResendVerification() REACHABLE for the first time.
+    if (err instanceof ApiError) {
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        showBanner(
+          'info',
+          err.message || t('auth_email_not_verified', 'يرجى تأكيد بريدك الإلكتروني أولاً'),
+        );
+        showInlineResendVerification(email);
+      } else if (err.code === 'SOCIAL_ONLY_ACCOUNT') {
+        // W3-P1-002 FIX: Show actionable recovery CTA with social button highlight.
+        // Previous: Text-only info banner — user read the message but didn't know
+        // where the social button was (below the fold on mobile).
+        // Now: Shows info banner + scrolls to and pulses the matching social button.
+        // Standard: Nielsen #9 (Error Recovery), Apple HIG (Clear Escape Routes).
+        showBanner('info', err.message);
+        // Attempt to extract the provider name from the error message and highlight its button
+        const socialBtns = document.querySelectorAll<HTMLButtonElement>('[data-sso-provider]');
+        socialBtns.forEach((btn) => {
+          const provider = btn.dataset.ssoProvider;
+          // Check if the error message mentions this provider (case-insensitive)
+          if (provider && err.message.toLowerCase().includes(provider.toLowerCase())) {
+            // Scroll the social button into view
+            btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Pulse animation to draw attention
+            btn.classList.add('nm-input-flash-focus');
+            btn.addEventListener(
+              'animationend',
+              () => {
+                btn.classList.remove('nm-input-flash-focus');
+              },
+              { once: true },
+            );
+          }
+        });
+      } else if (err.status === 429) {
+        // W3-P2-007 FIX: Special UX for rate limiting (HTTP 429).
+        // Previous: Generic red error banner — user thought account was broken.
+        // Now: Amber warning banner with clear "try again later" messaging.
+        // Standard: Nielsen #9 (Error Recovery), FinTech Rate Limit UX.
+        showBanner(
+          'error',
+          err.message ||
+            t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+        );
+      } else {
+        showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
+      }
+    } else {
+      const message =
+        err instanceof Error
+          ? err.message
+          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+      showBanner('error', message);
+    }
   } finally {
     state.isSubmitting = false;
     if (submitBtn) {
@@ -873,6 +975,9 @@ formRegister?.addEventListener('submit', async (e) => {
   const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
   const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
   const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
+  // W3-P2-001 FIX: Read optional phone field — cross-platform registration parity.
+  const phone =
+    (document.getElementById('reg-phone') as HTMLInputElement)?.value.trim() || undefined;
 
   if (!full_name || !email || !password) {
     showBanner('error', t('auth_fill_all_fields', 'يرجى ملء جميع الحقول'));
@@ -906,7 +1011,8 @@ formRegister?.addEventListener('submit', async (e) => {
     // api.ts request() now has a 30s AbortController (MED-AUD-009), resolving the hang.
     // Using centralized auth.register() gains: CSRF, timeout, and error reporting.
     // P0-CRIT-001 FIX: intent field removed — no longer collected in the wizard flow.
-    const response = await auth.register({ email, password, full_name });
+    // W3-P2-001 FIX: phone field added — cross-platform registration parity.
+    const response = await auth.register({ email, password, full_name, phone });
 
     // P0-AUTH-002 FIX: Override the generic anti-enumeration backend message
     // with a clear, user-friendly success message + email verification instructions.
@@ -1050,7 +1156,7 @@ function showEmailSentConfirmation(emailAddress: string): void {
   panel.innerHTML = `
     <div class="text-center py-6">
       <div class="inline-flex items-center justify-center size-20 bg-smoky-jade/10 rounded-full mb-5">
-        <i class="ph ph-envelope-simple text-smoky-jade dark:text-emerald-400" style="font-size:2.5rem" aria-hidden="true"></i>
+        <i class="ph ph-envelope-simple text-smoky-jade dark:text-emerald-400 nm-icon-40" aria-hidden="true"></i>
       </div>
       <h2 class="text-xl font-bold mb-2" data-i18n="auth_email_sent_title">${esc(t('auth_email_sent_title', 'تحقق من بريدك الإلكتروني'))}</h2>
       <p class="text-sm text-slate-500 dark:text-slate-400 mb-1" data-i18n="auth_email_sent_desc">
@@ -1079,8 +1185,18 @@ function showEmailSentConfirmation(emailAddress: string): void {
     bannerEl.parentNode.insertBefore(panel, bannerEl.nextSibling);
   }
 
+  // BUG-F05 FIX: Track active timer IDs for cleanup when panel is removed.
+  // PREVIOUS: panel.remove() at L1132 orphaned running setIntervals.
+  // Standard: Resource Lifecycle Management, Memory Leak Prevention.
+  let _confirmResendTimer: ReturnType<typeof setInterval> | null = null;
+
   // Wire "Back to Login" button
   document.getElementById('nm-back-to-login-from-confirm')?.addEventListener('click', () => {
+    // BUG-F05 FIX: Clear countdown timer BEFORE removing panel.
+    if (_confirmResendTimer !== null) {
+      clearInterval(_confirmResendTimer);
+      _confirmResendTimer = null;
+    }
     panel.remove();
     switchTab('login');
     // Pre-fill email for convenience
@@ -1115,21 +1231,30 @@ function showEmailSentConfirmation(emailAddress: string): void {
       );
     } finally {
       resendBtn.classList.remove('btn-loading');
-      // Apply 60s cooldown to prevent spam
-      resendBtn.setAttribute('disabled', 'true');
-      resendBtn.classList.add('opacity-50', 'pointer-events-none');
+      // BUG-F03 FIX: Replaced disabled + inline opacity/pointer-events with nm-btn-cooldown.
+      // PREVIOUS: setAttribute('disabled', 'true') removed button from tab order
+      // — WCAG 2.1.1 violation. Screen reader users lost the element during cooldown.
+      // NOW: nm-btn-cooldown applies pointer-events:none + opacity:0.5 via CSS class
+      // while keeping the button in tab order and accessible to assistive technology.
+      // Standard: WCAG 2.1.1 (Keyboard), Design System Governance.
+      resendBtn.classList.add('nm-btn-cooldown');
+      resendBtn.setAttribute('aria-disabled', 'true');
       let countdown = 60;
       const countdownSpan = resendBtn.querySelector('span');
       const originalText = countdownSpan?.textContent ?? '';
-      const timer = setInterval(() => {
+      // BUG-F05 FIX: Store timer for cleanup in "Back to Login" handler.
+      _confirmResendTimer = setInterval(() => {
         countdown--;
         if (countdownSpan) {
           countdownSpan.textContent = `${t('auth_resend_wait', 'انتظر')} (${countdown}s)`;
         }
         if (countdown <= 0) {
-          clearInterval(timer);
-          resendBtn.removeAttribute('disabled');
-          resendBtn.classList.remove('opacity-50', 'pointer-events-none');
+          if (_confirmResendTimer !== null) {
+            clearInterval(_confirmResendTimer);
+            _confirmResendTimer = null;
+          }
+          resendBtn.classList.remove('nm-btn-cooldown');
+          resendBtn.removeAttribute('aria-disabled');
           if (countdownSpan) {
             countdownSpan.textContent = originalText;
           }
@@ -1193,10 +1318,10 @@ function showInlineResendVerification(emailAddress: string): void {
       );
     } finally {
       btn.classList.remove('btn-loading');
-      // BUG-013 FIX: Apply 60s cooldown to prevent spam (parity with post-registration resend).
-      // Previous: No cooldown — users could hammer the button indefinitely.
-      btn.setAttribute('disabled', 'true');
-      btn.classList.add('opacity-50', 'pointer-events-none');
+      // BUG-F03 FIX: Replaced disabled + inline opacity/pointer-events with nm-btn-cooldown.
+      // Same WCAG 2.1.1 fix as post-registration resend — keeps button in tab order.
+      btn.classList.add('nm-btn-cooldown');
+      btn.setAttribute('aria-disabled', 'true');
       let countdown = 60;
       const resendSpan = btn.querySelector('span');
       const originalResendText = resendSpan?.textContent ?? '';
@@ -1207,8 +1332,8 @@ function showInlineResendVerification(emailAddress: string): void {
         }
         if (countdown <= 0) {
           clearInterval(resendTimer);
-          btn.removeAttribute('disabled');
-          btn.classList.remove('opacity-50', 'pointer-events-none');
+          btn.classList.remove('nm-btn-cooldown');
+          btn.removeAttribute('aria-disabled');
           if (resendSpan) {
             resendSpan.textContent = originalResendText;
           }
@@ -1472,6 +1597,7 @@ function initGoogleSignIn(): void {
                 const response = await auth.socialLogin({
                   provider: 'google',
                   id_token: credentialResponse.credential,
+                  remember: getRememberMe(),
                 });
                 await handleSocialLoginSuccess(
                   response as {
@@ -1628,6 +1754,7 @@ function openGoogleOAuthPopup(clientId: string): void {
             const response = await auth.socialLogin({
               provider: 'google',
               id_token: idToken,
+              remember: getRememberMe(),
             });
             await handleSocialLoginSuccess(
               response as {
@@ -1736,6 +1863,7 @@ function initAppleSignIn(): void {
           provider: 'apple',
           id_token: appleResponse.authorization.id_token,
           full_name: fullName || undefined,
+          remember: getRememberMe(),
         });
 
         await handleSocialLoginSuccess(
@@ -1863,6 +1991,7 @@ function initFacebookLogin(): void {
               const response = await auth.socialLogin({
                 provider: 'facebook',
                 id_token: fbResponse.authResponse.accessToken,
+                remember: getRememberMe(),
               });
               await handleSocialLoginSuccess(
                 response as {
@@ -1940,6 +2069,23 @@ if (urlParams.get('reason') === 'session_expired') {
   history.replaceState(null, '', cleanUrl);
 }
 
+// BUG-F13 FIX: Pre-fill login email from ?email= URL param.
+// After successful email verification, verify-email.ts appends ?email=<user@example.com>
+// to the Sign In link. This avoids forcing the user to re-type their email.
+// Standard: Nielsen #6 (Recognition over Recall), Zero Re-entry Friction.
+const emailParam = urlParams.get('email');
+if (emailParam) {
+  const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
+  if (loginEmailInput) {
+    loginEmailInput.value = decodeURIComponent(emailParam);
+  }
+  // Clean the URL to avoid leaking email in address bar
+  urlParams.delete('email');
+  const cleanSearch = urlParams.toString();
+  const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '');
+  history.replaceState(null, '', cleanUrl);
+}
+
 // ─── FRIC-2026-004 FIX: Autofocus Login Email on Page Load ──────────────────
 // Previous: No field auto-focused — mobile users had to manually tap the email field.
 // Auth is the first screen every user sees; reducing time-to-first-input is critical.
@@ -1950,6 +2096,13 @@ if (state.mode === 'login') {
   // Delay to avoid competing with theme-boot.js visibility restore
   requestAnimationFrame(() => {
     document.getElementById('login-email')?.focus();
+  });
+} else if (state.mode === 'register') {
+  // W3-P3-004 FIX: Autofocus for register tab — was missing.
+  // Previous: Only login mode had autofocus. Register users had to manually tap name field.
+  // Standard: Apple HIG ("Focus the primary input"), Material Design 3.
+  requestAnimationFrame(() => {
+    document.getElementById('reg-name')?.focus();
   });
 }
 

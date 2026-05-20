@@ -246,6 +246,9 @@
                Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
                Now: Inherits dark mode, focus ring, and token updates from design system.
                Standard: Design System Governance, DEF-004. -->
+            <!-- BUG-F12 FIX: maxlength="254" — RFC 5321 max email length.
+               Backend validates MAX_EMAIL_LENGTH=254 but without this, mobile keyboards
+               don't enforce the limit. Standard: Defense-in-Depth, Input Validation Parity. -->
             <input
               id="login-email"
               name="email"
@@ -254,6 +257,7 @@
               autocomplete="email"
               inputmode="email"
               enterkeyhint="next"
+              maxlength="254"
               class="nm-input ps-12"
               placeholder="you@example.com"
               data-i18n-placeholder="auth_email_placeholder"
@@ -280,6 +284,7 @@
               required
               autocomplete="current-password"
               minlength="8"
+              maxlength="128"
               enterkeyhint="go"
               class="nm-input ps-12 pe-12"
               dir="ltr"
@@ -540,6 +545,8 @@
               ></i>
               <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
                  Standard: Apple HIG (Keyboard Management), Android Material Design. -->
+              <!-- BUG-F11 FIX: maxlength="255" — matches backend VARCHAR(255) column.
+                 Without this, a user can paste 10K+ chars. Standard: Defense-in-Depth. -->
               <input
                 id="reg-name"
                 name="full_name"
@@ -547,6 +554,7 @@
                 required
                 autocomplete="name"
                 enterkeyhint="next"
+                maxlength="255"
                 class="nm-input ps-12"
                 placeholder="الاسم الكامل"
                 data-i18n-placeholder="auth_name_placeholder"
@@ -566,6 +574,7 @@
                 class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
+              <!-- BUG-F12 FIX: maxlength="254" — RFC 5321 parity with login-email. -->
               <input
                 id="reg-email"
                 name="email"
@@ -574,16 +583,56 @@
                 autocomplete="email"
                 inputmode="email"
                 enterkeyhint="next"
+                maxlength="254"
                 class="nm-input ps-12"
                 placeholder="you@example.com"
                 data-i18n-placeholder="auth_email_placeholder"
               />
             </div>
           </div>
+          <!-- W3-P2-001 FIX: Optional Phone Field.
+             Backend already accepts `phone` (auth.routes.ts L297-308).
+             Mobile app collects phone during registration.
+             Web was the only platform NOT collecting phone — breaking data parity.
+             Standard: Cross-Platform Registration Parity, Anti-Fraud (phone verification). -->
+          <div class="mb-4">
+            <label
+              for="reg-phone"
+              class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 dark:text-slate-400"
+              data-i18n="phone_label"
+              >رقم الهاتف
+              <span class="text-slate-400 dark:text-slate-500 font-normal normal-case"
+                >(اختياري)</span
+              ></label
+            >
+            <div class="relative">
+              <i
+                class="ph ph-phone absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                aria-hidden="true"
+              ></i>
+              <input
+                id="reg-phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                enterkeyhint="next"
+                maxlength="20"
+                class="nm-input ps-12"
+                dir="ltr"
+                placeholder="+963 xxx xxx xxx"
+                data-i18n-placeholder="auth_phone_placeholder"
+              />
+            </div>
+          </div>
           <!-- Next button -->
+          <!-- BUG-F07 FIX: ph-arrow-right → ph-caret-right for RTL correctness.
+             Step 2 (L716) uses ph-caret-right. Step 1 was inconsistent.
+             ph-caret-right auto-flips in RTL via Phosphor's built-in mirroring.
+             Standard: RTL Icon Parity, Phosphor Design System. -->
           <button type="button" class="nm-step-next btn-primary w-full" data-goto-step="2">
             <span data-i18n="reg_next">التالي</span>
-            <i class="ph ph-arrow-right" aria-hidden="true"></i>
+            <i class="ph ph-caret-right" aria-hidden="true"></i>
           </button>
         </fieldset>
 
@@ -603,6 +652,9 @@
                 class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
+              <!-- BUG-F04 FIX: maxlength="128" — parity with login-password (L283).
+                 Without this, mobile keyboards don't enforce the SEC-003 bcrypt DoS limit.
+                 Standard: Defense-in-Depth, Frontend-Backend Validation Parity. -->
               <input
                 id="reg-password"
                 name="password"
@@ -610,6 +662,7 @@
                 required
                 autocomplete="new-password"
                 minlength="8"
+                maxlength="128"
                 enterkeyhint="next"
                 class="nm-input ps-12 pe-12"
                 dir="ltr"
@@ -663,6 +716,7 @@
               <!-- P1-UXA-008 FIX: enterkeyhint="next" — Step 3 follows, not end of form.
                  Previous: "done" dismissed keyboard, requiring manual tap on Next.
                  Standard: Apple HIG (Custom Keyboard Actions). -->
+              <!-- BUG-F04 FIX: maxlength="128" — parity with reg-password and login-password. -->
               <input
                 id="reg-password-confirm"
                 name="password_confirm"
@@ -670,6 +724,7 @@
                 required
                 autocomplete="new-password"
                 minlength="8"
+                maxlength="128"
                 enterkeyhint="next"
                 class="nm-input ps-12 pe-12"
                 dir="ltr"
@@ -766,12 +821,13 @@
                    Previous: Only name + email shown — no confirmation that password met requirements.
                    Reduces user anxiety about password acceptance at final step.
                    Standard: Nielsen #1 (System Status Visibility), Material Design 3. -->
-                <p
-                  id="reg-review-pw-strength"
-                  class="text-xs text-smoky-jade font-semibold mt-0.5 nm-hidden dark:text-emerald-400"
-                >
+                <!-- BUG-F01 FIX: Removed hardcoded "قوي ✓" (Strong ✓).
+                   Previous: Always showed "Strong ✓" regardless of actual score.
+                   Now: auth.ts dynamically populates both text and color.
+                   Standard: Nielsen #1 (System Status Visibility), Zero False Confidence. -->
+                <p id="reg-review-pw-strength" class="text-xs font-semibold mt-0.5 nm-hidden">
                   <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
-                  <span data-i18n="pw_strength_strong">قوي</span> ✓
+                  <span id="reg-review-pw-strength-text"></span>
                 </p>
               </div>
             </div>

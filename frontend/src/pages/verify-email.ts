@@ -69,15 +69,15 @@ function showResult(
 
     if (type === 'success') {
       bannerInner.className =
-        'rounded-xl p-4 text-sm font-medium flex items-start gap-3 bg-emerald-50 text-emerald-700 border border-emerald-200';
+        'rounded-xl p-4 text-sm font-medium flex items-start gap-3 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800';
       bannerIcon.className = 'ph ph-check-circle mt-0.5';
     } else if (type === 'expired') {
       bannerInner.className =
-        'rounded-xl p-4 text-sm font-medium flex items-start gap-3 bg-amber-50 text-amber-700 border border-amber-200';
+        'rounded-xl p-4 text-sm font-medium flex items-start gap-3 bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800';
       bannerIcon.className = 'ph ph-clock-countdown mt-0.5';
     } else {
       bannerInner.className =
-        'rounded-xl p-4 text-sm font-medium flex items-start gap-3 bg-red-50 text-red-700 border border-red-200';
+        'rounded-xl p-4 text-sm font-medium flex items-start gap-3 bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
       bannerIcon.className = 'ph ph-warning-circle mt-0.5';
     }
   }
@@ -116,6 +116,15 @@ async function verifyEmail(): Promise<void> {
         t('verify_success_title', 'تم التحقق!'),
         data.message ?? t('verify_success_body', 'تم تأكيد بريدك الإلكتروني بنجاح'),
       );
+      // BUG-F13 FIX: Update "Sign In" link to include verified email for pre-fill.
+      // PREVIOUS: <a href="/auth.html"> — user had to re-type email after verification.
+      // NOW: Appends ?email= param. auth.ts reads it for pre-fill convenience.
+      // Standard: Nielsen #6 (Recognition over Recall), Zero Re-entry Friction.
+      const signInLink = document.getElementById('verify-action-btn') as HTMLAnchorElement | null;
+      const verifiedEmail = urlParams.get('email') ?? resendEmail?.value.trim() ?? '';
+      if (signInLink && verifiedEmail) {
+        signInLink.href = `/auth.html?email=${encodeURIComponent(verifiedEmail)}`;
+      }
     } else {
       showResult(
         'error',
@@ -165,8 +174,11 @@ resendBtn?.addEventListener('click', async () => {
     return;
   }
 
-  resendBtn.textContent = t('verify_resend_sending', 'جاري إعادة الإرسال…');
-  (resendBtn as HTMLButtonElement).disabled = true;
+  // BUG-F03 FIX: Replaced `.disabled = true` with nm-btn-cooldown CSS class.
+  // PREVIOUS: `disabled` removed button from tab order — WCAG 2.1.1 violation.
+  // Standard: WCAG 2.1.1 (Keyboard), Parity with auth.ts resend pattern.
+  resendBtn.classList.add('btn-loading');
+  (resendBtn as HTMLElement).setAttribute('aria-disabled', 'true');
 
   try {
     const data = await auth.resendVerification({ email });
@@ -186,8 +198,25 @@ resendBtn?.addEventListener('click', async () => {
         : t('verify_resend_network_error', 'خطأ في الشبكة أثناء الإرسال'),
     );
   } finally {
-    resendBtn.textContent = t('verify_resend_btn', 'إعادة إرسال رابط التحقق');
-    (resendBtn as HTMLButtonElement).disabled = false;
+    resendBtn.classList.remove('btn-loading');
+    // BUG-F06 FIX: Apply 60s cooldown to prevent spam (parity with auth.ts).
+    // PREVIOUS: Button immediately re-enabled — users hammered it → 429 errors.
+    // Standard: Rate Limit UX, Parity with auth.ts cooldown pattern.
+    resendBtn.classList.add('nm-btn-cooldown');
+    (resendBtn as HTMLElement).setAttribute('aria-disabled', 'true');
+    const btnEl = resendBtn as HTMLElement;
+    const origText = btnEl.textContent ?? '';
+    let countdown = 60;
+    const cooldownTimer = setInterval(() => {
+      countdown--;
+      btnEl.textContent = `${t('verify_resend_wait', 'انتظر')} (${countdown}s)`;
+      if (countdown <= 0) {
+        clearInterval(cooldownTimer);
+        resendBtn.classList.remove('nm-btn-cooldown');
+        btnEl.removeAttribute('aria-disabled');
+        btnEl.textContent = origText;
+      }
+    }, 1000);
   }
 });
 
@@ -197,10 +226,13 @@ function showResendFeedback(type: 'success' | 'error', message: string): void {
   }
   // DEF-VIS-003 FIX: Replaced style.display with classList toggle.
   resendFeedback.classList.remove('nm-hidden');
+  // BUG-F08 FIX: Added dark: variants for dark mode parity.
+  // PREVIOUS: bg-emerald-50/bg-red-50 only — light backgrounds clashed in dark mode.
+  // Standard: Dark Mode Parity, Nammerha Design System.
   resendFeedback.className = `mt-2 rounded-lg p-2 text-xs font-medium ${
     type === 'success'
-      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-      : 'bg-red-50 text-red-700 border border-red-200'
+      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800'
+      : 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800'
   }`;
   resendFeedback.textContent = message;
 }
